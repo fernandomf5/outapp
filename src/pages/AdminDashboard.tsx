@@ -42,6 +42,15 @@ interface Plan {
   features: string[];
 }
 
+interface Tutorial {
+  id: string;
+  title: string;
+  description: string;
+  videoUrl: string;
+  duration: string;
+  category: string;
+}
+
 const AdminDashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -80,6 +89,27 @@ const AdminDashboard = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
+  const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
+  const [editingVideo, setEditingVideo] = useState<Tutorial | null>(null);
+
+  const [tutorials, setTutorials] = useState<Tutorial[]>([
+    {
+      id: "1",
+      title: "Como conectar seu WhatsApp",
+      description: "Aprenda a conectar sua conta do WhatsApp em poucos minutos",
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      duration: "5:30",
+      category: "Iniciante",
+    },
+    {
+      id: "2",
+      title: "Criando seu primeiro chatbot",
+      description: "Passo a passo para criar automações incríveis",
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      duration: "12:45",
+      category: "Intermediário",
+    },
+  ]);
   
   // Admin Profile Settings
   const [adminProfile, setAdminProfile] = useState({
@@ -170,32 +200,74 @@ const AdminDashboard = () => {
     setIsBroadcastOpen(false);
   };
 
+  const handleSaveVideo = () => {
+    if (editingVideo) {
+      if (editingVideo.id === "new") {
+        setTutorials([...tutorials, { ...editingVideo, id: Date.now().toString() }]);
+        toast({
+          title: "Vídeo adicionado! ✅",
+          description: "O tutorial está disponível para todos os usuários.",
+        });
+      } else {
+        setTutorials(tutorials.map(t => t.id === editingVideo.id ? editingVideo : t));
+        toast({
+          title: "Vídeo atualizado! ✅",
+          description: "As alterações foram salvas.",
+        });
+      }
+    }
+    setIsVideoDialogOpen(false);
+    setEditingVideo(null);
+  };
+
+  const handleDeleteVideo = (id: string) => {
+    setTutorials(tutorials.filter(t => t.id !== id));
+    toast({
+      title: "Vídeo removido",
+      description: "O tutorial foi excluído com sucesso.",
+    });
+  };
+
+  const createNewVideo = () => {
+    setEditingVideo({
+      id: "new",
+      title: "",
+      description: "",
+      videoUrl: "",
+      duration: "",
+      category: "Iniciante",
+    });
+    setIsVideoDialogOpen(true);
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Header */}
-      <header className="bg-card border-b border-border px-6 py-4">
+      <header className="bg-gradient-to-r from-card via-card to-primary/5 border-b border-border/50 backdrop-blur-sm px-6 py-4 sticky top-0 z-50 shadow-lg">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/auth")}>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/auth")} className="hover:bg-primary/10">
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex items-center gap-3">
-              <div className="bg-warning/10 p-2 rounded-xl">
+              <div className="bg-gradient-to-br from-warning/20 to-warning/10 p-3 rounded-xl shadow-glow animate-pulse">
                 <Crown className="w-8 h-8 text-warning" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold">Painel Master Admin</h1>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                  Painel Master Admin
+                </h1>
                 <p className="text-sm text-muted-foreground">Controle total da plataforma</p>
               </div>
             </div>
           </div>
 
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setIsBroadcastOpen(true)}>
+            <Button variant="outline" onClick={() => setIsBroadcastOpen(true)} className="hover:bg-primary/10 hover:border-primary transition-all">
               <MessageSquare className="w-4 h-4 mr-2" />
               Mensagens
             </Button>
-            <Button variant="outline" onClick={() => setIsSettingsOpen(true)}>
+            <Button variant="outline" onClick={() => setIsSettingsOpen(true)} className="hover:bg-primary/10 hover:border-primary transition-all">
               <Settings className="w-4 h-4 mr-2" />
               Configurações
             </Button>
@@ -206,56 +278,68 @@ const AdminDashboard = () => {
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-primary/10 p-3 rounded-xl">
-                <Users className="w-6 h-6 text-primary" />
+          <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-primary/5 border-primary/20 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <div className="bg-gradient-to-br from-primary/20 to-primary/10 p-3 rounded-xl shadow-glow">
+                  <Users className="w-6 h-6 text-primary" />
+                </div>
+                <span className="text-sm font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full">+32 este mês</span>
               </div>
-              <span className="text-sm font-medium text-primary">+32 este mês</span>
+              <h3 className="text-3xl font-bold mb-1 bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">{stats.totalUsers}</h3>
+              <p className="text-muted-foreground">Usuários Totais</p>
             </div>
-            <h3 className="text-3xl font-bold mb-1">{stats.totalUsers}</h3>
-            <p className="text-muted-foreground">Usuários Totais</p>
           </Card>
 
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-success/10 p-3 rounded-xl">
-                <TrendingUp className="w-6 h-6 text-success" />
+          <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-success/5 border-success/20 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-r from-success/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <div className="bg-gradient-to-br from-success/20 to-success/10 p-3 rounded-xl shadow-glow">
+                  <TrendingUp className="w-6 h-6 text-success" />
+                </div>
+                <span className="text-sm font-semibold text-success bg-success/10 px-3 py-1 rounded-full">Ativo</span>
               </div>
-              <span className="text-sm font-medium text-success">Ativo</span>
+              <h3 className="text-3xl font-bold mb-1 bg-gradient-to-r from-foreground to-success bg-clip-text text-transparent">{stats.activeSubscriptions}</h3>
+              <p className="text-muted-foreground">Assinaturas Ativas</p>
             </div>
-            <h3 className="text-3xl font-bold mb-1">{stats.activeSubscriptions}</h3>
-            <p className="text-muted-foreground">Assinaturas Ativas</p>
           </Card>
 
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-warning/10 p-3 rounded-xl">
-                <DollarSign className="w-6 h-6 text-warning" />
+          <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-warning/5 border-warning/20 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-r from-warning/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <div className="bg-gradient-to-br from-warning/20 to-warning/10 p-3 rounded-xl shadow-glow">
+                  <DollarSign className="w-6 h-6 text-warning" />
+                </div>
+                <span className="text-sm font-semibold text-warning bg-warning/10 px-3 py-1 rounded-full">+{stats.growthRate}%</span>
               </div>
-              <span className="text-sm font-medium text-warning">+{stats.growthRate}%</span>
+              <h3 className="text-3xl font-bold mb-1 bg-gradient-to-r from-foreground to-warning bg-clip-text text-transparent">R$ {stats.monthlyRevenue.toLocaleString()}</h3>
+              <p className="text-muted-foreground">Receita Mensal</p>
             </div>
-            <h3 className="text-3xl font-bold mb-1">R$ {stats.monthlyRevenue.toLocaleString()}</h3>
-            <p className="text-muted-foreground">Receita Mensal</p>
           </Card>
 
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-info/10 p-3 rounded-xl">
-                <TrendingUp className="w-6 h-6 text-info" />
+          <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-info/5 border-info/20 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-r from-info/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <div className="bg-gradient-to-br from-info/20 to-info/10 p-3 rounded-xl shadow-glow">
+                  <TrendingUp className="w-6 h-6 text-info" />
+                </div>
+                <span className="text-sm font-semibold text-info bg-info/10 px-3 py-1 rounded-full">Crescimento</span>
               </div>
-              <span className="text-sm font-medium text-info">Crescimento</span>
+              <h3 className="text-3xl font-bold mb-1 bg-gradient-to-r from-foreground to-info bg-clip-text text-transparent">{stats.growthRate}%</h3>
+              <p className="text-muted-foreground">Taxa de Crescimento</p>
             </div>
-            <h3 className="text-3xl font-bold mb-1">{stats.growthRate}%</h3>
-            <p className="text-muted-foreground">Taxa de Crescimento</p>
           </Card>
         </div>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="p-6 hover:shadow-lg transition-smooth cursor-pointer" onClick={() => setIsBroadcastOpen(true)}>
+          <Card className="p-6 hover:shadow-xl hover-scale transition-smooth cursor-pointer bg-gradient-to-br from-card to-primary/5 border-primary/20 group" onClick={() => setIsBroadcastOpen(true)}>
             <div className="flex items-center gap-4">
-              <div className="bg-primary/10 p-3 rounded-xl">
+              <div className="bg-gradient-to-br from-primary/20 to-primary/10 p-3 rounded-xl shadow-glow group-hover:scale-110 transition-transform">
                 <MessageSquare className="w-6 h-6 text-primary" />
               </div>
               <div>
@@ -265,9 +349,9 @@ const AdminDashboard = () => {
             </div>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-smooth cursor-pointer">
+          <Card className="p-6 hover:shadow-xl hover-scale transition-smooth cursor-pointer bg-gradient-to-br from-card to-info/5 border-info/20 group">
             <div className="flex items-center gap-4">
-              <div className="bg-info/10 p-3 rounded-xl">
+              <div className="bg-gradient-to-br from-info/20 to-info/10 p-3 rounded-xl shadow-glow group-hover:scale-110 transition-transform">
                 <BarChart3 className="w-6 h-6 text-info" />
               </div>
               <div>
@@ -277,9 +361,9 @@ const AdminDashboard = () => {
             </div>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-smooth cursor-pointer">
+          <Card className="p-6 hover:shadow-xl hover-scale transition-smooth cursor-pointer bg-gradient-to-br from-card to-warning/5 border-warning/20 group" onClick={() => setIsVideoDialogOpen(true)}>
             <div className="flex items-center gap-4">
-              <div className="bg-warning/10 p-3 rounded-xl">
+              <div className="bg-gradient-to-br from-warning/20 to-warning/10 p-3 rounded-xl shadow-glow group-hover:scale-110 transition-transform">
                 <Video className="w-6 h-6 text-warning" />
               </div>
               <div>
@@ -290,34 +374,39 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        {/* Plans Management */}
-        <Card className="p-6 mb-8">
+        {/* Video Tutorials Management */}
+        <Card className="p-6 mb-8 bg-gradient-to-br from-card via-card to-warning/5 border-warning/20">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Gerenciar Planos</h2>
-            <Button onClick={createNewPlan} className="gradient-primary">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-foreground to-warning bg-clip-text text-transparent">Vídeos Tutoriais</h2>
+            <Button onClick={createNewVideo} className="gradient-primary shadow-glow hover-scale">
               <Plus className="w-4 h-4 mr-2" />
-              Criar Novo Plano
+              Adicionar Vídeo
             </Button>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {plans.map((plan) => (
-              <Card key={plan.id} className="p-6 hover:shadow-lg transition-smooth">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold mb-1">{plan.name}</h3>
-                    <p className="text-3xl font-bold text-primary">
-                      R$ {plan.price.toFixed(2)}
-                      <span className="text-sm text-muted-foreground font-normal">/mês</span>
-                    </p>
+          <div className="grid md:grid-cols-2 gap-6">
+            {tutorials.map((tutorial) => (
+              <Card key={tutorial.id} className="p-5 hover:shadow-lg transition-smooth bg-gradient-to-br from-background to-warning/5 border-warning/10">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-gradient-to-br from-warning/20 to-warning/10 p-2 rounded-lg">
+                      <Video className="w-5 h-5 text-warning" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold">{tutorial.title}</h3>
+                      <div className="flex gap-2 mt-1">
+                        <span className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded-full">{tutorial.category}</span>
+                        <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{tutorial.duration}</span>
+                      </div>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => {
-                        setEditingPlan(plan);
-                        setIsDialogOpen(true);
+                        setEditingVideo(tutorial);
+                        setIsVideoDialogOpen(true);
                       }}
                     >
                       <Edit className="w-4 h-4" />
@@ -325,31 +414,91 @@ const AdminDashboard = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => handleDeletePlan(plan.id)}
+                      onClick={() => handleDeleteVideo(tutorial.id)}
                     >
                       <Trash2 className="w-4 h-4 text-destructive" />
                     </Button>
                   </div>
                 </div>
 
-                <p className="text-muted-foreground mb-4">{plan.description}</p>
+                <p className="text-sm text-muted-foreground mb-3">{tutorial.description}</p>
+                
+                <div className="aspect-video bg-muted rounded-lg overflow-hidden">
+                  <iframe
+                    src={tutorial.videoUrl}
+                    className="w-full h-full"
+                    allowFullScreen
+                    title={tutorial.title}
+                  />
+                </div>
+              </Card>
+            ))}
+          </div>
+        </Card>
 
-                <ul className="space-y-2">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-center gap-2 text-sm">
-                      <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
+        {/* Plans Management */}
+        <Card className="p-6 mb-8 bg-gradient-to-br from-card via-card to-primary/5 border-primary/20">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">Gerenciar Planos</h2>
+            <Button onClick={createNewPlan} className="gradient-primary shadow-glow hover-scale">
+              <Plus className="w-4 h-4 mr-2" />
+              Criar Novo Plano
+            </Button>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {plans.map((plan) => (
+              <Card key={plan.id} className="p-6 hover:shadow-xl hover-scale transition-smooth bg-gradient-to-br from-background to-primary/5 border-primary/10 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative z-10">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-xl font-bold mb-1">{plan.name}</h3>
+                      <p className="text-3xl font-bold bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">
+                        R$ {plan.price.toFixed(2)}
+                        <span className="text-sm text-muted-foreground font-normal">/mês</span>
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setEditingPlan(plan);
+                          setIsDialogOpen(true);
+                        }}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeletePlan(plan.id)}
+                      >
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <p className="text-muted-foreground mb-4">{plan.description}</p>
+
+                  <ul className="space-y-2">
+                    {plan.features.map((feature, index) => (
+                      <li key={index} className="flex items-center gap-2 text-sm">
+                        <div className="w-1.5 h-1.5 bg-gradient-to-r from-primary to-success rounded-full shadow-glow"></div>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </Card>
             ))}
           </div>
         </Card>
 
         {/* Kiwify Integration */}
-        <Card className="p-6">
-          <h2 className="text-2xl font-bold mb-4">Integração Kiwify</h2>
+        <Card className="p-6 bg-gradient-to-br from-card via-card to-success/5 border-success/20">
+          <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-foreground to-success bg-clip-text text-transparent">Integração Kiwify</h2>
           <p className="text-muted-foreground mb-6">
             Configure a integração com a Kiwify para gerenciar pagamentos e afiliados
           </p>
@@ -372,12 +521,103 @@ const AdminDashboard = () => {
               </p>
             </div>
 
-            <Button className="gradient-primary">
+            <Button className="gradient-primary shadow-glow hover-scale">
               Salvar Configurações
             </Button>
           </div>
         </Card>
       </main>
+
+      {/* Video Tutorial Dialog */}
+      <Dialog open={isVideoDialogOpen} onOpenChange={setIsVideoDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Video className="w-5 h-5" />
+              {editingVideo?.id === "new" ? "Adicionar Novo Vídeo Tutorial" : "Editar Vídeo Tutorial"}
+            </DialogTitle>
+          </DialogHeader>
+
+          {editingVideo && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="video-title">Título do Vídeo</Label>
+                <Input
+                  id="video-title"
+                  value={editingVideo.title}
+                  onChange={(e) =>
+                    setEditingVideo({ ...editingVideo, title: e.target.value })
+                  }
+                  placeholder="Ex: Como criar seu primeiro chatbot"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="video-description">Descrição</Label>
+                <Textarea
+                  id="video-description"
+                  value={editingVideo.description}
+                  onChange={(e) =>
+                    setEditingVideo({ ...editingVideo, description: e.target.value })
+                  }
+                  placeholder="Descreva sobre o que é o vídeo..."
+                  className="min-h-[100px]"
+                />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="video-category">Categoria</Label>
+                  <Input
+                    id="video-category"
+                    value={editingVideo.category}
+                    onChange={(e) =>
+                      setEditingVideo({ ...editingVideo, category: e.target.value })
+                    }
+                    placeholder="Ex: Iniciante, Intermediário"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="video-duration">Duração</Label>
+                  <Input
+                    id="video-duration"
+                    value={editingVideo.duration}
+                    onChange={(e) =>
+                      setEditingVideo({ ...editingVideo, duration: e.target.value })
+                    }
+                    placeholder="Ex: 5:30"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="video-url">URL do Vídeo (YouTube Embed)</Label>
+                <Input
+                  id="video-url"
+                  value={editingVideo.videoUrl}
+                  onChange={(e) =>
+                    setEditingVideo({ ...editingVideo, videoUrl: e.target.value })
+                  }
+                  placeholder="https://www.youtube.com/embed/..."
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Use o formato de embed do YouTube: https://www.youtube.com/embed/VIDEO_ID
+                </p>
+              </div>
+
+              <div className="flex gap-3 justify-end pt-4">
+                <Button variant="outline" onClick={() => setIsVideoDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleSaveVideo} className="gradient-primary">
+                  {editingVideo.id === "new" ? "Adicionar Vídeo" : "Salvar Alterações"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Settings Dialog */}
       <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
