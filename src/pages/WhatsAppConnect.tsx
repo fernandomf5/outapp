@@ -3,10 +3,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, QrCode, CheckCircle, Bot, Zap, Loader2, MessageSquare, Settings as SettingsIcon, Send, RefreshCw } from "lucide-react";
+import { ArrowLeft, QrCode, CheckCircle, Bot, Zap, Loader2, MessageSquare, Settings as SettingsIcon, Send, RefreshCw, Clock, Tag, Users, BarChart3, Bell, Star, Filter, Calendar, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 
 const WhatsAppConnect = () => {
   const { toast } = useToast();
@@ -22,6 +26,33 @@ const WhatsAppConnect = () => {
     awayMessage: "Estamos fora do horário de atendimento. Responderemos em breve!",
     autoReply: true,
     aiMode: false,
+    businessHours: {
+      enabled: false,
+      start: "09:00",
+      end: "18:00",
+      days: ["seg", "ter", "qua", "qui", "sex"]
+    },
+    notifications: {
+      sound: true,
+      desktop: true,
+      mobile: true
+    },
+    quickReplies: [
+      { id: 1, title: "Saudação", text: "Olá! Como posso ajudar você hoje?" },
+      { id: 2, title: "Horário", text: "Nosso horário de atendimento é de segunda a sexta, das 9h às 18h." },
+      { id: 3, title: "Agradecimento", text: "Obrigado por entrar em contato! Ficamos felizes em ajudar." }
+    ],
+    triggers: [
+      { id: 1, keyword: "preço", response: "Nossos planos começam em R$ 49,90/mês" },
+      { id: 2, keyword: "horário", response: "Atendemos de segunda a sexta, das 9h às 18h" }
+    ],
+    tags: ["Atendimento", "Vendas", "Suporte", "Urgente"],
+    analytics: {
+      totalMessages: 245,
+      avgResponseTime: "2.3 min",
+      satisfaction: 4.7,
+      activeChats: 12
+    }
   });
 
   // Test Message State
@@ -273,9 +304,10 @@ const WhatsAppConnect = () => {
                 </div>
 
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="grid w-full grid-cols-2 mb-4">
-                    <TabsTrigger value="chat">Chat</TabsTrigger>
-                    <TabsTrigger value="ai">IA</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-3 gap-1 mb-4">
+                    <TabsTrigger value="chat" className="text-xs">Chat</TabsTrigger>
+                    <TabsTrigger value="ai" className="text-xs">IA</TabsTrigger>
+                    <TabsTrigger value="advanced" className="text-xs">Avançado</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="chat" className="space-y-4">
@@ -317,28 +349,200 @@ const WhatsAppConnect = () => {
                         <span className="text-sm font-medium block">Modo IA</span>
                         <span className="text-xs text-muted-foreground">Atendimento inteligente</span>
                       </div>
-                      <Button
-                        variant={botConfig.aiMode ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setBotConfig({ ...botConfig, aiMode: !botConfig.aiMode })}
-                      >
-                        {botConfig.aiMode ? "Ativo" : "Inativo"}
-                      </Button>
+                      <Switch
+                        checked={botConfig.aiMode}
+                        onCheckedChange={(checked) => setBotConfig({ ...botConfig, aiMode: checked })}
+                      />
                     </div>
 
                     {botConfig.aiMode && (
                       <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
                         <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                          <Zap className="w-4 h-4" />
+                          <Sparkles className="w-4 h-4 text-primary" />
                           IA Ativa
                         </h4>
                         <ul className="text-xs text-muted-foreground space-y-1">
                           <li>• Respostas contextuais inteligentes</li>
                           <li>• Aprendizado com conversas</li>
                           <li>• Processamento de linguagem natural</li>
+                          <li>• Análise de sentimento do cliente</li>
+                          <li>• Sugestões automáticas de resposta</li>
                         </ul>
+                        
+                        <Button variant="outline" size="sm" className="w-full mt-3" onClick={() => navigate("/ai-agent")}>
+                          <Bot className="w-3 h-3 mr-2" />
+                          Configurar Agente IA
+                        </Button>
                       </div>
                     )}
+
+                    <Separator className="my-4" />
+
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block flex items-center gap-2">
+                        <Zap className="w-4 h-4" />
+                        Respostas Rápidas
+                      </Label>
+                      <div className="space-y-2">
+                        {botConfig.quickReplies.map((reply) => (
+                          <Card key={reply.id} className="p-3 bg-accent/30">
+                            <div className="flex items-start justify-between mb-1">
+                              <span className="text-xs font-semibold text-primary">{reply.title}</span>
+                              <Star className="w-3 h-3 text-yellow-500" />
+                            </div>
+                            <p className="text-xs text-muted-foreground">{reply.text}</p>
+                          </Card>
+                        ))}
+                      </div>
+                      <Button variant="outline" size="sm" className="w-full mt-2">
+                        + Adicionar Resposta Rápida
+                      </Button>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="advanced" className="space-y-4">
+                    {/* Horário de Atendimento */}
+                    <div>
+                      <Label className="text-sm font-medium mb-3 flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        Horário de Atendimento
+                      </Label>
+                      <div className="space-y-3 p-3 bg-accent/30 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs">Ativar horário</span>
+                          <Switch
+                            checked={botConfig.businessHours.enabled}
+                            onCheckedChange={(checked) => 
+                              setBotConfig({
+                                ...botConfig,
+                                businessHours: { ...botConfig.businessHours, enabled: checked }
+                              })
+                            }
+                          />
+                        </div>
+                        {botConfig.businessHours.enabled && (
+                          <>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <Label className="text-xs">Início</Label>
+                                <Input type="time" value={botConfig.businessHours.start} className="h-8 text-xs" />
+                              </div>
+                              <div>
+                                <Label className="text-xs">Fim</Label>
+                                <Input type="time" value={botConfig.businessHours.end} className="h-8 text-xs" />
+                              </div>
+                            </div>
+                            <div className="flex gap-1 flex-wrap">
+                              {["seg", "ter", "qua", "qui", "sex", "sáb", "dom"].map((day) => (
+                                <Button
+                                  key={day}
+                                  variant={botConfig.businessHours.days.includes(day) ? "default" : "outline"}
+                                  size="sm"
+                                  className="h-7 px-2 text-xs"
+                                >
+                                  {day}
+                                </Button>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Gatilhos Automáticos */}
+                    <div>
+                      <Label className="text-sm font-medium mb-2 flex items-center gap-2">
+                        <Filter className="w-4 h-4" />
+                        Gatilhos Automáticos
+                      </Label>
+                      <div className="space-y-2">
+                        {botConfig.triggers.map((trigger) => (
+                          <Card key={trigger.id} className="p-3 bg-accent/30">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Tag className="w-3 h-3 text-primary" />
+                              <span className="text-xs font-semibold">Palavra-chave: "{trigger.keyword}"</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">→ {trigger.response}</p>
+                          </Card>
+                        ))}
+                      </div>
+                      <Button variant="outline" size="sm" className="w-full mt-2">
+                        + Adicionar Gatilho
+                      </Button>
+                    </div>
+
+                    {/* Tags */}
+                    <div>
+                      <Label className="text-sm font-medium mb-2 flex items-center gap-2">
+                        <Tag className="w-4 h-4" />
+                        Tags de Categorização
+                      </Label>
+                      <div className="flex flex-wrap gap-2 p-3 bg-accent/30 rounded-lg">
+                        {botConfig.tags.map((tag, idx) => (
+                          <span key={idx} className="px-2 py-1 bg-primary/20 text-primary text-xs rounded-full">
+                            #{tag}
+                          </span>
+                        ))}
+                        <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
+                          + Nova Tag
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Notificações */}
+                    <div>
+                      <Label className="text-sm font-medium mb-2 flex items-center gap-2">
+                        <Bell className="w-4 h-4" />
+                        Notificações
+                      </Label>
+                      <div className="space-y-2 p-3 bg-accent/30 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs">Som</span>
+                          <Switch checked={botConfig.notifications.sound} />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs">Desktop</span>
+                          <Switch checked={botConfig.notifications.desktop} />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs">Mobile</span>
+                          <Switch checked={botConfig.notifications.mobile} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Analytics */}
+                    <div>
+                      <Label className="text-sm font-medium mb-2 flex items-center gap-2">
+                        <BarChart3 className="w-4 h-4" />
+                        Estatísticas
+                      </Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Card className="p-3 bg-primary/5">
+                          <p className="text-xs text-muted-foreground">Total de Mensagens</p>
+                          <p className="text-xl font-bold text-primary">{botConfig.analytics.totalMessages}</p>
+                        </Card>
+                        <Card className="p-3 bg-primary/5">
+                          <p className="text-xs text-muted-foreground">Tempo Médio</p>
+                          <p className="text-xl font-bold text-primary">{botConfig.analytics.avgResponseTime}</p>
+                        </Card>
+                        <Card className="p-3 bg-primary/5">
+                          <p className="text-xs text-muted-foreground">Satisfação</p>
+                          <p className="text-xl font-bold text-primary flex items-center gap-1">
+                            {botConfig.analytics.satisfaction}
+                            <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                          </p>
+                        </Card>
+                        <Card className="p-3 bg-primary/5">
+                          <p className="text-xs text-muted-foreground">Chats Ativos</p>
+                          <p className="text-xl font-bold text-primary">{botConfig.analytics.activeChats}</p>
+                        </Card>
+                      </div>
+                      <Button variant="outline" size="sm" className="w-full mt-2">
+                        <BarChart3 className="w-3 h-3 mr-2" />
+                        Ver Relatório Completo
+                      </Button>
+                    </div>
                   </TabsContent>
                 </Tabs>
 
@@ -347,20 +551,31 @@ const WhatsAppConnect = () => {
                   Salvar Configurações
                 </Button>
 
-                <div className="mt-4 space-y-2">
+                <Separator className="my-4" />
+
+                <div className="space-y-2">
                   <Button
                     variant="outline"
                     className="w-full"
                     onClick={() => navigate("/bot-builder")}
                   >
                     <Bot className="w-4 h-4 mr-2" />
-                    Editor Avançado
+                    Editor de Fluxo Avançado
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => navigate("/ai-agent")}
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Criar Agente IA
                   </Button>
                   <Button
                     variant="outline"
                     className="w-full"
                     onClick={() => navigate("/dashboard")}
                   >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
                     Voltar ao Dashboard
                   </Button>
                 </div>
