@@ -7,6 +7,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import WhatsAppConnect from "./pages/WhatsAppConnect";
 import BotBuilder from "./pages/BotBuilder";
+import AIAgentBuilder from "./pages/AIAgentBuilder";
 import AdminDashboard from "./pages/AdminDashboard";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/whatsapp-connect" element={<WhatsAppConnect />} />
           <Route path="/bot-builder" element={<BotBuilder />} />
+          <Route path="/ai-agent" element={<AIAgentBuilder />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

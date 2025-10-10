@@ -13,14 +13,27 @@ import {
   Save,
   Play,
   Trash2,
+  Clock,
+  Zap,
+  Users,
+  BarChart3,
+  Tag,
+  Split,
+  Grid3x3,
+  FileText,
 } from "lucide-react";
 
 interface FlowNode {
   id: string;
-  type: "trigger" | "message" | "question" | "action";
+  type: "trigger" | "message" | "question" | "action" | "quick-reply" | "condition" | "collect-data" | "transfer";
   content: string;
   position: { x: number; y: number };
   connections: string[];
+  config?: {
+    buttons?: string[];
+    condition?: string;
+    fields?: { name: string; type: string }[];
+  };
 }
 
 const BotBuilder = () => {
@@ -114,61 +127,147 @@ const BotBuilder = () => {
 
       <div className="flex-1 flex">
         {/* Sidebar - Node Types */}
-        <aside className="w-64 bg-card border-r border-border p-4 space-y-3">
+        <aside className="w-64 bg-card border-r border-border p-4 space-y-3 overflow-y-auto">
           <h3 className="font-semibold text-sm text-muted-foreground mb-4">
-            BLOCOS DE CONSTRUÇÃO
+            BLOCOS BÁSICOS
           </h3>
 
           <Card
-            className="p-4 cursor-pointer hover:bg-primary/5 hover:border-primary transition-smooth"
+            className="p-3 cursor-pointer hover:bg-primary/5 hover:border-primary transition-smooth"
             onClick={() => addNode("message")}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <div className="bg-primary/10 p-2 rounded-lg">
-                <MessageSquare className="w-5 h-5 text-primary" />
+                <MessageSquare className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <h4 className="font-semibold text-sm">Enviar Mensagem</h4>
+                <h4 className="font-semibold text-xs">Enviar Mensagem</h4>
                 <p className="text-xs text-muted-foreground">Texto automático</p>
               </div>
             </div>
           </Card>
 
           <Card
-            className="p-4 cursor-pointer hover:bg-primary/5 hover:border-primary transition-smooth"
+            className="p-3 cursor-pointer hover:bg-primary/5 hover:border-primary transition-smooth"
             onClick={() => addNode("question")}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <div className="bg-primary/10 p-2 rounded-lg">
-                <MessageSquare className="w-5 h-5 text-primary" />
+                <MessageSquare className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <h4 className="font-semibold text-sm">Fazer Pergunta</h4>
+                <h4 className="font-semibold text-xs">Fazer Pergunta</h4>
                 <p className="text-xs text-muted-foreground">Coletar resposta</p>
               </div>
             </div>
           </Card>
 
+          <h3 className="font-semibold text-sm text-muted-foreground mb-4 mt-6">
+            BLOCOS AVANÇADOS
+          </h3>
+
           <Card
-            className="p-4 cursor-pointer hover:bg-primary/5 hover:border-primary transition-smooth"
-            onClick={() => addNode("action")}
+            className="p-3 cursor-pointer hover:bg-primary/5 hover:border-primary transition-smooth"
+            onClick={() => addNode("quick-reply")}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <div className="bg-primary/10 p-2 rounded-lg">
-                <MousePointer2 className="w-5 h-5 text-primary" />
+                <Grid3x3 className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <h4 className="font-semibold text-sm">Ação</h4>
-                <p className="text-xs text-muted-foreground">Lógica e decisões</p>
+                <h4 className="font-semibold text-xs">Botões Rápidos</h4>
+                <p className="text-xs text-muted-foreground">Menu de opções</p>
               </div>
             </div>
           </Card>
 
-          <div className="pt-4 border-t border-border">
-            <p className="text-xs text-muted-foreground">
-              💡 Clique e arraste os blocos para criar seu fluxo
-            </p>
-          </div>
+          <Card
+            className="p-3 cursor-pointer hover:bg-primary/5 hover:border-primary transition-smooth"
+            onClick={() => addNode("condition")}
+          >
+            <div className="flex items-center gap-2">
+              <div className="bg-primary/10 p-2 rounded-lg">
+                <Split className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-xs">Condição</h4>
+                <p className="text-xs text-muted-foreground">Fluxo condicional</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card
+            className="p-3 cursor-pointer hover:bg-primary/5 hover:border-primary transition-smooth"
+            onClick={() => addNode("collect-data")}
+          >
+            <div className="flex items-center gap-2">
+              <div className="bg-primary/10 p-2 rounded-lg">
+                <FileText className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-xs">Coletar Dados</h4>
+                <p className="text-xs text-muted-foreground">Formulário</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card
+            className="p-3 cursor-pointer hover:bg-primary/5 hover:border-primary transition-smooth"
+            onClick={() => addNode("transfer")}
+          >
+            <div className="flex items-center gap-2">
+              <div className="bg-primary/10 p-2 rounded-lg">
+                <Users className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-xs">Transferir</h4>
+                <p className="text-xs text-muted-foreground">Para humano</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card
+            className="p-3 cursor-pointer hover:bg-primary/5 hover:border-primary transition-smooth"
+            onClick={() => addNode("action")}
+          >
+            <div className="flex items-center gap-2">
+              <div className="bg-primary/10 p-2 rounded-lg">
+                <MousePointer2 className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-xs">Ação</h4>
+                <p className="text-xs text-muted-foreground">Lógica extra</p>
+              </div>
+            </div>
+          </Card>
+
+          <h3 className="font-semibold text-sm text-muted-foreground mb-4 mt-6">
+            CONFIGURAÇÕES
+          </h3>
+
+          <Card className="p-3 bg-accent/50">
+            <div className="flex items-center gap-2 mb-3">
+              <Clock className="w-4 h-4 text-primary" />
+              <h4 className="font-semibold text-xs">Horário</h4>
+            </div>
+            <p className="text-xs text-muted-foreground">Seg-Sex: 8h-18h</p>
+          </Card>
+
+          <Card className="p-3 bg-accent/50">
+            <div className="flex items-center gap-2 mb-3">
+              <Tag className="w-4 h-4 text-primary" />
+              <h4 className="font-semibold text-xs">Triggers</h4>
+            </div>
+            <p className="text-xs text-muted-foreground">Palavras-chave: 5</p>
+          </Card>
+
+          <Card className="p-3 bg-accent/50">
+            <div className="flex items-center gap-2 mb-3">
+              <BarChart3 className="w-4 h-4 text-primary" />
+              <h4 className="font-semibold text-xs">Analytics</h4>
+            </div>
+            <p className="text-xs text-muted-foreground">Ver métricas</p>
+          </Card>
         </aside>
 
         {/* Canvas - Flow Builder */}
@@ -191,6 +290,10 @@ const BotBuilder = () => {
                       {node.type === "message" && <MessageSquare className="w-5 h-5 text-primary" />}
                       {node.type === "question" && <MessageSquare className="w-5 h-5 text-primary" />}
                       {node.type === "action" && <MousePointer2 className="w-5 h-5 text-primary" />}
+                      {node.type === "quick-reply" && <Grid3x3 className="w-5 h-5 text-primary" />}
+                      {node.type === "condition" && <Split className="w-5 h-5 text-primary" />}
+                      {node.type === "collect-data" && <FileText className="w-5 h-5 text-primary" />}
+                      {node.type === "transfer" && <Users className="w-5 h-5 text-primary" />}
                     </div>
                     <div>
                       <span className="text-xs font-semibold text-primary uppercase">
@@ -198,6 +301,10 @@ const BotBuilder = () => {
                         {node.type === "message" && "Mensagem"}
                         {node.type === "question" && "Pergunta"}
                         {node.type === "action" && "Ação"}
+                        {node.type === "quick-reply" && "Botões Rápidos"}
+                        {node.type === "condition" && "Condição"}
+                        {node.type === "collect-data" && "Coletar Dados"}
+                        {node.type === "transfer" && "Transferir"}
                       </span>
                     </div>
                   </div>
@@ -245,12 +352,20 @@ const BotBuilder = () => {
                   {selectedNodeData.type === "message" && <MessageSquare className="w-5 h-5 text-primary" />}
                   {selectedNodeData.type === "question" && <MessageSquare className="w-5 h-5 text-primary" />}
                   {selectedNodeData.type === "action" && <MousePointer2 className="w-5 h-5 text-primary" />}
+                  {selectedNodeData.type === "quick-reply" && <Grid3x3 className="w-5 h-5 text-primary" />}
+                  {selectedNodeData.type === "condition" && <Split className="w-5 h-5 text-primary" />}
+                  {selectedNodeData.type === "collect-data" && <FileText className="w-5 h-5 text-primary" />}
+                  {selectedNodeData.type === "transfer" && <Users className="w-5 h-5 text-primary" />}
                 </div>
                 <span className="font-semibold">
                   {selectedNodeData.type === "trigger" && "Gatilho"}
                   {selectedNodeData.type === "message" && "Mensagem"}
                   {selectedNodeData.type === "question" && "Pergunta"}
                   {selectedNodeData.type === "action" && "Ação"}
+                  {selectedNodeData.type === "quick-reply" && "Botões Rápidos"}
+                  {selectedNodeData.type === "condition" && "Condição"}
+                  {selectedNodeData.type === "collect-data" && "Coletar Dados"}
+                  {selectedNodeData.type === "transfer" && "Transferir"}
                 </span>
               </div>
             </div>
