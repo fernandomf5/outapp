@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Users,
   DollarSign,
@@ -15,6 +16,15 @@ import {
   Trash2,
   Crown,
   ArrowLeft,
+  MessageSquare,
+  Send,
+  UserCog,
+  Mail,
+  Lock,
+  User,
+  BarChart3,
+  Video,
+  Bell,
 } from "lucide-react";
 import {
   Dialog,
@@ -68,6 +78,23 @@ const AdminDashboard = () => {
 
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
+  
+  // Admin Profile Settings
+  const [adminProfile, setAdminProfile] = useState({
+    name: "Fernando Morais Garcia",
+    email: "fernandomoraisgarcia2011@gmail.com",
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
+  // Broadcast Message
+  const [broadcastMessage, setBroadcastMessage] = useState({
+    subject: "",
+    message: "",
+  });
 
   const handleSavePlan = () => {
     if (editingPlan) {
@@ -108,6 +135,41 @@ const AdminDashboard = () => {
     setIsDialogOpen(true);
   };
 
+  const handleSaveSettings = () => {
+    if (adminProfile.newPassword && adminProfile.newPassword !== adminProfile.confirmPassword) {
+      toast({
+        title: "Erro",
+        description: "As senhas não coincidem.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Configurações salvas! ✅",
+      description: "Suas informações foram atualizadas com sucesso.",
+    });
+    setIsSettingsOpen(false);
+  };
+
+  const handleSendBroadcast = () => {
+    if (!broadcastMessage.subject || !broadcastMessage.message) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha o assunto e a mensagem.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Mensagem enviada! 📨",
+      description: `Broadcast enviado para ${stats.totalUsers} usuários.`,
+    });
+    setBroadcastMessage({ subject: "", message: "" });
+    setIsBroadcastOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -128,10 +190,16 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          <Button variant="outline">
-            <Settings className="w-4 h-4 mr-2" />
-            Configurações
-          </Button>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => setIsBroadcastOpen(true)}>
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Mensagens
+            </Button>
+            <Button variant="outline" onClick={() => setIsSettingsOpen(true)}>
+              <Settings className="w-4 h-4 mr-2" />
+              Configurações
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -180,6 +248,45 @@ const AdminDashboard = () => {
             </div>
             <h3 className="text-3xl font-bold mb-1">{stats.growthRate}%</h3>
             <p className="text-muted-foreground">Taxa de Crescimento</p>
+          </Card>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="p-6 hover:shadow-lg transition-smooth cursor-pointer" onClick={() => setIsBroadcastOpen(true)}>
+            <div className="flex items-center gap-4">
+              <div className="bg-primary/10 p-3 rounded-xl">
+                <MessageSquare className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">Enviar Mensagem</h3>
+                <p className="text-sm text-muted-foreground">Comunicação com usuários</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 hover:shadow-lg transition-smooth cursor-pointer">
+            <div className="flex items-center gap-4">
+              <div className="bg-info/10 p-3 rounded-xl">
+                <BarChart3 className="w-6 h-6 text-info" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">Relatórios</h3>
+                <p className="text-sm text-muted-foreground">Analytics detalhados</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 hover:shadow-lg transition-smooth cursor-pointer">
+            <div className="flex items-center gap-4">
+              <div className="bg-warning/10 p-3 rounded-xl">
+                <Video className="w-6 h-6 text-warning" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">Vídeos Tutoriais</h3>
+                <p className="text-sm text-muted-foreground">Gerenciar conteúdo</p>
+              </div>
+            </div>
           </Card>
         </div>
 
@@ -271,6 +378,173 @@ const AdminDashboard = () => {
           </div>
         </Card>
       </main>
+
+      {/* Settings Dialog */}
+      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserCog className="w-5 h-5" />
+              Configurações do Perfil Admin
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="admin-name">Nome Completo</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="admin-name"
+                    value={adminProfile.name}
+                    onChange={(e) =>
+                      setAdminProfile({ ...adminProfile, name: e.target.value })
+                    }
+                    className="pl-10"
+                    placeholder="Seu nome completo"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="admin-email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="admin-email"
+                    type="email"
+                    value={adminProfile.email}
+                    onChange={(e) =>
+                      setAdminProfile({ ...adminProfile, email: e.target.value })
+                    }
+                    className="pl-10"
+                    placeholder="seu@email.com"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <h3 className="font-semibold mb-4 flex items-center gap-2">
+                <Lock className="w-4 h-4" />
+                Alterar Senha
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="current-password">Senha Atual</Label>
+                  <Input
+                    id="current-password"
+                    type="password"
+                    value={adminProfile.currentPassword}
+                    onChange={(e) =>
+                      setAdminProfile({ ...adminProfile, currentPassword: e.target.value })
+                    }
+                    placeholder="••••••••"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="new-password">Nova Senha</Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    value={adminProfile.newPassword}
+                    onChange={(e) =>
+                      setAdminProfile({ ...adminProfile, newPassword: e.target.value })
+                    }
+                    placeholder="••••••••"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    value={adminProfile.confirmPassword}
+                    onChange={(e) =>
+                      setAdminProfile({ ...adminProfile, confirmPassword: e.target.value })
+                    }
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end pt-4 border-t">
+              <Button variant="outline" onClick={() => setIsSettingsOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSaveSettings} className="gradient-primary">
+                Salvar Alterações
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Broadcast Message Dialog */}
+      <Dialog open={isBroadcastOpen} onOpenChange={setIsBroadcastOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5" />
+              Enviar Mensagem para Todos os Usuários
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="bg-info/10 border border-info/20 rounded-lg p-4 flex items-start gap-3">
+              <Bell className="w-5 h-5 text-info mt-0.5" />
+              <div className="text-sm">
+                <p className="font-semibold text-info mb-1">Atenção!</p>
+                <p className="text-muted-foreground">
+                  Esta mensagem será enviada para todos os {stats.totalUsers} usuários cadastrados na plataforma.
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="broadcast-subject">Assunto</Label>
+              <Input
+                id="broadcast-subject"
+                value={broadcastMessage.subject}
+                onChange={(e) =>
+                  setBroadcastMessage({ ...broadcastMessage, subject: e.target.value })
+                }
+                placeholder="Ex: Novidades na plataforma!"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="broadcast-message">Mensagem</Label>
+              <Textarea
+                id="broadcast-message"
+                value={broadcastMessage.message}
+                onChange={(e) =>
+                  setBroadcastMessage({ ...broadcastMessage, message: e.target.value })
+                }
+                placeholder="Digite sua mensagem aqui..."
+                className="min-h-[150px]"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {broadcastMessage.message.length} caracteres
+              </p>
+            </div>
+
+            <div className="flex gap-3 justify-end pt-4">
+              <Button variant="outline" onClick={() => setIsBroadcastOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSendBroadcast} className="gradient-primary">
+                <Send className="w-4 h-4 mr-2" />
+                Enviar para Todos
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Plan Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

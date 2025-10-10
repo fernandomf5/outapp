@@ -72,57 +72,72 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center gradient-primary p-4">
-      <div className="w-full max-w-6xl grid md:grid-cols-2 gap-8 items-center">
-        {/* Logo e Descrição */}
-        <div className="text-white space-y-6 hidden md:block">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl">
+    <div className="min-h-screen flex items-center justify-center gradient-primary p-4 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-64 h-64 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+      </div>
+
+      <div className="w-full max-w-6xl grid md:grid-cols-2 gap-8 items-center relative z-10">
+        {/* Logo e Descrição - Mobile Visível */}
+        <div className="text-white space-y-6">
+          <div className="flex items-center gap-3 mb-8 animate-fade-in">
+            <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl shadow-glow">
               <Bot className="w-12 h-12" />
             </div>
             <div>
-              <h1 className="text-5xl font-bold">Bot Reals Zapp</h1>
-              <p className="text-xl text-white/90">Automação Inteligente para WhatsApp</p>
+              <h1 className="text-4xl md:text-5xl font-bold">Bot Reals Zapp</h1>
+              <p className="text-lg md:text-xl text-white/90">Automação Inteligente para WhatsApp</p>
             </div>
           </div>
           
-          <div className="space-y-4">
-            <div className="flex items-start gap-3 glass p-4 rounded-xl">
-              <Zap className="w-6 h-6 mt-1 flex-shrink-0" />
+          <div className="space-y-4 hidden md:block">
+            <div className="flex items-start gap-3 glass p-5 rounded-xl hover-scale transition-smooth animate-fade-in">
+              <div className="bg-white/20 p-2 rounded-lg">
+                <Zap className="w-6 h-6 flex-shrink-0" />
+              </div>
               <div>
-                <h3 className="font-semibold text-lg">Conexão Instantânea</h3>
-                <p className="text-white/80">Conecte seu WhatsApp em segundos via QR Code</p>
+                <h3 className="font-semibold text-lg mb-1">Conexão Instantânea</h3>
+                <p className="text-white/80 text-sm">Conecte seu WhatsApp em segundos via QR Code</p>
               </div>
             </div>
             
-            <div className="flex items-start gap-3 glass p-4 rounded-xl">
-              <Bot className="w-6 h-6 mt-1 flex-shrink-0" />
+            <div className="flex items-start gap-3 glass p-5 rounded-xl hover-scale transition-smooth animate-fade-in" style={{ animationDelay: '0.1s' }}>
+              <div className="bg-white/20 p-2 rounded-lg">
+                <Bot className="w-6 h-6 flex-shrink-0" />
+              </div>
               <div>
-                <h3 className="font-semibold text-lg">Chatbots Inteligentes</h3>
-                <p className="text-white/80">Crie automações e agentes IA sem programar</p>
+                <h3 className="font-semibold text-lg mb-1">Chatbots Inteligentes</h3>
+                <p className="text-white/80 text-sm">Crie automações e agentes IA sem programar</p>
               </div>
             </div>
             
-            <div className="flex items-start gap-3 glass p-4 rounded-xl">
-              <Zap className="w-6 h-6 mt-1 flex-shrink-0" />
+            <div className="flex items-start gap-3 glass p-5 rounded-xl hover-scale transition-smooth animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              <div className="bg-white/20 p-2 rounded-lg">
+                <Zap className="w-6 h-6 flex-shrink-0" />
+              </div>
               <div>
-                <h3 className="font-semibold text-lg">3 Dias Grátis</h3>
-                <p className="text-white/80">Teste todas as funcionalidades sem compromisso</p>
+                <h3 className="font-semibold text-lg mb-1">3 Dias Grátis</h3>
+                <p className="text-white/80 text-sm">Teste todas as funcionalidades sem compromisso</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Formulário de Auth */}
-        <Card className="p-8 shadow-2xl">
-          <div className="mb-6 text-center">
-            <h2 className="text-3xl font-bold text-foreground mb-2">
+        <Card className="p-8 md:p-10 shadow-2xl backdrop-blur-sm bg-card/95 border-white/10 animate-scale-in">
+          <div className="mb-8 text-center">
+            <div className="inline-block p-3 bg-primary/10 rounded-full mb-4">
+              <Bot className="w-8 h-8 text-primary" />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
               {isLogin ? "Bem-vindo de volta!" : "Crie sua conta"}
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-base">
               {isLogin
                 ? "Entre para gerenciar seus chatbots"
-                : "Comece grátis por 3 dias"}
+                : "Comece grátis por 3 dias • Sem cartão"}
             </p>
           </div>
 
@@ -216,8 +231,8 @@ const Auth = () => {
               </div>
             )}
 
-            <Button type="submit" className="w-full text-lg py-6 gradient-primary shadow-glow">
-              {isLogin ? "Entrar" : "Criar Conta Grátis"}
+            <Button type="submit" className="w-full text-lg py-6 gradient-primary shadow-glow hover-scale font-semibold">
+              {isLogin ? "Entrar na Plataforma" : "Criar Conta Grátis 🚀"}
             </Button>
           </form>
 
