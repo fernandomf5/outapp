@@ -93,33 +93,33 @@ const Auth = () => {
           </div>
           
           <div className="space-y-4 hidden md:block">
-            <div className="flex items-start gap-3 glass p-5 rounded-xl hover-scale transition-smooth animate-fade-in">
-              <div className="bg-white/20 p-2 rounded-lg">
-                <Zap className="w-6 h-6 flex-shrink-0" />
+            <div className="flex items-start gap-3 glass p-5 rounded-xl hover-scale transition-smooth animate-fade-in bg-white/90">
+              <div className="bg-primary/20 p-2 rounded-lg">
+                <Zap className="w-6 h-6 flex-shrink-0 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-1">Conexão Instantânea</h3>
-                <p className="text-white/80 text-sm">Conecte seu WhatsApp em segundos via QR Code</p>
+                <h3 className="font-semibold text-lg mb-1 text-gray-900">Conexão Instantânea</h3>
+                <p className="text-gray-800 text-sm">Conecte seu WhatsApp em segundos via QR Code</p>
               </div>
             </div>
             
-            <div className="flex items-start gap-3 glass p-5 rounded-xl hover-scale transition-smooth animate-fade-in" style={{ animationDelay: '0.1s' }}>
-              <div className="bg-white/20 p-2 rounded-lg">
-                <Bot className="w-6 h-6 flex-shrink-0" />
+            <div className="flex items-start gap-3 glass p-5 rounded-xl hover-scale transition-smooth animate-fade-in bg-white/90" style={{ animationDelay: '0.1s' }}>
+              <div className="bg-primary/20 p-2 rounded-lg">
+                <Bot className="w-6 h-6 flex-shrink-0 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-1">Chatbots Inteligentes</h3>
-                <p className="text-white/80 text-sm">Crie automações e agentes IA sem programar</p>
+                <h3 className="font-semibold text-lg mb-1 text-gray-900">Chatbots Inteligentes</h3>
+                <p className="text-gray-800 text-sm">Crie automações e agentes IA sem programar</p>
               </div>
             </div>
             
-            <div className="flex items-start gap-3 glass p-5 rounded-xl hover-scale transition-smooth animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              <div className="bg-white/20 p-2 rounded-lg">
-                <Zap className="w-6 h-6 flex-shrink-0" />
+            <div className="flex items-start gap-3 glass p-5 rounded-xl hover-scale transition-smooth animate-fade-in bg-white/90" style={{ animationDelay: '0.2s' }}>
+              <div className="bg-primary/20 p-2 rounded-lg">
+                <Zap className="w-6 h-6 flex-shrink-0 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-1">3 Dias Grátis</h3>
-                <p className="text-white/80 text-sm">Teste todas as funcionalidades sem compromisso</p>
+                <h3 className="font-semibold text-lg mb-1 text-gray-900">3 Dias Grátis</h3>
+                <p className="text-gray-800 text-sm">Teste todas as funcionalidades sem compromisso</p>
               </div>
             </div>
           </div>
