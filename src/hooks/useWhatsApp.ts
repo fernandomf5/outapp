@@ -17,31 +17,11 @@ export const useWhatsApp = () => {
   const connect = useCallback(async (userId: string) => {
     setIsConnecting(true);
     try {
-      // Simular geração de QR Code
-      // Em produção, isso chamaria a API do WhatsApp (Evolution API, Baileys, etc.)
-      const mockQRCode = `data:image/svg+xml,${encodeURIComponent(`
-        <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
-          <rect width="200" height="200" fill="white"/>
-          <text x="100" y="100" text-anchor="middle" font-size="12" fill="black">
-            QR Code Mock
-          </text>
-          <text x="100" y="120" text-anchor="middle" font-size="10" fill="gray">
-            ${Date.now()}
-          </text>
-        </svg>
-      `)}`;
-
-      // Simular tempo de conexão
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      const mockPhoneNumber = `55${Math.floor(Math.random() * 10000000000)}`;
-
-      // Salvar conexão no banco
+      // Conectar usando WhatsApp Business API oficial
       const { data, error } = await supabase.functions.invoke('whatsapp-webhook', {
         body: {
           action: 'connect',
           userId,
-          phoneNumber: mockPhoneNumber,
         }
       });
 
@@ -49,16 +29,15 @@ export const useWhatsApp = () => {
 
       const newConnection: WhatsAppConnection = {
         id: data.connection.id,
-        phone_number: mockPhoneNumber,
+        phone_number: data.connection.phone_number,
         is_connected: true,
-        qr_code: mockQRCode,
       };
 
       setConnection(newConnection);
 
       toast({
-        title: "WhatsApp Conectado! ✅",
-        description: "Sua conta foi conectada com sucesso.",
+        title: "WhatsApp Business Conectado! ✅",
+        description: data.message || "Sua conta WhatsApp Business foi conectada com sucesso.",
       });
 
       return newConnection;
@@ -66,7 +45,7 @@ export const useWhatsApp = () => {
       console.error('Erro ao conectar:', error);
       toast({
         title: "Erro na Conexão",
-        description: "Não foi possível conectar ao WhatsApp. Tente novamente.",
+        description: "Não foi possível conectar ao WhatsApp Business. Verifique suas credenciais.",
         variant: "destructive",
       });
       throw error;

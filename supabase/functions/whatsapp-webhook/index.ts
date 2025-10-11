@@ -6,6 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const WHATSAPP_API_URL = 'https://graph.facebook.com/v18.0';
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -14,23 +16,29 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const whatsappAccessToken = Deno.env.get('WHATSAPP_ACCESS_TOKEN');
+    const whatsappPhoneNumberId = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID');
+
+    if (!whatsappAccessToken || !whatsappPhoneNumberId) {
+      throw new Error('WhatsApp credentials not configured');
+    }
+
     const supabase = createClient(supabaseUrl, supabaseKey);
+    const { action, userId, phoneNumber, message, chatbotId, webhookData } = await req.json();
 
-    const { action, userId, phoneNumber, message, chatbotId } = await req.json();
-
-    console.log('WhatsApp Webhook:', { action, userId, phoneNumber });
+    console.log('WhatsApp Webhook Action:', action);
 
     switch (action) {
       case 'connect': {
-        // Salvar conexão no banco
+        // Para API oficial, o número já está verificado no painel da Meta
         const { data: connection, error } = await supabase
           .from('whatsapp_connections')
           .insert({
             user_id: userId,
-            phone_number: phoneNumber,
+            phone_number: whatsappPhoneNumberId,
+            name: 'WhatsApp Business',
             is_connected: true,
             connected_at: new Date().toISOString(),
-            name: `WhatsApp ${phoneNumber}`
           })
           .select()
           .single();
@@ -38,7 +46,11 @@ serve(async (req) => {
         if (error) throw error;
 
         return new Response(
-          JSON.stringify({ success: true, connection }),
+          JSON.stringify({ 
+            success: true, 
+            connection,
+            message: 'WhatsApp Business conectado com sucesso!'
+          }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -62,57 +74,119 @@ serve(async (req) => {
       }
 
       case 'send_message': {
-        // Buscar configuração do chatbot
-        const { data: chatbot } = await supabase
-          .from('chatbots')
-          .select('*')
-          .eq('id', chatbotId)
-          .single();
-
-        if (!chatbot) {
-          throw new Error('Chatbot não encontrado');
-        }
-
-        // Processar mensagem com base na configuração
-        const botConfig = chatbot.config as any;
-        let response = botConfig.welcomeMessage || 'Olá!';
-
-        // Verificar triggers
-        if (botConfig.triggers) {
-          const trigger = botConfig.triggers.find((t: any) => 
-            message.toLowerCase().includes(t.keyword.toLowerCase())
-          );
-          if (trigger) {
-            response = trigger.response;
+        // Enviar mensagem via WhatsApp Business API
+        const { to, text } = message;
+        
+        const whatsappResponse = await fetch(
+          `${WHATSAPP_API_URL}/${whatsappPhoneNumberId}/messages`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${whatsappAccessToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              messaging_product: 'whatsapp',
+              to: to,
+              type: 'text',
+              text: { body: text }
+            })
           }
+        );
+
+        if (!whatsappResponse.ok) {
+          const errorData = await whatsappResponse.text();
+          console.error('WhatsApp API Error:', errorData);
+          throw new Error(`WhatsApp API Error: ${errorData}`);
         }
 
-        // TODO: Integrar com Evolution API ou WhatsApp Business API aqui
-        // Exemplo:
-        // const whatsappResponse = await fetch('https://evolution-api-url/sendText', {
-        //   method: 'POST',
-        //   headers: { 'apikey': EVOLUTION_API_KEY },
-        //   body: JSON.stringify({ number: phoneNumber, text: response })
-        // });
+        const result = await whatsappResponse.json();
+        console.log('Message sent successfully:', result);
 
         return new Response(
-          JSON.stringify({ success: true, response }),
+          JSON.stringify({ success: true, messageId: result.messages[0].id }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
       case 'receive_message': {
-        // Receber mensagem do WhatsApp e processar
-        // TODO: Implementar lógica de processamento
+        // Processar mensagem recebida via webhook do WhatsApp
+        const { from, text, messageId } = webhookData;
+
+        // Buscar chatbot ativo para este número
+        const { data: connection } = await supabase
+          .from('whatsapp_connections')
+          .select('*, chatbots(*)')
+          .eq('phone_number', whatsappPhoneNumberId)
+          .eq('is_connected', true)
+          .single();
+
+        if (!connection || !connection.chatbots || connection.chatbots.length === 0) {
+          console.log('No active chatbot found');
+          return new Response(
+            JSON.stringify({ success: true, message: 'No chatbot configured' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const chatbot = connection.chatbots[0];
+        const config = chatbot.config as any;
+
+        // Processar triggers
+        let responseText = config.welcomeMessage || 'Olá! Como posso ajudar?';
         
+        if (config.triggers) {
+          const trigger = config.triggers.find((t: any) => 
+            text.toLowerCase().includes(t.keyword.toLowerCase())
+          );
+          if (trigger) {
+            responseText = trigger.response;
+          }
+        }
+
+        // Enviar resposta automática
+        await fetch(
+          `${WHATSAPP_API_URL}/${whatsappPhoneNumberId}/messages`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${whatsappAccessToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              messaging_product: 'whatsapp',
+              to: from,
+              type: 'text',
+              text: { body: responseText }
+            })
+          }
+        );
+
         return new Response(
-          JSON.stringify({ success: true }),
+          JSON.stringify({ success: true, response: responseText }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
+      case 'webhook_verify': {
+        // Verificação do webhook do WhatsApp
+        const mode = webhookData['hub.mode'];
+        const token = webhookData['hub.verify_token'];
+        const challenge = webhookData['hub.challenge'];
+
+        if (mode === 'subscribe' && token === 'REALS_ZAPP_VERIFY_TOKEN') {
+          console.log('Webhook verified');
+          return new Response(challenge, { headers: corsHeaders });
+        }
+
+        return new Response('Forbidden', { status: 403, headers: corsHeaders });
+      }
+
       default:
-        throw new Error('Ação inválida');
+        return new Response(
+          JSON.stringify({ error: 'Invalid action' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
     }
   } catch (error) {
     console.error('Erro no webhook:', error);
