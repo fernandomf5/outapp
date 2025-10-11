@@ -35,7 +35,6 @@ const Settings = () => {
   const [profile, setProfile] = useState({
     name: "",
     email: "",
-    phone: "",
     avatarUrl: null as string | null,
   });
 
@@ -54,7 +53,6 @@ const Settings = () => {
         setProfile({
           name: data.full_name || "",
           email: data.email || "",
-          phone: "", // Add phone to profiles table if needed
           avatarUrl: data.avatar_url || null,
         });
       }
@@ -243,17 +241,6 @@ const Settings = () => {
                 value={profile.name}
                 onChange={(e) => setProfile({ ...profile, name: e.target.value })}
                 placeholder="Seu nome completo"
-                className="mt-2"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="phone">Telefone</Label>
-              <Input
-                id="phone"
-                value={profile.phone}
-                onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                placeholder="+55 11 98765-4321"
                 className="mt-2"
               />
             </div>

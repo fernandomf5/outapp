@@ -63,12 +63,19 @@ const Dashboard = () => {
   }, [user]);
 
   const handleLogout = async () => {
-    await signOut();
-    toast({
-      title: "Logout realizado",
-      description: "Até logo!",
-    });
-    navigate("/auth");
+    try {
+      await signOut();
+      toast({
+        title: "Logout realizado",
+        description: "Até logo!",
+      });
+    } catch (error) {
+      // Ignora erros de sessão já expirada
+      console.log('Logout error (pode ser ignorado):', error);
+    } finally {
+      // Sempre redireciona para auth, mesmo com erro
+      navigate("/auth");
+    }
   };
 
   const handleEdit = (botId: string, e: React.MouseEvent) => {

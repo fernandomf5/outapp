@@ -45,6 +45,20 @@ export const TutorialVideos = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const getEmbedUrl = (url: string) => {
+    // Converte URLs do YouTube para formato embed
+    if (url.includes('youtube.com/watch')) {
+      const videoId = url.split('v=')[1]?.split('&')[0];
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+    }
+    if (url.includes('youtu.be/')) {
+      const videoId = url.split('youtu.be/')[1]?.split('?')[0];
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+    }
+    // Já é um embed URL ou outro formato
+    return url;
+  };
+
   return (
     <>
       <Card className="p-4 sm:p-6">
@@ -104,10 +118,11 @@ export const TutorialVideos = () => {
             <div>
               <div className="aspect-video bg-black">
                 <iframe
-                  src={selectedVideo.video_url}
+                  src={getEmbedUrl(selectedVideo.video_url)}
                   className="w-full h-full"
                   allowFullScreen
                   title={selectedVideo.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 />
               </div>
               <div className="p-6">
