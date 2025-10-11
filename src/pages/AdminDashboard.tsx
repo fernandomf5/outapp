@@ -568,7 +568,7 @@ const AdminDashboard = () => {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="text-xl font-bold mb-1">{plan.name}</h3>
-                      <p className="text-3xl font-bold bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">
+                      <p className="text-3xl font-bold text-success">
                         R$ {plan.price.toFixed(2)}
                         <span className="text-sm text-muted-foreground font-normal">/mês</span>
                       </p>
