@@ -23,31 +23,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, sess) => {
+      async (event, sess) => {
+        console.log('🔐 Auth state change:', event, sess?.user?.email);
         setSession(sess);
         setUser(sess?.user ?? null);
         
         if (sess?.user) {
-          console.log('🔐 User logged in:', sess.user.email);
-          // Check if user is admin (defer Supabase calls to avoid deadlocks)
-          setTimeout(async () => {
-            console.log('🔍 Checking admin role for user:', sess.user.id);
-            const { data: roles } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', sess.user.id);
-            
-            console.log('👥 User roles found:', roles);
-            const isUserAdmin = roles?.some(r => r.role === 'admin') ?? false;
-            console.log('🔰 Is admin?', isUserAdmin);
-            setIsAdmin(isUserAdmin);
-            setLoading(false);
-          }, 0);
+          console.log('🔍 Checking admin role for user:', sess.user.id);
+          // Check admin role synchronously to avoid race condition
+          const { data: roles } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', sess.user.id);
+          
+          console.log('👥 User roles found:', roles);
+          const isUserAdmin = roles?.some(r => r.role === 'admin') ?? false;
+          console.log('🔰 Is admin?', isUserAdmin);
+          setIsAdmin(isUserAdmin);
         } else {
           console.log('❌ No user session');
           setIsAdmin(false);
-          setLoading(false);
         }
+        setLoading(false);
       }
     );
 
