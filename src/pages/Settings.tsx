@@ -121,17 +121,26 @@ const Settings = () => {
     }
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: passwords.new
-      });
+      // 1) Atualiza a senha do usuário atual
+      const { error: updateError } = await supabase.auth.updateUser({ password: passwords.new });
+      if (updateError) throw updateError;
 
-      if (error) throw error;
+      // 2) Reautentica imediatamente para evitar problemas de token/refresh
+      const email = user?.email;
+      if (email) {
+        await supabase.auth.signOut();
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password: passwords.new,
+        });
+        if (signInError) throw signInError;
+      }
 
       toast({
         title: "Senha alterada! 🔒",
-        description: "Sua senha foi atualizada com sucesso.",
+        description: "Sua senha foi atualizada e sua sessão foi renovada.",
       });
-      
+
       setPasswords({ new: "", confirm: "" });
     } catch (error: any) {
       toast({

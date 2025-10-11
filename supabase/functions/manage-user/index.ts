@@ -47,12 +47,28 @@ serve(async (req) => {
 
     switch (action) {
       case 'delete':
-        // Delete user
+        // Delete user-related data first, then the auth user
+        const tables = [
+          'ai_agents',
+          'chatbots',
+          'whatsapp_connections',
+          'subscriptions',
+          'user_roles',
+          'profiles'
+        ];
+        for (const table of tables) {
+          const { error: tableDeleteError } = await supabaseAdmin
+            .from(table)
+            .delete()
+            .eq('user_id', userId);
+          if (tableDeleteError) throw tableDeleteError;
+        }
+
         const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
         if (deleteError) throw deleteError
         
         return new Response(
-          JSON.stringify({ success: true, message: 'User deleted successfully' }),
+          JSON.stringify({ success: true, message: 'User and related data deleted successfully' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
 

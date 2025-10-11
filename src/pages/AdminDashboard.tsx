@@ -67,6 +67,7 @@ const AdminDashboard = () => {
     activeSubscriptions: 0,
     monthlyRevenue: 0,
     growthRate: 0,
+    newUsersThisMonth: 0,
   });
 
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -103,6 +104,13 @@ const AdminDashboard = () => {
         .from('profiles')
         .select('*', { count: 'exact', head: true });
 
+      // Calcular novos usuários no mês atual
+      const startOfMonthIso = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+      const { count: newUsersThisMonth } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', startOfMonthIso);
+
       // Buscar assinaturas ativas
       const { count: activeSubsCount } = await supabase
         .from('subscriptions')
@@ -128,6 +136,7 @@ const AdminDashboard = () => {
         activeSubscriptions: activeSubsCount || 0,
         monthlyRevenue: 0, // Calcular quando houver dados de pagamento
         growthRate: 0, // Calcular quando houver histórico
+        newUsersThisMonth: newUsersThisMonth || 0,
       });
 
       if (plansData) {
@@ -403,7 +412,7 @@ const AdminDashboard = () => {
                 <div className="bg-gradient-to-br from-primary/20 to-primary/10 p-3 rounded-xl shadow-glow">
                   <Users className="w-6 h-6 text-primary" />
                 </div>
-                <span className="text-sm font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full">+32 este mês</span>
+                <span className="text-sm font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full">+{stats.newUsersThisMonth} este mês</span>
               </div>
               <h3 className="text-3xl font-bold mb-1 text-success">{stats.totalUsers}</h3>
               <p className="text-muted-foreground">Usuários Totais</p>
