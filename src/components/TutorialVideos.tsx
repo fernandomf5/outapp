@@ -20,6 +20,7 @@ export const TutorialVideos = () => {
 
   useEffect(() => {
     const fetchVideos = async () => {
+      // Força o uso do anon key para buscar vídeos públicos
       const { data, error } = await supabase
         .from('tutorial_videos')
         .select('*')
