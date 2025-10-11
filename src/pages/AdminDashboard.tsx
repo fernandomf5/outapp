@@ -94,6 +94,7 @@ const AdminDashboard = () => {
   const [broadcastMessage, setBroadcastMessage] = useState({
     subject: "",
     message: "",
+    imageUrl: "",
   });
 
   // Fetch real data from Supabase
@@ -271,12 +272,24 @@ const AdminDashboard = () => {
       return;
     }
 
+    // Criar HTML a partir da mensagem com quebras de linha e links
+    const contentHtml = broadcastMessage.message
+      .split('\n')
+      .map(line => {
+        // Detectar URLs e transformar em links
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        return line.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-primary underline">$1</a>');
+      })
+      .join('<br/>');
+
     // Inserir mensagem na tabela admin_messages
     const { error } = await supabase
       .from('admin_messages')
       .insert({
         title: broadcastMessage.subject,
         message: broadcastMessage.message,
+        content_html: `<div>${contentHtml}</div>`,
+        image_url: broadcastMessage.imageUrl || null,
         sent_to_all: true,
         is_read: false
       });
@@ -294,7 +307,7 @@ const AdminDashboard = () => {
       title: "Mensagem enviada! 📨",
       description: `Broadcast enviado para ${stats.totalUsers} usuários.`,
     });
-    setBroadcastMessage({ subject: "", message: "" });
+    setBroadcastMessage({ subject: "", message: "", imageUrl: "" });
     setIsBroadcastOpen(false);
   };
 
@@ -924,11 +937,27 @@ const AdminDashboard = () => {
                 onChange={(e) =>
                   setBroadcastMessage({ ...broadcastMessage, message: e.target.value })
                 }
-                placeholder="Digite sua mensagem aqui..."
+                placeholder="Digite sua mensagem aqui... Use quebras de linha e inclua URLs que serão automaticamente convertidos em links."
                 className="min-h-[150px]"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                {broadcastMessage.message.length} caracteres
+                {broadcastMessage.message.length} caracteres. URLs serão convertidos em links clicáveis automaticamente.
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="broadcast-image">URL da Imagem (opcional)</Label>
+              <Input
+                id="broadcast-image"
+                type="url"
+                value={broadcastMessage.imageUrl}
+                onChange={(e) =>
+                  setBroadcastMessage({ ...broadcastMessage, imageUrl: e.target.value })
+                }
+                placeholder="https://exemplo.com/imagem.jpg"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Adicione uma imagem à sua mensagem
               </p>
             </div>
 

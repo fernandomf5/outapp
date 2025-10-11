@@ -12,6 +12,7 @@ import BotBuilder from "./pages/BotBuilder";
 import AIAgentBuilder from "./pages/AIAgentBuilder";
 import AdminDashboard from "./pages/AdminDashboard";
 import Settings from "./pages/Settings";
+import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
 import EmailConfirmed from "./pages/EmailConfirmed";
 
@@ -56,6 +57,11 @@ const App = () => (
             <Route path="/settings" element={
               <ProtectedRoute>
                 <Settings />
+              </ProtectedRoute>
+            } />
+            <Route path="/messages" element={
+              <ProtectedRoute>
+                <Messages />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

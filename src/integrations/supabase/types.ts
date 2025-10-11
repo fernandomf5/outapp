@@ -16,8 +16,10 @@ export type Database = {
     Tables: {
       admin_messages: {
         Row: {
+          content_html: string | null
           created_at: string
           id: string
+          image_url: string | null
           is_read: boolean
           message: string
           sent_to_all: boolean
@@ -25,8 +27,10 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          content_html?: string | null
           created_at?: string
           id?: string
+          image_url?: string | null
           is_read?: boolean
           message: string
           sent_to_all?: boolean
@@ -34,8 +38,10 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          content_html?: string | null
           created_at?: string
           id?: string
+          image_url?: string | null
           is_read?: boolean
           message?: string
           sent_to_all?: boolean

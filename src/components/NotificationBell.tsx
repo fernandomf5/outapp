@@ -11,6 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface AdminMessage {
   id: string;
@@ -23,6 +24,7 @@ interface AdminMessage {
 export const NotificationBell = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<AdminMessage[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -116,18 +118,16 @@ export const NotificationBell = () => {
       <PopoverContent className="w-80 sm:w-96 p-0" align="end">
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="font-semibold">Notificações</h3>
-          {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={markAllAsRead}
-              className="text-xs"
-            >
-              Marcar todas como lidas
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/messages')}
+            className="text-xs"
+          >
+            Ver todas
+          </Button>
         </div>
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-[300px]">
           {messages.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <Bell className="w-12 h-12 mx-auto mb-2 opacity-20" />
@@ -135,13 +135,13 @@ export const NotificationBell = () => {
             </div>
           ) : (
             <div className="divide-y">
-              {messages.map((message) => (
+              {messages.slice(0, 5).map((message) => (
                 <div
                   key={message.id}
                   className={`p-4 hover:bg-accent transition-colors cursor-pointer ${
                     !message.is_read ? "bg-primary/5" : ""
                   }`}
-                  onClick={() => !message.is_read && markAsRead(message.id)}
+                  onClick={() => navigate('/messages')}
                 >
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <h4 className="font-semibold text-sm">{message.title}</h4>
@@ -149,7 +149,7 @@ export const NotificationBell = () => {
                       <span className="w-2 h-2 bg-primary rounded-full mt-1 flex-shrink-0" />
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground mb-2">
+                  <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
                     {message.message}
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -165,6 +165,18 @@ export const NotificationBell = () => {
             </div>
           )}
         </ScrollArea>
+        {unreadCount > 0 && (
+          <div className="p-3 border-t">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={markAllAsRead}
+              className="w-full text-xs"
+            >
+              Marcar todas como lidas
+            </Button>
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   );
