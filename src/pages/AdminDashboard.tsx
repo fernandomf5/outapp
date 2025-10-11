@@ -7,6 +7,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
+import { UsersPanel } from "@/components/admin/UsersPanel";
+import { SubscriptionsPanel } from "@/components/admin/SubscriptionsPanel";
+import { RevenuePanel } from "@/components/admin/RevenuePanel";
+import { GrowthChart } from "@/components/admin/GrowthChart";
 import {
   Users,
   DollarSign,
@@ -488,6 +492,18 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
+        {/* New Admin Panels */}
+        <div className="space-y-6 mb-8">
+          <GrowthChart />
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            <UsersPanel />
+            <SubscriptionsPanel />
+          </div>
+          
+          <RevenuePanel />
+        </div>
+
         {/* Video Tutorials Management */}
         <Card className="p-6 mb-8 bg-gradient-to-br from-card via-card to-warning/5 border-warning/20">
           <div className="flex items-center justify-between mb-6">
@@ -539,10 +555,11 @@ const AdminDashboard = () => {
                 
                 <div className="aspect-video bg-muted rounded-lg overflow-hidden">
                   <iframe
-                    src={tutorial.videoUrl}
+                    src={tutorial.videoUrl.replace('watch?v=', 'embed/')}
                     className="w-full h-full"
                     allowFullScreen
                     title={tutorial.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   />
                 </div>
               </Card>

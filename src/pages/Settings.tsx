@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   ArrowLeft,
   User,
@@ -26,13 +28,37 @@ import {
 const Settings = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   // User Profile State
   const [profile, setProfile] = useState({
-    name: "Usuário Demo",
-    email: "usuario@exemplo.com",
-    phone: "+55 11 98765-4321",
+    name: "",
+    email: "",
+    phone: "",
   });
+
+  // Load user profile
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (data && !error) {
+        setProfile({
+          name: data.full_name || "",
+          email: data.email || "",
+          phone: "", // Add phone to profiles table if needed
+        });
+      }
+    };
+
+    loadProfile();
+  }, [user]);
 
   // Password Change State
   const [passwords, setPasswords] = useState({
@@ -52,14 +78,32 @@ const Settings = () => {
   const [emailConfirmationCode, setEmailConfirmationCode] = useState("");
   const [isCodeSent, setIsCodeSent] = useState(false);
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        full_name: profile.name,
+      })
+      .eq('user_id', user.id);
+
+    if (error) {
+      toast({
+        title: "Erro ao atualizar",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     toast({
       title: "Perfil atualizado! ✅",
       description: "Suas informações foram salvas com sucesso.",
     });
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     if (passwords.new !== passwords.confirm) {
       toast({
         title: "Erro na senha",
@@ -73,6 +117,19 @@ const Settings = () => {
       toast({
         title: "Senha fraca",
         description: "A senha deve ter pelo menos 8 caracteres.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase.auth.updateUser({
+      password: passwords.new
+    });
+
+    if (error) {
+      toast({
+        title: "Erro ao alterar senha",
+        description: error.message,
         variant: "destructive",
       });
       return;
