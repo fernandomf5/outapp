@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { AvatarUpload } from "@/components/AvatarUpload";
 import {
   ArrowLeft,
   User,
@@ -35,6 +36,7 @@ const Settings = () => {
     name: "",
     email: "",
     phone: "",
+    avatarUrl: null as string | null,
   });
 
   // Load user profile
@@ -53,6 +55,7 @@ const Settings = () => {
           name: data.full_name || "",
           email: data.email || "",
           phone: "", // Add phone to profiles table if needed
+          avatarUrl: data.avatar_url || null,
         });
       }
     };
@@ -227,6 +230,12 @@ const Settings = () => {
           </div>
 
           <div className="space-y-4">
+            <AvatarUpload 
+              avatarUrl={profile.avatarUrl}
+              name={profile.name}
+              onUploadComplete={(url) => setProfile({ ...profile, avatarUrl: url })}
+            />
+
             <div>
               <Label htmlFor="name">Nome Completo</Label>
               <Input

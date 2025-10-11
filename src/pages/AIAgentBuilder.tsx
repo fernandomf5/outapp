@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAIAgent } from "@/hooks/useAIAgent";
 import {
   ArrowLeft,
   Sparkles,
@@ -25,6 +27,12 @@ import { nicheConfigs } from "@/data/nicheConfigs";
 const AIAgentBuilder = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const agentId = searchParams.get('id');
+  
+  const { saveAgent, loadAgent, processMessage, isProcessing } = useAIAgent();
+  
   const [agentName, setAgentName] = useState("Novo Agente IA");
   const [selectedNiche, setSelectedNiche] = useState<string>("");
   const [nicheData, setNicheData] = useState<Record<string, string>>({});
@@ -38,32 +46,82 @@ const AIAgentBuilder = () => {
   const [welcomeMessage, setWelcomeMessage] = useState("Olá! Sou seu assistente virtual. Como posso ajudar você hoje?");
   const [testMessage, setTestMessage] = useState("");
   const [testResponse, setTestResponse] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   const currentNiche = nicheConfigs.find(n => n.id === selectedNiche);
+
+  useEffect(() => {
+    if (agentId && user) {
+      loadAgent(agentId).then(agent => {
+        setAgentName(agent.name);
+        setSelectedNiche(agent.niche);
+        setNicheData(agent.training_data?.nicheData || {});
+        setPersonality(agent.config?.personality || personality);
+        setKnowledge(agent.training_data?.knowledge || "");
+        setWelcomeMessage(agent.config?.welcomeMessage || welcomeMessage);
+      }).catch(console.error);
+    }
+  }, [agentId, user]);
 
   const handleNicheDataChange = (field: string, value: string) => {
     setNicheData({ ...nicheData, [field]: value });
   };
 
-  const handleTest = () => {
-    // Simular resposta inteligente baseada nas configurações
-    const responses = [
-      `Olá! ${testMessage.includes("preço") || testMessage.includes("valor") ? "Vou te ajudar com informações sobre valores e formas de pagamento." : ""}`,
-      `Com base no seu interesse, posso te ajudar com ${currentNiche?.name.toLowerCase()}. ${testMessage}`,
-      `Perfeito! Deixa eu te ajudar com isso. ${testMessage.includes("?") ? "Vou buscar essa informação para você." : "O que mais gostaria de saber?"}`,
-    ];
-    setTestResponse(responses[Math.floor(Math.random() * responses.length)]);
-    toast({
-      title: "Resposta gerada! 🤖",
-      description: "Seu agente IA respondeu com base no treinamento.",
-    });
+  const handleTest = async () => {
+    if (!testMessage.trim() || !user) return;
+
+    try {
+      if (agentId) {
+        const response = await processMessage(agentId, testMessage, user.id);
+        setTestResponse(response);
+      } else {
+        // Simulação local se ainda não salvou
+        const responses = [
+          `Olá! ${testMessage.includes("preço") || testMessage.includes("valor") ? "Vou te ajudar com informações sobre valores e formas de pagamento." : ""}`,
+          `Com base no seu interesse, posso te ajudar com ${currentNiche?.name.toLowerCase()}. ${testMessage}`,
+          `Perfeito! Deixa eu te ajudar com isso. ${testMessage.includes("?") ? "Vou buscar essa informação para você." : "O que mais gostaria de saber?"}`,
+        ];
+        setTestResponse(responses[Math.floor(Math.random() * responses.length)]);
+      }
+      toast({
+        title: "Resposta gerada! 🤖",
+        description: "Seu agente IA respondeu com base no treinamento.",
+      });
+    } catch (error) {
+      console.error('Test error:', error);
+    }
   };
 
-  const handleSave = () => {
-    toast({
-      title: "Agente IA salvo! 🚀",
-      description: "Seu agente inteligente está pronto para uso.",
-    });
+  const handleSave = async () => {
+    if (!user) return;
+    
+    setIsSaving(true);
+    try {
+      const agentData = {
+        id: agentId || undefined,
+        name: agentName,
+        niche: selectedNiche,
+        config: {
+          personality,
+          welcomeMessage,
+        },
+        training_data: {
+          nicheData,
+          knowledge,
+        },
+        is_active: true,
+      };
+
+      const result = await saveAgent(agentData, user.id);
+      
+      if (!agentId && result) {
+        navigate(`/ai-agent?id=${result.id}`);
+      }
+    } catch (error) {
+      console.error('Save error:', error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -87,13 +145,21 @@ const AIAgentBuilder = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={handleTest}>
+            <Button 
+              variant="outline" 
+              onClick={handleTest}
+              disabled={isProcessing || !testMessage.trim()}
+            >
               <Play className="w-4 h-4 mr-2" />
               Testar
             </Button>
-            <Button onClick={handleSave} className="gradient-primary shadow-glow">
+            <Button 
+              onClick={handleSave} 
+              className="gradient-primary shadow-glow"
+              disabled={isSaving || !selectedNiche}
+            >
               <Save className="w-4 h-4 mr-2" />
-              Salvar Agente
+              {isSaving ? "Salvando..." : "Salvar Agente"}
             </Button>
           </div>
         </div>
@@ -360,9 +426,13 @@ const AIAgentBuilder = () => {
                     />
                   </div>
 
-                  <Button onClick={handleTest} className="w-full gradient-primary shadow-glow">
+                  <Button 
+                    onClick={handleTest} 
+                    className="w-full gradient-primary shadow-glow"
+                    disabled={isProcessing || !testMessage.trim()}
+                  >
                     <Play className="w-4 h-4 mr-2" />
-                    Gerar Resposta do Agente
+                    {isProcessing ? "Gerando..." : "Gerar Resposta do Agente"}
                   </Button>
 
                   {testResponse && (
