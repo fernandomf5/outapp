@@ -38,9 +38,9 @@ export const NotificationBell = () => {
 
     fetchMessages();
 
-    // Real-time subscription
+    // Real-time subscription - ouvir mudanças
     const channel = supabase
-      .channel('admin_messages_changes')
+      .channel('admin_messages_bell')
       .on(
         'postgres_changes',
         {
@@ -48,8 +48,20 @@ export const NotificationBell = () => {
           schema: 'public',
           table: 'admin_messages'
         },
-        () => {
-          fetchMessages();
+        (payload) => {
+          // Se foi INSERT, adiciona nova mensagem
+          if (payload.eventType === 'INSERT') {
+            fetchMessages();
+          } 
+          // Se foi UPDATE, atualiza a mensagem existente localmente
+          else if (payload.eventType === 'UPDATE') {
+            const updated = payload.new as AdminMessage;
+            setMessages(prev => {
+              const newMessages = prev.map(m => m.id === updated.id ? updated : m);
+              setUnreadCount(newMessages.filter(m => !m.is_read).length);
+              return newMessages;
+            });
+          }
         }
       )
       .subscribe();

@@ -92,7 +92,7 @@ const AdminDashboard = () => {
 
   // Broadcast Message
   const [broadcastMessage, setBroadcastMessage] = useState({
-    subject: "",
+    title: "",
     message: "",
     imageUrl: "",
   });
@@ -263,10 +263,10 @@ const AdminDashboard = () => {
   };
 
   const handleSendBroadcast = async () => {
-    if (!broadcastMessage.subject || !broadcastMessage.message) {
+    if (!broadcastMessage.title || !broadcastMessage.message) {
       toast({
         title: "Campos obrigatórios",
-        description: "Preencha o assunto e a mensagem.",
+        description: "Preencha o título e a mensagem.",
         variant: "destructive",
       });
       return;
@@ -286,7 +286,7 @@ const AdminDashboard = () => {
     const { error } = await supabase
       .from('admin_messages')
       .insert({
-        title: broadcastMessage.subject,
+        title: broadcastMessage.title,
         message: broadcastMessage.message,
         content_html: `<div>${contentHtml}</div>`,
         image_url: broadcastMessage.imageUrl || null,
@@ -307,7 +307,7 @@ const AdminDashboard = () => {
       title: "Mensagem enviada! 📨",
       description: `Broadcast enviado para ${stats.totalUsers} usuários.`,
     });
-    setBroadcastMessage({ subject: "", message: "", imageUrl: "" });
+    setBroadcastMessage({ title: "", message: "", imageUrl: "" });
     setIsBroadcastOpen(false);
   };
 
@@ -918,12 +918,12 @@ const AdminDashboard = () => {
             </div>
 
             <div>
-              <Label htmlFor="broadcast-subject">Assunto</Label>
+              <Label htmlFor="broadcast-title">Título</Label>
               <Input
-                id="broadcast-subject"
-                value={broadcastMessage.subject}
+                id="broadcast-title"
+                value={broadcastMessage.title}
                 onChange={(e) =>
-                  setBroadcastMessage({ ...broadcastMessage, subject: e.target.value })
+                  setBroadcastMessage({ ...broadcastMessage, title: e.target.value })
                 }
                 placeholder="Ex: Novidades na plataforma!"
               />

@@ -54,13 +54,13 @@ export const MessagesDialog = ({ open, onOpenChange }: MessagesDialogProps) => {
 
     fetchMessages();
 
-    // Real-time subscription
+    // Real-time subscription - apenas para novas mensagens
     const channel = supabase
       .channel('messages_dialog_changes')
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
           schema: 'public',
           table: 'admin_messages'
         },
@@ -76,17 +76,31 @@ export const MessagesDialog = ({ open, onOpenChange }: MessagesDialogProps) => {
   }, [user, open]);
 
   const toggleReadStatus = async (messageId: string, currentStatus: boolean) => {
+    const newStatus = !currentStatus;
+    
+    // Atualiza otimisticamente o estado local primeiro
+    setMessages(messages.map(m => 
+      m.id === messageId ? { ...m, is_read: newStatus } : m
+    ));
+
     const { error } = await supabase
       .from('admin_messages')
-      .update({ is_read: !currentStatus })
+      .update({ is_read: newStatus })
       .eq('id', messageId);
 
-    if (!error) {
+    if (error) {
+      // Reverte se houver erro
       setMessages(messages.map(m => 
-        m.id === messageId ? { ...m, is_read: !currentStatus } : m
+        m.id === messageId ? { ...m, is_read: currentStatus } : m
       ));
       toast({
-        title: !currentStatus ? "Marcada como lida" : "Marcada como não lida",
+        title: "Erro ao atualizar",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: newStatus ? "Marcada como lida" : "Marcada como não lida",
       });
     }
   };
