@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Bot, Zap } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -15,11 +16,21 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user, isAdmin, signUp, signIn } = useAuth();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate(isAdmin ? "/admin" : "/dashboard");
+    }
+  }, [user, isAdmin, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
     // Validação de email real
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -29,45 +40,68 @@ const Auth = () => {
         description: "Por favor, insira um email válido.",
         variant: "destructive",
       });
+      setIsLoading(false);
       return;
     }
 
-    if (!isLogin && password !== confirmPassword) {
+    if (!isLogin) {
+      if (password !== confirmPassword) {
+        toast({
+          title: "Senhas não coincidem",
+          description: "As senhas digitadas não são iguais.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (password.length < 6) {
+        toast({
+          title: "Senha muito curta",
+          description: "A senha deve ter pelo menos 6 caracteres.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Sign Up
+      const { error } = await signUp(email, password, name);
+      
+      if (error) {
+        toast({
+          title: "Erro ao criar conta",
+          description: error.message,
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       toast({
-        title: "Senhas não coincidem",
-        description: "As senhas digitadas não são iguais.",
-        variant: "destructive",
+        title: "Conta criada com sucesso! 🎉",
+        description: "Verificação de email enviada. Você já pode fazer login!",
       });
-      return;
-    }
+      
+      setIsLoading(false);
+    } else {
+      // Sign In
+      const { error } = await signIn(email, password);
+      
+      if (error) {
+        toast({
+          title: "Erro ao fazer login",
+          description: error.message,
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
 
-    // Verificar se é o admin master
-    if (email === "fernandomoraisgarcia2011@gmail.com" && password === "C@.ar3u#s2w8") {
-      toast({
-        title: "Bem-vindo, Admin Master! 👑",
-        description: "Acesso administrativo concedido.",
-      });
-      navigate("/admin");
-      return;
-    }
-
-    if (isLogin) {
       toast({
         title: "Login realizado! ✅",
         description: "Bem-vindo de volta ao Bot Reals Zapp.",
       });
-      navigate("/dashboard");
-    } else {
-      // Simular envio de email de confirmação
-      toast({
-        title: "Conta criada! 📧",
-        description: `Um email de confirmação foi enviado para ${email}`,
-      });
-      
-      // Após 3 segundos, redirecionar para dashboard (simulando confirmação)
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 3000);
     }
   };
 
@@ -231,8 +265,12 @@ const Auth = () => {
               </div>
             )}
 
-            <Button type="submit" className="w-full text-lg py-6 gradient-primary shadow-glow hover-scale font-semibold">
-              {isLogin ? "Entrar na Plataforma" : "Criar Conta Grátis 🚀"}
+            <Button 
+              type="submit" 
+              className="w-full text-lg py-6 gradient-primary shadow-glow hover-scale font-semibold"
+              disabled={isLoading}
+            >
+              {isLoading ? "Aguarde..." : (isLogin ? "Entrar na Plataforma" : "Criar Conta Grátis 🚀")}
             </Button>
           </form>
 
