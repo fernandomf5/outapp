@@ -360,20 +360,15 @@ const AdminDashboard = () => {
       {/* Header */}
       <header className="bg-gradient-to-r from-card via-card to-primary/5 border-b border-border/50 backdrop-blur-sm px-6 py-4 sticky top-0 z-50 shadow-lg">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/auth")} className="hover:bg-primary/10">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-warning/20 to-warning/10 p-3 rounded-xl shadow-glow animate-pulse">
-                <Crown className="w-8 h-8 text-warning" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-                  Painel Master Admin
-                </h1>
-                <p className="text-sm text-muted-foreground">Controle total da plataforma</p>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="bg-gradient-to-br from-warning/20 to-warning/10 p-3 rounded-xl shadow-glow animate-pulse">
+              <Crown className="w-8 h-8 text-warning" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                Painel Master Admin
+              </h1>
+              <p className="text-sm text-muted-foreground">Controle total da plataforma</p>
             </div>
           </div>
 
@@ -496,7 +491,7 @@ const AdminDashboard = () => {
         {/* Video Tutorials Management */}
         <Card className="p-6 mb-8 bg-gradient-to-br from-card via-card to-warning/5 border-warning/20">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-foreground to-warning bg-clip-text text-transparent">Vídeos Tutoriais</h2>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">Vídeos Tutoriais</h2>
             <Button onClick={createNewVideo} className="gradient-primary shadow-glow hover-scale">
               <Plus className="w-4 h-4 mr-2" />
               Adicionar Vídeo
