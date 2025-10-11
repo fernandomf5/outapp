@@ -23,28 +23,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, sess) => {
-        console.log('🔐 Auth state change:', event, sess?.user?.email);
+      (event, sess) => {
         setSession(sess);
         setUser(sess?.user ?? null);
+        setLoading(false);
         
         if (sess?.user) {
-          console.log('🔍 Checking admin role for user:', sess.user.id);
-          // Check admin role synchronously to avoid race condition
-          const { data: roles } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', sess.user.id);
-          
-          console.log('👥 User roles found:', roles);
-          const isUserAdmin = roles?.some(r => r.role === 'admin') ?? false;
-          console.log('🔰 Is admin?', isUserAdmin);
-          setIsAdmin(isUserAdmin);
+          // Check admin role after state is set
+          setTimeout(async () => {
+            const { data: roles } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', sess.user.id);
+            
+            setIsAdmin(roles?.some(r => r.role === 'admin') ?? false);
+          }, 100);
         } else {
-          console.log('❌ No user session');
           setIsAdmin(false);
         }
-        setLoading(false);
       }
     );
 
@@ -52,7 +48,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      // loading will be set by onAuthStateChange after role check
+      setLoading(false);
+      
+      if (session?.user) {
+        setTimeout(async () => {
+          const { data: roles } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id);
+          
+          setIsAdmin(roles?.some(r => r.role === 'admin') ?? false);
+        }, 100);
+      }
     });
 
     return () => subscription.unsubscribe();

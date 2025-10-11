@@ -21,13 +21,13 @@ const Auth = () => {
   const navigate = useNavigate();
   const { user, isAdmin, signUp, signIn, loading } = useAuth();
 
-  // Redirect if already logged in (wait for role check)
+  // Redirect if already logged in
   useEffect(() => {
-    console.log('🚀 Auth redirect check:', { loading, user: !!user, isAdmin });
-    if (!loading && user) {
-      const targetRoute = isAdmin ? "/admin" : "/dashboard";
-      console.log('🎯 Redirecting to:', targetRoute);
-      navigate(targetRoute);
+    if (user && !loading) {
+      // Pequeno delay para garantir que isAdmin foi definido
+      setTimeout(() => {
+        navigate(isAdmin ? "/admin" : "/dashboard");
+      }, 200);
     }
   }, [user, isAdmin, loading, navigate]);
 
