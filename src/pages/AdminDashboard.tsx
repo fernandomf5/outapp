@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Users,
   DollarSign,
@@ -57,36 +58,14 @@ const AdminDashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { signOut } = useAuth();
-  const [stats] = useState({
-    totalUsers: 247,
-    activeSubscriptions: 189,
-    monthlyRevenue: 24750,
-    growthRate: 18,
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeSubscriptions: 0,
+    monthlyRevenue: 0,
+    growthRate: 0,
   });
 
-  const [plans, setPlans] = useState<Plan[]>([
-    {
-      id: "1",
-      name: "Chatbot Automação",
-      price: 49.9,
-      description: "Automação simples para WhatsApp",
-      features: ["Fluxos ilimitados", "2 WhatsApp conectados", "Suporte 24/7"],
-    },
-    {
-      id: "2",
-      name: "Agente IA Premium",
-      price: 89.9,
-      description: "Atendimento inteligente com IA",
-      features: ["IA avançada", "5 WhatsApp conectados", "Análise de sentimentos", "Prioridade no suporte"],
-    },
-    {
-      id: "3",
-      name: "Teste Grátis",
-      price: 0,
-      description: "3 dias de teste completo",
-      features: ["Todas as funcionalidades", "Sem cartão de crédito", "3 dias de acesso"],
-    },
-  ]);
+  const [plans, setPlans] = useState<Plan[]>([]);
 
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -95,24 +74,7 @@ const AdminDashboard = () => {
   const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
   const [editingVideo, setEditingVideo] = useState<Tutorial | null>(null);
 
-  const [tutorials, setTutorials] = useState<Tutorial[]>([
-    {
-      id: "1",
-      title: "Como conectar seu WhatsApp",
-      description: "Aprenda a conectar sua conta do WhatsApp em poucos minutos",
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-      duration: "5:30",
-      category: "Iniciante",
-    },
-    {
-      id: "2",
-      title: "Criando seu primeiro chatbot",
-      description: "Passo a passo para criar automações incríveis",
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-      duration: "12:45",
-      category: "Intermediário",
-    },
-  ]);
+  const [tutorials, setTutorials] = useState<Tutorial[]>([]);
   
   // Admin Profile Settings
   const [adminProfile, setAdminProfile] = useState({
@@ -129,32 +91,133 @@ const AdminDashboard = () => {
     message: "",
   });
 
-  const handleSavePlan = () => {
+  // Fetch real data from Supabase
+  useEffect(() => {
+    const fetchData = async () => {
+      // Buscar total de usuários
+      const { count: usersCount } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      // Buscar assinaturas ativas
+      const { count: activeSubsCount } = await supabase
+        .from('subscriptions')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active');
+
+      // Buscar planos
+      const { data: plansData } = await supabase
+        .from('plans')
+        .select('*')
+        .eq('is_active', true);
+
+      // Buscar vídeos tutoriais
+      const { data: videosData } = await supabase
+        .from('tutorial_videos')
+        .select('*')
+        .eq('is_published', true)
+        .order('order_index', { ascending: true });
+
+      // Atualizar estados
+      setStats({
+        totalUsers: usersCount || 0,
+        activeSubscriptions: activeSubsCount || 0,
+        monthlyRevenue: 0, // Calcular quando houver dados de pagamento
+        growthRate: 0, // Calcular quando houver histórico
+      });
+
+      if (plansData) {
+        setPlans(plansData.map(p => ({
+          id: p.id,
+          name: p.name,
+          price: Number(p.price),
+          description: p.description || '',
+          features: (p.features as any)?.features || []
+        })));
+      }
+
+      if (videosData) {
+        setTutorials(videosData.map(v => ({
+          id: v.id,
+          title: v.title,
+          description: v.description || '',
+          videoUrl: v.video_url,
+          duration: v.duration?.toString() || '0',
+          category: v.category || 'Geral'
+        })));
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleSavePlan = async () => {
     if (editingPlan) {
       if (editingPlan.id === "new") {
-        setPlans([...plans, { ...editingPlan, id: Date.now().toString() }]);
-        toast({
-          title: "Plano criado! ✅",
-          description: "O novo plano está disponível para os usuários.",
-        });
+        const { data, error } = await supabase
+          .from('plans')
+          .insert([{
+            name: editingPlan.name,
+            price: editingPlan.price,
+            description: editingPlan.description,
+            plan_type: 'chatbot' as const,
+            duration_days: 30,
+            features: { features: editingPlan.features },
+            is_active: true
+          }])
+          .select()
+          .single();
+
+        if (!error && data) {
+          setPlans([...plans, {
+            id: data.id,
+            name: data.name,
+            price: Number(data.price),
+            description: data.description || '',
+            features: (data.features as any)?.features || []
+          }]);
+          toast({
+            title: "Plano criado! ✅",
+            description: "O novo plano está disponível para os usuários.",
+          });
+        }
       } else {
-        setPlans(plans.map(p => p.id === editingPlan.id ? editingPlan : p));
-        toast({
-          title: "Plano atualizado! ✅",
-          description: "As alterações foram salvas.",
-        });
+        const { error } = await supabase
+          .from('plans')
+          .update({
+            name: editingPlan.name,
+            price: editingPlan.price,
+            description: editingPlan.description,
+            features: { features: editingPlan.features }
+          })
+          .eq('id', editingPlan.id);
+
+        if (!error) {
+          setPlans(plans.map(p => p.id === editingPlan.id ? editingPlan : p));
+          toast({
+            title: "Plano atualizado! ✅",
+            description: "As alterações foram salvas.",
+          });
+        }
       }
     }
     setIsDialogOpen(false);
     setEditingPlan(null);
   };
 
-  const handleDeletePlan = (id: string) => {
-    setPlans(plans.filter(p => p.id !== id));
-    toast({
-      title: "Plano excluído",
-      description: "O plano foi removido com sucesso.",
-    });
+  const handleDeletePlan = async (id: string) => {
+    const { error } = await supabase
+      .from('plans')
+      .update({ is_active: false })
+      .eq('id', id);
+
+    if (!error) {
+      setPlans(plans.filter(p => p.id !== id));
+      toast({
+        title: "Plano excluído",
+        description: "O plano foi removido com sucesso.",
+      });
+    }
   };
 
   const createNewPlan = () => {
@@ -203,32 +266,75 @@ const AdminDashboard = () => {
     setIsBroadcastOpen(false);
   };
 
-  const handleSaveVideo = () => {
+  const handleSaveVideo = async () => {
     if (editingVideo) {
       if (editingVideo.id === "new") {
-        setTutorials([...tutorials, { ...editingVideo, id: Date.now().toString() }]);
-        toast({
-          title: "Vídeo adicionado! ✅",
-          description: "O tutorial está disponível para todos os usuários.",
-        });
+        const { data, error } = await supabase
+          .from('tutorial_videos')
+          .insert({
+            title: editingVideo.title,
+            description: editingVideo.description,
+            video_url: editingVideo.videoUrl,
+            duration: parseInt(editingVideo.duration) || 0,
+            category: editingVideo.category,
+            is_published: true,
+            order_index: tutorials.length
+          })
+          .select()
+          .single();
+
+        if (!error && data) {
+          setTutorials([...tutorials, {
+            id: data.id,
+            title: data.title,
+            description: data.description || '',
+            videoUrl: data.video_url,
+            duration: data.duration?.toString() || '0',
+            category: data.category || 'Geral'
+          }]);
+          toast({
+            title: "Vídeo adicionado! ✅",
+            description: "O tutorial está disponível para todos os usuários.",
+          });
+        }
       } else {
-        setTutorials(tutorials.map(t => t.id === editingVideo.id ? editingVideo : t));
-        toast({
-          title: "Vídeo atualizado! ✅",
-          description: "As alterações foram salvas.",
-        });
+        const { error } = await supabase
+          .from('tutorial_videos')
+          .update({
+            title: editingVideo.title,
+            description: editingVideo.description,
+            video_url: editingVideo.videoUrl,
+            duration: parseInt(editingVideo.duration) || 0,
+            category: editingVideo.category
+          })
+          .eq('id', editingVideo.id);
+
+        if (!error) {
+          setTutorials(tutorials.map(t => t.id === editingVideo.id ? editingVideo : t));
+          toast({
+            title: "Vídeo atualizado! ✅",
+            description: "As alterações foram salvas.",
+          });
+        }
       }
     }
     setIsVideoDialogOpen(false);
     setEditingVideo(null);
   };
 
-  const handleDeleteVideo = (id: string) => {
-    setTutorials(tutorials.filter(t => t.id !== id));
-    toast({
-      title: "Vídeo removido",
-      description: "O tutorial foi excluído com sucesso.",
-    });
+  const handleDeleteVideo = async (id: string) => {
+    const { error } = await supabase
+      .from('tutorial_videos')
+      .delete()
+      .eq('id', id);
+
+    if (!error) {
+      setTutorials(tutorials.filter(t => t.id !== id));
+      toast({
+        title: "Vídeo removido",
+        description: "O tutorial foi excluído com sucesso.",
+      });
+    }
   };
 
   const createNewVideo = () => {
