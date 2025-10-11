@@ -1,9 +1,30 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Search, Mail, Calendar } from "lucide-react";
+import { Users, Search, Mail, Calendar, Edit, Trash2, Key } from "lucide-react";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
 
 interface UserProfile {
   id: string;
@@ -17,6 +38,13 @@ export const UsersPanel = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const [editForm, setEditForm] = useState({ full_name: "", email: "" });
+  const [newPassword, setNewPassword] = useState("");
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchUsers();
@@ -39,6 +67,106 @@ export const UsersPanel = () => {
     user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const openEditDialog = (user: UserProfile) => {
+    setSelectedUser(user);
+    setEditForm({ full_name: user.full_name, email: user.email });
+    setEditDialogOpen(true);
+  };
+
+  const openPasswordDialog = (user: UserProfile) => {
+    setSelectedUser(user);
+    setNewPassword("");
+    setPasswordDialogOpen(true);
+  };
+
+  const openDeleteDialog = (user: UserProfile) => {
+    setSelectedUser(user);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleEditUser = async () => {
+    if (!selectedUser) return;
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ 
+        full_name: editForm.full_name,
+        email: editForm.email 
+      })
+      .eq('user_id', selectedUser.user_id);
+
+    if (error) {
+      toast({
+        title: "Erro ao atualizar usuário",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Usuário atualizado",
+        description: "As informações do usuário foram atualizadas com sucesso.",
+      });
+      setEditDialogOpen(false);
+      fetchUsers();
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!selectedUser || !newPassword) return;
+
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      toast({
+        title: "Erro de autenticação",
+        description: "Você precisa estar autenticado para realizar esta ação.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase.auth.admin.updateUserById(
+      selectedUser.user_id,
+      { password: newPassword }
+    );
+
+    if (error) {
+      toast({
+        title: "Erro ao resetar senha",
+        description: "Use a service role key nas configurações do Supabase para esta funcionalidade.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Senha resetada",
+        description: "A senha do usuário foi alterada com sucesso.",
+      });
+      setPasswordDialogOpen(false);
+      setNewPassword("");
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+
+    const { error } = await supabase.auth.admin.deleteUser(selectedUser.user_id);
+
+    if (error) {
+      toast({
+        title: "Erro ao excluir usuário",
+        description: "Use a service role key nas configurações do Supabase para esta funcionalidade.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Usuário excluído",
+        description: "O usuário foi removido com sucesso.",
+      });
+      setDeleteDialogOpen(false);
+      fetchUsers();
+    }
+  };
 
   return (
     <Card className="p-6 glass">
@@ -91,11 +219,120 @@ export const UsersPanel = () => {
                     </span>
                   </div>
                 </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openEditDialog(user)}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openPasswordDialog(user)}
+                  >
+                    <Key className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => openDeleteDialog(user)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           ))
         )}
       </div>
+
+      {/* Edit User Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Usuário</DialogTitle>
+            <DialogDescription>
+              Atualize as informações do usuário abaixo.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="full_name">Nome Completo</Label>
+              <Input
+                id="full_name"
+                value={editForm.full_name}
+                onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={editForm.email}
+                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleEditUser}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Password Dialog */}
+      <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Resetar Senha</DialogTitle>
+            <DialogDescription>
+              Digite uma nova senha para o usuário {selectedUser?.full_name}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="new_password">Nova Senha</Label>
+              <Input
+                id="new_password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Digite a nova senha"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPasswordDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleResetPassword}>Resetar Senha</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente o usuário{" "}
+              <strong>{selectedUser?.full_name}</strong> e todos os dados associados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteUser} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
