@@ -26,7 +26,9 @@ export const TutorialVideos = () => {
         .eq('is_published', true)
         .order('order_index', { ascending: true });
 
-      if (!error && data) {
+      if (error) {
+        console.error('Erro ao carregar vídeos:', error);
+      } else if (data) {
         setVideos(data);
       }
     };

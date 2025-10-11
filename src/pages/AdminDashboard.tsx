@@ -261,11 +261,30 @@ const AdminDashboard = () => {
     setIsSettingsOpen(false);
   };
 
-  const handleSendBroadcast = () => {
+  const handleSendBroadcast = async () => {
     if (!broadcastMessage.subject || !broadcastMessage.message) {
       toast({
         title: "Campos obrigatórios",
         description: "Preencha o assunto e a mensagem.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Inserir mensagem na tabela admin_messages
+    const { error } = await supabase
+      .from('admin_messages')
+      .insert({
+        title: broadcastMessage.subject,
+        message: broadcastMessage.message,
+        sent_to_all: true,
+        is_read: false
+      });
+
+    if (error) {
+      toast({
+        title: "Erro ao enviar mensagem",
+        description: error.message,
         variant: "destructive",
       });
       return;
