@@ -23,8 +23,11 @@ const Auth = () => {
 
   // Redirect if already logged in (wait for role check)
   useEffect(() => {
+    console.log('🚀 Auth redirect check:', { loading, user: !!user, isAdmin });
     if (!loading && user) {
-      navigate(isAdmin ? "/admin" : "/dashboard");
+      const targetRoute = isAdmin ? "/admin" : "/dashboard";
+      console.log('🎯 Redirecting to:', targetRoute);
+      navigate(targetRoute);
     }
   }, [user, isAdmin, loading, navigate]);
 

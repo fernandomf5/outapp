@@ -28,17 +28,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(sess?.user ?? null);
         
         if (sess?.user) {
+          console.log('🔐 User logged in:', sess.user.email);
           // Check if user is admin (defer Supabase calls to avoid deadlocks)
           setTimeout(async () => {
+            console.log('🔍 Checking admin role for user:', sess.user.id);
             const { data: roles } = await supabase
               .from('user_roles')
               .select('role')
               .eq('user_id', sess.user.id);
             
-            setIsAdmin(roles?.some(r => r.role === 'admin') ?? false);
+            console.log('👥 User roles found:', roles);
+            const isUserAdmin = roles?.some(r => r.role === 'admin') ?? false;
+            console.log('🔰 Is admin?', isUserAdmin);
+            setIsAdmin(isUserAdmin);
             setLoading(false);
           }, 0);
         } else {
+          console.log('❌ No user session');
           setIsAdmin(false);
           setLoading(false);
         }
