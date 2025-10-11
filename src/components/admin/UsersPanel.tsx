@@ -88,83 +88,140 @@ export const UsersPanel = () => {
   const handleEditUser = async () => {
     if (!selectedUser) return;
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({ 
-        full_name: editForm.full_name,
-        email: editForm.email 
-      })
-      .eq('user_id', selectedUser.user_id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch(
+        'https://mlocikcfxbleddsvxciv.supabase.co/functions/v1/manage-user',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            action: 'update_profile',
+            userId: selectedUser.user_id,
+            data: {
+              full_name: editForm.full_name,
+              email: editForm.email
+            }
+          })
+        }
+      );
 
-    if (error) {
-      toast({
-        title: "Erro ao atualizar usuário",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao atualizar usuário');
+      }
+
       toast({
         title: "Usuário atualizado",
         description: "As informações do usuário foram atualizadas com sucesso.",
       });
       setEditDialogOpen(false);
       fetchUsers();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao atualizar usuário",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
   const handleResetPassword = async () => {
     if (!selectedUser || !newPassword) return;
 
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
+    if (newPassword.length < 8) {
       toast({
-        title: "Erro de autenticação",
-        description: "Você precisa estar autenticado para realizar esta ação.",
+        title: "Senha muito curta",
+        description: "A senha deve ter pelo menos 8 caracteres.",
         variant: "destructive",
       });
       return;
     }
 
-    const { error } = await supabase.auth.admin.updateUserById(
-      selectedUser.user_id,
-      { password: newPassword }
-    );
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch(
+        'https://mlocikcfxbleddsvxciv.supabase.co/functions/v1/manage-user',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            action: 'update_password',
+            userId: selectedUser.user_id,
+            data: { password: newPassword }
+          })
+        }
+      );
 
-    if (error) {
-      toast({
-        title: "Erro ao resetar senha",
-        description: "Use a service role key nas configurações do Supabase para esta funcionalidade.",
-        variant: "destructive",
-      });
-    } else {
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao resetar senha');
+      }
+
       toast({
         title: "Senha resetada",
         description: "A senha do usuário foi alterada com sucesso.",
       });
       setPasswordDialogOpen(false);
       setNewPassword("");
+    } catch (error: any) {
+      toast({
+        title: "Erro ao resetar senha",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
   const handleDeleteUser = async () => {
     if (!selectedUser) return;
 
-    const { error } = await supabase.auth.admin.deleteUser(selectedUser.user_id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch(
+        'https://mlocikcfxbleddsvxciv.supabase.co/functions/v1/manage-user',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            action: 'delete',
+            userId: selectedUser.user_id
+          })
+        }
+      );
 
-    if (error) {
-      toast({
-        title: "Erro ao excluir usuário",
-        description: "Use a service role key nas configurações do Supabase para esta funcionalidade.",
-        variant: "destructive",
-      });
-    } else {
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao excluir usuário');
+      }
+
       toast({
         title: "Usuário excluído",
         description: "O usuário foi removido com sucesso.",
       });
       setDeleteDialogOpen(false);
       fetchUsers();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao excluir usuário",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 

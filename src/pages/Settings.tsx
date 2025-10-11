@@ -62,13 +62,11 @@ const Settings = () => {
 
   // Password Change State
   const [passwords, setPasswords] = useState({
-    current: "",
     new: "",
     confirm: "",
   });
 
   const [showPasswords, setShowPasswords] = useState({
-    current: false,
     new: false,
     confirm: false,
   });
@@ -122,25 +120,26 @@ const Settings = () => {
       return;
     }
 
-    const { error } = await supabase.auth.updateUser({
-      password: passwords.new
-    });
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: passwords.new
+      });
 
-    if (error) {
+      if (error) throw error;
+
+      toast({
+        title: "Senha alterada! 🔒",
+        description: "Sua senha foi atualizada com sucesso.",
+      });
+      
+      setPasswords({ new: "", confirm: "" });
+    } catch (error: any) {
       toast({
         title: "Erro ao alterar senha",
-        description: error.message,
+        description: error.message || "Ocorreu um erro ao alterar a senha.",
         variant: "destructive",
       });
-      return;
     }
-
-    toast({
-      title: "Senha alterada! 🔒",
-      description: "Sua senha foi atualizada com sucesso.",
-    });
-    
-    setPasswords({ current: "", new: "", confirm: "" });
   };
 
   const handleRequestEmailChange = () => {
@@ -284,31 +283,6 @@ const Settings = () => {
 
           <div className="space-y-4">
             <div>
-              <Label htmlFor="current-password">Senha Atual</Label>
-              <div className="relative mt-2">
-                <Input
-                  id="current-password"
-                  type={showPasswords.current ? "text" : "password"}
-                  value={passwords.current}
-                  onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
-                  placeholder="Digite sua senha atual"
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0"
-                  onClick={() => togglePasswordVisibility("current")}
-                >
-                  {showPasswords.current ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
-                </Button>
-              </div>
-            </div>
-
-            <div>
               <Label htmlFor="new-password">Nova Senha</Label>
               <div className="relative mt-2">
                 <Input
@@ -373,7 +347,7 @@ const Settings = () => {
             <Button
               onClick={handleChangePassword}
               className="gradient-primary shadow-glow"
-              disabled={!passwords.current || !passwords.new || !passwords.confirm}
+              disabled={!passwords.new || !passwords.confirm}
             >
               <Lock className="w-4 h-4 mr-2" />
               Alterar Senha
