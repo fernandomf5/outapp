@@ -68,8 +68,10 @@ const Dashboard = () => {
               <Bot className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold">Bot Reals Zapp</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Dashboard do Usuário</p>
+              <h1 className="text-xl sm:text-2xl font-bold">
+                Olá, {user?.email?.split('@')[0] || 'Usuário'}! 👋
+              </h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">Que bom ver você por aqui!</p>
             </div>
           </div>
           
@@ -150,7 +152,7 @@ const Dashboard = () => {
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Conectar WhatsApp</h3>
                 <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Conecte seu número via QR Code
+                  {stats.activeConnections > 0 ? 'Gerenciar conexões ativas' : 'Conecte seu número via QR Code'}
                 </p>
               </div>
               <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
@@ -158,7 +160,7 @@ const Dashboard = () => {
               </div>
             </div>
             <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
-              Conectar Agora
+              {stats.activeConnections > 0 ? 'Gerenciar' : 'Conectar Agora'}
             </Button>
           </Card>
         </div>
