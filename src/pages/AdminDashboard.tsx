@@ -401,7 +401,7 @@ const AdminDashboard = () => {
                 </div>
                 <span className="text-sm font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full">+32 este mês</span>
               </div>
-              <h3 className="text-3xl font-bold mb-1 bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">{stats.totalUsers}</h3>
+              <h3 className="text-3xl font-bold mb-1 text-success">{stats.totalUsers}</h3>
               <p className="text-muted-foreground">Usuários Totais</p>
             </div>
           </Card>
@@ -415,7 +415,7 @@ const AdminDashboard = () => {
                 </div>
                 <span className="text-sm font-semibold text-success bg-success/10 px-3 py-1 rounded-full">Ativo</span>
               </div>
-              <h3 className="text-3xl font-bold mb-1 bg-gradient-to-r from-foreground to-success bg-clip-text text-transparent">{stats.activeSubscriptions}</h3>
+              <h3 className="text-3xl font-bold mb-1 text-success">{stats.activeSubscriptions}</h3>
               <p className="text-muted-foreground">Assinaturas Ativas</p>
             </div>
           </Card>
@@ -429,7 +429,7 @@ const AdminDashboard = () => {
                 </div>
                 <span className="text-sm font-semibold text-warning bg-warning/10 px-3 py-1 rounded-full">+{stats.growthRate}%</span>
               </div>
-              <h3 className="text-3xl font-bold mb-1 bg-gradient-to-r from-foreground to-warning bg-clip-text text-transparent">R$ {stats.monthlyRevenue.toLocaleString()}</h3>
+              <h3 className="text-3xl font-bold mb-1 text-success">R$ {stats.monthlyRevenue.toLocaleString()}</h3>
               <p className="text-muted-foreground">Receita Mensal</p>
             </div>
           </Card>
@@ -443,7 +443,7 @@ const AdminDashboard = () => {
                 </div>
                 <span className="text-sm font-semibold text-info bg-info/10 px-3 py-1 rounded-full">Crescimento</span>
               </div>
-              <h3 className="text-3xl font-bold mb-1 bg-gradient-to-r from-foreground to-info bg-clip-text text-transparent">{stats.growthRate}%</h3>
+              <h3 className="text-3xl font-bold mb-1 text-success">{stats.growthRate}%</h3>
               <p className="text-muted-foreground">Taxa de Crescimento</p>
             </div>
           </Card>
