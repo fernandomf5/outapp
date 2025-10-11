@@ -12,16 +12,15 @@ export const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRout
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('🛡️ ProtectedRoute check:', { loading, user: !!user, isAdmin, requireAdmin });
     if (!loading) {
       if (!user) {
-        console.log('🚫 No user, redirecting to auth');
         navigate('/auth');
-      } else if (requireAdmin && !isAdmin) {
-        console.log('🚫 User not admin, redirecting to dashboard');
-        navigate('/dashboard');
-      } else {
-        console.log('✅ Access granted');
+      } else if (requireAdmin) {
+        // FORÇAR ACESSO ADMIN PARA MASTER EMAIL
+        const isMasterEmail = user.email === 'fernandomoraisgarcia2011@gmail.com';
+        if (!isMasterEmail && !isAdmin) {
+          navigate('/dashboard');
+        }
       }
     }
   }, [user, isAdmin, loading, navigate, requireAdmin]);
@@ -34,11 +33,15 @@ export const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRout
     );
   }
 
-  if (!user || (requireAdmin && !isAdmin)) {
-    console.log('🚫 Access denied, showing null');
+  if (!user) {
     return null;
   }
 
-  console.log('✅ Rendering protected content');
+  if (requireAdmin) {
+    const isMasterEmail = user.email === 'fernandomoraisgarcia2011@gmail.com';
+    if (!isMasterEmail && !isAdmin) {
+      return null;
+    }
+  }
   return <>{children}</>;
 };

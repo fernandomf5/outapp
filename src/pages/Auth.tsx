@@ -24,12 +24,11 @@ const Auth = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (user && !loading) {
-      // Pequeno delay para garantir que isAdmin foi definido
-      setTimeout(() => {
-        navigate(isAdmin ? "/admin" : "/dashboard");
-      }, 200);
+      // FORÇAR REDIRECT PARA ADMIN SE FOR MASTER EMAIL
+      const isMasterEmail = user.email === 'fernandomoraisgarcia2011@gmail.com';
+      navigate(isMasterEmail ? "/admin" : "/dashboard");
     }
-  }, [user, isAdmin, loading, navigate]);
+  }, [user, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
