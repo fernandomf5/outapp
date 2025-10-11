@@ -1,17 +1,62 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, Zap, Users, TrendingUp, Plus, MessageSquare, Settings } from "lucide-react";
+import { Bot, Zap, MessageSquare, Settings, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [stats] = useState({
-    totalBots: 3,
-    activeConnections: 2,
-    messagesThisMonth: 1247,
-    responseRate: 94,
+  const { user, signOut } = useAuth();
+  const { toast } = useToast();
+  const [stats, setStats] = useState({
+    totalBots: 0,
+    activeConnections: 0,
+    messagesThisMonth: 0,
   });
+  const [chatbots, setChatbots] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user) return;
+
+      // Buscar chatbots do usuário
+      const { data: botsData, error: botsError } = await supabase
+        .from('chatbots')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (!botsError && botsData) {
+        setChatbots(botsData);
+        
+        // Buscar conexões ativas
+        const { data: connectionsData } = await supabase
+          .from('whatsapp_connections')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_connected', true);
+
+        setStats({
+          totalBots: botsData.length,
+          activeConnections: connectionsData?.length || 0,
+          messagesThisMonth: 0, // Este valor viria de uma tabela de mensagens quando implementada
+        });
+      }
+    };
+
+    fetchData();
+  }, [user]);
+
+  const handleLogout = async () => {
+    await signOut();
+    toast({
+      title: "Logout realizado",
+      description: "Até logo!",
+    });
+    navigate("/auth");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -34,9 +79,10 @@ const Dashboard = () => {
               Configurações
             </Button>
             <Button
-              onClick={() => navigate("/auth")}
+              onClick={handleLogout}
               variant="ghost"
             >
+              <LogOut className="w-4 h-4 mr-2" />
               Sair
             </Button>
           </div>
@@ -52,7 +98,6 @@ const Dashboard = () => {
               <div className="bg-primary/10 p-3 rounded-xl">
                 <Bot className="w-6 h-6 text-primary" />
               </div>
-              <span className="text-sm font-medium text-primary">+2 este mês</span>
             </div>
             <h3 className="text-3xl font-bold mb-1">{stats.totalBots}</h3>
             <p className="text-muted-foreground">Chatbots Criados</p>
@@ -63,7 +108,6 @@ const Dashboard = () => {
               <div className="bg-success/10 p-3 rounded-xl">
                 <Zap className="w-6 h-6 text-success" />
               </div>
-              <span className="text-sm font-medium text-success">Ativo</span>
             </div>
             <h3 className="text-3xl font-bold mb-1">{stats.activeConnections}</h3>
             <p className="text-muted-foreground">WhatsApp Conectados</p>
@@ -74,21 +118,9 @@ const Dashboard = () => {
               <div className="bg-info/10 p-3 rounded-xl">
                 <MessageSquare className="w-6 h-6 text-info" />
               </div>
-              <span className="text-sm font-medium text-info">+18% vs mês anterior</span>
             </div>
-            <h3 className="text-3xl font-bold mb-1">{stats.messagesThisMonth.toLocaleString()}</h3>
-            <p className="text-muted-foreground">Mensagens Enviadas</p>
-          </Card>
-
-          <Card className="p-6 hover:shadow-lg transition-smooth">
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-warning/10 p-3 rounded-xl">
-                <TrendingUp className="w-6 h-6 text-warning" />
-              </div>
-              <span className="text-sm font-medium text-warning">Excelente</span>
-            </div>
-            <h3 className="text-3xl font-bold mb-1">{stats.responseRate}%</h3>
-            <p className="text-muted-foreground">Taxa de Resposta</p>
+            <h3 className="text-3xl font-bold mb-1">{stats.messagesThisMonth}</h3>
+            <p className="text-muted-foreground">Mensagens Este Mês</p>
           </Card>
         </div>
 
@@ -101,38 +133,30 @@ const Dashboard = () => {
                 <p className="text-muted-foreground mb-4">
                   Automação simples para seu WhatsApp
                 </p>
-                <div className="inline-flex items-center gap-2 text-primary font-semibold">
-                  <Plus className="w-5 h-5" />
-                  <span>R$ 49,90/mês</span>
-                </div>
               </div>
               <div className="bg-primary/10 p-4 rounded-2xl">
                 <Bot className="w-10 h-10 text-primary" />
               </div>
             </div>
             <Button className="w-full mt-4 gradient-primary shadow-glow">
-              Começar Agora
+              Criar Agora
             </Button>
           </Card>
 
-          <Card className="p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/ai-agent")}>
+          <Card className="p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/whatsapp-connect")}>
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className="text-xl font-bold mb-2">Criar Agente IA</h3>
+                <h3 className="text-xl font-bold mb-2">Conectar WhatsApp</h3>
                 <p className="text-muted-foreground mb-4">
-                  Atendimento inteligente com IA avançada
+                  Conecte seu número via QR Code
                 </p>
-                <div className="inline-flex items-center gap-2 text-primary font-semibold">
-                  <Plus className="w-5 h-5" />
-                  <span>R$ 89,90/mês</span>
-                </div>
               </div>
               <div className="bg-primary/10 p-4 rounded-2xl">
                 <Zap className="w-10 h-10 text-primary" />
               </div>
             </div>
             <Button className="w-full mt-4 gradient-primary shadow-glow">
-              Começar Agora
+              Conectar Agora
             </Button>
           </Card>
         </div>
@@ -141,51 +165,63 @@ const Dashboard = () => {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">Meus Chatbots</h2>
-            <Button onClick={() => navigate("/whatsapp-connect")}>
-              <Plus className="w-4 h-4 mr-2" />
-              Conectar WhatsApp
+            <Button onClick={() => navigate("/bot-builder")}>
+              <Bot className="w-4 h-4 mr-2" />
+              Criar Chatbot
             </Button>
           </div>
 
-          <div className="space-y-4">
-            {[
-              { name: "Atendimento Geral", status: "Ativo", messages: 342, lastUpdate: "Há 2 horas" },
-              { name: "Vendas Premium", status: "Ativo", messages: 189, lastUpdate: "Há 5 horas" },
-              { name: "Suporte Técnico", status: "Pausado", messages: 716, lastUpdate: "Há 1 dia" },
-            ].map((bot, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-4 rounded-xl bg-accent/50 hover:bg-accent transition-smooth cursor-pointer"
-                onClick={() => navigate("/bot-builder")}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="bg-primary/10 p-3 rounded-xl">
-                    <Bot className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">{bot.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {bot.messages} mensagens • {bot.lastUpdate}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      bot.status === "Ativo"
-                        ? "bg-success/20 text-success"
-                        : "bg-warning/20 text-warning"
-                    }`}
-                  >
-                    {bot.status}
-                  </span>
-                  <Button variant="ghost" size="sm">
-                    Editar
-                  </Button>
-                </div>
+          {chatbots.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="bg-primary/10 p-6 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                <Bot className="w-10 h-10 text-primary" />
               </div>
-            ))}
-          </div>
+              <h3 className="text-xl font-semibold mb-2">Nenhum chatbot criado ainda</h3>
+              <p className="text-muted-foreground mb-6">
+                Comece criando seu primeiro chatbot para automatizar seu WhatsApp
+              </p>
+              <Button onClick={() => navigate("/bot-builder")} className="gradient-primary">
+                <Bot className="w-4 h-4 mr-2" />
+                Criar Meu Primeiro Chatbot
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {chatbots.map((bot) => (
+                <div
+                  key={bot.id}
+                  className="flex items-center justify-between p-4 rounded-xl bg-accent/50 hover:bg-accent transition-smooth cursor-pointer"
+                  onClick={() => navigate("/bot-builder")}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="bg-primary/10 p-3 rounded-xl">
+                      <Bot className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">{bot.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {bot.description || "Sem descrição"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        bot.is_active
+                          ? "bg-success/20 text-success"
+                          : "bg-warning/20 text-warning"
+                      }`}
+                    >
+                      {bot.is_active ? "Ativo" : "Inativo"}
+                    </span>
+                    <Button variant="ghost" size="sm">
+                      Editar
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </Card>
       </main>
     </div>
