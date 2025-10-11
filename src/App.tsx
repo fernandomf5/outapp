@@ -13,6 +13,7 @@ import AIAgentBuilder from "./pages/AIAgentBuilder";
 import AdminDashboard from "./pages/AdminDashboard";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import EmailConfirmed from "./pages/EmailConfirmed";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Auth />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/email-confirmed" element={<EmailConfirmed />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
