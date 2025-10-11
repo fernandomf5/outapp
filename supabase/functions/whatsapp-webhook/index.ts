@@ -14,6 +14,28 @@ serve(async (req) => {
   }
 
   try {
+    // Handle GET request for webhook verification
+    if (req.method === 'GET') {
+      const url = new URL(req.url);
+      const mode = url.searchParams.get('hub.mode');
+      const token = url.searchParams.get('hub.verify_token');
+      const challenge = url.searchParams.get('hub.challenge');
+
+      console.log('Webhook verification attempt:', { mode, token, challenge });
+
+      if (mode === 'subscribe' && token === 'REALS_ZAPP_VERIFY_TOKEN') {
+        console.log('Webhook verified successfully');
+        return new Response(challenge, { 
+          status: 200,
+          headers: { 'Content-Type': 'text/plain' } 
+        });
+      }
+
+      console.error('Webhook verification failed');
+      return new Response('Forbidden', { status: 403 });
+    }
+
+    // Handle POST requests (actual webhook events)
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const whatsappAccessToken = Deno.env.get('WHATSAPP_ACCESS_TOKEN');
