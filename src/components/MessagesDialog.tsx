@@ -40,22 +40,43 @@ export const MessagesDialog = ({ open, onOpenChange }: MessagesDialogProps) => {
     if (!user || !open) return;
 
     const fetchMessages = async () => {
-      const { data, error } = await supabase
+      // Buscar mensagens do usuário ou broadcast
+      const { data: messagesData, error: messagesError } = await supabase
         .from('admin_messages')
         .select('*')
         .or(`user_id.eq.${user.id},sent_to_all.eq.true`)
         .order('created_at', { ascending: false });
 
-      if (!error && data) {
-        setMessages(data);
+      if (messagesError || !messagesData) {
+        setLoading(false);
+        return;
       }
+
+      // Buscar status de leitura do usuário
+      const { data: readsData } = await supabase
+        .from('admin_message_reads')
+        .select('message_id, is_read')
+        .eq('user_id', user.id);
+
+      // Mapear status de leitura
+      const readStatusMap = new Map(
+        readsData?.map(r => [r.message_id, r.is_read]) || []
+      );
+
+      // Combinar mensagens com status de leitura
+      const messagesWithReadStatus = messagesData.map(msg => ({
+        ...msg,
+        is_read: readStatusMap.get(msg.id) || false
+      }));
+
+      setMessages(messagesWithReadStatus);
       setLoading(false);
     };
 
     fetchMessages();
 
-    // Real-time subscription - apenas para novas mensagens
-    const channel = supabase
+    // Real-time subscription - para novas mensagens E atualizações de leitura
+    const messagesChannel = supabase
       .channel('messages_dialog_changes')
       .on(
         'postgres_changes',
@@ -70,12 +91,31 @@ export const MessagesDialog = ({ open, onOpenChange }: MessagesDialogProps) => {
       )
       .subscribe();
 
+    const readsChannel = supabase
+      .channel('message_reads_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'admin_message_reads',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          fetchMessages();
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(messagesChannel);
+      supabase.removeChannel(readsChannel);
     };
   }, [user, open]);
 
   const toggleReadStatus = async (messageId: string, currentStatus: boolean) => {
+    if (!user) return;
+    
     const newStatus = !currentStatus;
     
     // Atualiza otimisticamente o estado local primeiro
@@ -83,10 +123,16 @@ export const MessagesDialog = ({ open, onOpenChange }: MessagesDialogProps) => {
       m.id === messageId ? { ...m, is_read: newStatus } : m
     ));
 
+    // Usar upsert para criar ou atualizar o status de leitura
     const { error } = await supabase
-      .from('admin_messages')
-      .update({ is_read: newStatus })
-      .eq('id', messageId);
+      .from('admin_message_reads')
+      .upsert({
+        message_id: messageId,
+        user_id: user.id,
+        is_read: newStatus
+      }, {
+        onConflict: 'message_id,user_id'
+      });
 
     if (error) {
       // Reverte se houver erro

@@ -11,6 +11,8 @@ import { UsersPanel } from "@/components/admin/UsersPanel";
 import { SubscriptionsPanel } from "@/components/admin/SubscriptionsPanel";
 import { RevenuePanel } from "@/components/admin/RevenuePanel";
 import { GrowthChart } from "@/components/admin/GrowthChart";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Users,
   DollarSign,
@@ -30,6 +32,8 @@ import {
   BarChart3,
   Video,
   Bell,
+  Search,
+  X,
 } from "lucide-react";
 import {
   Dialog,
@@ -95,7 +99,12 @@ const AdminDashboard = () => {
     title: "",
     message: "",
     imageUrl: "",
+    sendToAll: true,
+    selectedUserId: "",
   });
+  
+  const [userSearch, setUserSearch] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
 
   // Fetch real data from Supabase
   useEffect(() => {
@@ -262,11 +271,39 @@ const AdminDashboard = () => {
     setIsSettingsOpen(false);
   };
 
+  const handleUserSearch = async (searchTerm: string) => {
+    setUserSearch(searchTerm);
+    
+    if (searchTerm.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('user_id, email, full_name')
+      .or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`)
+      .limit(10);
+
+    if (!error && data) {
+      setSearchResults(data);
+    }
+  };
+
   const handleSendBroadcast = async () => {
     if (!broadcastMessage.title || !broadcastMessage.message) {
       toast({
         title: "Campos obrigatórios",
         description: "Preencha o título e a mensagem.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!broadcastMessage.sendToAll && !broadcastMessage.selectedUserId) {
+      toast({
+        title: "Selecione um usuário",
+        description: "Escolha um usuário para enviar a mensagem.",
         variant: "destructive",
       });
       return;
@@ -290,7 +327,8 @@ const AdminDashboard = () => {
         message: broadcastMessage.message,
         content_html: `<div>${contentHtml}</div>`,
         image_url: broadcastMessage.imageUrl || null,
-        sent_to_all: true,
+        sent_to_all: broadcastMessage.sendToAll,
+        user_id: broadcastMessage.sendToAll ? null : broadcastMessage.selectedUserId,
         is_read: false
       });
 
@@ -303,11 +341,24 @@ const AdminDashboard = () => {
       return;
     }
 
+    const description = broadcastMessage.sendToAll 
+      ? `Broadcast enviado para ${stats.totalUsers} usuários.`
+      : "Mensagem enviada para o usuário selecionado.";
+
     toast({
       title: "Mensagem enviada! 📨",
-      description: `Broadcast enviado para ${stats.totalUsers} usuários.`,
+      description,
     });
-    setBroadcastMessage({ title: "", message: "", imageUrl: "" });
+    
+    setBroadcastMessage({ 
+      title: "", 
+      message: "", 
+      imageUrl: "", 
+      sendToAll: true, 
+      selectedUserId: "" 
+    });
+    setUserSearch("");
+    setSearchResults([]);
     setIsBroadcastOpen(false);
   };
 
@@ -902,20 +953,101 @@ const AdminDashboard = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <MessageSquare className="w-5 h-5" />
-              Enviar Mensagem para Todos os Usuários
+              Enviar Mensagem
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="bg-info/10 border border-info/20 rounded-lg p-4 flex items-start gap-3">
-              <Bell className="w-5 h-5 text-info mt-0.5" />
-              <div className="text-sm">
-                <p className="font-semibold text-info mb-1">Atenção!</p>
-                <p className="text-muted-foreground">
-                  Esta mensagem será enviada para todos os {stats.totalUsers} usuários cadastrados na plataforma.
-                </p>
-              </div>
+            <div className="space-y-3">
+              <Label>Destinatário</Label>
+              <RadioGroup 
+                value={broadcastMessage.sendToAll ? "all" : "specific"}
+                onValueChange={(value) => {
+                  setBroadcastMessage({ 
+                    ...broadcastMessage, 
+                    sendToAll: value === "all",
+                    selectedUserId: value === "all" ? "" : broadcastMessage.selectedUserId
+                  });
+                  if (value === "all") {
+                    setUserSearch("");
+                    setSearchResults([]);
+                  }
+                }}
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="all" id="all" />
+                  <Label htmlFor="all" className="cursor-pointer font-normal">
+                    Todos os usuários ({stats.totalUsers})
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="specific" id="specific" />
+                  <Label htmlFor="specific" className="cursor-pointer font-normal">
+                    Usuário específico
+                  </Label>
+                </div>
+              </RadioGroup>
             </div>
+
+            {!broadcastMessage.sendToAll && (
+              <div className="space-y-2">
+                <Label htmlFor="user-search">Buscar Usuário</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="user-search"
+                    placeholder="Digite nome ou email..."
+                    value={userSearch}
+                    onChange={(e) => handleUserSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                
+                {searchResults.length > 0 && (
+                  <ScrollArea className="h-40 border rounded-md">
+                    <div className="p-2 space-y-1">
+                      {searchResults.map((user) => (
+                        <button
+                          key={user.user_id}
+                          onClick={() => {
+                            setBroadcastMessage({ 
+                              ...broadcastMessage, 
+                              selectedUserId: user.user_id 
+                            });
+                            setUserSearch(`${user.full_name} (${user.email})`);
+                            setSearchResults([]);
+                          }}
+                          className="w-full text-left p-2 hover:bg-accent rounded-md transition-colors"
+                        >
+                          <p className="font-medium text-sm">{user.full_name}</p>
+                          <p className="text-xs text-muted-foreground">{user.email}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+
+                {broadcastMessage.selectedUserId && (
+                  <div className="flex items-center gap-2 p-2 bg-primary/10 rounded-md">
+                    <User className="w-4 h-4 text-primary" />
+                    <span className="text-sm flex-1">{userSearch}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setBroadcastMessage({ 
+                          ...broadcastMessage, 
+                          selectedUserId: "" 
+                        });
+                        setUserSearch("");
+                      }}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div>
               <Label htmlFor="broadcast-title">Título</Label>
@@ -962,12 +1094,16 @@ const AdminDashboard = () => {
             </div>
 
             <div className="flex gap-3 justify-end pt-4">
-              <Button variant="outline" onClick={() => setIsBroadcastOpen(false)}>
+              <Button variant="outline" onClick={() => {
+                setIsBroadcastOpen(false);
+                setUserSearch("");
+                setSearchResults([]);
+              }}>
                 Cancelar
               </Button>
               <Button onClick={handleSendBroadcast} className="gradient-primary">
                 <Send className="w-4 h-4 mr-2" />
-                Enviar para Todos
+                {broadcastMessage.sendToAll ? "Enviar para Todos" : "Enviar Mensagem"}
               </Button>
             </div>
           </div>

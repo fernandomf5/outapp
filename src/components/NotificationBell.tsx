@@ -24,50 +24,74 @@ export const NotificationBell = () => {
     if (!user) return;
 
     const fetchMessages = async () => {
-      const { data, error } = await supabase
+      // Buscar mensagens do usuário ou broadcast
+      const { data: messagesData, error: messagesError } = await supabase
         .from('admin_messages')
         .select('*')
         .or(`user_id.eq.${user.id},sent_to_all.eq.true`)
         .order('created_at', { ascending: false });
 
-      if (!error && data) {
-        setMessages(data);
-        setUnreadCount(data.filter(m => !m.is_read).length);
-      }
+      if (messagesError || !messagesData) return;
+
+      // Buscar status de leitura do usuário
+      const { data: readsData } = await supabase
+        .from('admin_message_reads')
+        .select('message_id, is_read')
+        .eq('user_id', user.id);
+
+      // Mapear status de leitura
+      const readStatusMap = new Map(
+        readsData?.map(r => [r.message_id, r.is_read]) || []
+      );
+
+      // Combinar mensagens com status de leitura
+      const messagesWithReadStatus = messagesData.map(msg => ({
+        ...msg,
+        is_read: readStatusMap.get(msg.id) || false
+      }));
+
+      setMessages(messagesWithReadStatus);
+      setUnreadCount(messagesWithReadStatus.filter(m => !m.is_read).length);
     };
 
     fetchMessages();
 
-    // Real-time subscription - ouvir mudanças
-    const channel = supabase
+    // Real-time subscription - ouvir novas mensagens
+    const messagesChannel = supabase
       .channel('admin_messages_bell')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'admin_messages'
+        },
+        () => {
+          fetchMessages();
+        }
+      )
+      .subscribe();
+
+    // Real-time subscription - ouvir mudanças no status de leitura
+    const readsChannel = supabase
+      .channel('message_reads_bell')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'admin_messages'
+          table: 'admin_message_reads',
+          filter: `user_id=eq.${user.id}`
         },
-        (payload) => {
-          // Se foi INSERT, adiciona nova mensagem
-          if (payload.eventType === 'INSERT') {
-            fetchMessages();
-          } 
-          // Se foi UPDATE, atualiza a mensagem existente localmente
-          else if (payload.eventType === 'UPDATE') {
-            const updated = payload.new as AdminMessage;
-            setMessages(prev => {
-              const newMessages = prev.map(m => m.id === updated.id ? updated : m);
-              setUnreadCount(newMessages.filter(m => !m.is_read).length);
-              return newMessages;
-            });
-          }
+        () => {
+          fetchMessages();
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(messagesChannel);
+      supabase.removeChannel(readsChannel);
     };
   }, [user]);
 
