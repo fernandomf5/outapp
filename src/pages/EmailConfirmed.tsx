@@ -14,17 +14,17 @@ const EmailConfirmed = () => {
   }, []);
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md p-8 text-center space-y-4">
-        <div className="mx-auto w-14 h-14 rounded-full bg-success/10 flex items-center justify-center">
-          <CheckCircle2 className="w-8 h-8 text-success" />
+    <main className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
+      <Card className="w-full max-w-md p-6 sm:p-8 text-center space-y-4 sm:space-y-6">
+        <div className="mx-auto w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-success/10 flex items-center justify-center">
+          <CheckCircle2 className="w-7 h-7 sm:w-8 sm:h-8 text-success" />
         </div>
-        <h1 className="text-2xl font-bold">Email confirmado com sucesso</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl sm:text-2xl font-bold">Email confirmado com sucesso</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           Sua conta foi verificada. Agora você já pode acessar a plataforma.
         </p>
         <div className="pt-2">
-          <Button onClick={() => navigate('/auth')} className="w-full">
+          <Button onClick={() => navigate('/auth')} className="w-full gradient-primary shadow-glow">
             <LogIn className="w-4 h-4 mr-2" />
             Pode fazer login na sua conta
           </Button>

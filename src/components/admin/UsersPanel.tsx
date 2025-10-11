@@ -241,14 +241,14 @@ export const UsersPanel = () => {
   };
 
   return (
-    <Card className="p-6 glass">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="bg-primary/10 p-3 rounded-xl">
-          <Users className="w-6 h-6 text-primary" />
+    <Card className="p-4 sm:p-6 glass">
+      <div className="flex items-center gap-3 mb-4 sm:mb-6">
+        <div className="bg-primary/10 p-2 sm:p-3 rounded-xl">
+          <Users className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
         </div>
         <div>
-          <h2 className="text-xl font-bold">Usuários Cadastrados</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="text-lg sm:text-xl font-bold">Usuários Cadastrados</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Total: {users.length} usuários
           </p>
         </div>
@@ -264,7 +264,7 @@ export const UsersPanel = () => {
         />
       </div>
 
-      <div className="space-y-3 max-h-[600px] overflow-y-auto">
+      <div className="space-y-3 max-h-[400px] sm:max-h-[600px] overflow-y-auto">
         {loading ? (
           <p className="text-center text-muted-foreground py-8">Carregando...</p>
         ) : filteredUsers.length === 0 ? (
@@ -275,14 +275,14 @@ export const UsersPanel = () => {
           filteredUsers.map((user) => (
             <div
               key={user.id}
-              className="p-4 rounded-lg border border-border bg-card hover:bg-accent/5 transition-colors"
+              className="p-3 sm:p-4 rounded-lg border border-border bg-card hover:bg-accent/5 transition-colors"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg">{user.full_name}</h3>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                    <Mail className="w-4 h-4" />
-                    <span>{user.email}</span>
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+                <div className="flex-1 w-full">
+                  <h3 className="font-semibold text-base sm:text-lg">{user.full_name}</h3>
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mt-1">
+                    <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="truncate">{user.email}</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
                     <Calendar className="w-3 h-3" />
@@ -291,11 +291,12 @@ export const UsersPanel = () => {
                     </span>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 w-full sm:w-auto">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => openEditDialog(user)}
+                    className="flex-1 sm:flex-none"
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
@@ -303,6 +304,7 @@ export const UsersPanel = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => openPasswordDialog(user)}
+                    className="flex-1 sm:flex-none"
                   >
                     <Key className="w-4 h-4" />
                   </Button>
@@ -310,6 +312,7 @@ export const UsersPanel = () => {
                     variant="destructive"
                     size="sm"
                     onClick={() => openDeleteDialog(user)}
+                    className="flex-1 sm:flex-none"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>

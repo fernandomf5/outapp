@@ -61,111 +61,113 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-card border-b border-border px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <header className="bg-card border-b border-border px-4 sm:px-6 py-4">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 p-2 rounded-xl">
-              <Bot className="w-8 h-8 text-primary" />
+              <Bot className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Bot Reals Zapp</h1>
-              <p className="text-sm text-muted-foreground">Dashboard do Usuário</p>
+              <h1 className="text-xl sm:text-2xl font-bold">Bot Reals Zapp</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Dashboard do Usuário</p>
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => navigate("/settings")}>
-              <Settings className="w-4 h-4 mr-2" />
-              Configurações
+          <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+            <Button variant="outline" onClick={() => navigate("/settings")} className="flex-1 sm:flex-none" size="sm">
+              <Settings className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Configurações</span>
             </Button>
             <Button
               onClick={handleLogout}
               variant="ghost"
+              className="flex-1 sm:flex-none"
+              size="sm"
             >
-              <LogOut className="w-4 h-4 mr-2" />
-              Sair
+              <LogOut className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Sair</span>
             </Button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6 hover:shadow-lg transition-smooth">
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-primary/10 p-3 rounded-xl">
-                <Bot className="w-6 h-6 text-primary" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <Card className="p-4 sm:p-6 hover:shadow-lg transition-smooth">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="bg-primary/10 p-2 sm:p-3 rounded-xl">
+                <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
               </div>
             </div>
-            <h3 className="text-3xl font-bold mb-1">{stats.totalBots}</h3>
-            <p className="text-muted-foreground">Chatbots Criados</p>
+            <h3 className="text-2xl sm:text-3xl font-bold mb-1">{stats.totalBots}</h3>
+            <p className="text-sm sm:text-base text-muted-foreground">Chatbots Criados</p>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-smooth">
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-success/10 p-3 rounded-xl">
-                <Zap className="w-6 h-6 text-success" />
+          <Card className="p-4 sm:p-6 hover:shadow-lg transition-smooth">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="bg-success/10 p-2 sm:p-3 rounded-xl">
+                <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-success" />
               </div>
             </div>
-            <h3 className="text-3xl font-bold mb-1">{stats.activeConnections}</h3>
-            <p className="text-muted-foreground">WhatsApp Conectados</p>
+            <h3 className="text-2xl sm:text-3xl font-bold mb-1">{stats.activeConnections}</h3>
+            <p className="text-sm sm:text-base text-muted-foreground">WhatsApp Conectados</p>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-smooth">
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-info/10 p-3 rounded-xl">
-                <MessageSquare className="w-6 h-6 text-info" />
+          <Card className="p-4 sm:p-6 hover:shadow-lg transition-smooth">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="bg-info/10 p-2 sm:p-3 rounded-xl">
+                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-info" />
               </div>
             </div>
-            <h3 className="text-3xl font-bold mb-1">{stats.messagesThisMonth}</h3>
-            <p className="text-muted-foreground">Mensagens Este Mês</p>
+            <h3 className="text-2xl sm:text-3xl font-bold mb-1">{stats.messagesThisMonth}</h3>
+            <p className="text-sm sm:text-base text-muted-foreground">Mensagens Este Mês</p>
           </Card>
         </div>
 
         {/* Quick Actions */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <Card className="p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/bot-builder")}>
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h3 className="text-xl font-bold mb-2">Criar Chatbot</h3>
-                <p className="text-muted-foreground mb-4">
+        <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/bot-builder")}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Criar Chatbot</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
                   Automação simples para seu WhatsApp
                 </p>
               </div>
-              <div className="bg-primary/10 p-4 rounded-2xl">
-                <Bot className="w-10 h-10 text-primary" />
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <Bot className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
               Criar Agora
             </Button>
           </Card>
 
-          <Card className="p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/whatsapp-connect")}>
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h3 className="text-xl font-bold mb-2">Conectar WhatsApp</h3>
-                <p className="text-muted-foreground mb-4">
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/whatsapp-connect")}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Conectar WhatsApp</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
                   Conecte seu número via QR Code
                 </p>
               </div>
-              <div className="bg-primary/10 p-4 rounded-2xl">
-                <Zap className="w-10 h-10 text-primary" />
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <Zap className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
               </div>
             </div>
-            <Button className="w-full mt-4 gradient-primary shadow-glow">
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
               Conectar Agora
             </Button>
           </Card>
         </div>
 
         {/* Recent Activity */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Meus Chatbots</h2>
-            <Button onClick={() => navigate("/bot-builder")}>
+        <Card className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold">Meus Chatbots</h2>
+            <Button onClick={() => navigate("/bot-builder")} size="sm" className="w-full sm:w-auto">
               <Bot className="w-4 h-4 mr-2" />
               Criar Chatbot
             </Button>
@@ -190,23 +192,23 @@ const Dashboard = () => {
               {chatbots.map((bot) => (
                 <div
                   key={bot.id}
-                  className="flex items-center justify-between p-4 rounded-xl bg-accent/50 hover:bg-accent transition-smooth cursor-pointer"
+                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl bg-accent/50 hover:bg-accent transition-smooth cursor-pointer gap-3 sm:gap-4"
                   onClick={() => navigate("/bot-builder")}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="bg-primary/10 p-3 rounded-xl">
-                      <Bot className="w-6 h-6 text-primary" />
+                  <div className="flex items-center gap-3 sm:gap-4 flex-1">
+                    <div className="bg-primary/10 p-2 sm:p-3 rounded-xl">
+                      <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold">{bot.name}</h3>
-                      <p className="text-sm text-muted-foreground">
+                      <h3 className="font-semibold text-sm sm:text-base">{bot.name}</h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         {bot.description || "Sem descrição"}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
                     <span
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium flex-1 sm:flex-none text-center ${
                         bot.is_active
                           ? "bg-success/20 text-success"
                           : "bg-warning/20 text-warning"

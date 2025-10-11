@@ -108,23 +108,23 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center gradient-primary p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center gradient-primary p-3 sm:p-4 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-64 h-64 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-20 left-10 w-48 h-48 sm:w-64 sm:h-64 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-72 h-72 sm:w-96 sm:h-96 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
       </div>
 
-      <div className="w-full max-w-6xl grid md:grid-cols-2 gap-8 items-center relative z-10">
+      <div className="w-full max-w-6xl grid md:grid-cols-2 gap-4 sm:gap-8 items-center relative z-10">
         {/* Logo e Descrição - Mobile Visível */}
-        <div className="text-white space-y-6">
-          <div className="flex items-center gap-3 mb-8 animate-fade-in">
-            <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl shadow-glow">
-              <Bot className="w-12 h-12" />
+        <div className="text-white space-y-4 sm:space-y-6 px-2 sm:px-0">
+          <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-8 animate-fade-in">
+            <div className="bg-white/20 backdrop-blur-sm p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-glow">
+              <Bot className="w-10 h-10 sm:w-12 sm:h-12" />
             </div>
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold">Bot Reals Zapp</h1>
-              <p className="text-lg md:text-xl text-white/90">Automação Inteligente para WhatsApp</p>
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold">Bot Reals Zapp</h1>
+              <p className="text-sm sm:text-lg md:text-xl text-white/90">Automação Inteligente</p>
             </div>
           </div>
           
@@ -162,15 +162,15 @@ const Auth = () => {
         </div>
 
         {/* Formulário de Auth */}
-        <Card className="p-8 md:p-10 shadow-2xl backdrop-blur-sm bg-card/95 border-white/10 animate-scale-in">
-          <div className="mb-8 text-center">
-            <div className="inline-block p-3 bg-primary/10 rounded-full mb-4">
-              <Bot className="w-8 h-8 text-primary" />
+        <Card className="p-5 sm:p-8 md:p-10 shadow-2xl backdrop-blur-sm bg-card/95 border-white/10 animate-scale-in">
+          <div className="mb-6 sm:mb-8 text-center">
+            <div className="inline-block p-2 sm:p-3 bg-primary/10 rounded-full mb-3 sm:mb-4">
+              <Bot className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2">
               {isLogin ? "Bem-vindo de volta!" : "Crie sua conta"}
             </h2>
-            <p className="text-muted-foreground text-base">
+            <p className="text-sm sm:text-base text-muted-foreground">
               {isLogin
                 ? "Entre para gerenciar seus chatbots"
                 : "Comece grátis por 3 dias • Sem cartão"}
@@ -269,15 +269,15 @@ const Auth = () => {
 
             <Button 
               type="submit" 
-              className="w-full text-lg py-6 gradient-primary shadow-glow hover-scale font-semibold"
+              className="w-full text-base sm:text-lg py-5 sm:py-6 gradient-primary shadow-glow hover-scale font-semibold"
               disabled={isLoading}
             >
               {isLoading ? "Aguarde..." : (isLogin ? "Entrar na Plataforma" : "Criar Conta Grátis 🚀")}
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-muted-foreground">
+          <div className="mt-5 sm:mt-6 text-center">
+            <p className="text-sm sm:text-base text-muted-foreground">
               {isLogin ? "Não tem uma conta?" : "Já tem uma conta?"}{" "}
               <button
                 type="button"

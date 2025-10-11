@@ -198,31 +198,31 @@ const Settings = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-card border-b border-border px-6 py-4">
+      <header className="bg-card border-b border-border px-4 sm:px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold">Configurações</h1>
-              <p className="text-sm text-muted-foreground">Gerencie seu perfil e preferências</p>
+              <h1 className="text-xl sm:text-2xl font-bold">Configurações</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Gerencie seu perfil e preferências</p>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         {/* Profile Information */}
-        <Card className="p-6 glass">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="bg-primary/10 p-3 rounded-xl">
-              <User className="w-6 h-6 text-primary" />
+        <Card className="p-4 sm:p-6 glass">
+          <div className="flex items-center gap-3 mb-4 sm:mb-6">
+            <div className="bg-primary/10 p-2 sm:p-3 rounded-xl">
+              <User className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Informações do Perfil</h2>
-              <p className="text-sm text-muted-foreground">Atualize suas informações pessoais</p>
+              <h2 className="text-lg sm:text-xl font-bold">Informações do Perfil</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Atualize suas informações pessoais</p>
             </div>
           </div>
 
@@ -251,7 +251,7 @@ const Settings = () => {
 
             <div>
               <Label htmlFor="email">Email</Label>
-              <div className="flex gap-2 mt-2">
+              <div className="flex flex-col sm:flex-row gap-2 mt-2">
                 <Input
                   id="email"
                   value={profile.email}
@@ -261,6 +261,7 @@ const Settings = () => {
                 <Button
                   variant="outline"
                   onClick={() => setIsEmailDialogOpen(true)}
+                  className="w-full sm:w-auto"
                 >
                   <Mail className="w-4 h-4 mr-2" />
                   Alterar
@@ -271,7 +272,7 @@ const Settings = () => {
               </p>
             </div>
 
-            <Button onClick={handleSaveProfile} className="gradient-primary shadow-glow">
+            <Button onClick={handleSaveProfile} className="gradient-primary shadow-glow w-full sm:w-auto">
               <Save className="w-4 h-4 mr-2" />
               Salvar Alterações
             </Button>
@@ -279,14 +280,14 @@ const Settings = () => {
         </Card>
 
         {/* Security Settings */}
-        <Card className="p-6 glass">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="bg-primary/10 p-3 rounded-xl">
-              <Shield className="w-6 h-6 text-primary" />
+        <Card className="p-4 sm:p-6 glass">
+          <div className="flex items-center gap-3 mb-4 sm:mb-6">
+            <div className="bg-primary/10 p-2 sm:p-3 rounded-xl">
+              <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Segurança</h2>
-              <p className="text-sm text-muted-foreground">Altere sua senha de acesso</p>
+              <h2 className="text-lg sm:text-xl font-bold">Segurança</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Altere sua senha de acesso</p>
             </div>
           </div>
 
@@ -355,7 +356,7 @@ const Settings = () => {
 
             <Button
               onClick={handleChangePassword}
-              className="gradient-primary shadow-glow"
+              className="gradient-primary shadow-glow w-full sm:w-auto"
               disabled={!passwords.new || !passwords.confirm}
             >
               <Lock className="w-4 h-4 mr-2" />
