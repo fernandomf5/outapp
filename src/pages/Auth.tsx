@@ -19,14 +19,14 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user, isAdmin, signUp, signIn } = useAuth();
+  const { user, isAdmin, signUp, signIn, loading } = useAuth();
 
-  // Redirect if already logged in
+  // Redirect if already logged in (wait for role check)
   useEffect(() => {
-    if (user) {
+    if (!loading && user) {
       navigate(isAdmin ? "/admin" : "/dashboard");
     }
-  }, [user, isAdmin, navigate]);
+  }, [user, isAdmin, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
