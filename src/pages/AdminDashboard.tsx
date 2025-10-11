@@ -33,6 +33,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Plan {
   id: string;
@@ -54,6 +56,7 @@ interface Tutorial {
 const AdminDashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [stats] = useState({
     totalUsers: 247,
     activeSubscriptions: 189,
@@ -240,6 +243,12 @@ const AdminDashboard = () => {
     setIsVideoDialogOpen(true);
   };
 
+  const handleLogout = async () => {
+    await signOut();
+    toast({ title: "Logout realizado", description: "Você saiu da conta." });
+    navigate("/auth");
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Header */}
@@ -270,6 +279,10 @@ const AdminDashboard = () => {
             <Button variant="outline" onClick={() => setIsSettingsOpen(true)} className="hover:bg-primary/10 hover:border-primary transition-all">
               <Settings className="w-4 h-4 mr-2" />
               Configurações
+            </Button>
+            <Button variant="ghost" onClick={handleLogout} className="hover:bg-destructive/10 text-destructive">
+              <LogOut className="w-4 h-4 mr-2" />
+              Sair
             </Button>
           </div>
         </div>
