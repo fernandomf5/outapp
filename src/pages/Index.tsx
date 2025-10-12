@@ -259,9 +259,9 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="relative w-full aspect-video rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden shadow-2xl">
+            <div className="relative w-full aspect-video rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden shadow-2xl bg-muted">
               <iframe
-                src={videoUrl}
+                src={videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
                 title="Video demonstração"
                 className="absolute inset-0 w-full h-full"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -430,10 +430,9 @@ const Index = () => {
           <DialogHeader>
             <DialogTitle className="text-2xl">{selectedPage?.title}</DialogTitle>
           </DialogHeader>
-          <div 
-            className="prose prose-sm sm:prose max-w-none mt-4"
-            dangerouslySetInnerHTML={{ __html: selectedPage?.content || '' }}
-          />
+          <div className="mt-6 text-base leading-relaxed whitespace-pre-wrap">
+            {selectedPage?.content}
+          </div>
         </DialogContent>
       </Dialog>
     </div>

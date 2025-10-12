@@ -206,14 +206,15 @@ export const CustomPagesManager = () => {
                     onValueChange={(value: 'header' | 'footer') =>
                       setEditingPage({ ...editingPage, location: value })
                     }
+                    className="space-y-3 mt-2"
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="header" id="header" />
-                      <Label htmlFor="header">Cabeçalho</Label>
+                      <Label htmlFor="header" className="cursor-pointer font-normal">Cabeçalho (Menu Principal)</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="footer" id="footer" />
-                      <Label htmlFor="footer">Rodapé</Label>
+                      <Label htmlFor="footer" className="cursor-pointer font-normal">Rodapé</Label>
                     </div>
                   </RadioGroup>
                 </div>
@@ -241,17 +242,17 @@ export const CustomPagesManager = () => {
                 </div>
 
                 <div>
-                  <Label>Conteúdo (HTML)</Label>
+                  <Label>Conteúdo da Página</Label>
                   <Textarea
                     value={editingPage.content}
                     onChange={(e) =>
                       setEditingPage({ ...editingPage, content: e.target.value })
                     }
-                    placeholder="Digite o conteúdo HTML da página..."
-                    className="min-h-[300px] font-mono text-sm"
+                    placeholder="Digite o conteúdo da página aqui... (pressione Enter para pular linha)"
+                    className="min-h-[300px]"
                   />
                   <p className="text-xs text-muted-foreground mt-2">
-                    Dica: Use HTML para formatar o conteúdo (tags suportadas: h1-h6, p, strong, em, ul, ol, li, a, img, br)
+                    O texto será exibido exatamente como você escrever, preservando quebras de linha
                   </p>
                 </div>
 

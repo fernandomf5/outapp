@@ -1168,9 +1168,10 @@ const AdminDashboard = () => {
               </div>
 
               <div>
-                <Label>Recursos (um por linha)</Label>
-                <textarea
-                  className="w-full min-h-[120px] p-3 rounded-md border border-input bg-background"
+                <Label htmlFor="plan-features">Recursos (pressione Enter para adicionar novos)</Label>
+                <Textarea
+                  id="plan-features"
+                  className="min-h-[150px]"
                   value={editingPlan.features.join("\n")}
                   onChange={(e) =>
                     setEditingPlan({
@@ -1180,6 +1181,9 @@ const AdminDashboard = () => {
                   }
                   placeholder="Recurso 1&#10;Recurso 2&#10;Recurso 3"
                 />
+                <p className="text-xs text-muted-foreground mt-2">
+                  Digite um recurso por linha. Eles aparecerão organizados na landing page com ícones de check.
+                </p>
               </div>
 
               <div className="flex gap-3 justify-end">
