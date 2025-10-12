@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Crown, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useSearchParams } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,7 @@ interface Plan {
 export const MyPlanSection = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [currentPlan, setCurrentPlan] = useState<Plan | null>(null);
   const [allPlans, setAllPlans] = useState<Plan[]>([]);
@@ -85,6 +87,16 @@ export const MyPlanSection = () => {
 
     fetchData();
   }, [user]);
+
+  // Check if should open upgrade dialog from URL
+  useEffect(() => {
+    if (searchParams.get('upgrade') === 'true') {
+      setUpgradeDialogOpen(true);
+      // Remove the upgrade param from URL
+      searchParams.delete('upgrade');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleUpgrade = async (planId: string) => {
     if (!user) return;

@@ -104,7 +104,7 @@ export const SubscriptionBanner = () => {
               </p>
             </div>
             <Button
-              onClick={() => navigate("/dashboard?tab=plan")}
+              onClick={() => navigate("/dashboard?tab=plan&upgrade=true")}
               variant="outline"
               className="border-warning text-warning hover:bg-warning/10 whitespace-nowrap"
             >
