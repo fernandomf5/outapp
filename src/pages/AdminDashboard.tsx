@@ -53,6 +53,7 @@ interface Plan {
   price: number;
   description: string;
   features: string[];
+  order_index?: number;
 }
 
 interface Tutorial {
@@ -133,7 +134,8 @@ const AdminDashboard = () => {
       const { data: plansData } = await supabase
         .from('plans')
         .select('*')
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .order('order_index', { ascending: true });
 
       // Buscar vídeos tutoriais
       const { data: videosData } = await supabase
@@ -157,7 +159,8 @@ const AdminDashboard = () => {
           name: p.name,
           price: Number(p.price),
           description: p.description || '',
-          features: Array.isArray(p.features) ? p.features as string[] : []
+          features: Array.isArray(p.features) ? p.features as string[] : [],
+          order_index: p.order_index || 0
         })));
       }
 
@@ -188,6 +191,7 @@ const AdminDashboard = () => {
             plan_type: 'chatbot' as const,
             duration_days: 30,
             features: editingPlan.features,
+            order_index: editingPlan.order_index ?? plans.length,
             is_active: true
           }])
           .select()
@@ -199,7 +203,8 @@ const AdminDashboard = () => {
             name: data.name,
             price: Number(data.price),
             description: data.description || '',
-            features: Array.isArray(data.features) ? data.features as string[] : []
+            features: Array.isArray(data.features) ? data.features as string[] : [],
+            order_index: data.order_index || 0
           }]);
           toast({
             title: "Plano criado! ✅",
@@ -213,7 +218,8 @@ const AdminDashboard = () => {
             name: editingPlan.name,
             price: editingPlan.price,
             description: editingPlan.description,
-            features: editingPlan.features
+            features: editingPlan.features,
+            order_index: editingPlan.order_index
           })
           .eq('id', editingPlan.id);
 
@@ -252,6 +258,7 @@ const AdminDashboard = () => {
       price: 0,
       description: "",
       features: [],
+      order_index: plans.length,
     });
     setIsDialogOpen(true);
   };
@@ -1129,16 +1136,34 @@ const AdminDashboard = () => {
 
           {editingPlan && (
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="plan-name">Nome do Plano</Label>
-                <Input
-                  id="plan-name"
-                  value={editingPlan.name}
-                  onChange={(e) =>
-                    setEditingPlan({ ...editingPlan, name: e.target.value })
-                  }
-                  placeholder="Ex: Plano Premium"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="plan-name">Nome do Plano</Label>
+                  <Input
+                    id="plan-name"
+                    value={editingPlan.name}
+                    onChange={(e) =>
+                      setEditingPlan({ ...editingPlan, name: e.target.value })
+                    }
+                    placeholder="Ex: Plano Premium"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="plan-order">Ordem de Exibição</Label>
+                  <Input
+                    id="plan-order"
+                    type="number"
+                    value={editingPlan.order_index ?? 0}
+                    onChange={(e) =>
+                      setEditingPlan({ ...editingPlan, order_index: parseInt(e.target.value) || 0 })
+                    }
+                    placeholder="0"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Quanto menor o número, mais cedo aparece
+                  </p>
+                </div>
               </div>
 
               <div>

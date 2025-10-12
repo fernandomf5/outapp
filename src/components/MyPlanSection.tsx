@@ -76,7 +76,7 @@ export const MyPlanSection = () => {
         .select('*')
         .eq('is_active', true)
         .neq('plan_type', 'free_trial')
-        .order('price', { ascending: true });
+        .order('order_index', { ascending: true });
 
       if (plansData) {
         setAllPlans(plansData);

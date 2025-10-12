@@ -43,7 +43,7 @@ const Index = () => {
       .from('plans')
       .select('*')
       .eq('is_active', true)
-      .order('price', { ascending: true });
+      .order('order_index', { ascending: true });
     
     if (!error && data) {
       setPlans(data);
