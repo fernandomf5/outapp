@@ -198,6 +198,23 @@ const Dashboard = () => {
 
         {/* Quick Actions */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/whatsapp-connect")}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Conectar WhatsApp</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  {stats.activeConnections > 0 ? 'Gerenciar conexões ativas' : 'Conecte seu número via QR Code'}
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <Zap className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              {stats.activeConnections > 0 ? 'Gerenciar' : 'Conectar Agora'}
+            </Button>
+          </Card>
+
           <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/bot-builder")}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
@@ -229,23 +246,6 @@ const Dashboard = () => {
             </div>
             <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
               Criar Agora
-            </Button>
-          </Card>
-
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/whatsapp-connect")}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Conectar WhatsApp</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  {stats.activeConnections > 0 ? 'Gerenciar conexões ativas' : 'Conecte seu número via QR Code'}
-                </p>
-              </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <Zap className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
-              {stats.activeConnections > 0 ? 'Gerenciar' : 'Conectar Agora'}
             </Button>
           </Card>
         </div>
