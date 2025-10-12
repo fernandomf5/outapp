@@ -11,6 +11,8 @@ import { UsersPanel } from "@/components/admin/UsersPanel";
 import { SubscriptionsPanel } from "@/components/admin/SubscriptionsPanel";
 import { RevenuePanel } from "@/components/admin/RevenuePanel";
 import { GrowthChart } from "@/components/admin/GrowthChart";
+import { CustomPagesManager } from "@/components/admin/CustomPagesManager";
+import { SiteSettingsManager } from "@/components/admin/SiteSettingsManager";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -594,6 +596,12 @@ const AdminDashboard = () => {
           </div>
           
           <RevenuePanel />
+          
+          {/* Site Configuration */}
+          <div className="grid md:grid-cols-2 gap-6">
+            <SiteSettingsManager />
+            <CustomPagesManager />
+          </div>
         </div>
 
         {/* Video Tutorials Management */}
