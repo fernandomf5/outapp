@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { NotificationBell } from "@/components/NotificationBell";
 import { TutorialVideos } from "@/components/TutorialVideos";
+import { SubscriptionBanner } from "@/components/SubscriptionBanner";
+import { MyPlanSection } from "@/components/MyPlanSection";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +26,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [stats, setStats] = useState({
     totalBots: 0,
     activeConnections: 0,
@@ -30,6 +34,7 @@ const Dashboard = () => {
   });
   const [chatbots, setChatbots] = useState<any[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -145,6 +150,19 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        {/* Subscription Banner */}
+        <SubscriptionBanner />
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="plan" className="flex items-center gap-2">
+              <CreditCard className="w-4 h-4" />
+              Meu Plano
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6 sm:space-y-8">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Card className="p-4 sm:p-6 hover:shadow-lg transition-smooth">
@@ -315,6 +333,12 @@ const Dashboard = () => {
             </div>
           )}
         </Card>
+          </TabsContent>
+
+          <TabsContent value="plan">
+            <MyPlanSection />
+          </TabsContent>
+        </Tabs>
       </main>
 
       {/* Delete Confirmation Dialog */}

@@ -59,6 +59,24 @@ export const TutorialVideos = () => {
     return url;
   };
 
+  const getThumbnailUrl = (video: TutorialVideo) => {
+    // Se já tem thumbnail, usa ele
+    if (video.thumbnail_url) return video.thumbnail_url;
+    
+    // Tenta extrair do YouTube
+    const url = video.video_url;
+    let videoId = '';
+    
+    if (url.includes('youtube.com/watch')) {
+      videoId = url.split('v=')[1]?.split('&')[0] || '';
+    } else if (url.includes('youtu.be/')) {
+      videoId = url.split('youtu.be/')[1]?.split('?')[0] || '';
+    }
+    
+    // Retorna thumbnail do YouTube se tiver videoId
+    return videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : '';
+  };
+
   return (
     <>
       <Card className="p-4 sm:p-6">
@@ -71,9 +89,9 @@ export const TutorialVideos = () => {
               onClick={() => setSelectedVideo(video)}
             >
               <div className="relative aspect-video bg-accent">
-                {video.thumbnail_url ? (
+                {getThumbnailUrl(video) ? (
                   <img
-                    src={video.thumbnail_url}
+                    src={getThumbnailUrl(video)}
                     alt={video.title}
                     className="w-full h-full object-cover"
                   />

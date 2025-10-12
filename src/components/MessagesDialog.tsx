@@ -158,18 +158,9 @@ export const MessagesDialog = ({ open, onOpenChange }: MessagesDialogProps) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[80vh] p-0">
         <DialogHeader className="p-6 pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Bell className="w-6 h-6" />
-              <DialogTitle>Minhas Mensagens</DialogTitle>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onOpenChange(false)}
-            >
-              <X className="w-4 h-4" />
-            </Button>
+          <div className="flex items-center gap-3">
+            <Bell className="w-6 h-6" />
+            <DialogTitle>Minhas Mensagens</DialogTitle>
           </div>
         </DialogHeader>
 
