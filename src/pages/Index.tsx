@@ -138,6 +138,9 @@ const Index = () => {
           </div>
           
           <nav className="hidden md:flex items-center gap-4 lg:gap-6">
+            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
+              Início
+            </a>
             <a href="#recursos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
               Recursos
             </a>
@@ -153,10 +156,10 @@ const Index = () => {
                 {page.title}
               </button>
             ))}
-            <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} className="active:scale-95 transition-transform">
               Entrar
             </Button>
-            <Button size="sm" onClick={() => navigate("/auth")} className="gradient-primary shadow-glow">
+            <Button size="sm" onClick={() => navigate("/auth")} className="gradient-primary shadow-glow active:scale-95 transition-transform">
               Começar Grátis
             </Button>
           </nav>
@@ -198,14 +201,14 @@ const Index = () => {
             <Button 
               size="lg" 
               onClick={() => navigate("/auth")}
-              className="bg-white text-primary hover:bg-white/90 shadow-glow text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 w-full sm:w-auto"
+              className="bg-white text-primary hover:bg-white/90 shadow-glow text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 w-full sm:w-auto active:scale-95 transition-transform"
             >
               Começar Teste Grátis 🚀
             </Button>
             <Button 
               size="lg" 
               variant="outline"
-              className="bg-green-400/20 border-white text-white hover:bg-green-400/30 text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 w-full sm:w-auto"
+              className="bg-green-400/20 border-white text-white hover:bg-green-400/30 text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 w-full sm:w-auto active:scale-95 transition-transform"
               onClick={() => document.getElementById('recursos')?.scrollIntoView({ behavior: 'smooth' })}
             >
               Ver Recursos
@@ -334,7 +337,7 @@ const Index = () => {
                     </span>
                   </div>
                   
-                  <ul className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
+                  <ul className="space-y-3 sm:space-y-4">
                     {features.map((feature: string, featureIndex: number) => (
                       <li key={featureIndex} className="flex items-start gap-2 sm:gap-3">
                         <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0 mt-0.5" />
@@ -342,20 +345,19 @@ const Index = () => {
                       </li>
                     ))}
                   </ul>
-                  
-                  <Button 
-                    className={`w-full py-4 sm:py-6 text-base sm:text-lg ${
-                      isPopular 
-                        ? 'gradient-primary shadow-glow' 
-                        : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                    }`}
-                    onClick={() => navigate("/auth")}
-                  >
-                    {plan.plan_type === 'free_trial' ? 'Começar Teste Grátis' : 'Assinar Agora'}
-                  </Button>
                 </div>
               );
             })}
+          </div>
+          
+          <div className="text-center mt-10 sm:mt-12">
+            <Button 
+              size="lg"
+              onClick={() => navigate("/auth")}
+              className="gradient-primary shadow-glow text-base sm:text-lg px-8 sm:px-12 py-5 sm:py-7 active:scale-95 transition-transform"
+            >
+              Começar Teste Grátis - 3 Dias 🚀
+            </Button>
           </div>
         </div>
       </section>
@@ -377,7 +379,7 @@ const Index = () => {
           <Button 
             size="lg"
             onClick={() => navigate("/auth")}
-            className="bg-white text-primary hover:bg-white/90 shadow-glow text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 w-full sm:w-auto"
+            className="bg-white text-primary hover:bg-white/90 shadow-glow text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 w-full sm:w-auto active:scale-95 transition-transform"
           >
             Começar Agora - 3 Dias Grátis 🚀
           </Button>
