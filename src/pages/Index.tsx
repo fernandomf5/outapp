@@ -205,7 +205,7 @@ const Index = () => {
             <Button 
               size="lg" 
               variant="outline"
-              className="border-white text-white hover:bg-white/10 text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 w-full sm:w-auto"
+              className="bg-green-400/20 border-white text-white hover:bg-green-400/30 text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 w-full sm:w-auto"
               onClick={() => document.getElementById('recursos')?.scrollIntoView({ behavior: 'smooth' })}
             >
               Ver Recursos
