@@ -156,7 +156,10 @@ const Dashboard = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-            <TabsTrigger value="plan" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="plan" 
+              className="flex items-center gap-2 data-[state=active]:bg-success data-[state=active]:text-white"
+            >
               <CreditCard className="w-4 h-4" />
               Meu Plano
             </TabsTrigger>

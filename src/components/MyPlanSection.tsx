@@ -164,29 +164,38 @@ export const MyPlanSection = () => {
                   </div>
                 </div>
 
-                {currentPlan.features && (
+                {currentPlan.features && Array.isArray(currentPlan.features) && currentPlan.features.length > 0 && (
                   <div>
                     <p className="font-semibold mb-2">Recursos incluídos:</p>
                     <ul className="space-y-2">
-                      {Object.entries(currentPlan.features).map(([key, value]) => (
-                        <li key={key} className="flex items-center gap-2 text-sm">
+                      {currentPlan.features.map((feature: string, index: number) => (
+                        <li key={index} className="flex items-center gap-2 text-sm">
                           <Check className="w-4 h-4 text-primary" />
-                          <span>{value as string}</span>
+                          <span>{feature}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
                 )}
 
-                {isTrial && (
+                <div className="flex gap-3">
                   <Button
                     onClick={() => setUpgradeDialogOpen(true)}
-                    className="w-full gradient-primary shadow-glow"
+                    className="flex-1 bg-success hover:bg-success/90 text-white shadow-lg"
                     size="lg"
                   >
-                    Fazer Upgrade do Plano
+                    Ver Planos
                   </Button>
-                )}
+                  {isTrial && (
+                    <Button
+                      onClick={() => setUpgradeDialogOpen(true)}
+                      className="flex-1 gradient-primary shadow-glow"
+                      size="lg"
+                    >
+                      Fazer Upgrade
+                    </Button>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="text-center py-8">
@@ -239,12 +248,12 @@ export const MyPlanSection = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {plan.features && (
+                  {plan.features && Array.isArray(plan.features) && plan.features.length > 0 && (
                     <ul className="space-y-2 mb-6">
-                      {Object.entries(plan.features).map(([key, value]) => (
-                        <li key={key} className="flex items-start gap-2 text-sm">
+                      {plan.features.map((feature: string, index: number) => (
+                        <li key={index} className="flex items-start gap-2 text-sm">
                           <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                          <span>{value as string}</span>
+                          <span>{feature}</span>
                         </li>
                       ))}
                     </ul>
