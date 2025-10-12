@@ -178,24 +178,13 @@ export const MyPlanSection = () => {
                   </div>
                 )}
 
-                <div className="flex gap-3">
-                  <Button
-                    onClick={() => setUpgradeDialogOpen(true)}
-                    className="flex-1 bg-success hover:bg-success/90 text-white shadow-lg"
-                    size="lg"
-                  >
-                    Ver Planos
-                  </Button>
-                  {isTrial && (
-                    <Button
-                      onClick={() => setUpgradeDialogOpen(true)}
-                      className="flex-1 gradient-primary shadow-glow"
-                      size="lg"
-                    >
-                      Fazer Upgrade
-                    </Button>
-                  )}
-                </div>
+                <Button
+                  onClick={() => setUpgradeDialogOpen(true)}
+                  className="w-full gradient-primary shadow-glow"
+                  size="lg"
+                >
+                  Fazer Upgrade do Plano
+                </Button>
               </div>
             ) : (
               <div className="text-center py-8">

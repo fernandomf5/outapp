@@ -157,7 +157,7 @@ const AdminDashboard = () => {
           name: p.name,
           price: Number(p.price),
           description: p.description || '',
-          features: (p.features as any)?.features || []
+          features: Array.isArray(p.features) ? p.features as string[] : []
         })));
       }
 
@@ -187,7 +187,7 @@ const AdminDashboard = () => {
             description: editingPlan.description,
             plan_type: 'chatbot' as const,
             duration_days: 30,
-            features: { features: editingPlan.features },
+            features: editingPlan.features,
             is_active: true
           }])
           .select()
@@ -199,7 +199,7 @@ const AdminDashboard = () => {
             name: data.name,
             price: Number(data.price),
             description: data.description || '',
-            features: (data.features as any)?.features || []
+            features: Array.isArray(data.features) ? data.features as string[] : []
           }]);
           toast({
             title: "Plano criado! ✅",
@@ -213,7 +213,7 @@ const AdminDashboard = () => {
             name: editingPlan.name,
             price: editingPlan.price,
             description: editingPlan.description,
-            features: { features: editingPlan.features }
+            features: editingPlan.features
           })
           .eq('id', editingPlan.id);
 
