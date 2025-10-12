@@ -126,20 +126,20 @@ const Auth = () => {
         <div className="absolute bottom-20 right-10 w-72 h-72 sm:w-96 sm:h-96 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
       </div>
 
-      <div className="w-full max-w-6xl grid md:grid-cols-2 gap-4 sm:gap-8 items-center relative z-10">
-        {/* Logo e Descrição - Mobile Visível */}
-        <div className="text-white space-y-4 sm:space-y-6 px-2 sm:px-0">
-          <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-8 animate-fade-in">
-            <div className="bg-white/20 backdrop-blur-sm p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-glow">
-              <Bot className="w-10 h-10 sm:w-12 sm:h-12" />
+      <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 items-center relative z-10">
+        {/* Logo e Descrição - Apenas Desktop */}
+        <div className="hidden md:block text-white space-y-6 px-0">
+          <div className="flex items-center gap-3 mb-8 animate-fade-in">
+            <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl shadow-glow">
+              <Bot className="w-12 h-12" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold">Bot Reals Zapp</h1>
-              <p className="text-sm sm:text-lg md:text-xl text-white/90">Automação Inteligente</p>
+              <h1 className="text-4xl md:text-5xl font-bold">Bot Reals Zapp</h1>
+              <p className="text-lg md:text-xl text-white/90">Automação Inteligente</p>
             </div>
           </div>
           
-          <div className="space-y-4 hidden md:block">
+          <div className="space-y-4">
             <div className="flex items-start gap-3 glass p-5 rounded-xl hover-scale transition-smooth animate-fade-in bg-white/90">
               <div className="bg-primary/20 p-2 rounded-lg">
                 <Zap className="w-6 h-6 flex-shrink-0 text-primary" />
@@ -173,11 +173,16 @@ const Auth = () => {
         </div>
 
         {/* Formulário de Auth */}
-        <Card className="p-5 sm:p-8 md:p-10 shadow-2xl backdrop-blur-sm bg-card/95 border-white/10 animate-scale-in">
-          <div className="mb-6 sm:mb-8 text-center">
-            <div className="inline-block p-2 sm:p-3 bg-primary/10 rounded-full mb-3 sm:mb-4">
-              <Bot className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
+        <Card className="w-full p-6 sm:p-8 md:p-10 shadow-2xl backdrop-blur-sm bg-card/95 border-white/10 animate-scale-in">
+          {/* Logo Mobile - Aparece apenas no mobile */}
+          <div className="md:hidden flex items-center justify-center gap-2 mb-6">
+            <div className="bg-primary/10 p-2 rounded-lg">
+              <Bot className="w-8 h-8 text-primary" />
             </div>
+            <span className="text-xl font-bold">Bot Reals Zapp</span>
+          </div>
+          
+          <div className="mb-6 sm:mb-8 text-center">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2">
               {isLogin ? "Bem-vindo de volta!" : "Crie sua conta"}
             </h2>
@@ -199,6 +204,7 @@ const Auth = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
+                  className="h-11"
                 />
               </div>
             )}
@@ -212,6 +218,7 @@ const Auth = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="h-11"
               />
             </div>
 
@@ -225,7 +232,7 @@ const Auth = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="pr-10"
+                  className="pr-10 h-11"
                 />
                 <button
                   type="button"
@@ -248,7 +255,7 @@ const Auth = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="pr-10"
+                    className="pr-10 h-11"
                   />
                   <button
                     type="button"
@@ -280,7 +287,7 @@ const Auth = () => {
 
             <Button 
               type="submit" 
-              className="w-full text-base sm:text-lg py-5 sm:py-6 gradient-primary shadow-glow hover-scale font-semibold"
+              className="w-full text-base sm:text-lg py-5 sm:py-6 gradient-primary shadow-glow hover-scale font-semibold active:scale-95 transition-transform"
               disabled={isLoading}
             >
               {isLoading ? "Aguarde..." : (isLogin ? "Entrar na Plataforma" : "Criar Conta Grátis 🚀")}
