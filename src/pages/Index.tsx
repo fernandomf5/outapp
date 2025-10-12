@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Bot, Zap, MessageSquare, BarChart3, Clock, CheckCircle2, X, Shield, TrendingUp, Sparkles } from "lucide-react";
+import { Bot, Zap, MessageSquare, Clock, CheckCircle2, Shield, TrendingUp, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -67,7 +67,7 @@ const Index = () => {
       .from('site_settings')
       .select('value')
       .eq('key', 'landing_video_url')
-      .single();
+      .maybeSingle();
     
     if (!error && data) {
       setVideoUrl(data.value || "");
@@ -108,17 +108,17 @@ const Index = () => {
     {
       icon: Shield,
       title: "Seguro e Confiável",
-      description: "Seus dados protegidos com a melhor tecnologia de segurança do Supabase",
+      description: "Seus dados protegidos com a melhor tecnologia de segurança",
     },
     {
       icon: Clock,
       title: "Mensagens Agendadas",
-      description: "Agende mensagens para serem enviadas no melhor momento para seu público",
+      description: "Agende mensagens para serem enviadas no melhor momento",
     },
     {
       icon: MessageSquare,
       title: "Sistema de Notificações",
-      description: "Receba notificações instantâneas de mensagens importantes dos clientes",
+      description: "Receba notificações instantâneas de mensagens importantes",
     },
   ];
 
@@ -161,7 +161,6 @@ const Index = () => {
             </Button>
           </nav>
           
-          {/* Mobile Menu Button */}
           <Button 
             variant="ghost" 
             size="sm" 
@@ -269,19 +268,22 @@ const Index = () => {
           </div>
           
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 px-4">
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className="bg-card p-6 sm:p-8 rounded-xl sm:rounded-2xl border border-border hover:shadow-xl transition-smooth hover-scale"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="bg-primary/10 w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl flex items-center justify-center mb-4 sm:mb-6">
-                  <feature.icon className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <div
+                  key={index}
+                  className="bg-card p-6 sm:p-8 rounded-xl sm:rounded-2xl border border-border hover:shadow-xl transition-smooth hover-scale"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <div className="bg-primary/10 w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl flex items-center justify-center mb-4 sm:mb-6">
+                    <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
+                  </div>
+                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-2 sm:mb-3">{feature.title}</h3>
+                  <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">{feature.description}</p>
                 </div>
-                <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-2 sm:mb-3">{feature.title}</h3>
-                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">{feature.description}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -299,7 +301,7 @@ const Index = () => {
           </div>
           
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto px-4">
-            {plans.map((plan, index) => {
+            {plans.map((plan) => {
               const isPopular = plan.plan_type === 'monthly' && plan.price > 50 && plan.price < 150;
               const features = Array.isArray(plan.features) ? plan.features : [];
               
@@ -333,7 +335,7 @@ const Index = () => {
                   </div>
                   
                   <ul className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
-                    {features.map((feature, featureIndex) => (
+                    {features.map((feature: string, featureIndex: number) => (
                       <li key={featureIndex} className="flex items-start gap-2 sm:gap-3">
                         <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0 mt-0.5" />
                         <span className="text-xs sm:text-sm">{feature}</span>
