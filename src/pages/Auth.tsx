@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Bot, Zap } from "lucide-react";
+import { Eye, EyeOff, Bot, Zap, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Auth = () => {
@@ -109,6 +109,17 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center gradient-primary p-3 sm:p-4 relative overflow-hidden">
+      {/* Botão Voltar */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => navigate("/")}
+        className="absolute top-4 left-4 text-white hover:bg-white/10 active:scale-95 transition-transform z-20"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Voltar para o Início
+      </Button>
+
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-48 h-48 sm:w-64 sm:h-64 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
