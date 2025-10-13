@@ -14,6 +14,7 @@ import { GrowthChart } from "@/components/admin/GrowthChart";
 import { CustomPagesManager } from "@/components/admin/CustomPagesManager";
 import { SiteSettingsManager } from "@/components/admin/SiteSettingsManager";
 import { PaymentIntegrationsManager } from "@/components/admin/PaymentIntegrationsManager";
+import { AdminMessagesManager } from "@/components/admin/AdminMessagesManager";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -613,6 +614,9 @@ const AdminDashboard = () => {
           
           {/* Payment Integrations */}
           <PaymentIntegrationsManager />
+          
+          {/* Admin Messages Manager */}
+          <AdminMessagesManager />
         </div>
 
         {/* Video Tutorials Management */}
