@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { Crown, Calendar, DollarSign, User } from "lucide-react";
@@ -25,6 +26,8 @@ interface Subscription {
 export const SubscriptionsPanel = () => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeDisplayCount, setActiveDisplayCount] = useState(5);
+  const [inactiveDisplayCount, setInactiveDisplayCount] = useState(5);
 
   useEffect(() => {
     fetchSubscriptions();
@@ -54,6 +57,20 @@ export const SubscriptionsPanel = () => {
   const inactiveSubscriptions = subscriptions.filter(sub => 
     sub.status !== 'active' || new Date(sub.expires_at) <= new Date()
   );
+
+  const displayedActiveSubscriptions = activeSubscriptions.slice(0, activeDisplayCount);
+  const displayedInactiveSubscriptions = inactiveSubscriptions.slice(0, inactiveDisplayCount);
+  
+  const hasMoreActive = activeDisplayCount < activeSubscriptions.length;
+  const hasMoreInactive = inactiveDisplayCount < inactiveSubscriptions.length;
+
+  const loadMoreActive = () => {
+    setActiveDisplayCount(prev => Math.min(prev + 5, activeSubscriptions.length));
+  };
+
+  const loadMoreInactive = () => {
+    setInactiveDisplayCount(prev => Math.min(prev + 5, inactiveSubscriptions.length));
+  };
 
   const renderSubscriptionCard = (sub: Subscription) => (
     <div
@@ -118,7 +135,7 @@ export const SubscriptionsPanel = () => {
         </TabsList>
         
         <TabsContent value="active" className="mt-4">
-          <div className="space-y-3 max-h-[600px] overflow-y-auto">
+          <div className="space-y-3">
             {loading ? (
               <p className="text-center text-muted-foreground py-8">Carregando...</p>
             ) : activeSubscriptions.length === 0 ? (
@@ -126,13 +143,22 @@ export const SubscriptionsPanel = () => {
                 Nenhuma assinatura ativa
               </p>
             ) : (
-              activeSubscriptions.map(renderSubscriptionCard)
+              <>
+                {displayedActiveSubscriptions.map(renderSubscriptionCard)}
+                {hasMoreActive && (
+                  <div className="text-center pt-4">
+                    <Button variant="outline" onClick={loadMoreActive}>
+                      Carregar mais assinaturas
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </TabsContent>
         
         <TabsContent value="inactive" className="mt-4">
-          <div className="space-y-3 max-h-[600px] overflow-y-auto">
+          <div className="space-y-3">
             {loading ? (
               <p className="text-center text-muted-foreground py-8">Carregando...</p>
             ) : inactiveSubscriptions.length === 0 ? (
@@ -140,7 +166,16 @@ export const SubscriptionsPanel = () => {
                 Nenhuma assinatura inativa
               </p>
             ) : (
-              inactiveSubscriptions.map(renderSubscriptionCard)
+              <>
+                {displayedInactiveSubscriptions.map(renderSubscriptionCard)}
+                {hasMoreInactive && (
+                  <div className="text-center pt-4">
+                    <Button variant="outline" onClick={loadMoreInactive}>
+                      Carregar mais assinnaturas
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </TabsContent>

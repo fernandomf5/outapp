@@ -13,6 +13,7 @@ import { RevenuePanel } from "@/components/admin/RevenuePanel";
 import { GrowthChart } from "@/components/admin/GrowthChart";
 import { CustomPagesManager } from "@/components/admin/CustomPagesManager";
 import { SiteSettingsManager } from "@/components/admin/SiteSettingsManager";
+import { PaymentIntegrationsManager } from "@/components/admin/PaymentIntegrationsManager";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -609,6 +610,9 @@ const AdminDashboard = () => {
             <SiteSettingsManager />
             <CustomPagesManager />
           </div>
+          
+          {/* Payment Integrations */}
+          <PaymentIntegrationsManager />
         </div>
 
         {/* Video Tutorials Management */}
@@ -734,36 +738,6 @@ const AdminDashboard = () => {
           </div>
         </Card>
 
-        {/* Kiwify Integration */}
-        <Card className="p-6 bg-gradient-to-br from-card via-card to-success/5 border-success/20">
-          <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-foreground to-success bg-clip-text text-transparent">Integração Kiwify</h2>
-          <p className="text-muted-foreground mb-6">
-            Configure a integração com a Kiwify para gerenciar pagamentos e afiliados
-          </p>
-
-          <div className="space-y-4 max-w-2xl">
-            <div>
-              <Label htmlFor="kiwify-token">Token de API da Kiwify</Label>
-              <Input id="kiwify-token" placeholder="Cole seu token aqui" />
-            </div>
-
-            <div>
-              <Label htmlFor="kiwify-webhook">URL do Webhook</Label>
-              <Input
-                id="kiwify-webhook"
-                value="https://seu-app.com/webhooks/kiwify"
-                readOnly
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Cole esta URL nas configurações de webhook da Kiwify
-              </p>
-            </div>
-
-            <Button className="gradient-primary shadow-glow hover-scale">
-              Salvar Configurações
-            </Button>
-          </div>
-        </Card>
       </main>
 
       {/* Video Tutorial Dialog */}

@@ -38,6 +38,7 @@ export const UsersPanel = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [displayCount, setDisplayCount] = useState(5);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -82,6 +83,13 @@ export const UsersPanel = () => {
     user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const displayedUsers = filteredUsers.slice(0, displayCount);
+  const hasMore = displayCount < filteredUsers.length;
+
+  const loadMore = () => {
+    setDisplayCount(prev => Math.min(prev + 5, filteredUsers.length));
+  };
 
   const openEditDialog = (user: UserProfile) => {
     setSelectedUser(user);
@@ -264,7 +272,7 @@ export const UsersPanel = () => {
         />
       </div>
 
-      <div className="space-y-3 max-h-[400px] sm:max-h-[600px] overflow-y-auto">
+      <div className="space-y-3">
         {loading ? (
           <p className="text-center text-muted-foreground py-8">Carregando...</p>
         ) : filteredUsers.length === 0 ? (
@@ -272,7 +280,8 @@ export const UsersPanel = () => {
             Nenhum usuário encontrado
           </p>
         ) : (
-          filteredUsers.map((user) => (
+          <>
+            {displayedUsers.map((user) => (
             <div
               key={user.id}
               className="p-3 sm:p-4 rounded-lg border border-border bg-card hover:bg-accent/5 transition-colors"
@@ -319,7 +328,15 @@ export const UsersPanel = () => {
                 </div>
               </div>
             </div>
-          ))
+          ))}
+          {hasMore && (
+            <div className="text-center pt-4">
+              <Button variant="outline" onClick={loadMore}>
+                Carregar mais usuários
+              </Button>
+            </div>
+          )}
+          </>
         )}
       </div>
 

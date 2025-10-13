@@ -151,6 +151,53 @@ export const MessagesDialog = ({ open, onOpenChange }: MessagesDialogProps) => {
     }
   };
 
+  const handleDeleteMessage = async (messageId: string) => {
+    if (!user) return;
+
+    // Remove otimisticamente
+    setMessages(messages.filter(m => m.id !== messageId));
+
+    const { error } = await supabase
+      .from('admin_messages')
+      .delete()
+      .eq('id', messageId);
+
+    if (error) {
+      // Reverte se houver erro
+      toast({
+        title: "Erro ao excluir",
+        description: error.message,
+        variant: "destructive",
+      });
+      // Recarregar mensagens em caso de erro
+      const { data } = await supabase
+        .from('admin_messages')
+        .select('*')
+        .or(`user_id.eq.${user.id},sent_to_all.eq.true`)
+        .order('created_at', { ascending: false });
+      
+      if (data) {
+        const { data: readsData } = await supabase
+          .from('admin_message_reads')
+          .select('message_id, is_read')
+          .eq('user_id', user.id);
+        
+        const readStatusMap = new Map(
+          readsData?.map(r => [r.message_id, r.is_read]) || []
+        );
+        
+        setMessages(data.map(msg => ({
+          ...msg,
+          is_read: readStatusMap.get(msg.id) || false
+        })));
+      }
+    } else {
+      toast({
+        title: "Mensagem excluída",
+      });
+    }
+  };
+
   const unreadMessages = messages.filter(m => !m.is_read);
   const readMessages = messages.filter(m => m.is_read);
 
@@ -195,6 +242,7 @@ export const MessagesDialog = ({ open, onOpenChange }: MessagesDialogProps) => {
                         key={message.id}
                         message={message}
                         onToggleRead={toggleReadStatus}
+                        onDelete={handleDeleteMessage}
                       />
                     ))}
                   </div>
@@ -210,6 +258,7 @@ export const MessagesDialog = ({ open, onOpenChange }: MessagesDialogProps) => {
                       key={message.id}
                       message={message}
                       onToggleRead={toggleReadStatus}
+                      onDelete={handleDeleteMessage}
                     />
                   ))}
                 </div>
@@ -224,10 +273,12 @@ export const MessagesDialog = ({ open, onOpenChange }: MessagesDialogProps) => {
 
 const MessageCard = ({ 
   message, 
-  onToggleRead 
+  onToggleRead,
+  onDelete
 }: { 
   message: AdminMessage; 
   onToggleRead: (id: string, status: boolean) => void;
+  onDelete: (id: string) => void;
 }) => (
   <Card className={`${!message.is_read ? "border-primary/50 bg-primary/5" : ""}`}>
     <CardContent className="p-6">
@@ -249,23 +300,33 @@ const MessageCard = ({
             })}
           </p>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onToggleRead(message.id, message.is_read)}
-        >
-          {message.is_read ? (
-            <>
-              <EyeOff className="w-4 h-4 mr-2" />
-              Marcar não lida
-            </>
-          ) : (
-            <>
-              <Eye className="w-4 h-4 mr-2" />
-              Marcar lida
-            </>
-          )}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onToggleRead(message.id, message.is_read)}
+          >
+            {message.is_read ? (
+              <>
+                <EyeOff className="w-4 h-4 mr-2" />
+                Marcar não lida
+              </>
+            ) : (
+              <>
+                <Eye className="w-4 h-4 mr-2" />
+                Marcar lida
+              </>
+            )}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onDelete(message.id)}
+            className="text-destructive hover:bg-destructive/10"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       {message.image_url && (
