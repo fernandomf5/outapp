@@ -8,13 +8,13 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
-import WhatsAppConnect from "./pages/WhatsAppConnect";
 import BotBuilder from "./pages/BotBuilder";
 import AIAgentBuilder from "./pages/AIAgentBuilder";
 import AdminDashboard from "./pages/AdminDashboard";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import EmailConfirmed from "./pages/EmailConfirmed";
+import PublicChat from "./pages/PublicChat";
 
 const queryClient = new QueryClient();
 
@@ -34,11 +34,7 @@ const App = () => (
                 <Dashboard />
               </ProtectedRoute>
             } />
-            <Route path="/whatsapp-connect" element={
-              <ProtectedRoute>
-                <WhatsAppConnect />
-              </ProtectedRoute>
-            } />
+            <Route path="/chat/:botId" element={<PublicChat />} />
             <Route path="/bot-builder" element={
               <ProtectedRoute>
                 <BotBuilder />

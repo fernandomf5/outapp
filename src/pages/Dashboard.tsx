@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard } from "lucide-react";
+import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -112,6 +112,16 @@ const Dashboard = () => {
     setDeletingId(null);
   };
 
+  const handleCopyLink = (botId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const link = `${window.location.origin}/chat/${botId}`;
+    navigator.clipboard.writeText(link);
+    toast({
+      title: "Link copiado! 🔗",
+      description: "O link do chatbot foi copiado para a área de transferência.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -175,17 +185,17 @@ const Dashboard = () => {
               </div>
             </div>
             <h3 className="text-2xl sm:text-3xl font-bold mb-1">{stats.totalBots}</h3>
-            <p className="text-sm sm:text-base text-muted-foreground">Chatbots Criados</p>
+            <p className="text-sm sm:text-base text-muted-foreground">Bots Criados</p>
           </Card>
 
           <Card className="p-4 sm:p-6 hover:shadow-lg transition-smooth">
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="bg-success/10 p-2 sm:p-3 rounded-xl">
-                <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-success" />
+                <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-success" />
               </div>
             </div>
             <h3 className="text-2xl sm:text-3xl font-bold mb-1">{stats.activeConnections}</h3>
-            <p className="text-sm sm:text-base text-muted-foreground">WhatsApp Conectados</p>
+            <p className="text-sm sm:text-base text-muted-foreground">Agentes IA Ativos</p>
           </Card>
 
           <Card className="p-4 sm:p-6 hover:shadow-lg transition-smooth">
@@ -195,35 +205,18 @@ const Dashboard = () => {
               </div>
             </div>
             <h3 className="text-2xl sm:text-3xl font-bold mb-1">{stats.messagesThisMonth}</h3>
-            <p className="text-sm sm:text-base text-muted-foreground">Mensagens Este Mês</p>
+            <p className="text-sm sm:text-base text-muted-foreground">Conversas Este Mês</p>
           </Card>
         </div>
 
         {/* Quick Actions */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/whatsapp-connect")}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Conectar WhatsApp</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  {stats.activeConnections > 0 ? 'Gerenciar conexões ativas' : 'Conecte seu número via QR Code'}
-                </p>
-              </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <Zap className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
-              {stats.activeConnections > 0 ? 'Gerenciar' : 'Conectar Agora'}
-            </Button>
-          </Card>
-
+        <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/bot-builder")}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Criar Chatbot</h3>
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Criar Chatbot Web</h3>
                 <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Automação simples para seu WhatsApp
+                  Bot conversacional para seu site com fluxos personalizados
                 </p>
               </div>
               <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
@@ -231,7 +224,7 @@ const Dashboard = () => {
               </div>
             </div>
             <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
-              Criar Agora
+              Criar Chatbot
             </Button>
           </Card>
 
@@ -240,7 +233,7 @@ const Dashboard = () => {
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Criar Agente IA</h3>
                 <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Agente inteligente com IA avançada
+                  Assistente inteligente com IA que aprende com seu negócio
                 </p>
               </div>
               <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
@@ -248,7 +241,7 @@ const Dashboard = () => {
               </div>
             </div>
             <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
-              Criar Agora
+              Criar Agente
             </Button>
           </Card>
         </div>
@@ -311,6 +304,15 @@ const Dashboard = () => {
                     >
                       {bot.is_active ? "Ativo" : "Inativo"}
                     </span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={(e) => handleCopyLink(bot.id, e)}
+                      title="Copiar link do chatbot"
+                    >
+                      <Link2 className="w-4 h-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Link</span>
+                    </Button>
                     <Button 
                       variant="ghost" 
                       size="sm"

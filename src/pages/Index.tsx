@@ -83,13 +83,13 @@ const Index = () => {
   const features = [
     {
       icon: Zap,
-      title: "Integração WhatsApp",
-      description: "Conecte facilmente via QR Code e comece a automatizar em minutos",
+      title: "Chat Web Instantâneo",
+      description: "Crie chatbots web interativos que funcionam direto no seu site",
     },
     {
       icon: Bot,
-      title: "Chatbots Inteligentes",
-      description: "Crie chatbots automatizados com respostas personalizadas para seu WhatsApp",
+      title: "Chatbots Personalizados",
+      description: "Construa fluxos conversacionais personalizados sem programação",
     },
     {
       icon: Sparkles,
@@ -99,12 +99,12 @@ const Index = () => {
     {
       icon: MessageSquare,
       title: "Respostas Automáticas 24/7",
-      description: "Atendimento automático que nunca dorme, sempre disponível para seus clientes",
+      description: "Atendimento automático que nunca dorme, sempre disponível",
     },
     {
       icon: TrendingUp,
-      title: "Aumente suas Vendas",
-      description: "Converta mais leads com respostas instantâneas e personalizadas",
+      title: "Aumente suas Conversões",
+      description: "Converta mais visitantes com respostas instantâneas e inteligentes",
     },
     {
       icon: Shield,
@@ -113,13 +113,13 @@ const Index = () => {
     },
     {
       icon: Clock,
-      title: "Mensagens Agendadas",
-      description: "Agende mensagens para serem enviadas no melhor momento",
+      title: "Implementação Rápida",
+      description: "Configure e publique seu chatbot em minutos com um link único",
     },
     {
       icon: MessageSquare,
-      title: "Sistema de Notificações",
-      description: "Receba notificações instantâneas de mensagens importantes",
+      title: "Histórico Completo",
+      description: "Acompanhe todas as conversas e melhore continuamente",
     },
   ];
 
@@ -233,12 +233,12 @@ const Index = () => {
           </div>
           
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 animate-fade-in leading-tight">
-            Automatize seu WhatsApp<br />
+            Crie Chatbots Web Inteligentes<br />
             com Inteligência Artificial
           </h1>
           
           <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-6 sm:mb-8 text-white/90 max-w-3xl mx-auto animate-fade-in">
-            Crie chatbots inteligentes e agentes IA para seu WhatsApp em minutos.
+            Construa chatbots web interativos e agentes IA para seu site em minutos.
             Sem programação. Teste grátis por 3 dias.
           </p>
           
@@ -286,7 +286,7 @@ const Index = () => {
                 Veja o Bot Reals Zapp em Ação
               </h2>
               <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground">
-                Descubra como é fácil automatizar seu WhatsApp
+                Descubra como é fácil criar chatbots web inteligentes
               </p>
             </div>
             
@@ -311,7 +311,7 @@ const Index = () => {
               Recursos Poderosos para seu Negócio
             </h2>
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Tudo que você precisa para automatizar e escalar seu atendimento no WhatsApp
+              Tudo que você precisa para automatizar e escalar seu atendimento online
             </p>
           </div>
           
@@ -419,10 +419,10 @@ const Index = () => {
         
         <div className="container mx-auto text-center text-white relative z-10 max-w-4xl">
           <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 md:mb-6">
-            Pronto para Transformar seu Atendimento?
+            Pronto para Transformar seu Atendimento Online?
           </h2>
           <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-5 sm:mb-6 md:mb-8 text-white/90 max-w-2xl mx-auto">
-            Junte-se a centenas de empresas que já automatizaram seu WhatsApp com sucesso
+            Junte-se a centenas de empresas que já automatizaram seu atendimento com chatbots inteligentes
           </p>
           <Button 
             size="lg"
