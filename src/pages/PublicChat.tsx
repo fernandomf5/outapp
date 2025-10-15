@@ -49,7 +49,7 @@ const PublicChat = () => {
       setBotData({ ...chatbot, type: 'chatbot' });
       const config = chatbot.config as any || {};
       
-      // Encontrar o primeiro bloco após o trigger
+      // Encontrar o primeiro bloco após o trigger OU o primeiro bloco visível (sem depender de gatilho)
       const nodes = config.nodes || [];
       const edges = config.edges || [];
       const triggerNode = nodes.find((n: any) => n.type === 'trigger');
@@ -65,6 +65,16 @@ const PublicChat = () => {
             return;
           }
         }
+      }
+
+      // Se não houver gatilho/ligação, usar o primeiro bloco pelo topo do canvas
+      const firstTopNode = nodes
+        .filter((n: any) => n.type !== 'trigger')
+        .sort((a: any, b: any) => (a.position?.y || 0) - (b.position?.y || 0))[0];
+
+      if (firstTopNode) {
+        processNode(firstTopNode, nodes, edges);
+        return;
       }
       
       // Fallback para mensagem padrão

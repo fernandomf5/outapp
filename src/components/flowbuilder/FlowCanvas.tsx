@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -11,6 +11,7 @@ import ReactFlow, {
   ConnectionMode,
   BackgroundVariant,
   MiniMap,
+  useReactFlow,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import MessageNode from './nodes/MessageNode';
@@ -46,6 +47,25 @@ export const FlowCanvas = ({
 }: FlowCanvasProps) => {
   const [nodes, setNodes, onNodesChangeInternal] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChangeInternal] = useEdgesState(initialEdges);
+  const { project } = useReactFlow();
+
+  // Sincroniza mudanças locais com o componente pai
+  useEffect(() => {
+    onNodesChange(nodes);
+  }, [nodes, onNodesChange]);
+
+  useEffect(() => {
+    onEdgesChange(edges);
+  }, [edges, onEdgesChange]);
+
+  // Atualiza o canvas quando o pai mudar (ex: ao editar no painel de propriedades)
+  useEffect(() => {
+    setNodes(initialNodes);
+  }, [initialNodes, setNodes]);
+
+  useEffect(() => {
+    setEdges(initialEdges);
+  }, [initialEdges, setEdges]);
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -58,25 +78,22 @@ export const FlowCanvas = ({
         edges
       );
       setEdges(newEdges);
-      onEdgesChange(newEdges);
     },
-    [edges, setEdges, onEdgesChange]
+    [edges, setEdges]
   );
 
   const handleNodesChange = useCallback(
     (changes: any) => {
       onNodesChangeInternal(changes);
-      onNodesChange(nodes);
     },
-    [onNodesChangeInternal, onNodesChange, nodes]
+    [onNodesChangeInternal]
   );
 
   const handleEdgesChange = useCallback(
     (changes: any) => {
       onEdgesChangeInternal(changes);
-      onEdgesChange(edges);
     },
-    [onEdgesChangeInternal, onEdgesChange, edges]
+    [onEdgesChangeInternal]
   );
 
   const handleNodeClick = useCallback(
@@ -85,6 +102,40 @@ export const FlowCanvas = ({
     },
     [onNodeClick]
   );
+
+  // Suporte a arrastar e soltar blocos do Sidebar
+  const handleDragOver = useCallback((event: any) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const handleDrop = useCallback((event: any) => {
+    event.preventDefault();
+    const type = event.dataTransfer.getData('application/reactflow');
+    if (!type) return;
+
+    const bounds = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    const position = project({ x: event.clientX - bounds.left, y: event.clientY - bounds.top });
+
+    const defaultLabel =
+      type === 'message' ? 'Digite sua mensagem...' :
+      type === 'question' ? 'Faça uma pergunta...' :
+      type === 'condition' ? 'Se {{variável}} == "valor"' :
+      type === 'action' ? 'Executar ação' :
+      type === 'quickReply' ? 'Escolha uma opção:' : 'Novo bloco';
+
+    const newNode: Node = {
+      id: Date.now().toString(),
+      type: type as any,
+      position,
+      data: {
+        label: defaultLabel,
+        buttons: type === 'quickReply' ? ['Opção 1', 'Opção 2'] : undefined,
+      },
+    };
+
+    setNodes((nds) => [...nds, newNode]);
+  }, [project, setNodes]);
 
   return (
     <div className="w-full h-full bg-accent/5">
@@ -99,6 +150,8 @@ export const FlowCanvas = ({
         connectionMode={ConnectionMode.Loose}
         fitView
         className="bg-background"
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
       >
         <Background 
           variant={BackgroundVariant.Dots} 
