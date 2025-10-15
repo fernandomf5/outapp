@@ -3,12 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Save, Play, Link2, Copy, Power } from "lucide-react";
+import { ArrowLeft, Save, Play, Link2, Copy, Power, Eye, EyeOff } from "lucide-react";
 import { Node, Edge } from 'reactflow';
 import { ReactFlowProvider } from 'reactflow';
 import { FlowCanvas } from '@/components/flowbuilder/FlowCanvas';
 import { Sidebar } from '@/components/flowbuilder/Sidebar';
 import { PropertiesPanel } from '@/components/flowbuilder/PropertiesPanel';
+import { ChatPreview } from '@/components/flowbuilder/ChatPreview';
 import { useChatbot } from '@/hooks/useChatbot';
 import { useAuth } from '@/contexts/AuthContext';
 import { Switch } from '@/components/ui/switch';
@@ -24,6 +25,7 @@ const BotBuilder = () => {
   
   const [botName, setBotName] = useState("Novo Chatbot");
   const [isActive, setIsActive] = useState(true);
+  const [showPreview, setShowPreview] = useState(false);
   const [nodes, setNodes] = useState<Node[]>([
     {
       id: '1',
@@ -208,6 +210,14 @@ const BotBuilder = () => {
             </div>
 
             <div className="flex items-center gap-3">
+              <Button
+                variant={showPreview ? "default" : "outline"}
+                onClick={() => setShowPreview(!showPreview)}
+                className={showPreview ? "" : "hover:bg-primary/10 hover:border-primary"}
+              >
+                {showPreview ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
+                {showPreview ? 'Ocultar Prévia' : 'Testar Prévia'}
+              </Button>
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card">
                 <Label htmlFor="active-switch" className="cursor-pointer">
                   <Power className="w-4 h-4" />
@@ -262,11 +272,21 @@ const BotBuilder = () => {
             />
           </main>
 
-          <PropertiesPanel
-            selectedNode={selectedNode}
-            onUpdateNode={updateNode}
-            onDeleteNode={deleteNode}
-          />
+          {showPreview ? (
+            <aside className="w-96 border-l border-border bg-card/50 backdrop-blur-sm">
+              <ChatPreview
+                nodes={nodes}
+                edges={edges}
+                botName={botName}
+              />
+            </aside>
+          ) : (
+            <PropertiesPanel
+              selectedNode={selectedNode}
+              onUpdateNode={updateNode}
+              onDeleteNode={deleteNode}
+            />
+          )}
         </div>
       </div>
     </ReactFlowProvider>
