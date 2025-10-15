@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Trash2, Plus, X, Image as ImageIcon } from 'lucide-react';
+import { Trash2, Plus, X, Image as ImageIcon, FileAudio, Video, FileText } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { ImageUpload } from './ImageUpload';
+import { MediaUpload } from './MediaUpload';
 import { Separator } from '@/components/ui/separator';
 
 interface PropertiesPanelProps {
@@ -26,6 +27,10 @@ export const PropertiesPanel = ({
   const [newButton, setNewButton] = useState('');
   const [actionType, setActionType] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [audioUrl, setAudioUrl] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
+  const [documentUrl, setDocumentUrl] = useState('');
+  const [documentName, setDocumentName] = useState('');
 
   useEffect(() => {
     if (selectedNode) {
@@ -34,6 +39,10 @@ export const PropertiesPanel = ({
       setButtons(selectedNode.data.buttons || []);
       setActionType(selectedNode.data.actionType || '');
       setImageUrl(selectedNode.data.imageUrl || '');
+      setAudioUrl(selectedNode.data.audioUrl || '');
+      setVideoUrl(selectedNode.data.videoUrl || '');
+      setDocumentUrl(selectedNode.data.documentUrl || '');
+      setDocumentName(selectedNode.data.documentName || '');
     }
   }, [selectedNode]);
 
@@ -54,6 +63,10 @@ export const PropertiesPanel = ({
       buttons,
       actionType,
       imageUrl,
+      audioUrl,
+      videoUrl,
+      documentUrl,
+      documentName,
     });
   };
 
@@ -90,10 +103,16 @@ export const PropertiesPanel = ({
     switch (selectedNode.type) {
       case 'trigger': return 'Gatilho';
       case 'message': return 'Mensagem';
+      case 'text': return 'Texto';
       case 'question': return 'Pergunta';
       case 'condition': return 'Condição';
       case 'action': return 'Ação';
       case 'quickReply': return 'Botões Rápidos';
+      case 'button': return 'Botão';
+      case 'image': return 'Imagem';
+      case 'audio': return 'Áudio';
+      case 'video': return 'Vídeo';
+      case 'document': return 'Documento';
       default: return 'Bloco';
     }
   };
@@ -194,14 +213,14 @@ export const PropertiesPanel = ({
           </div>
         )}
 
-        {/* Upload de Imagem - disponível para mensagem e quickReply */}
-        {(selectedNode.type === 'message' || selectedNode.type === 'quickReply') && (
+        {/* Upload de Imagem */}
+        {(selectedNode.type === 'message' || selectedNode.type === 'quickReply' || selectedNode.type === 'image') && (
           <>
             <Separator className="my-4" />
             <div>
               <Label className="flex items-center gap-2 mb-3">
                 <ImageIcon className="w-4 h-4" />
-                Adicionar Imagem (opcional)
+                {selectedNode.type === 'image' ? 'Imagem' : 'Adicionar Imagem (opcional)'}
               </Label>
               <ImageUpload 
                 onImageSelect={handleImageSelect}
@@ -209,6 +228,108 @@ export const PropertiesPanel = ({
               />
             </div>
           </>
+        )}
+
+        {/* Upload de Áudio */}
+        {selectedNode.type === 'audio' && (
+          <>
+            <Separator className="my-4" />
+            <div>
+              <Label className="flex items-center gap-2 mb-3">
+                <FileAudio className="w-4 h-4" />
+                Arquivo de Áudio
+              </Label>
+              <MediaUpload 
+                mediaType="audio"
+                onMediaSelect={(url) => {
+                  setAudioUrl(url);
+                  onUpdateNode(selectedNode.id, { ...selectedNode.data, audioUrl: url });
+                }}
+                currentMedia={audioUrl}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Upload de Vídeo */}
+        {selectedNode.type === 'video' && (
+          <>
+            <Separator className="my-4" />
+            <div>
+              <Label className="flex items-center gap-2 mb-3">
+                <Video className="w-4 h-4" />
+                Arquivo de Vídeo
+              </Label>
+              <MediaUpload 
+                mediaType="video"
+                onMediaSelect={(url) => {
+                  setVideoUrl(url);
+                  onUpdateNode(selectedNode.id, { ...selectedNode.data, videoUrl: url });
+                }}
+                currentMedia={videoUrl}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Upload de Documento */}
+        {selectedNode.type === 'document' && (
+          <>
+            <Separator className="my-4" />
+            <div>
+              <Label className="flex items-center gap-2 mb-3">
+                <FileText className="w-4 h-4" />
+                Arquivo (PDF, DOC, etc)
+              </Label>
+              <MediaUpload 
+                mediaType="document"
+                onMediaSelect={(url, fileName) => {
+                  setDocumentUrl(url);
+                  setDocumentName(fileName || '');
+                  onUpdateNode(selectedNode.id, { 
+                    ...selectedNode.data, 
+                    documentUrl: url,
+                    documentName: fileName 
+                  });
+                }}
+                currentMedia={documentUrl}
+                currentFileName={documentName}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Botões para tipo Button */}
+        {selectedNode.type === 'button' && (
+          <div>
+            <Label>Botões</Label>
+            <div className="space-y-2 mt-2">
+              {buttons.map((button, index) => (
+                <Card key={index} className="p-3 flex items-center justify-between">
+                  <span className="text-sm">{button}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeButton(index)}
+                    className="h-8 w-8"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </Card>
+              ))}
+              <div className="flex gap-2">
+                <Input
+                  value={newButton}
+                  onChange={(e) => setNewButton(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && addButton()}
+                  placeholder="Novo botão..."
+                />
+                <Button onClick={addButton} size="icon">
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
 

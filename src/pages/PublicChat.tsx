@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Bot, Send, Loader2, Sparkles } from "lucide-react";
+import { Bot, Send, Loader2, Sparkles, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -13,6 +13,10 @@ interface Message {
   content: string;
   timestamp: Date;
   imageUrl?: string;
+  audioUrl?: string;
+  videoUrl?: string;
+  documentUrl?: string;
+  documentName?: string;
   buttons?: string[];
   nodeId?: string;
 }
@@ -128,15 +132,61 @@ const PublicChat = () => {
   const processNode = (node: any, nodes: any[], edges: any[]) => {
     const messages: Message[] = [];
     
-    // Adicionar mensagem do nó
-    if (node.type === 'message' || node.type === 'question' || node.type === 'quickReply') {
+    // Processar diferentes tipos de nós
+    if (node.type === 'message' || node.type === 'text') {
       messages.push({
         id: node.id,
         role: 'bot',
         content: node.data.label || '',
         timestamp: new Date(),
         imageUrl: node.data.imageUrl,
-        buttons: node.type === 'quickReply' ? node.data.buttons : undefined,
+        nodeId: node.id
+      } as any);
+    } else if (node.type === 'image') {
+      messages.push({
+        id: node.id,
+        role: 'bot',
+        content: node.data.label || 'Imagem',
+        timestamp: new Date(),
+        imageUrl: node.data.imageUrl,
+        nodeId: node.id
+      } as any);
+    } else if (node.type === 'audio') {
+      messages.push({
+        id: node.id,
+        role: 'bot',
+        content: `🎵 ${node.data.label || 'Áudio'}`,
+        timestamp: new Date(),
+        audioUrl: node.data.audioUrl,
+        nodeId: node.id
+      } as any);
+    } else if (node.type === 'video') {
+      messages.push({
+        id: node.id,
+        role: 'bot',
+        content: `🎥 ${node.data.label || 'Vídeo'}`,
+        timestamp: new Date(),
+        videoUrl: node.data.videoUrl,
+        nodeId: node.id
+      } as any);
+    } else if (node.type === 'document') {
+      messages.push({
+        id: node.id,
+        role: 'bot',
+        content: `📄 ${node.data.label || 'Documento'}`,
+        timestamp: new Date(),
+        documentUrl: node.data.documentUrl,
+        documentName: node.data.documentName,
+        nodeId: node.id
+      } as any);
+    } else if (node.type === 'question' || node.type === 'quickReply' || node.type === 'button') {
+      messages.push({
+        id: node.id,
+        role: 'bot',
+        content: node.data.label || '',
+        timestamp: new Date(),
+        imageUrl: node.data.imageUrl,
+        buttons: node.data.buttons,
         nodeId: node.id
       } as any);
     }
@@ -312,6 +362,27 @@ const PublicChat = () => {
                       alt="Imagem" 
                       className="w-full rounded-lg mb-2 max-h-64 object-cover"
                     />
+                  )}
+                  {message.audioUrl && (
+                    <audio controls className="w-full mb-2">
+                      <source src={message.audioUrl} />
+                    </audio>
+                  )}
+                  {message.videoUrl && (
+                    <video controls className="w-full rounded-lg mb-2 max-h-64">
+                      <source src={message.videoUrl} />
+                    </video>
+                  )}
+                  {message.documentUrl && (
+                    <a 
+                      href={message.documentUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 p-2 bg-accent rounded-md mb-2 hover:bg-accent/70 transition"
+                    >
+                      <FileText className="w-4 h-4" />
+                      <span className="text-xs">{message.documentName || 'Documento'}</span>
+                    </a>
                   )}
                   <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                   <span className="text-xs opacity-70 mt-1 block">

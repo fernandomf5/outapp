@@ -297,6 +297,94 @@ export type Database = {
           },
         ]
       }
+      chatbot_conversations: {
+        Row: {
+          chatbot_id: string
+          created_at: string
+          id: string
+          last_message_at: string
+          session_id: string
+          started_at: string
+          status: string
+          visitor_email: string | null
+          visitor_name: string | null
+          visitor_phone: string | null
+        }
+        Insert: {
+          chatbot_id: string
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          session_id: string
+          started_at?: string
+          status?: string
+          visitor_email?: string | null
+          visitor_name?: string | null
+          visitor_phone?: string | null
+        }
+        Update: {
+          chatbot_id?: string
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          session_id?: string
+          started_at?: string
+          status?: string
+          visitor_email?: string | null
+          visitor_name?: string | null
+          visitor_phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_conversations_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chatbot_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          media_type: string | null
+          media_url: string | null
+          node_id: string | null
+          role: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          media_type?: string | null
+          media_url?: string | null
+          node_id?: string | null
+          role: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          media_type?: string | null
+          media_url?: string | null
+          node_id?: string | null
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "chatbot_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chatbots: {
         Row: {
           config: Json
