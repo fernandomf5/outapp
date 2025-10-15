@@ -18,7 +18,8 @@ interface Ticket {
   category: string | null;
   created_at: string;
   user_id: string;
-  profiles: { email: string; full_name: string };
+  user_email?: string;
+  user_name?: string;
 }
 
 interface TicketMessage {
@@ -52,17 +53,32 @@ export const TicketsManager = () => {
   const fetchTickets = async () => {
     let query = supabase
       .from('tickets')
-      .select('*, profiles(email, full_name)')
+      .select('*')
       .order('created_at', { ascending: false });
 
     if (statusFilter !== 'all') {
       query = query.eq('status', statusFilter);
     }
 
-    const { data, error } = await query;
+    const { data: ticketsData, error } = await query;
 
-    if (!error && data) {
-      setTickets(data);
+    if (!error && ticketsData) {
+      // Buscar perfis dos usuários
+      const userIds = [...new Set(ticketsData.map(t => t.user_id))];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('user_id, email, full_name')
+        .in('user_id', userIds);
+
+      const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
+      
+      const enrichedTickets = ticketsData.map(ticket => ({
+        ...ticket,
+        user_email: profilesMap.get(ticket.user_id)?.email,
+        user_name: profilesMap.get(ticket.user_id)?.full_name
+      }));
+
+      setTickets(enrichedTickets);
     }
   };
 
@@ -205,7 +221,7 @@ export const TicketsManager = () => {
                 <div className="flex-1">
                   <h4 className="font-semibold">{ticket.title}</h4>
                   <p className="text-xs text-muted-foreground mt-1">
-                    De: {ticket.profiles.full_name || ticket.profiles.email}
+                    De: {ticket.user_name || ticket.user_email || `Usuário ${ticket.user_id.slice(0, 8)}...`}
                   </p>
                 </div>
                 <div className="flex gap-2">
