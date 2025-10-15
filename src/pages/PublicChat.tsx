@@ -366,18 +366,8 @@ const PublicChat = () => {
           }
         }
         
-        // Se chegou ao fim do fluxo, perguntar se quer falar com atendente
-        const botResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          role: 'bot',
-          content: "Posso ajudar em algo mais?",
-          timestamp: new Date(),
-          buttons: ['Falar com atendente', 'Finalizar atendimento']
-        };
-
-        setTimeout(async () => {
-          setMessages(prev => [...prev, botResponse]);
-          await saveMessage('bot', botResponse.content);
+        // Fim do fluxo - apenas finaliza sem mensagem adicional
+        setTimeout(() => {
           setIsLoading(false);
         }, 500);
         return;
