@@ -12,8 +12,11 @@ import ReactFlow, {
   BackgroundVariant,
   MiniMap,
   useReactFlow,
+  EdgeProps,
+  getBezierPath,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import { X } from 'lucide-react';
 import MessageNode from './nodes/MessageNode';
 import QuestionNode from './nodes/QuestionNode';
 import ConditionNode from './nodes/ConditionNode';
@@ -26,6 +29,61 @@ import AudioNode from './nodes/AudioNode';
 import ImageNode from './nodes/ImageNode';
 import VideoNode from './nodes/VideoNode';
 import DocumentNode from './nodes/DocumentNode';
+
+// Custom Edge component with delete button
+const CustomEdge = ({
+  id,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  style = {},
+  markerEnd,
+}: EdgeProps) => {
+  const [edgePath, labelX, labelY] = getBezierPath({
+    sourceX,
+    sourceY,
+    sourcePosition,
+    targetX,
+    targetY,
+    targetPosition,
+  });
+
+  return (
+    <>
+      <path
+        id={id}
+        style={style}
+        className="react-flow__edge-path"
+        d={edgePath}
+        markerEnd={markerEnd}
+      />
+      <foreignObject
+        width={24}
+        height={24}
+        x={labelX - 12}
+        y={labelY - 12}
+        className="edge-delete-button"
+        requiredExtensions="http://www.w3.org/1999/xhtml"
+      >
+        <div className="flex items-center justify-center w-full h-full">
+          <button
+            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full w-6 h-6 flex items-center justify-center shadow-lg transition-smooth cursor-pointer border-2 border-background"
+            onClick={(event) => {
+              event.stopPropagation();
+              const deleteEvent = new CustomEvent('delete-edge', { detail: { id } });
+              window.dispatchEvent(deleteEvent);
+            }}
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      </foreignObject>
+    </>
+  );
+};
 
 const nodeTypes = {
   trigger: TriggerNode,
@@ -40,6 +98,10 @@ const nodeTypes = {
   image: ImageNode,
   video: VideoNode,
   document: DocumentNode,
+};
+
+const edgeTypes = {
+  default: CustomEdge,
 };
 
 interface FlowCanvasProps {
@@ -61,6 +123,19 @@ export const FlowCanvas = ({
   const [edges, setEdges, onEdgesChangeInternal] = useEdgesState(initialEdges);
   const { project } = useReactFlow();
   const [isDragging, setIsDragging] = useState(false);
+
+  // Handler para deletar edges
+  useEffect(() => {
+    const handleDeleteEdge = (event: CustomEvent) => {
+      const { id } = event.detail;
+      setEdges((eds) => eds.filter((edge) => edge.id !== id));
+    };
+
+    window.addEventListener('delete-edge' as any, handleDeleteEdge as EventListener);
+    return () => {
+      window.removeEventListener('delete-edge' as any, handleDeleteEdge as EventListener);
+    };
+  }, [setEdges]);
 
   // Sincroniza mudanças locais com o componente pai
 
@@ -85,6 +160,7 @@ export const FlowCanvas = ({
         {
           ...params,
           animated: true,
+          type: 'default',
           style: { stroke: 'hsl(var(--primary))' },
         },
         edges
@@ -180,6 +256,7 @@ export const FlowCanvas = ({
           onNodeDragStart={handleNodeDragStart}
           onNodeDragStop={handleNodeDragStop}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           connectionMode={ConnectionMode.Loose}
         fitView
         className="bg-background"
