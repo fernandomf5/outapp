@@ -24,11 +24,12 @@ const BotBuilder = () => {
   const chatbotId = searchParams.get('id');
   const { saveChatbot, loadChatbot, toggleActive, isSaving, isLoading } = useChatbot();
   
-  const [botName, setBotName] = useState("Novo Chatbot");
+  const [botName, setBotName] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
   const [initialMessage, setInitialMessage] = useState("Olá! Como posso ajudar você hoje?");
   const [showFlowEditor, setShowFlowEditor] = useState(false);
+  const [showNameInput, setShowNameInput] = useState(!chatbotId);
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
@@ -54,32 +55,25 @@ const BotBuilder = () => {
   }, [chatbotId, user]);
 
   const addNode = useCallback((type: string) => {
-    const nodeTypeMap: Record<string, string> = {
-      'message': 'message',
-      'question': 'question',
-      'condition': 'condition',
-      'action': 'action',
-      'quickReply': 'quickReply',
-    };
-
     const defaultLabels: Record<string, string> = {
-      'message': 'Digite sua mensagem...',
-      'question': 'Faça uma pergunta...',
-      'condition': 'Se {{variável}} == "valor"',
-      'action': 'Executar ação',
-      'quickReply': 'Escolha uma opção:',
+      'text': 'Digite seu texto...',
+      'button': 'Adicione seus botões',
+      'image': 'Adicione uma imagem',
+      'video': 'Adicione um vídeo',
+      'audio': 'Adicione um áudio',
+      'document': 'Adicione um documento',
     };
 
     const newNode: Node = {
       id: Date.now().toString(),
-      type: nodeTypeMap[type] || 'message',
+      type: type,
       position: { 
         x: 250 + Math.random() * 100, 
         y: 150 + nodes.length * 100 
       },
       data: { 
         label: defaultLabels[type] || 'Novo bloco',
-        buttons: type === 'quickReply' ? ['Opção 1', 'Opção 2'] : undefined,
+        buttons: type === 'button' ? ['Opção 1', 'Opção 2'] : undefined,
       },
     };
     
@@ -309,7 +303,21 @@ const BotBuilder = () => {
                 </Card>
                 
                 <Button 
-                  onClick={() => setShowFlowEditor(true)}
+                  onClick={() => {
+                    // Cria nó da mensagem inicial
+                    const initialNode: Node = {
+                      id: 'initial-message',
+                      type: 'text',
+                      position: { x: 250, y: 50 },
+                      data: { 
+                        label: initialMessage,
+                        isInitial: true,
+                      },
+                    };
+                    
+                    setNodes([initialNode]);
+                    setShowFlowEditor(true);
+                  }}
                   size="lg"
                   className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold text-lg py-7 shadow-lg hover:shadow-xl transition-all"
                 >
@@ -322,6 +330,48 @@ const BotBuilder = () => {
                     Clique em "Editar Fluxo" para montar toda a conversa do seu chatbot
                   </p>
                 </div>
+              </div>
+            ) : showNameInput ? (
+              <div className="max-w-2xl mx-auto space-y-6 mt-8">
+                <Card className="p-8 border-2 border-primary/20 shadow-xl">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="bg-primary/10 p-3 rounded-xl">
+                      <MessageSquare className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-xl text-primary">Nome do Chatbot</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Escolha um nome para identificar seu chatbot
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <Input
+                      value={botName}
+                      onChange={(e) => setBotName(e.target.value)}
+                      className="text-lg p-4"
+                      placeholder="Ex: Bot de Vendas, Atendimento 24h..."
+                    />
+                    <Button 
+                      onClick={() => {
+                        if (botName.trim()) {
+                          setShowNameInput(false);
+                        } else {
+                          toast({
+                            title: "Nome obrigatório",
+                            description: "Por favor, insira um nome para o chatbot",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      size="lg"
+                      className="w-full bg-primary hover:bg-primary/90"
+                    >
+                      Continuar
+                    </Button>
+                  </div>
+                </Card>
               </div>
             ) : (
               <FlowCanvas
