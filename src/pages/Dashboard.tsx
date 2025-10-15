@@ -11,6 +11,9 @@ import { TutorialVideos } from "@/components/TutorialVideos";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { MyPlanSection } from "@/components/MyPlanSection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TicketSystem } from "@/components/TicketSystem";
+import { WhatsAppLinkGenerator } from "@/components/WhatsAppLinkGenerator";
+import { VoucherRedemption } from "@/components/VoucherRedemption";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -164,8 +167,11 @@ const Dashboard = () => {
         <SubscriptionBanner />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
+          <TabsList className="grid w-full grid-cols-5 mb-8">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="tools">Ferramentas</TabsTrigger>
+            <TabsTrigger value="support">Suporte</TabsTrigger>
+            <TabsTrigger value="voucher">Voucher</TabsTrigger>
             <TabsTrigger 
               value="plan" 
               className="flex items-center gap-2 data-[state=active]:bg-success data-[state=active]:text-white"
@@ -338,6 +344,18 @@ const Dashboard = () => {
             </div>
           )}
         </Card>
+          </TabsContent>
+
+          <TabsContent value="tools">
+            <WhatsAppLinkGenerator />
+          </TabsContent>
+
+          <TabsContent value="support">
+            <TicketSystem />
+          </TabsContent>
+
+          <TabsContent value="voucher">
+            <VoucherRedemption />
           </TabsContent>
 
           <TabsContent value="plan">

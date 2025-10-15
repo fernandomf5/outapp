@@ -15,6 +15,8 @@ import { CustomPagesManager } from "@/components/admin/CustomPagesManager";
 import { SiteSettingsManager } from "@/components/admin/SiteSettingsManager";
 import { PaymentIntegrationsManager } from "@/components/admin/PaymentIntegrationsManager";
 import { AdminMessagesManager } from "@/components/admin/AdminMessagesManager";
+import { VouchersManager } from "@/components/admin/VouchersManager";
+import { TicketsManager } from "@/components/admin/TicketsManager";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -617,6 +619,12 @@ const AdminDashboard = () => {
           
           {/* Admin Messages Manager */}
           <AdminMessagesManager />
+          
+          {/* Vouchers Manager */}
+          <VouchersManager />
+          
+          {/* Tickets Manager */}
+          <TicketsManager />
         </div>
 
         {/* Video Tutorials Management */}

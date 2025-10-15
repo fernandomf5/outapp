@@ -1,0 +1,282 @@
+import { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Plus, Trash2, Ticket, Copy } from "lucide-react";
+
+interface Voucher {
+  id: string;
+  code: string;
+  plan_id: string;
+  max_uses: number;
+  current_uses: number;
+  is_active: boolean;
+  expires_at: string | null;
+  created_at: string;
+  plans: { name: string };
+}
+
+export const VouchersManager = () => {
+  const { toast } = useToast();
+  const [vouchers, setVouchers] = useState<Voucher[]>([]);
+  const [plans, setPlans] = useState<any[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newVoucher, setNewVoucher] = useState({
+    code: "",
+    plan_id: "",
+    max_uses: 1,
+    expires_at: ""
+  });
+
+  useEffect(() => {
+    fetchVouchers();
+    fetchPlans();
+  }, []);
+
+  const fetchVouchers = async () => {
+    const { data, error } = await supabase
+      .from('vouchers')
+      .select('*, plans(name)')
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      setVouchers(data);
+    }
+  };
+
+  const fetchPlans = async () => {
+    const { data, error } = await supabase
+      .from('plans')
+      .select('*')
+      .eq('is_active', true);
+
+    if (!error && data) {
+      setPlans(data);
+    }
+  };
+
+  const generateCode = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 8; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setNewVoucher({ ...newVoucher, code });
+  };
+
+  const handleCreate = async () => {
+    if (!newVoucher.code || !newVoucher.plan_id) {
+      toast({
+        title: "Erro",
+        description: "Preencha todos os campos obrigatórios",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from('vouchers')
+      .insert({
+        ...newVoucher,
+        expires_at: newVoucher.expires_at || null
+      });
+
+    if (error) {
+      toast({
+        title: "Erro ao criar voucher",
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Voucher criado!",
+        description: `Código: ${newVoucher.code}`
+      });
+      fetchVouchers();
+      setIsDialogOpen(false);
+      setNewVoucher({ code: "", plan_id: "", max_uses: 1, expires_at: "" });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase
+      .from('vouchers')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: "Erro ao excluir",
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Voucher excluído"
+      });
+      fetchVouchers();
+    }
+  };
+
+  const handleToggleStatus = async (voucher: Voucher) => {
+    const { error } = await supabase
+      .from('vouchers')
+      .update({ is_active: !voucher.is_active })
+      .eq('id', voucher.id);
+
+    if (!error) {
+      fetchVouchers();
+      toast({
+        title: voucher.is_active ? "Voucher desativado" : "Voucher ativado"
+      });
+    }
+  };
+
+  const handleCopyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    toast({
+      title: "Código copiado!",
+      description: code
+    });
+  };
+
+  return (
+    <Card className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold flex items-center gap-2">
+          <Ticket className="w-6 h-6 text-primary" />
+          Gerenciar Vouchers
+        </h2>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="gradient-primary">
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Voucher
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Criar Novo Voucher</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div>
+                <Label>Código do Voucher *</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={newVoucher.code}
+                    onChange={(e) => setNewVoucher({ ...newVoucher, code: e.target.value.toUpperCase() })}
+                    placeholder="Ex: PROMO2024"
+                    maxLength={20}
+                  />
+                  <Button onClick={generateCode} variant="outline">
+                    Gerar
+                  </Button>
+                </div>
+              </div>
+
+              <div>
+                <Label>Plano *</Label>
+                <Select value={newVoucher.plan_id} onValueChange={(v) => setNewVoucher({ ...newVoucher, plan_id: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um plano" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {plans.map((plan) => (
+                      <SelectItem key={plan.id} value={plan.id}>
+                        {plan.name} - R$ {plan.price}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Número de Usos</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={newVoucher.max_uses}
+                  onChange={(e) => setNewVoucher({ ...newVoucher, max_uses: parseInt(e.target.value) })}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Quantas vezes este voucher pode ser usado
+                </p>
+              </div>
+
+              <div>
+                <Label>Data de Expiração (opcional)</Label>
+                <Input
+                  type="datetime-local"
+                  value={newVoucher.expires_at}
+                  onChange={(e) => setNewVoucher({ ...newVoucher, expires_at: e.target.value })}
+                />
+              </div>
+
+              <Button onClick={handleCreate} className="w-full gradient-primary">
+                Criar Voucher
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="space-y-4">
+        {vouchers.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8">Nenhum voucher criado ainda</p>
+        ) : (
+          vouchers.map((voucher) => (
+            <Card key={voucher.id} className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <code className="text-lg font-mono font-bold">{voucher.code}</code>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCopyCode(voucher.code)}
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                    <Badge className={voucher.is_active ? 'bg-success/20 text-success' : 'bg-gray-500/20 text-gray-500'}>
+                      {voucher.is_active ? 'Ativo' : 'Inativo'}
+                    </Badge>
+                  </div>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p>Plano: <span className="font-semibold">{voucher.plans.name}</span></p>
+                    <p>Usos: {voucher.current_uses} / {voucher.max_uses}</p>
+                    {voucher.expires_at && (
+                      <p>Expira: {new Date(voucher.expires_at).toLocaleDateString('pt-BR')}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleToggleStatus(voucher)}
+                  >
+                    {voucher.is_active ? 'Desativar' : 'Ativar'}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDelete(voucher.id)}
+                    className="text-destructive"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ))
+        )}
+      </div>
+    </Card>
+  );
+};
