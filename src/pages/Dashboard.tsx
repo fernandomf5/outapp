@@ -16,7 +16,7 @@ import { WhatsAppLinkGenerator } from "@/components/WhatsAppLinkGenerator";
 import { VoucherRedemption } from "@/components/VoucherRedemption";
 import { CRMContacts } from "@/components/CRMContacts";
 import { PixelsManager } from "@/components/PixelsManager";
-import { AffiliateSystem } from "@/components/AffiliateSystem";
+import { PageCloner } from "@/components/PageCloner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -174,7 +174,7 @@ const Dashboard = () => {
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             <TabsTrigger value="tools">Ferramentas</TabsTrigger>
             <TabsTrigger value="pixels">Pixels & Tags</TabsTrigger>
-            <TabsTrigger value="affiliate">Afiliados</TabsTrigger>
+            <TabsTrigger value="cloner">Clonador de Páginas</TabsTrigger>
             <TabsTrigger value="support">Suporte</TabsTrigger>
             <TabsTrigger value="voucher">Voucher</TabsTrigger>
             <TabsTrigger 
@@ -359,8 +359,8 @@ const Dashboard = () => {
             <PixelsManager />
           </TabsContent>
 
-          <TabsContent value="affiliate">
-            <AffiliateSystem />
+          <TabsContent value="cloner">
+            <PageCloner />
           </TabsContent>
 
           <TabsContent value="crm">

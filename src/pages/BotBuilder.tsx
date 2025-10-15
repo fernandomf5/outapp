@@ -219,6 +219,7 @@ const BotBuilder = () => {
                 value={botName}
                 onChange={(e) => setBotName(e.target.value)}
                 className="text-xl font-bold border-none bg-transparent max-w-xs focus-visible:ring-0"
+                placeholder="Nome do seu chatbot"
               />
             </div>
 
