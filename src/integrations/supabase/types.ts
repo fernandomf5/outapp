@@ -343,7 +343,6 @@ export type Database = {
       }
       cloned_pages: {
         Row: {
-          affiliate_id: string
           cloned_url: string
           created_at: string
           custom_settings: Json | null
@@ -352,9 +351,9 @@ export type Database = {
           original_url: string
           page_content: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
-          affiliate_id: string
           cloned_url: string
           created_at?: string
           custom_settings?: Json | null
@@ -363,9 +362,9 @@ export type Database = {
           original_url: string
           page_content?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
-          affiliate_id?: string
           cloned_url?: string
           created_at?: string
           custom_settings?: Json | null
@@ -374,16 +373,9 @@ export type Database = {
           original_url?: string
           page_content?: string | null
           updated_at?: string
+          user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "cloned_pages_affiliate_id_fkey"
-            columns: ["affiliate_id"]
-            isOneToOne: false
-            referencedRelation: "affiliates"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       contact_interactions: {
         Row: {

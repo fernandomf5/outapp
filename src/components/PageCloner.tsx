@@ -87,6 +87,7 @@ export const PageCloner = () => {
       const { data, error } = await supabase
         .from('cloned_pages')
         .insert({
+          user_id: user!.id,
           original_url: cloneData.original_url,
           cloned_url: clonedUrl,
           page_content: null,
