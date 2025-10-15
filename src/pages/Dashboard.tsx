@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TicketSystem } from "@/components/TicketSystem";
 import { WhatsAppLinkGenerator } from "@/components/WhatsAppLinkGenerator";
 import { VoucherRedemption } from "@/components/VoucherRedemption";
+import { CRMContacts } from "@/components/CRMContacts";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -348,6 +349,10 @@ const Dashboard = () => {
 
           <TabsContent value="tools">
             <WhatsAppLinkGenerator />
+          </TabsContent>
+
+          <TabsContent value="crm">
+            <CRMContacts />
           </TabsContent>
 
           <TabsContent value="support">
