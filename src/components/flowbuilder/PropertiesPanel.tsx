@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Trash2, Plus, X } from 'lucide-react';
+import { Trash2, Plus, X, Image as ImageIcon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { ImageUpload } from './ImageUpload';
+import { Separator } from '@/components/ui/separator';
 
 interface PropertiesPanelProps {
   selectedNode: Node | null;
@@ -23,6 +25,7 @@ export const PropertiesPanel = ({
   const [buttons, setButtons] = useState<string[]>([]);
   const [newButton, setNewButton] = useState('');
   const [actionType, setActionType] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
 
   useEffect(() => {
     if (selectedNode) {
@@ -30,6 +33,7 @@ export const PropertiesPanel = ({
       setVariable(selectedNode.data.variable || '');
       setButtons(selectedNode.data.buttons || []);
       setActionType(selectedNode.data.actionType || '');
+      setImageUrl(selectedNode.data.imageUrl || '');
     }
   }, [selectedNode]);
 
@@ -49,6 +53,15 @@ export const PropertiesPanel = ({
       variable,
       buttons,
       actionType,
+      imageUrl,
+    });
+  };
+
+  const handleImageSelect = (url: string) => {
+    setImageUrl(url);
+    onUpdateNode(selectedNode.id, {
+      ...selectedNode.data,
+      imageUrl: url,
     });
   };
 
@@ -179,6 +192,23 @@ export const PropertiesPanel = ({
               💡 Máximo de 10 botões
             </p>
           </div>
+        )}
+
+        {/* Upload de Imagem - disponível para mensagem e quickReply */}
+        {(selectedNode.type === 'message' || selectedNode.type === 'quickReply') && (
+          <>
+            <Separator className="my-4" />
+            <div>
+              <Label className="flex items-center gap-2 mb-3">
+                <ImageIcon className="w-4 h-4" />
+                Adicionar Imagem (opcional)
+              </Label>
+              <ImageUpload 
+                onImageSelect={handleImageSelect}
+                currentImage={imageUrl}
+              />
+            </div>
+          </>
         )}
       </div>
 

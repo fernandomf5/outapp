@@ -6,7 +6,7 @@ const QuickReplyNode = ({ data, selected }: NodeProps) => {
   const buttons = data.buttons || [];
   
   return (
-    <div className={`bg-card rounded-lg border-2 p-4 shadow-lg min-w-[220px] transition-all ${
+    <div className={`bg-card rounded-lg border-2 p-4 shadow-lg min-w-[220px] max-w-[300px] transition-all ${
       selected ? 'border-chart-5 shadow-glow' : 'border-border'
     }`}>
       <Handle
@@ -21,6 +21,15 @@ const QuickReplyNode = ({ data, selected }: NodeProps) => {
         <div className="font-bold text-sm text-chart-5">BOTÕES</div>
       </div>
       <div className="text-sm text-foreground mb-3">{data.label}</div>
+      {data.imageUrl && (
+        <div className="mb-3 rounded-md overflow-hidden">
+          <img 
+            src={data.imageUrl} 
+            alt="Botões" 
+            className="w-full h-32 object-cover"
+          />
+        </div>
+      )}
       <div className="space-y-2">
         {buttons.slice(0, 3).map((button: string, index: number) => (
           <div

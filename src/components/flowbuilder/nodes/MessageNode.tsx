@@ -4,7 +4,7 @@ import { MessageSquare } from 'lucide-react';
 
 const MessageNode = ({ data, selected }: NodeProps) => {
   return (
-    <div className={`bg-card rounded-lg border-2 p-4 shadow-lg min-w-[220px] transition-all ${
+    <div className={`bg-card rounded-lg border-2 p-4 shadow-lg min-w-[220px] max-w-[300px] transition-all ${
       selected ? 'border-chart-1 shadow-glow' : 'border-border'
     }`}>
       <Handle
@@ -18,6 +18,15 @@ const MessageNode = ({ data, selected }: NodeProps) => {
         </div>
         <div className="font-bold text-sm text-chart-1">MENSAGEM</div>
       </div>
+      {data.imageUrl && (
+        <div className="mb-3 rounded-md overflow-hidden">
+          <img 
+            src={data.imageUrl} 
+            alt="Mensagem" 
+            className="w-full h-32 object-cover"
+          />
+        </div>
+      )}
       <div className="text-sm text-foreground whitespace-pre-wrap">{data.label}</div>
       <Handle
         type="source"

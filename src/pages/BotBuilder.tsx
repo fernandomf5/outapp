@@ -1,19 +1,29 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Save, Play } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { ArrowLeft, Save, Play, Link2, Copy, Power } from "lucide-react";
 import { Node, Edge } from 'reactflow';
 import { ReactFlowProvider } from 'reactflow';
 import { FlowCanvas } from '@/components/flowbuilder/FlowCanvas';
 import { Sidebar } from '@/components/flowbuilder/Sidebar';
 import { PropertiesPanel } from '@/components/flowbuilder/PropertiesPanel';
+import { useChatbot } from '@/hooks/useChatbot';
+import { useAuth } from '@/contexts/AuthContext';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 const BotBuilder = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const chatbotId = searchParams.get('id');
+  const { saveChatbot, loadChatbot, toggleActive, isSaving, isLoading } = useChatbot();
+  
   const [botName, setBotName] = useState("Novo Chatbot");
+  const [isActive, setIsActive] = useState(true);
   const [nodes, setNodes] = useState<Node[]>([
     {
       id: '1',
@@ -24,6 +34,23 @@ const BotBuilder = () => {
   ]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+
+  // Carregar chatbot existente
+  useEffect(() => {
+    if (chatbotId && user) {
+      loadChatbot(chatbotId).then(chatbot => {
+        setBotName(chatbot.name);
+        setIsActive(chatbot.is_active);
+        const config = chatbot.config as any;
+        if (config?.nodes) {
+          setNodes(config.nodes);
+        }
+        if (config?.edges) {
+          setEdges(config.edges);
+        }
+      }).catch(console.error);
+    }
+  }, [chatbotId, user]);
 
   const addNode = useCallback((type: string) => {
     const nodeTypeMap: Record<string, string> = {
@@ -83,20 +110,80 @@ const BotBuilder = () => {
     setSelectedNode(node);
   }, []);
 
-  const handleSave = useCallback(() => {
-    console.log('Saving bot:', { botName, nodes, edges });
-    toast({
-      title: "Chatbot salvo! 💾",
-      description: "Suas alterações foram salvas com sucesso.",
-    });
-  }, [botName, nodes, edges, toast]);
+  const handleSave = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const chatbotData = {
+        id: chatbotId || undefined,
+        name: botName,
+        description: `Chatbot com ${nodes.length} blocos`,
+        config: {
+          nodes,
+          edges,
+        },
+        is_active: isActive,
+        user_id: user.id,
+      };
+
+      const result = await saveChatbot(chatbotData);
+      
+      if (!chatbotId && result) {
+        navigate(`/bot-builder?id=${result.id}`);
+      }
+    } catch (error) {
+      console.error('Save error:', error);
+    }
+  }, [botName, nodes, edges, isActive, user, chatbotId, saveChatbot, navigate]);
 
   const handleTest = useCallback(() => {
+    if (chatbotId) {
+      const link = `${window.location.origin}/chat/${chatbotId}`;
+      window.open(link, '_blank');
+    } else {
+      toast({
+        title: "Salve primeiro! 💾",
+        description: "Você precisa salvar o chatbot antes de testar.",
+        variant: "destructive",
+      });
+    }
+  }, [chatbotId, toast]);
+
+  const handleCopyLink = useCallback(() => {
+    if (!chatbotId) {
+      toast({
+        title: "Salve primeiro! 💾",
+        description: "Você precisa salvar o chatbot antes de gerar o link.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const link = `${window.location.origin}/chat/${chatbotId}`;
+    navigator.clipboard.writeText(link);
     toast({
-      title: "Teste iniciado! 🧪",
-      description: "Abra o WhatsApp para testar seu chatbot.",
+      title: "Link copiado! 🔗",
+      description: "O link do chatbot foi copiado para a área de transferência.",
     });
-  }, [toast]);
+  }, [chatbotId, toast]);
+
+  const handleToggleActive = useCallback(async (checked: boolean) => {
+    if (!chatbotId) {
+      toast({
+        title: "Salve primeiro! 💾",
+        description: "Você precisa salvar o chatbot antes de ativá-lo.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await toggleActive(chatbotId, checked);
+      setIsActive(checked);
+    } catch (error) {
+      console.error('Toggle active error:', error);
+    }
+  }, [chatbotId, toggleActive, toast]);
 
   return (
     <ReactFlowProvider>
@@ -121,6 +208,27 @@ const BotBuilder = () => {
             </div>
 
             <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card">
+                <Label htmlFor="active-switch" className="cursor-pointer">
+                  <Power className="w-4 h-4" />
+                </Label>
+                <Switch
+                  id="active-switch"
+                  checked={isActive}
+                  onCheckedChange={handleToggleActive}
+                />
+                <span className="text-sm font-medium">
+                  {isActive ? 'Ativo' : 'Inativo'}
+                </span>
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={handleCopyLink}
+                className="hover:bg-primary/10 hover:border-primary"
+              >
+                <Link2 className="w-4 h-4 mr-2" />
+                Copiar Link
+              </Button>
               <Button 
                 variant="outline" 
                 onClick={handleTest}
@@ -132,9 +240,10 @@ const BotBuilder = () => {
               <Button 
                 onClick={handleSave} 
                 className="bg-primary hover:bg-primary/90"
+                disabled={isSaving}
               >
                 <Save className="w-4 h-4 mr-2" />
-                Salvar
+                {isSaving ? 'Salvando...' : 'Salvar'}
               </Button>
             </div>
           </div>
