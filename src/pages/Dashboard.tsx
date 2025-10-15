@@ -15,6 +15,7 @@ import { TicketSystem } from "@/components/TicketSystem";
 import { WhatsAppLinkGenerator } from "@/components/WhatsAppLinkGenerator";
 import { VoucherRedemption } from "@/components/VoucherRedemption";
 import { CRMContacts } from "@/components/CRMContacts";
+import { PixelsManager } from "@/components/PixelsManager";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -168,9 +169,10 @@ const Dashboard = () => {
         <SubscriptionBanner />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-8">
+          <TabsList className="grid w-full grid-cols-6 mb-8">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             <TabsTrigger value="tools">Ferramentas</TabsTrigger>
+            <TabsTrigger value="pixels">Pixels & Tags</TabsTrigger>
             <TabsTrigger value="support">Suporte</TabsTrigger>
             <TabsTrigger value="voucher">Voucher</TabsTrigger>
             <TabsTrigger 
@@ -349,6 +351,10 @@ const Dashboard = () => {
 
           <TabsContent value="tools">
             <WhatsAppLinkGenerator />
+          </TabsContent>
+
+          <TabsContent value="pixels">
+            <PixelsManager />
           </TabsContent>
 
           <TabsContent value="crm">

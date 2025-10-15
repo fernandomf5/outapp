@@ -265,6 +265,44 @@ export type Database = {
         }
         Relationships: []
       }
+      conversion_events: {
+        Row: {
+          created_at: string
+          event_data: Json | null
+          event_name: string
+          id: string
+          pixel_id: string
+          user_id: string
+          visitor_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json | null
+          event_name: string
+          id?: string
+          pixel_id: string
+          user_id: string
+          visitor_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json | null
+          event_name?: string
+          id?: string
+          pixel_id?: string
+          user_id?: string
+          visitor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversion_events_pixel_id_fkey"
+            columns: ["pixel_id"]
+            isOneToOne: false
+            referencedRelation: "tracking_pixels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custom_pages: {
         Row: {
           content: string
@@ -552,6 +590,42 @@ export type Database = {
           resolved_at?: string | null
           status?: string
           title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tracking_pixels: {
+        Row: {
+          code: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          pixel_id: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          pixel_id: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          pixel_id?: string
+          type?: string
           updated_at?: string
           user_id?: string
         }
