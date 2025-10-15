@@ -203,12 +203,12 @@ const PublicChat = () => {
     }
   };
 
-  const processNode = (node: any, nodes: any[], edges: any[]) => {
-    const messages: Message[] = [];
+  const processNode = async (node: any, nodes: any[], edges: any[]) => {
+    const newMessages: Message[] = [];
     
     // Processar diferentes tipos de nós
     if (node.type === 'message' || node.type === 'text') {
-      messages.push({
+      newMessages.push({
         id: node.id,
         role: 'bot',
         content: node.data.label || '',
@@ -217,7 +217,7 @@ const PublicChat = () => {
         nodeId: node.id
       } as any);
     } else if (node.type === 'image') {
-      messages.push({
+      newMessages.push({
         id: node.id,
         role: 'bot',
         content: node.data.label || 'Imagem',
@@ -226,7 +226,7 @@ const PublicChat = () => {
         nodeId: node.id
       } as any);
     } else if (node.type === 'audio') {
-      messages.push({
+      newMessages.push({
         id: node.id,
         role: 'bot',
         content: `🎵 ${node.data.label || 'Áudio'}`,
@@ -235,7 +235,7 @@ const PublicChat = () => {
         nodeId: node.id
       } as any);
     } else if (node.type === 'video') {
-      messages.push({
+      newMessages.push({
         id: node.id,
         role: 'bot',
         content: `🎥 ${node.data.label || 'Vídeo'}`,
@@ -244,7 +244,7 @@ const PublicChat = () => {
         nodeId: node.id
       } as any);
     } else if (node.type === 'document') {
-      messages.push({
+      newMessages.push({
         id: node.id,
         role: 'bot',
         content: `📄 ${node.data.label || 'Documento'}`,
@@ -254,7 +254,7 @@ const PublicChat = () => {
         nodeId: node.id
       } as any);
     } else if (node.type === 'question' || node.type === 'quickReply' || node.type === 'button') {
-      messages.push({
+      newMessages.push({
         id: node.id,
         role: 'bot',
         content: node.data.label || '',
@@ -263,9 +263,33 @@ const PublicChat = () => {
         buttons: node.data.buttons,
         nodeId: node.id
       } as any);
+    } else if (node.type === 'humanAgent') {
+      const transferMessage = node.data.label || 'Você está sendo transferido para um atendente humano. Aguarde um momento...';
+      newMessages.push({
+        id: node.id,
+        role: 'bot',
+        content: transferMessage,
+        timestamp: new Date(),
+        nodeId: node.id
+      } as any);
+      
+      // Ativar modo atendimento humano
+      setIsHumanMode(true);
+      if (conversationId) {
+        await supabase
+          .from('chatbot_conversations')
+          .update({ status: 'waiting_agent' })
+          .eq('id', conversationId);
+      }
     }
     
-    setMessages(prev => [...prev, ...messages]);
+    // Adicionar mensagens ao chat e salvar no banco
+    setMessages(prev => [...prev, ...newMessages]);
+    
+    // Salvar cada mensagem no banco de dados
+    for (const msg of newMessages) {
+      await saveMessage('bot', msg.content, msg.nodeId);
+    }
   };
 
   const findNextNode = (currentNodeId: string, userResponse?: string) => {
