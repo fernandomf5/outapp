@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Trash2, Plus, X, Image as ImageIcon, FileAudio, Video, FileText } from 'lucide-react';
+import { Trash2, Plus, X, Image as ImageIcon, FileAudio, Video, FileText, Check } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { ImageUpload } from './ImageUpload';
 import { MediaUpload } from './MediaUpload';
@@ -254,16 +254,27 @@ export const PropertiesPanel = ({
         )}
       </div>
 
-      {selectedNode.id !== 'initial-message' && (
+      <div className="space-y-3">
         <Button
-          variant="destructive"
-          className="w-full"
-          onClick={() => onDeleteNode(selectedNode.id)}
+          variant="default"
+          className="w-full bg-green-600 hover:bg-green-700 text-white"
+          onClick={handleUpdate}
         >
-          <Trash2 className="w-4 h-4 mr-2" />
-          Excluir Bloco
+          <Check className="w-4 h-4 mr-2" />
+          Aplicar
         </Button>
-      )}
+
+        {selectedNode.id !== 'initial-message' && (
+          <Button
+            variant="destructive"
+            className="w-full"
+            onClick={() => onDeleteNode(selectedNode.id)}
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Excluir Bloco
+          </Button>
+        )}
+      </div>
     </aside>
   );
 };
