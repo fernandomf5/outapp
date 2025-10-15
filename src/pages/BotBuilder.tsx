@@ -1,9 +1,10 @@
 import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Save, Play, Link2, Copy, Power, Eye, EyeOff, Zap } from "lucide-react";
+import { ArrowLeft, Save, Play, Link2, Copy, Power, Eye, EyeOff, Zap, MessageSquare } from "lucide-react";
 import { Node, Edge } from 'reactflow';
 import { ReactFlowProvider } from 'reactflow';
 import { FlowCanvas } from '@/components/flowbuilder/FlowCanvas';
@@ -277,26 +278,50 @@ const BotBuilder = () => {
           
           <main className="flex-1 relative p-6 overflow-auto">
             {!showFlowEditor ? (
-              <div className="max-w-2xl mx-auto space-y-4">
-                <div className="bg-card rounded-lg border-2 border-primary/20 p-6 shadow-lg">
-                  <h3 className="font-bold text-lg mb-2 text-primary">Mensagem Inicial da Conversa</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Esta mensagem será exibida assim que o cliente clicar no link do chatbot.
-                  </p>
-                  <textarea
-                    value={initialMessage}
-                    onChange={(e) => setInitialMessage(e.target.value)}
-                    className="w-full min-h-[120px] p-3 rounded-md border border-border bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="Digite a mensagem inicial..."
-                  />
-                </div>
+              <div className="max-w-2xl mx-auto space-y-6 mt-8">
+                <Card className="p-8 border-2 border-primary/20 shadow-xl">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="bg-primary/10 p-3 rounded-xl">
+                      <MessageSquare className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-xl text-primary">Mensagem Inicial da Conversa</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Esta mensagem será exibida automaticamente assim que alguém acessar o link do seu chatbot.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium text-foreground">
+                      Digite a mensagem de boas-vindas:
+                    </label>
+                    <textarea
+                      value={initialMessage}
+                      onChange={(e) => setInitialMessage(e.target.value)}
+                      className="w-full min-h-[150px] p-4 rounded-lg border-2 border-border bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                      placeholder="Exemplo: Olá! Seja bem-vindo ao nosso atendimento. Como posso ajudar você hoje?"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      💡 Dica: Seja claro e amigável na sua mensagem de boas-vindas
+                    </p>
+                  </div>
+                </Card>
+                
                 <Button 
                   onClick={() => setShowFlowEditor(true)}
-                  className="w-full bg-primary hover:bg-primary/90 text-lg py-6"
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold text-lg py-7 shadow-lg hover:shadow-xl transition-all"
                 >
-                  <Zap className="w-5 h-5 mr-2" />
+                  <Zap className="w-6 h-6 mr-2" />
                   Editar Fluxo
                 </Button>
+                
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Clique em "Editar Fluxo" para montar toda a conversa do seu chatbot
+                  </p>
+                </div>
               </div>
             ) : (
               <FlowCanvas

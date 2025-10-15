@@ -17,6 +17,7 @@ import { VoucherRedemption } from "@/components/VoucherRedemption";
 import { CRMContacts } from "@/components/CRMContacts";
 import { PixelsManager } from "@/components/PixelsManager";
 import { PageCloner } from "@/components/PageCloner";
+import { ChatbotConversations } from "@/components/ChatbotConversations";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -170,11 +171,12 @@ const Dashboard = () => {
         <SubscriptionBanner />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-7 mb-8">
+          <TabsList className="grid w-full grid-cols-8 mb-8">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="clients">Clientes</TabsTrigger>
             <TabsTrigger value="tools">Ferramentas</TabsTrigger>
             <TabsTrigger value="pixels">Pixels & Tags</TabsTrigger>
-            <TabsTrigger value="cloner">Clonador de Páginas</TabsTrigger>
+            <TabsTrigger value="cloner">Clonador</TabsTrigger>
             <TabsTrigger value="support">Suporte</TabsTrigger>
             <TabsTrigger value="voucher">Voucher</TabsTrigger>
             <TabsTrigger 
@@ -349,6 +351,10 @@ const Dashboard = () => {
             </div>
           )}
         </Card>
+          </TabsContent>
+
+          <TabsContent value="clients">
+            <ChatbotConversations />
           </TabsContent>
 
           <TabsContent value="tools">
