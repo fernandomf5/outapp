@@ -20,6 +20,12 @@ import ConditionNode from './nodes/ConditionNode';
 import ActionNode from './nodes/ActionNode';
 import TriggerNode from './nodes/TriggerNode';
 import QuickReplyNode from './nodes/QuickReplyNode';
+import TextNode from './nodes/TextNode';
+import ButtonNode from './nodes/ButtonNode';
+import AudioNode from './nodes/AudioNode';
+import ImageNode from './nodes/ImageNode';
+import VideoNode from './nodes/VideoNode';
+import DocumentNode from './nodes/DocumentNode';
 
 const nodeTypes = {
   trigger: TriggerNode,
@@ -28,6 +34,12 @@ const nodeTypes = {
   condition: ConditionNode,
   action: ActionNode,
   quickReply: QuickReplyNode,
+  text: TextNode,
+  button: ButtonNode,
+  audio: AudioNode,
+  image: ImageNode,
+  video: VideoNode,
+  document: DocumentNode,
 };
 
 interface FlowCanvasProps {
@@ -131,7 +143,13 @@ export const FlowCanvas = ({
       type === 'question' ? 'Faça uma pergunta...' :
       type === 'condition' ? 'Se {{variável}} == "valor"' :
       type === 'action' ? 'Executar ação' :
-      type === 'quickReply' ? 'Escolha uma opção:' : 'Novo bloco';
+      type === 'quickReply' ? 'Escolha uma opção:' :
+      type === 'text' ? 'Digite seu texto...' :
+      type === 'button' ? 'Adicione seus botões' :
+      type === 'audio' ? 'Adicione um áudio' :
+      type === 'image' ? 'Adicione uma imagem' :
+      type === 'video' ? 'Adicione um vídeo' :
+      type === 'document' ? 'Adicione um documento' : 'Novo bloco';
 
     const newNode: Node = {
       id: Date.now().toString(),
@@ -139,7 +157,7 @@ export const FlowCanvas = ({
       position,
       data: {
         label: defaultLabel,
-        buttons: type === 'quickReply' ? ['Opção 1', 'Opção 2'] : undefined,
+        buttons: (type === 'quickReply' || type === 'button') ? ['Opção 1', 'Opção 2'] : undefined,
       },
     };
 

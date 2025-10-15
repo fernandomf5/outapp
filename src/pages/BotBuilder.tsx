@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Save, Play, Link2, Copy, Power, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Save, Play, Link2, Copy, Power, Eye, EyeOff, Zap } from "lucide-react";
 import { Node, Edge } from 'reactflow';
 import { ReactFlowProvider } from 'reactflow';
 import { FlowCanvas } from '@/components/flowbuilder/FlowCanvas';
@@ -26,14 +26,9 @@ const BotBuilder = () => {
   const [botName, setBotName] = useState("Novo Chatbot");
   const [isActive, setIsActive] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
-  const [nodes, setNodes] = useState<Node[]>([
-    {
-      id: '1',
-      type: 'trigger',
-      position: { x: 250, y: 50 },
-      data: { label: 'Quando receber mensagem' },
-    },
-  ]);
+  const [initialMessage, setInitialMessage] = useState("Olá! Como posso ajudar você hoje?");
+  const [showFlowEditor, setShowFlowEditor] = useState(false);
+  const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
@@ -44,6 +39,9 @@ const BotBuilder = () => {
         setBotName(chatbot.name);
         setIsActive(chatbot.is_active);
         const config = chatbot.config as any;
+        if (config?.initialMessage) {
+          setInitialMessage(config.initialMessage);
+        }
         if (config?.nodes) {
           setNodes(config.nodes);
         }
@@ -121,6 +119,7 @@ const BotBuilder = () => {
         name: botName,
         description: `Chatbot com ${nodes.length} blocos`,
         config: {
+          initialMessage,
           nodes,
           edges,
         },
@@ -274,19 +273,43 @@ const BotBuilder = () => {
         </header>
 
         <div className="flex-1 flex overflow-hidden">
-          <Sidebar onAddNode={addNode} />
+          {showFlowEditor && <Sidebar onAddNode={addNode} />}
           
-          <main className="flex-1 relative">
-            <FlowCanvas
-              initialNodes={nodes}
-              initialEdges={edges}
-              onNodesChange={setNodes}
-              onEdgesChange={setEdges}
-              onNodeClick={handleNodeClick}
-            />
+          <main className="flex-1 relative p-6 overflow-auto">
+            {!showFlowEditor ? (
+              <div className="max-w-2xl mx-auto space-y-4">
+                <div className="bg-card rounded-lg border-2 border-primary/20 p-6 shadow-lg">
+                  <h3 className="font-bold text-lg mb-2 text-primary">Mensagem Inicial da Conversa</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Esta mensagem será exibida assim que o cliente clicar no link do chatbot.
+                  </p>
+                  <textarea
+                    value={initialMessage}
+                    onChange={(e) => setInitialMessage(e.target.value)}
+                    className="w-full min-h-[120px] p-3 rounded-md border border-border bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="Digite a mensagem inicial..."
+                  />
+                </div>
+                <Button 
+                  onClick={() => setShowFlowEditor(true)}
+                  className="w-full bg-primary hover:bg-primary/90 text-lg py-6"
+                >
+                  <Zap className="w-5 h-5 mr-2" />
+                  Editar Fluxo
+                </Button>
+              </div>
+            ) : (
+              <FlowCanvas
+                initialNodes={nodes}
+                initialEdges={edges}
+                onNodesChange={setNodes}
+                onEdgesChange={setEdges}
+                onNodeClick={handleNodeClick}
+              />
+            )}
           </main>
 
-          {showPreview ? (
+          {showFlowEditor && (showPreview ? (
             <aside className="w-96 border-l border-border bg-card/50 backdrop-blur-sm">
               <ChatPreview
                 nodes={nodes}
@@ -300,7 +323,7 @@ const BotBuilder = () => {
               onUpdateNode={updateNode}
               onDeleteNode={deleteNode}
             />
-          )}
+          ))}
         </div>
       </div>
     </ReactFlowProvider>

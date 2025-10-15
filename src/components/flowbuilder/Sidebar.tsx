@@ -9,6 +9,12 @@ import {
   Clock,
   Tag,
   BarChart3,
+  Type,
+  MousePointerClick,
+  Volume2,
+  Image as ImageIcon,
+  Video,
+  FileText,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -18,18 +24,46 @@ interface SidebarProps {
 export const Sidebar = ({ onAddNode }: SidebarProps) => {
   const basicBlocks = [
     {
-      type: 'message',
-      icon: MessageSquare,
-      title: 'Enviar Mensagem',
-      description: 'Texto automático',
-      color: 'chart-1',
+      type: 'text',
+      icon: Type,
+      title: 'Adicionar Texto',
+      description: 'Mensagem de texto',
+      color: 'cyan-500',
     },
     {
-      type: 'question',
-      icon: HelpCircle,
-      title: 'Fazer Pergunta',
-      description: 'Coletar resposta',
-      color: 'chart-2',
+      type: 'button',
+      icon: MousePointerClick,
+      title: 'Adicionar Botão',
+      description: 'Botões interativos',
+      color: 'green-500',
+    },
+    {
+      type: 'image',
+      icon: ImageIcon,
+      title: 'Adicionar Imagem',
+      description: 'Enviar imagem',
+      color: 'blue-500',
+    },
+    {
+      type: 'video',
+      icon: Video,
+      title: 'Adicionar Vídeo',
+      description: 'Enviar vídeo',
+      color: 'red-500',
+    },
+    {
+      type: 'audio',
+      icon: Volume2,
+      title: 'Adicionar Áudio',
+      description: 'Enviar áudio',
+      color: 'purple-500',
+    },
+    {
+      type: 'document',
+      icon: FileText,
+      title: 'Adicionar Documento',
+      description: 'Enviar arquivo',
+      color: 'amber-500',
     },
   ];
 
