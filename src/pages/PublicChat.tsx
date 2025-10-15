@@ -314,6 +314,19 @@ const PublicChat = () => {
       }
     }
 
+    // Para botões normais, também verificar handles específicos
+    if ((currentNode?.type === 'button' || currentNode?.type === 'question') && typeof userResponse === 'string') {
+      const btns: string[] = currentNode.data?.buttons || [];
+      const idx = btns.findIndex((b: string) => (b || '').trim().toLowerCase() === userResponse.trim().toLowerCase());
+
+      if (idx >= 0) {
+        const edgeByHandle = edges.find((e: any) => e.source === currentNodeId && e.sourceHandle === `btn-${idx}`);
+        if (edgeByHandle) {
+          return nodes.find((n: any) => n.id === edgeByHandle.target);
+        }
+      }
+    }
+
     // Fallback: primeira aresta de saída
     const nextEdge = edges.find((e: any) => e.source === currentNodeId);
     if (nextEdge) {
@@ -377,17 +390,28 @@ const PublicChat = () => {
         setMessages(prev => [...prev, botResponse]);
       } else {
         // Chatbot com fluxo - encontrar próximo nó
-        const lastBotMessage = [...messages].reverse().find(m => m.role === 'bot');
+        const lastBotMessage = [...messages].reverse().find(m => m.role === 'bot' && m.nodeId);
+        console.log('🔍 Última mensagem do bot:', lastBotMessage);
+        console.log('📝 Texto enviado:', textToSend);
+        
         if (lastBotMessage?.nodeId) {
           const nextNode = findNextNode(lastBotMessage.nodeId, textToSend);
+          console.log('➡️ Próximo nó encontrado:', nextNode);
           
           if (nextNode) {
-            setTimeout(() => {
-              processNode(nextNode, botData.config.nodes, botData.config.edges);
+            // Salvar mensagem do bot
+            await saveMessage('bot', textToSend, lastBotMessage.nodeId);
+            
+            setTimeout(async () => {
+              await processNode(nextNode, botData.config.nodes, botData.config.edges);
               setIsLoading(false);
             }, 500);
             return;
+          } else {
+            console.log('⚠️ Nenhum próximo nó encontrado');
           }
+        } else {
+          console.log('⚠️ Nenhuma mensagem do bot com nodeId encontrada');
         }
         
         // Fim do fluxo - apenas finaliza sem mensagem adicional
