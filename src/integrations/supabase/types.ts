@@ -85,6 +85,168 @@ export type Database = {
         }
         Relationships: []
       }
+      affiliate_clicks: {
+        Row: {
+          affiliate_id: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          referrer: string | null
+          user_agent: string | null
+          visitor_id: string | null
+        }
+        Insert: {
+          affiliate_id: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          referrer?: string | null
+          user_agent?: string | null
+          visitor_id?: string | null
+        }
+        Update: {
+          affiliate_id?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          referrer?: string | null
+          user_agent?: string | null
+          visitor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_clicks_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliate_conversions: {
+        Row: {
+          affiliate_id: string
+          amount: number
+          commission_amount: number
+          created_at: string
+          id: string
+          order_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          affiliate_id: string
+          amount: number
+          commission_amount: number
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          affiliate_id?: string
+          amount?: number
+          commission_amount?: number
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_conversions_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliate_programs: {
+        Row: {
+          commission_percentage: number
+          cookie_duration_days: number
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          commission_percentage?: number
+          cookie_duration_days?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          commission_percentage?: number
+          cookie_duration_days?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      affiliates: {
+        Row: {
+          affiliate_code: string
+          created_at: string
+          custom_domain: string | null
+          id: string
+          program_id: string
+          status: string
+          total_clicks: number
+          total_commission: number
+          total_conversions: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          affiliate_code: string
+          created_at?: string
+          custom_domain?: string | null
+          id?: string
+          program_id: string
+          status?: string
+          total_clicks?: number
+          total_commission?: number
+          total_conversions?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          affiliate_code?: string
+          created_at?: string
+          custom_domain?: string | null
+          id?: string
+          program_id?: string
+          status?: string
+          total_clicks?: number
+          total_commission?: number
+          total_conversions?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliates_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_agents: {
         Row: {
           config: Json
@@ -175,6 +337,50 @@ export type Database = {
             columns: ["whatsapp_connection_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloned_pages: {
+        Row: {
+          affiliate_id: string
+          cloned_url: string
+          created_at: string
+          custom_settings: Json | null
+          id: string
+          is_active: boolean
+          original_url: string
+          page_content: string | null
+          updated_at: string
+        }
+        Insert: {
+          affiliate_id: string
+          cloned_url: string
+          created_at?: string
+          custom_settings?: Json | null
+          id?: string
+          is_active?: boolean
+          original_url: string
+          page_content?: string | null
+          updated_at?: string
+        }
+        Update: {
+          affiliate_id?: string
+          cloned_url?: string
+          created_at?: string
+          custom_settings?: Json | null
+          id?: string
+          is_active?: boolean
+          original_url?: string
+          page_content?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloned_pages_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
             referencedColumns: ["id"]
           },
         ]
