@@ -28,15 +28,89 @@ const PublicChat = () => {
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [botData, setBotData] = useState<any>(null);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [sessionId] = useState(() => `session-${Date.now()}-${Math.random()}`);
+  const [isHumanMode, setIsHumanMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchBotData();
+    createConversation();
   }, [botId]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    if (!conversationId) return;
+
+    const channel = supabase
+      .channel(`conversation-${conversationId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chatbot_messages',
+          filter: `conversation_id=eq.${conversationId}`
+        },
+        (payload) => {
+          const newMsg = payload.new as any;
+          if (newMsg.role === 'admin') {
+            setMessages(prev => [...prev, {
+              id: newMsg.id,
+              role: 'bot',
+              content: newMsg.content,
+              timestamp: new Date(newMsg.created_at)
+            }]);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [conversationId]);
+
+  const createConversation = async () => {
+    if (!botId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('chatbot_conversations')
+        .insert({
+          chatbot_id: botId,
+          session_id: sessionId,
+          status: 'active'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setConversationId(data.id);
+    } catch (error) {
+      console.error('Erro ao criar conversa:', error);
+    }
+  };
+
+  const saveMessage = async (role: string, content: string, nodeId?: string) => {
+    if (!conversationId) return;
+
+    try {
+      await supabase
+        .from('chatbot_messages')
+        .insert({
+          conversation_id: conversationId,
+          role,
+          content,
+          node_id: nodeId
+        });
+    } catch (error) {
+      console.error('Erro ao salvar mensagem:', error);
+    }
+  };
 
   const fetchBotData = async () => {
     if (!botId) return;
@@ -244,6 +318,15 @@ const PublicChat = () => {
     setInputMessage("");
     setIsLoading(true);
 
+    // Salvar mensagem do usuário
+    await saveMessage('user', textToSend);
+
+    // Se estiver em modo atendimento humano, apenas salvar e aguardar resposta
+    if (isHumanMode) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       if (botData.type === 'agent') {
         // Processar com IA
@@ -283,16 +366,18 @@ const PublicChat = () => {
           }
         }
         
-        // Resposta padrão se não encontrar próximo nó
+        // Se chegou ao fim do fluxo, perguntar se quer falar com atendente
         const botResponse: Message = {
           id: (Date.now() + 1).toString(),
           role: 'bot',
-          content: "Obrigado pela sua mensagem!",
-          timestamp: new Date()
+          content: "Posso ajudar em algo mais?",
+          timestamp: new Date(),
+          buttons: ['Falar com atendente', 'Finalizar atendimento']
         };
 
-        setTimeout(() => {
+        setTimeout(async () => {
           setMessages(prev => [...prev, botResponse]);
+          await saveMessage('bot', botResponse.content);
           setIsLoading(false);
         }, 500);
         return;
@@ -400,7 +485,41 @@ const PublicChat = () => {
                       key={idx}
                       variant="outline"
                       size="sm"
-                      onClick={() => handleSendMessage(button)}
+                      onClick={() => {
+                        if (button === 'Falar com atendente') {
+                          setIsHumanMode(true);
+                          setMessages(prev => [...prev, {
+                            id: Date.now().toString(),
+                            role: 'bot',
+                            content: 'Você está sendo transferido para um atendente. Aguarde um momento...',
+                            timestamp: new Date()
+                          }]);
+                          saveMessage('bot', 'Cliente solicitou falar com atendente');
+                          if (conversationId) {
+                            supabase
+                              .from('chatbot_conversations')
+                              .update({ status: 'waiting_agent' })
+                              .eq('id', conversationId)
+                              .then();
+                          }
+                        } else if (button === 'Finalizar atendimento') {
+                          setMessages(prev => [...prev, {
+                            id: Date.now().toString(),
+                            role: 'bot',
+                            content: 'Obrigado pelo contato! Até a próxima! 👋',
+                            timestamp: new Date()
+                          }]);
+                          if (conversationId) {
+                            supabase
+                              .from('chatbot_conversations')
+                              .update({ status: 'closed' })
+                              .eq('id', conversationId)
+                              .then();
+                          }
+                        } else {
+                          handleSendMessage(button);
+                        }
+                      }}
                       className="rounded-full"
                     >
                       {button}
@@ -423,12 +542,19 @@ const PublicChat = () => {
 
       {/* Input */}
       <footer className="bg-card/95 backdrop-blur-md border-t border-border px-4 py-4 sticky bottom-0">
+        {isHumanMode && (
+          <div className="max-w-4xl mx-auto mb-2 p-2 bg-primary/10 rounded-lg text-center">
+            <p className="text-sm text-primary font-medium">
+              💬 Modo atendimento humano ativo
+            </p>
+          </div>
+        )}
         <div className="max-w-4xl mx-auto flex gap-2">
           <Input
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-            placeholder="Digite sua mensagem..."
+            placeholder={isHumanMode ? "Aguardando atendente..." : "Digite sua mensagem..."}
             disabled={isLoading}
             className="flex-1"
           />
