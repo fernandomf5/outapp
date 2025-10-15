@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Bot, Zap, MessageSquare, Clock, CheckCircle2, Shield, TrendingUp, Sparkles } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Bot, Zap, MessageSquare, Clock, CheckCircle2, Shield, TrendingUp, Sparkles, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -125,11 +126,57 @@ const Index = () => {
   const headerPages = customPages.filter(p => p.location === 'header');
   const footerPages = customPages.filter(p => p.location === 'footer');
 
+  const MobileMenu = ({ headerPages, onPageClick }: { headerPages: CustomPage[], onPageClick: (page: CustomPage) => void }) => (
+    <Sheet>
+      <SheetTrigger asChild className="lg:hidden">
+        <Button variant="ghost" size="sm" className="px-2">
+          <Menu className="w-5 h-5" />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="right" className="w-[280px] sm:w-[320px]">
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
+            <Bot className="w-5 h-5 text-primary" />
+            Menu
+          </SheetTitle>
+        </SheetHeader>
+        <nav className="flex flex-col gap-4 mt-8">
+          <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
+            Início
+          </a>
+          <a href="#recursos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
+            Recursos
+          </a>
+          <a href="#planos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
+            Planos
+          </a>
+          {headerPages.map((page) => (
+            <button
+              key={page.id}
+              onClick={() => page.open_as_popup && onPageClick(page)}
+              className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2 text-left"
+            >
+              {page.title}
+            </button>
+          ))}
+          <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-border">
+            <Button variant="ghost" onClick={() => navigate("/auth")} className="w-full justify-start">
+              Entrar
+            </Button>
+            <Button onClick={() => navigate("/auth")} className="gradient-primary shadow-glow w-full">
+              Começar Grátis
+            </Button>
+          </div>
+        </nav>
+      </SheetContent>
+    </Sheet>
+  );
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
-        <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
+        <div className="container mx-auto px-6 sm:px-8 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center gap-2">
@@ -167,30 +214,14 @@ const Index = () => {
               </Button>
             </nav>
             
-            {/* Mobile Navigation - Simplified */}
-            <div className="flex lg:hidden items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => navigate("/auth")}
-                className="text-xs px-2 active:scale-95 transition-transform"
-              >
-                Entrar
-              </Button>
-              <Button 
-                size="sm"
-                onClick={() => navigate("/auth")}
-                className="gradient-primary shadow-glow text-xs px-3 active:scale-95 transition-transform"
-              >
-                Grátis
-              </Button>
-            </div>
+            {/* Mobile/Tablet Navigation */}
+            <MobileMenu headerPages={headerPages} onPageClick={openPageDialog} />
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="pt-20 sm:pt-24 md:pt-32 pb-12 sm:pb-16 md:pb-20 px-4 gradient-primary relative overflow-hidden">
+      <section className="pt-20 sm:pt-24 md:pt-32 pb-12 sm:pb-16 md:pb-20 px-6 sm:px-8 gradient-primary relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-10 w-48 sm:w-64 h-48 sm:h-64 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-20 right-10 w-64 sm:w-96 h-64 sm:h-96 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
@@ -206,12 +237,12 @@ const Index = () => {
             com Inteligência Artificial
           </h1>
           
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-6 sm:mb-8 text-white/90 max-w-3xl mx-auto animate-fade-in px-2">
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-6 sm:mb-8 text-white/90 max-w-3xl mx-auto animate-fade-in">
             Crie chatbots inteligentes e agentes IA para seu WhatsApp em minutos.
             Sem programação. Teste grátis por 3 dias.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-scale-in px-2 max-w-md sm:max-w-none mx-auto">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-scale-in max-w-md sm:max-w-none mx-auto">
             <Button 
               size="lg" 
               onClick={() => navigate("/auth")}
@@ -229,7 +260,7 @@ const Index = () => {
             </Button>
           </div>
           
-          <div className="mt-6 sm:mt-8 md:mt-12 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 md:gap-8 text-xs sm:text-sm px-2">
+          <div className="mt-6 sm:mt-8 md:mt-12 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 md:gap-8 text-xs sm:text-sm">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
               <span>3 dias grátis</span>
@@ -248,13 +279,13 @@ const Index = () => {
 
       {/* Video Section */}
       {videoUrl && (
-        <section className="py-10 sm:py-16 md:py-20 px-4 bg-muted/30">
+        <section className="py-10 sm:py-16 md:py-20 px-6 sm:px-8 bg-muted/30">
           <div className="container mx-auto max-w-5xl">
             <div className="text-center mb-6 sm:mb-10 md:mb-12">
               <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3 md:mb-4">
                 Veja o Bot Reals Zapp em Ação
               </h2>
-              <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground px-2">
+              <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground">
                 Descubra como é fácil automatizar seu WhatsApp
               </p>
             </div>
@@ -273,9 +304,9 @@ const Index = () => {
       )}
 
       {/* Features Section */}
-      <section id="recursos" className="py-10 sm:py-16 md:py-20 px-4 bg-background">
+      <section id="recursos" className="py-10 sm:py-16 md:py-20 px-6 sm:px-8 bg-background">
         <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-8 sm:mb-12 md:mb-16 px-2">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16">
             <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 sm:mb-3 md:mb-4">
               Recursos Poderosos para seu Negócio
             </h2>
@@ -306,11 +337,11 @@ const Index = () => {
       </section>
 
       {/* Pricing Section */}
-      <section id="planos" className="py-10 sm:py-16 md:py-20 px-4 bg-muted/30">
+      <section id="planos" className="py-10 sm:py-16 md:py-20 px-6 sm:px-8 bg-muted/30">
         <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-8 sm:mb-12 md:mb-16 px-2">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16">
             <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 sm:mb-3 md:mb-4">
-              Escolha o Plano Ideal
+              Conheça nossos planos
             </h2>
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
               Comece grátis e escale conforme seu negócio cresce
@@ -365,6 +396,9 @@ const Index = () => {
           </div>
           
           <div className="text-center mt-8 sm:mt-10 md:mt-12">
+            <p className="text-sm sm:text-base text-muted-foreground mb-4">
+              Comece pelo plano gratuito.
+            </p>
             <Button 
               size="lg"
               onClick={() => navigate("/auth")}
@@ -377,13 +411,13 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-10 sm:py-16 md:py-20 px-4 gradient-primary relative overflow-hidden">
+      <section className="py-10 sm:py-16 md:py-20 px-6 sm:px-8 gradient-primary relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-10 right-10 w-48 sm:w-64 h-48 sm:h-64 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-10 left-10 w-64 sm:w-96 h-64 sm:h-96 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         </div>
         
-        <div className="container mx-auto text-center text-white relative z-10 max-w-4xl px-2">
+        <div className="container mx-auto text-center text-white relative z-10 max-w-4xl">
           <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 md:mb-6">
             Pronto para Transformar seu Atendimento?
           </h2>
@@ -401,7 +435,7 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-5 sm:py-6 md:py-8 px-4 bg-muted/30 border-t border-border">
+      <footer className="py-5 sm:py-6 md:py-8 px-6 sm:px-8 bg-muted/30 border-t border-border">
         <div className="container mx-auto max-w-7xl">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
             <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
