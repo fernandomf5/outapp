@@ -6,7 +6,7 @@ const QuickReplyNode = ({ data, selected }: NodeProps) => {
   const buttons = data.buttons || [];
   
   return (
-    <div className={`bg-card rounded-lg border-2 p-4 shadow-lg min-w-[220px] max-w-[300px] transition-all ${
+    <div className={`bg-card rounded-lg border-2 p-4 shadow-lg min-w-[220px] max-w-[300px] transition-colors ${
       selected ? 'border-chart-5 shadow-glow' : 'border-border'
     }`}>
       <Handle

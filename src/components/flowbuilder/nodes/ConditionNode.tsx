@@ -4,7 +4,7 @@ import { GitBranch } from 'lucide-react';
 
 const ConditionNode = ({ data, selected }: NodeProps) => {
   return (
-    <div className={`bg-card rounded-lg border-2 p-4 shadow-lg min-w-[220px] transition-all ${
+    <div className={`bg-card rounded-lg border-2 p-4 shadow-lg min-w-[220px] transition-colors ${
       selected ? 'border-chart-3 shadow-glow' : 'border-border'
     }`}>
       <Handle
@@ -27,14 +27,14 @@ const ConditionNode = ({ data, selected }: NodeProps) => {
         type="source"
         position={Position.Bottom}
         id="true"
-        className="w-3 h-3 !bg-green-500"
+        className="w-3 h-3 !bg-chart-3"
         style={{ left: '25%' }}
       />
       <Handle
         type="source"
         position={Position.Bottom}
         id="false"
-        className="w-3 h-3 !bg-red-500"
+        className="w-3 h-3 !bg-destructive"
         style={{ left: '75%' }}
       />
     </div>

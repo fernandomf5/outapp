@@ -4,7 +4,7 @@ import { Zap } from 'lucide-react';
 
 const ActionNode = ({ data, selected }: NodeProps) => {
   return (
-    <div className={`bg-card rounded-lg border-2 p-4 shadow-lg min-w-[220px] transition-all ${
+    <div className={`bg-card rounded-lg border-2 p-4 shadow-lg min-w-[220px] transition-colors ${
       selected ? 'border-chart-4 shadow-glow' : 'border-border'
     }`}>
       <Handle

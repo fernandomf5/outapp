@@ -140,7 +140,13 @@ const BotBuilder = () => {
 
   const handleTest = useCallback(() => {
     if (chatbotId) {
-      const link = `${window.location.origin}/chat/${chatbotId}`;
+      const slug = (botName || '')
+        .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+        .toLowerCase().trim()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+      const link = `${window.location.origin}/chat/${chatbotId}/${slug || 'bot'}`;
       window.open(link, '_blank');
     } else {
       toast({
@@ -149,7 +155,7 @@ const BotBuilder = () => {
         variant: "destructive",
       });
     }
-  }, [chatbotId, toast]);
+  }, [chatbotId, botName, toast]);
 
   const handleCopyLink = useCallback(() => {
     if (!chatbotId) {
@@ -161,13 +167,20 @@ const BotBuilder = () => {
       return;
     }
 
-    const link = `${window.location.origin}/chat/${chatbotId}`;
+    const slug = (botName || '')
+      .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+      .toLowerCase().trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+
+    const link = `${window.location.origin}/chat/${chatbotId}/${slug || 'bot'}`;
     navigator.clipboard.writeText(link);
     toast({
       title: "Link copiado! 🔗",
       description: "O link do chatbot foi copiado para a área de transferência.",
     });
-  }, [chatbotId, toast]);
+  }, [chatbotId, botName, toast]);
 
   const handleToggleActive = useCallback(async (checked: boolean) => {
     if (!chatbotId) {
@@ -216,7 +229,7 @@ const BotBuilder = () => {
                 className={showPreview ? "" : "hover:bg-primary/10 hover:border-primary"}
               >
                 {showPreview ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
-                {showPreview ? 'Ocultar Prévia' : 'Testar Prévia'}
+                {showPreview ? 'Desativar modo lado a lado' : 'Ativar modo lado a lado'}
               </Button>
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card">
                 <Label htmlFor="active-switch" className="cursor-pointer">

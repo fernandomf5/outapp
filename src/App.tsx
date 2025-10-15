@@ -39,6 +39,7 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/chat/:botId" element={<PublicChat />} />
+            <Route path="/chat/:botId/:slug" element={<PublicChat />} />
             <Route path="/bot-builder" element={
               <ProtectedRoute>
                 <BotBuilder />

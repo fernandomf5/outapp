@@ -4,7 +4,7 @@ import { Play } from 'lucide-react';
 
 const TriggerNode = ({ data, selected }: NodeProps) => {
   return (
-    <div className={`bg-card rounded-lg border-2 p-4 shadow-lg min-w-[220px] transition-all ${
+    <div className={`bg-card rounded-lg border-2 p-4 shadow-lg min-w-[220px] transition-colors ${
       selected ? 'border-primary shadow-glow' : 'border-border'
     }`}>
       <div className="flex items-center gap-3 mb-2">

@@ -47,6 +47,7 @@ const PublicChat = () => {
 
     if (chatbot) {
       setBotData({ ...chatbot, type: 'chatbot' });
+      setMessages([]);
       const config = chatbot.config as any || {};
       
       // Encontrar o primeiro bloco após o trigger OU iniciar pelo primeiro nó sem entradas

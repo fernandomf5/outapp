@@ -4,7 +4,7 @@ import { MessageSquare } from 'lucide-react';
 
 const MessageNode = ({ data, selected }: NodeProps) => {
   return (
-    <div className={`bg-card rounded-lg border-2 p-4 shadow-lg min-w-[220px] max-w-[300px] transition-all ${
+    <div className={`bg-card rounded-lg border-2 p-4 shadow-lg min-w-[220px] max-w-[300px] transition-colors ${
       selected ? 'border-chart-1 shadow-glow' : 'border-border'
     }`}>
       <Handle
