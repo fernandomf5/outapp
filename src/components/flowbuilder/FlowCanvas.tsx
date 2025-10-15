@@ -29,6 +29,7 @@ import AudioNode from './nodes/AudioNode';
 import ImageNode from './nodes/ImageNode';
 import VideoNode from './nodes/VideoNode';
 import DocumentNode from './nodes/DocumentNode';
+import HumanAgentNode from './nodes/HumanAgentNode';
 
 // Custom Edge component with delete button
 const CustomEdge = ({
@@ -98,6 +99,7 @@ const nodeTypes = {
   image: ImageNode,
   video: VideoNode,
   document: DocumentNode,
+  humanAgent: HumanAgentNode,
 };
 
 const edgeTypes = {
@@ -225,7 +227,8 @@ export const FlowCanvas = ({
       type === 'audio' ? 'Adicione um áudio' :
       type === 'image' ? 'Adicione uma imagem' :
       type === 'video' ? 'Adicione um vídeo' :
-      type === 'document' ? 'Adicione um documento' : 'Novo bloco';
+      type === 'document' ? 'Adicione um documento' :
+      type === 'humanAgent' ? 'Transferir para atendente humano' : 'Novo bloco';
 
     const newNode: Node = {
       id: Date.now().toString(),

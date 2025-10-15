@@ -149,14 +149,8 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
       }
     }
 
-    // Resposta padrão
+    // Sem próximo nó - apenas finaliza sem mensagem
     setTimeout(() => {
-      setMessages(prev => [...prev, {
-        id: (Date.now() + 1).toString(),
-        role: 'bot',
-        content: 'Fim do fluxo.',
-        timestamp: new Date()
-      }]);
       setIsLoading(false);
     }, 500);
   };

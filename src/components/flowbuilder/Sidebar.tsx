@@ -15,6 +15,7 @@ import {
   Image as ImageIcon,
   Video,
   FileText,
+  Headset,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -64,6 +65,13 @@ export const Sidebar = ({ onAddNode }: SidebarProps) => {
       title: 'Adicionar Documento',
       description: 'Enviar arquivo',
       color: 'amber-500',
+    },
+    {
+      type: 'humanAgent',
+      icon: Headset,
+      title: 'Atendente Humano',
+      description: 'Transferir para atendente',
+      color: 'pink-500',
     },
   ];
 

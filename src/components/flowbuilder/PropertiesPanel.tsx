@@ -107,6 +107,7 @@ export const PropertiesPanel = ({
       case 'audio': return 'Áudio';
       case 'video': return 'Vídeo';
       case 'document': return 'Documento';
+      case 'humanAgent': return 'Atendente Humano';
       default: return 'Bloco';
     }
   };
@@ -119,8 +120,8 @@ export const PropertiesPanel = ({
       </div>
 
       <div className="space-y-4">
-        {/* Texto para todos os tipos exceto image, audio, video, document */}
-        {!['image', 'audio', 'video', 'document'].includes(selectedNode.type) && (
+        {/* Texto para todos os tipos exceto image, audio, video, document, humanAgent */}
+        {!['image', 'audio', 'video', 'document', 'humanAgent'].includes(selectedNode.type) && (
           <div>
             <Label htmlFor="label">Texto da Mensagem</Label>
             <Textarea
@@ -131,6 +132,30 @@ export const PropertiesPanel = ({
               placeholder="Digite o texto da mensagem..."
               className="mt-2 min-h-[120px]"
             />
+          </div>
+        )}
+
+        {/* Mensagem para Atendente Humano */}
+        {selectedNode.type === 'humanAgent' && (
+          <div className="space-y-4">
+            <div className="bg-pink-500/10 border border-pink-500/30 rounded-lg p-4">
+              <h4 className="font-semibold text-sm text-pink-600 mb-2">Transferência para Atendente</h4>
+              <p className="text-xs text-muted-foreground">
+                Quando o usuário chegar neste bloco, a conversa será transferida para um atendente humano. 
+                O chat aparecerá no painel de conversas do dashboard.
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="label">Mensagem de Transferência (opcional)</Label>
+              <Textarea
+                id="label"
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                onBlur={handleUpdate}
+                placeholder="Ex: Aguarde, você está sendo transferido para um atendente..."
+                className="mt-2 min-h-[80px]"
+              />
+            </div>
           </div>
         )}
 
