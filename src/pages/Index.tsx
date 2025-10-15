@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { FAQSection } from "@/components/FAQSection";
 
 interface Plan {
   id: string;
@@ -173,6 +174,9 @@ const Index = () => {
           <a href="#planos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
             Planos
           </a>
+          <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
+            FAQ
+          </a>
           {headerPages.map((page) => (
             <button
               key={page.id}
@@ -219,6 +223,9 @@ const Index = () => {
               </a>
               <a href="#planos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
                 Planos
+              </a>
+              <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
+                FAQ
               </a>
               {headerPages.map((page) => (
                 <button
@@ -432,6 +439,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* FAQ Section */}
+      <FAQSection />
 
       {/* CTA Section */}
       <section className="py-10 sm:py-16 md:py-20 px-6 sm:px-8 gradient-primary relative overflow-hidden">

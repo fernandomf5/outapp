@@ -7,6 +7,10 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Bot, Zap, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { z } from "zod";
+
+const emailSchema = z.string().email("Por favor, insira um e-mail válido");
+const passwordSchema = z.string().min(6, "A senha deve ter pelo menos 6 caracteres");
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -34,12 +38,12 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Validação de email real
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    // Validação de email com zod
+    const emailValidation = emailSchema.safeParse(email);
+    if (!emailValidation.success) {
       toast({
         title: "Email inválido",
-        description: "Por favor, insira um email válido.",
+        description: emailValidation.error.issues[0].message,
         variant: "destructive",
       });
       setIsLoading(false);
@@ -57,10 +61,12 @@ const Auth = () => {
         return;
       }
 
-      if (password.length < 6) {
+      // Validação de senha com zod
+      const passwordValidation = passwordSchema.safeParse(password);
+      if (!passwordValidation.success) {
         toast({
-          title: "Senha muito curta",
-          description: "A senha deve ter pelo menos 6 caracteres.",
+          title: "Senha inválida",
+          description: passwordValidation.error.issues[0].message,
           variant: "destructive",
         });
         setIsLoading(false);
@@ -81,8 +87,9 @@ const Auth = () => {
       }
 
       toast({
-        title: "Conta criada com sucesso! 🎉",
-        description: "Verificação de email enviada. Você já pode fazer login!",
+        title: "🎉 Cadastro realizado com sucesso!",
+        description: "Verifique seu e-mail para confirmar sua conta e aproveitar todos os recursos da plataforma.",
+        duration: 6000,
       });
       
       setIsLoading(false);
@@ -272,13 +279,8 @@ const Auth = () => {
               <div className="text-right">
                 <button
                   type="button"
-                  className="text-sm text-primary hover:underline"
-                  onClick={() => {
-                    toast({
-                      title: "Link enviado! 📧",
-                      description: "Verifique seu email para redefinir a senha.",
-                    });
-                  }}
+                  className="text-sm text-primary hover:underline font-medium"
+                  onClick={() => navigate("/forgot-password")}
                 >
                   Esqueceu a senha?
                 </button>
