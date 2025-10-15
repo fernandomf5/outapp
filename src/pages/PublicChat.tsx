@@ -12,6 +12,9 @@ interface Message {
   role: "user" | "bot";
   content: string;
   timestamp: Date;
+  imageUrl?: string;
+  buttons?: string[];
+  nodeId?: string;
 }
 
 const PublicChat = () => {
@@ -45,10 +48,30 @@ const PublicChat = () => {
     if (chatbot) {
       setBotData({ ...chatbot, type: 'chatbot' });
       const config = chatbot.config as any || {};
+      
+      // Encontrar o primeiro bloco após o trigger
+      const nodes = config.nodes || [];
+      const edges = config.edges || [];
+      const triggerNode = nodes.find((n: any) => n.type === 'trigger');
+      
+      if (triggerNode && edges.length > 0) {
+        // Encontrar o primeiro bloco conectado ao trigger
+        const firstEdge = edges.find((e: any) => e.source === triggerNode.id);
+        if (firstEdge) {
+          const firstNode = nodes.find((n: any) => n.id === firstEdge.target);
+          if (firstNode) {
+            // Mostrar a primeira mensagem automaticamente
+            processNode(firstNode, nodes, edges);
+            return;
+          }
+        }
+      }
+      
+      // Fallback para mensagem padrão
       setMessages([{
         id: '1',
         role: 'bot',
-        content: config.welcomeMessage || 'Olá! Como posso ajudar você hoje?',
+        content: 'Olá! Como posso ajudar você hoje?',
         timestamp: new Date()
       }]);
       return;
@@ -80,17 +103,53 @@ const PublicChat = () => {
     }
   };
 
+  const processNode = (node: any, nodes: any[], edges: any[]) => {
+    const messages: Message[] = [];
+    
+    // Adicionar mensagem do nó
+    if (node.type === 'message' || node.type === 'question' || node.type === 'quickReply') {
+      messages.push({
+        id: node.id,
+        role: 'bot',
+        content: node.data.label || '',
+        timestamp: new Date(),
+        imageUrl: node.data.imageUrl,
+        buttons: node.type === 'quickReply' ? node.data.buttons : undefined,
+        nodeId: node.id
+      } as any);
+    }
+    
+    setMessages(prev => [...prev, ...messages]);
+  };
+
+  const findNextNode = (currentNodeId: string, userResponse?: string) => {
+    if (!botData?.config) return null;
+    
+    const config = botData.config as any;
+    const nodes = config.nodes || [];
+    const edges = config.edges || [];
+    
+    // Encontrar próximo nó conectado
+    const nextEdge = edges.find((e: any) => e.source === currentNodeId);
+    if (nextEdge) {
+      return nodes.find((n: any) => n.id === nextEdge.target);
+    }
+    
+    return null;
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim() || !botData) return;
+  const handleSendMessage = async (messageText?: string) => {
+    const textToSend = messageText || inputMessage;
+    if (!textToSend.trim() || !botData) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: inputMessage,
+      content: textToSend,
       timestamp: new Date()
     };
 
@@ -104,7 +163,7 @@ const PublicChat = () => {
         const { data, error } = await supabase.functions.invoke('process-ai-message', {
           body: {
             agentId: botId,
-            message: inputMessage,
+            message: textToSend,
             conversationHistory: messages.map(m => ({
               role: m.role === 'user' ? 'user' : 'assistant',
               content: m.content
@@ -123,24 +182,25 @@ const PublicChat = () => {
 
         setMessages(prev => [...prev, botResponse]);
       } else {
-        // Chatbot simples - resposta baseada em config
-        const config = (botData.config as any) || {};
-        let response = "Obrigado pela sua mensagem! Como posso ajudar?";
-
-        // Lógica básica de resposta
-        const lowerMessage = inputMessage.toLowerCase();
-        if (lowerMessage.includes('preço') || lowerMessage.includes('valor')) {
-          response = config.pricing || "Entre em contato para informações sobre preços.";
-        } else if (lowerMessage.includes('horário') || lowerMessage.includes('funciona')) {
-          response = config.schedule || "Estamos disponíveis de segunda a sexta, das 9h às 18h.";
-        } else if (lowerMessage.includes('localização') || lowerMessage.includes('endereço')) {
-          response = config.location || "Nossa localização está disponível no site.";
+        // Chatbot com fluxo - encontrar próximo nó
+        const lastBotMessage = [...messages].reverse().find(m => m.role === 'bot');
+        if (lastBotMessage?.nodeId) {
+          const nextNode = findNextNode(lastBotMessage.nodeId, textToSend);
+          
+          if (nextNode) {
+            setTimeout(() => {
+              processNode(nextNode, botData.config.nodes, botData.config.edges);
+              setIsLoading(false);
+            }, 500);
+            return;
+          }
         }
-
+        
+        // Resposta padrão se não encontrar próximo nó
         const botResponse: Message = {
           id: (Date.now() + 1).toString(),
           role: 'bot',
-          content: response,
+          content: "Obrigado pela sua mensagem!",
           timestamp: new Date()
         };
 
@@ -198,25 +258,48 @@ const PublicChat = () => {
       <main className="flex-1 overflow-y-auto px-4 py-6">
         <div className="max-w-4xl mx-auto space-y-4">
           {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
+            <div key={message.id}>
               <div
-                className={`max-w-[80%] sm:max-w-[70%] rounded-2xl px-4 py-3 ${
-                  message.role === 'user'
-                    ? 'bg-primary text-primary-foreground ml-auto'
-                    : 'bg-card border border-border'
-                }`}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                <span className="text-xs opacity-70 mt-1 block">
-                  {message.timestamp.toLocaleTimeString('pt-BR', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                  })}
-                </span>
+                <div
+                  className={`max-w-[80%] sm:max-w-[70%] rounded-2xl px-4 py-3 ${
+                    message.role === 'user'
+                      ? 'bg-primary text-primary-foreground ml-auto'
+                      : 'bg-card border border-border'
+                  }`}
+                >
+                  {message.imageUrl && (
+                    <img 
+                      src={message.imageUrl} 
+                      alt="Imagem" 
+                      className="w-full rounded-lg mb-2 max-h-64 object-cover"
+                    />
+                  )}
+                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <span className="text-xs opacity-70 mt-1 block">
+                    {message.timestamp.toLocaleTimeString('pt-BR', { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </span>
+                </div>
               </div>
+              {message.buttons && message.buttons.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2 ml-2">
+                  {message.buttons.map((button, idx) => (
+                    <Button
+                      key={idx}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSendMessage(button)}
+                      className="rounded-full"
+                    >
+                      {button}
+                    </Button>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
           {isLoading && (
@@ -242,7 +325,7 @@ const PublicChat = () => {
             className="flex-1"
           />
           <Button
-            onClick={handleSendMessage}
+            onClick={() => handleSendMessage()}
             disabled={!inputMessage.trim() || isLoading}
             className="gradient-primary shadow-glow"
             size="icon"
