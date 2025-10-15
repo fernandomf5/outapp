@@ -49,25 +49,36 @@ const PublicChat = () => {
       setBotData({ ...chatbot, type: 'chatbot' });
       const config = chatbot.config as any || {};
       
-      // Encontrar o primeiro bloco após o trigger OU o primeiro bloco visível (sem depender de gatilho)
+      // Encontrar o primeiro bloco após o trigger OU iniciar pelo primeiro nó sem entradas
       const nodes = config.nodes || [];
       const edges = config.edges || [];
       const triggerNode = nodes.find((n: any) => n.type === 'trigger');
-      
+
+      // 1) Se houver trigger com saída, usar o alvo da primeira aresta
       if (triggerNode && edges.length > 0) {
-        // Encontrar o primeiro bloco conectado ao trigger
         const firstEdge = edges.find((e: any) => e.source === triggerNode.id);
         if (firstEdge) {
           const firstNode = nodes.find((n: any) => n.id === firstEdge.target);
           if (firstNode) {
-            // Mostrar a primeira mensagem automaticamente
             processNode(firstNode, nodes, edges);
             return;
           }
         }
       }
 
-      // Se não houver gatilho/ligação, usar o primeiro bloco pelo topo do canvas
+      // 2) Se não houver trigger/ligação, usar nó SEM entradas (start node)
+      const incomingTargets = new Set((edges || []).map((e: any) => e.target));
+      const startCandidates = nodes.filter((n: any) => n.type !== 'trigger' && !incomingTargets.has(n.id));
+
+      if (startCandidates.length > 0) {
+        // priorizar mais alto no canvas; se empatar, por id mais antigo
+        const firstStart = [...startCandidates]
+          .sort((a: any, b: any) => (a.position?.y || 0) - (b.position?.y || 0) || (parseInt(a.id) - parseInt(b.id)))[0];
+        processNode(firstStart, nodes, edges);
+        return;
+      }
+
+      // 3) Fallback: nó mais alto do canvas
       const firstTopNode = nodes
         .filter((n: any) => n.type !== 'trigger')
         .sort((a: any, b: any) => (a.position?.y || 0) - (b.position?.y || 0))[0];
@@ -139,7 +150,22 @@ const PublicChat = () => {
     const nodes = config.nodes || [];
     const edges = config.edges || [];
     
-    // Encontrar próximo nó conectado
+    // Encontrar próximo nó considerando Quick Replies com handles por botão
+    const currentNode = nodes.find((n: any) => n.id === currentNodeId);
+
+    if (currentNode?.type === 'quickReply' && typeof userResponse === 'string') {
+      const btns: string[] = currentNode.data?.buttons || [];
+      const idx = btns.findIndex((b: string) => (b || '').trim().toLowerCase() === userResponse.trim().toLowerCase());
+
+      if (idx >= 0) {
+        const edgeByHandle = edges.find((e: any) => e.source === currentNodeId && e.sourceHandle === `btn-${idx}`);
+        if (edgeByHandle) {
+          return nodes.find((n: any) => n.id === edgeByHandle.target);
+        }
+      }
+    }
+
+    // Fallback: primeira aresta de saída
     const nextEdge = edges.find((e: any) => e.source === currentNodeId);
     if (nextEdge) {
       return nodes.find((n: any) => n.id === nextEdge.target);

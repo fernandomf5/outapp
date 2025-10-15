@@ -180,7 +180,7 @@ export const PropertiesPanel = ({
                 <Input
                   value={newButton}
                   onChange={(e) => setNewButton(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && addButton()}
+                  onKeyDown={(e) => e.key === 'Enter' && addButton()}
                   placeholder="Novo botão..."
                 />
                 <Button onClick={addButton} size="icon">

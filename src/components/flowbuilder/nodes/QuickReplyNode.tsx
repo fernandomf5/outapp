@@ -31,19 +31,22 @@ const QuickReplyNode = ({ data, selected }: NodeProps) => {
         </div>
       )}
       <div className="space-y-2">
-        {buttons.slice(0, 3).map((button: string, index: number) => (
-          <div
-            key={index}
-            className="text-xs bg-accent/50 px-3 py-1.5 rounded-md text-center border border-border"
-          >
-            {button}
+        {buttons.map((button: string, index: number) => (
+          <div key={index} className="relative">
+            <div
+              className="text-xs bg-accent/50 px-3 py-1.5 rounded-md text-center border border-border"
+            >
+              {button}
+            </div>
+            <Handle
+              type="source"
+              position={Position.Right}
+              id={`btn-${index}`}
+              className="w-3 h-3 !bg-chart-5"
+              style={{ top: '50%', transform: 'translateY(-50%)' }}
+            />
           </div>
         ))}
-        {buttons.length > 3 && (
-          <div className="text-xs text-muted-foreground text-center">
-            +{buttons.length - 3} mais
-          </div>
-        )}
       </div>
       <Handle
         type="source"

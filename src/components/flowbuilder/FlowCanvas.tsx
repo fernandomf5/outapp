@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -48,11 +48,9 @@ export const FlowCanvas = ({
   const [nodes, setNodes, onNodesChangeInternal] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChangeInternal] = useEdgesState(initialEdges);
   const { project } = useReactFlow();
+  const [isDragging, setIsDragging] = useState(false);
 
   // Sincroniza mudanças locais com o componente pai
-  useEffect(() => {
-    onNodesChange(nodes);
-  }, [nodes, onNodesChange]);
 
   useEffect(() => {
     onEdgesChange(edges);
@@ -60,8 +58,10 @@ export const FlowCanvas = ({
 
   // Atualiza o canvas quando o pai mudar (ex: ao editar no painel de propriedades)
   useEffect(() => {
-    setNodes(initialNodes);
-  }, [initialNodes, setNodes]);
+    if (!isDragging) {
+      setNodes(initialNodes);
+    }
+  }, [initialNodes, setNodes, isDragging]);
 
   useEffect(() => {
     setEdges(initialEdges);
@@ -103,6 +103,15 @@ export const FlowCanvas = ({
     [onNodeClick]
   );
 
+  const handleNodeDragStart = useCallback(() => {
+    setIsDragging(true);
+  }, []);
+
+  const handleNodeDragStop = useCallback(() => {
+    setIsDragging(false);
+    onNodesChange(nodes);
+  }, [nodes, onNodesChange]);
+
   // Suporte a arrastar e soltar blocos do Sidebar
   const handleDragOver = useCallback((event: any) => {
     event.preventDefault();
@@ -134,7 +143,11 @@ export const FlowCanvas = ({
       },
     };
 
-    setNodes((nds) => [...nds, newNode]);
+    setNodes((nds) => {
+      const next = [...nds, newNode];
+      onNodesChange(next);
+      return next;
+    });
   }, [project, setNodes]);
 
   return (
@@ -146,8 +159,10 @@ export const FlowCanvas = ({
         onEdgesChange={handleEdgesChange}
         onConnect={onConnect}
         onNodeClick={handleNodeClick}
-        nodeTypes={nodeTypes}
-        connectionMode={ConnectionMode.Loose}
+          onNodeDragStart={handleNodeDragStart}
+          onNodeDragStop={handleNodeDragStop}
+          nodeTypes={nodeTypes}
+          connectionMode={ConnectionMode.Loose}
         fitView
         className="bg-background"
         onDragOver={handleDragOver}
