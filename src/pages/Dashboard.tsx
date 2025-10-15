@@ -53,13 +53,15 @@ const Dashboard = () => {
       const { data: botsData, error: botsError } = await supabase
         .from('chatbots')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
       // Buscar agentes IA do usuário
       const { data: agentsData, error: agentsError } = await supabase
         .from('ai_agents')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
       if (!botsError && botsData) {
         setChatbots(botsData);
@@ -86,6 +88,37 @@ const Dashboard = () => {
     };
 
     fetchData();
+
+    // Subscrever mudanças em tempo real para chatbots
+    const chatbotsSubscription = supabase
+      .channel('chatbots_changes')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'chatbots',
+        filter: `user_id=eq.${user?.id}`
+      }, () => {
+        fetchData();
+      })
+      .subscribe();
+
+    // Subscrever mudanças em tempo real para agentes IA
+    const agentsSubscription = supabase
+      .channel('ai_agents_changes')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'ai_agents',
+        filter: `user_id=eq.${user?.id}`
+      }, () => {
+        fetchData();
+      })
+      .subscribe();
+
+    return () => {
+      chatbotsSubscription.unsubscribe();
+      agentsSubscription.unsubscribe();
+    };
   }, [user]);
 
   const handleLogout = async () => {
