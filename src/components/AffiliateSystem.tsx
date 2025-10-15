@@ -5,11 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Copy, ExternalLink, TrendingUp, DollarSign, Users, MousePointer } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Users, Copy, DollarSign, MousePointerClick, TrendingUp, Globe } from "lucide-react";
 
 interface AffiliateProgram {
   id: string;
@@ -23,6 +23,7 @@ interface AffiliateProgram {
 interface Affiliate {
   id: string;
   affiliate_code: string;
+  custom_domain: string | null;
   total_clicks: number;
   total_conversions: number;
   total_commission: number;
@@ -42,24 +43,33 @@ export const AffiliateSystem = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [programs, setPrograms] = useState<AffiliateProgram[]>([]);
-  const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
+  const [myAffiliates, setMyAffiliates] = useState<Affiliate[]>([]);
   const [clonedPages, setClonedPages] = useState<ClonedPage[]>([]);
-  const [isCreateProgramOpen, setIsCreateProgramOpen] = useState(false);
-  const [isClonePageOpen, setIsClonePageOpen] = useState(false);
+  const [isProgramDialogOpen, setIsProgramDialogOpen] = useState(false);
+  const [isCloneDialogOpen, setIsCloneDialogOpen] = useState(false);
+  const [selectedAffiliate, setSelectedAffiliate] = useState<Affiliate | null>(null);
   const [newProgram, setNewProgram] = useState({
     name: "",
     commission_percentage: "10",
     cookie_duration_days: "30"
   });
-  const [pageToClone, setPageToClone] = useState("");
+  const [cloneData, setCloneData] = useState({
+    original_url: "",
+    custom_domain: ""
+  });
 
   useEffect(() => {
     if (user) {
       fetchPrograms();
-      fetchAffiliates();
-      fetchClonedPages();
+      fetchMyAffiliates();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (selectedAffiliate) {
+      fetchClonedPages(selectedAffiliate.id);
+    }
+  }, [selectedAffiliate]);
 
   const fetchPrograms = async () => {
     const { data, error } = await supabase
@@ -73,43 +83,30 @@ export const AffiliateSystem = () => {
     }
   };
 
-  const fetchAffiliates = async () => {
-    const { data: programsData } = await supabase
-      .from('affiliate_programs')
-      .select('id')
-      .eq('user_id', user!.id);
+  const fetchMyAffiliates = async () => {
+    const { data, error } = await supabase
+      .from('affiliates')
+      .select('*')
+      .eq('user_id', user!.id)
+      .order('created_at', { ascending: false });
 
-    if (programsData && programsData.length > 0) {
-      const programIds = programsData.map(p => p.id);
-      const { data, error } = await supabase
-        .from('affiliates')
-        .select('*')
-        .in('program_id', programIds)
-        .order('created_at', { ascending: false });
-
-      if (!error && data) {
-        setAffiliates(data);
+    if (!error && data) {
+      setMyAffiliates(data);
+      if (data.length > 0 && !selectedAffiliate) {
+        setSelectedAffiliate(data[0]);
       }
     }
   };
 
-  const fetchClonedPages = async () => {
-    const { data: affiliatesData } = await supabase
-      .from('affiliates')
-      .select('id')
-      .eq('user_id', user!.id);
+  const fetchClonedPages = async (affiliateId: string) => {
+    const { data, error } = await supabase
+      .from('cloned_pages')
+      .select('*')
+      .eq('affiliate_id', affiliateId)
+      .order('created_at', { ascending: false });
 
-    if (affiliatesData && affiliatesData.length > 0) {
-      const affiliateIds = affiliatesData.map(a => a.id);
-      const { data, error } = await supabase
-        .from('cloned_pages')
-        .select('*')
-        .in('affiliate_id', affiliateIds)
-        .order('created_at', { ascending: false });
-
-      if (!error && data) {
-        setClonedPages(data);
-      }
+    if (!error && data) {
+      setClonedPages(data);
     }
   };
 
@@ -126,10 +123,10 @@ export const AffiliateSystem = () => {
     const { data, error } = await supabase
       .from('affiliate_programs')
       .insert({
-        name: newProgram.name,
+        ...newProgram,
+        user_id: user!.id,
         commission_percentage: parseFloat(newProgram.commission_percentage),
-        cookie_duration_days: parseInt(newProgram.cookie_duration_days),
-        user_id: user!.id
+        cookie_duration_days: parseInt(newProgram.cookie_duration_days)
       })
       .select()
       .single();
@@ -143,39 +140,52 @@ export const AffiliateSystem = () => {
     } else {
       toast({ title: "Programa criado com sucesso!" });
       setPrograms([data, ...programs]);
-      
-      // Criar conta de afiliado automaticamente
-      const affiliateCode = `AFF${Date.now().toString(36).toUpperCase()}`;
-      await supabase.from('affiliates').insert({
-        program_id: data.id,
+      setNewProgram({ name: "", commission_percentage: "10", cookie_duration_days: "30" });
+      setIsProgramDialogOpen(false);
+
+      // Auto-create affiliate account for the user
+      await createAffiliateAccount(data.id);
+    }
+  };
+
+  const createAffiliateAccount = async (programId: string) => {
+    const affiliateCode = `AFF-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+    
+    const { data, error } = await supabase
+      .from('affiliates')
+      .insert({
+        program_id: programId,
         user_id: user!.id,
         affiliate_code: affiliateCode
-      });
+      })
+      .select()
+      .single();
 
-      setNewProgram({ name: "", commission_percentage: "10", cookie_duration_days: "30" });
-      setIsCreateProgramOpen(false);
-      fetchAffiliates();
+    if (!error && data) {
+      setMyAffiliates([data, ...myAffiliates]);
+      if (!selectedAffiliate) {
+        setSelectedAffiliate(data);
+      }
     }
   };
 
   const handleClonePage = async () => {
-    if (!pageToClone || !affiliates.length) {
+    if (!cloneData.original_url || !selectedAffiliate) {
       toast({
         title: "Erro",
-        description: "URL e conta de afiliado são necessários",
+        description: "URL é obrigatória",
         variant: "destructive"
       });
       return;
     }
 
-    const affiliateId = affiliates[0].id;
-    const clonedUrl = `${window.location.origin}/aff/${affiliates[0].affiliate_code}`;
+    const clonedUrl = `${window.location.origin}/a/${selectedAffiliate.affiliate_code}`;
 
     const { data, error } = await supabase
       .from('cloned_pages')
       .insert({
-        affiliate_id: affiliateId,
-        original_url: pageToClone,
+        affiliate_id: selectedAffiliate.id,
+        original_url: cloneData.original_url,
         cloned_url: clonedUrl
       })
       .select()
@@ -190,264 +200,273 @@ export const AffiliateSystem = () => {
     } else {
       toast({ title: "Página clonada com sucesso!" });
       setClonedPages([data, ...clonedPages]);
-      setPageToClone("");
-      setIsClonePageOpen(false);
+      setCloneData({ original_url: "", custom_domain: "" });
+      setIsCloneDialogOpen(false);
     }
   };
 
-  const copyAffiliateLink = (affiliate: Affiliate) => {
-    const link = `${window.location.origin}/aff/${affiliate.affiliate_code}`;
+  const copyAffiliateLink = (code: string) => {
+    const link = `${window.location.origin}/a/${code}`;
     navigator.clipboard.writeText(link);
     toast({ title: "Link copiado!" });
   };
-
-  const totalStats = affiliates.reduce((acc, aff) => ({
-    clicks: acc.clicks + aff.total_clicks,
-    conversions: acc.conversions + aff.total_conversions,
-    commission: acc.commission + parseFloat(aff.total_commission.toString())
-  }), { clicks: 0, conversions: 0, commission: 0 });
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Sistema de Afiliados</h2>
-        <div className="flex gap-2">
-          <Dialog open={isClonePageOpen} onOpenChange={setIsClonePageOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Clonar Página
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Clonar Página para Afiliado</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 mt-4">
-                <div>
-                  <Label>URL da Página Original</Label>
-                  <Input
-                    value={pageToClone}
-                    onChange={(e) => setPageToClone(e.target.value)}
-                    placeholder="https://example.com/produto"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    A página será clonada com seu código de afiliado
-                  </p>
-                </div>
-                <Button onClick={handleClonePage} className="w-full gradient-primary">
-                  Clonar Página
-                </Button>
+        <Dialog open={isProgramDialogOpen} onOpenChange={setIsProgramDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="gradient-primary">
+              <Users className="w-4 h-4 mr-2" />
+              Criar Programa
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Novo Programa de Afiliados</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div>
+                <Label>Nome do Programa *</Label>
+                <Input
+                  value={newProgram.name}
+                  onChange={(e) => setNewProgram({ ...newProgram, name: e.target.value })}
+                  placeholder="Ex: Programa VIP"
+                />
               </div>
-            </DialogContent>
-          </Dialog>
-          <Dialog open={isCreateProgramOpen} onOpenChange={setIsCreateProgramOpen}>
-            <DialogTrigger asChild>
-              <Button className="gradient-primary">
-                <Plus className="w-4 h-4 mr-2" />
-                Novo Programa
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Criar Programa de Afiliados</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 mt-4">
-                <div>
-                  <Label>Nome do Programa *</Label>
-                  <Input
-                    value={newProgram.name}
-                    onChange={(e) => setNewProgram({ ...newProgram, name: e.target.value })}
-                    placeholder="Ex: Programa VIP"
-                  />
-                </div>
-                <div>
-                  <Label>Comissão (%)</Label>
-                  <Input
-                    type="number"
-                    value={newProgram.commission_percentage}
-                    onChange={(e) => setNewProgram({ ...newProgram, commission_percentage: e.target.value })}
-                    placeholder="10"
-                  />
-                </div>
-                <div>
-                  <Label>Duração do Cookie (dias)</Label>
-                  <Input
-                    type="number"
-                    value={newProgram.cookie_duration_days}
-                    onChange={(e) => setNewProgram({ ...newProgram, cookie_duration_days: e.target.value })}
-                    placeholder="30"
-                  />
-                </div>
-                <Button onClick={handleCreateProgram} className="w-full gradient-primary">
-                  Criar Programa
-                </Button>
+              <div>
+                <Label>Comissão (%)</Label>
+                <Input
+                  type="number"
+                  value={newProgram.commission_percentage}
+                  onChange={(e) => setNewProgram({ ...newProgram, commission_percentage: e.target.value })}
+                  placeholder="10"
+                />
               </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+              <div>
+                <Label>Duração do Cookie (dias)</Label>
+                <Input
+                  type="number"
+                  value={newProgram.cookie_duration_days}
+                  onChange={(e) => setNewProgram({ ...newProgram, cookie_duration_days: e.target.value })}
+                  placeholder="30"
+                />
+              </div>
+              <Button onClick={handleCreateProgram} className="w-full gradient-primary">
+                Criar Programa
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="p-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-blue-500/10 p-3 rounded-lg">
-              <MousePointer className="w-5 h-5 text-blue-500" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{totalStats.clicks}</p>
-              <p className="text-sm text-muted-foreground">Total de Cliques</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-green-500/10 p-3 rounded-lg">
-              <TrendingUp className="w-5 h-5 text-green-500" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{totalStats.conversions}</p>
-              <p className="text-sm text-muted-foreground">Conversões</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-yellow-500/10 p-3 rounded-lg">
-              <DollarSign className="w-5 h-5 text-yellow-500" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">R$ {totalStats.commission.toFixed(2)}</p>
-              <p className="text-sm text-muted-foreground">Comissão Total</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-purple-500/10 p-3 rounded-lg">
-              <Users className="w-5 h-5 text-purple-500" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{affiliates.length}</p>
-              <p className="text-sm text-muted-foreground">Afiliados</p>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      <Tabs defaultValue="programs" className="w-full">
-        <TabsList>
-          <TabsTrigger value="programs">Programas</TabsTrigger>
-          <TabsTrigger value="affiliates">Afiliados</TabsTrigger>
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="programs">Meus Programas</TabsTrigger>
           <TabsTrigger value="pages">Páginas Clonadas</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="programs" className="space-y-4">
-          {programs.length === 0 ? (
-            <Card className="p-8">
-              <p className="text-center text-muted-foreground">
-                Nenhum programa criado ainda
-              </p>
-            </Card>
-          ) : (
-            programs.map((program) => (
-              <Card key={program.id} className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-lg">{program.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Comissão: {program.commission_percentage}% | Cookie: {program.cookie_duration_days} dias
-                    </p>
-                  </div>
-                  <Badge variant={program.is_active ? "default" : "secondary"}>
-                    {program.is_active ? "Ativo" : "Inativo"}
-                  </Badge>
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-primary/10 p-3 rounded-xl">
+                  <MousePointerClick className="w-6 h-6 text-primary" />
                 </div>
-              </Card>
-            ))
-          )}
+                <div>
+                  <h3 className="text-2xl font-bold">
+                    {myAffiliates.reduce((acc, aff) => acc + aff.total_clicks, 0)}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">Total de Clicks</p>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-success/10 p-3 rounded-xl">
+                  <TrendingUp className="w-6 h-6 text-success" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold">
+                    {myAffiliates.reduce((acc, aff) => acc + aff.total_conversions, 0)}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">Conversões</p>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-warning/10 p-3 rounded-xl">
+                  <DollarSign className="w-6 h-6 text-warning" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold">
+                    R$ {myAffiliates.reduce((acc, aff) => acc + parseFloat(aff.total_commission.toString()), 0).toFixed(2)}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">Comissão Total</p>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <Card className="p-6">
+            <h3 className="font-semibold mb-4">Meus Links de Afiliado</h3>
+            <div className="space-y-3">
+              {myAffiliates.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  Crie um programa de afiliados para começar
+                </p>
+              ) : (
+                myAffiliates.map((affiliate) => (
+                  <Card key={affiliate.id} className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className="font-medium">{affiliate.affiliate_code}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {window.location.origin}/a/{affiliate.affiliate_code}
+                        </p>
+                        <div className="flex gap-4 mt-2">
+                          <span className="text-xs text-muted-foreground">
+                            Clicks: {affiliate.total_clicks}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            Conversões: {affiliate.total_conversions}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            Comissão: R$ {parseFloat(affiliate.total_commission.toString()).toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Badge variant={affiliate.status === 'active' ? 'default' : 'secondary'}>
+                          {affiliate.status}
+                        </Badge>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => copyAffiliateLink(affiliate.affiliate_code)}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </div>
+          </Card>
         </TabsContent>
 
-        <TabsContent value="affiliates" className="space-y-4">
-          {affiliates.length === 0 ? (
-            <Card className="p-8">
-              <p className="text-center text-muted-foreground">
-                Nenhum afiliado cadastrado ainda
-              </p>
-            </Card>
-          ) : (
-            affiliates.map((affiliate) => (
-              <Card key={affiliate.id} className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="font-semibold">Código: {affiliate.affiliate_code}</h3>
-                    <Badge variant="outline">{affiliate.status}</Badge>
-                  </div>
-                  <Button size="sm" variant="outline" onClick={() => copyAffiliateLink(affiliate)}>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copiar Link
+        <TabsContent value="programs">
+          <Card className="p-6">
+            <h3 className="font-semibold mb-4">Programas ({programs.length})</h3>
+            <div className="space-y-3">
+              {programs.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  Nenhum programa criado ainda
+                </p>
+              ) : (
+                programs.map((program) => (
+                  <Card key={program.id} className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-semibold">{program.name}</h4>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Comissão: {program.commission_percentage}% | 
+                          Cookie: {program.cookie_duration_days} dias
+                        </p>
+                      </div>
+                      <Badge variant={program.is_active ? 'default' : 'secondary'}>
+                        {program.is_active ? 'Ativo' : 'Inativo'}
+                      </Badge>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="pages">
+          <div className="space-y-4">
+            <div className="flex justify-end">
+              <Dialog open={isCloneDialogOpen} onOpenChange={setIsCloneDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" disabled={!selectedAffiliate}>
+                    <Globe className="w-4 h-4 mr-2" />
+                    Clonar Página
                   </Button>
-                </div>
-                <div className="grid grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Cliques</p>
-                    <p className="font-semibold">{affiliate.total_clicks}</p>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Clonar Página</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    <div>
+                      <Label>URL da Página Original *</Label>
+                      <Input
+                        value={cloneData.original_url}
+                        onChange={(e) => setCloneData({ ...cloneData, original_url: e.target.value })}
+                        placeholder="https://exemplo.com/pagina"
+                      />
+                    </div>
+                    <Button onClick={handleClonePage} className="w-full gradient-primary">
+                      Clonar Página
+                    </Button>
                   </div>
-                  <div>
-                    <p className="text-muted-foreground">Conversões</p>
-                    <p className="font-semibold">{affiliate.total_conversions}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Comissão</p>
-                    <p className="font-semibold">R$ {parseFloat(affiliate.total_commission.toString()).toFixed(2)}</p>
-                  </div>
-                </div>
-              </Card>
-            ))
-          )}
-        </TabsContent>
+                </DialogContent>
+              </Dialog>
+            </div>
 
-        <TabsContent value="pages" className="space-y-4">
-          {clonedPages.length === 0 ? (
-            <Card className="p-8">
-              <p className="text-center text-muted-foreground">
-                Nenhuma página clonada ainda
-              </p>
+            <Card className="p-6">
+              <h3 className="font-semibold mb-4">Páginas Clonadas ({clonedPages.length})</h3>
+              <div className="space-y-3">
+                {clonedPages.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">
+                    Nenhuma página clonada ainda
+                  </p>
+                ) : (
+                  clonedPages.map((page) => (
+                    <Card key={page.id} className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Globe className="w-4 h-4 text-primary" />
+                            <h4 className="font-semibold">Página Clonada</h4>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            Original: {page.original_url}
+                          </p>
+                          <p className="text-sm text-primary mt-1">
+                            Clone: {page.cloned_url}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge variant={page.is_active ? 'default' : 'secondary'}>
+                            {page.is_active ? 'Ativa' : 'Inativa'}
+                          </Badge>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              navigator.clipboard.writeText(page.cloned_url);
+                              toast({ title: "Link copiado!" });
+                            }}
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))
+                )}
+              </div>
             </Card>
-          ) : (
-            clonedPages.map((page) => (
-              <Card key={page.id} className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-sm mb-2">Página Original:</h3>
-                    <p className="text-xs text-muted-foreground mb-3">{page.original_url}</p>
-                    <h3 className="font-semibold text-sm mb-2">Link de Afiliado:</h3>
-                    <p className="text-xs text-primary">{page.cloned_url}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        navigator.clipboard.writeText(page.cloned_url);
-                        toast({ title: "Link copiado!" });
-                      }}
-                    >
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => window.open(page.cloned_url, '_blank')}
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))
-          )}
+          </div>
         </TabsContent>
       </Tabs>
     </div>
