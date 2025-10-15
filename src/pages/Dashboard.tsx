@@ -40,7 +40,9 @@ const Dashboard = () => {
     messagesThisMonth: 0,
   });
   const [chatbots, setChatbots] = useState<any[]>([]);
+  const [aiAgents, setAiAgents] = useState<any[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
 
   useEffect(() => {
@@ -53,9 +55,21 @@ const Dashboard = () => {
         .select('*')
         .eq('user_id', user.id);
 
+      // Buscar agentes IA do usuário
+      const { data: agentsData, error: agentsError } = await supabase
+        .from('ai_agents')
+        .select('*')
+        .eq('user_id', user.id);
+
       if (!botsError && botsData) {
         setChatbots(botsData);
+      }
+
+      if (!agentsError && agentsData) {
+        setAiAgents(agentsData);
+      }
         
+      if (botsData || agentsData) {
         // Buscar conexões ativas
         const { data: connectionsData } = await supabase
           .from('whatsapp_connections')
@@ -64,8 +78,8 @@ const Dashboard = () => {
           .eq('is_connected', true);
 
         setStats({
-          totalBots: botsData.length,
-          activeConnections: connectionsData?.length || 0,
+          totalBots: botsData?.length || 0,
+          activeConnections: agentsData?.filter(a => a.is_active).length || 0,
           messagesThisMonth: 0, // Este valor viria de uma tabela de mensagens quando implementada
         });
       }
@@ -117,6 +131,35 @@ const Dashboard = () => {
       });
     }
     setDeletingId(null);
+  };
+
+  const handleDeleteAgent = async () => {
+    if (!deletingAgentId) return;
+
+    const { error } = await supabase
+      .from('ai_agents')
+      .delete()
+      .eq('id', deletingAgentId);
+
+    if (error) {
+      toast({
+        title: "Erro ao excluir",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      setAiAgents(aiAgents.filter(agent => agent.id !== deletingAgentId));
+      toast({
+        title: "Agente IA excluído",
+        description: "O agente foi removido com sucesso.",
+      });
+    }
+    setDeletingAgentId(null);
+  };
+
+  const handleEditAgent = (agentId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/ai-agent?id=${agentId}`);
   };
 
   const handleCopyLink = (botId: string, e: React.MouseEvent) => {
@@ -351,6 +394,85 @@ const Dashboard = () => {
             </div>
           )}
         </Card>
+
+        {/* AI Agents Section */}
+        <Card className="p-4 sm:p-6 mt-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold">Meus Agentes IA</h2>
+            <Button onClick={() => navigate("/ai-agent")} size="sm" className="w-full sm:w-auto">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Criar Agente IA
+            </Button>
+          </div>
+
+          {aiAgents.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="bg-primary/10 p-6 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                <Sparkles className="w-10 h-10 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Nenhum agente IA criado ainda</h3>
+              <p className="text-muted-foreground mb-6">
+                Crie seu primeiro agente inteligente para automatizar atendimentos
+              </p>
+              <Button onClick={() => navigate("/ai-agent")} className="gradient-primary">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Criar Meu Primeiro Agente
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {aiAgents.map((agent) => (
+                <div
+                  key={agent.id}
+                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl bg-accent/50 hover:bg-accent transition-smooth cursor-pointer gap-3 sm:gap-4"
+                  onClick={() => navigate("/ai-agent")}
+                >
+                  <div className="flex items-center gap-3 sm:gap-4 flex-1">
+                    <div className="bg-primary/10 p-2 sm:p-3 rounded-xl">
+                      <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm sm:text-base">{agent.name}</h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        {agent.description || agent.niche || "Sem descrição"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                    <span
+                      className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium flex-1 sm:flex-none text-center ${
+                        agent.is_active
+                          ? "bg-success/20 text-success"
+                          : "bg-warning/20 text-warning"
+                      }`}
+                    >
+                      {agent.is_active ? "Ativo" : "Inativo"}
+                    </span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={(e) => handleEditAgent(agent.id, e)}
+                    >
+                      <Pencil className="w-4 h-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Editar</span>
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingAgentId(agent.id);
+                      }}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
           </TabsContent>
 
           <TabsContent value="clients">
@@ -387,7 +509,7 @@ const Dashboard = () => {
         </Tabs>
       </main>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialogs */}
       <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -399,6 +521,23 @@ const Dashboard = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!deletingAgentId} onOpenChange={() => setDeletingAgentId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Agente IA</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este agente IA? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteAgent} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
