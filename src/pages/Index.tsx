@@ -2,7 +2,10 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Bot, Zap, MessageSquare, Clock, CheckCircle2, Shield, TrendingUp, Sparkles, Menu } from "lucide-react";
+import { 
+  Bot, Zap, MessageSquare, Clock, CheckCircle2, Shield, TrendingUp, Sparkles, Menu,
+  Users, Ticket, Link2, Gift, BarChart3, Workflow, Brain, Video, UserPlus, DollarSign
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -82,44 +85,64 @@ const Index = () => {
 
   const features = [
     {
-      icon: Zap,
-      title: "Chat Web Instantâneo",
-      description: "Crie chatbots web interativos que funcionam direto no seu site",
+      icon: Workflow,
+      title: "Construtor Visual de Automações",
+      description: "Construtor drag-and-drop estilo Manychat para criar fluxos de conversação sem código",
     },
     {
-      icon: Bot,
-      title: "Chatbots Personalizados",
-      description: "Construa fluxos conversacionais personalizados sem programação",
+      icon: Brain,
+      title: "Agentes IA Personalizados",
+      description: "Crie agentes de IA treinados com seus dados e personalidade da sua marca",
     },
     {
-      icon: Sparkles,
-      title: "Agentes IA Avançados",
-      description: "IA com contexto e personalidade, treinada especificamente para seu negócio",
+      icon: Users,
+      title: "CRM de Contatos Integrado",
+      description: "Gerencie leads, contatos e interações em um só lugar com tags e status",
     },
     {
-      icon: MessageSquare,
-      title: "Respostas Automáticas 24/7",
-      description: "Atendimento automático que nunca dorme, sempre disponível",
+      icon: UserPlus,
+      title: "Sistema de Afiliados Completo",
+      description: "Crie programas de afiliados, rastreie cliques, conversões e gerencie comissões",
     },
     {
-      icon: TrendingUp,
-      title: "Aumente suas Conversões",
-      description: "Converta mais visitantes com respostas instantâneas e inteligentes",
+      icon: BarChart3,
+      title: "Pixels de Conversão",
+      description: "Integre Meta Pixel, Google Analytics e outros pixels para rastrear conversões",
+    },
+    {
+      icon: Link2,
+      title: "Gerador de Links WhatsApp",
+      description: "Crie links personalizados do WhatsApp com mensagens pré-definidas",
+    },
+    {
+      icon: Gift,
+      title: "Sistema de Vouchers",
+      description: "Crie e gerencie cupons de desconto e vouchers de acesso aos planos",
+    },
+    {
+      icon: Ticket,
+      title: "Sistema de Tickets",
+      description: "Suporte organizado com sistema de tickets, prioridades e categorias",
+    },
+    {
+      icon: Video,
+      title: "Biblioteca de Tutoriais",
+      description: "Vídeos tutoriais organizados por categoria para seus usuários",
+    },
+    {
+      icon: DollarSign,
+      title: "Integrações de Pagamento",
+      description: "Conecte Stripe, PagSeguro e outros gateways de pagamento facilmente",
     },
     {
       icon: Shield,
-      title: "Seguro e Confiável",
-      description: "Seus dados protegidos com a melhor tecnologia de segurança",
+      title: "Páginas Personalizadas",
+      description: "Crie páginas customizadas para termos, políticas e conteúdo institucional",
     },
     {
-      icon: Clock,
-      title: "Implementação Rápida",
-      description: "Configure e publique seu chatbot em minutos com um link único",
-    },
-    {
-      icon: MessageSquare,
-      title: "Histórico Completo",
-      description: "Acompanhe todas as conversas e melhore continuamente",
+      icon: TrendingUp,
+      title: "Dashboard de Analytics",
+      description: "Acompanhe métricas, conversões, receitas e crescimento em tempo real",
     },
   ];
 
@@ -233,13 +256,13 @@ const Index = () => {
           </div>
           
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 animate-fade-in leading-tight">
-            Crie Chatbots Web Inteligentes<br />
-            com Inteligência Artificial
+            Plataforma Completa de Automação<br />
+            e Marketing Digital com IA
           </h1>
           
           <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-6 sm:mb-8 text-white/90 max-w-3xl mx-auto animate-fade-in">
-            Construa chatbots web interativos e agentes IA para seu site em minutos.
-            Sem programação. Teste grátis por 3 dias.
+            Construtor visual de automações, CRM, sistema de afiliados, pixels de conversão,
+            agentes IA e muito mais. Tudo em uma plataforma. Teste grátis por 3 dias.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-scale-in max-w-md sm:max-w-none mx-auto">
@@ -283,10 +306,10 @@ const Index = () => {
           <div className="container mx-auto max-w-5xl">
             <div className="text-center mb-6 sm:mb-10 md:mb-12">
               <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3 md:mb-4">
-                Veja o Bot Reals Zapp em Ação
+                Veja a Plataforma em Ação
               </h2>
               <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground">
-                Descubra como é fácil criar chatbots web inteligentes
+                Descubra como é fácil automatizar seu negócio com nossa plataforma completa
               </p>
             </div>
             
@@ -308,14 +331,14 @@ const Index = () => {
         <div className="container mx-auto max-w-7xl">
           <div className="text-center mb-8 sm:mb-12 md:mb-16">
             <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 sm:mb-3 md:mb-4">
-              Recursos Poderosos para seu Negócio
+              Tudo que Você Precisa em Uma Plataforma
             </h2>
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Tudo que você precisa para automatizar e escalar seu atendimento online
+              Automação, IA, CRM, Afiliados, Analytics e muito mais para fazer seu negócio crescer
             </p>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
@@ -327,7 +350,7 @@ const Index = () => {
                   <div className="bg-primary/10 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg md:rounded-xl flex items-center justify-center mb-3 sm:mb-4 md:mb-6">
                     <Icon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-primary" />
                   </div>
-                  <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold mb-1 sm:mb-2 md:mb-3">{feature.title}</h3>
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold mb-1 sm:mb-2 md:mb-3">{feature.title}</h3>
                   <p className="text-xs sm:text-sm md:text-base text-muted-foreground leading-relaxed">{feature.description}</p>
                 </div>
               );
@@ -341,10 +364,10 @@ const Index = () => {
         <div className="container mx-auto max-w-7xl">
           <div className="text-center mb-8 sm:mb-12 md:mb-16">
             <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 sm:mb-3 md:mb-4">
-              Conheça nossos planos
+              Planos para Todos os Tamanhos
             </h2>
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Comece grátis e escale conforme seu negócio cresce
+              Comece com 3 dias grátis e escolha o melhor plano para seu negócio crescer
             </p>
           </div>
           
@@ -397,7 +420,7 @@ const Index = () => {
           
           <div className="text-center mt-8 sm:mt-10 md:mt-12">
             <p className="text-sm sm:text-base text-muted-foreground mb-4">
-              Comece pelo plano gratuito.
+              Teste todas as funcionalidades por 3 dias sem compromisso. Sem cartão de crédito.
             </p>
             <Button 
               size="lg"
@@ -419,10 +442,10 @@ const Index = () => {
         
         <div className="container mx-auto text-center text-white relative z-10 max-w-4xl">
           <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 md:mb-6">
-            Pronto para Transformar seu Atendimento Online?
+            Pronto para Transformar seu Negócio Digital?
           </h2>
           <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-5 sm:mb-6 md:mb-8 text-white/90 max-w-2xl mx-auto">
-            Junte-se a centenas de empresas que já automatizaram seu atendimento com chatbots inteligentes
+            Junte-se a centenas de empresas que já automatizam, gerenciam e escalam seus negócios com nossa plataforma completa
           </p>
           <Button 
             size="lg"
