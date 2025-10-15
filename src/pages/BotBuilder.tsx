@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Save, Play, Link2, Copy, Power, Eye, EyeOff, Zap, MessageSquare } from "lucide-react";
+import { ArrowLeft, Save, Play, Link2, Copy, Power, Eye, EyeOff, Zap, MessageSquare, Plus, X } from "lucide-react";
 import { Node, Edge } from 'reactflow';
 import { ReactFlowProvider } from 'reactflow';
 import { FlowCanvas } from '@/components/flowbuilder/FlowCanvas';
@@ -28,6 +28,8 @@ const BotBuilder = () => {
   const [isActive, setIsActive] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
   const [initialMessage, setInitialMessage] = useState("Olá! Como posso ajudar você hoje?");
+  const [initialButtons, setInitialButtons] = useState<string[]>([]);
+  const [newInitialButton, setNewInitialButton] = useState("");
   const [showFlowEditor, setShowFlowEditor] = useState(false);
   const [showNameInput, setShowNameInput] = useState(!chatbotId);
   const [nodes, setNodes] = useState<Node[]>([]);
@@ -43,6 +45,9 @@ const BotBuilder = () => {
         const config = chatbot.config as any;
         if (config?.initialMessage) {
           setInitialMessage(config.initialMessage);
+        }
+        if (config?.initialButtons) {
+          setInitialButtons(config.initialButtons);
         }
         if (config?.nodes) {
           setNodes(config.nodes);
@@ -105,6 +110,17 @@ const BotBuilder = () => {
     setSelectedNode(node);
   }, []);
 
+  const addInitialButton = useCallback(() => {
+    if (newInitialButton.trim()) {
+      setInitialButtons([...initialButtons, newInitialButton.trim()]);
+      setNewInitialButton("");
+    }
+  }, [newInitialButton, initialButtons]);
+
+  const removeInitialButton = useCallback((index: number) => {
+    setInitialButtons(initialButtons.filter((_, i) => i !== index));
+  }, [initialButtons]);
+
   const handleSave = useCallback(async () => {
     if (!user) return;
 
@@ -115,6 +131,7 @@ const BotBuilder = () => {
         description: `Chatbot com ${nodes.length} blocos`,
         config: {
           initialMessage,
+          initialButtons,
           nodes,
           edges,
         },
@@ -130,7 +147,7 @@ const BotBuilder = () => {
     } catch (error) {
       console.error('Save error:', error);
     }
-  }, [botName, nodes, edges, isActive, user, chatbotId, saveChatbot, navigate]);
+  }, [botName, nodes, edges, initialButtons, isActive, user, chatbotId, saveChatbot, navigate, initialMessage]);
 
   const handleTest = useCallback(() => {
     if (chatbotId) {
@@ -286,19 +303,61 @@ const BotBuilder = () => {
                     </div>
                   </div>
                   
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium text-foreground">
-                      Digite a mensagem de boas-vindas:
-                    </label>
-                    <textarea
-                      value={initialMessage}
-                      onChange={(e) => setInitialMessage(e.target.value)}
-                      className="w-full min-h-[150px] p-4 rounded-lg border-2 border-border bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
-                      placeholder="Exemplo: Olá! Seja bem-vindo ao nosso atendimento. Como posso ajudar você hoje?"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      💡 Dica: Seja claro e amigável na sua mensagem de boas-vindas
-                    </p>
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium text-foreground">
+                        Digite a mensagem de boas-vindas:
+                      </label>
+                      <textarea
+                        value={initialMessage}
+                        onChange={(e) => setInitialMessage(e.target.value)}
+                        className="w-full min-h-[150px] p-4 rounded-lg border-2 border-border bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                        placeholder="Exemplo: Olá! Seja bem-vindo ao nosso atendimento. Como posso ajudar você hoje?"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        💡 Dica: Seja claro e amigável na sua mensagem de boas-vindas
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium text-foreground">
+                        Botões para iniciar a conversa (opcional):
+                      </label>
+                      <div className="space-y-2">
+                        {initialButtons.map((button, index) => (
+                          <Card key={index} className="p-3 flex items-center justify-between bg-secondary/50">
+                            <span className="text-sm font-medium">{button}</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeInitialButton(index)}
+                              className="h-8 w-8 hover:bg-destructive/10"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </Card>
+                        ))}
+                        <div className="flex gap-2">
+                          <Input
+                            value={newInitialButton}
+                            onChange={(e) => setNewInitialButton(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && addInitialButton()}
+                            placeholder="Ex: Ver produtos, Falar com vendedor..."
+                            className="flex-1"
+                          />
+                          <Button 
+                            onClick={addInitialButton} 
+                            size="icon"
+                            className="bg-primary hover:bg-primary/90"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          💡 Adicione botões para facilitar o início da conversa
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </Card>
                 
@@ -307,10 +366,11 @@ const BotBuilder = () => {
                     // Cria nó da mensagem inicial
                     const initialNode: Node = {
                       id: 'initial-message',
-                      type: 'text',
+                      type: initialButtons.length > 0 ? 'button' : 'text',
                       position: { x: 250, y: 50 },
                       data: { 
                         label: initialMessage,
+                        buttons: initialButtons.length > 0 ? initialButtons : undefined,
                         isInitial: true,
                       },
                     };
