@@ -32,13 +32,6 @@ export const Sidebar = ({ onAddNode }: SidebarProps) => {
       color: 'cyan-500',
     },
     {
-      type: 'button',
-      icon: MousePointerClick,
-      title: 'Adicionar Botão',
-      description: 'Botões interativos',
-      color: 'green-500',
-    },
-    {
       type: 'image',
       icon: ImageIcon,
       title: 'Adicionar Imagem',
@@ -65,13 +58,6 @@ export const Sidebar = ({ onAddNode }: SidebarProps) => {
       title: 'Adicionar Documento',
       description: 'Enviar arquivo',
       color: 'amber-500',
-    },
-    {
-      type: 'humanAgent',
-      icon: Headset,
-      title: 'Atendente Humano',
-      description: 'Transferir para atendente',
-      color: 'pink-500',
     },
   ];
 
