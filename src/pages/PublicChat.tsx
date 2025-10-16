@@ -180,7 +180,7 @@ const PublicChat = () => {
           conversation_id: conversationId,
           role,
           content,
-          node_id: nodeId
+          node_id: nodeId || null // Garantir que seja null quando undefined
         });
     } catch (error) {
       console.error('Erro ao salvar mensagem:', error);

@@ -149,10 +149,21 @@ const Dashboard = () => {
         }, async (payload) => {
           const newMessage = payload.new as any;
           
+          console.log('📨 Nova mensagem inserida:', {
+            role: newMessage.role,
+            node_id: newMessage.node_id,
+            content: newMessage.content.substring(0, 50)
+          });
+          
           // Verificar se é mensagem de cliente (role='user') E mensagem livre (sem node_id)
           // Quando o cliente clica em botão do fluxo, node_id vem preenchido
           // Quando o cliente digita livremente, node_id é null
-          if (newMessage.role !== 'user' || newMessage.node_id !== null) return;
+          if (newMessage.role !== 'user' || newMessage.node_id !== null) {
+            console.log('⏭️ Mensagem ignorada - não é mensagem livre de cliente');
+            return;
+          }
+
+          console.log('🔔 Mensagem livre detectada! Incrementando contador');
 
           // Verificar se a conversa pertence a um dos chatbots do usuário
           const { data: conversation } = await supabase
@@ -164,7 +175,10 @@ const Dashboard = () => {
           if (conversation && chatbotIds.includes(conversation.chatbot_id)) {
             // Incrementar contador apenas se não estiver na aba clientes
             if (activeTab !== 'clients') {
+              console.log('✅ Incrementando contador de mensagens não lidas');
               setUnreadClientMessages(prev => prev + 1);
+            } else {
+              console.log('ℹ️ Usuário já está na aba clientes - não incrementar');
             }
           }
         })
