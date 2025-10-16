@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
 import { MessageSquare, Search, Send, User, Clock, X, Trash2, CheckCircle2, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -64,6 +65,8 @@ export const ChatbotConversations = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
+  const [selectedConversations, setSelectedConversations] = useState<string[]>([]);
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const [isVisitorTyping, setIsVisitorTyping] = useState(false);
   const [isVisitorOnline, setIsVisitorOnline] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -326,6 +329,62 @@ export const ChatbotConversations = () => {
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (selectedConversations.length === 0) return;
+
+    try {
+      // Deletar mensagens de todas as conversas selecionadas
+      await supabase
+        .from('chatbot_messages')
+        .delete()
+        .in('conversation_id', selectedConversations);
+
+      // Deletar conversas
+      const { error } = await supabase
+        .from('chatbot_conversations')
+        .delete()
+        .in('id', selectedConversations);
+
+      if (error) throw error;
+
+      toast({
+        title: "Conversas excluídas! ✅",
+        description: `${selectedConversations.length} conversa(s) removida(s) com sucesso.`,
+      });
+
+      // Se a conversa selecionada estava entre as excluídas, limpar
+      if (selectedConversation && selectedConversations.includes(selectedConversation.id)) {
+        setSelectedConversation(null);
+        setMessages([]);
+      }
+
+      setSelectedConversations([]);
+      setShowBulkDeleteDialog(false);
+    } catch (error: any) {
+      toast({
+        title: "Erro ao excluir",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleSelectConversation = (conversationId: string) => {
+    setSelectedConversations(prev =>
+      prev.includes(conversationId)
+        ? prev.filter(id => id !== conversationId)
+        : [...prev, conversationId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedConversations.length === filteredConversations.length) {
+      setSelectedConversations([]);
+    } else {
+      setSelectedConversations(filteredConversations.map(c => c.id));
+    }
+  };
+
   const filteredConversations = conversations.filter(conv => {
     const searchLower = searchTerm.toLowerCase();
     return (
@@ -363,6 +422,32 @@ export const ChatbotConversations = () => {
             />
           </div>
 
+          {filteredConversations.length > 0 && (
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={selectedConversations.length === filteredConversations.length}
+                  onCheckedChange={toggleSelectAll}
+                />
+                <span className="text-sm text-muted-foreground">
+                  {selectedConversations.length > 0 
+                    ? `${selectedConversations.length} selecionada(s)` 
+                    : 'Selecionar todas'}
+                </span>
+              </div>
+              {selectedConversations.length > 0 && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setShowBulkDeleteDialog(true)}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Excluir selecionadas
+                </Button>
+              )}
+            </div>
+          )}
+
           <ScrollArea className="h-[600px] pr-4">
             <div className="space-y-2">
               {filteredConversations.length === 0 ? (
@@ -376,47 +461,58 @@ export const ChatbotConversations = () => {
                 filteredConversations.map((conv) => (
                   <div
                     key={conv.id}
-                    onClick={() => setSelectedConversation(conv)}
-                    className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
+                    className={`p-4 rounded-lg border transition-all hover:shadow-md ${
                       selectedConversation?.id === conv.id
                         ? 'bg-primary/10 border-primary'
                         : 'bg-card border-border hover:bg-accent'
                     }`}
                   >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="bg-primary/20 p-2 rounded-full">
-                          <User className="w-4 h-4 text-primary" />
+                    <div className="flex items-start gap-3">
+                      <Checkbox
+                        checked={selectedConversations.includes(conv.id)}
+                        onCheckedChange={() => toggleSelectConversation(conv.id)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div 
+                        className="flex-1 cursor-pointer"
+                        onClick={() => setSelectedConversation(conv)}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className="bg-primary/20 p-2 rounded-full">
+                              <User className="w-4 h-4 text-primary" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">
+                                {conv.visitor_name || 'Visitante Anônimo'}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {conv.chatbot?.name}
+                              </p>
+                            </div>
+                          </div>
+                          <Badge variant={conv.status === 'active' ? 'default' : 'secondary'}>
+                            {conv.status === 'active' ? 'Ativo' : 'Encerrado'}
+                          </Badge>
                         </div>
-                        <div>
-                          <p className="font-medium text-sm">
-                            {conv.visitor_name || 'Visitante Anônimo'}
+                        {conv.visitor_email && (
+                          <p className="text-xs text-muted-foreground mb-1">
+                            📧 {conv.visitor_email}
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            {conv.chatbot?.name}
+                        )}
+                        {conv.visitor_phone && (
+                          <p className="text-xs text-muted-foreground mb-1">
+                            📱 {conv.visitor_phone}
                           </p>
+                        )}
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                          <Clock className="w-3 h-3" />
+                          {formatDistanceToNow(new Date(conv.last_message_at), {
+                            addSuffix: true,
+                            locale: ptBR
+                          })}
                         </div>
                       </div>
-                      <Badge variant={conv.status === 'active' ? 'default' : 'secondary'}>
-                        {conv.status === 'active' ? 'Ativo' : 'Encerrado'}
-                      </Badge>
-                    </div>
-                    {conv.visitor_email && (
-                      <p className="text-xs text-muted-foreground mb-1">
-                        📧 {conv.visitor_email}
-                      </p>
-                    )}
-                    {conv.visitor_phone && (
-                      <p className="text-xs text-muted-foreground mb-1">
-                        📱 {conv.visitor_phone}
-                      </p>
-                    )}
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
-                      <Clock className="w-3 h-3" />
-                      {formatDistanceToNow(new Date(conv.last_message_at), {
-                        addSuffix: true,
-                        locale: ptBR
-                      })}
                     </div>
                   </div>
                 ))
@@ -623,6 +719,28 @@ export const ChatbotConversations = () => {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog de confirmação de exclusão em massa */}
+      <AlertDialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir {selectedConversations.length} conversa(s)?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Todas as mensagens das conversas selecionadas serão
+              permanentemente excluídas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir Todas
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
