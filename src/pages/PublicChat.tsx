@@ -738,9 +738,9 @@ const PublicChat = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          // Se tiver URL, abrir em nova aba
-                          if (buttonUrl && buttonUrl.trim()) {
-                            window.open(buttonUrl, '_blank', 'noopener,noreferrer');
+                          // Se tiver URL válida, abrir em nova aba e não processar fluxo
+                          if (buttonUrl && buttonUrl.trim() !== '' && buttonUrl.trim().length > 0) {
+                            window.open(buttonUrl.trim(), '_blank', 'noopener,noreferrer');
                             return;
                           }
                           
