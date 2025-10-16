@@ -237,10 +237,9 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
                   {message.buttons.map((button, idx) => (
                     <Button
                       key={idx}
-                      variant="outline"
                       size="sm"
                       onClick={() => handleSendMessage(button, message.nodeId)}
-                      className="rounded-full text-xs h-7"
+                      className="rounded-full text-xs h-7 bg-green-600 hover:bg-green-700 text-white"
                     >
                       {button}
                     </Button>

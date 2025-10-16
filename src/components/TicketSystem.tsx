@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, MessageSquare, Clock, CheckCircle2, AlertCircle, Send } from "lucide-react";
+import { Plus, MessageSquare, Clock, CheckCircle2, AlertCircle, Send, Image as ImageIcon, Paperclip, Edit, Trash2 } from "lucide-react";
 
 interface Ticket {
   id: string;
@@ -29,6 +29,7 @@ interface TicketMessage {
   is_admin: boolean;
   created_at: string;
   user_id: string;
+  attachments?: { url: string; name: string }[];
 }
 
 export const TicketSystem = () => {
@@ -45,6 +46,10 @@ export const TicketSystem = () => {
     category: "",
     priority: "medium"
   });
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [messageAttachments, setMessageAttachments] = useState<{ url: string; name: string }[]>([]);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -79,7 +84,7 @@ export const TicketSystem = () => {
       .order('created_at', { ascending: true });
 
     if (!error && data) {
-      setMessages(data);
+      setMessages(data as unknown as TicketMessage[]);
     }
   };
 
@@ -103,6 +108,37 @@ export const TicketSystem = () => {
     return () => {
       supabase.removeChannel(channel);
     };
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const uploadedUrls: string[] = [];
+
+    for (const file of Array.from(files)) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user!.id}/${Date.now()}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from('chatbot-media')
+        .upload(fileName, file);
+
+      if (error) {
+        toast({
+          title: "Erro ao fazer upload",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        const { data: { publicUrl } } = supabase.storage
+          .from('chatbot-media')
+          .getPublicUrl(fileName);
+        uploadedUrls.push(publicUrl);
+      }
+    }
+
+    setUploadedImages([...uploadedImages, ...uploadedUrls]);
   };
 
   const handleCreateTicket = async () => {
@@ -131,26 +167,95 @@ export const TicketSystem = () => {
         variant: "destructive"
       });
     } else {
+      // Se houver imagens, criar mensagem inicial com anexos
+      if (uploadedImages.length > 0) {
+        await supabase
+          .from('ticket_messages')
+          .insert({
+            ticket_id: data.id,
+            user_id: user!.id,
+            message: "Anexos iniciais do ticket",
+            is_admin: false,
+            attachments: uploadedImages.map(url => ({ url, name: 'Imagem' }))
+          });
+      }
+
       toast({
         title: "Ticket criado!",
         description: "Responderemos em breve."
       });
       setTickets([data, ...tickets]);
       setNewTicket({ title: "", description: "", category: "", priority: "medium" });
+      setUploadedImages([]);
       setIsCreateDialogOpen(false);
     }
   };
 
+  const handleEditTicket = async () => {
+    if (!editingTicket) return;
+
+    const { error } = await supabase
+      .from('tickets')
+      .update({
+        title: editingTicket.title,
+        description: editingTicket.description,
+        category: editingTicket.category,
+        priority: editingTicket.priority
+      })
+      .eq('id', editingTicket.id);
+
+    if (error) {
+      toast({
+        title: "Erro ao atualizar",
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Ticket atualizado!"
+      });
+      fetchTickets();
+      setIsEditDialogOpen(false);
+      setEditingTicket(null);
+    }
+  };
+
+  const handleDeleteTicket = async (ticketId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este ticket?')) return;
+
+    const { error } = await supabase
+      .from('tickets')
+      .delete()
+      .eq('id', ticketId);
+
+    if (error) {
+      toast({
+        title: "Erro ao excluir",
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Ticket excluído!"
+      });
+      fetchTickets();
+      if (selectedTicket?.id === ticketId) {
+        setSelectedTicket(null);
+      }
+    }
+  };
+
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedTicket) return;
+    if ((!newMessage.trim() && messageAttachments.length === 0) || !selectedTicket) return;
 
     const { error } = await supabase
       .from('ticket_messages')
       .insert({
         ticket_id: selectedTicket.id,
         user_id: user!.id,
-        message: newMessage,
-        is_admin: false
+        message: newMessage || "Anexo enviado",
+        is_admin: false,
+        attachments: messageAttachments.length > 0 ? messageAttachments : null
       });
 
     if (error) {
@@ -161,7 +266,39 @@ export const TicketSystem = () => {
       });
     } else {
       setNewMessage("");
+      setMessageAttachments([]);
     }
+  };
+
+  const handleMessageAttachment = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const newAttachments: { url: string; name: string }[] = [];
+
+    for (const file of Array.from(files)) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user!.id}/${Date.now()}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from('chatbot-media')
+        .upload(fileName, file);
+
+      if (error) {
+        toast({
+          title: "Erro ao fazer upload",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        const { data: { publicUrl } } = supabase.storage
+          .from('chatbot-media')
+          .getPublicUrl(fileName);
+        newAttachments.push({ url: publicUrl, name: file.name });
+      }
+    }
+
+    setMessageAttachments([...messageAttachments, ...newAttachments]);
   };
 
   const getStatusIcon = (status: string) => {
@@ -229,11 +366,20 @@ export const TicketSystem = () => {
               </div>
               <div>
                 <Label>Categoria</Label>
-                <Input
-                  value={newTicket.category}
-                  onChange={(e) => setNewTicket({ ...newTicket, category: e.target.value })}
-                  placeholder="Ex: Técnico, Financeiro, Geral"
-                />
+                <Select value={newTicket.category} onValueChange={(v) => setNewTicket({ ...newTicket, category: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="tecnico">Técnico</SelectItem>
+                    <SelectItem value="financeiro">Financeiro</SelectItem>
+                    <SelectItem value="suporte">Suporte</SelectItem>
+                    <SelectItem value="duvida">Dúvida</SelectItem>
+                    <SelectItem value="bug">Bug/Erro</SelectItem>
+                    <SelectItem value="sugestao">Sugestão</SelectItem>
+                    <SelectItem value="outro">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label>Prioridade</Label>
@@ -249,7 +395,37 @@ export const TicketSystem = () => {
                   </SelectContent>
                 </Select>
               </div>
+              <div>
+                <Label>Anexar Imagens/Prints (opcional)</Label>
+                <div className="mt-2">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageUpload}
+                    className="cursor-pointer"
+                  />
+                  {uploadedImages.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {uploadedImages.map((url, idx) => (
+                        <div key={idx} className="relative">
+                          <img src={url} alt={`Upload ${idx + 1}`} className="w-20 h-20 object-cover rounded border" />
+                          <Button
+                            size="icon"
+                            variant="destructive"
+                            className="absolute -top-2 -right-2 h-5 w-5 rounded-full"
+                            onClick={() => setUploadedImages(uploadedImages.filter((_, i) => i !== idx))}
+                          >
+                            ×
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
               <Button onClick={handleCreateTicket} className="w-full gradient-primary">
+                <Plus className="w-4 h-4 mr-2" />
                 Criar Ticket
               </Button>
             </div>
@@ -274,8 +450,33 @@ export const TicketSystem = () => {
                   onClick={() => setSelectedTicket(ticket)}
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-semibold">{ticket.title}</h4>
-                    <div className="flex gap-2">
+                    <div className="flex-1">
+                      <h4 className="font-semibold">{ticket.title}</h4>
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingTicket(ticket);
+                          setIsEditDialogOpen(true);
+                        }}
+                      >
+                        <Edit className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteTicket(ticket.id);
+                        }}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
                       <Badge className={getStatusColor(ticket.status)}>
                         {getStatusIcon(ticket.status)}
                       </Badge>
@@ -324,6 +525,21 @@ export const TicketSystem = () => {
                       }`}
                     >
                       <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                      {msg.attachments && msg.attachments.length > 0 && (
+                        <div className="mt-2 space-y-2">
+                          {msg.attachments.map((att, idx) => (
+                            <a
+                              key={idx}
+                              href={att.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block"
+                            >
+                              <img src={att.url} alt={att.name} className="max-w-full rounded border" />
+                            </a>
+                          ))}
+                        </div>
+                      )}
                       <span className="text-xs opacity-70 mt-1 block">
                         {new Date(msg.created_at).toLocaleTimeString('pt-BR', {
                           hour: '2-digit',
@@ -335,7 +551,40 @@ export const TicketSystem = () => {
                 ))}
               </div>
 
+              {messageAttachments.length > 0 && (
+                <div className="flex gap-2 mb-2">
+                  {messageAttachments.map((att, idx) => (
+                    <div key={idx} className="relative">
+                      <img src={att.url} alt={att.name} className="w-16 h-16 object-cover rounded border" />
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        className="absolute -top-2 -right-2 h-4 w-4 rounded-full text-xs"
+                        onClick={() => setMessageAttachments(messageAttachments.filter((_, i) => i !== idx))}
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div className="flex gap-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleMessageAttachment}
+                  className="hidden"
+                  id="message-attachment"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => document.getElementById('message-attachment')?.click()}
+                >
+                  <Paperclip className="w-4 h-4" />
+                </Button>
                 <Input
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
@@ -354,6 +603,74 @@ export const TicketSystem = () => {
           )}
         </Card>
       </div>
+
+      {/* Dialog de Edição */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Ticket</DialogTitle>
+          </DialogHeader>
+          {editingTicket && (
+            <div className="space-y-4 mt-4">
+              <div>
+                <Label>Título *</Label>
+                <Input
+                  value={editingTicket.title}
+                  onChange={(e) => setEditingTicket({ ...editingTicket, title: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Descrição *</Label>
+                <Textarea
+                  value={editingTicket.description}
+                  onChange={(e) => setEditingTicket({ ...editingTicket, description: e.target.value })}
+                  rows={4}
+                />
+              </div>
+              <div>
+                <Label>Categoria</Label>
+                <Select 
+                  value={editingTicket.category || ""} 
+                  onValueChange={(v) => setEditingTicket({ ...editingTicket, category: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="tecnico">Técnico</SelectItem>
+                    <SelectItem value="financeiro">Financeiro</SelectItem>
+                    <SelectItem value="suporte">Suporte</SelectItem>
+                    <SelectItem value="duvida">Dúvida</SelectItem>
+                    <SelectItem value="bug">Bug/Erro</SelectItem>
+                    <SelectItem value="sugestao">Sugestão</SelectItem>
+                    <SelectItem value="outro">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Prioridade</Label>
+                <Select 
+                  value={editingTicket.priority} 
+                  onValueChange={(v) => setEditingTicket({ ...editingTicket, priority: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Baixa</SelectItem>
+                    <SelectItem value="medium">Média</SelectItem>
+                    <SelectItem value="high">Alta</SelectItem>
+                    <SelectItem value="urgent">Urgente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button onClick={handleEditTicket} className="w-full gradient-primary">
+                Salvar Alterações
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

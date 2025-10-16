@@ -732,14 +732,14 @@ const PublicChat = () => {
                     const buttonText = typeof button === 'string' ? button : (button?.text || '');
                     const buttonUrl = typeof button === 'object' && button ? (button.url || '') : '';
                     
-                    // Array de cores vibrantes para os botões
+                    // Array de cores vibrantes para os botões (verde com letras brancas)
                     const buttonColors = [
-                      'bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white border-0',
-                      'bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white border-0',
-                      'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white border-0',
-                      'bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white border-0',
-                      'bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white border-0',
-                      'bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white border-0',
+                      'bg-green-600 hover:bg-green-700 text-white border-0',
+                      'bg-green-600 hover:bg-green-700 text-white border-0',
+                      'bg-green-600 hover:bg-green-700 text-white border-0',
+                      'bg-green-600 hover:bg-green-700 text-white border-0',
+                      'bg-green-600 hover:bg-green-700 text-white border-0',
+                      'bg-green-600 hover:bg-green-700 text-white border-0',
                     ];
                     
                     const colorClass = buttonColors[idx % buttonColors.length];

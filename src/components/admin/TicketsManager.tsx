@@ -28,6 +28,7 @@ interface TicketMessage {
   is_admin: boolean;
   created_at: string;
   user_id: string;
+  attachments?: { url: string; name: string }[];
 }
 
 export const TicketsManager = () => {
@@ -90,7 +91,7 @@ export const TicketsManager = () => {
       .order('created_at', { ascending: true });
 
     if (!error && data) {
-      setMessages(data);
+      setMessages(data as unknown as TicketMessage[]);
     }
   };
 
@@ -298,6 +299,21 @@ export const TicketsManager = () => {
                       }`}
                     >
                       <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                      {msg.attachments && msg.attachments.length > 0 && (
+                        <div className="mt-2 space-y-2">
+                          {msg.attachments.map((att, idx) => (
+                            <a
+                              key={idx}
+                              href={att.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block"
+                            >
+                              <img src={att.url} alt={att.name} className="max-w-full rounded border" />
+                            </a>
+                          ))}
+                        </div>
+                      )}
                       <span className="text-xs opacity-70 mt-1 block">
                         {new Date(msg.created_at).toLocaleTimeString('pt-BR', {
                           hour: '2-digit',
