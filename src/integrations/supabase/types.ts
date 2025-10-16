@@ -1307,7 +1307,7 @@ export type Database = {
           id: string
           is_active: boolean
           max_uses: number
-          plan_id: string
+          plan_id: string | null
         }
         Insert: {
           code: string
@@ -1319,7 +1319,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           max_uses?: number
-          plan_id: string
+          plan_id?: string | null
         }
         Update: {
           code?: string
@@ -1331,7 +1331,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           max_uses?: number
-          plan_id?: string
+          plan_id?: string | null
         }
         Relationships: [
           {
