@@ -4,12 +4,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, Search, Send, User, Clock, X } from "lucide-react";
+import { MessageSquare, Search, Send, User, Clock, X, Trash2, CheckCircle2, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 interface Conversation {
   id: string;
@@ -45,6 +62,8 @@ export const ChatbotConversations = () => {
   const [newMessage, setNewMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Carregar conversas
@@ -175,6 +194,73 @@ export const ChatbotConversations = () => {
     }
   };
 
+  const handleChangeStatus = async (conversationId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('chatbot_conversations')
+        .update({ status: newStatus })
+        .eq('id', conversationId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Status atualizado! ✅",
+        description: `Status alterado para: ${newStatus === 'active' ? 'Ativo' : 'Encerrado'}`,
+      });
+
+      // Atualizar a conversa selecionada se for a mesma
+      if (selectedConversation?.id === conversationId) {
+        setSelectedConversation({ ...selectedConversation, status: newStatus });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro ao atualizar",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteConversation = async () => {
+    if (!conversationToDelete) return;
+
+    try {
+      // Primeiro deletar mensagens
+      await supabase
+        .from('chatbot_messages')
+        .delete()
+        .eq('conversation_id', conversationToDelete);
+
+      // Depois deletar conversa
+      const { error } = await supabase
+        .from('chatbot_conversations')
+        .delete()
+        .eq('id', conversationToDelete);
+
+      if (error) throw error;
+
+      toast({
+        title: "Conversa excluída! ✅",
+        description: "A conversa foi removida com sucesso.",
+      });
+
+      // Se era a conversa selecionada, limpar seleção
+      if (selectedConversation?.id === conversationToDelete) {
+        setSelectedConversation(null);
+        setMessages([]);
+      }
+
+      setShowDeleteDialog(false);
+      setConversationToDelete(null);
+    } catch (error: any) {
+      toast({
+        title: "Erro ao excluir",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const filteredConversations = conversations.filter(conv => {
     const searchLower = searchTerm.toLowerCase();
     return (
@@ -293,13 +379,52 @@ export const ChatbotConversations = () => {
                     </p>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setSelectedConversation(null)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        Ações
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => handleChangeStatus(selectedConversation.id, 
+                          selectedConversation.status === 'active' ? 'closed' : 'active'
+                        )}
+                      >
+                        {selectedConversation.status === 'active' ? (
+                          <>
+                            <XCircle className="w-4 h-4 mr-2" />
+                            Encerrar conversa
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                            Reabrir conversa
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setConversationToDelete(selectedConversation.id);
+                          setShowDeleteDialog(true);
+                        }}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Excluir conversa
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSelectedConversation(null)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
 
               {/* Mensagens */}
@@ -389,6 +514,28 @@ export const ChatbotConversations = () => {
           )}
         </div>
       </div>
+
+      {/* Dialog de confirmação de exclusão */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir conversa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Todas as mensagens desta conversa serão
+              permanentemente excluídas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConversation}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
