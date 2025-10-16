@@ -339,14 +339,7 @@ export const PropertiesPanel = ({
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    e.stopPropagation();
                     addButton();
-                  }}
-                  onKeyDownCapture={(e) => {
-                    if ((e as React.KeyboardEvent).key === 'Enter') {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }
                   }}
                   className="space-y-2"
                 >
