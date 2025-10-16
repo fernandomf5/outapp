@@ -4,8 +4,10 @@ import { Image as ImageIcon } from 'lucide-react';
 
 const ImageNode = ({ data, selected }: NodeProps) => {
   return (
-    <div className={`bg-card rounded-lg border-2 p-4 shadow-lg min-w-[220px] max-w-[300px] transition-colors ${
-      selected ? 'border-blue-500 shadow-glow' : 'border-border'
+    <div className={`bg-card rounded-lg border-2 p-4 min-w-[220px] max-w-[300px] transition-all duration-300 cursor-pointer ${
+      selected 
+        ? 'border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.5)] scale-105' 
+        : 'border-border shadow-lg hover:shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:scale-102 hover:border-blue-400/50'
     }`}>
       <Handle
         type="target"

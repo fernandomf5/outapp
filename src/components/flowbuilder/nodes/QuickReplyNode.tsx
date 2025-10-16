@@ -6,8 +6,10 @@ const QuickReplyNode = ({ data, selected }: NodeProps) => {
   const buttons = data.buttons || [];
   
   return (
-    <div className={`bg-card rounded-lg border-2 p-4 shadow-lg min-w-[220px] max-w-[300px] transition-colors ${
-      selected ? 'border-chart-5 shadow-glow' : 'border-border'
+    <div className={`bg-card rounded-lg border-2 p-4 min-w-[220px] max-w-[300px] transition-all duration-300 cursor-pointer ${
+      selected 
+        ? 'border-chart-5 shadow-[0_0_20px_rgba(236,72,153,0.5)] scale-105' 
+        : 'border-border shadow-lg hover:shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:scale-102 hover:border-chart-5/50'
     }`}>
       <Handle
         type="target"
