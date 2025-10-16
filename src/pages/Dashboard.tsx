@@ -44,6 +44,7 @@ const Dashboard = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
+  const [unreadClientMessages, setUnreadClientMessages] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -120,6 +121,67 @@ const Dashboard = () => {
       agentsSubscription.unsubscribe();
     };
   }, [user]);
+
+  // Monitorar mensagens de clientes em tempo real
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchChatbotIds = async () => {
+      const { data: chatbots } = await supabase
+        .from('chatbots')
+        .select('id')
+        .eq('user_id', user.id);
+
+      if (!chatbots || chatbots.length === 0) return [];
+      return chatbots.map(c => c.id);
+    };
+
+    fetchChatbotIds().then(chatbotIds => {
+      if (chatbotIds.length === 0) return;
+
+      // Subscrever a mensagens de clientes (role='user')
+      const clientMessagesChannel = supabase
+        .channel('client-messages-notification')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chatbot_messages',
+        }, async (payload) => {
+          const newMessage = payload.new as any;
+          
+          // Verificar se é mensagem de cliente (role='user') E mensagem livre (sem node_id)
+          // Quando o cliente clica em botão do fluxo, node_id vem preenchido
+          // Quando o cliente digita livremente, node_id é null
+          if (newMessage.role !== 'user' || newMessage.node_id !== null) return;
+
+          // Verificar se a conversa pertence a um dos chatbots do usuário
+          const { data: conversation } = await supabase
+            .from('chatbot_conversations')
+            .select('chatbot_id')
+            .eq('id', newMessage.conversation_id)
+            .single();
+
+          if (conversation && chatbotIds.includes(conversation.chatbot_id)) {
+            // Incrementar contador apenas se não estiver na aba clientes
+            if (activeTab !== 'clients') {
+              setUnreadClientMessages(prev => prev + 1);
+            }
+          }
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(clientMessagesChannel);
+      };
+    });
+  }, [user, activeTab]);
+
+  // Resetar contador quando entrar na aba clientes
+  useEffect(() => {
+    if (activeTab === 'clients') {
+      setUnreadClientMessages(0);
+    }
+  }, [activeTab]);
 
   const handleLogout = async () => {
     try {
@@ -249,7 +311,14 @@ const Dashboard = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-8 mb-8">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-            <TabsTrigger value="clients">Clientes</TabsTrigger>
+            <TabsTrigger value="clients" className="relative">
+              Clientes
+              {unreadClientMessages > 0 && (
+                <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {unreadClientMessages > 9 ? '9+' : unreadClientMessages}
+                </span>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="tools">Ferramentas</TabsTrigger>
             <TabsTrigger value="pixels">Pixels & Tags</TabsTrigger>
             <TabsTrigger value="cloner">Clonador</TabsTrigger>
