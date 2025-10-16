@@ -171,8 +171,23 @@ export const PropertiesPanel = ({
           </div>
         )}
 
-        {/* Texto para todos os tipos exceto image, audio, video, document, humanAgent */}
-        {!['image', 'audio', 'video', 'document', 'humanAgent'].includes(selectedNode.type) && (
+        {/* Texto para todos os tipos exceto humanAgent */}
+        {selectedNode.type === 'humanAgent' ? null : ['image', 'audio', 'video', 'document'].includes(selectedNode.type) ? (
+          <div>
+            <Label htmlFor="label">Legenda (opcional)</Label>
+            <Textarea
+              id="label"
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              onBlur={handleUpdate}
+              placeholder="Adicione uma legenda ao conteúdo..."
+              className="mt-2 min-h-[80px]"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Texto que aparecerá junto com o {selectedNode.type === 'image' ? 'imagem' : selectedNode.type === 'audio' ? 'áudio' : selectedNode.type === 'video' ? 'vídeo' : 'documento'}
+            </p>
+          </div>
+        ) : (
           <div>
             <Label htmlFor="label">Texto da Mensagem</Label>
             <Textarea

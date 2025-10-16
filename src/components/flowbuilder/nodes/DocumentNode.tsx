@@ -28,7 +28,7 @@ const DocumentNode = ({ data, selected }: NodeProps) => {
       ) : (
         <div className="text-sm text-muted-foreground">Nenhum documento selecionado</div>
       )}
-      <div className="text-sm text-foreground mt-2">{data.label}</div>
+      {data.label && <div className="text-sm text-foreground mt-2">{data.label}</div>}
       {data.buttons && data.buttons.length > 0 && (
         <div className="space-y-2 mt-3">
           {data.buttons.map((button: any, index: number) => {
