@@ -33,6 +33,7 @@ interface TicketMessage {
 
 export const TicketsManager = () => {
   const { toast } = useToast();
+  const [searchParams] = useState(() => new URLSearchParams(window.location.search));
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [messages, setMessages] = useState<TicketMessage[]>([]);
@@ -50,6 +51,17 @@ export const TicketsManager = () => {
       subscribeToMessages(selectedTicket.id);
     }
   }, [selectedTicket]);
+
+  // Auto-selecionar ticket da URL
+  useEffect(() => {
+    const ticketId = searchParams.get('ticketId');
+    if (ticketId && tickets.length > 0 && !selectedTicket) {
+      const ticket = tickets.find(t => t.id === ticketId);
+      if (ticket) {
+        setSelectedTicket(ticket);
+      }
+    }
+  }, [tickets, searchParams]);
 
   const fetchTickets = async () => {
     let query = supabase

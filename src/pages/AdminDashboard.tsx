@@ -17,6 +17,7 @@ import { PaymentIntegrationsManager } from "@/components/admin/PaymentIntegratio
 import { AdminMessagesManager } from "@/components/admin/AdminMessagesManager";
 import { VouchersManager } from "@/components/admin/VouchersManager";
 import { TicketsManager } from "@/components/admin/TicketsManager";
+import { TicketNotificationBell } from "@/components/TicketNotificationBell";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -481,7 +482,8 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center">
+            <TicketNotificationBell isAdmin={true} />
             <Button variant="outline" onClick={() => setIsBroadcastOpen(true)} className="hover:bg-primary/10 hover:border-primary transition-all">
               <MessageSquare className="w-4 h-4 mr-2" />
               Mensagens

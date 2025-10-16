@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { NotificationBell } from "@/components/NotificationBell";
+import { TicketNotificationBell } from "@/components/TicketNotificationBell";
 import { TutorialVideos } from "@/components/TutorialVideos";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { MyPlanSection } from "@/components/MyPlanSection";
@@ -316,6 +317,7 @@ const Dashboard = () => {
           
           <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
             <NotificationBell />
+            <TicketNotificationBell />
             <Button variant="outline" onClick={() => navigate("/settings")} className="flex-1 sm:flex-none" size="sm">
               <Settings className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Configurações</span>
