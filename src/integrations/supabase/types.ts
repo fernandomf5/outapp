@@ -793,6 +793,42 @@ export type Database = {
         }
         Relationships: []
       }
+      short_links: {
+        Row: {
+          clicks: number
+          created_at: string
+          custom_name: string | null
+          id: string
+          is_active: boolean
+          original_url: string
+          short_code: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          clicks?: number
+          created_at?: string
+          custom_name?: string | null
+          id?: string
+          is_active?: boolean
+          original_url: string
+          short_code: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          clicks?: number
+          created_at?: string
+          custom_name?: string | null
+          id?: string
+          is_active?: boolean
+          original_url?: string
+          short_code?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           created_at: string

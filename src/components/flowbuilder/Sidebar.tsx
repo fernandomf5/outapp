@@ -62,10 +62,10 @@ export const Sidebar = ({ onAddNode }: SidebarProps) => {
   ];
 
   return (
-    <aside className="w-72 bg-card/80 backdrop-blur-sm border-r border-border p-5 space-y-4 overflow-y-auto shadow-lg">
+    <aside className="w-72 bg-gradient-to-b from-card/95 via-card/90 to-card/95 backdrop-blur-md border-r border-border/50 p-5 space-y-4 overflow-y-auto shadow-2xl">
       <div className="mb-6">
         <h3 className="font-bold text-base text-foreground mb-2 flex items-center gap-2">
-          <Zap className="w-5 h-5 text-primary" />
+          <Zap className="w-5 h-5 text-primary animate-pulse" />
           BLOCOS DISPONÍVEIS
         </h3>
         <p className="text-xs text-muted-foreground">Clique ou arraste para adicionar</p>
@@ -74,7 +74,7 @@ export const Sidebar = ({ onAddNode }: SidebarProps) => {
       {basicBlocks.map((block) => (
         <Card
           key={block.type}
-          className="p-4 cursor-pointer hover:bg-primary/10 hover:border-primary hover:shadow-lg hover:scale-105 transition-all duration-200 border-2"
+          className="p-4 cursor-pointer bg-gradient-to-br from-card to-card/50 hover:from-primary/10 hover:to-primary/5 hover:border-primary border-2 shadow-md hover:shadow-[0_8px_30px_rgba(139,92,246,0.3)] hover:scale-105 transition-all duration-300 group"
           onClick={() => onAddNode(block.type)}
           draggable
           onDragStart={(e) => {
@@ -83,11 +83,11 @@ export const Sidebar = ({ onAddNode }: SidebarProps) => {
           }}
         >
           <div className="flex items-center gap-3">
-            <div className={`bg-${block.color}/20 p-3 rounded-xl`}>
+            <div className={`bg-${block.color}/20 p-3 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
               <block.icon className={`w-5 h-5 text-${block.color}`} />
             </div>
             <div>
-              <h4 className="font-semibold text-sm">{block.title}</h4>
+              <h4 className="font-semibold text-sm group-hover:text-primary transition-colors">{block.title}</h4>
               <p className="text-xs text-muted-foreground">{block.description}</p>
             </div>
           </div>

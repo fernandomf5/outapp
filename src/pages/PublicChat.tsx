@@ -682,10 +682,10 @@ const PublicChat = () => {
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[80%] sm:max-w-[70%] rounded-2xl px-4 py-3 ${
+                  className={`max-w-[80%] sm:max-w-[70%] rounded-2xl px-4 py-3 shadow-md hover:shadow-lg transition-shadow duration-200 ${
                     message.role === 'user'
-                      ? 'bg-primary text-primary-foreground ml-auto'
-                      : 'bg-card border border-border'
+                      ? 'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground ml-auto'
+                      : 'bg-gradient-to-br from-card to-card/80 border-2 border-primary/20'
                   }`}
                 >
                   {message.imageUrl && (
@@ -732,10 +732,22 @@ const PublicChat = () => {
                     const buttonText = typeof button === 'string' ? button : (button?.text || '');
                     const buttonUrl = typeof button === 'object' && button ? (button.url || '') : '';
                     
+                    // Array de cores vibrantes para os botões
+                    const buttonColors = [
+                      'bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white border-0',
+                      'bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white border-0',
+                      'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white border-0',
+                      'bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white border-0',
+                      'bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white border-0',
+                      'bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white border-0',
+                    ];
+                    
+                    const colorClass = buttonColors[idx % buttonColors.length];
+                    
                     return (
                       <Button
                         key={idx}
-                        variant="outline"
+                        variant="default"
                         size="sm"
                         onClick={async () => {
                           // Se tiver URL válida, abrir em nova aba e não processar fluxo
@@ -797,7 +809,7 @@ const PublicChat = () => {
                             handleSendMessage(buttonText, message.nodeId);
                           }
                         }}
-                        className="rounded-full"
+                        className={`rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-semibold ${colorClass}`}
                       >
                         {buttonText}
                       </Button>

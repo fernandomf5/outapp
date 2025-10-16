@@ -17,6 +17,7 @@ import EmailConfirmed from "./pages/EmailConfirmed";
 import PublicChat from "./pages/PublicChat";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import ShortLinkRedirect from "./pages/ShortLinkRedirect";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/email-confirmed" element={<EmailConfirmed />} />
+            <Route path="/s/:shortCode" element={<ShortLinkRedirect />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />

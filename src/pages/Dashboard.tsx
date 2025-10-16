@@ -18,6 +18,7 @@ import { CRMContacts } from "@/components/CRMContacts";
 import { PixelsManager } from "@/components/PixelsManager";
 import { PageCloner } from "@/components/PageCloner";
 import { ChatbotConversations } from "@/components/ChatbotConversations";
+import { LinkShortener } from "@/components/LinkShortener";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -338,7 +339,7 @@ const Dashboard = () => {
         <SubscriptionBanner />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-8 mb-8">
+          <TabsList className="grid w-full grid-cols-9 mb-8">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             <TabsTrigger value="clients" className="relative">
               Clientes
@@ -349,6 +350,10 @@ const Dashboard = () => {
               )}
             </TabsTrigger>
             <TabsTrigger value="tools">Ferramentas</TabsTrigger>
+            <TabsTrigger value="shortlinks">
+              <Link2 className="w-4 h-4 mr-2" />
+              Links
+            </TabsTrigger>
             <TabsTrigger value="pixels">Pixels & Tags</TabsTrigger>
             <TabsTrigger value="cloner">Clonador</TabsTrigger>
             <TabsTrigger value="support">Suporte</TabsTrigger>
@@ -634,6 +639,10 @@ const Dashboard = () => {
 
           <TabsContent value="crm">
             <CRMContacts />
+          </TabsContent>
+
+          <TabsContent value="shortlinks">
+            <LinkShortener />
           </TabsContent>
 
           <TabsContent value="support">
