@@ -336,14 +336,7 @@ export const PropertiesPanel = ({
                     </div>
                   </Card>
                 ))}
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    addButton();
-                  }}
-                  className="space-y-2"
-                >
+                <div className="space-y-2">
                   <Input
                     value={newButton}
                     onChange={(e) => setNewButton(e.target.value)}
@@ -354,7 +347,7 @@ export const PropertiesPanel = ({
                         addButton();
                       }
                     }}
-                    placeholder="Texto do botão..."
+                    placeholder="Texto do botão (pressione Enter)"
                   />
                   <Input
                     value={newButtonUrl}
@@ -366,17 +359,9 @@ export const PropertiesPanel = ({
                         addButton();
                       }
                     }}
-                    placeholder="https://exemplo.com (opcional)"
+                    placeholder="https://exemplo.com (opcional, pressione Enter)"
                   />
-                  <Button 
-                    size="sm" 
-                    type="submit"
-                    className="w-full"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Adicionar Botão
-                  </Button>
-                </form>
+                </div>
               </div>
             </div>
           </>
