@@ -387,13 +387,19 @@ const BotBuilder = () => {
                           <Input
                             value={newInitialButton}
                             onChange={(e) => setNewInitialButton(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && addInitialButton()}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                addInitialButton();
+                              }
+                            }}
                             placeholder="Ex: Ver produtos, Falar com vendedor..."
                             className="flex-1"
                           />
                           <Button 
-                            onClick={addInitialButton} 
+                            onClick={(e) => { e.preventDefault(); addInitialButton(); }} 
                             size="icon"
+                            type="button"
                             className="bg-primary hover:bg-primary/90"
                           >
                             <Plus className="w-4 h-4" />
