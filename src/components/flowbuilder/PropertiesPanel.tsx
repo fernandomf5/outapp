@@ -339,16 +339,34 @@ export const PropertiesPanel = ({
                   <Input
                     value={newButton}
                     onChange={(e) => setNewButton(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && addButton()}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        addButton();
+                      }
+                    }}
                     placeholder="Texto do botão..."
                   />
                   <Input
                     value={newButtonUrl}
                     onChange={(e) => setNewButtonUrl(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && addButton()}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        addButton();
+                      }
+                    }}
                     placeholder="https://exemplo.com (opcional)"
                   />
-                  <Button onClick={addButton} size="sm" className="w-full">
+                  <Button 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      addButton();
+                    }} 
+                    size="sm" 
+                    type="button"
+                    className="w-full"
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     Adicionar Botão
                   </Button>
