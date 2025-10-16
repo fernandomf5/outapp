@@ -411,33 +411,39 @@ const PublicChat = () => {
     const nodes = config.nodes || [];
     const edges = config.edges || [];
     
-    // Encontrar próximo nó considerando TODOS os tipos que podem ter botões
     const currentNode = nodes.find((n: any) => n.id === currentNodeId);
+    const hasButtons = Array.isArray(currentNode?.data?.buttons) && currentNode.data.buttons.length > 0;
 
-    // Se o nó atual tem botões E recebeu uma resposta, tentar encontrar a conexão específica
-    if (currentNode?.data?.buttons && currentNode.data.buttons.length > 0 && typeof userResponse === 'string') {
+    // Se o nó tiver botões, só avançar se existir conexão específica para o botão clicado
+    if (hasButtons) {
+      if (typeof userResponse !== 'string') {
+        console.log('⛔ Nó com botões mas sem resposta de usuário — não avançar.');
+        return null;
+      }
+
       const btns: string[] = currentNode.data.buttons;
       const idx = btns.findIndex((b: string) => (b || '').trim().toLowerCase() === userResponse.trim().toLowerCase());
 
-      if (idx >= 0) {
-        // Primeiro, tentar encontrar aresta com handle específico
-        const edgeByHandle = edges.find((e: any) => e.source === currentNodeId && e.sourceHandle === `btn-${idx}`);
-        if (edgeByHandle) {
-          return nodes.find((n: any) => n.id === edgeByHandle.target);
-        }
-        
-        // Fallback: usar a N-ésima aresta de saída
-        const outgoing = edges.filter((e: any) => e.source === currentNodeId);
-        if (outgoing.length > idx) {
-          return nodes.find((n: any) => n.id === outgoing[idx].target);
-        }
+      if (idx < 0) {
+        console.log('⛔ Rótulo do botão não encontrado entre as opções — não avançar.', { userResponse, btns });
+        return null;
       }
+
+      // Tentar aresta com handle específico do botão
+      const edgeByHandle = edges.find((e: any) => e.source === currentNodeId && e.sourceHandle === `btn-${idx}`);
+      if (edgeByHandle) {
+        return nodes.find((n: any) => n.id === edgeByHandle.target) || null;
+      }
+
+      // Sem conexão para este botão: não avançar
+      console.log('⛔ Botão clicado não possui conexão (handle btn-${idx}) — não avançar.');
+      return null;
     }
 
-    // Fallback: primeira aresta de saída
+    // Nó sem botões: seguir a primeira aresta de saída (comportamento padrão do fluxo linear)
     const nextEdge = edges.find((e: any) => e.source === currentNodeId);
     if (nextEdge) {
-      return nodes.find((n: any) => n.id === nextEdge.target);
+      return nodes.find((n: any) => n.id === nextEdge.target) || null;
     }
     
     return null;
