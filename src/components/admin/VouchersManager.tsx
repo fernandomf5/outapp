@@ -148,23 +148,59 @@ export const VouchersManager = () => {
       return;
     }
 
-    // Se usar recursos customizados, inserir features
+    // Se usar recursos customizados, criar plano oculto e vincular ao voucher
     if (useCustomFeatures && voucherInserted) {
+      // 1) Guardar o vínculo voucher x features (para auditoria/gestão)
       const featureInserts = selectedFeatures.map(featureId => ({
         voucher_id: voucherInserted.id,
         feature_id: featureId
       }));
-
       const { error: featuresError } = await supabase
         .from('voucher_features')
         .insert(featureInserts);
-
       if (featuresError) {
-        toast({
-          title: "Erro ao adicionar recursos",
-          description: featuresError.message,
-          variant: "destructive"
-        });
+        toast({ title: "Erro ao adicionar recursos", description: featuresError.message, variant: "destructive" });
+        return;
+      }
+
+      // 2) Criar um plano "oculto" específico deste voucher (admin pode inserir planos)
+      const planName = `Voucher ${voucherInserted.code}`;
+      const { data: newPlan, error: planError } = await supabase
+        .from('plans')
+        .insert({
+          name: planName,
+          description: `Plano ativado por voucher ${voucherInserted.code} com ${parseInt(newVoucher.duration_days)} dias`,
+          price: 0,
+          duration_days: parseInt(newVoucher.duration_days),
+          plan_type: 'chatbot',
+          is_active: false,
+          features: null
+        })
+        .select()
+        .single();
+      if (planError) {
+        toast({ title: "Erro ao criar plano do voucher", description: planError.message, variant: "destructive" });
+        return;
+      }
+
+      // 3) Ligar as funcionalidades marcadas ao plano criado
+      const planFeatureInserts = selectedFeatures.map((featureId) => ({
+        plan_id: newPlan.id,
+        feature_id: featureId
+      }));
+      const { error: pfError } = await supabase.from('plan_features').insert(planFeatureInserts);
+      if (pfError) {
+        toast({ title: "Erro ao vincular recursos ao plano", description: pfError.message, variant: "destructive" });
+        return;
+      }
+
+      // 4) Atualizar o voucher para apontar para o plano criado
+      const { error: updateVoucherError } = await supabase
+        .from('vouchers')
+        .update({ plan_id: newPlan.id })
+        .eq('id', voucherInserted.id);
+      if (updateVoucherError) {
+        toast({ title: "Erro ao finalizar configuração do voucher", description: updateVoucherError.message, variant: "destructive" });
         return;
       }
     }

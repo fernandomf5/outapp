@@ -87,10 +87,26 @@ export const VoucherRedemption = () => {
       let planName = "";
       
       // Se o voucher tem um plano, criar assinatura baseada no plano
-      if (voucher.plan_id && voucher.plans) {
+      if (voucher.plan_id) {
+        // Buscar dados do plano (não depender de relação automática)
+        const { data: plan, error: planFetchError } = await supabase
+          .from('plans')
+          .select('*')
+          .eq('id', voucher.plan_id)
+          .maybeSingle();
+
+        if (planFetchError || !plan) {
+          toast({
+            title: "Erro no voucher",
+            description: "Plano associado ao voucher não encontrado",
+            variant: "destructive"
+          });
+          return;
+        }
+
         const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + voucher.plans.duration_days);
-        planName = voucher.plans.name;
+        expiresAt.setDate(expiresAt.getDate() + plan.duration_days);
+        planName = plan.name;
 
         const { error: subscriptionError } = await supabase
           .from('subscriptions')
@@ -100,10 +116,9 @@ export const VoucherRedemption = () => {
             status: 'active',
             expires_at: expiresAt.toISOString()
           });
-
         if (subscriptionError) throw subscriptionError;
-      } 
-      // Se o voucher tem recursos customizados, criar assinatura temporária
+      }
+      // Se o voucher tem recursos customizados (compatibilidade com vouchers antigos)
       else if (voucher.duration_days) {
         // Buscar recursos do voucher
         const { data: voucherFeatures } = await supabase
@@ -112,17 +127,12 @@ export const VoucherRedemption = () => {
           .eq('voucher_id', voucher.id);
 
         if (!voucherFeatures || voucherFeatures.length === 0) {
-          toast({
-            title: "Erro no voucher",
-            description: "Voucher sem recursos configurados",
-            variant: "destructive"
-          });
+          toast({ title: "Erro no voucher", description: "Voucher sem recursos configurados", variant: "destructive" });
           return;
         }
 
-        // Criar um plano temporário para o voucher
+        // Criar um plano temporário para o voucher (pode falhar por RLS em alguns casos)
         planName = `Voucher ${code}`;
-        
         const { data: newPlan, error: planError } = await supabase
           .from('plans')
           .insert({
@@ -136,21 +146,16 @@ export const VoucherRedemption = () => {
           })
           .select()
           .single();
-
         if (planError) throw planError;
 
-        // Associar features ao plano
         const planFeatureInserts = voucherFeatures.map((vf: any) => ({
           plan_id: newPlan.id,
           feature_id: vf.feature_id
         }));
-
         await supabase.from('plan_features').insert(planFeatureInserts);
 
-        // Criar assinatura
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + voucher.duration_days);
-
         const { error: subscriptionError } = await supabase
           .from('subscriptions')
           .insert({
@@ -159,7 +164,6 @@ export const VoucherRedemption = () => {
             status: 'active',
             expires_at: expiresAt.toISOString()
           });
-
         if (subscriptionError) throw subscriptionError;
       }
 
