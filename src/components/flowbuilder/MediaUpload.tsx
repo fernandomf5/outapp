@@ -35,7 +35,7 @@ export const MediaUpload = ({ onMediaSelect, currentMedia, currentFileName, medi
   const getMaxSize = () => {
     switch (mediaType) {
       case 'audio':
-        return 10; // 10MB
+        return 25; // 25MB
       case 'video':
         return 50; // 50MB
       case 'document':
