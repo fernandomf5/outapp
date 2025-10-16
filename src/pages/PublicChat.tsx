@@ -246,6 +246,7 @@ const PublicChat = () => {
         content: node.data.label || '',
         timestamp: new Date(),
         imageUrl: node.data.imageUrl,
+        buttons: node.data.buttons,
         nodeId: node.id
       } as any);
     } else if (node.type === 'image') {
@@ -255,6 +256,7 @@ const PublicChat = () => {
         content: node.data.label || 'Imagem',
         timestamp: new Date(),
         imageUrl: node.data.imageUrl,
+        buttons: node.data.buttons,
         nodeId: node.id
       } as any);
     } else if (node.type === 'audio') {
@@ -264,6 +266,7 @@ const PublicChat = () => {
         content: `🎵 ${node.data.label || 'Áudio'}`,
         timestamp: new Date(),
         audioUrl: node.data.audioUrl,
+        buttons: node.data.buttons,
         nodeId: node.id
       } as any);
     } else if (node.type === 'video') {
@@ -273,6 +276,7 @@ const PublicChat = () => {
         content: `🎥 ${node.data.label || 'Vídeo'}`,
         timestamp: new Date(),
         videoUrl: node.data.videoUrl,
+        buttons: node.data.buttons,
         nodeId: node.id
       } as any);
     } else if (node.type === 'document') {
@@ -283,6 +287,7 @@ const PublicChat = () => {
         timestamp: new Date(),
         documentUrl: node.data.documentUrl,
         documentName: node.data.documentName,
+        buttons: node.data.buttons,
         nodeId: node.id
       } as any);
     } else if (node.type === 'question' || node.type === 'quickReply' || node.type === 'button') {
@@ -331,37 +336,22 @@ const PublicChat = () => {
     const nodes = config.nodes || [];
     const edges = config.edges || [];
     
-    // Encontrar próximo nó considerando Quick Replies com handles por botão
+    // Encontrar próximo nó considerando TODOS os tipos que podem ter botões
     const currentNode = nodes.find((n: any) => n.id === currentNodeId);
 
-    if (currentNode?.type === 'quickReply' && typeof userResponse === 'string') {
-      const btns: string[] = currentNode.data?.buttons || [];
+    // Se o nó atual tem botões E recebeu uma resposta, tentar encontrar a conexão específica
+    if (currentNode?.data?.buttons && currentNode.data.buttons.length > 0 && typeof userResponse === 'string') {
+      const btns: string[] = currentNode.data.buttons;
       const idx = btns.findIndex((b: string) => (b || '').trim().toLowerCase() === userResponse.trim().toLowerCase());
 
       if (idx >= 0) {
+        // Primeiro, tentar encontrar aresta com handle específico
         const edgeByHandle = edges.find((e: any) => e.source === currentNodeId && e.sourceHandle === `btn-${idx}`);
         if (edgeByHandle) {
           return nodes.find((n: any) => n.id === edgeByHandle.target);
         }
-        // Fallback: se não houver handle específico, usar a N-ésima aresta de saída
-        const outgoing = edges.filter((e: any) => e.source === currentNodeId);
-        if (outgoing.length > idx) {
-          return nodes.find((n: any) => n.id === outgoing[idx].target);
-        }
-      }
-    }
-
-    // Para botões e perguntas, verificar handles específicos e fallback por índice
-    if ((currentNode?.type === 'button' || currentNode?.type === 'question') && typeof userResponse === 'string') {
-      const btns: string[] = currentNode.data?.buttons || [];
-      const idx = btns.findIndex((b: string) => (b || '').trim().toLowerCase() === userResponse.trim().toLowerCase());
-
-      if (idx >= 0) {
-        const edgeByHandle = edges.find((e: any) => e.source === currentNodeId && e.sourceHandle === `btn-${idx}`);
-        if (edgeByHandle) {
-          return nodes.find((n: any) => n.id === edgeByHandle.target);
-        }
-        // Fallback: utilizar a N-ésima aresta quando não houver sourceHandle
+        
+        // Fallback: usar a N-ésima aresta de saída
         const outgoing = edges.filter((e: any) => e.source === currentNodeId);
         if (outgoing.length > idx) {
           return nodes.find((n: any) => n.id === outgoing[idx].target);
