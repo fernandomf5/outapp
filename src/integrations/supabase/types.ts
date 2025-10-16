@@ -297,6 +297,63 @@ export type Database = {
           },
         ]
       }
+      button_link_clicks: {
+        Row: {
+          ai_agent_id: string | null
+          button_text: string
+          button_url: string
+          chatbot_id: string | null
+          conversation_id: string | null
+          created_at: string
+          id: string
+          ip_address: string | null
+          node_id: string | null
+          user_agent: string | null
+          visitor_id: string | null
+        }
+        Insert: {
+          ai_agent_id?: string | null
+          button_text: string
+          button_url: string
+          chatbot_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          node_id?: string | null
+          user_agent?: string | null
+          visitor_id?: string | null
+        }
+        Update: {
+          ai_agent_id?: string | null
+          button_text?: string
+          button_url?: string
+          chatbot_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          node_id?: string | null
+          user_agent?: string | null
+          visitor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "button_link_clicks_ai_agent_id_fkey"
+            columns: ["ai_agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "button_link_clicks_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chatbot_conversations: {
         Row: {
           chatbot_id: string

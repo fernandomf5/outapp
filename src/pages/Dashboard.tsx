@@ -50,17 +50,23 @@ const Dashboard = () => {
     const fetchData = async () => {
       if (!user) return;
 
-      // Buscar chatbots do usuário
+      // Buscar chatbots do usuário com contagem de cliques
       const { data: botsData, error: botsError } = await supabase
         .from('chatbots')
-        .select('*')
+        .select(`
+          *,
+          button_clicks:button_link_clicks(count)
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      // Buscar agentes IA do usuário
+      // Buscar agentes IA do usuário com contagem de cliques
       const { data: agentsData, error: agentsError } = await supabase
         .from('ai_agents')
-        .select('*')
+        .select(`
+          *,
+          button_clicks:button_link_clicks(count)
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -473,6 +479,11 @@ const Dashboard = () => {
                       <p className="text-xs sm:text-sm text-muted-foreground">
                         {bot.description || "Sem descrição"}
                       </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-muted-foreground">
+                          🔗 {bot.button_clicks?.[0]?.count || 0} cliques em links
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
@@ -561,6 +572,11 @@ const Dashboard = () => {
                       <p className="text-xs sm:text-sm text-muted-foreground">
                         {agent.description || agent.niche || "Sem descrição"}
                       </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-muted-foreground">
+                          🔗 {agent.button_clicks?.[0]?.count || 0} cliques em links
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">

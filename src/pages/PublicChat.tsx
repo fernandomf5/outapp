@@ -737,9 +737,26 @@ const PublicChat = () => {
                         key={idx}
                         variant="outline"
                         size="sm"
-                        onClick={() => {
+                        onClick={async () => {
                           // Se tiver URL válida, abrir em nova aba e não processar fluxo
                           if (buttonUrl && buttonUrl.trim() !== '' && buttonUrl.trim().length > 0) {
+                            // Registrar clique no botão
+                            try {
+                              await supabase
+                                .from('button_link_clicks')
+                                .insert({
+                                  chatbot_id: botData.type === 'chatbot' ? botId : null,
+                                  ai_agent_id: botData.type === 'agent' ? botId : null,
+                                  conversation_id: conversationId,
+                                  button_text: buttonText,
+                                  button_url: buttonUrl.trim(),
+                                  node_id: message.nodeId,
+                                  visitor_id: sessionId
+                                });
+                            } catch (error) {
+                              console.error('Erro ao registrar clique:', error);
+                            }
+                            
                             window.open(buttonUrl.trim(), '_blank', 'noopener,noreferrer');
                             return;
                           }
