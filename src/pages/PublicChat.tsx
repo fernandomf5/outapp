@@ -113,91 +113,123 @@ const PublicChat = () => {
   };
 
   const fetchBotData = async () => {
-    if (!botId) return;
-
-    // Tentar buscar como chatbot
-    let { data: chatbot } = await supabase
-      .from('chatbots')
-      .select('*')
-      .eq('id', botId)
-      .eq('is_active', true)
-      .single();
-
-    if (chatbot) {
-      setBotData({ ...chatbot, type: 'chatbot' });
-      setMessages([]);
-      const config = chatbot.config as any || {};
-      
-      // Encontrar o primeiro bloco após o trigger OU iniciar pelo primeiro nó sem entradas
-      const nodes = config.nodes || [];
-      const edges = config.edges || [];
-      const triggerNode = nodes.find((n: any) => n.type === 'trigger');
-
-      // 1) Se houver trigger com saída, usar o alvo da primeira aresta
-      if (triggerNode && edges.length > 0) {
-        const firstEdge = edges.find((e: any) => e.source === triggerNode.id);
-        if (firstEdge) {
-          const firstNode = nodes.find((n: any) => n.id === firstEdge.target);
-          if (firstNode) {
-            processNode(firstNode, nodes, edges);
-            return;
-          }
-        }
-      }
-
-      // 2) Se não houver trigger/ligação, usar nó SEM entradas (start node)
-      const incomingTargets = new Set((edges || []).map((e: any) => e.target));
-      const startCandidates = nodes.filter((n: any) => n.type !== 'trigger' && !incomingTargets.has(n.id));
-
-      if (startCandidates.length > 0) {
-        // priorizar mais alto no canvas; se empatar, por id mais antigo
-        const firstStart = [...startCandidates]
-          .sort((a: any, b: any) => (a.position?.y || 0) - (b.position?.y || 0) || (parseInt(a.id) - parseInt(b.id)))[0];
-        processNode(firstStart, nodes, edges);
-        return;
-      }
-
-      // 3) Fallback: nó mais alto do canvas
-      const firstTopNode = nodes
-        .filter((n: any) => n.type !== 'trigger')
-        .sort((a: any, b: any) => (a.position?.y || 0) - (b.position?.y || 0))[0];
-
-      if (firstTopNode) {
-        processNode(firstTopNode, nodes, edges);
-        return;
-      }
-      
-      // Fallback para mensagem padrão
-      setMessages([{
-        id: '1',
-        role: 'bot',
-        content: 'Olá! Como posso ajudar você hoje?',
-        timestamp: new Date()
-      }]);
+    if (!botId) {
+      toast({
+        title: "Erro",
+        description: "ID do bot não fornecido.",
+        variant: "destructive"
+      });
       return;
     }
 
-    // Tentar buscar como agente IA
-    let { data: agent } = await supabase
-      .from('ai_agents')
-      .select('*')
-      .eq('id', botId)
-      .eq('is_active', true)
-      .single();
+    try {
+      // Tentar buscar como chatbot
+      const { data: chatbot, error: chatbotError } = await supabase
+        .from('chatbots')
+        .select('*')
+        .eq('id', botId)
+        .maybeSingle();
 
-    if (agent) {
-      setBotData({ ...agent, type: 'agent' });
-      const config = agent.config as any || {};
-      setMessages([{
-        id: '1',
-        role: 'bot',
-        content: config.welcomeMessage || 'Olá! Sou seu assistente inteligente. Como posso ajudar?',
-        timestamp: new Date()
-      }]);
-    } else {
+      console.log('🔍 Buscando chatbot:', botId);
+      console.log('📦 Resultado chatbot:', chatbot);
+      console.log('❌ Erro chatbot:', chatbotError);
+
+      if (chatbot && chatbot.is_active) {
+        setBotData({ ...chatbot, type: 'chatbot' });
+        setMessages([]);
+        const config = chatbot.config as any || {};
+        
+        // Encontrar o primeiro bloco após o trigger OU iniciar pelo primeiro nó sem entradas
+        const nodes = config.nodes || [];
+        const edges = config.edges || [];
+        
+        console.log('📊 Nodes:', nodes);
+        console.log('🔗 Edges:', edges);
+        
+        const triggerNode = nodes.find((n: any) => n.type === 'trigger');
+
+        // 1) Se houver trigger com saída, usar o alvo da primeira aresta
+        if (triggerNode && edges.length > 0) {
+          const firstEdge = edges.find((e: any) => e.source === triggerNode.id);
+          if (firstEdge) {
+            const firstNode = nodes.find((n: any) => n.id === firstEdge.target);
+            if (firstNode) {
+              console.log('✅ Iniciando com nó após trigger:', firstNode);
+              processNode(firstNode, nodes, edges);
+              return;
+            }
+          }
+        }
+
+        // 2) Se não houver trigger/ligação, usar nó SEM entradas (start node)
+        const incomingTargets = new Set((edges || []).map((e: any) => e.target));
+        const startCandidates = nodes.filter((n: any) => n.type !== 'trigger' && !incomingTargets.has(n.id));
+
+        if (startCandidates.length > 0) {
+          // priorizar mais alto no canvas; se empatar, por id mais antigo
+          const firstStart = [...startCandidates]
+            .sort((a: any, b: any) => (a.position?.y || 0) - (b.position?.y || 0) || (parseInt(a.id) - parseInt(b.id)))[0];
+          console.log('✅ Iniciando com nó sem entradas:', firstStart);
+          processNode(firstStart, nodes, edges);
+          return;
+        }
+
+        // 3) Fallback: nó mais alto do canvas
+        const firstTopNode = nodes
+          .filter((n: any) => n.type !== 'trigger')
+          .sort((a: any, b: any) => (a.position?.y || 0) - (b.position?.y || 0))[0];
+
+        if (firstTopNode) {
+          console.log('✅ Iniciando com primeiro nó (fallback):', firstTopNode);
+          processNode(firstTopNode, nodes, edges);
+          return;
+        }
+        
+        // Fallback para mensagem padrão
+        console.log('⚠️ Usando mensagem padrão');
+        setMessages([{
+          id: '1',
+          role: 'bot',
+          content: 'Olá! Como posso ajudar você hoje?',
+          timestamp: new Date()
+        }]);
+        return;
+      }
+
+      // Tentar buscar como agente IA
+      const { data: agent, error: agentError } = await supabase
+        .from('ai_agents')
+        .select('*')
+        .eq('id', botId)
+        .maybeSingle();
+
+      console.log('🤖 Buscando agent:', agent);
+      console.log('❌ Erro agent:', agentError);
+
+      if (agent && agent.is_active) {
+        setBotData({ ...agent, type: 'agent' });
+        const config = agent.config as any || {};
+        setMessages([{
+          id: '1',
+          role: 'bot',
+          content: config.welcomeMessage || 'Olá! Sou seu assistente inteligente. Como posso ajudar?',
+          timestamp: new Date()
+        }]);
+        return;
+      }
+
+      // Se chegou aqui, não encontrou nada
+      console.error('❌ Bot não encontrado ou inativo');
       toast({
         title: "Bot não encontrado",
         description: "Este bot não existe ou está inativo.",
+        variant: "destructive"
+      });
+    } catch (error) {
+      console.error('❌ Erro ao buscar bot:', error);
+      toast({
+        title: "Erro ao carregar",
+        description: "Não foi possível carregar o bot. Tente novamente.",
         variant: "destructive"
       });
     }
@@ -392,29 +424,35 @@ const PublicChat = () => {
         // Chatbot com fluxo - encontrar próximo nó
         const lastBotMessage = [...messages].reverse().find(m => m.role === 'bot' && m.nodeId);
         console.log('🔍 Última mensagem do bot:', lastBotMessage);
-        console.log('📝 Texto enviado:', textToSend);
+        console.log('📝 Texto enviado pelo usuário:', textToSend);
         
         if (lastBotMessage?.nodeId) {
           const nextNode = findNextNode(lastBotMessage.nodeId, textToSend);
           console.log('➡️ Próximo nó encontrado:', nextNode);
           
           if (nextNode) {
-            // Salvar mensagem do bot
-            await saveMessage('bot', textToSend, lastBotMessage.nodeId);
-            
             setTimeout(async () => {
               await processNode(nextNode, botData.config.nodes, botData.config.edges);
               setIsLoading(false);
             }, 500);
             return;
           } else {
-            console.log('⚠️ Nenhum próximo nó encontrado');
+            console.log('⚠️ Nenhum próximo nó encontrado - Fim do fluxo');
+            // Adicionar mensagem de despedida
+            const goodbyeMessage: Message = {
+              id: (Date.now() + 1).toString(),
+              role: 'bot',
+              content: 'Obrigado pelo contato! Se precisar de algo mais, estou por aqui! 👋',
+              timestamp: new Date()
+            };
+            setMessages(prev => [...prev, goodbyeMessage]);
+            await saveMessage('bot', goodbyeMessage.content);
           }
         } else {
           console.log('⚠️ Nenhuma mensagem do bot com nodeId encontrada');
         }
         
-        // Fim do fluxo - apenas finaliza sem mensagem adicional
+        // Finalizar carregamento
         setTimeout(() => {
           setIsLoading(false);
         }, 500);
