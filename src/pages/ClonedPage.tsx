@@ -11,7 +11,14 @@ export default function ClonedPage() {
 
   useEffect(() => {
     const loadPage = async () => {
-      if (!slug) return;
+      if (!slug) {
+        console.error('No slug provided');
+        setError('URL inválida');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Loading cloned page with slug:', slug);
 
       try {
         // Fetch page data
@@ -20,35 +27,54 @@ export default function ClonedPage() {
           .select('*')
           .eq('slug', slug)
           .eq('is_active', true)
-          .single();
+          .maybeSingle();
 
-        if (pageError) throw pageError;
+        console.log('Page query result:', { page, pageError });
+
+        if (pageError) {
+          console.error('Supabase error:', pageError);
+          throw pageError;
+        }
 
         if (!page) {
-          setError('Página não encontrada');
+          console.error('Page not found for slug:', slug);
+          setError('Página não encontrada ou inativa');
           setLoading(false);
           return;
         }
 
+        if (!page.page_content) {
+          console.error('Page has no content');
+          setError('Esta página não tem conteúdo');
+          setLoading(false);
+          return;
+        }
+
+        console.log('Page loaded successfully, content length:', page.page_content.length);
         setPageData(page);
 
         // Track click
-        const visitorId = localStorage.getItem('visitor_id') || 
-          crypto.randomUUID();
-        localStorage.setItem('visitor_id', visitorId);
+        try {
+          const visitorId = localStorage.getItem('visitor_id') || 
+            crypto.randomUUID();
+          localStorage.setItem('visitor_id', visitorId);
 
-        await supabase.from('cloned_page_clicks').insert({
-          page_id: page.id,
-          visitor_id: visitorId,
-          ip_address: null,
-          user_agent: navigator.userAgent,
-          referrer: document.referrer || null,
-        });
+          await supabase.from('cloned_page_clicks').insert({
+            page_id: page.id,
+            visitor_id: visitorId,
+            ip_address: null,
+            user_agent: navigator.userAgent,
+            referrer: document.referrer || null,
+          });
+        } catch (clickError) {
+          console.error('Error tracking click:', clickError);
+          // Don't fail the page load if click tracking fails
+        }
 
         setLoading(false);
       } catch (err: any) {
         console.error('Error loading page:', err);
-        setError(err.message);
+        setError(err.message || 'Erro ao carregar página');
         setLoading(false);
       }
     };
@@ -57,7 +83,12 @@ export default function ClonedPage() {
   }, [slug]);
 
   useEffect(() => {
-    if (!pageData || !pageData.page_content) return;
+    if (!pageData || !pageData.page_content) {
+      console.log('Waiting for page data...');
+      return;
+    }
+
+    console.log('Injecting page content into iframe');
 
     // Inject custom settings
     const settings = pageData.custom_settings || {};
@@ -144,9 +175,13 @@ export default function ClonedPage() {
     // Write the modified HTML to iframe
     const iframe = document.getElementById('page-frame') as HTMLIFrameElement;
     if (iframe && iframe.contentWindow) {
+      console.log('Writing HTML to iframe, length:', modifiedHtml.length);
       iframe.contentWindow.document.open();
       iframe.contentWindow.document.write(modifiedHtml);
       iframe.contentWindow.document.close();
+      console.log('Page rendered successfully');
+    } else {
+      console.error('Iframe not found or not ready');
     }
   }, [pageData]);
 
@@ -176,10 +211,24 @@ export default function ClonedPage() {
 
   if (error) {
     return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center max-w-md p-8">
+          <h1 className="text-2xl font-bold mb-2">Página não encontrada</h1>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <p className="text-sm text-muted-foreground">
+            Verifique se o link está correto ou se a página está ativa.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!pageData) {
+    return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">Erro</h1>
-          <p className="text-muted-foreground">{error}</p>
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Preparando página...</p>
         </div>
       </div>
     );
@@ -195,6 +244,7 @@ export default function ClonedPage() {
         border: 'none',
         margin: 0,
         padding: 0,
+        display: 'block',
       }}
     />
   );
