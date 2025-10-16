@@ -61,21 +61,40 @@ serve(async (req) => {
       throw new Error('Usuário não encontrado');
     }
 
-    // Generate magic link for the target user
+    console.log('Gerando tokens para o usuário:', userData.user.email);
+
+    // Generate access token for the target user using recovery link
     const { data: tokenData, error: tokenError } = await supabaseClient.auth.admin.generateLink({
-      type: 'magiclink',
+      type: 'recovery',
       email: userData.user.email!
     });
 
     if (tokenError) {
+      console.error('Erro ao gerar tokens:', tokenError);
       throw tokenError;
     }
+
+    console.log('Link gerado com sucesso');
+
+    // Extract tokens from the action link URL
+    const actionLink = tokenData.properties.action_link;
+    const url = new URL(actionLink);
+    const access_token = url.searchParams.get('access_token');
+    const refresh_token = url.searchParams.get('refresh_token');
+
+    if (!access_token || !refresh_token) {
+      console.error('Tokens não encontrados na URL:', actionLink);
+      throw new Error('Tokens não foram gerados corretamente');
+    }
+
+    console.log('Tokens extraídos com sucesso');
 
     return new Response(
       JSON.stringify({
         success: true,
         user: userData.user,
-        magicLink: tokenData.properties.action_link
+        access_token,
+        refresh_token
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

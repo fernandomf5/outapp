@@ -273,31 +273,38 @@ export const UsersPanel = () => {
         throw new Error(result.error || 'Erro ao fazer login como usuário');
       }
 
-      // Extract token from magic link
-      const url = new URL(result.magicLink);
-      const accessToken = url.searchParams.get('access_token');
-      const refreshToken = url.searchParams.get('refresh_token');
+      console.log('Resultado da API:', result);
 
-      if (accessToken && refreshToken) {
-        // Set the session with the new tokens
-        const { error: sessionError } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken
-        });
+      // Get tokens from the response
+      const { access_token, refresh_token } = result;
 
-        if (sessionError) throw sessionError;
-
-        toast({
-          title: "Login realizado",
-          description: `Você está agora logado como ${user.full_name}`,
-        });
-
-        // Redirect to dashboard
-        window.location.href = '/dashboard';
-      } else {
+      if (!access_token || !refresh_token) {
+        console.error('Tokens não encontrados:', result);
         throw new Error('Tokens não encontrados na resposta');
       }
+
+      // Set the session with the new tokens
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token,
+        refresh_token
+      });
+
+      if (sessionError) {
+        console.error('Erro ao configurar sessão:', sessionError);
+        throw sessionError;
+      }
+
+      toast({
+        title: "Login realizado",
+        description: `Você está agora logado como ${user.full_name}`,
+      });
+
+      // Redirect to dashboard
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 500);
     } catch (error: any) {
+      console.error('Erro completo:', error);
       toast({
         title: "Erro ao fazer login",
         description: error.message,
