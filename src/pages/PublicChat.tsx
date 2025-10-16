@@ -480,8 +480,8 @@ const PublicChat = () => {
     setInputMessage("");
     setIsLoading(true);
 
-    // Salvar mensagem do usuário
-    await saveMessage('user', textToSend);
+    // Salvar mensagem do usuário (com originNodeId quando vier de botão)
+    await saveMessage('user', textToSend, originNodeId);
 
     // Se estiver em modo atendimento humano, apenas salvar e aguardar resposta
     if (isHumanMode) {
