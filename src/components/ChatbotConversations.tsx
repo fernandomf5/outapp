@@ -475,7 +475,7 @@ export const ChatbotConversations = () => {
                         className="cursor-pointer mt-1"
                       />
                       <div 
-                        className="flex-1 cursor-pointer"
+                        className="flex-1"
                         onClick={() => setSelectedConversation(conv)}
                       >
                         <div className="flex items-start justify-between mb-2">
