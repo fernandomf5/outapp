@@ -31,22 +31,28 @@ const QuickReplyNode = ({ data, selected }: NodeProps) => {
         </div>
       )}
       <div className="space-y-2">
-        {buttons.map((button: string, index: number) => (
-          <div key={index} className="relative">
-            <div
-              className="text-xs bg-accent/50 px-3 py-1.5 rounded-md text-center border border-border"
-            >
-              {button}
+        {buttons.map((button: any, index: number) => {
+          const buttonText = typeof button === 'string' ? button : (button?.text || '');
+          const buttonUrl = typeof button === 'object' && button?.url ? button.url : '';
+          
+          return (
+            <div key={index} className="relative">
+              <div
+                className="text-xs bg-accent/50 px-3 py-1.5 rounded-md text-center border border-border"
+              >
+                {buttonText}
+                {buttonUrl && <div className="text-[10px] text-chart-5 mt-0.5 truncate">🔗 Link</div>}
+              </div>
+              <Handle
+                type="source"
+                position={Position.Right}
+                id={`btn-${index}`}
+                className="w-3 h-3 !bg-chart-5"
+                style={{ top: '50%', transform: 'translateY(-50%)' }}
+              />
             </div>
-            <Handle
-              type="source"
-              position={Position.Right}
-              id={`btn-${index}`}
-              className="w-3 h-3 !bg-chart-5"
-              style={{ top: '50%', transform: 'translateY(-50%)' }}
-            />
-          </div>
-        ))}
+          );
+        })}
       </div>
       <Handle
         type="source"

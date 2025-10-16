@@ -22,20 +22,26 @@ const ButtonNode = ({ data, selected }: NodeProps) => {
       </div>
       <div className="text-sm text-foreground mb-3">{data.label}</div>
       <div className="space-y-2">
-        {buttons.map((button: string, index: number) => (
-          <div key={index} className="relative">
-            <div className="text-xs bg-green-500/20 px-3 py-2 rounded-md text-center border border-green-500/30 font-medium">
-              {button}
+        {buttons.map((button: any, index: number) => {
+          const buttonText = typeof button === 'string' ? button : (button?.text || '');
+          const buttonUrl = typeof button === 'object' && button?.url ? button.url : '';
+          
+          return (
+            <div key={index} className="relative">
+              <div className="text-xs bg-green-500/20 px-3 py-2 rounded-md text-center border border-green-500/30 font-medium">
+                {buttonText}
+                {buttonUrl && <div className="text-[10px] text-green-600 mt-1 truncate">🔗 Link</div>}
+              </div>
+              <Handle
+                type="source"
+                position={Position.Right}
+                id={`btn-${index}`}
+                className="w-3 h-3 !bg-green-500"
+                style={{ top: '50%', transform: 'translateY(-50%)' }}
+              />
             </div>
-            <Handle
-              type="source"
-              position={Position.Right}
-              id={`btn-${index}`}
-              className="w-3 h-3 !bg-green-500"
-              style={{ top: '50%', transform: 'translateY(-50%)' }}
-            />
-          </div>
-        ))}
+          );
+        })}
       </div>
       <Handle
         type="source"
