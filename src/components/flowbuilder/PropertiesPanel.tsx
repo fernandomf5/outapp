@@ -336,7 +336,14 @@ export const PropertiesPanel = ({
                     </div>
                   </Card>
                 ))}
-                <div className="space-y-2">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    addButton();
+                  }}
+                  className="space-y-2"
+                >
                   <Input
                     value={newButton}
                     onChange={(e) => setNewButton(e.target.value)}
@@ -362,18 +369,14 @@ export const PropertiesPanel = ({
                     placeholder="https://exemplo.com (opcional)"
                   />
                   <Button 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      addButton();
-                    }} 
                     size="sm" 
-                    type="button"
+                    type="submit"
                     className="w-full"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Adicionar Botão
                   </Button>
-                </div>
+                </form>
               </div>
             </div>
           </>
