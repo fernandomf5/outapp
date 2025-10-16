@@ -491,12 +491,12 @@ const PublicChat = () => {
 
         setMessages(prev => [...prev, botResponse]);
       } else {
-        // Chatbot com fluxo - encontrar próximo nó
-        const contextNodeId = originNodeId || ([...messages].reverse().find(m => m.role === 'bot' && m.nodeId)?.nodeId);
-        console.log('🔍 Nó de contexto:', contextNodeId);
-        console.log('📝 Texto enviado pelo usuário:', textToSend);
-        
-        if (contextNodeId) {
+        // Chatbot com fluxo - só processar se veio de um botão (originNodeId definido)
+        if (originNodeId) {
+          const contextNodeId = originNodeId;
+          console.log('🔍 Nó de contexto:', contextNodeId);
+          console.log('📝 Texto enviado pelo usuário:', textToSend);
+          
           const nextNode = findNextNode(contextNodeId, textToSend);
           console.log('➡️ Próximo nó encontrado:', nextNode);
           
@@ -517,7 +517,7 @@ const PublicChat = () => {
             console.log('⚠️ Nenhum próximo nó encontrado - Fim do fluxo');
           }
         } else {
-          console.log('⚠️ Nenhum nó de contexto encontrado para prosseguir no fluxo');
+          console.log('💬 Mensagem livre do usuário - aguardando atendente');
         }
         
         // Finalizar carregamento
