@@ -27,16 +27,23 @@ const PublicChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const [botData, setBotData] = useState<any>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [sessionId] = useState(() => `session-${Date.now()}-${Math.random()}`);
   const [isHumanMode, setIsHumanMode] = useState(false);
+  const [showPreChatForm, setShowPreChatForm] = useState(true);
+  const [visitorName, setVisitorName] = useState("");
+  const [visitorPhone, setVisitorPhone] = useState("");
+  const [visitorEmail, setVisitorEmail] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchBotData();
-    createConversation();
-  }, [botId]);
+    if (!showPreChatForm) {
+      fetchBotData();
+      createConversation();
+    }
+  }, [botId, showPreChatForm]);
 
   useEffect(() => {
     scrollToBottom();
@@ -83,7 +90,10 @@ const PublicChat = () => {
         .insert({
           chatbot_id: botId,
           session_id: sessionId,
-          status: 'active'
+          status: 'active',
+          visitor_name: visitorName,
+          visitor_phone: visitorPhone,
+          visitor_email: visitorEmail
         })
         .select()
         .single();
@@ -372,6 +382,18 @@ const PublicChat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const handleStartChat = () => {
+    if (!visitorName.trim()) {
+      toast({
+        title: "Nome obrigatório",
+        description: "Por favor, insira seu nome para continuar.",
+        variant: "destructive"
+      });
+      return;
+    }
+    setShowPreChatForm(false);
+  };
+
   const handleSendMessage = async (messageText?: string, originNodeId?: string) => {
     const textToSend = messageText || inputMessage;
     if (!textToSend.trim() || !botData) return;
@@ -434,7 +456,11 @@ const PublicChat = () => {
             // Calcular delay total (500ms base + delay configurado)
             const delayMs = 500 + ((nextNode.data?.delaySeconds || 0) * 1000);
             
+            // Mostrar indicador de digitando
+            setIsTyping(true);
+            
             setTimeout(async () => {
+              setIsTyping(false);
               await processNode(nextNode, botData.config.nodes, botData.config.edges);
               setIsLoading(false);
             }, delayMs);
@@ -464,6 +490,71 @@ const PublicChat = () => {
     }
   };
 
+  if (showPreChatForm) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md p-8 shadow-xl">
+          <div className="text-center mb-6">
+            <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Bot className="w-8 h-8 text-primary" />
+            </div>
+            <h2 className="text-2xl font-bold mb-2">Bem-vindo!</h2>
+            <p className="text-muted-foreground">
+              Para iniciar o atendimento, por favor preencha seus dados
+            </p>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                Nome completo *
+              </label>
+              <Input
+                value={visitorName}
+                onChange={(e) => setVisitorName(e.target.value)}
+                placeholder="Digite seu nome"
+                className="w-full"
+              />
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                Telefone (opcional)
+              </label>
+              <Input
+                value={visitorPhone}
+                onChange={(e) => setVisitorPhone(e.target.value)}
+                placeholder="(00) 00000-0000"
+                className="w-full"
+              />
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                E-mail (opcional)
+              </label>
+              <Input
+                type="email"
+                value={visitorEmail}
+                onChange={(e) => setVisitorEmail(e.target.value)}
+                placeholder="seu@email.com"
+                className="w-full"
+              />
+            </div>
+            
+            <Button
+              onClick={handleStartChat}
+              className="w-full gradient-primary shadow-glow"
+              size="lg"
+            >
+              Iniciar Conversa
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   if (!botData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/20 via-background to-primary/10 flex items-center justify-center">
@@ -479,19 +570,27 @@ const PublicChat = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary/20 via-background to-primary/10 flex flex-col">
       {/* Header */}
       <header className="bg-card/95 backdrop-blur-md border-b border-border px-6 py-4 sticky top-0 z-50 shadow-md">
-        <div className="max-w-4xl mx-auto flex items-center gap-4">
-          <div className="bg-primary/10 p-3 rounded-xl">
-            {botData.type === 'agent' ? (
-              <Sparkles className="w-6 h-6 text-primary" />
-            ) : (
-              <Bot className="w-6 h-6 text-primary" />
-            )}
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 p-3 rounded-xl">
+              {botData.type === 'agent' ? (
+                <Sparkles className="w-6 h-6 text-primary" />
+              ) : (
+                <Bot className="w-6 h-6 text-primary" />
+              )}
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">
+                {botData?.config?.attendantName || botData.name || 'Atendente'}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {isTyping ? 'Digitando...' : 'Online'}
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold">{botData.name}</h1>
-            <p className="text-sm text-muted-foreground">
-              {botData.type === 'agent' ? 'Agente IA' : 'Chatbot'}
-            </p>
+          <div className="text-right">
+            <p className="text-sm font-medium">{visitorName}</p>
+            <p className="text-xs text-muted-foreground">Você</p>
           </div>
         </div>
       </header>
@@ -604,6 +703,17 @@ const PublicChat = () => {
             <div className="flex justify-start">
               <div className="bg-card border border-border rounded-2xl px-4 py-3">
                 <Loader2 className="w-5 h-5 animate-spin text-primary" />
+              </div>
+            </div>
+          )}
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="bg-card border border-border rounded-2xl px-4 py-3">
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
               </div>
             </div>
           )}

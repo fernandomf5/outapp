@@ -26,6 +26,7 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -155,7 +156,11 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
         // Calcular delay total (500ms base + delay configurado)
         const delayMs = 500 + ((nextNode.data?.delaySeconds || 0) * 1000);
         
+        // Mostrar indicador de digitando
+        setIsTyping(true);
+        
         setTimeout(() => {
+          setIsTyping(false);
           processNode(nextNode);
           setIsLoading(false);
         }, delayMs);
@@ -181,7 +186,9 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
           <Bot className="w-5 h-5 text-primary" />
           <div>
             <h3 className="font-semibold text-sm">Prévia do Chat</h3>
-            <p className="text-xs text-muted-foreground">{botName || 'Teste seu fluxo'}</p>
+            <p className="text-xs text-muted-foreground">
+              {isTyping ? 'Digitando...' : botName || 'Teste seu fluxo'}
+            </p>
           </div>
         </div>
         <Button
@@ -246,6 +253,17 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
             <div className="flex justify-start">
               <div className="bg-muted rounded-xl px-3 py-2">
                 <Loader2 className="w-4 h-4 animate-spin text-primary" />
+              </div>
+            </div>
+          )}
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="bg-muted rounded-xl px-3 py-2">
+                <div className="flex gap-1">
+                  <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
               </div>
             </div>
           )}

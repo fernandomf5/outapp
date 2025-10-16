@@ -30,6 +30,7 @@ const BotBuilder = () => {
   const [initialMessage, setInitialMessage] = useState("Olá! Como posso ajudar você hoje?");
   const [initialButtons, setInitialButtons] = useState<string[]>([]);
   const [newInitialButton, setNewInitialButton] = useState("");
+  const [attendantName, setAttendantName] = useState("Atendente");
   const [showFlowEditor, setShowFlowEditor] = useState(false);
   const [showNameInput, setShowNameInput] = useState(!chatbotId);
   const [nodes, setNodes] = useState<Node[]>([]);
@@ -48,6 +49,9 @@ const BotBuilder = () => {
         }
         if (config?.initialButtons) {
           setInitialButtons(config.initialButtons);
+        }
+        if (config?.attendantName) {
+          setAttendantName(config.attendantName);
         }
         if (config?.nodes) {
           setNodes(config.nodes);
@@ -132,6 +136,7 @@ const BotBuilder = () => {
         config: {
           initialMessage,
           initialButtons,
+          attendantName,
           nodes,
           edges,
         },
@@ -316,6 +321,21 @@ const BotBuilder = () => {
                       />
                       <p className="text-xs text-muted-foreground">
                         💡 Dica: Seja claro e amigável na sua mensagem de boas-vindas
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium text-foreground">
+                        Nome do Atendente:
+                      </label>
+                      <Input
+                        value={attendantName}
+                        onChange={(e) => setAttendantName(e.target.value)}
+                        placeholder="Ex: Suporte, Vendedor, Maria..."
+                        className="w-full"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        💡 Este nome será exibido nas mensagens do bot
                       </p>
                     </div>
 
