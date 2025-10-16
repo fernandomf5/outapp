@@ -23,8 +23,9 @@ export const PropertiesPanel = ({
 }: PropertiesPanelProps) => {
   const [label, setLabel] = useState('');
   const [variable, setVariable] = useState('');
-  const [buttons, setButtons] = useState<string[]>([]);
+  const [buttons, setButtons] = useState<Array<{text: string, url?: string}>>([]);
   const [newButton, setNewButton] = useState('');
+  const [newButtonUrl, setNewButtonUrl] = useState('');
   const [actionType, setActionType] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [audioUrl, setAudioUrl] = useState('');
@@ -37,7 +38,12 @@ export const PropertiesPanel = ({
     if (selectedNode) {
       setLabel(selectedNode.data.label || '');
       setVariable(selectedNode.data.variable || '');
-      setButtons(selectedNode.data.buttons || []);
+      // Converter botões antigos (strings) para novo formato (objetos)
+      const buttonData = selectedNode.data.buttons || [];
+      const normalizedButtons = buttonData.map((btn: any) => 
+        typeof btn === 'string' ? { text: btn, url: '' } : btn
+      );
+      setButtons(normalizedButtons);
       setActionType(selectedNode.data.actionType || '');
       setImageUrl(selectedNode.data.imageUrl || '');
       setAudioUrl(selectedNode.data.audioUrl || '');
@@ -83,9 +89,10 @@ export const PropertiesPanel = ({
 
   const addButton = () => {
     if (newButton.trim()) {
-      const updatedButtons = [...buttons, newButton.trim()];
+      const updatedButtons = [...buttons, { text: newButton.trim(), url: newButtonUrl.trim() }];
       setButtons(updatedButtons);
       setNewButton('');
+      setNewButtonUrl('');
       onUpdateNode(selectedNode.id, {
         ...selectedNode.data,
         buttons: updatedButtons,
@@ -95,6 +102,16 @@ export const PropertiesPanel = ({
 
   const removeButton = (index: number) => {
     const updatedButtons = buttons.filter((_, i) => i !== index);
+    setButtons(updatedButtons);
+    onUpdateNode(selectedNode.id, {
+      ...selectedNode.data,
+      buttons: updatedButtons,
+    });
+  };
+
+  const updateButtonUrl = (index: number, url: string) => {
+    const updatedButtons = [...buttons];
+    updatedButtons[index] = { ...updatedButtons[index], url };
     setButtons(updatedButtons);
     onUpdateNode(selectedNode.id, {
       ...selectedNode.data,
@@ -276,31 +293,51 @@ export const PropertiesPanel = ({
             <div>
               <Label>Botões (opcional)</Label>
               <p className="text-xs text-muted-foreground mt-1 mb-3">
-                Adicione botões para criar opções de resposta rápida
+                Adicione botões com links para redirecionar usuários
               </p>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {buttons.map((button, index) => (
-                  <Card key={index} className="p-3 flex items-center justify-between">
-                    <span className="text-sm">{button}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeButton(index)}
-                      className="h-8 w-8"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
+                  <Card key={index} className="p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{button.text}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeButton(index)}
+                        className="h-8 w-8"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    {button.url && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        🔗 {button.url}
+                      </p>
+                    )}
+                    <Input
+                      value={button.url || ''}
+                      onChange={(e) => updateButtonUrl(index, e.target.value)}
+                      placeholder="https://exemplo.com (opcional)"
+                      className="text-xs"
+                    />
                   </Card>
                 ))}
-                <div className="flex gap-2">
+                <div className="space-y-2">
                   <Input
                     value={newButton}
                     onChange={(e) => setNewButton(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && addButton()}
-                    placeholder="Novo botão..."
+                    onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && addButton()}
+                    placeholder="Texto do botão..."
                   />
-                  <Button onClick={addButton} size="icon">
-                    <Plus className="w-4 h-4" />
+                  <Input
+                    value={newButtonUrl}
+                    onChange={(e) => setNewButtonUrl(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && addButton()}
+                    placeholder="https://exemplo.com (opcional)"
+                  />
+                  <Button onClick={addButton} size="sm" className="w-full">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Adicionar Botão
                   </Button>
                 </div>
               </div>

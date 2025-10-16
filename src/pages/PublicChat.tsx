@@ -421,8 +421,12 @@ const PublicChat = () => {
         return null;
       }
 
-      const btns: string[] = currentNode.data.buttons;
-      const idx = btns.findIndex((b: string) => (b || '').trim().toLowerCase() === userResponse.trim().toLowerCase());
+      const btns: any[] = currentNode.data.buttons;
+      // Normalizar botões para comparação (suportar string e objeto)
+      const idx = btns.findIndex((b: any) => {
+        const btnText = typeof b === 'string' ? b : (b?.text || '');
+        return btnText.trim().toLowerCase() === userResponse.trim().toLowerCase();
+      });
 
       if (idx < 0) {
         console.log('⛔ Rótulo do botão não encontrado entre as opções — não avançar.', { userResponse, btns });
@@ -723,52 +727,65 @@ const PublicChat = () => {
               </div>
               {message.buttons && message.buttons.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2 ml-2">
-                  {message.buttons.map((button, idx) => (
-                    <Button
-                      key={idx}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        if (button === 'Falar com atendente') {
-                          setIsHumanMode(true);
-                          setMessages(prev => [...prev, {
-                            id: Date.now().toString(),
-                            role: 'bot',
-                            content: 'Você está sendo transferido para um atendente. Aguarde um momento...',
-                            timestamp: new Date()
-                          }]);
-                          saveMessage('bot', 'Cliente solicitou falar com atendente');
-                          if (conversationId) {
-                            supabase
-                              .from('chatbot_conversations')
-                              .update({ status: 'waiting_agent' })
-                              .eq('id', conversationId)
-                              .then();
+                  {message.buttons.map((button: any, idx: number) => {
+                    // Suportar formato antigo (string) e novo (objeto com text/url)
+                    const buttonText = typeof button === 'string' ? button : (button?.text || '');
+                    const buttonUrl = typeof button === 'object' && button ? (button.url || '') : '';
+                    
+                    return (
+                      <Button
+                        key={idx}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          // Se tiver URL, abrir em nova aba
+                          if (buttonUrl && buttonUrl.trim()) {
+                            window.open(buttonUrl, '_blank', 'noopener,noreferrer');
+                            return;
                           }
-                        } else if (button === 'Finalizar atendimento') {
-                          setMessages(prev => [...prev, {
-                            id: Date.now().toString(),
-                            role: 'bot',
-                            content: 'Obrigado pelo contato! Até a próxima! 👋',
-                            timestamp: new Date()
-                          }]);
-                          if (conversationId) {
-                            supabase
-                              .from('chatbot_conversations')
-                              .update({ status: 'closed' })
-                              .eq('id', conversationId)
-                              .then();
+                          
+                          // Ações especiais de botões
+                          if (buttonText === 'Falar com atendente') {
+                            setIsHumanMode(true);
+                            setMessages(prev => [...prev, {
+                              id: Date.now().toString(),
+                              role: 'bot',
+                              content: 'Você está sendo transferido para um atendente. Aguarde um momento...',
+                              timestamp: new Date()
+                            }]);
+                            saveMessage('bot', 'Cliente solicitou falar com atendente');
+                            if (conversationId) {
+                              supabase
+                                .from('chatbot_conversations')
+                                .update({ status: 'waiting_agent' })
+                                .eq('id', conversationId)
+                                .then();
+                            }
+                          } else if (buttonText === 'Finalizar atendimento') {
+                            setMessages(prev => [...prev, {
+                              id: Date.now().toString(),
+                              role: 'bot',
+                              content: 'Obrigado pelo contato! Até a próxima! 👋',
+                              timestamp: new Date()
+                            }]);
+                            if (conversationId) {
+                              supabase
+                                .from('chatbot_conversations')
+                                .update({ status: 'closed' })
+                                .eq('id', conversationId)
+                                .then();
+                            }
+                          } else {
+                            // Processar próximo nó do fluxo a partir deste bloco (nodeId de origem)
+                            handleSendMessage(buttonText, message.nodeId);
                           }
-                        } else {
-                          // Processar próximo nó do fluxo a partir deste bloco (nodeId de origem)
-                          handleSendMessage(button, message.nodeId);
-                        }
-                      }}
-                      className="rounded-full"
-                    >
-                      {button}
-                    </Button>
-                  ))}
+                        }}
+                        className="rounded-full"
+                      >
+                        {buttonText}
+                      </Button>
+                    );
+                  })}
                 </div>
               )}
             </div>
