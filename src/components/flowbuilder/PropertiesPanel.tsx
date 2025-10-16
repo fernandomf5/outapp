@@ -119,6 +119,16 @@ export const PropertiesPanel = ({
     });
   };
 
+  const updateButtonText = (index: number, text: string) => {
+    const updatedButtons = [...buttons];
+    updatedButtons[index] = { ...updatedButtons[index], text };
+    setButtons(updatedButtons);
+    onUpdateNode(selectedNode.id, {
+      ...selectedNode.data,
+      buttons: updatedButtons,
+    });
+  };
+
   const getNodeTypeLabel = () => {
     switch (selectedNode.type) {
       case 'text': return 'Texto';
@@ -299,27 +309,30 @@ export const PropertiesPanel = ({
                 {buttons.map((button, index) => (
                   <Card key={index} className="p-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">{button.text}</span>
+                      <Input
+                        value={button.text}
+                        onChange={(e) => updateButtonText(index, e.target.value)}
+                        placeholder="Texto do botão"
+                        className="text-sm font-medium"
+                      />
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => removeButton(index)}
-                        className="h-8 w-8"
+                        className="h-8 w-8 ml-2"
                       >
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
-                    {button.url && (
-                      <p className="text-xs text-muted-foreground truncate">
-                        🔗 {button.url}
-                      </p>
-                    )}
-                    <Input
-                      value={button.url || ''}
-                      onChange={(e) => updateButtonUrl(index, e.target.value)}
-                      placeholder="https://exemplo.com (opcional)"
-                      className="text-xs"
-                    />
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Link (opcional)</Label>
+                      <Input
+                        value={button.url || ''}
+                        onChange={(e) => updateButtonUrl(index, e.target.value)}
+                        placeholder="https://exemplo.com"
+                        className="text-xs mt-1"
+                      />
+                    </div>
                   </Card>
                 ))}
                 <div className="space-y-2">
