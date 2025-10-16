@@ -363,7 +363,13 @@ const BotBuilder = () => {
                 
                 <Button 
                   onClick={() => {
-                    // Cria nó da mensagem inicial
+                    // Se já existem nodes salvos, apenas mostrar o fluxo editor
+                    if (nodes.length > 0) {
+                      setShowFlowEditor(true);
+                      return;
+                    }
+                    
+                    // Se não tem nodes, criar nó da mensagem inicial
                     const initialNode: Node = {
                       id: 'initial-message',
                       type: initialButtons.length > 0 ? 'button' : 'text',
