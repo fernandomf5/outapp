@@ -26,6 +26,29 @@ const ActionNode = ({ data, selected }: NodeProps) => {
           Tipo: {data.actionType}
         </div>
       )}
+      {data.buttons && data.buttons.length > 0 && (
+        <div className="space-y-2 mt-3">
+          {data.buttons.map((button: any, index: number) => {
+            const buttonText = typeof button === 'string' ? button : (button?.text || '');
+            const hasUrl = typeof button === 'object' && !!button?.url;
+            return (
+              <div key={index} className="relative">
+                <div className="text-xs bg-chart-4/20 px-3 py-2 rounded-md text-center border border-chart-4/30 font-medium">
+                  {buttonText}
+                  {hasUrl && <div className="text-[10px] text-chart-4 mt-1 truncate">🔗 Link</div>}
+                </div>
+                <Handle
+                  type="source"
+                  position={Position.Right}
+                  id={`btn-${index}`}
+                  className="w-3 h-3 !bg-chart-4"
+                  style={{ top: '50%', transform: 'translateY(-50%)' }}
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
       <Handle
         type="source"
         position={Position.Bottom}
