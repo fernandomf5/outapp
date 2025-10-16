@@ -39,6 +39,7 @@ const BotBuilder = () => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Carregar chatbot existente
   useEffect(() => {
@@ -119,6 +120,53 @@ const BotBuilder = () => {
       supabase.removeChannel(channel);
     };
   }, [chatbotId, toast]);
+
+  // Auto-save: Salvar automaticamente quando nodes ou edges mudarem
+  useEffect(() => {
+    // Não fazer auto-save se não tem chatbotId ou se não tem user
+    if (!chatbotId || !user || !botName) return;
+    
+    // Limpar timer anterior se existir
+    if (autoSaveTimer) {
+      clearTimeout(autoSaveTimer);
+    }
+
+    // Criar novo timer para salvar após 2 segundos de inatividade
+    const timer = setTimeout(async () => {
+      console.log('💾 Auto-salvando fluxo...');
+      
+      try {
+        const chatbotData = {
+          id: chatbotId,
+          name: botName,
+          description: `Chatbot com ${nodes.length} blocos`,
+          config: {
+            initialMessage,
+            initialButtons,
+            attendantName,
+            nodes,
+            edges,
+          },
+          is_active: isActive,
+          user_id: user.id,
+        };
+
+        await saveChatbot(chatbotData);
+        console.log('✅ Auto-save concluído');
+      } catch (error) {
+        console.error('❌ Erro no auto-save:', error);
+      }
+    }, 2000);
+
+    setAutoSaveTimer(timer);
+
+    // Cleanup
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
+  }, [nodes, edges, initialMessage, initialButtons, attendantName, botName, isActive]);
 
   const addNode = useCallback((type: string) => {
     const defaultLabels: Record<string, string> = {
