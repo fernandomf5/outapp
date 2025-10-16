@@ -100,11 +100,38 @@ export default function ClonedPage() {
       const parser = new DOMParser();
       const doc = parser.parseFromString(modifiedHtml, 'text/html');
 
+      // Add lazy loading to images and iframes for better performance
+      doc.querySelectorAll('img').forEach((img: any) => {
+        img.setAttribute('loading', 'lazy');
+        img.setAttribute('decoding', 'async');
+      });
+      
+      doc.querySelectorAll('iframe').forEach((iframe: any) => {
+        iframe.setAttribute('loading', 'lazy');
+      });
+
+      // Add preconnect for common CDNs to speed up resource loading
+      const head = doc.querySelector('head');
+      const commonCdns = [
+        'https://fonts.googleapis.com',
+        'https://fonts.gstatic.com',
+        'https://cdnjs.cloudflare.com',
+        'https://cdn.jsdelivr.net'
+      ];
+      
+      commonCdns.forEach(cdn => {
+        const link = doc.createElement('link');
+        link.rel = 'preconnect';
+        link.href = cdn;
+        link.crossOrigin = 'anonymous';
+        head?.appendChild(link);
+      });
+
       // 1) Force links to stay inside the iframe and resolve relative URLs
       const baseOrigin = (() => {
         try { return new URL(pageData.original_url).origin; } catch { return ''; }
       })();
-      const head = doc.querySelector('head');
+      
       if (head) {
         const baseEl = doc.createElement('base');
         baseEl.setAttribute('href', baseOrigin + '/');
@@ -273,7 +300,8 @@ export default function ClonedPage() {
       id="page-frame"
       title="Cloned Page"
       srcDoc={renderHtml}
-      sandbox="allow-scripts allow-forms allow-popups allow-modals"
+      sandbox="allow-scripts allow-forms allow-popups allow-modals allow-same-origin"
+      loading="eager"
       style={{
         width: '100%',
         height: '100vh',
@@ -281,6 +309,7 @@ export default function ClonedPage() {
         margin: 0,
         padding: 0,
         display: 'block',
+        colorScheme: 'normal',
       }}
     />
   );

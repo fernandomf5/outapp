@@ -533,9 +533,26 @@ export const PageCloner = () => {
                   <div>
                     <h4 className="font-semibold">Links de Checkout Detectados</h4>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Links identificados automaticamente que parecem ser de checkout/pagamento
+                      {editSettings.detected_checkout_links.length} link(s) de checkout/afiliado detectado(s)
                     </p>
                   </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      if (selectedPage?.page_content) {
+                        const newLinks = detectCheckoutLinks(selectedPage.page_content);
+                        setEditSettings({
+                          ...editSettings,
+                          detected_checkout_links: newLinks
+                        });
+                        toast({ title: "Links re-escaneados com sucesso!" });
+                      }
+                    }}
+                  >
+                    <Link2 className="w-4 h-4 mr-2" />
+                    Re-escanear
+                  </Button>
                 </div>
                 
                 <div className="space-y-3">

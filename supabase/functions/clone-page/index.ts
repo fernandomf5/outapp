@@ -49,6 +49,26 @@ serve(async (req) => {
     // Fix double slashes
     html = html.replace(/(https?:\/\/[^\/]+)\/\//g, '$1/');
 
+    // Optimize images with lazy loading and async decoding
+    html = html.replace(/<img\s/gi, '<img loading="lazy" decoding="async" ');
+    
+    // Optimize iframes with lazy loading
+    html = html.replace(/<iframe\s/gi, '<iframe loading="lazy" ');
+    
+    // Add viewport meta if not present for responsive design
+    if (!html.includes('viewport')) {
+      html = html.replace(/<head>/i, '<head>\n<meta name="viewport" content="width=device-width, initial-scale=1.0">');
+    }
+
+    // Add DNS prefetch for common resources to speed up loading
+    const prefetchLinks = `
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">`;
+    
+    html = html.replace(/<\/head>/i, `${prefetchLinks}\n</head>`);
+
     return new Response(
       JSON.stringify({ 
         success: true, 
