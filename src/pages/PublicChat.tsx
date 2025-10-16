@@ -37,6 +37,7 @@ const PublicChat = () => {
   const [visitorPhone, setVisitorPhone] = useState("");
   const [visitorEmail, setVisitorEmail] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     if (!showPreChatForm) {
@@ -84,6 +85,35 @@ const PublicChat = () => {
       supabase.removeChannel(channel);
     };
   }, [conversationId]);
+
+  // Broadcast de typing status
+  const handleInputChange = (value: string) => {
+    setInputMessage(value);
+    
+    if (!conversationId) return;
+    
+    // Enviar status de "digitando"
+    const channel = supabase.channel(`typing-${conversationId}`);
+    channel.send({
+      type: 'broadcast',
+      event: 'typing',
+      payload: { isTyping: value.length > 0, conversationId }
+    });
+
+    // Limpar timeout anterior
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Enviar "parou de digitar" após 2 segundos
+    typingTimeoutRef.current = setTimeout(() => {
+      channel.send({
+        type: 'broadcast',
+        event: 'typing',
+        payload: { isTyping: false, conversationId }
+      });
+    }, 2000);
+  };
 
   const createConversation = async () => {
     if (!botId) return;
@@ -737,7 +767,7 @@ const PublicChat = () => {
         <div className="max-w-4xl mx-auto flex gap-2">
           <Input
             value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
+            onChange={(e) => handleInputChange(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
             placeholder={isHumanMode ? "Aguardando atendente..." : "Digite sua mensagem..."}
             disabled={isLoading}

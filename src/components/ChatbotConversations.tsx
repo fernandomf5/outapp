@@ -64,6 +64,7 @@ export const ChatbotConversations = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
+  const [isVisitorTyping, setIsVisitorTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Carregar conversas
@@ -143,7 +144,7 @@ export const ChatbotConversations = () => {
     fetchMessages();
 
     // Realtime subscription para mensagens - recarrega TODAS as mensagens quando houver INSERT
-    const channel = supabase
+    const messagesChannel = supabase
       .channel(`messages-${selectedConversation.id}`)
       .on('postgres_changes', {
         event: 'INSERT',
@@ -152,13 +153,25 @@ export const ChatbotConversations = () => {
         filter: `conversation_id=eq.${selectedConversation.id}`
       }, () => {
         console.log('📨 Nova mensagem recebida - recarregando...');
-        // Recarregar todas as mensagens para garantir ordem correta
         fetchMessages();
       })
       .subscribe();
 
+    // Canal para receber status de typing
+    const typingChannel = supabase
+      .channel(`typing-${selectedConversation.id}`)
+      .on('broadcast', { event: 'typing' }, (payload) => {
+        console.log('⌨️ Status de typing recebido:', payload);
+        if (payload.payload.conversationId === selectedConversation.id) {
+          setIsVisitorTyping(payload.payload.isTyping);
+        }
+      })
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(messagesChannel);
+      supabase.removeChannel(typingChannel);
+      setIsVisitorTyping(false);
     };
   }, [selectedConversation]);
 
@@ -374,9 +387,15 @@ export const ChatbotConversations = () => {
                     <p className="font-semibold">
                       {selectedConversation.visitor_name || 'Visitante Anônimo'}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {selectedConversation.visitor_email || selectedConversation.visitor_phone || 'Sem contato'}
-                    </p>
+                    {isVisitorTyping ? (
+                      <p className="text-xs text-primary animate-pulse">
+                        Digitando...
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        {selectedConversation.visitor_email || selectedConversation.visitor_phone || 'Sem contato'}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -477,6 +496,15 @@ export const ChatbotConversations = () => {
                       </div>
                     </div>
                   ))}
+                  {isVisitorTyping && (
+                    <div className="flex justify-start">
+                      <div className="bg-muted rounded-lg p-3 flex items-center gap-1">
+                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
+                    </div>
+                  )}
                   <div ref={messagesEndRef} />
                 </div>
               </ScrollArea>
