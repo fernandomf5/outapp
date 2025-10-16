@@ -93,9 +93,26 @@ const PublicChat = () => {
       })
       .subscribe();
 
+    // Canal de presença - indicar que o cliente está online
+    const presenceChannel = supabase
+      .channel(`presence-${conversationId}`)
+      .on('presence', { event: 'sync' }, () => {
+        console.log('👥 Presença sincronizada');
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({
+            user: 'visitor',
+            online_at: new Date().toISOString(),
+          });
+          console.log('✅ Cliente marcado como online');
+        }
+      });
+
     return () => {
       supabase.removeChannel(channel);
       supabase.removeChannel(adminTypingChannel);
+      supabase.removeChannel(presenceChannel);
       setIsAdminTyping(false);
     };
   }, [conversationId]);

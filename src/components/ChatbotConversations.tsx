@@ -65,6 +65,7 @@ export const ChatbotConversations = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
   const [isVisitorTyping, setIsVisitorTyping] = useState(false);
+  const [isVisitorOnline, setIsVisitorOnline] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -169,10 +170,32 @@ export const ChatbotConversations = () => {
       })
       .subscribe();
 
+    // Canal de presença para detectar se o visitante está online
+    const presenceChannel = supabase
+      .channel(`presence-${selectedConversation.id}`)
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState();
+        const presenceKeys = Object.keys(state);
+        const isOnline = presenceKeys.some(key => 
+          state[key].some((presence: any) => presence.user === 'visitor')
+        );
+        setIsVisitorOnline(isOnline);
+        console.log('👥 Visitante online:', isOnline);
+      })
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        console.log('👋 Visitante entrou:', key, newPresences);
+      })
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        console.log('👋 Visitante saiu:', key, leftPresences);
+      })
+      .subscribe();
+
     return () => {
       supabase.removeChannel(messagesChannel);
       supabase.removeChannel(typingChannel);
+      supabase.removeChannel(presenceChannel);
       setIsVisitorTyping(false);
+      setIsVisitorOnline(false);
     };
   }, [selectedConversation]);
 
@@ -409,13 +432,24 @@ export const ChatbotConversations = () => {
               {/* Header do chat */}
               <div className="flex items-center justify-between p-4 border-b">
                 <div className="flex items-center gap-3">
-                  <div className="bg-primary/20 p-2 rounded-full">
-                    <User className="w-5 h-5 text-primary" />
+                  <div className="relative">
+                    <div className="bg-primary/20 p-2 rounded-full">
+                      <User className="w-5 h-5 text-primary" />
+                    </div>
+                    {/* Indicador de status online/offline */}
+                    <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-card ${
+                      isVisitorOnline ? 'bg-green-500' : 'bg-gray-400'
+                    }`} />
                   </div>
                   <div>
-                    <p className="font-semibold">
-                      {selectedConversation.visitor_name || 'Visitante Anônimo'}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold">
+                        {selectedConversation.visitor_name || 'Visitante Anônimo'}
+                      </p>
+                      <Badge variant={isVisitorOnline ? 'default' : 'secondary'} className="text-xs">
+                        {isVisitorOnline ? 'Online' : 'Offline'}
+                      </Badge>
+                    </div>
                     {isVisitorTyping ? (
                       <p className="text-xs text-primary animate-pulse">
                         Digitando...
