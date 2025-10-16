@@ -33,7 +33,7 @@ export const VoucherRedemption = () => {
         .select('*, plans(*)')
         .eq('code', code.toUpperCase())
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (voucherError || !voucher) {
         toast({
@@ -50,7 +50,7 @@ export const VoucherRedemption = () => {
         .select('*')
         .eq('voucher_id', voucher.id)
         .eq('user_id', user!.id)
-        .single();
+        .maybeSingle();
 
       if (existingRedemption) {
         toast({
@@ -81,20 +81,84 @@ export const VoucherRedemption = () => {
         return;
       }
 
-      // Criar assinatura
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + voucher.plans.duration_days);
+      let planName = "";
+      
+      // Se o voucher tem um plano, criar assinatura baseada no plano
+      if (voucher.plan_id && voucher.plans) {
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + voucher.plans.duration_days);
+        planName = voucher.plans.name;
 
-      const { error: subscriptionError } = await supabase
-        .from('subscriptions')
-        .insert({
-          user_id: user!.id,
-          plan_id: voucher.plan_id,
-          status: 'active',
-          expires_at: expiresAt.toISOString()
-        });
+        const { error: subscriptionError } = await supabase
+          .from('subscriptions')
+          .insert({
+            user_id: user!.id,
+            plan_id: voucher.plan_id,
+            status: 'active',
+            expires_at: expiresAt.toISOString()
+          });
 
-      if (subscriptionError) throw subscriptionError;
+        if (subscriptionError) throw subscriptionError;
+      } 
+      // Se o voucher tem recursos customizados, criar assinatura temporária
+      else if (voucher.duration_days) {
+        // Buscar recursos do voucher
+        const { data: voucherFeatures } = await supabase
+          .from('voucher_features')
+          .select('feature_id, features(name)')
+          .eq('voucher_id', voucher.id);
+
+        if (!voucherFeatures || voucherFeatures.length === 0) {
+          toast({
+            title: "Erro no voucher",
+            description: "Voucher sem recursos configurados",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        // Criar um plano temporário para o voucher
+        planName = `Voucher ${code}`;
+        
+        const { data: newPlan, error: planError } = await supabase
+          .from('plans')
+          .insert({
+            name: planName,
+            description: `Plano ativado por voucher ${code} com ${voucher.duration_days} dias de acesso`,
+            price: 0,
+            duration_days: voucher.duration_days,
+            plan_type: 'paid' as any,
+            is_active: false,
+            features: null
+          })
+          .select()
+          .single();
+
+        if (planError) throw planError;
+
+        // Associar features ao plano
+        const planFeatureInserts = voucherFeatures.map((vf: any) => ({
+          plan_id: newPlan.id,
+          feature_id: vf.feature_id
+        }));
+
+        await supabase.from('plan_features').insert(planFeatureInserts);
+
+        // Criar assinatura
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + voucher.duration_days);
+
+        const { error: subscriptionError } = await supabase
+          .from('subscriptions')
+          .insert({
+            user_id: user!.id,
+            plan_id: newPlan.id,
+            status: 'active',
+            expires_at: expiresAt.toISOString()
+          });
+
+        if (subscriptionError) throw subscriptionError;
+      }
 
       // Registrar resgate
       const { error: redemptionError } = await supabase
@@ -114,7 +178,7 @@ export const VoucherRedemption = () => {
 
       toast({
         title: "Voucher resgatado! 🎉",
-        description: `Você ativou o plano ${voucher.plans.name}`
+        description: `Você ativou: ${planName}`
       });
 
       setCode("");
@@ -142,7 +206,7 @@ export const VoucherRedemption = () => {
         <div>
           <h3 className="text-xl font-bold">Resgatar Voucher</h3>
           <p className="text-sm text-muted-foreground">
-            Ative um plano usando um código promocional
+            Ative um plano ou recursos usando um código promocional
           </p>
         </div>
       </div>
@@ -174,7 +238,7 @@ export const VoucherRedemption = () => {
           </h4>
           <ul className="text-sm space-y-1 text-muted-foreground">
             <li>• Digite o código do voucher no campo acima</li>
-            <li>• O plano será ativado automaticamente</li>
+            <li>• O plano ou recursos serão ativados automaticamente</li>
             <li>• Vouchers só podem ser usados uma vez por usuário</li>
             <li>• Verifique a data de validade do código</li>
           </ul>

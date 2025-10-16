@@ -18,6 +18,8 @@ import { AdminMessagesManager } from "@/components/admin/AdminMessagesManager";
 import { VouchersManager } from "@/components/admin/VouchersManager";
 import { TicketsManager } from "@/components/admin/TicketsManager";
 import { TicketNotificationBell } from "@/components/TicketNotificationBell";
+import { FeaturesManager } from "@/components/admin/FeaturesManager";
+import { PlanFeaturesManager } from "@/components/admin/PlanFeaturesManager";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -627,6 +629,12 @@ const AdminDashboard = () => {
           
           {/* Tickets Manager */}
           <TicketsManager />
+          
+          {/* Features Management */}
+          <FeaturesManager />
+          
+          {/* Plan Features Management */}
+          <PlanFeaturesManager />
         </div>
 
         {/* Video Tutorials Management */}

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, Trash2, Ticket, Copy } from "lucide-react";
@@ -13,23 +14,35 @@ import { Plus, Trash2, Ticket, Copy } from "lucide-react";
 interface Voucher {
   id: string;
   code: string;
-  plan_id: string;
+  plan_id: string | null;
+  duration_days: number | null;
   max_uses: number;
   current_uses: number;
   is_active: boolean;
   expires_at: string | null;
   created_at: string;
-  plans: { name: string };
+  plans?: { name: string } | null;
+}
+
+interface Feature {
+  id: string;
+  name: string;
+  key: string;
+  category: string | null;
 }
 
 export const VouchersManager = () => {
   const { toast } = useToast();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [plans, setPlans] = useState<any[]>([]);
+  const [features, setFeatures] = useState<Feature[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [useCustomFeatures, setUseCustomFeatures] = useState(false);
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
   const [newVoucher, setNewVoucher] = useState({
     code: "",
     plan_id: "",
+    duration_days: "",
     max_uses: 1,
     expires_at: ""
   });
@@ -37,6 +50,7 @@ export const VouchersManager = () => {
   useEffect(() => {
     fetchVouchers();
     fetchPlans();
+    fetchFeatures();
   }, []);
 
   const fetchVouchers = async () => {
@@ -61,6 +75,18 @@ export const VouchersManager = () => {
     }
   };
 
+  const fetchFeatures = async () => {
+    const { data, error } = await supabase
+      .from('features')
+      .select('*')
+      .eq('is_active', true)
+      .order('category', { ascending: true });
+
+    if (!error && data) {
+      setFeatures(data);
+    }
+  };
+
   const generateCode = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code = '';
@@ -71,37 +97,87 @@ export const VouchersManager = () => {
   };
 
   const handleCreate = async () => {
-    if (!newVoucher.code || !newVoucher.plan_id) {
+    if (!newVoucher.code) {
       toast({
         title: "Erro",
-        description: "Preencha todos os campos obrigatórios",
+        description: "Código é obrigatório",
         variant: "destructive"
       });
       return;
     }
 
-    const { error } = await supabase
-      .from('vouchers')
-      .insert({
-        ...newVoucher,
-        expires_at: newVoucher.expires_at || null
-      });
-
-    if (error) {
+    if (!useCustomFeatures && !newVoucher.plan_id) {
       toast({
-        title: "Erro ao criar voucher",
-        description: error.message,
+        title: "Erro",
+        description: "Selecione um plano ou configure recursos customizados",
         variant: "destructive"
       });
-    } else {
-      toast({
-        title: "Voucher criado!",
-        description: `Código: ${newVoucher.code}`
-      });
-      fetchVouchers();
-      setIsDialogOpen(false);
-      setNewVoucher({ code: "", plan_id: "", max_uses: 1, expires_at: "" });
+      return;
     }
+
+    if (useCustomFeatures && (!newVoucher.duration_days || selectedFeatures.length === 0)) {
+      toast({
+        title: "Erro",
+        description: "Defina a duração e selecione pelo menos um recurso",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Inserir voucher
+    const voucherData = {
+      code: newVoucher.code,
+      plan_id: useCustomFeatures ? null : newVoucher.plan_id,
+      duration_days: useCustomFeatures ? parseInt(newVoucher.duration_days) : null,
+      max_uses: newVoucher.max_uses,
+      expires_at: newVoucher.expires_at || null
+    };
+
+    const { data: voucherInserted, error: voucherError } = await supabase
+      .from('vouchers')
+      .insert(voucherData)
+      .select()
+      .single();
+
+    if (voucherError) {
+      toast({
+        title: "Erro ao criar voucher",
+        description: voucherError.message,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Se usar recursos customizados, inserir features
+    if (useCustomFeatures && voucherInserted) {
+      const featureInserts = selectedFeatures.map(featureId => ({
+        voucher_id: voucherInserted.id,
+        feature_id: featureId
+      }));
+
+      const { error: featuresError } = await supabase
+        .from('voucher_features')
+        .insert(featureInserts);
+
+      if (featuresError) {
+        toast({
+          title: "Erro ao adicionar recursos",
+          description: featuresError.message,
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    toast({
+      title: "Voucher criado!",
+      description: `Código: ${newVoucher.code}`
+    });
+    fetchVouchers();
+    setIsDialogOpen(false);
+    setNewVoucher({ code: "", plan_id: "", duration_days: "", max_uses: 1, expires_at: "" });
+    setSelectedFeatures([]);
+    setUseCustomFeatures(false);
   };
 
   const handleDelete = async (id: string) => {
@@ -180,21 +256,83 @@ export const VouchersManager = () => {
                 </div>
               </div>
 
-              <div>
-                <Label>Plano *</Label>
-                <Select value={newVoucher.plan_id} onValueChange={(v) => setNewVoucher({ ...newVoucher, plan_id: v })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um plano" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {plans.map((plan) => (
-                      <SelectItem key={plan.id} value={plan.id}>
-                        {plan.name} - R$ {plan.price}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                <Checkbox
+                  id="custom-features"
+                  checked={useCustomFeatures}
+                  onCheckedChange={(checked) => setUseCustomFeatures(checked as boolean)}
+                />
+                <Label htmlFor="custom-features" className="cursor-pointer">
+                  Configurar recursos e duração customizados
+                </Label>
               </div>
+
+              {!useCustomFeatures ? (
+                <div>
+                  <Label>Plano *</Label>
+                  <Select value={newVoucher.plan_id} onValueChange={(v) => setNewVoucher({ ...newVoucher, plan_id: v })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um plano" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {plans.map((plan) => (
+                        <SelectItem key={plan.id} value={plan.id}>
+                          {plan.name} - R$ {plan.price}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <Label>Duração (dias) *</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={newVoucher.duration_days}
+                      onChange={(e) => setNewVoucher({ ...newVoucher, duration_days: e.target.value })}
+                      placeholder="Ex: 30"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Por quantos dias o voucher será válido após resgate
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label>Funcionalidades a Liberar *</Label>
+                    <div className="border rounded-lg p-3 max-h-60 overflow-y-auto space-y-2">
+                      {features.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          Nenhum recurso disponível
+                        </p>
+                      ) : (
+                        features.map((feature) => (
+                          <div key={feature.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`feature-${feature.id}`}
+                              checked={selectedFeatures.includes(feature.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedFeatures([...selectedFeatures, feature.id]);
+                                } else {
+                                  setSelectedFeatures(selectedFeatures.filter(id => id !== feature.id));
+                                }
+                              }}
+                            />
+                            <Label htmlFor={`feature-${feature.id}`} className="cursor-pointer flex-1">
+                              <div className="font-medium text-sm">{feature.name}</div>
+                              {feature.category && (
+                                <div className="text-xs text-muted-foreground">{feature.category}</div>
+                              )}
+                            </Label>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
 
               <div>
                 <Label>Número de Usos</Label>
@@ -248,7 +386,16 @@ export const VouchersManager = () => {
                     </Badge>
                   </div>
                   <div className="text-sm text-muted-foreground space-y-1">
-                    <p>Plano: <span className="font-semibold">{voucher.plans.name}</span></p>
+                    {voucher.plans ? (
+                      <p>Plano: <span className="font-semibold">{voucher.plans.name}</span></p>
+                    ) : (
+                      <>
+                        <p>Tipo: <span className="font-semibold">Recursos Customizados</span></p>
+                        {voucher.duration_days && (
+                          <p>Duração: <span className="font-semibold">{voucher.duration_days} dias</span></p>
+                        )}
+                      </>
+                    )}
                     <p>Usos: {voucher.current_uses} / {voucher.max_uses}</p>
                     {voucher.expires_at && (
                       <p>Expira: {new Date(voucher.expires_at).toLocaleDateString('pt-BR')}</p>

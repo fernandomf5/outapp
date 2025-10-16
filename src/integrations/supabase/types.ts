@@ -732,6 +732,39 @@ export type Database = {
         }
         Relationships: []
       }
+      features: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          key: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          key: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          key?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payment_integrations: {
         Row: {
           api_key: string | null
@@ -767,6 +800,42 @@ export type Database = {
           webhook_url?: string | null
         }
         Relationships: []
+      }
+      plan_features: {
+        Row: {
+          created_at: string
+          feature_id: string
+          id: string
+          plan_id: string
+        }
+        Insert: {
+          created_at?: string
+          feature_id: string
+          id?: string
+          plan_id: string
+        }
+        Update: {
+          created_at?: string
+          feature_id?: string
+          id?: string
+          plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_features_feature_id_fkey"
+            columns: ["feature_id"]
+            isOneToOne: false
+            referencedRelation: "features"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_features_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       plans: {
         Row: {
@@ -1162,6 +1231,42 @@ export type Database = {
         }
         Relationships: []
       }
+      voucher_features: {
+        Row: {
+          created_at: string
+          feature_id: string
+          id: string
+          voucher_id: string
+        }
+        Insert: {
+          created_at?: string
+          feature_id: string
+          id?: string
+          voucher_id: string
+        }
+        Update: {
+          created_at?: string
+          feature_id?: string
+          id?: string
+          voucher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voucher_features_feature_id_fkey"
+            columns: ["feature_id"]
+            isOneToOne: false
+            referencedRelation: "features"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voucher_features_voucher_id_fkey"
+            columns: ["voucher_id"]
+            isOneToOne: false
+            referencedRelation: "vouchers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       voucher_redemptions: {
         Row: {
           id: string
@@ -1197,6 +1302,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           current_uses: number
+          duration_days: number | null
           expires_at: string | null
           id: string
           is_active: boolean
@@ -1208,6 +1314,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           current_uses?: number
+          duration_days?: number | null
           expires_at?: string | null
           id?: string
           is_active?: boolean
@@ -1219,6 +1326,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           current_uses?: number
+          duration_days?: number | null
           expires_at?: string | null
           id?: string
           is_active?: boolean
