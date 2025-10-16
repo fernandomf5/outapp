@@ -553,10 +553,20 @@ const PublicChat = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => {
+                        // Sempre adicionar a mensagem do usuário primeiro
+                        const userMessage: Message = {
+                          id: Date.now().toString(),
+                          role: 'user',
+                          content: button,
+                          timestamp: new Date()
+                        };
+                        setMessages(prev => [...prev, userMessage]);
+                        saveMessage('user', button);
+
                         if (button === 'Falar com atendente') {
                           setIsHumanMode(true);
                           setMessages(prev => [...prev, {
-                            id: Date.now().toString(),
+                            id: (Date.now() + 1).toString(),
                             role: 'bot',
                             content: 'Você está sendo transferido para um atendente. Aguarde um momento...',
                             timestamp: new Date()
@@ -571,7 +581,7 @@ const PublicChat = () => {
                           }
                         } else if (button === 'Finalizar atendimento') {
                           setMessages(prev => [...prev, {
-                            id: Date.now().toString(),
+                            id: (Date.now() + 1).toString(),
                             role: 'bot',
                             content: 'Obrigado pelo contato! Até a próxima! 👋',
                             timestamp: new Date()
@@ -584,6 +594,7 @@ const PublicChat = () => {
                               .then();
                           }
                         } else {
+                          // Processar próximo nó do fluxo
                           handleSendMessage(button);
                         }
                       }}
