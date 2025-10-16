@@ -318,6 +318,7 @@ export const PropertiesPanel = ({
                       <Button
                         variant="ghost"
                         size="icon"
+                        type="button"
                         onClick={() => removeButton(index)}
                         className="h-8 w-8 ml-2"
                       >
@@ -382,6 +383,7 @@ export const PropertiesPanel = ({
           variant="default"
           className="w-full bg-green-600 hover:bg-green-700 text-white"
           onClick={handleUpdate}
+          type="button"
         >
           <Check className="w-4 h-4 mr-2" />
           Aplicar
@@ -392,6 +394,7 @@ export const PropertiesPanel = ({
             variant="destructive"
             className="w-full"
             onClick={() => onDeleteNode(selectedNode.id)}
+            type="button"
           >
             <Trash2 className="w-4 h-4 mr-2" />
             Excluir Bloco
