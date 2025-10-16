@@ -339,7 +339,7 @@ const Dashboard = () => {
         <SubscriptionBanner />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-9 mb-8">
+          <TabsList className="grid w-full grid-cols-8 mb-8">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             <TabsTrigger value="clients" className="relative">
               Clientes
@@ -354,7 +354,6 @@ const Dashboard = () => {
               <Link2 className="w-4 h-4 mr-2" />
               Links
             </TabsTrigger>
-            <TabsTrigger value="pixels">Pixels & Tags</TabsTrigger>
             <TabsTrigger value="cloner">Clonador</TabsTrigger>
             <TabsTrigger value="support">Suporte</TabsTrigger>
             <TabsTrigger value="voucher">Voucher</TabsTrigger>
@@ -627,10 +626,6 @@ const Dashboard = () => {
 
           <TabsContent value="tools">
             <WhatsAppLinkGenerator />
-          </TabsContent>
-
-          <TabsContent value="pixels">
-            <PixelsManager />
           </TabsContent>
 
           <TabsContent value="cloner">
