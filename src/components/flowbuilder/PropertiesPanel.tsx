@@ -31,6 +31,7 @@ export const PropertiesPanel = ({
   const [videoUrl, setVideoUrl] = useState('');
   const [documentUrl, setDocumentUrl] = useState('');
   const [documentName, setDocumentName] = useState('');
+  const [delaySeconds, setDelaySeconds] = useState<number>(0);
 
   useEffect(() => {
     if (selectedNode) {
@@ -43,6 +44,7 @@ export const PropertiesPanel = ({
       setVideoUrl(selectedNode.data.videoUrl || '');
       setDocumentUrl(selectedNode.data.documentUrl || '');
       setDocumentName(selectedNode.data.documentName || '');
+      setDelaySeconds(selectedNode.data.delaySeconds || 0);
     }
   }, [selectedNode]);
 
@@ -67,6 +69,7 @@ export const PropertiesPanel = ({
       videoUrl,
       documentUrl,
       documentName,
+      delaySeconds,
     });
   };
 
@@ -120,6 +123,27 @@ export const PropertiesPanel = ({
       </div>
 
       <div className="space-y-4">
+        {/* Atraso em segundos - para todos os tipos exceto trigger */}
+        {selectedNode.type !== 'trigger' && (
+          <div>
+            <Label htmlFor="delay">Atraso em segundos (opcional)</Label>
+            <Input
+              id="delay"
+              type="number"
+              min="0"
+              max="60"
+              value={delaySeconds}
+              onChange={(e) => setDelaySeconds(Number(e.target.value))}
+              onBlur={handleUpdate}
+              placeholder="0"
+              className="mt-2"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Simula efeito de "digitando" antes de mostrar a mensagem
+            </p>
+          </div>
+        )}
+
         {/* Texto para todos os tipos exceto image, audio, video, document, humanAgent */}
         {!['image', 'audio', 'video', 'document', 'humanAgent'].includes(selectedNode.type) && (
           <div>

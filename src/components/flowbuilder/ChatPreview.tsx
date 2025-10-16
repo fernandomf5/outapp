@@ -152,10 +152,13 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
       const nextNode = findNextNode(contextNodeId, textToSend);
       
       if (nextNode) {
+        // Calcular delay total (500ms base + delay configurado)
+        const delayMs = 500 + ((nextNode.data?.delaySeconds || 0) * 1000);
+        
         setTimeout(() => {
           processNode(nextNode);
           setIsLoading(false);
-        }, 500);
+        }, delayMs);
         return;
       }
     }

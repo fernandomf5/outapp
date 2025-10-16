@@ -431,10 +431,13 @@ const PublicChat = () => {
           console.log('➡️ Próximo nó encontrado:', nextNode);
           
           if (nextNode) {
+            // Calcular delay total (500ms base + delay configurado)
+            const delayMs = 500 + ((nextNode.data?.delaySeconds || 0) * 1000);
+            
             setTimeout(async () => {
               await processNode(nextNode, botData.config.nodes, botData.config.edges);
               setIsLoading(false);
-            }, 500);
+            }, delayMs);
             return;
           } else {
             console.log('⚠️ Nenhum próximo nó encontrado - Fim do fluxo');
