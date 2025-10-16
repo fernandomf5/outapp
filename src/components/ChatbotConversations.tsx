@@ -66,6 +66,7 @@ export const ChatbotConversations = () => {
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
   const [isVisitorTyping, setIsVisitorTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Carregar conversas
   useEffect(() => {
@@ -174,6 +175,34 @@ export const ChatbotConversations = () => {
       setIsVisitorTyping(false);
     };
   }, [selectedConversation]);
+
+  const handleAdminTyping = (value: string) => {
+    setNewMessage(value);
+    
+    if (!selectedConversation) return;
+    
+    // Enviar status de "digitando" para o cliente
+    const channel = supabase.channel(`admin-typing-${selectedConversation.id}`);
+    channel.send({
+      type: 'broadcast',
+      event: 'admin-typing',
+      payload: { isTyping: value.length > 0, conversationId: selectedConversation.id }
+    });
+
+    // Limpar timeout anterior
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Enviar "parou de digitar" após 2 segundos
+    typingTimeoutRef.current = setTimeout(() => {
+      channel.send({
+        type: 'broadcast',
+        event: 'admin-typing',
+        payload: { isTyping: false, conversationId: selectedConversation.id }
+      });
+    }, 2000);
+  };
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedConversation) return;
@@ -514,7 +543,7 @@ export const ChatbotConversations = () => {
                 <div className="flex gap-2">
                   <Input
                     value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
+                    onChange={(e) => handleAdminTyping(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                     placeholder="Digite sua mensagem..."
                     className="flex-1"

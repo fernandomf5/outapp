@@ -28,6 +28,7 @@ const PublicChat = () => {
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [isAdminTyping, setIsAdminTyping] = useState(false);
   const [botData, setBotData] = useState<any>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [sessionId] = useState(() => `session-${Date.now()}-${Math.random()}`);
@@ -81,8 +82,21 @@ const PublicChat = () => {
       )
       .subscribe();
 
+    // Canal para receber status de typing do atendente
+    const adminTypingChannel = supabase
+      .channel(`admin-typing-${conversationId}`)
+      .on('broadcast', { event: 'admin-typing' }, (payload) => {
+        console.log('⌨️ Atendente digitando:', payload);
+        if (payload.payload.conversationId === conversationId) {
+          setIsAdminTyping(payload.payload.isTyping);
+        }
+      })
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
+      supabase.removeChannel(adminTypingChannel);
+      setIsAdminTyping(false);
     };
   }, [conversationId]);
 
@@ -740,7 +754,7 @@ const PublicChat = () => {
               </div>
             </div>
           )}
-          {isTyping && (
+          {(isTyping || isAdminTyping) && (
             <div className="flex justify-start">
               <div className="bg-card border border-border rounded-2xl px-4 py-3">
                 <div className="flex gap-1">
