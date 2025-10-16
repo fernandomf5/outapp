@@ -220,7 +220,13 @@ export const PageCloner = () => {
     const doc = parser.parseFromString(html, 'text/html');
     const links: { originalUrl: string; text: string; replaced?: boolean; newUrl?: string }[] = [];
     
-    const checkoutKeywords = ['checkout', 'comprar', 'buy', 'cart', 'carrinho', 'pagamento', 'payment', 'finalizar', 'pedido', 'order'];
+    const checkoutKeywords = [
+      'checkout', 'comprar', 'buy', 'cart', 'carrinho', 'pagamento', 'payment', 'finalizar', 'pedido', 'order',
+      'hotmart', 'euvicash', 'wikipédia', 'projetos afiliado', 'monetizze', 'empreender lucrativo',
+      'eduzz', 'braip', 'grana inteligente', 'kiwify', 'amazon afiliados', 'programa de afiliados da amazon',
+      'lomadee', 'afilio', 'actionpay', 'parceiro magalu', 'magalu divulgador', 'legião visionária',
+      'shopee afiliados', 'perfect pay', 'perfectpay'
+    ];
     
     doc.querySelectorAll('a[href]').forEach((link) => {
       const href = link.getAttribute('href') || '';
