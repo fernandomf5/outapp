@@ -18,6 +18,7 @@ import PublicChat from "./pages/PublicChat";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ShortLinkRedirect from "./pages/ShortLinkRedirect";
+import ClonedPage from "./pages/ClonedPage";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/email-confirmed" element={<EmailConfirmed />} />
             <Route path="/s/:shortCode" element={<ShortLinkRedirect />} />
+            <Route path="/page/:slug" element={<ClonedPage />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
