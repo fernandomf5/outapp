@@ -27,6 +27,24 @@ const DocumentNode = ({ data, selected }: NodeProps) => {
         <div className="text-sm text-muted-foreground">Nenhum documento selecionado</div>
       )}
       <div className="text-sm text-foreground mt-2">{data.label}</div>
+      {data.buttons && data.buttons.length > 0 && (
+        <div className="space-y-2 mt-3">
+          {data.buttons.map((button: string, index: number) => (
+            <div key={index} className="relative">
+              <div className="text-xs bg-amber-500/20 px-3 py-2 rounded-md text-center border border-amber-500/30 font-medium">
+                {button}
+              </div>
+              <Handle
+                type="source"
+                position={Position.Right}
+                id={`btn-${index}`}
+                className="w-3 h-3 !bg-amber-500"
+                style={{ top: '50%', transform: 'translateY(-50%)' }}
+              />
+            </div>
+          ))}
+        </div>
+      )}
       <Handle
         type="source"
         position={Position.Bottom}

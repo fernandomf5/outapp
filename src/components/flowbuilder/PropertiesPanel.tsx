@@ -245,37 +245,43 @@ export const PropertiesPanel = ({
           </>
         )}
 
-        {/* Botões para tipo Button */}
-        {selectedNode.type === 'button' && (
-          <div>
-            <Label>Botões</Label>
-            <div className="space-y-2 mt-2">
-              {buttons.map((button, index) => (
-                <Card key={index} className="p-3 flex items-center justify-between">
-                  <span className="text-sm">{button}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeButton(index)}
-                    className="h-8 w-8"
-                  >
-                    <X className="w-4 h-4" />
+        {/* Botões para todos os tipos de blocos */}
+        {!['humanAgent', 'trigger'].includes(selectedNode.type) && (
+          <>
+            <Separator className="my-4" />
+            <div>
+              <Label>Botões (opcional)</Label>
+              <p className="text-xs text-muted-foreground mt-1 mb-3">
+                Adicione botões para criar opções de resposta rápida
+              </p>
+              <div className="space-y-2">
+                {buttons.map((button, index) => (
+                  <Card key={index} className="p-3 flex items-center justify-between">
+                    <span className="text-sm">{button}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeButton(index)}
+                      className="h-8 w-8"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </Card>
+                ))}
+                <div className="flex gap-2">
+                  <Input
+                    value={newButton}
+                    onChange={(e) => setNewButton(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && addButton()}
+                    placeholder="Novo botão..."
+                  />
+                  <Button onClick={addButton} size="icon">
+                    <Plus className="w-4 h-4" />
                   </Button>
-                </Card>
-              ))}
-              <div className="flex gap-2">
-                <Input
-                  value={newButton}
-                  onChange={(e) => setNewButton(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && addButton()}
-                  placeholder="Novo botão..."
-                />
-                <Button onClick={addButton} size="icon">
-                  <Plus className="w-4 h-4" />
-                </Button>
+                </div>
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
 
