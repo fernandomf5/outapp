@@ -127,7 +127,7 @@ export const VoucherRedemption = () => {
             description: `Plano ativado por voucher ${code} com ${voucher.duration_days} dias de acesso`,
             price: 0,
             duration_days: voucher.duration_days,
-            plan_type: 'paid' as any,
+            plan_type: 'chatbot',
             is_active: false,
             features: null
           })
