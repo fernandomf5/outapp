@@ -532,8 +532,8 @@ export const TicketSystem = () => {
                     <div
                       className={`max-w-[80%] rounded-2xl px-4 py-2 ${
                         msg.is_admin
-                          ? 'bg-card border border-border'
-                          : 'bg-primary text-primary-foreground'
+                          ? 'bg-green-600 text-white'
+                          : 'bg-green-600 text-white'
                       }`}
                     >
                       <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
