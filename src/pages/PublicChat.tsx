@@ -531,7 +531,10 @@ const PublicChat = () => {
             }, delayMs);
             return;
           } else {
-            console.log('⚠️ Nenhum próximo nó encontrado - Fim do fluxo');
+            console.log('⚠️ Botão sem conexão - apenas salvando mensagem do usuário');
+            // Não processar nenhum nó, apenas finalizar
+            setIsLoading(false);
+            return;
           }
         } else {
           console.log('💬 Mensagem livre do usuário - aguardando atendente');
