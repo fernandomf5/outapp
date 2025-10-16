@@ -117,7 +117,7 @@ export const ChatbotConversations = () => {
 
     fetchMessages();
 
-    // Realtime subscription para mensagens
+    // Realtime subscription para mensagens - recarrega TODAS as mensagens quando houver INSERT
     const channel = supabase
       .channel(`messages-${selectedConversation.id}`)
       .on('postgres_changes', {
@@ -125,8 +125,9 @@ export const ChatbotConversations = () => {
         schema: 'public',
         table: 'chatbot_messages',
         filter: `conversation_id=eq.${selectedConversation.id}`
-      }, (payload) => {
-        setMessages(prev => [...prev, payload.new as Message]);
+      }, () => {
+        // Recarregar todas as mensagens para garantir ordem correta
+        fetchMessages();
       })
       .subscribe();
 
