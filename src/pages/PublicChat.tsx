@@ -372,7 +372,7 @@ const PublicChat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleSendMessage = async (messageText?: string) => {
+  const handleSendMessage = async (messageText?: string, originNodeId?: string) => {
     const textToSend = messageText || inputMessage;
     if (!textToSend.trim() || !botData) return;
 
@@ -422,12 +422,12 @@ const PublicChat = () => {
         setMessages(prev => [...prev, botResponse]);
       } else {
         // Chatbot com fluxo - encontrar próximo nó
-        const lastBotMessage = [...messages].reverse().find(m => m.role === 'bot' && m.nodeId);
-        console.log('🔍 Última mensagem do bot:', lastBotMessage);
+        const contextNodeId = originNodeId || ([...messages].reverse().find(m => m.role === 'bot' && m.nodeId)?.nodeId);
+        console.log('🔍 Nó de contexto:', contextNodeId);
         console.log('📝 Texto enviado pelo usuário:', textToSend);
         
-        if (lastBotMessage?.nodeId) {
-          const nextNode = findNextNode(lastBotMessage.nodeId, textToSend);
+        if (contextNodeId) {
+          const nextNode = findNextNode(contextNodeId, textToSend);
           console.log('➡️ Próximo nó encontrado:', nextNode);
           
           if (nextNode) {
@@ -440,7 +440,7 @@ const PublicChat = () => {
             console.log('⚠️ Nenhum próximo nó encontrado - Fim do fluxo');
           }
         } else {
-          console.log('⚠️ Nenhuma mensagem do bot com nodeId encontrada');
+          console.log('⚠️ Nenhum nó de contexto encontrado para prosseguir no fluxo');
         }
         
         // Finalizar carregamento
@@ -553,20 +553,10 @@ const PublicChat = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        // Sempre adicionar a mensagem do usuário primeiro
-                        const userMessage: Message = {
-                          id: Date.now().toString(),
-                          role: 'user',
-                          content: button,
-                          timestamp: new Date()
-                        };
-                        setMessages(prev => [...prev, userMessage]);
-                        saveMessage('user', button);
-
                         if (button === 'Falar com atendente') {
                           setIsHumanMode(true);
                           setMessages(prev => [...prev, {
-                            id: (Date.now() + 1).toString(),
+                            id: Date.now().toString(),
                             role: 'bot',
                             content: 'Você está sendo transferido para um atendente. Aguarde um momento...',
                             timestamp: new Date()
@@ -581,7 +571,7 @@ const PublicChat = () => {
                           }
                         } else if (button === 'Finalizar atendimento') {
                           setMessages(prev => [...prev, {
-                            id: (Date.now() + 1).toString(),
+                            id: Date.now().toString(),
                             role: 'bot',
                             content: 'Obrigado pelo contato! Até a próxima! 👋',
                             timestamp: new Date()
@@ -594,8 +584,8 @@ const PublicChat = () => {
                               .then();
                           }
                         } else {
-                          // Processar próximo nó do fluxo
-                          handleSendMessage(button);
+                          // Processar próximo nó do fluxo a partir deste bloco (nodeId de origem)
+                          handleSendMessage(button, message.nodeId);
                         }
                       }}
                       className="rounded-full"

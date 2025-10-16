@@ -130,7 +130,7 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
     return null;
   };
 
-  const handleSendMessage = (messageText?: string) => {
+  const handleSendMessage = (messageText?: string, originNodeId?: string) => {
     const textToSend = messageText || inputMessage;
     if (!textToSend.trim()) return;
 
@@ -145,11 +145,11 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
     setInputMessage('');
     setIsLoading(true);
 
-    // Encontrar último nó do bot
-    const lastBotMessage = [...messages].reverse().find(m => m.role === 'bot');
+    // Encontrar nó de contexto do bot (origem)
+    const contextNodeId = originNodeId || ([...messages].reverse().find(m => m.role === 'bot' && m.nodeId)?.nodeId);
     
-    if (lastBotMessage?.nodeId) {
-      const nextNode = findNextNode(lastBotMessage.nodeId, textToSend);
+    if (contextNodeId) {
+      const nextNode = findNextNode(contextNodeId, textToSend);
       
       if (nextNode) {
         setTimeout(() => {
@@ -229,7 +229,7 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
                       key={idx}
                       variant="outline"
                       size="sm"
-                      onClick={() => handleSendMessage(button)}
+                      onClick={() => handleSendMessage(button, message.nodeId)}
                       className="rounded-full text-xs h-7"
                     >
                       {button}
