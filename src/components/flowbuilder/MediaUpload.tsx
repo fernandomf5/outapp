@@ -81,13 +81,13 @@ export const MediaUpload = ({ onMediaSelect, currentMedia, currentFileName, medi
       const filePath = `chatbot-${mediaType}s/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('avatars')
+        .from('chatbot-media')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
+        .from('chatbot-media')
         .getPublicUrl(filePath);
 
       setMediaUrl(publicUrl);

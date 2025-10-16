@@ -48,13 +48,13 @@ export const ImageUpload = ({ onImageSelect, currentImage }: ImageUploadProps) =
       const filePath = `chatbot-images/${fileName}`;
 
       const { error: uploadError, data } = await supabase.storage
-        .from('avatars')
+        .from('chatbot-media')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
+        .from('chatbot-media')
         .getPublicUrl(filePath);
 
       setImageUrl(publicUrl);
