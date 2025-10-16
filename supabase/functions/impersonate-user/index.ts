@@ -11,6 +11,8 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  console.log('=== Início da requisição de impersonation ===');
+
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -25,6 +27,8 @@ serve(async (req) => {
 
     // Get the authorization header from the request
     const authHeader = req.headers.get('Authorization');
+    console.log('Authorization header presente:', !!authHeader);
+    
     if (!authHeader) {
       throw new Error('Sem autorização');
     }
@@ -32,6 +36,8 @@ serve(async (req) => {
     // Verify the requesting user is an admin
     const token = authHeader.replace('Bearer ', '');
     const { data: { user: adminUser }, error: authError } = await supabaseClient.auth.getUser(token);
+    
+    console.log('Admin user obtido:', adminUser?.email, 'Erro:', authError?.message);
     
     if (authError || !adminUser) {
       throw new Error('Não autorizado');
@@ -43,12 +49,15 @@ serve(async (req) => {
       .select('role')
       .eq('user_id', adminUser.id);
 
+    console.log('Roles do usuário:', roles, 'Erro:', roleError?.message);
+
     if (roleError || !roles?.some(r => r.role === 'admin')) {
       throw new Error('Apenas administradores podem fazer login como outros usuários');
     }
 
     // Get the target user ID from request body
     const { userId } = await req.json();
+    console.log('User ID alvo:', userId);
 
     if (!userId) {
       throw new Error('ID do usuário é obrigatório');
@@ -56,6 +65,8 @@ serve(async (req) => {
 
     // Get user data
     const { data: userData, error: userError } = await supabaseClient.auth.admin.getUserById(userId);
+    
+    console.log('Dados do usuário alvo:', userData?.user?.email, 'Erro:', userError?.message);
     
     if (userError || !userData.user) {
       throw new Error('Usuário não encontrado');
@@ -88,6 +99,7 @@ serve(async (req) => {
     }
 
     console.log('Tokens extraídos com sucesso');
+    console.log('=== Impersonation bem-sucedida ===');
 
     return new Response(
       JSON.stringify({
@@ -102,6 +114,8 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    console.error('=== Erro na impersonation ===');
+    console.error('Erro completo:', error);
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
     return new Response(
       JSON.stringify({ error: errorMessage }),

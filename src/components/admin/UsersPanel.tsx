@@ -249,8 +249,16 @@ export const UsersPanel = () => {
   };
 
   const handleLoginAsUser = async (user: UserProfile) => {
+    console.log('Iniciando login como usuário:', user.email);
+    
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
+        throw new Error('Você precisa estar autenticado para fazer login como outro usuário');
+      }
+
+      console.log('Token de admin obtido, fazendo chamada para edge function...');
       
       const response = await fetch(
         'https://mlocikcfxbleddsvxciv.supabase.co/functions/v1/impersonate-user',
@@ -258,7 +266,7 @@ export const UsersPanel = () => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.access_token}`,
+            'Authorization': `Bearer ${session.access_token}`,
             'origin': window.location.origin
           },
           body: JSON.stringify({
@@ -267,13 +275,14 @@ export const UsersPanel = () => {
         }
       );
 
+      console.log('Status da resposta:', response.status);
+
       const result = await response.json();
+      console.log('Resultado da API:', result);
 
       if (!response.ok) {
         throw new Error(result.error || 'Erro ao fazer login como usuário');
       }
-
-      console.log('Resultado da API:', result);
 
       // Get tokens from the response
       const { access_token, refresh_token } = result;
@@ -282,6 +291,8 @@ export const UsersPanel = () => {
         console.error('Tokens não encontrados:', result);
         throw new Error('Tokens não encontrados na resposta');
       }
+
+      console.log('Tokens obtidos, configurando sessão...');
 
       // Set the session with the new tokens
       const { error: sessionError } = await supabase.auth.setSession({
@@ -294,6 +305,8 @@ export const UsersPanel = () => {
         throw sessionError;
       }
 
+      console.log('Sessão configurada com sucesso');
+
       toast({
         title: "Login realizado",
         description: `Você está agora logado como ${user.full_name}`,
@@ -304,10 +317,10 @@ export const UsersPanel = () => {
         window.location.href = '/dashboard';
       }, 500);
     } catch (error: any) {
-      console.error('Erro completo:', error);
+      console.error('Erro completo ao fazer login:', error);
       toast({
         title: "Erro ao fazer login",
-        description: error.message,
+        description: error.message || 'Erro desconhecido ao fazer login',
         variant: "destructive",
       });
     }
