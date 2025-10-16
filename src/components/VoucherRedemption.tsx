@@ -104,8 +104,17 @@ export const VoucherRedemption = () => {
           return;
         }
 
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + plan.duration_days);
+        // Se o plano tem duration_days null, é vitalício
+        let expiresAt: Date;
+        if (plan.duration_days === null) {
+          // Vitalício - colocar uma data bem no futuro (100 anos)
+          expiresAt = new Date();
+          expiresAt.setFullYear(expiresAt.getFullYear() + 100);
+        } else {
+          expiresAt = new Date();
+          expiresAt.setDate(expiresAt.getDate() + plan.duration_days);
+        }
+        
         planName = plan.name;
 
         const { error: subscriptionError } = await supabase
@@ -154,8 +163,16 @@ export const VoucherRedemption = () => {
         }));
         await supabase.from('plan_features').insert(planFeatureInserts);
 
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + voucher.duration_days);
+        // Se o voucher tem duration_days null, é vitalício
+        let expiresAt: Date;
+        if (voucher.duration_days === null) {
+          expiresAt = new Date();
+          expiresAt.setFullYear(expiresAt.getFullYear() + 100);
+        } else {
+          expiresAt = new Date();
+          expiresAt.setDate(expiresAt.getDate() + voucher.duration_days);
+        }
+        
         const { error: subscriptionError } = await supabase
           .from('subscriptions')
           .insert({

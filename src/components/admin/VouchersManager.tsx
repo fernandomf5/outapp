@@ -44,7 +44,9 @@ export const VouchersManager = () => {
     plan_id: "",
     duration_days: "",
     max_uses: 1,
-    expires_at: ""
+    expires_at: "",
+    isLifetime: false,
+    allFeatures: false
   });
 
   useEffect(() => {
@@ -115,20 +117,39 @@ export const VouchersManager = () => {
       return;
     }
 
-    if (useCustomFeatures && (!newVoucher.duration_days || selectedFeatures.length === 0)) {
+    if (useCustomFeatures && !newVoucher.isLifetime && !newVoucher.duration_days) {
       toast({
         title: "Erro",
-        description: "Defina a duração e selecione pelo menos um recurso",
+        description: "Defina a duração ou marque como vitalício",
         variant: "destructive"
       });
       return;
+    }
+
+    if (useCustomFeatures && !newVoucher.allFeatures && selectedFeatures.length === 0) {
+      toast({
+        title: "Erro",
+        description: "Selecione pelo menos um recurso ou marque 'Todas as Features'",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Buscar todas as features se "Todas as Features" estiver marcado
+    let featuresToUse = selectedFeatures;
+    if (newVoucher.allFeatures) {
+      const { data: allFeatures } = await supabase
+        .from('features')
+        .select('id')
+        .eq('is_active', true);
+      featuresToUse = allFeatures?.map(f => f.id) || [];
     }
 
     // Inserir voucher
     const voucherData = {
       code: newVoucher.code,
       plan_id: useCustomFeatures ? null : newVoucher.plan_id,
-      duration_days: useCustomFeatures ? parseInt(newVoucher.duration_days) : null,
+      duration_days: useCustomFeatures ? (newVoucher.isLifetime ? null : parseInt(newVoucher.duration_days)) : null,
       max_uses: newVoucher.max_uses,
       expires_at: newVoucher.expires_at || null
     };
@@ -151,7 +172,7 @@ export const VouchersManager = () => {
     // Se usar recursos customizados, criar plano oculto e vincular ao voucher
     if (useCustomFeatures && voucherInserted) {
       // 1) Guardar o vínculo voucher x features (para auditoria/gestão)
-      const featureInserts = selectedFeatures.map(featureId => ({
+      const featureInserts = featuresToUse.map(featureId => ({
         voucher_id: voucherInserted.id,
         feature_id: featureId
       }));
@@ -164,14 +185,18 @@ export const VouchersManager = () => {
       }
 
       // 2) Criar um plano "oculto" específico deste voucher (admin pode inserir planos)
-      const planName = `Voucher ${voucherInserted.code}`;
+      const planName = newVoucher.allFeatures ? `Voucher ${voucherInserted.code} - ACESSO TOTAL` : `Voucher ${voucherInserted.code}`;
+      const planDesc = newVoucher.isLifetime 
+        ? `Plano VITALÍCIO ativado por voucher ${voucherInserted.code}`
+        : `Plano ativado por voucher ${voucherInserted.code} com ${parseInt(newVoucher.duration_days)} dias`;
+      
       const { data: newPlan, error: planError } = await supabase
         .from('plans')
         .insert({
           name: planName,
-          description: `Plano ativado por voucher ${voucherInserted.code} com ${parseInt(newVoucher.duration_days)} dias`,
+          description: planDesc,
           price: 0,
-          duration_days: parseInt(newVoucher.duration_days),
+          duration_days: newVoucher.isLifetime ? null : parseInt(newVoucher.duration_days),
           plan_type: 'chatbot',
           is_active: false,
           features: null
@@ -184,7 +209,7 @@ export const VouchersManager = () => {
       }
 
       // 3) Ligar as funcionalidades marcadas ao plano criado
-      const planFeatureInserts = selectedFeatures.map((featureId) => ({
+      const planFeatureInserts = featuresToUse.map((featureId) => ({
         plan_id: newPlan.id,
         feature_id: featureId
       }));
@@ -211,7 +236,7 @@ export const VouchersManager = () => {
     });
     fetchVouchers();
     setIsDialogOpen(false);
-    setNewVoucher({ code: "", plan_id: "", duration_days: "", max_uses: 1, expires_at: "" });
+    setNewVoucher({ code: "", plan_id: "", duration_days: "", max_uses: 1, expires_at: "", isLifetime: false, allFeatures: false });
     setSelectedFeatures([]);
     setUseCustomFeatures(false);
   };
@@ -329,14 +354,36 @@ export const VouchersManager = () => {
                       value={newVoucher.duration_days}
                       onChange={(e) => setNewVoucher({ ...newVoucher, duration_days: e.target.value })}
                       placeholder="Ex: 30"
+                      disabled={newVoucher.isLifetime}
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Por quantos dias o voucher será válido após resgate
-                    </p>
+                    <div className="flex items-center space-x-2 mt-2 p-2 bg-green-50 rounded border border-green-200">
+                      <Checkbox
+                        id="lifetime"
+                        checked={newVoucher.isLifetime}
+                        onCheckedChange={(checked) => setNewVoucher({ ...newVoucher, isLifetime: checked as boolean })}
+                      />
+                      <Label htmlFor="lifetime" className="cursor-pointer text-sm font-bold text-green-700">
+                        ⭐ Vitalício (sem expiração)
+                      </Label>
+                    </div>
                   </div>
 
                   <div>
-                    <Label>Funcionalidades a Liberar *</Label>
+                    <div className="flex items-center space-x-2 mb-3 p-3 bg-purple-50 rounded border border-purple-200">
+                      <Checkbox
+                        id="allFeatures"
+                        checked={newVoucher.allFeatures}
+                        onCheckedChange={(checked) => {
+                          setNewVoucher({ ...newVoucher, allFeatures: checked as boolean });
+                          if (checked) setSelectedFeatures([]);
+                        }}
+                      />
+                      <Label htmlFor="allFeatures" className="cursor-pointer text-sm font-bold text-purple-700">
+                        ✨ TODAS AS FEATURES (Acesso Total)
+                      </Label>
+                    </div>
+                    
+                    <Label>Funcionalidades a Liberar</Label>
                     <div className="border rounded-lg p-3 max-h-60 overflow-y-auto space-y-2">
                       {features.length === 0 ? (
                         <p className="text-sm text-muted-foreground text-center py-4">
@@ -347,7 +394,8 @@ export const VouchersManager = () => {
                           <div key={feature.id} className="flex items-center space-x-2">
                             <Checkbox
                               id={`feature-${feature.id}`}
-                              checked={selectedFeatures.includes(feature.id)}
+                              checked={newVoucher.allFeatures || selectedFeatures.includes(feature.id)}
+                              disabled={newVoucher.allFeatures}
                               onCheckedChange={(checked) => {
                                 if (checked) {
                                   setSelectedFeatures([...selectedFeatures, feature.id]);

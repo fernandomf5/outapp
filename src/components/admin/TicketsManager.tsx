@@ -20,6 +20,7 @@ interface Ticket {
   user_id: string;
   user_email?: string;
   user_name?: string;
+  unread_count?: number;
 }
 
 interface TicketMessage {
@@ -48,9 +49,32 @@ export const TicketsManager = () => {
   useEffect(() => {
     if (selectedTicket) {
       fetchMessages(selectedTicket.id);
-      subscribeToMessages(selectedTicket.id);
+      const cleanup = subscribeToMessages(selectedTicket.id);
+      return cleanup;
     }
   }, [selectedTicket]);
+
+  // Subscrever a todas as mensagens de tickets para atualizar contador
+  useEffect(() => {
+    const channel = supabase
+      .channel('all_ticket_messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'ticket_messages',
+        },
+        () => {
+          fetchTickets();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [statusFilter]);
 
   // Auto-selecionar ticket da URL
   useEffect(() => {
@@ -85,10 +109,26 @@ export const TicketsManager = () => {
 
       const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
       
+      // Buscar contagem de mensagens não lidas por ticket
+      const ticketIds = ticketsData.map(t => t.id);
+      const { data: messagesData } = await supabase
+        .from('ticket_messages')
+        .select('ticket_id')
+        .in('ticket_id', ticketIds)
+        .eq('is_admin', false)
+        .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+
+      const unreadCountMap = new Map<string, number>();
+      messagesData?.forEach(msg => {
+        const count = unreadCountMap.get(msg.ticket_id) || 0;
+        unreadCountMap.set(msg.ticket_id, count + 1);
+      });
+      
       const enrichedTickets = ticketsData.map(ticket => ({
         ...ticket,
         user_email: profilesMap.get(ticket.user_id)?.email,
-        user_name: profilesMap.get(ticket.user_id)?.full_name
+        user_name: profilesMap.get(ticket.user_id)?.full_name,
+        unread_count: unreadCountMap.get(ticket.id) || 0
       }));
 
       setTickets(enrichedTickets);
@@ -225,11 +265,16 @@ export const TicketsManager = () => {
           {visibleTickets.map((ticket) => (
             <Card
               key={ticket.id}
-              className={`p-4 transition-smooth hover:shadow-lg ${
+              className={`p-4 transition-smooth hover:shadow-lg relative ${
                 selectedTicket?.id === ticket.id ? 'border-primary bg-primary/5' : ''
               }`}
               onClick={() => setSelectedTicket(ticket)}
             >
+              {ticket.unread_count && ticket.unread_count > 0 && (
+                <Badge className="absolute -top-2 -right-2 bg-red-500 text-white">
+                  {ticket.unread_count} nova{ticket.unread_count > 1 ? 's' : ''}
+                </Badge>
+              )}
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <h4 className="font-semibold">{ticket.title}</h4>
