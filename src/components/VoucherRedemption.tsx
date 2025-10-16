@@ -27,11 +27,14 @@ export const VoucherRedemption = () => {
     setIsLoading(true);
 
     try {
+      // Normalizar código (trim + uppercase)
+      const normalizedCode = code.trim().toUpperCase();
+
       // Buscar voucher
       const { data: voucher, error: voucherError } = await supabase
         .from('vouchers')
         .select('*, plans(*)')
-        .eq('code', code.toUpperCase())
+        .eq('code', normalizedCode)
         .eq('is_active', true)
         .maybeSingle();
 
