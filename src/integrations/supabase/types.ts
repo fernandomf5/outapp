@@ -486,37 +486,84 @@ export type Database = {
           },
         ]
       }
+      cloned_page_clicks: {
+        Row: {
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          page_id: string | null
+          referrer: string | null
+          user_agent: string | null
+          visitor_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          page_id?: string | null
+          referrer?: string | null
+          user_agent?: string | null
+          visitor_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          page_id?: string | null
+          referrer?: string | null
+          user_agent?: string | null
+          visitor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloned_page_clicks_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "cloned_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cloned_pages: {
         Row: {
+          clicks: number | null
           cloned_url: string
           created_at: string
+          custom_domain: string | null
           custom_settings: Json | null
           id: string
           is_active: boolean
           original_url: string
           page_content: string | null
+          slug: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          clicks?: number | null
           cloned_url: string
           created_at?: string
+          custom_domain?: string | null
           custom_settings?: Json | null
           id?: string
           is_active?: boolean
           original_url: string
           page_content?: string | null
+          slug?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          clicks?: number | null
           cloned_url?: string
           created_at?: string
+          custom_domain?: string | null
           custom_settings?: Json | null
           id?: string
           is_active?: boolean
           original_url?: string
           page_content?: string | null
+          slug?: string | null
           updated_at?: string
           user_id?: string | null
         }
