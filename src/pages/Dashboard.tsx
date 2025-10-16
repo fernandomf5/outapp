@@ -438,8 +438,8 @@ const Dashboard = () => {
               {chatbots.map((bot) => (
                 <div
                   key={bot.id}
-                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl bg-accent/50 hover:bg-accent transition-smooth gap-3 sm:gap-4"
-                  onClick={() => navigate("/bot-builder")}
+                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl bg-accent/50 hover:bg-accent transition-smooth gap-3 sm:gap-4 cursor-pointer"
+                  onClick={() => navigate(`/bot-builder?id=${bot.id}`)}
                 >
                   <div className="flex items-center gap-3 sm:gap-4 flex-1">
                     <div className="bg-primary/10 p-2 sm:p-3 rounded-xl">
