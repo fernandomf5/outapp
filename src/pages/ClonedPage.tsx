@@ -126,6 +126,23 @@ export default function ClonedPage() {
         });
       }
 
+      // 2.5) Apply checkout link replacements
+      if (settings.detected_checkout_links && settings.detected_checkout_links.length > 0) {
+        settings.detected_checkout_links.forEach((linkConfig: any) => {
+          if (linkConfig.replaced && linkConfig.newUrl && linkConfig.originalUrl) {
+            const links = doc.querySelectorAll('a[href]');
+            links.forEach((link: any) => {
+              const href = link.getAttribute('href');
+              if (href === linkConfig.originalUrl) {
+                link.setAttribute('href', linkConfig.newUrl);
+                link.setAttribute('target', '_blank');
+                link.setAttribute('rel', 'noopener noreferrer');
+              }
+            });
+          }
+        });
+      }
+
       // 3) Append UTM params to all anchors
       if (settings.utm_params) {
         const params = new URLSearchParams();

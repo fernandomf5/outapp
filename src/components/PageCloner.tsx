@@ -41,6 +41,7 @@ export const PageCloner = () => {
   });
   const [editSettings, setEditSettings] = useState({
     custom_links: [] as { selector: string; newUrl: string }[],
+    detected_checkout_links: [] as { originalUrl: string; text: string; replaced?: boolean; newUrl?: string }[],
     custom_domain: "",
     tracking_pixels: "",
     whatsapp_button: {
@@ -111,6 +112,9 @@ export const PageCloner = () => {
         ? `https://${cloneData.custom_domain}/page/${slug}`
         : `${baseUrl}/page/${slug}`;
 
+      // Detect checkout links
+      const detectedLinks = detectCheckoutLinks(cloneResult.content);
+
       // Save to database
       const { data, error } = await supabase
         .from('cloned_pages')
@@ -121,7 +125,7 @@ export const PageCloner = () => {
           slug: slug,
           custom_domain: cloneData.custom_domain || null,
           page_content: cloneResult.content,
-          custom_settings: {},
+          custom_settings: { detected_checkout_links: detectedLinks },
           is_active: true,
           clicks: 0
         })
@@ -211,11 +215,38 @@ export const PageCloner = () => {
     });
   };
 
+  const detectCheckoutLinks = (html: string) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const links: { originalUrl: string; text: string; replaced?: boolean; newUrl?: string }[] = [];
+    
+    const checkoutKeywords = ['checkout', 'comprar', 'buy', 'cart', 'carrinho', 'pagamento', 'payment', 'finalizar', 'pedido', 'order'];
+    
+    doc.querySelectorAll('a[href]').forEach((link) => {
+      const href = link.getAttribute('href') || '';
+      const text = link.textContent?.trim() || '';
+      const fullUrl = href.startsWith('http') ? href : '';
+      
+      if (fullUrl) {
+        const matchesKeyword = checkoutKeywords.some(keyword => 
+          href.toLowerCase().includes(keyword) || text.toLowerCase().includes(keyword)
+        );
+        
+        if (matchesKeyword) {
+          links.push({ originalUrl: fullUrl, text, replaced: false });
+        }
+      }
+    });
+    
+    return links;
+  };
+
   const openEditDialog = (page: ClonedPage) => {
     setSelectedPage(page);
     const settings = page.custom_settings || {};
     setEditSettings({
       custom_links: settings.custom_links || [],
+      detected_checkout_links: settings.detected_checkout_links || [],
       custom_domain: page.custom_domain || "",
       tracking_pixels: settings.tracking_pixels || "",
       whatsapp_button: settings.whatsapp_button || {
@@ -389,6 +420,12 @@ export const PageCloner = () => {
                         <MousePointerClick className="w-3 h-3" />
                         {page.clicks || 0} clicks
                       </Badge>
+                      {page.custom_settings?.detected_checkout_links?.length > 0 && (
+                        <Badge variant="outline" className="gap-1 bg-success/10 text-success border-success/20">
+                          <Link2 className="w-3 h-3" />
+                          {page.custom_settings.detected_checkout_links.length} checkout{page.custom_settings.detected_checkout_links.length > 1 ? 's' : ''}
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-sm text-muted-foreground mb-1 break-all">
                       <strong>Original:</strong> {page.original_url}
@@ -451,8 +488,9 @@ export const PageCloner = () => {
             <DialogTitle>Configurar Página Clonada</DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="domain" className="w-full mt-4">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="domain">Domínio</TabsTrigger>
+              <TabsTrigger value="checkout">Checkout</TabsTrigger>
               <TabsTrigger value="links">Links</TabsTrigger>
               <TabsTrigger value="utm">UTM</TabsTrigger>
               <TabsTrigger value="pixels">Pixels</TabsTrigger>
@@ -480,6 +518,99 @@ export const PageCloner = () => {
                   <li>Ou adicione um CNAME apontando para {window.location.host}</li>
                   <li>Aguarde a propagação DNS (pode levar até 48h)</li>
                 </ol>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="checkout" className="space-y-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-semibold">Links de Checkout Detectados</h4>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Links identificados automaticamente que parecem ser de checkout/pagamento
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  {editSettings.detected_checkout_links.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-8">
+                      Nenhum link de checkout detectado nesta página
+                    </p>
+                  ) : (
+                    editSettings.detected_checkout_links.map((link, index) => (
+                      <Card key={index} className="p-4">
+                        <div className="space-y-3">
+                          <div>
+                            <Label className="text-xs font-semibold">Link Original</Label>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Input
+                                value={link.originalUrl}
+                                readOnly
+                                className="flex-1 text-xs bg-muted"
+                              />
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => window.open(link.originalUrl, '_blank')}
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                              </Button>
+                            </div>
+                            {link.text && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Texto do botão: "{link.text}"
+                              </p>
+                            )}
+                          </div>
+                          
+                          <div>
+                            <Label className="text-xs">Seu Link de Afiliado</Label>
+                            <div className="flex gap-2">
+                              <Input
+                                placeholder="Cole seu link de afiliado aqui"
+                                value={link.newUrl || ''}
+                                onChange={(e) => {
+                                  const newLinks = [...editSettings.detected_checkout_links];
+                                  newLinks[index] = { 
+                                    ...newLinks[index], 
+                                    newUrl: e.target.value,
+                                    replaced: !!e.target.value 
+                                  };
+                                  setEditSettings({ ...editSettings, detected_checkout_links: newLinks });
+                                }}
+                                className="text-xs"
+                              />
+                              {link.newUrl && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    const newLinks = [...editSettings.detected_checkout_links];
+                                    newLinks[index] = { 
+                                      ...newLinks[index], 
+                                      newUrl: '',
+                                      replaced: false 
+                                    };
+                                    setEditSettings({ ...editSettings, detected_checkout_links: newLinks });
+                                  }}
+                                  className="text-destructive"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
+                            {link.replaced && link.newUrl && (
+                              <p className="text-xs text-success mt-1 flex items-center gap-1">
+                                ✓ Link de afiliado configurado
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+                    ))
+                  )}
+                </div>
               </div>
             </TabsContent>
 
