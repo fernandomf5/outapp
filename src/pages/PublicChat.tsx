@@ -438,15 +438,6 @@ const PublicChat = () => {
             return;
           } else {
             console.log('⚠️ Nenhum próximo nó encontrado - Fim do fluxo');
-            // Adicionar mensagem de despedida
-            const goodbyeMessage: Message = {
-              id: (Date.now() + 1).toString(),
-              role: 'bot',
-              content: 'Obrigado pelo contato! Se precisar de algo mais, estou por aqui! 👋',
-              timestamp: new Date()
-            };
-            setMessages(prev => [...prev, goodbyeMessage]);
-            await saveMessage('bot', goodbyeMessage.content);
           }
         } else {
           console.log('⚠️ Nenhuma mensagem do bot com nodeId encontrada');
