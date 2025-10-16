@@ -105,6 +105,11 @@ const BotBuilder = () => {
           if (config?.edges) {
             setEdges(config.edges);
           }
+
+          toast({
+            title: "Fluxo atualizado! 🔄",
+            description: "O chatbot foi atualizado em tempo real.",
+          });
         }
       )
       .subscribe();
@@ -113,7 +118,7 @@ const BotBuilder = () => {
       console.log('🔌 Desconectando sincronização em tempo real');
       supabase.removeChannel(channel);
     };
-  }, [chatbotId]);
+  }, [chatbotId, toast]);
 
   const addNode = useCallback((type: string) => {
     const defaultLabels: Record<string, string> = {
