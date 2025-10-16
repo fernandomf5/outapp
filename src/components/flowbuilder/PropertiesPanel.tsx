@@ -343,6 +343,7 @@ export const PropertiesPanel = ({
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
+                        e.stopPropagation();
                         addButton();
                       }
                     }}
@@ -354,6 +355,7 @@ export const PropertiesPanel = ({
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
+                        e.stopPropagation();
                         addButton();
                       }
                     }}
