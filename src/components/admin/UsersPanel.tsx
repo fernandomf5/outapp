@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Search, Mail, Calendar, Edit, Trash2, Key } from "lucide-react";
+import { Users, Search, Mail, Calendar, Edit, Trash2, Key, LogIn } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -248,6 +248,64 @@ export const UsersPanel = () => {
     }
   };
 
+  const handleLoginAsUser = async (user: UserProfile) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch(
+        'https://mlocikcfxbleddsvxciv.supabase.co/functions/v1/impersonate-user',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+            'origin': window.location.origin
+          },
+          body: JSON.stringify({
+            userId: user.user_id
+          })
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao fazer login como usuário');
+      }
+
+      // Extract token from magic link
+      const url = new URL(result.magicLink);
+      const accessToken = url.searchParams.get('access_token');
+      const refreshToken = url.searchParams.get('refresh_token');
+
+      if (accessToken && refreshToken) {
+        // Set the session with the new tokens
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        });
+
+        if (sessionError) throw sessionError;
+
+        toast({
+          title: "Login realizado",
+          description: `Você está agora logado como ${user.full_name}`,
+        });
+
+        // Redirect to dashboard
+        window.location.href = '/dashboard';
+      } else {
+        throw new Error('Tokens não encontrados na resposta');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro ao fazer login",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Card className="p-4 sm:p-6 glass">
       <div className="flex items-center gap-3 mb-4 sm:mb-6">
@@ -300,7 +358,16 @@ export const UsersPanel = () => {
                     </span>
                   </div>
                 </div>
-                <div className="flex gap-2 w-full sm:w-auto">
+                <div className="flex gap-2 w-full sm:w-auto flex-wrap">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleLoginAsUser(user)}
+                    className="flex-1 sm:flex-none bg-primary/10 hover:bg-primary/20"
+                    title="Entrar como este usuário"
+                  >
+                    <LogIn className="w-4 h-4" />
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
