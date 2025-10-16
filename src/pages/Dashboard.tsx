@@ -152,14 +152,23 @@ const Dashboard = () => {
           console.log('📨 Nova mensagem inserida:', {
             role: newMessage.role,
             node_id: newMessage.node_id,
+            node_id_type: typeof newMessage.node_id,
             content: newMessage.content.substring(0, 50)
           });
           
           // Verificar se é mensagem de cliente (role='user') E mensagem livre (sem node_id)
           // Quando o cliente clica em botão do fluxo, node_id vem preenchido
-          // Quando o cliente digita livremente, node_id é null
-          if (newMessage.role !== 'user' || newMessage.node_id !== null) {
-            console.log('⏭️ Mensagem ignorada - não é mensagem livre de cliente');
+          // Quando o cliente digita livremente, node_id é null, undefined ou string vazia
+          const isUserMessage = newMessage.role === 'user';
+          const isFreeMessage = !newMessage.node_id || newMessage.node_id === null || newMessage.node_id === '';
+          
+          if (!isUserMessage) {
+            console.log('⏭️ Mensagem ignorada - não é do usuário');
+            return;
+          }
+          
+          if (!isFreeMessage) {
+            console.log('⏭️ Mensagem ignorada - tem node_id (botão do fluxo)');
             return;
           }
 
