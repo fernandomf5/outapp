@@ -64,12 +64,16 @@ const PublicChat = () => {
         },
         (payload) => {
           const newMsg = payload.new as any;
+          console.log('📨 Nova mensagem recebida no chat:', newMsg);
           if (newMsg.role === 'admin') {
             setMessages(prev => [...prev, {
               id: newMsg.id,
               role: 'bot',
               content: newMsg.content,
-              timestamp: new Date(newMsg.created_at)
+              timestamp: new Date(newMsg.created_at),
+              imageUrl: newMsg.media_url && newMsg.media_type === 'image' ? newMsg.media_url : undefined,
+              audioUrl: newMsg.media_url && newMsg.media_type === 'audio' ? newMsg.media_url : undefined,
+              videoUrl: newMsg.media_url && newMsg.media_type === 'video' ? newMsg.media_url : undefined,
             }]);
           }
         }

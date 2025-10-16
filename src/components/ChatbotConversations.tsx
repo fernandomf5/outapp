@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +45,7 @@ export const ChatbotConversations = () => {
   const [newMessage, setNewMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Carregar conversas
   useEffect(() => {
@@ -96,6 +97,11 @@ export const ChatbotConversations = () => {
     };
   }, [user]);
 
+  // Auto-scroll quando mensagens mudam
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   // Carregar mensagens da conversa selecionada
   useEffect(() => {
     if (!selectedConversation) return;
@@ -126,6 +132,7 @@ export const ChatbotConversations = () => {
         table: 'chatbot_messages',
         filter: `conversation_id=eq.${selectedConversation.id}`
       }, () => {
+        console.log('📨 Nova mensagem recebida - recarregando...');
         // Recarregar todas as mensagens para garantir ordem correta
         fetchMessages();
       })
@@ -308,10 +315,16 @@ export const ChatbotConversations = () => {
                           msg.role === 'admin'
                             ? 'bg-primary text-primary-foreground'
                             : msg.role === 'bot'
-                            ? 'bg-accent'
+                            ? 'bg-secondary/50'
                             : 'bg-muted'
                         }`}
                       >
+                        {msg.role !== 'admin' && msg.role !== 'user' && (
+                          <p className="text-xs text-muted-foreground mb-1">🤖 Bot</p>
+                        )}
+                        {msg.role === 'user' && (
+                          <p className="text-xs text-muted-foreground mb-1">👤 Cliente</p>
+                        )}
                         <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                         {msg.media_url && (
                           <div className="mt-2">
@@ -339,6 +352,7 @@ export const ChatbotConversations = () => {
                       </div>
                     </div>
                   ))}
+                  <div ref={messagesEndRef} />
                 </div>
               </ScrollArea>
 
