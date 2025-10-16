@@ -80,14 +80,14 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
   };
 
   const processNode = (node: Node) => {
-    if (node.type === 'message' || node.type === 'question' || node.type === 'quickReply') {
+    if (node.type === 'message' || node.type === 'question' || node.type === 'quickReply' || node.type === 'button') {
       const newMessage: Message = {
         id: node.id,
         role: 'bot',
         content: node.data.label || '',
         timestamp: new Date(),
         imageUrl: node.data.imageUrl,
-        buttons: node.type === 'quickReply' ? node.data.buttons : undefined,
+        buttons: node.data.buttons,
         nodeId: node.id
       };
       setMessages(prev => [...prev, newMessage]);
@@ -97,8 +97,16 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
   const findNextNode = (currentNodeId: string, userResponse?: string): Node | null => {
     const currentNode = nodes.find(n => n.id === currentNodeId);
 
-    // Quick Reply com handles por botão
-    if (currentNode?.type === 'quickReply' && userResponse) {
+    const checkByIndex = (idx: number) => {
+      const outgoing = edges.filter(e => e.source === currentNodeId);
+      if (outgoing.length > idx) {
+        return nodes.find(n => n.id === outgoing[idx].target) || null;
+      }
+      return null;
+    };
+
+    // Quick Reply, Botões e Perguntas com handles por botão
+    if ((currentNode?.type === 'quickReply' || currentNode?.type === 'button' || currentNode?.type === 'question') && userResponse) {
       const btns: string[] = currentNode.data?.buttons || [];
       const idx = btns.findIndex(b => b?.trim().toLowerCase() === userResponse.trim().toLowerCase());
 
@@ -107,6 +115,9 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
         if (edgeByHandle) {
           return nodes.find(n => n.id === edgeByHandle.target) || null;
         }
+        // Fallback: usar a N-ésima aresta quando não houver sourceHandle
+        const byIndex = checkByIndex(idx);
+        if (byIndex) return byIndex;
       }
     }
 

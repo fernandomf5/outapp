@@ -343,10 +343,15 @@ const PublicChat = () => {
         if (edgeByHandle) {
           return nodes.find((n: any) => n.id === edgeByHandle.target);
         }
+        // Fallback: se não houver handle específico, usar a N-ésima aresta de saída
+        const outgoing = edges.filter((e: any) => e.source === currentNodeId);
+        if (outgoing.length > idx) {
+          return nodes.find((n: any) => n.id === outgoing[idx].target);
+        }
       }
     }
 
-    // Para botões normais, também verificar handles específicos
+    // Para botões e perguntas, verificar handles específicos e fallback por índice
     if ((currentNode?.type === 'button' || currentNode?.type === 'question') && typeof userResponse === 'string') {
       const btns: string[] = currentNode.data?.buttons || [];
       const idx = btns.findIndex((b: string) => (b || '').trim().toLowerCase() === userResponse.trim().toLowerCase());
@@ -355,6 +360,11 @@ const PublicChat = () => {
         const edgeByHandle = edges.find((e: any) => e.source === currentNodeId && e.sourceHandle === `btn-${idx}`);
         if (edgeByHandle) {
           return nodes.find((n: any) => n.id === edgeByHandle.target);
+        }
+        // Fallback: utilizar a N-ésima aresta quando não houver sourceHandle
+        const outgoing = edges.filter((e: any) => e.source === currentNodeId);
+        if (outgoing.length > idx) {
+          return nodes.find((n: any) => n.id === outgoing[idx].target);
         }
       }
     }
