@@ -284,38 +284,21 @@ export const UsersPanel = () => {
         throw new Error(result.error || 'Erro ao fazer login como usuário');
       }
 
-      // Get tokens from the response
-      const { access_token, refresh_token } = result;
+      // Redireciona para o magic link para concluir a sessão como o usuário alvo
+      const { action_link } = result;
 
-      if (!access_token || !refresh_token) {
-        console.error('Tokens não encontrados:', result);
-        throw new Error('Tokens não encontrados na resposta');
+      if (!action_link) {
+        console.error('Magic link não encontrado:', result);
+        throw new Error('Link de autenticação não encontrado na resposta');
       }
-
-      console.log('Tokens obtidos, configurando sessão...');
-
-      // Set the session with the new tokens
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token,
-        refresh_token
-      });
-
-      if (sessionError) {
-        console.error('Erro ao configurar sessão:', sessionError);
-        throw sessionError;
-      }
-
-      console.log('Sessão configurada com sucesso');
 
       toast({
-        title: "Login realizado",
-        description: `Você está agora logado como ${user.full_name}`,
+        title: "Abrindo sessão...",
+        description: `Entrando como ${user.full_name}`,
       });
 
-      // Redirect to dashboard
-      setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 500);
+      window.location.href = action_link;
+
     } catch (error: any) {
       console.error('Erro completo ao fazer login:', error);
       toast({
