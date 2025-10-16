@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Save, Play, Link2, Copy, Power, Eye, EyeOff, Zap, MessageSquare, Plus, X } from "lucide-react";
+import { ArrowLeft, Save, Play, Link2, Copy, Power, Eye, EyeOff, Zap, MessageSquare, Plus, X, Code2 } from "lucide-react";
 import { Node, Edge } from 'reactflow';
 import { ReactFlowProvider } from 'reactflow';
 import { FlowCanvas } from '@/components/flowbuilder/FlowCanvas';
@@ -15,6 +15,8 @@ import { useChatbot } from '@/hooks/useChatbot';
 import { useAuth } from '@/contexts/AuthContext';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { ChatWidgetGenerator } from '@/components/ChatWidgetGenerator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 const BotBuilder = () => {
   const { toast } = useToast();
@@ -269,6 +271,30 @@ const BotBuilder = () => {
                 <Link2 className="w-4 h-4 mr-2" />
                 Copiar Link
               </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="hover:bg-primary/10 hover:border-primary"
+                    disabled={!chatbotId}
+                  >
+                    <Code2 className="w-4 h-4 mr-2" />
+                    Widget de Chat
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Widget de Chat Online</DialogTitle>
+                  </DialogHeader>
+                  {chatbotId && (
+                    <ChatWidgetGenerator 
+                      chatId={chatbotId} 
+                      chatName={botName}
+                      type="chatbot"
+                    />
+                  )}
+                </DialogContent>
+              </Dialog>
               <Button 
                 variant="outline" 
                 onClick={handleTest}

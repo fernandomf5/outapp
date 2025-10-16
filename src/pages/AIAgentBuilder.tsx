@@ -18,11 +18,14 @@ import {
   MessageSquare,
   Target,
   Settings2,
+  Code2,
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { nicheConfigs } from "@/data/nicheConfigs";
+import { ChatWidgetGenerator } from '@/components/ChatWidgetGenerator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 const AIAgentBuilder = () => {
   const { toast } = useToast();
@@ -145,6 +148,29 @@ const AIAgentBuilder = () => {
           </div>
 
           <div className="flex items-center gap-3">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  disabled={!agentId}
+                >
+                  <Code2 className="w-4 h-4 mr-2" />
+                  Widget de Chat
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Widget de Chat Online</DialogTitle>
+                </DialogHeader>
+                {agentId && (
+                  <ChatWidgetGenerator 
+                    chatId={agentId} 
+                    chatName={agentName}
+                    type="agent"
+                  />
+                )}
+              </DialogContent>
+            </Dialog>
             <Button 
               variant="outline" 
               onClick={handleTest}
