@@ -472,7 +472,7 @@ export const ChatbotConversations = () => {
                         checked={selectedConversations.includes(conv.id)}
                         onCheckedChange={() => toggleSelectConversation(conv.id)}
                         onClick={(e) => e.stopPropagation()}
-                        className="cursor-pointer mt-1"
+                        className="mt-1"
                       />
                       <div 
                         className="flex-1"

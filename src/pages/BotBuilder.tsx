@@ -251,7 +251,7 @@ const BotBuilder = () => {
                 {showPreview ? 'Desativar modo lado a lado' : 'Ativar modo lado a lado'}
               </Button>
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card">
-                <Label htmlFor="active-switch" className="cursor-pointer">
+                <Label htmlFor="active-switch" className="">
                   <Power className="w-4 h-4" />
                 </Label>
                 <Switch

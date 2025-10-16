@@ -210,11 +210,11 @@ export const CustomPagesManager = () => {
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="header" id="header" />
-                      <Label htmlFor="header" className="cursor-pointer font-normal">Cabeçalho (Menu Principal)</Label>
+                      <Label htmlFor="header" className="font-normal">Cabeçalho (Menu Principal)</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="footer" id="footer" />
-                      <Label htmlFor="footer" className="cursor-pointer font-normal">Rodapé</Label>
+                      <Label htmlFor="footer" className="font-normal">Rodapé</Label>
                     </div>
                   </RadioGroup>
                 </div>

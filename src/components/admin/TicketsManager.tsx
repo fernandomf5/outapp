@@ -212,7 +212,7 @@ export const TicketsManager = () => {
           {visibleTickets.map((ticket) => (
             <Card
               key={ticket.id}
-              className={`p-4 cursor-pointer transition-smooth hover:shadow-lg ${
+              className={`p-4 transition-smooth hover:shadow-lg ${
                 selectedTicket?.id === ticket.id ? 'border-primary bg-primary/5' : ''
               }`}
               onClick={() => setSelectedTicket(ticket)}

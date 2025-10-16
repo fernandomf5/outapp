@@ -369,7 +369,7 @@ const Dashboard = () => {
 
         {/* Quick Actions */}
         <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/bot-builder")}>
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth" onClick={() => navigate("/bot-builder")}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Criar Chatbot Web</h3>
@@ -386,7 +386,7 @@ const Dashboard = () => {
             </Button>
           </Card>
 
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/ai-agent")}>
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth" onClick={() => navigate("/ai-agent")}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">Criar Agente IA</h3>
@@ -438,7 +438,7 @@ const Dashboard = () => {
               {chatbots.map((bot) => (
                 <div
                   key={bot.id}
-                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl bg-accent/50 hover:bg-accent transition-smooth cursor-pointer gap-3 sm:gap-4"
+                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl bg-accent/50 hover:bg-accent transition-smooth gap-3 sm:gap-4"
                   onClick={() => navigate("/bot-builder")}
                 >
                   <div className="flex items-center gap-3 sm:gap-4 flex-1">
@@ -526,7 +526,7 @@ const Dashboard = () => {
               {aiAgents.map((agent) => (
                 <div
                   key={agent.id}
-                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl bg-accent/50 hover:bg-accent transition-smooth cursor-pointer gap-3 sm:gap-4"
+                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl bg-accent/50 hover:bg-accent transition-smooth gap-3 sm:gap-4"
                   onClick={() => navigate("/ai-agent")}
                 >
                   <div className="flex items-center gap-3 sm:gap-4 flex-1">

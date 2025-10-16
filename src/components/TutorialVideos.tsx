@@ -85,7 +85,7 @@ export const TutorialVideos = () => {
           {videos.map((video) => (
             <Card
               key={video.id}
-              className="cursor-pointer hover:shadow-lg transition-smooth overflow-hidden group"
+              className="hover:shadow-lg transition-smooth overflow-hidden group"
               onClick={() => setSelectedVideo(video)}
             >
               <div className="relative aspect-video bg-accent">

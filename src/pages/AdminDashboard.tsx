@@ -560,7 +560,7 @@ const AdminDashboard = () => {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="p-6 hover:shadow-xl hover-scale transition-smooth cursor-pointer bg-gradient-to-br from-card to-primary/5 border-primary/20 group" onClick={() => setIsBroadcastOpen(true)}>
+          <Card className="p-6 hover:shadow-xl hover-scale transition-smooth bg-gradient-to-br from-card to-primary/5 border-primary/20 group" onClick={() => setIsBroadcastOpen(true)}>
             <div className="flex items-center gap-4">
               <div className="bg-gradient-to-br from-primary/20 to-primary/10 p-3 rounded-xl shadow-glow group-hover:scale-110 transition-transform">
                 <MessageSquare className="w-6 h-6 text-primary" />
@@ -572,7 +572,7 @@ const AdminDashboard = () => {
             </div>
           </Card>
 
-          <Card className="p-6 hover:shadow-xl hover-scale transition-smooth cursor-pointer bg-gradient-to-br from-card to-info/5 border-info/20 group">
+          <Card className="p-6 hover:shadow-xl hover-scale transition-smooth bg-gradient-to-br from-card to-info/5 border-info/20 group">
             <div className="flex items-center gap-4">
               <div className="bg-gradient-to-br from-info/20 to-info/10 p-3 rounded-xl shadow-glow group-hover:scale-110 transition-transform">
                 <BarChart3 className="w-6 h-6 text-info" />
@@ -584,7 +584,7 @@ const AdminDashboard = () => {
             </div>
           </Card>
 
-          <Card className="p-6 hover:shadow-xl hover-scale transition-smooth cursor-pointer bg-gradient-to-br from-card to-warning/5 border-warning/20 group" onClick={() => setIsVideoDialogOpen(true)}>
+          <Card className="p-6 hover:shadow-xl hover-scale transition-smooth bg-gradient-to-br from-card to-warning/5 border-warning/20 group" onClick={() => setIsVideoDialogOpen(true)}>
             <div className="flex items-center gap-4">
               <div className="bg-gradient-to-br from-warning/20 to-warning/10 p-3 rounded-xl shadow-glow group-hover:scale-110 transition-transform">
                 <Video className="w-6 h-6 text-warning" />
@@ -977,13 +977,13 @@ const AdminDashboard = () => {
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="all" id="all" />
-                  <Label htmlFor="all" className="cursor-pointer font-normal">
+                  <Label htmlFor="all" className="font-normal">
                     Todos os usuários ({stats.totalUsers})
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="specific" id="specific" />
-                  <Label htmlFor="specific" className="cursor-pointer font-normal">
+                  <Label htmlFor="specific" className="font-normal">
                     Usuário específico
                   </Label>
                 </div>

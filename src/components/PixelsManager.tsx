@@ -304,7 +304,7 @@ src="https://www.facebook.com/tr?id=${pixel.pixel_id}&ev=PageView&noscript=1"
               pixels.map((pixel) => (
                 <Card
                   key={pixel.id}
-                  className={`p-4 cursor-pointer transition-smooth hover:shadow-lg ${
+                  className={`p-4 transition-smooth hover:shadow-lg ${
                     selectedPixel?.id === pixel.id ? 'border-primary bg-primary/5' : ''
                   }`}
                   onClick={() => setSelectedPixel(pixel)}

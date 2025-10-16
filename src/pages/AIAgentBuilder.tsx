@@ -229,7 +229,7 @@ const AIAgentBuilder = () => {
                   return (
                     <Card
                       key={niche.id}
-                      className={`p-4 cursor-pointer transition-smooth hover:shadow-glow ${
+                      className={`p-4 transition-smooth hover:shadow-glow ${
                         selectedNiche === niche.id
                           ? "border-primary bg-primary/5"
                           : "hover:border-primary/50"

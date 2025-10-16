@@ -329,7 +329,7 @@ export const CRMContacts = () => {
               contacts.map((contact) => (
                 <Card
                   key={contact.id}
-                  className={`p-4 cursor-pointer transition-smooth hover:shadow-lg ${
+                  className={`p-4 transition-smooth hover:shadow-lg ${
                     selectedContact?.id === contact.id ? 'border-primary bg-primary/5' : ''
                   }`}
                   onClick={() => setSelectedContact(contact)}
