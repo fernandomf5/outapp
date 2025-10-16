@@ -336,32 +336,35 @@ export const PropertiesPanel = ({
                     </div>
                   </Card>
                 ))}
-                <div className="space-y-2">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    addButton();
+                  }}
+                  onKeyDownCapture={(e) => {
+                    if ((e as React.KeyboardEvent).key === 'Enter') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }
+                  }}
+                  className="space-y-2"
+                >
                   <Input
                     value={newButton}
                     onChange={(e) => setNewButton(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        addButton();
-                      }
-                    }}
-                    placeholder="Texto do botão (pressione Enter)"
+                    placeholder="Texto do botão..."
                   />
                   <Input
                     value={newButtonUrl}
                     onChange={(e) => setNewButtonUrl(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        addButton();
-                      }
-                    }}
-                    placeholder="https://exemplo.com (opcional, pressione Enter)"
+                    placeholder="https://exemplo.com (opcional)"
                   />
-                </div>
+                  <Button size="sm" type="submit" className="w-full">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Adicionar Botão
+                  </Button>
+                </form>
               </div>
             </div>
           </>
