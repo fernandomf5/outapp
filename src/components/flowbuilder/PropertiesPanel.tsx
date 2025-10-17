@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Trash2, Plus, X, Image as ImageIcon, FileAudio, Video, FileText, Check } from 'lucide-react';
+import { Trash2, Plus, X, Image as ImageIcon, FileAudio, Video, FileText, Check, Copy } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { ImageUpload } from './ImageUpload';
 import { MediaUpload } from './MediaUpload';
@@ -14,12 +14,14 @@ interface PropertiesPanelProps {
   selectedNode: Node | null;
   onUpdateNode: (id: string, data: any) => void;
   onDeleteNode: (id: string) => void;
+  onDuplicateNode?: (node: Node) => void;
 }
 
 export const PropertiesPanel = ({
   selectedNode,
   onUpdateNode,
   onDeleteNode,
+  onDuplicateNode,
 }: PropertiesPanelProps) => {
   const [label, setLabel] = useState('');
   const [variable, setVariable] = useState('');
@@ -388,6 +390,18 @@ export const PropertiesPanel = ({
           <Check className="w-4 h-4 mr-2" />
           Aplicar
         </Button>
+
+        {selectedNode.id !== 'initial-message' && onDuplicateNode && (
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => onDuplicateNode(selectedNode)}
+            type="button"
+          >
+            <Copy className="w-4 h-4 mr-2" />
+            Duplicar Bloco
+          </Button>
+        )}
 
         {selectedNode.id !== 'initial-message' && (
           <Button

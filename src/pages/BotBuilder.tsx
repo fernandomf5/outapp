@@ -167,6 +167,26 @@ const BotBuilder = () => {
     ));
   }, [nodes]);
 
+  const duplicateNode = useCallback((node: Node) => {
+    const duplicatedNode: Node = {
+      ...node,
+      id: Date.now().toString(),
+      position: {
+        x: node.position.x + 50,
+        y: node.position.y + 50,
+      },
+      data: { ...node.data },
+    };
+    
+    setNodes([...nodes, duplicatedNode]);
+    setSelectedNode(duplicatedNode);
+    
+    toast({
+      title: "Bloco duplicado! 📋",
+      description: "O bloco foi duplicado com sucesso.",
+    });
+  }, [nodes, toast]);
+
   const handleNodeClick = useCallback((node: Node) => {
     setSelectedNode(node);
   }, []);
@@ -566,11 +586,12 @@ const BotBuilder = () => {
               />
             </aside>
           ) : (
-            <PropertiesPanel
-              selectedNode={selectedNode}
-              onUpdateNode={updateNode}
-              onDeleteNode={deleteNode}
-            />
+              <PropertiesPanel 
+                selectedNode={selectedNode} 
+                onUpdateNode={updateNode} 
+                onDeleteNode={deleteNode}
+                onDuplicateNode={duplicateNode}
+              />
           ))}
         </div>
       </div>
