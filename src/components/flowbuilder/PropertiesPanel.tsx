@@ -35,6 +35,7 @@ export const PropertiesPanel = ({
   const [documentUrl, setDocumentUrl] = useState('');
   const [documentName, setDocumentName] = useState('');
   const [delaySeconds, setDelaySeconds] = useState<number>(0);
+  const [keyword, setKeyword] = useState('');
 
   useEffect(() => {
     if (selectedNode) {
@@ -53,6 +54,7 @@ export const PropertiesPanel = ({
       setDocumentUrl(selectedNode.data.documentUrl || '');
       setDocumentName(selectedNode.data.documentName || '');
       setDelaySeconds(selectedNode.data.delaySeconds || 0);
+      setKeyword(selectedNode.data.keyword || '');
     }
   }, [selectedNode]);
 
@@ -78,6 +80,7 @@ export const PropertiesPanel = ({
       documentUrl,
       documentName,
       delaySeconds,
+      keyword: keyword.trim(),
     });
   };
 
@@ -152,6 +155,26 @@ export const PropertiesPanel = ({
       </div>
 
       <div className="space-y-4">
+        {/* Palavra-chave - para todos os tipos exceto trigger */}
+        {selectedNode.type !== 'trigger' && (
+          <div>
+            <Label htmlFor="keyword">Palavra-chave (opcional)</Label>
+            <Input
+              id="keyword"
+              type="text"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              onBlur={handleUpdate}
+              placeholder="Ex: suporte, vendas, preço..."
+              className="mt-2"
+              maxLength={50}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Se o usuário digitar esta palavra, este bloco será ativado automaticamente
+            </p>
+          </div>
+        )}
+
         {/* Atraso em segundos - para todos os tipos exceto trigger */}
         {selectedNode.type !== 'trigger' && (
           <div>
