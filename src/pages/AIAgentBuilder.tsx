@@ -19,6 +19,11 @@ import {
   Target,
   Settings2,
   Code2,
+  Link2,
+  Copy,
+  Eye,
+  EyeOff,
+  Power,
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,6 +31,8 @@ import { Slider } from "@/components/ui/slider";
 import { nicheConfigs } from "@/data/nicheConfigs";
 import { ChatWidgetGenerator } from '@/components/ChatWidgetGenerator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ChatPreview } from '@/components/flowbuilder/ChatPreview';
+import { Switch } from "@/components/ui/switch";
 
 const AIAgentBuilder = () => {
   const { toast } = useToast();
@@ -50,6 +57,8 @@ const AIAgentBuilder = () => {
   const [testMessage, setTestMessage] = useState("");
   const [testResponse, setTestResponse] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [isActive, setIsActive] = useState(true);
 
   const currentNiche = nicheConfigs.find(n => n.id === selectedNiche);
 
@@ -62,6 +71,7 @@ const AIAgentBuilder = () => {
         setPersonality(agent.config?.personality || personality);
         setKnowledge(agent.training_data?.knowledge || "");
         setWelcomeMessage(agent.config?.welcomeMessage || welcomeMessage);
+        setIsActive(agent.is_active);
       }).catch(console.error);
     }
   }, [agentId, user]);
@@ -112,7 +122,7 @@ const AIAgentBuilder = () => {
           nicheData,
           knowledge,
         },
-        is_active: true,
+        is_active: isActive,
       };
 
       const result = await saveAgent(agentData, user.id);
@@ -125,6 +135,51 @@ const AIAgentBuilder = () => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleCopyLink = () => {
+    if (!agentId) {
+      toast({
+        title: "Salve primeiro! 💾",
+        description: "Você precisa salvar o agente antes de gerar o link.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const slug = (agentName || '')
+      .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+      .toLowerCase().trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+
+    const link = `${window.location.origin}/chat/${agentId}/${slug || 'agent'}`;
+    navigator.clipboard.writeText(link);
+    toast({
+      title: "Link copiado! 🔗",
+      description: "O link do agente foi copiado para a área de transferência.",
+    });
+  };
+
+  const handleTestInNewTab = () => {
+    if (!agentId) {
+      toast({
+        title: "Salve primeiro! 💾",
+        description: "Você precisa salvar o agente antes de testar.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const slug = (agentName || '')
+      .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+      .toLowerCase().trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+    const link = `${window.location.origin}/chat/${agentId}/${slug || 'agent'}`;
+    window.open(link, '_blank');
   };
 
   return (
@@ -148,10 +203,40 @@ const AIAgentBuilder = () => {
           </div>
 
           <div className="flex items-center gap-3">
+            <Button
+              variant={showPreview ? "default" : "outline"}
+              onClick={() => setShowPreview(!showPreview)}
+              className={showPreview ? "" : "hover:bg-primary/10 hover:border-primary"}
+            >
+              {showPreview ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
+              {showPreview ? 'Desativar modo lado a lado' : 'Ativar modo lado a lado'}
+            </Button>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card">
+              <Label htmlFor="active-switch" className="">
+                <Power className="w-4 h-4" />
+              </Label>
+              <Switch
+                id="active-switch"
+                checked={isActive}
+                onCheckedChange={setIsActive}
+              />
+              <span className="text-sm font-medium">
+                {isActive ? 'Ativo' : 'Inativo'}
+              </span>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={handleCopyLink}
+              className="hover:bg-primary/10 hover:border-primary"
+            >
+              <Link2 className="w-4 h-4 mr-2" />
+              Copiar Link
+            </Button>
             <Dialog>
               <DialogTrigger asChild>
                 <Button 
                   variant="outline" 
+                  className="hover:bg-primary/10 hover:border-primary"
                   disabled={!agentId}
                 >
                   <Code2 className="w-4 h-4 mr-2" />
@@ -173,15 +258,15 @@ const AIAgentBuilder = () => {
             </Dialog>
             <Button 
               variant="outline" 
-              onClick={handleTest}
-              disabled={isProcessing || !testMessage.trim()}
+              onClick={handleTestInNewTab}
+              className="hover:bg-primary/10 hover:border-primary"
             >
               <Play className="w-4 h-4 mr-2" />
-              Testar
+              Testar Bot
             </Button>
             <Button 
               onClick={handleSave} 
-              className="gradient-primary shadow-glow"
+              className="bg-primary hover:bg-primary/90"
               disabled={isSaving || !selectedNiche}
             >
               <Save className="w-4 h-4 mr-2" />
@@ -191,7 +276,8 @@ const AIAgentBuilder = () => {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto px-6 py-8 flex gap-6">
+        <div className={showPreview ? "flex-1" : "w-full"}>
         <Tabs defaultValue="niche" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="niche" className="flex items-center gap-2">
@@ -537,6 +623,49 @@ const AIAgentBuilder = () => {
             </div>
           </TabsContent>
         </Tabs>
+        </div>
+
+        {showPreview && (
+          <div className="w-96">
+            <Card className="h-[600px] flex flex-col">
+              <div className="p-4 border-b border-border bg-card">
+                <div className="flex items-center gap-3">
+                  <div className="bg-primary/10 p-2 rounded-lg">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold">{agentName}</h3>
+                    <p className="text-xs text-muted-foreground">Pré-visualização</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+                <div className="flex justify-start">
+                  <div className="bg-card border border-border rounded-2xl px-4 py-3 max-w-[80%]">
+                    <p className="text-sm">{welcomeMessage}</p>
+                  </div>
+                </div>
+                
+                {testMessage && (
+                  <div className="flex justify-end">
+                    <div className="bg-primary text-primary-foreground rounded-2xl px-4 py-3 max-w-[80%]">
+                      <p className="text-sm">{testMessage}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {testResponse && (
+                  <div className="flex justify-start">
+                    <div className="bg-card border border-border rounded-2xl px-4 py-3 max-w-[80%]">
+                      <p className="text-sm">{testResponse}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );
