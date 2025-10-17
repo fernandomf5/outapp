@@ -493,6 +493,39 @@ const PublicChat = () => {
       return;
     }
 
+    // Verificar se a mensagem corresponde a alguma palavra-chave
+    if (botData.type === 'chatbot' && !originNodeId) {
+      const config = botData.config as any;
+      const nodes = config.nodes || [];
+      
+      // Normalizar a mensagem do usuário para comparação
+      const normalizedInput = textToSend.trim().toLowerCase();
+      
+      // Procurar por um nó que tenha a palavra-chave correspondente
+      const matchedNode = nodes.find((node: any) => {
+        const keyword = node.data?.keyword;
+        if (!keyword) return false;
+        return keyword.trim().toLowerCase() === normalizedInput;
+      });
+      
+      if (matchedNode) {
+        console.log('🔑 Palavra-chave detectada! Ativando bloco:', matchedNode);
+        
+        // Calcular delay
+        const delayMs = 500 + ((matchedNode.data?.delaySeconds || 0) * 1000);
+        
+        setIsTyping(true);
+        
+        setTimeout(async () => {
+          setIsTyping(false);
+          await processNode(matchedNode, nodes, config.edges || []);
+          setIsLoading(false);
+        }, delayMs);
+        
+        return;
+      }
+    }
+
     try {
       if (botData.type === 'agent') {
         // Processar com IA
