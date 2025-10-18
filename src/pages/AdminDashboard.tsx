@@ -21,6 +21,8 @@ import { TicketNotificationBell } from "@/components/TicketNotificationBell";
 import { FeaturesManager } from "@/components/admin/FeaturesManager";
 import { PlanFeaturesManager } from "@/components/admin/PlanFeaturesManager";
 import { LandingPageEditor } from "@/components/admin/LandingPageEditor";
+import { FAQEditor } from "@/components/admin/FAQEditor";
+import { LandingFeaturesEditor } from "@/components/admin/LandingFeaturesEditor";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -615,6 +617,12 @@ const AdminDashboard = () => {
           
           {/* Landing Page Editor */}
           <LandingPageEditor />
+          
+          {/* FAQ Editor */}
+          <FAQEditor />
+          
+          {/* Landing Features Editor */}
+          <LandingFeaturesEditor />
           
           {/* Site Configuration */}
           <div className="grid md:grid-cols-2 gap-6">

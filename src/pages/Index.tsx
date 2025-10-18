@@ -36,6 +36,7 @@ const Index = () => {
   const [videoUrl, setVideoUrl] = useState<string>("");
   const [selectedPage, setSelectedPage] = useState<CustomPage | null>(null);
   const [pageDialogOpen, setPageDialogOpen] = useState(false);
+  const [features, setFeatures] = useState<any[]>([]);
   const [landingSettings, setLandingSettings] = useState({
     hero_title: "Plataforma Completa de Automação<br />e Marketing Digital com IA",
     hero_subtitle: "Construtor visual de automações, CRM, sistema de afiliados, pixels de conversão, agentes IA e muito mais. Tudo em uma plataforma. Teste grátis por 3 dias.",
@@ -56,6 +57,7 @@ const Index = () => {
     fetchCustomPages();
     fetchVideoUrl();
     fetchLandingSettings();
+    fetchFeatures();
   }, []);
 
   const fetchPlans = async () => {
@@ -112,73 +114,104 @@ const Index = () => {
     }
   };
 
+  const fetchFeatures = async () => {
+    const { data } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'landing_features')
+      .maybeSingle();
+
+    if (data?.value) {
+      try {
+        const parsedFeatures = JSON.parse(data.value);
+        setFeatures(parsedFeatures);
+      } catch (e) {
+        console.error('Error parsing features:', e);
+        // Fallback to default features if parsing fails
+        setFeatures(getDefaultFeatures());
+      }
+    } else {
+      setFeatures(getDefaultFeatures());
+    }
+  };
+
+  const getDefaultFeatures = () => [
+    {
+      icon: "Workflow",
+      title: "Construtor Visual de Automações",
+      description: "Construtor drag-and-drop estilo Manychat para criar fluxos de conversação sem código",
+    },
+    {
+      icon: "Brain",
+      title: "Agentes IA Personalizados",
+      description: "Crie agentes de IA treinados com seus dados e personalidade da sua marca",
+    },
+    {
+      icon: "Users",
+      title: "CRM de Contatos Integrado",
+      description: "Gerencie leads, contatos e interações em um só lugar com tags e status",
+    },
+    {
+      icon: "UserPlus",
+      title: "Sistema de Afiliados Completo",
+      description: "Crie programas de afiliados, rastreie cliques, conversões e gerencie comissões",
+    },
+    {
+      icon: "BarChart3",
+      title: "Pixels de Conversão",
+      description: "Integre Meta Pixel, Google Analytics e outros pixels para rastrear conversões",
+    },
+    {
+      icon: "Link2",
+      title: "Gerador de Links WhatsApp",
+      description: "Crie links personalizados do WhatsApp com mensagens pré-definidas",
+    },
+    {
+      icon: "Gift",
+      title: "Sistema de Vouchers",
+      description: "Crie e gerencie cupons de desconto e vouchers de acesso aos planos",
+    },
+    {
+      icon: "Ticket",
+      title: "Sistema de Tickets",
+      description: "Suporte organizado com sistema de tickets, prioridades e categorias",
+    },
+    {
+      icon: "Video",
+      title: "Biblioteca de Tutoriais",
+      description: "Vídeos tutoriais organizados por categoria para seus usuários",
+    },
+    {
+      icon: "DollarSign",
+      title: "Integrações de Pagamento",
+      description: "Conecte Stripe, PagSeguro e outros gateways de pagamento facilmente",
+    },
+    {
+      icon: "Shield",
+      title: "Páginas Personalizadas",
+      description: "Crie páginas customizadas para termos, políticas e conteúdo institucional",
+    },
+    {
+      icon: "TrendingUp",
+      title: "Dashboard de Analytics",
+      description: "Acompanhe métricas, conversões, receitas e crescimento em tempo real",
+    },
+  ];
+
   const openPageDialog = (page: CustomPage) => {
     setSelectedPage(page);
     setPageDialogOpen(true);
   };
 
-  const features = [
-    {
-      icon: Workflow,
-      title: "Construtor Visual de Automações",
-      description: "Construtor drag-and-drop estilo Manychat para criar fluxos de conversação sem código",
-    },
-    {
-      icon: Brain,
-      title: "Agentes IA Personalizados",
-      description: "Crie agentes de IA treinados com seus dados e personalidade da sua marca",
-    },
-    {
-      icon: Users,
-      title: "CRM de Contatos Integrado",
-      description: "Gerencie leads, contatos e interações em um só lugar com tags e status",
-    },
-    {
-      icon: UserPlus,
-      title: "Sistema de Afiliados Completo",
-      description: "Crie programas de afiliados, rastreie cliques, conversões e gerencie comissões",
-    },
-    {
-      icon: BarChart3,
-      title: "Pixels de Conversão",
-      description: "Integre Meta Pixel, Google Analytics e outros pixels para rastrear conversões",
-    },
-    {
-      icon: Link2,
-      title: "Gerador de Links WhatsApp",
-      description: "Crie links personalizados do WhatsApp com mensagens pré-definidas",
-    },
-    {
-      icon: Gift,
-      title: "Sistema de Vouchers",
-      description: "Crie e gerencie cupons de desconto e vouchers de acesso aos planos",
-    },
-    {
-      icon: Ticket,
-      title: "Sistema de Tickets",
-      description: "Suporte organizado com sistema de tickets, prioridades e categorias",
-    },
-    {
-      icon: Video,
-      title: "Biblioteca de Tutoriais",
-      description: "Vídeos tutoriais organizados por categoria para seus usuários",
-    },
-    {
-      icon: DollarSign,
-      title: "Integrações de Pagamento",
-      description: "Conecte Stripe, PagSeguro e outros gateways de pagamento facilmente",
-    },
-    {
-      icon: Shield,
-      title: "Páginas Personalizadas",
-      description: "Crie páginas customizadas para termos, políticas e conteúdo institucional",
-    },
-    {
-      icon: TrendingUp,
-      title: "Dashboard de Analytics",
-      description: "Acompanhe métricas, conversões, receitas e crescimento em tempo real",
-    },
-  ];
+  const getIconComponent = (iconName: string) => {
+    const iconMap: Record<string, any> = {
+      Workflow, Brain, Users, UserPlus, BarChart3, Link2,
+      Gift, Ticket, Video, DollarSign, Shield, TrendingUp,
+      Bot, Zap, MessageSquare, Clock, CheckCircle2, Sparkles
+    };
+    const IconComponent = iconMap[iconName] || Sparkles;
+    return IconComponent;
+  };
 
   const headerPages = customPages.filter(p => p.location === 'header');
   const footerPages = customPages.filter(p => p.location === 'footer');
@@ -379,10 +412,10 @@ const Index = () => {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
             {features.map((feature, index) => {
-              const Icon = feature.icon;
+              const Icon = getIconComponent(feature.icon);
               return (
                 <div
-                  key={index}
+                  key={feature.id || index}
                   className="bg-card p-5 sm:p-6 md:p-8 rounded-xl border border-border hover:shadow-xl transition-smooth hover-scale"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
