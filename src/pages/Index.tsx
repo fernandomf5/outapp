@@ -36,11 +36,26 @@ const Index = () => {
   const [videoUrl, setVideoUrl] = useState<string>("");
   const [selectedPage, setSelectedPage] = useState<CustomPage | null>(null);
   const [pageDialogOpen, setPageDialogOpen] = useState(false);
+  const [landingSettings, setLandingSettings] = useState({
+    hero_title: "Plataforma Completa de Automação<br />e Marketing Digital com IA",
+    hero_subtitle: "Construtor visual de automações, CRM, sistema de afiliados, pixels de conversão, agentes IA e muito mais. Tudo em uma plataforma. Teste grátis por 3 dias.",
+    hero_cta_text: "Começar Teste Grátis 🚀",
+    video_section_title: "Veja a Plataforma em Ação",
+    video_section_subtitle: "Descubra como é fácil automatizar seu negócio com nossa plataforma completa",
+    features_title: "Tudo que Você Precisa em Uma Plataforma",
+    features_subtitle: "Automação, IA, CRM, Afiliados, Analytics e muito mais para fazer seu negócio crescer",
+    pricing_title: "Planos para Todos os Tamanhos",
+    pricing_subtitle: "Comece com 3 dias grátis e escolha o melhor plano para seu negócio crescer",
+    cta_title: "Pronto para Transformar seu Negócio?",
+    cta_subtitle: "Junte-se a centenas de empresas que já automatizam com nossa plataforma",
+    cta_button_text: "Começar Agora - 3 Dias Grátis"
+  });
 
   useEffect(() => {
     fetchPlans();
     fetchCustomPages();
     fetchVideoUrl();
+    fetchLandingSettings();
   }, []);
 
   const fetchPlans = async () => {
@@ -76,6 +91,24 @@ const Index = () => {
     
     if (!error && data) {
       setVideoUrl(data.value || "");
+    }
+  };
+
+  const fetchLandingSettings = async () => {
+    const keys = Object.keys(landingSettings);
+    const { data, error } = await supabase
+      .from('site_settings')
+      .select('key, value')
+      .in('key', keys);
+
+    if (!error && data) {
+      const newSettings = { ...landingSettings };
+      data.forEach(item => {
+        if (item.key in newSettings) {
+          newSettings[item.key as keyof typeof landingSettings] = item.value || newSettings[item.key as keyof typeof landingSettings];
+        }
+      });
+      setLandingSettings(newSettings);
     }
   };
 
@@ -262,14 +295,13 @@ const Index = () => {
             <Bot className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16" />
           </div>
           
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 animate-fade-in leading-tight">
-            Plataforma Completa de Automação<br />
-            e Marketing Digital com IA
-          </h1>
+          <h1 
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 animate-fade-in leading-tight"
+            dangerouslySetInnerHTML={{ __html: landingSettings.hero_title }}
+          />
           
           <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-6 sm:mb-8 text-white/90 max-w-3xl mx-auto animate-fade-in">
-            Construtor visual de automações, CRM, sistema de afiliados, pixels de conversão,
-            agentes IA e muito mais. Tudo em uma plataforma. Teste grátis por 3 dias.
+            {landingSettings.hero_subtitle}
           </p>
           
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-scale-in max-w-md sm:max-w-none mx-auto">
@@ -278,7 +310,7 @@ const Index = () => {
               onClick={() => navigate("/auth")}
               className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 shadow-glow text-sm sm:text-base md:text-lg px-6 sm:px-8 py-5 sm:py-6 active:scale-95 transition-transform"
             >
-              Começar Teste Grátis 🚀
+              {landingSettings.hero_cta_text}
             </Button>
             <Button 
               size="lg" 
@@ -313,10 +345,10 @@ const Index = () => {
           <div className="container mx-auto max-w-5xl">
             <div className="text-center mb-6 sm:mb-10 md:mb-12">
               <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3 md:mb-4">
-                Veja a Plataforma em Ação
+                {landingSettings.video_section_title}
               </h2>
               <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground">
-                Descubra como é fácil automatizar seu negócio com nossa plataforma completa
+                {landingSettings.video_section_subtitle}
               </p>
             </div>
             
@@ -338,10 +370,10 @@ const Index = () => {
         <div className="container mx-auto max-w-7xl">
           <div className="text-center mb-8 sm:mb-12 md:mb-16">
             <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 sm:mb-3 md:mb-4">
-              Tudo que Você Precisa em Uma Plataforma
+              {landingSettings.features_title}
             </h2>
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Automação, IA, CRM, Afiliados, Analytics e muito mais para fazer seu negócio crescer
+              {landingSettings.features_subtitle}
             </p>
           </div>
           
@@ -371,10 +403,10 @@ const Index = () => {
         <div className="container mx-auto max-w-7xl">
           <div className="text-center mb-8 sm:mb-12 md:mb-16">
             <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 sm:mb-3 md:mb-4">
-              Planos para Todos os Tamanhos
+              {landingSettings.pricing_title}
             </h2>
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Comece com 3 dias grátis e escolha o melhor plano para seu negócio crescer
+              {landingSettings.pricing_subtitle}
             </p>
           </div>
           
@@ -452,17 +484,17 @@ const Index = () => {
         
         <div className="container mx-auto text-center text-white relative z-10 max-w-4xl">
           <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 md:mb-6">
-            Pronto para Transformar seu Negócio Digital?
+            {landingSettings.cta_title}
           </h2>
           <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-5 sm:mb-6 md:mb-8 text-white/90 max-w-2xl mx-auto">
-            Junte-se a centenas de empresas que já automatizam, gerenciam e escalam seus negócios com nossa plataforma completa
+            {landingSettings.cta_subtitle}
           </p>
           <Button 
             size="lg"
             onClick={() => navigate("/auth")}
             className="w-full sm:w-auto max-w-md bg-white text-primary hover:bg-white/90 shadow-glow text-sm sm:text-base md:text-lg px-6 sm:px-8 py-5 sm:py-6 active:scale-95 transition-transform"
           >
-            Começar Agora - 3 Dias Grátis 🚀
+            {landingSettings.cta_button_text}
           </Button>
         </div>
       </section>

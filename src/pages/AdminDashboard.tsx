@@ -20,6 +20,7 @@ import { TicketsManager } from "@/components/admin/TicketsManager";
 import { TicketNotificationBell } from "@/components/TicketNotificationBell";
 import { FeaturesManager } from "@/components/admin/FeaturesManager";
 import { PlanFeaturesManager } from "@/components/admin/PlanFeaturesManager";
+import { LandingPageEditor } from "@/components/admin/LandingPageEditor";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -611,6 +612,9 @@ const AdminDashboard = () => {
           </div>
           
           <RevenuePanel />
+          
+          {/* Landing Page Editor */}
+          <LandingPageEditor />
           
           {/* Site Configuration */}
           <div className="grid md:grid-cols-2 gap-6">
