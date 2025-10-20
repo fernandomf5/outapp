@@ -13,11 +13,12 @@ import {
 } from "@/components/ui/sidebar";
 
 export function AdminSidebar() {
-  const { collapsed } = useSidebar();
+  const { state } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
   const currentTab = searchParams.get('section') || 'overview';
+  const collapsed = state === "collapsed";
 
   const isActive = (tab: string) => {
     return currentTab === tab;
@@ -54,9 +55,9 @@ export function AdminSidebar() {
   ];
 
   return (
-    <Sidebar className={collapsed ? "w-14" : "w-60"} collapsible>
+    <Sidebar className={collapsed ? "w-14" : "w-60"} collapsible="icon">
       <SidebarContent>
-        <SidebarGroup open={true}>
+        <SidebarGroup>
           <SidebarGroupLabel>Dashboard</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -75,7 +76,7 @@ export function AdminSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup open={true}>
+        <SidebarGroup>
           <SidebarGroupLabel>Conteúdo</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -94,7 +95,7 @@ export function AdminSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup open={true}>
+        <SidebarGroup>
           <SidebarGroupLabel>Sistema</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>

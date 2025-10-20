@@ -363,8 +363,7 @@ const BotBuilder = () => {
                   </DialogHeader>
                   {chatbotId && (
                     <ChatWidgetGenerator 
-                      chatId={chatbotId} 
-                      chatName={botName}
+                      botId={chatbotId} 
                       type="chatbot"
                     />
                   )}

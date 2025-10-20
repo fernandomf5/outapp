@@ -70,13 +70,14 @@ const FunnelBuilder = () => {
       return;
     }
 
-    if (data) {
+      if (data) {
       setFunnelName(data.name);
       setFunnelDescription(data.description || "");
       setIsActive(data.is_active);
-      if (data.config) {
-        setNodes(data.config.nodes || []);
-        setEdges(data.config.edges || []);
+      if (data.config && typeof data.config === 'object' && !Array.isArray(data.config)) {
+        const config = data.config as { nodes?: any[]; edges?: any[] };
+        setNodes(config.nodes || []);
+        setEdges(config.edges || []);
       }
     }
   };
@@ -209,7 +210,7 @@ const FunnelBuilder = () => {
               <DialogHeader>
                 <DialogTitle>Código do Widget</DialogTitle>
               </DialogHeader>
-              {funnelId && <ChatWidgetGenerator botId={funnelId} type="funnel" />}
+              {funnelId && <ChatWidgetGenerator botId={funnelId} />}
             </DialogContent>
           </Dialog>
 
@@ -243,6 +244,7 @@ const FunnelBuilder = () => {
               initialEdges={edges}
               onNodesChange={setNodes}
               onEdgesChange={setEdges}
+              onNodeClick={() => {}}
             />
           </div>
 

@@ -14,13 +14,14 @@ import {
 import { useUserFeatures } from "@/hooks/useUserFeatures";
 
 export function UserSidebar() {
-  const { collapsed } = useSidebar();
+  const { state } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
   const { hasFeature } = useUserFeatures();
   const currentPath = location.pathname;
   const searchParams = new URLSearchParams(location.search);
   const currentTab = searchParams.get('tab') || 'overview';
+  const collapsed = state === "collapsed";
 
   const isActive = (path: string, tab?: string) => {
     if (tab) {
@@ -58,9 +59,9 @@ export function UserSidebar() {
   ];
 
   return (
-    <Sidebar className={collapsed ? "w-14" : "w-60"} collapsible>
+    <Sidebar className={collapsed ? "w-14" : "w-60"} collapsible="icon">
       <SidebarContent>
-        <SidebarGroup open={true}>
+        <SidebarGroup>
           <SidebarGroupLabel>Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -79,7 +80,7 @@ export function UserSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup open={true}>
+        <SidebarGroup>
           <SidebarGroupLabel>Ferramentas</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -101,7 +102,7 @@ export function UserSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup open={true}>
+        <SidebarGroup>
           <SidebarGroupLabel>Suporte & Plano</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>

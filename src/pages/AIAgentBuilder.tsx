@@ -249,8 +249,7 @@ const AIAgentBuilder = () => {
                 </DialogHeader>
                 {agentId && (
                   <ChatWidgetGenerator 
-                    chatId={agentId} 
-                    chatName={agentName}
+                    botId={agentId} 
                     type="agent"
                   />
                 )}

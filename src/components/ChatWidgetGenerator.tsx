@@ -9,26 +9,18 @@ import { Copy, MessageCircle } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 
 interface ChatWidgetGeneratorProps {
-  chatId: string;
-  chatName: string;
-  type: 'chatbot' | 'agent';
+  botId: string;
+  type?: 'chatbot' | 'agent' | 'funnel';
 }
 
-export const ChatWidgetGenerator = ({ chatId, chatName, type }: ChatWidgetGeneratorProps) => {
+export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGeneratorProps) => {
   const { toast } = useToast();
   const [position, setPosition] = useState('bottom-right');
   const [buttonColor, setButtonColor] = useState('#25D366');
   const [buttonText, setButtonText] = useState('Chat Online');
 
   const generateWidgetCode = () => {
-    const slug = (chatName || '')
-      .normalize('NFD').replace(/\p{Diacritic}/gu, '')
-      .toLowerCase().trim()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-');
-
-    const chatUrl = `${window.location.origin}/chat/${chatId}/${slug || 'bot'}`;
+    const chatUrl = `${window.location.origin}/chat/${botId}`;
 
     const positionStyles: Record<string, string> = {
       'bottom-right': 'bottom: 20px; right: 20px;',
