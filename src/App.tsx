@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Index from "./pages/Index";
@@ -10,6 +11,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import BotBuilder from "./pages/BotBuilder";
 import AIAgentBuilder from "./pages/AIAgentBuilder";
+import FunnelBuilder from "./pages/FunnelBuilder";
 import AdminDashboard from "./pages/AdminDashboard";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -24,52 +26,59 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/email-confirmed" element={<EmailConfirmed />} />
-            <Route path="/s/:shortCode" element={<ShortLinkRedirect />} />
-            <Route path="/page/:slug" element={<ClonedPage />} />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/chat/:botId" element={<PublicChat />} />
-            <Route path="/chat/:botId/:slug" element={<PublicChat />} />
-            <Route path="/bot-builder" element={
-              <ProtectedRoute>
-                <BotBuilder />
-              </ProtectedRoute>
-            } />
-            <Route path="/ai-agent" element={
-              <ProtectedRoute>
-                <AIAgentBuilder />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin" element={
-              <ProtectedRoute requireAdmin>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <Settings />
-              </ProtectedRoute>
-            } />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/email-confirmed" element={<EmailConfirmed />} />
+              <Route path="/s/:shortCode" element={<ShortLinkRedirect />} />
+              <Route path="/page/:slug" element={<ClonedPage />} />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/chat/:botId" element={<PublicChat />} />
+              <Route path="/chat/:botId/:slug" element={<PublicChat />} />
+              <Route path="/bot-builder" element={
+                <ProtectedRoute>
+                  <BotBuilder />
+                </ProtectedRoute>
+              } />
+              <Route path="/ai-agent" element={
+                <ProtectedRoute>
+                  <AIAgentBuilder />
+                </ProtectedRoute>
+              } />
+              <Route path="/funnel-builder" element={
+                <ProtectedRoute>
+                  <FunnelBuilder />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin" element={
+                <ProtectedRoute requireAdmin>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              } />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
