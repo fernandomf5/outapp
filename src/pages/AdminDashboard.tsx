@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
@@ -82,6 +82,8 @@ const AdminDashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const [searchParams] = useSearchParams();
+  const currentSection = searchParams.get('section') || 'overview';
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeSubscriptions: 0,
@@ -516,150 +518,155 @@ const AdminDashboard = () => {
 
           {/* Main Content */}
           <main className="flex-1 overflow-auto px-6 py-8">
-            {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-primary/5 border-primary/20 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className="bg-gradient-to-br from-primary/20 to-primary/10 p-3 rounded-xl shadow-glow">
-                  <Users className="w-6 h-6 text-primary" />
+            {/* Overview Section */}
+            {currentSection === 'overview' && (
+              <>
+                {/* Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-primary/5 border-primary/20 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="bg-gradient-to-br from-primary/20 to-primary/10 p-3 rounded-xl shadow-glow">
+                          <Users className="w-6 h-6 text-primary" />
+                        </div>
+                        <span className="text-sm font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full">+{stats.newUsersThisMonth} este mês</span>
+                      </div>
+                      <h3 className="text-3xl font-bold mb-1 text-success">{stats.totalUsers}</h3>
+                      <p className="text-muted-foreground">Usuários Totais</p>
+                    </div>
+                  </Card>
+
+                  <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-success/5 border-success/20 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-success/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="bg-gradient-to-br from-success/20 to-success/10 p-3 rounded-xl shadow-glow">
+                          <TrendingUp className="w-6 h-6 text-success" />
+                        </div>
+                        <span className="text-sm font-semibold text-success bg-success/10 px-3 py-1 rounded-full">Ativo</span>
+                      </div>
+                      <h3 className="text-3xl font-bold mb-1 text-success">{stats.activeSubscriptions}</h3>
+                      <p className="text-muted-foreground">Assinaturas Ativas</p>
+                    </div>
+                  </Card>
+
+                  <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-warning/5 border-warning/20 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-warning/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="bg-gradient-to-br from-warning/20 to-warning/10 p-3 rounded-xl shadow-glow">
+                          <DollarSign className="w-6 h-6 text-warning" />
+                        </div>
+                        <span className="text-sm font-semibold text-warning bg-warning/10 px-3 py-1 rounded-full">+{stats.growthRate}%</span>
+                      </div>
+                      <h3 className="text-3xl font-bold mb-1 text-success">R$ {stats.monthlyRevenue.toLocaleString()}</h3>
+                      <p className="text-muted-foreground">Receita Mensal</p>
+                    </div>
+                  </Card>
+
+                  <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-info/5 border-info/20 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-info/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="bg-gradient-to-br from-info/20 to-info/10 p-3 rounded-xl shadow-glow">
+                          <TrendingUp className="w-6 h-6 text-info" />
+                        </div>
+                        <span className="text-sm font-semibold text-info bg-info/10 px-3 py-1 rounded-full">Crescimento</span>
+                      </div>
+                      <h3 className="text-3xl font-bold mb-1 text-success">{stats.growthRate}%</h3>
+                      <p className="text-muted-foreground">Taxa de Crescimento</p>
+                    </div>
+                  </Card>
                 </div>
-                <span className="text-sm font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full">+{stats.newUsersThisMonth} este mês</span>
-              </div>
-              <h3 className="text-3xl font-bold mb-1 text-success">{stats.totalUsers}</h3>
-              <p className="text-muted-foreground">Usuários Totais</p>
-            </div>
-          </Card>
 
-          <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-success/5 border-success/20 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-r from-success/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className="bg-gradient-to-br from-success/20 to-success/10 p-3 rounded-xl shadow-glow">
-                  <TrendingUp className="w-6 h-6 text-success" />
+                {/* Quick Actions */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                  <Card className="p-6 hover:shadow-xl hover-scale transition-smooth bg-gradient-to-br from-card to-primary/5 border-primary/20 group cursor-pointer" onClick={() => setIsBroadcastOpen(true)}>
+                    <div className="flex items-center gap-4">
+                      <div className="bg-gradient-to-br from-primary/20 to-primary/10 p-3 rounded-xl shadow-glow group-hover:scale-110 transition-transform">
+                        <MessageSquare className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg">Enviar Mensagem</h3>
+                        <p className="text-sm text-muted-foreground">Comunicação com usuários</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card className="p-6 hover:shadow-xl hover-scale transition-smooth bg-gradient-to-br from-card to-info/5 border-info/20 group cursor-pointer" onClick={() => navigate('/admin?section=revenue')}>
+                    <div className="flex items-center gap-4">
+                      <div className="bg-gradient-to-br from-info/20 to-info/10 p-3 rounded-xl shadow-glow group-hover:scale-110 transition-transform">
+                        <BarChart3 className="w-6 h-6 text-info" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg">Relatórios</h3>
+                        <p className="text-sm text-muted-foreground">Analytics detalhados</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card className="p-6 hover:shadow-xl hover-scale transition-smooth bg-gradient-to-br from-card to-warning/5 border-warning/20 group cursor-pointer" onClick={() => navigate('/admin?section=videos')}>
+                    <div className="flex items-center gap-4">
+                      <div className="bg-gradient-to-br from-warning/20 to-warning/10 p-3 rounded-xl shadow-glow group-hover:scale-110 transition-transform">
+                        <Video className="w-6 h-6 text-warning" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg">Vídeos Tutoriais</h3>
+                        <p className="text-sm text-muted-foreground">Gerenciar conteúdo</p>
+                      </div>
+                    </div>
+                  </Card>
                 </div>
-                <span className="text-sm font-semibold text-success bg-success/10 px-3 py-1 rounded-full">Ativo</span>
-              </div>
-              <h3 className="text-3xl font-bold mb-1 text-success">{stats.activeSubscriptions}</h3>
-              <p className="text-muted-foreground">Assinaturas Ativas</p>
-            </div>
-          </Card>
 
-          <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-warning/5 border-warning/20 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-r from-warning/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className="bg-gradient-to-br from-warning/20 to-warning/10 p-3 rounded-xl shadow-glow">
-                  <DollarSign className="w-6 h-6 text-warning" />
-                </div>
-                <span className="text-sm font-semibold text-warning bg-warning/10 px-3 py-1 rounded-full">+{stats.growthRate}%</span>
-              </div>
-              <h3 className="text-3xl font-bold mb-1 text-success">R$ {stats.monthlyRevenue.toLocaleString()}</h3>
-              <p className="text-muted-foreground">Receita Mensal</p>
-            </div>
-          </Card>
+                <GrowthChart />
+              </>
+            )}
 
-          <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-info/5 border-info/20 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-r from-info/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className="bg-gradient-to-br from-info/20 to-info/10 p-3 rounded-xl shadow-glow">
-                  <TrendingUp className="w-6 h-6 text-info" />
-                </div>
-                <span className="text-sm font-semibold text-info bg-info/10 px-3 py-1 rounded-full">Crescimento</span>
-              </div>
-              <h3 className="text-3xl font-bold mb-1 text-success">{stats.growthRate}%</h3>
-              <p className="text-muted-foreground">Taxa de Crescimento</p>
-            </div>
-          </Card>
-        </div>
+            {/* Users Section */}
+            {currentSection === 'users' && <UsersPanel />}
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="p-6 hover:shadow-xl hover-scale transition-smooth bg-gradient-to-br from-card to-primary/5 border-primary/20 group" onClick={() => setIsBroadcastOpen(true)}>
-            <div className="flex items-center gap-4">
-              <div className="bg-gradient-to-br from-primary/20 to-primary/10 p-3 rounded-xl shadow-glow group-hover:scale-110 transition-transform">
-                <MessageSquare className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg">Enviar Mensagem</h3>
-                <p className="text-sm text-muted-foreground">Comunicação com usuários</p>
-              </div>
-            </div>
-          </Card>
+            {/* Subscriptions Section */}
+            {currentSection === 'subscriptions' && <SubscriptionsPanel />}
 
-          <Card className="p-6 hover:shadow-xl hover-scale transition-smooth bg-gradient-to-br from-card to-info/5 border-info/20 group">
-            <div className="flex items-center gap-4">
-              <div className="bg-gradient-to-br from-info/20 to-info/10 p-3 rounded-xl shadow-glow group-hover:scale-110 transition-transform">
-                <BarChart3 className="w-6 h-6 text-info" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg">Relatórios</h3>
-                <p className="text-sm text-muted-foreground">Analytics detalhados</p>
-              </div>
-            </div>
-          </Card>
+            {/* Revenue Section */}
+            {currentSection === 'revenue' && <RevenuePanel />}
 
-          <Card className="p-6 hover:shadow-xl hover-scale transition-smooth bg-gradient-to-br from-card to-warning/5 border-warning/20 group" onClick={() => setIsVideoDialogOpen(true)}>
-            <div className="flex items-center gap-4">
-              <div className="bg-gradient-to-br from-warning/20 to-warning/10 p-3 rounded-xl shadow-glow group-hover:scale-110 transition-transform">
-                <Video className="w-6 h-6 text-warning" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg">Vídeos Tutoriais</h3>
-                <p className="text-sm text-muted-foreground">Gerenciar conteúdo</p>
-              </div>
-            </div>
-          </Card>
-        </div>
+            {/* Landing Page Section */}
+            {currentSection === 'landing' && <LandingPageEditor />}
 
-        {/* New Admin Panels */}
-        <div className="space-y-6 mb-8">
-          <GrowthChart />
-          
-          <div className="grid md:grid-cols-2 gap-6">
-            <UsersPanel />
-            <SubscriptionsPanel />
-          </div>
-          
-          <RevenuePanel />
-          
-          {/* Landing Page Editor */}
-          <LandingPageEditor />
-          
-          {/* FAQ Editor */}
-          <FAQEditor />
-          
-          {/* Landing Features Editor */}
-          <LandingFeaturesEditor />
-          
-          {/* Site Configuration */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <SiteSettingsManager />
-            <CustomPagesManager />
-          </div>
-          
-          {/* Payment Integrations */}
-          <PaymentIntegrationsManager />
-          
-          {/* Admin Messages Manager */}
-          <AdminMessagesManager />
-          
-          {/* Vouchers Manager */}
-          <VouchersManager />
-          
-          {/* Tickets Manager */}
-          <TicketsManager />
-          
-          {/* Features Management */}
-          <FeaturesManager />
-          
-          {/* Plan Features Management */}
-          <PlanFeaturesManager />
-        </div>
+            {/* Features Landing Section */}
+            {currentSection === 'features-landing' && <LandingFeaturesEditor />}
 
-        {/* Video Tutorials Management */}
+            {/* FAQ Section */}
+            {currentSection === 'faq' && <FAQEditor />}
+
+            {/* Features Section */}
+            {currentSection === 'features' && <FeaturesManager />}
+
+            {/* Plan Features Section */}
+            {currentSection === 'plan-features' && <PlanFeaturesManager />}
+
+            {/* Messages Section */}
+            {currentSection === 'messages' && <AdminMessagesManager />}
+
+            {/* Tickets Section */}
+            {currentSection === 'tickets' && <TicketsManager />}
+
+            {/* Vouchers Section */}
+            {currentSection === 'vouchers' && <VouchersManager />}
+
+            {/* Custom Pages Section */}
+            {currentSection === 'custom-pages' && <CustomPagesManager />}
+
+            {/* Integrations Section */}
+            {currentSection === 'integrations' && <PaymentIntegrationsManager />}
+
+            {/* Settings Section */}
+            {currentSection === 'settings' && <SiteSettingsManager />}
+
+            {/* Videos Section */}
+            {currentSection === 'videos' && (
         <Card className="p-6 mb-8 bg-gradient-to-br from-card via-card to-warning/5 border-warning/20">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">Vídeos Tutoriais</h2>
@@ -721,8 +728,10 @@ const AdminDashboard = () => {
             ))}
           </div>
         </Card>
+            )}
 
-        {/* Plans Management */}
+            {/* Plans Section */}
+            {currentSection === 'plans' && (
         <Card className="p-6 mb-8 bg-gradient-to-br from-card via-card to-primary/5 border-primary/20">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">Gerenciar Planos</h2>
@@ -780,9 +789,10 @@ const AdminDashboard = () => {
               </Card>
             ))}
           </div>
-          </Card>
+        </Card>
+            )}
 
-        </main>
+          </main>
       </div>
     </div>
 
