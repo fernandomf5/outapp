@@ -9,6 +9,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserFeatures } from "@/hooks/useUserFeatures";
 import { NotificationBell } from "@/components/NotificationBell";
 import { TicketNotificationBell } from "@/components/TicketNotificationBell";
+import { UserSidebar } from "@/components/layout/UserSidebar";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { TutorialVideos } from "@/components/TutorialVideos";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { MyPlanSection } from "@/components/MyPlanSection";
@@ -301,44 +304,50 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-card border-b border-border px-4 sm:px-6 py-4">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 p-2 rounded-xl">
-              <Bot className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <UserSidebar />
+        
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <header className="bg-card border-b border-border px-4 sm:px-6 py-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <SidebarTrigger />
+                <div className="bg-primary/10 p-2 rounded-xl">
+                  <Bot className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-xl sm:text-2xl font-bold">
+                    Olá, {user?.email?.split('@')[0] || 'Usuário'}! 👋
+                  </h1>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Que bom ver você por aqui!</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                <NotificationBell />
+                <TicketNotificationBell />
+                <ThemeToggle />
+                <Button variant="outline" onClick={() => navigate("/settings")} className="flex-1 sm:flex-none" size="sm">
+                  <Settings className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Configurações</span>
+                </Button>
+                <Button
+                  onClick={handleLogout}
+                  variant="ghost"
+                  className="flex-1 sm:flex-none"
+                  size="sm"
+                >
+                  <LogOut className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Sair</span>
+                </Button>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold">
-                Olá, {user?.email?.split('@')[0] || 'Usuário'}! 👋
-              </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">Que bom ver você por aqui!</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
-            <NotificationBell />
-            <TicketNotificationBell />
-            <Button variant="outline" onClick={() => navigate("/settings")} className="flex-1 sm:flex-none" size="sm">
-              <Settings className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Configurações</span>
-            </Button>
-            <Button
-              onClick={handleLogout}
-              variant="ghost"
-              className="flex-1 sm:flex-none"
-              size="sm"
-            >
-              <LogOut className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Sair</span>
-            </Button>
-          </div>
-        </div>
-      </header>
+          </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          {/* Main Content */}
+          <main className="flex-1 overflow-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Subscription Banner */}
         <SubscriptionBanner />
 
@@ -776,7 +785,9 @@ const Dashboard = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+        </div>
+      </div>
+    </SidebarProvider>
   );
 };
 

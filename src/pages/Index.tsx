@@ -9,6 +9,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { FAQSection } from "@/components/FAQSection";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 interface Plan {
   id: string;
@@ -252,13 +253,16 @@ const Index = () => {
               {page.title}
             </button>
           ))}
-          <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-border">
+          <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-border">
             <Button variant="ghost" onClick={() => navigate("/auth")} className="w-full justify-start">
               Entrar
             </Button>
             <Button onClick={() => navigate("/auth")} className="gradient-primary shadow-glow w-full">
               Começar Grátis
             </Button>
+          </div>
+          <div className="mt-4">
+            <ThemeToggle />
           </div>
         </nav>
       </SheetContent>
@@ -302,6 +306,7 @@ const Index = () => {
                   {page.title}
                 </button>
               ))}
+              <ThemeToggle />
               <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} className="active:scale-95 transition-transform">
                 Entrar
               </Button>

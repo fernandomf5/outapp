@@ -7,6 +7,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
+import { AdminSidebar } from "@/components/layout/AdminSidebar";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { UsersPanel } from "@/components/admin/UsersPanel";
 import { SubscriptionsPanel } from "@/components/admin/SubscriptionsPanel";
 import { RevenuePanel } from "@/components/admin/RevenuePanel";
@@ -471,42 +474,49 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-card via-card to-primary/5 border-b border-border/50 backdrop-blur-sm px-6 py-4 sticky top-0 z-50 shadow-lg">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-warning/20 to-warning/10 p-3 rounded-xl shadow-glow animate-pulse">
-              <Crown className="w-8 h-8 text-warning" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-                Painel Master Admin
-              </h1>
-              <p className="text-sm text-muted-foreground">Controle total da plataforma</p>
-            </div>
-          </div>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-background via-background to-primary/5">
+        <AdminSidebar />
+        
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <header className="bg-gradient-to-r from-card via-card to-primary/5 border-b border-border/50 backdrop-blur-sm px-6 py-4 sticky top-0 z-50 shadow-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <SidebarTrigger />
+                <div className="bg-gradient-to-br from-warning/20 to-warning/10 p-3 rounded-xl shadow-glow animate-pulse">
+                  <Crown className="w-8 h-8 text-warning" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                    Painel Master Admin
+                  </h1>
+                  <p className="text-sm text-muted-foreground">Controle total da plataforma</p>
+                </div>
+              </div>
 
-          <div className="flex gap-3 items-center">
-            <TicketNotificationBell isAdmin={true} />
-            <Button variant="outline" onClick={() => setIsBroadcastOpen(true)} className="hover:bg-primary/10 hover:border-primary transition-all">
-              <MessageSquare className="w-4 h-4 mr-2" />
-              Mensagens
-            </Button>
-            <Button variant="outline" onClick={() => setIsSettingsOpen(true)} className="hover:bg-primary/10 hover:border-primary transition-all">
-              <Settings className="w-4 h-4 mr-2" />
-              Configurações
-            </Button>
-            <Button variant="ghost" onClick={handleLogout} className="hover:bg-destructive/10 text-destructive">
+              <div className="flex gap-3 items-center">
+                <TicketNotificationBell isAdmin={true} />
+                <ThemeToggle />
+                <Button variant="outline" onClick={() => setIsBroadcastOpen(true)} className="hover:bg-primary/10 hover:border-primary transition-all">
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Mensagens
+                </Button>
+                <Button variant="outline" onClick={() => setIsSettingsOpen(true)} className="hover:bg-primary/10 hover:border-primary transition-all">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Configurações
+                </Button>
+                <Button variant="ghost" onClick={handleLogout} className="hover:bg-destructive/10 text-destructive">
               <LogOut className="w-4 h-4 mr-2" />
               Sair
-            </Button>
-          </div>
-        </div>
-      </header>
+                </Button>
+              </div>
+            </div>
+          </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* Stats */}
+          {/* Main Content */}
+          <main className="flex-1 overflow-auto px-6 py-8">
+            {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="p-6 hover-scale transition-smooth bg-gradient-to-br from-card to-primary/5 border-primary/20 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -770,9 +780,11 @@ const AdminDashboard = () => {
               </Card>
             ))}
           </div>
-        </Card>
+          </Card>
 
-      </main>
+        </main>
+      </div>
+    </div>
 
       {/* Video Tutorial Dialog */}
       <Dialog open={isVideoDialogOpen} onOpenChange={setIsVideoDialogOpen}>
@@ -1231,7 +1243,7 @@ const AdminDashboard = () => {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </SidebarProvider>
   );
 };
 
