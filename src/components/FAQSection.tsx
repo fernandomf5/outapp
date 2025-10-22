@@ -8,7 +8,7 @@ import {
 import { HelpCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-export const FAQSection = () => {
+export const FAQSection = ({ hideSupportCTA = false }: { hideSupportCTA?: boolean }) => {
   const [faqs, setFaqs] = useState<Array<{ question: string; answer: string }>>([]);
 
   useEffect(() => {
@@ -67,17 +67,20 @@ export const FAQSection = () => {
           ))}
         </Accordion>
 
-        <div className="mt-10 sm:mt-12 text-center bg-muted/50 p-6 sm:p-8 rounded-xl">
-          <h3 className="font-bold text-lg sm:text-xl mb-2">
-            Ainda tem dúvidas?
-          </h3>
-          <p className="text-sm sm:text-base text-muted-foreground mb-4">
-            Nossa equipe de suporte está pronta para ajudar você
-          </p>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Entre em contato através do sistema de tickets dentro da plataforma
-          </p>
-        </div>
+        { !hideSupportCTA && (
+          <div className="mt-10 sm:mt-12 text-center bg-muted/50 p-6 sm:p-8 rounded-xl">
+            <h3 className="font-bold text-lg sm:text-xl mb-2">
+              Ainda tem dúvidas?
+            </h3>
+            <p className="text-sm sm:text-base text-muted-foreground mb-4">
+              Nossa equipe de suporte está pronta para ajudar você
+            </p>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Entre em contato através do sistema de tickets dentro da plataforma
+            </p>
+          </div>
+        )}
+
       </div>
     </section>
   );

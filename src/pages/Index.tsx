@@ -511,7 +511,7 @@ const Index = () => {
       </section>
 
       {/* FAQ Section */}
-      <FAQSection />
+      <FAQSection hideSupportCTA />
 
       {/* CTA Section */}
       <section className="py-10 sm:py-16 md:py-20 px-6 sm:px-8 gradient-primary relative overflow-hidden">

@@ -14,6 +14,8 @@ import { Sidebar } from "@/components/flowbuilder/Sidebar";
 import { ChatPreview } from "@/components/flowbuilder/ChatPreview";
 import { ChatWidgetGenerator } from "@/components/ChatWidgetGenerator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ReactFlowProvider } from 'reactflow';
+
 
 interface FunnelData {
   id?: string;
@@ -59,7 +61,7 @@ const FunnelBuilder = () => {
       .from('funnels')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) {
       toast({
@@ -238,25 +240,27 @@ const FunnelBuilder = () => {
         }} />
 
         <div className={`flex-1 ${showPreview ? 'flex' : ''}`}>
-          <div className={showPreview ? 'flex-1' : 'w-full h-full'}>
-            <FlowCanvas
-              initialNodes={nodes}
-              initialEdges={edges}
-              onNodesChange={setNodes}
-              onEdgesChange={setEdges}
-              onNodeClick={() => {}}
-            />
-          </div>
-
-          {showPreview && (
-            <div className="w-96 border-l border-border bg-card">
-              <ChatPreview
-                nodes={nodes}
-                edges={edges}
-                botName={funnelName}
+          <ReactFlowProvider>
+            <div className={showPreview ? 'flex-1' : 'w-full h-full'}>
+              <FlowCanvas
+                initialNodes={nodes}
+                initialEdges={edges}
+                onNodesChange={setNodes}
+                onEdgesChange={setEdges}
+                onNodeClick={() => {}}
               />
             </div>
-          )}
+
+            {showPreview && (
+              <div className="w-96 border-l border-border bg-card">
+                <ChatPreview
+                  nodes={nodes}
+                  edges={edges}
+                  botName={funnelName}
+                />
+              </div>
+            )}
+          </ReactFlowProvider>
         </div>
       </div>
     </div>
