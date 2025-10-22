@@ -50,7 +50,7 @@ const Dashboard = () => {
   const [aiAgents, setAiAgents] = useState<any[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
+  const activeTab = searchParams.get('tab') || 'overview';
   const [unreadClientMessages, setUnreadClientMessages] = useState(0);
 
   useEffect(() => {
@@ -219,6 +219,10 @@ const Dashboard = () => {
     }
   }, [activeTab]);
 
+  const handleTabChange = (value: string) => {
+    navigate(`/dashboard?tab=${value}`);
+  };
+
   const handleLogout = async () => {
     try {
       await signOut();
@@ -351,7 +355,7 @@ const Dashboard = () => {
         {/* Subscription Banner */}
         <SubscriptionBanner />
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-8 mb-8">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             {hasFeature('chatbot_conversations') && (
@@ -422,7 +426,7 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {hasFeature('chatbot_web') && (
             <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth" onClick={() => navigate("/bot-builder")}>
               <div className="flex items-start justify-between mb-3 sm:mb-4">
@@ -457,6 +461,25 @@ const Dashboard = () => {
               </div>
               <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
                 Criar Agente
+              </Button>
+            </Card>
+          )}
+
+          {hasFeature('funnel_builder') && (
+            <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth" onClick={() => navigate("/funnel-builder")}>
+              <div className="flex items-start justify-between mb-3 sm:mb-4">
+                <div className="flex-1">
+                  <h3 className="text-lg sm:text-xl font-bold mb-2">Criar Funil de Vendas</h3>
+                  <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                    Construa jornadas de vendas com blocos personalizáveis
+                  </p>
+                </div>
+                <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                  <Zap className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+                </div>
+              </div>
+              <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+                Criar Funil
               </Button>
             </Card>
           )}
@@ -654,7 +677,7 @@ const Dashboard = () => {
                 <p className="text-muted-foreground mb-4">
                   Faça upgrade do seu plano para acessar as conversas dos chatbots
                 </p>
-                <Button onClick={() => setActiveTab('plan')} className="gradient-primary">
+                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
                   Ver Planos
                 </Button>
               </Card>
@@ -670,7 +693,7 @@ const Dashboard = () => {
                 <p className="text-muted-foreground mb-4">
                   Faça upgrade do seu plano para gerar links do WhatsApp
                 </p>
-                <Button onClick={() => setActiveTab('plan')} className="gradient-primary">
+                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
                   Ver Planos
                 </Button>
               </Card>
@@ -686,7 +709,7 @@ const Dashboard = () => {
                 <p className="text-muted-foreground mb-4">
                   Faça upgrade do seu plano para clonar páginas
                 </p>
-                <Button onClick={() => setActiveTab('plan')} className="gradient-primary">
+                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
                   Ver Planos
                 </Button>
               </Card>
@@ -702,7 +725,7 @@ const Dashboard = () => {
                 <p className="text-muted-foreground mb-4">
                   Faça upgrade do seu plano para acessar o CRM
                 </p>
-                <Button onClick={() => setActiveTab('plan')} className="gradient-primary">
+                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
                   Ver Planos
                 </Button>
               </Card>
@@ -718,7 +741,7 @@ const Dashboard = () => {
                 <p className="text-muted-foreground mb-4">
                   Faça upgrade do seu plano para encurtar links
                 </p>
-                <Button onClick={() => setActiveTab('plan')} className="gradient-primary">
+                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
                   Ver Planos
                 </Button>
               </Card>
@@ -734,7 +757,7 @@ const Dashboard = () => {
                 <p className="text-muted-foreground mb-4">
                   Faça upgrade do seu plano para acessar o suporte
                 </p>
-                <Button onClick={() => setActiveTab('plan')} className="gradient-primary">
+                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
                   Ver Planos
                 </Button>
               </Card>
