@@ -58,6 +58,7 @@ export const LinkShortener = () => {
     const { data, error } = await supabase
       .from("short_links")
       .select("*")
+      .eq("user_id", user?.id)
       .order("created_at", { ascending: false });
 
     if (error) {

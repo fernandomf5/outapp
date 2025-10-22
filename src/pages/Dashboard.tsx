@@ -465,24 +465,22 @@ const Dashboard = () => {
             </Card>
           )}
 
-          {hasFeature('funnel_builder') && (
-            <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth" onClick={() => navigate("/funnel-builder")}>
-              <div className="flex items-start justify-between mb-3 sm:mb-4">
-                <div className="flex-1">
-                  <h3 className="text-lg sm:text-xl font-bold mb-2">Criar Funil de Vendas</h3>
-                  <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                    Construa jornadas de vendas com blocos personalizáveis
-                  </p>
-                </div>
-                <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                  <Zap className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
-                </div>
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth" onClick={() => navigate("/funnel-builder")}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Criar Funil de Vendas</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Construa jornadas de vendas com blocos personalizáveis
+                </p>
               </div>
-              <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
-                Criar Funil
-              </Button>
-            </Card>
-          )}
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <Zap className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Criar Funil
+            </Button>
+          </Card>
         </div>
 
         {/* Tutorial Videos */}
