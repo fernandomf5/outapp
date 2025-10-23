@@ -59,8 +59,14 @@ const AIAgentBuilder = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [isActive, setIsActive] = useState(true);
+  const [nicheSearch, setNicheSearch] = useState("");
 
   const currentNiche = nicheConfigs.find(n => n.id === selectedNiche);
+  const filteredNiches = nicheSearch
+    ? nicheConfigs.filter(n => 
+        n.name.toLowerCase().includes(nicheSearch.toLowerCase())
+      )
+    : nicheConfigs;
 
   useEffect(() => {
     if (agentId && user) {
@@ -308,8 +314,17 @@ const AIAgentBuilder = () => {
                 Selecione o segmento do seu negócio para personalizar o agente com perguntas específicas
               </p>
 
+              <div className="mb-6">
+                <Input
+                  placeholder="🔍 Pesquisar nichos..."
+                  value={nicheSearch}
+                  onChange={(e) => setNicheSearch(e.target.value)}
+                  className="max-w-md"
+                />
+              </div>
+
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                {nicheConfigs.map((niche) => {
+                {filteredNiches.map((niche) => {
                   const Icon = niche.icon;
                   return (
                     <Card

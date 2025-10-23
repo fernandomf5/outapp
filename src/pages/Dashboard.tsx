@@ -307,6 +307,22 @@ const Dashboard = () => {
     });
   };
 
+  const handleCopyAgentLink = (agentId: string, agentName: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const slug = (agentName || '')
+      .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+      .toLowerCase().trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+    const link = `${window.location.origin}/chat/${agentId}/${slug || 'agent'}`;
+    navigator.clipboard.writeText(link);
+    toast({
+      title: "Link copiado! 🔗",
+      description: "O link do agente IA foi copiado para a área de transferência.",
+    });
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
@@ -639,6 +655,14 @@ const Dashboard = () => {
                     >
                       {agent.is_active ? "Ativo" : "Inativo"}
                     </span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={(e) => handleCopyAgentLink(agent.id, agent.name, e)}
+                      title="Copiar Link"
+                    >
+                      <Link2 className="w-4 h-4" />
+                    </Button>
                     <Button 
                       variant="ghost" 
                       size="sm"

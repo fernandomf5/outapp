@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, UserPlus, Mail, Phone, Building, Edit, Trash2, MessageSquare } from "lucide-react";
+import { Plus, UserPlus, Mail, Phone, Building, Edit, Trash2, MessageSquare, Download } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Contact {
@@ -196,6 +196,46 @@ export const CRMContacts = () => {
     }
   };
 
+  const handleExportCSV = () => {
+    if (contacts.length === 0) {
+      toast({
+        title: "Nenhum contato para exportar",
+        description: "Adicione contatos primeiro",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Criar CSV
+    const headers = ["Nome", "Email", "Telefone", "Empresa", "Cargo", "Status", "Data de Criação"];
+    const rows = contacts.map(c => [
+      c.name,
+      c.email || "",
+      c.phone || "",
+      c.company || "",
+      c.position || "",
+      c.status,
+      new Date(c.created_at).toLocaleDateString('pt-BR')
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
+    ].join("\n");
+
+    // Download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `contatos_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+
+    toast({
+      title: "Exportação concluída! 📊",
+      description: `${contacts.length} contatos exportados com sucesso.`
+    });
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'lead': return 'bg-blue-500/20 text-blue-500';
@@ -210,7 +250,17 @@ export const CRMContacts = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">CRM - Contatos</h2>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handleExportCSV}
+            disabled={contacts.length === 0}
+            className="hover:bg-primary/10 hover:border-primary"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Exportar CSV
+          </Button>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button className="gradient-primary">
               <UserPlus className="w-4 h-4 mr-2" />
@@ -300,6 +350,7 @@ export const CRMContacts = () => {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div className="flex gap-4 items-center">

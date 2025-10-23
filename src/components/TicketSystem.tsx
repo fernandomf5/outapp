@@ -523,7 +523,7 @@ export const TicketSystem = () => {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto space-y-3 mb-4">
+              <div className="flex-1 overflow-y-auto space-y-3 mb-4 bg-green-50 dark:bg-green-950 p-4 rounded-lg">
                 {messages.map((msg) => (
                   <div
                     key={msg.id}
@@ -532,10 +532,13 @@ export const TicketSystem = () => {
                     <div
                       className={`max-w-[80%] rounded-2xl px-4 py-2 ${
                         msg.is_admin
-                          ? 'bg-green-600 text-white'
-                          : 'bg-green-600 text-white'
+                          ? 'bg-white text-green-700 shadow-sm'
+                          : 'bg-white text-green-700 shadow-sm'
                       }`}
                     >
+                      <p className="text-xs font-semibold mb-1 opacity-70">
+                        {msg.is_admin ? 'Admin' : 'Você'}
+                      </p>
                       <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
                       {msg.attachments && msg.attachments.length > 0 && (
                         <div className="mt-2 space-y-2">
