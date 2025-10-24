@@ -44,9 +44,17 @@ export function UserSidebar() {
 
   const mainItems = [
     { title: "Visão Geral", icon: TrendingUp, path: "/dashboard", tab: "overview" },
-    { title: "Criar Chatbot", icon: Bot, path: "/bot-builder" },
-    { title: "Criar Agente IA", icon: Sparkles, path: "/ai-agent" },
     { title: "Criar Funil", icon: TrendingUp, path: "/funnel-builder" },
+  ];
+
+  const chatbotItems = [
+    { title: "Criar Chatbot", icon: Bot, path: "/bot-builder" },
+    { title: "Meus Chatbots", icon: Bot, path: "/dashboard", tab: "chatbots" },
+  ];
+
+  const aiAgentItems = [
+    { title: "Criar Agente IA", icon: Sparkles, path: "/ai-agent" },
+    { title: "Meus Agentes IA", icon: Sparkles, path: "/dashboard", tab: "ai-agents" },
   ];
 
   const crmItems = [
@@ -84,6 +92,60 @@ export function UserSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+
+              <Collapsible defaultOpen className="group/collapsible">
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton>
+                      <Bot className="h-4 w-4" />
+                      {!collapsed && <span>Chatbot</span>}
+                      {!collapsed && <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />}
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {chatbotItems.map((item) => (
+                        <SidebarMenuSubItem key={item.title}>
+                          <SidebarMenuSubButton
+                            onClick={() => handleNavigation(item.path, item.tab)}
+                            className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                          >
+                            <item.icon className="h-4 w-4" />
+                            {!collapsed && <span>{item.title}</span>}
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
+
+              <Collapsible defaultOpen className="group/collapsible">
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton>
+                      <Sparkles className="h-4 w-4" />
+                      {!collapsed && <span>Agente IA</span>}
+                      {!collapsed && <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />}
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {aiAgentItems.map((item) => (
+                        <SidebarMenuSubItem key={item.title}>
+                          <SidebarMenuSubButton
+                            onClick={() => handleNavigation(item.path, item.tab)}
+                            className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                          >
+                            <item.icon className="h-4 w-4" />
+                            {!collapsed && <span>{item.title}</span>}
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
