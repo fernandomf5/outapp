@@ -25,6 +25,8 @@ import { PageCloner } from "@/components/PageCloner";
 import { ChatbotConversations } from "@/components/ChatbotConversations";
 import { LinkShortener } from "@/components/LinkShortener";
 import { CapturedLeads } from "@/components/CapturedLeads";
+import { MyChatbots } from "@/components/MyChatbots";
+import { MyAIAgents } from "@/components/MyAIAgents";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -802,6 +804,15 @@ const Dashboard = () => {
               </Card>
             )}
           </TabsContent>
+
+          <TabsContent value="chatbots">
+            <MyChatbots />
+          </TabsContent>
+
+          <TabsContent value="ai-agents">
+            <MyAIAgents />
+          </TabsContent>
+
 
           <TabsContent value="voucher">
             <VoucherRedemption />
