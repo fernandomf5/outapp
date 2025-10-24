@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { MessageSquare, Clock, CheckCircle2, Send, Filter } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLocation } from "react-router-dom";
 
 interface Ticket {
   id: string;
@@ -36,7 +37,7 @@ interface TicketMessage {
 
 export const TicketsManager = () => {
   const { toast } = useToast();
-  const [searchParams] = useState(() => new URLSearchParams(window.location.search));
+  const location = useLocation();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [messages, setMessages] = useState<TicketMessage[]>([]);
@@ -79,16 +80,17 @@ export const TicketsManager = () => {
     };
   }, [statusFilter]);
 
-  // Auto-selecionar ticket da URL
+  // Auto-selecionar ticket da URL (reage a mudanças na URL)
   useEffect(() => {
-    const ticketId = searchParams.get('ticketId');
-    if (ticketId && tickets.length > 0 && !selectedTicket) {
+    const params = new URLSearchParams(location.search);
+    const ticketId = params.get('ticketId');
+    if (ticketId && tickets.length > 0) {
       const ticket = tickets.find(t => t.id === ticketId);
       if (ticket) {
         setSelectedTicket(ticket);
       }
     }
-  }, [tickets, searchParams]);
+  }, [tickets, location.search]);
 
   const fetchTickets = async () => {
     let query = supabase
@@ -214,6 +216,12 @@ export const TicketsManager = () => {
       .eq('user_id', user.id)
       .eq('is_read', false);
   };
+
+  useEffect(() => {
+    if (selectedTicket) {
+      markTicketNotificationsAsRead(selectedTicket.id);
+    }
+  }, [selectedTicket]);
 
   const handleTicketClick = async (ticket: Ticket) => {
     setSelectedTicket(ticket);
