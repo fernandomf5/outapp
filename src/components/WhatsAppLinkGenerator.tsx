@@ -220,7 +220,7 @@ export const WhatsAppLinkGenerator = () => {
                 Código para o seu site:
               </Label>
               <div className="relative">
-                <pre className="bg-card p-4 rounded border overflow-x-auto text-xs">
+                <pre className="bg-card p-4 rounded border overflow-x-auto max-h-[300px] overflow-y-auto text-xs">
                   {generateScript()}
                 </pre>
                 <Button
