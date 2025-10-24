@@ -42,27 +42,49 @@ export const TicketNotificationBell = ({ isAdmin = false }: TicketNotificationBe
     const fetchNotifications = async () => {
       console.log('[TicketNotificationBell] Buscando notificações para user:', user.id);
       
-      const { data, error } = await supabase
+      // Primeiro busca as notificações
+      const { data: notificationsData, error: notificationsError } = await supabase
         .from('ticket_notifications')
-        .select(`
-          *,
-          ticket:tickets(title, status)
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(20);
 
-      console.log('[TicketNotificationBell] Resultado:', { data, error, count: data?.length });
+      console.log('[TicketNotificationBell] Notificações brutas:', { notificationsData, notificationsError, count: notificationsData?.length });
 
-      if (error) {
-        console.error('[TicketNotificationBell] Erro ao buscar notificações:', error);
+      if (notificationsError) {
+        console.error('[TicketNotificationBell] Erro ao buscar notificações:', notificationsError);
+        return;
       }
 
-      if (!error && data) {
-        setNotifications(data as unknown as TicketNotification[]);
-        setUnreadCount(data.filter(n => !n.is_read).length);
-        console.log('[TicketNotificationBell] Notificações carregadas:', data.length, 'Não lidas:', data.filter(n => !n.is_read).length);
+      if (!notificationsData || notificationsData.length === 0) {
+        console.log('[TicketNotificationBell] Nenhuma notificação encontrada');
+        setNotifications([]);
+        setUnreadCount(0);
+        return;
       }
+
+      // Busca os tickets relacionados
+      const ticketIds = notificationsData.map(n => n.ticket_id);
+      const { data: ticketsData, error: ticketsError } = await supabase
+        .from('tickets')
+        .select('id, title, status')
+        .in('id', ticketIds);
+
+      console.log('[TicketNotificationBell] Tickets:', { ticketsData, ticketsError });
+
+      // Combina notificações com dados dos tickets
+      const enrichedNotifications = notificationsData.map(notification => ({
+        ...notification,
+        ticket: ticketsData?.find(t => t.id === notification.ticket_id) || {
+          title: 'Ticket',
+          status: 'unknown'
+        }
+      }));
+
+      setNotifications(enrichedNotifications as unknown as TicketNotification[]);
+      setUnreadCount(enrichedNotifications.filter(n => !n.is_read).length);
+      console.log('[TicketNotificationBell] Notificações carregadas:', enrichedNotifications.length, 'Não lidas:', enrichedNotifications.filter(n => !n.is_read).length);
     };
 
     fetchNotifications();
