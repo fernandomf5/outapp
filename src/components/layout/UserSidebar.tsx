@@ -46,14 +46,14 @@ export function UserSidebar() {
   ];
 
   const toolsItems = [
-    { title: "Clientes", icon: MessageSquare, path: "/dashboard", tab: "clients", feature: "chatbot_conversations" },
-    { title: "Ferramentas", icon: Wrench, path: "/dashboard", tab: "tools" },
-    { title: "Links Curtos", icon: Link2, path: "/dashboard", tab: "shortlinks", feature: "link_shortener" },
-    { title: "Clonador", icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner" },
+    { title: "CRM", icon: MessageSquare, path: "/dashboard", tab: "clients", feature: "chatbot_conversations" },
+    { title: "Gerenciador de Links", icon: Wrench, path: "/dashboard", tab: "tools" },
+    { title: "Encurtador de Links", icon: Link2, path: "/dashboard", tab: "shortlinks", feature: "link_shortener" },
+    { title: "Clonador de Páginas", icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner" },
   ];
 
   const supportItems = [
-    { title: "Suporte", icon: LifeBuoy, path: "/dashboard", tab: "support", feature: "ticket_system" },
+    { title: "Suporte Ticket", icon: LifeBuoy, path: "/dashboard", tab: "support", feature: "ticket_system" },
     { title: "Voucher", icon: Gift, path: "/dashboard", tab: "voucher" },
     { title: "Meu Plano", icon: CreditCard, path: "/dashboard", tab: "plan" },
   ];
