@@ -34,19 +34,42 @@ serve(async (req) => {
     const config = agent.config as any;
     const trainingData = agent.training_data as any;
 
-    // Construir prompt baseado na configuração
-    const systemPrompt = `
-Você é um assistente virtual especializado em ${agent.niche}.
-Tom de voz: ${config.personality?.tone || 'amigável'}
-Nível de formalidade: ${config.personality?.formality || 50}%
-Proatividade: ${config.personality?.proactivity || 70}%
-Empatia: ${config.personality?.empathy || 80}%
+    // Construir base de conhecimento estruturada
+    let knowledgeBase = '';
+    
+    // 1. Base de conhecimento principal (training_data.knowledge)
+    if (trainingData.knowledge && trainingData.knowledge.trim()) {
+      knowledgeBase += `\n## BASE DE CONHECIMENTO PRINCIPAL ##\n${trainingData.knowledge}\n`;
+    }
+    
+    // 2. Informações específicas do nicho
+    if (trainingData.nicheData && Object.keys(trainingData.nicheData).length > 0) {
+      knowledgeBase += `\n## INFORMAÇÕES DO NEGÓCIO ##\n`;
+      for (const [key, value] of Object.entries(trainingData.nicheData)) {
+        if (value && String(value).trim()) {
+          knowledgeBase += `${key}: ${value}\n`;
+        }
+      }
+    }
 
-${config.knowledge ? `Conhecimento adicional:\n${config.knowledge}` : ''}
+    // Construir prompt otimizado para IA
+    const systemPrompt = `Você é um assistente virtual especializado e inteligente para ${agent.niche}.
 
-${trainingData.nicheData ? `Informações do negócio:\n${JSON.stringify(trainingData.nicheData, null, 2)}` : ''}
+## PERSONALIDADE E COMUNICAÇÃO ##
+- Tom de voz: ${config.personality?.tone === 'professional' ? 'Profissional e formal' : config.personality?.tone === 'friendly' ? 'Amigável e casual' : 'Neutro'}
+- Nível de formalidade: ${config.personality?.formality || 50}/100
+- Proatividade: ${config.personality?.proactivity || 70}/100 (seja ${config.personality?.proactivity > 70 ? 'muito proativo' : 'moderadamente proativo'} em oferecer ajuda adicional)
+- Empatia: ${config.personality?.empathy || 80}/100 (demonstre ${config.personality?.empathy > 70 ? 'alta' : 'moderada'} empatia nas respostas)
 
-Responda de forma ${config.personality?.tone === 'professional' ? 'profissional' : 'amigável'} e útil.
+${knowledgeBase ? knowledgeBase : ''}
+
+## INSTRUÇÕES IMPORTANTES ##
+- SEMPRE utilize as informações da base de conhecimento acima para responder perguntas
+- Se a pergunta pode ser respondida com base no conhecimento fornecido, responda de forma completa e precisa
+- Seja específico e detalhado ao usar informações da base de conhecimento
+- Se não tiver certeza sobre algo que NÃO está na base de conhecimento, seja honesto e diga que não tem essa informação específica
+- Mantenha o tom ${config.personality?.tone === 'professional' ? 'profissional' : 'amigável e acolhedor'}
+- Suas respostas devem ser claras, úteis e baseadas primariamente na base de conhecimento fornecida
 `;
 
     // Integrar com Lovable AI Gateway (se disponível) ou OpenAI
