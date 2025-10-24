@@ -145,11 +145,76 @@ export const VouchersManager = () => {
       featuresToUse = allFeatures?.map(f => f.id) || [];
     }
 
-    // Inserir voucher
+    let finalPlanId = newVoucher.plan_id;
+
+    // Se usar recursos customizados, criar plano oculto primeiro
+    if (useCustomFeatures) {
+      const planName = newVoucher.allFeatures 
+        ? `Voucher ${newVoucher.code} - ACESSO TOTAL` 
+        : `Voucher ${newVoucher.code}`;
+      const planDesc = newVoucher.isLifetime 
+        ? `Plano VITALÍCIO ativado por voucher ${newVoucher.code}`
+        : `Plano ativado por voucher ${newVoucher.code} com ${parseInt(newVoucher.duration_days)} dias`;
+      
+      // Criar plano oculto para este voucher
+      const { data: newPlan, error: planError } = await supabase
+        .from('plans')
+        .insert({
+          name: planName,
+          description: planDesc,
+          price: 0,
+          duration_days: newVoucher.isLifetime ? null : parseInt(newVoucher.duration_days),
+          plan_type: 'chatbot',
+          is_active: false,
+          features: null
+        })
+        .select()
+        .single();
+
+      if (planError) {
+        toast({ 
+          title: "Erro ao criar plano do voucher", 
+          description: planError.message, 
+          variant: "destructive" 
+        });
+        return;
+      }
+
+      finalPlanId = newPlan.id;
+
+      // Vincular features ao plano
+      const planFeatureInserts = featuresToUse.map((featureId) => ({
+        plan_id: newPlan.id,
+        feature_id: featureId
+      }));
+      
+      const { error: pfError } = await supabase
+        .from('plan_features')
+        .insert(planFeatureInserts);
+
+      if (pfError) {
+        toast({ 
+          title: "Erro ao vincular recursos ao plano", 
+          description: pfError.message, 
+          variant: "destructive" 
+        });
+        return;
+      }
+
+      // Guardar vínculo voucher x features (auditoria)
+      const featureInserts = featuresToUse.map(featureId => ({
+        voucher_id: newVoucher.code, // Temporário, será atualizado depois
+        feature_id: featureId
+      }));
+      
+      // Será inserido depois que o voucher for criado
+    }
+
+    // Inserir voucher com plan_id definido
     const voucherData = {
       code: newVoucher.code,
-      plan_id: useCustomFeatures ? null : newVoucher.plan_id,
-      duration_days: useCustomFeatures ? (newVoucher.isLifetime ? null : parseInt(newVoucher.duration_days)) : null,
+      plan_id: finalPlanId,
+      duration_days: null, // Não usado mais, a duração vem do plano
       max_uses: newVoucher.max_uses,
       expires_at: newVoucher.expires_at || null
     };
@@ -169,65 +234,13 @@ export const VouchersManager = () => {
       return;
     }
 
-    // Se usar recursos customizados, criar plano oculto e vincular ao voucher
+    // Se usou recursos customizados, salvar vínculo de auditoria
     if (useCustomFeatures && voucherInserted) {
-      // 1) Guardar o vínculo voucher x features (para auditoria/gestão)
       const featureInserts = featuresToUse.map(featureId => ({
         voucher_id: voucherInserted.id,
         feature_id: featureId
       }));
-      const { error: featuresError } = await supabase
-        .from('voucher_features')
-        .insert(featureInserts);
-      if (featuresError) {
-        toast({ title: "Erro ao adicionar recursos", description: featuresError.message, variant: "destructive" });
-        return;
-      }
-
-      // 2) Criar um plano "oculto" específico deste voucher (admin pode inserir planos)
-      const planName = newVoucher.allFeatures ? `Voucher ${voucherInserted.code} - ACESSO TOTAL` : `Voucher ${voucherInserted.code}`;
-      const planDesc = newVoucher.isLifetime 
-        ? `Plano VITALÍCIO ativado por voucher ${voucherInserted.code}`
-        : `Plano ativado por voucher ${voucherInserted.code} com ${parseInt(newVoucher.duration_days)} dias`;
-      
-      const { data: newPlan, error: planError } = await supabase
-        .from('plans')
-        .insert({
-          name: planName,
-          description: planDesc,
-          price: 0,
-          duration_days: newVoucher.isLifetime ? null : parseInt(newVoucher.duration_days),
-          plan_type: 'chatbot',
-          is_active: false,
-          features: null
-        })
-        .select()
-        .single();
-      if (planError) {
-        toast({ title: "Erro ao criar plano do voucher", description: planError.message, variant: "destructive" });
-        return;
-      }
-
-      // 3) Ligar as funcionalidades marcadas ao plano criado
-      const planFeatureInserts = featuresToUse.map((featureId) => ({
-        plan_id: newPlan.id,
-        feature_id: featureId
-      }));
-      const { error: pfError } = await supabase.from('plan_features').insert(planFeatureInserts);
-      if (pfError) {
-        toast({ title: "Erro ao vincular recursos ao plano", description: pfError.message, variant: "destructive" });
-        return;
-      }
-
-      // 4) Atualizar o voucher para apontar para o plano criado
-      const { error: updateVoucherError } = await supabase
-        .from('vouchers')
-        .update({ plan_id: newPlan.id })
-        .eq('id', voucherInserted.id);
-      if (updateVoucherError) {
-        toast({ title: "Erro ao finalizar configuração do voucher", description: updateVoucherError.message, variant: "destructive" });
-        return;
-      }
+      await supabase.from('voucher_features').insert(featureInserts);
     }
 
     toast({

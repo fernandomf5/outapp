@@ -84,105 +84,70 @@ export const VoucherRedemption = () => {
         return;
       }
 
-      let planName = "";
-      
-      // Se o voucher tem um plano, criar assinatura baseada no plano
-      if (voucher.plan_id) {
-        // Buscar dados do plano (não depender de relação automática)
-        const { data: plan, error: planFetchError } = await supabase
-          .from('plans')
-          .select('*')
-          .eq('id', voucher.plan_id)
-          .maybeSingle();
-
-        if (planFetchError || !plan) {
-          toast({
-            title: "Erro no voucher",
-            description: "Plano associado ao voucher não encontrado",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        // Se o plano tem duration_days null, é vitalício
-        let expiresAt: Date;
-        if (plan.duration_days === null) {
-          // Vitalício - colocar uma data bem no futuro (100 anos)
-          expiresAt = new Date();
-          expiresAt.setFullYear(expiresAt.getFullYear() + 100);
-        } else {
-          expiresAt = new Date();
-          expiresAt.setDate(expiresAt.getDate() + plan.duration_days);
-        }
-        
-        planName = plan.name;
-
-        const { error: subscriptionError } = await supabase
-          .from('subscriptions')
-          .insert({
-            user_id: user!.id,
-            plan_id: voucher.plan_id,
-            status: 'active',
-            expires_at: expiresAt.toISOString()
-          });
-        if (subscriptionError) throw subscriptionError;
+      // Todo voucher agora deve ter um plan_id vinculado
+      if (!voucher.plan_id) {
+        toast({
+          title: "Erro no voucher",
+          description: "Voucher sem plano configurado. Contate o administrador.",
+          variant: "destructive"
+        });
+        return;
       }
-      // Se o voucher tem recursos customizados (compatibilidade com vouchers antigos)
-      else if (voucher.duration_days) {
-        // Buscar recursos do voucher
-        const { data: voucherFeatures } = await supabase
-          .from('voucher_features')
-          .select('feature_id, features(name)')
-          .eq('voucher_id', voucher.id);
 
-        if (!voucherFeatures || voucherFeatures.length === 0) {
-          toast({ title: "Erro no voucher", description: "Voucher sem recursos configurados", variant: "destructive" });
-          return;
-        }
+      // Buscar dados do plano
+      const { data: plan, error: planFetchError } = await supabase
+        .from('plans')
+        .select('*')
+        .eq('id', voucher.plan_id)
+        .maybeSingle();
 
-        // Criar um plano temporário para o voucher (pode falhar por RLS em alguns casos)
-        planName = `Voucher ${code}`;
-        const { data: newPlan, error: planError } = await supabase
-          .from('plans')
-          .insert({
-            name: planName,
-            description: `Plano ativado por voucher ${code} com ${voucher.duration_days} dias de acesso`,
-            price: 0,
-            duration_days: voucher.duration_days,
-            plan_type: 'chatbot',
-            is_active: false,
-            features: null
-          })
-          .select()
-          .single();
-        if (planError) throw planError;
-
-        const planFeatureInserts = voucherFeatures.map((vf: any) => ({
-          plan_id: newPlan.id,
-          feature_id: vf.feature_id
-        }));
-        await supabase.from('plan_features').insert(planFeatureInserts);
-
-        // Se o voucher tem duration_days null, é vitalício
-        let expiresAt: Date;
-        if (voucher.duration_days === null) {
-          expiresAt = new Date();
-          expiresAt.setFullYear(expiresAt.getFullYear() + 100);
-        } else {
-          expiresAt = new Date();
-          expiresAt.setDate(expiresAt.getDate() + voucher.duration_days);
-        }
-        
-        const { error: subscriptionError } = await supabase
-          .from('subscriptions')
-          .insert({
-            user_id: user!.id,
-            plan_id: newPlan.id,
-            status: 'active',
-            expires_at: expiresAt.toISOString()
-          });
-        if (subscriptionError) throw subscriptionError;
+      if (planFetchError || !plan) {
+        toast({
+          title: "Erro no voucher",
+          description: "Plano associado ao voucher não encontrado",
+          variant: "destructive"
+        });
+        return;
       }
+
+      // Determinar data de expiração
+      let expiresAt: Date;
+      if (plan.duration_days === null) {
+        // Vitalício - 100 anos no futuro
+        expiresAt = new Date();
+        expiresAt.setFullYear(expiresAt.getFullYear() + 100);
+      } else {
+        expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + plan.duration_days);
+      }
+
+      // Cancelar assinaturas antigas do usuário antes de criar a nova
+      const { error: cancelError } = await supabase
+        .from('subscriptions')
+        .update({ status: 'cancelled' })
+        .eq('user_id', user!.id)
+        .eq('status', 'active');
+
+      if (cancelError) {
+        console.error('Erro ao cancelar assinaturas antigas:', cancelError);
+      }
+
+      // Criar nova assinatura
+      const { error: subscriptionError } = await supabase
+        .from('subscriptions')
+        .insert({
+          user_id: user!.id,
+          plan_id: voucher.plan_id,
+          status: 'active',
+          expires_at: expiresAt.toISOString()
+        });
+
+      if (subscriptionError) {
+        console.error('Erro ao criar subscription:', subscriptionError);
+        throw new Error('Não foi possível ativar o plano. Verifique se você tem permissão.');
+      }
+
+      const planName = plan.name;
 
       // Registrar resgate
       const { error: redemptionError } = await supabase
