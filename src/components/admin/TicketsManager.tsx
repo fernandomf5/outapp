@@ -20,6 +20,7 @@ interface Ticket {
   user_id: string;
   user_email?: string;
   user_name?: string;
+  user_profile_name?: string;
   unread_count?: number;
 }
 
@@ -129,7 +130,7 @@ export const TicketsManager = () => {
       const enrichedTickets = ticketsData.map(ticket => ({
         ...ticket,
         user_email: profilesMap.get(ticket.user_id)?.email,
-        user_name: profilesMap.get(ticket.user_id)?.full_name,
+        user_profile_name: profilesMap.get(ticket.user_id)?.full_name,
         unread_count: unreadCountMap.get(ticket.id) || 0
       }));
 
@@ -288,9 +289,12 @@ export const TicketsManager = () => {
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <h4 className="font-semibold">{ticket.title}</h4>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    De: {ticket.user_name || ticket.user_email || `Usuário ${ticket.user_id.slice(0, 8)}...`}
-                  </p>
+                  <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+                    {ticket.user_name && (
+                      <p>Nome: <span className="font-medium">{ticket.user_name}</span></p>
+                    )}
+                    <p>Email: <span className="font-medium">{ticket.user_email || 'Não informado'}</span></p>
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <Badge className={getStatusColor(ticket.status)}>
@@ -325,7 +329,15 @@ export const TicketsManager = () => {
             <>
               <div className="border-b pb-4 mb-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold">{selectedTicket.title}</h3>
+                  <div className="flex-1">
+                    <h3 className="font-semibold">{selectedTicket.title}</h3>
+                    <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+                      {selectedTicket.user_name && (
+                        <p>Nome: <span className="font-medium">{selectedTicket.user_name}</span></p>
+                      )}
+                      <p>Email: <span className="font-medium">{selectedTicket.user_email || 'Não informado'}</span></p>
+                    </div>
+                  </div>
                   <Select
                     value={selectedTicket.status}
                     onValueChange={(v) => handleUpdateStatus(selectedTicket.id, v)}
