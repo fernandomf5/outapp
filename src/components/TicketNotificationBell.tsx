@@ -40,6 +40,8 @@ export const TicketNotificationBell = ({ isAdmin = false }: TicketNotificationBe
     if (!user) return;
 
     const fetchNotifications = async () => {
+      console.log('[TicketNotificationBell] Buscando notificações para user:', user.id);
+      
       const { data, error } = await supabase
         .from('ticket_notifications')
         .select(`
@@ -50,9 +52,16 @@ export const TicketNotificationBell = ({ isAdmin = false }: TicketNotificationBe
         .order('created_at', { ascending: false })
         .limit(20);
 
+      console.log('[TicketNotificationBell] Resultado:', { data, error, count: data?.length });
+
+      if (error) {
+        console.error('[TicketNotificationBell] Erro ao buscar notificações:', error);
+      }
+
       if (!error && data) {
         setNotifications(data as unknown as TicketNotification[]);
         setUnreadCount(data.filter(n => !n.is_read).length);
+        console.log('[TicketNotificationBell] Notificações carregadas:', data.length, 'Não lidas:', data.filter(n => !n.is_read).length);
       }
     };
 
@@ -69,7 +78,8 @@ export const TicketNotificationBell = ({ isAdmin = false }: TicketNotificationBe
           table: 'ticket_notifications',
           filter: `user_id=eq.${user.id}`
         },
-        () => {
+        (payload) => {
+          console.log('[TicketNotificationBell] Evento realtime recebido:', payload);
           fetchNotifications();
         }
       )
