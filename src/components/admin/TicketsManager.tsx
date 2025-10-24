@@ -63,7 +63,10 @@ export const TicketsManager = () => {
 
   // Scroll automático para o final das mensagens
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const timer = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+    return () => clearTimeout(timer);
   }, [messages]);
 
   // Subscrever a todas as mensagens de tickets para atualizar contador
