@@ -32,13 +32,16 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
     return `<!-- Bot Reals Zap - Widget de Chat Online -->
 <div id="bot-reals-zap-widget">
   <style>
+    * {
+      box-sizing: border-box;
+    }
     #bot-reals-zap-button {
       position: fixed;
       ${positionStyles[position]}
       width: 60px;
       height: 60px;
-      max-width: calc(100vw - 40px);
-      max-height: calc(100vh - 40px);
+      min-width: 60px;
+      min-height: 60px;
       border-radius: 50%;
       background: ${buttonColor};
       color: white;
@@ -50,6 +53,19 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
       align-items: center;
       justify-content: center;
       transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+    @media (max-width: 768px) {
+      #bot-reals-zap-button {
+        width: 56px;
+        height: 56px;
+        min-width: 56px;
+        min-height: 56px;
+        bottom: ${position.includes('bottom') ? '16px' : 'auto'} !important;
+        top: ${position.includes('top') ? '16px' : 'auto'} !important;
+        right: ${position.includes('right') ? '16px' : 'auto'} !important;
+        left: ${position.includes('left') ? '16px' : 'auto'} !important;
+      }
     }
     #bot-reals-zap-button:hover {
       transform: scale(1.1);
@@ -61,7 +77,7 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
     }
     #bot-reals-zap-tooltip {
       position: fixed;
-      ${positionStyles[position].replace('20px', '20px')}
+      ${positionStyles[position]}
       ${position.includes('right') ? 'right: 90px;' : 'left: 90px;'}
       background: white;
       padding: 8px 12px;
@@ -74,9 +90,15 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.3s ease;
+      max-width: calc(100vw - 120px);
     }
     #bot-reals-zap-button:hover + #bot-reals-zap-tooltip {
       opacity: 1;
+    }
+    @media (max-width: 768px) {
+      #bot-reals-zap-tooltip {
+        display: none;
+      }
     }
     #bot-reals-zap-iframe-container {
       display: none;
