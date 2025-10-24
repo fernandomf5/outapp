@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, MessageSquare, Clock, CheckCircle2, AlertCircle, Send, Image as ImageIcon, Paperclip, Edit, Trash2 } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 interface Ticket {
   id: string;
@@ -37,7 +38,7 @@ interface TicketMessage {
 export const TicketSystem = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [searchParams] = useState(() => new URLSearchParams(window.location.search));
+  const location = useLocation();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [messages, setMessages] = useState<TicketMessage[]>([]);
@@ -69,16 +70,30 @@ export const TicketSystem = () => {
     }
   }, [selectedTicket]);
 
-  // Auto-selecionar ticket da URL
+  // Auto-selecionar ticket da URL (reage a mudanças na URL)
   useEffect(() => {
-    const ticketId = searchParams.get('ticketId');
-    if (ticketId && tickets.length > 0 && !selectedTicket) {
+    const params = new URLSearchParams(location.search);
+    const ticketId = params.get('ticketId');
+    if (ticketId && tickets.length > 0) {
       const ticket = tickets.find(t => t.id === ticketId);
       if (ticket) {
         setSelectedTicket(ticket);
       }
     }
-  }, [tickets, searchParams]);
+  }, [tickets, location.search]);
+
+  // Marcar notificações como lidas quando visualizar o ticket
+  useEffect(() => {
+    if (!selectedTicket || !user) return;
+    (async () => {
+      await supabase
+        .from('ticket_notifications')
+        .update({ is_read: true })
+        .eq('ticket_id', selectedTicket.id)
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+    })();
+  }, [selectedTicket, user]);
 
   const fetchTickets = async () => {
     const { data, error } = await supabase
