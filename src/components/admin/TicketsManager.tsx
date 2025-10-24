@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +40,7 @@ export const TicketsManager = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const location = useLocation();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [messages, setMessages] = useState<TicketMessage[]>([]);
@@ -59,6 +60,11 @@ export const TicketsManager = () => {
       return cleanup;
     }
   }, [selectedTicket]);
+
+  // Scroll automático para o final das mensagens
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   // Subscrever a todas as mensagens de tickets para atualizar contador
   useEffect(() => {
@@ -435,6 +441,7 @@ export const TicketsManager = () => {
                     </div>
                   </div>
                 ))}
+                <div ref={messagesEndRef} />
               </div>
 
               <div className="space-y-2">

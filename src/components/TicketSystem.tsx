@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,7 @@ export const TicketSystem = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [messages, setMessages] = useState<TicketMessage[]>([]);
@@ -94,6 +95,11 @@ export const TicketSystem = () => {
         .eq('is_read', false);
     })();
   }, [selectedTicket, user]);
+
+  // Scroll automático para o final das mensagens
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const fetchTickets = async () => {
     const { data, error } = await supabase
@@ -591,6 +597,7 @@ export const TicketSystem = () => {
                     </div>
                   </div>
                 ))}
+                <div ref={messagesEndRef} />
               </div>
 
               {messageAttachments.length > 0 && (
