@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MessageSquare, Clock, CheckCircle2, Send, Filter } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Ticket {
   id: string;
@@ -37,6 +38,7 @@ interface TicketMessage {
 
 export const TicketsManager = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const location = useLocation();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
@@ -114,19 +116,19 @@ export const TicketsManager = () => {
 
       const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
       
-      // Buscar contagem de mensagens não lidas por ticket
+      // Buscar contagem de notificações não lidas por ticket (para o admin atual)
       const ticketIds = ticketsData.map(t => t.id);
-      const { data: messagesData } = await supabase
-        .from('ticket_messages')
+      const { data: notificationsData } = await supabase
+        .from('ticket_notifications')
         .select('ticket_id')
         .in('ticket_id', ticketIds)
-        .eq('is_admin', false)
-        .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+        .eq('user_id', user?.id)
+        .eq('is_read', false);
 
       const unreadCountMap = new Map<string, number>();
-      messagesData?.forEach(msg => {
-        const count = unreadCountMap.get(msg.ticket_id) || 0;
-        unreadCountMap.set(msg.ticket_id, count + 1);
+      notificationsData?.forEach((n: { ticket_id: string }) => {
+        const count = unreadCountMap.get(n.ticket_id) || 0;
+        unreadCountMap.set(n.ticket_id, count + 1);
       });
       
       const enrichedTickets = ticketsData.map(ticket => ({
@@ -218,9 +220,11 @@ export const TicketsManager = () => {
   };
 
   useEffect(() => {
-    if (selectedTicket) {
-      markTicketNotificationsAsRead(selectedTicket.id);
-    }
+    if (!selectedTicket) return;
+    (async () => {
+      await markTicketNotificationsAsRead(selectedTicket.id);
+      await fetchTickets();
+    })();
   }, [selectedTicket]);
 
   const handleTicketClick = async (ticket: Ticket) => {
