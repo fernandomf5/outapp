@@ -24,12 +24,8 @@ interface PaymentIntegration {
 }
 
 const PLATFORMS = [
-  { id: "hotmart", name: "Hotmart", icon: "🔥" },
-  { id: "braip", name: "Braip", icon: "💰" },
-  { id: "monetizze", name: "Monetizze", icon: "💵" },
+  { id: "kiwify", name: "Kiwify", icon: "🥝" },
   { id: "mercadopago", name: "Mercado Pago", icon: "💳" },
-  { id: "pagseguro", name: "PagSeguro", icon: "🔐" },
-  { id: "stripe", name: "Stripe", icon: "💸" },
 ];
 
 export const PaymentIntegrationsManager = () => {

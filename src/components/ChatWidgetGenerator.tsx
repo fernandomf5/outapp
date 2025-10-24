@@ -37,6 +37,8 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
       ${positionStyles[position]}
       width: 60px;
       height: 60px;
+      max-width: calc(100vw - 40px);
+      max-height: calc(100vh - 40px);
       border-radius: 50%;
       background: ${buttonColor};
       color: white;

@@ -36,7 +36,9 @@ export const WhatsAppLinkGenerator = () => {
 <a href="${link}" 
    target="_blank" 
    style="position: fixed; ${positionStyles[buttonPosition]} 
-          width: 60px; height: 60px; background-color: ${buttonColor}; 
+          width: 60px; height: 60px; 
+          max-width: calc(100vw - 40px); max-height: calc(100vh - 40px);
+          background-color: ${buttonColor}; 
           border-radius: 50%; display: flex; align-items: center; 
           justify-content: center; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
           text-decoration: none; transition: transform 0.3s ease;"
