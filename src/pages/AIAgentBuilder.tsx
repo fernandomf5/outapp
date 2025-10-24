@@ -13,25 +13,20 @@ import {
   Sparkles,
   Save,
   Play,
-  Zap,
-  Brain,
-  MessageSquare,
   Target,
   Settings2,
   Code2,
   Link2,
-  Copy,
-  Eye,
-  EyeOff,
   Power,
+  Brain,
+  BookOpen,
 } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { nicheConfigs } from "@/data/nicheConfigs";
 import { ChatWidgetGenerator } from '@/components/ChatWidgetGenerator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ChatPreview } from '@/components/flowbuilder/ChatPreview';
 import { Switch } from "@/components/ui/switch";
 
 const AIAgentBuilder = () => {
@@ -41,7 +36,7 @@ const AIAgentBuilder = () => {
   const [searchParams] = useSearchParams();
   const agentId = searchParams.get('id');
   
-  const { saveAgent, loadAgent, processMessage, isProcessing } = useAIAgent();
+  const { saveAgent, loadAgent } = useAIAgent();
   
   const [agentName, setAgentName] = useState("Novo Agente IA");
   const [selectedNiche, setSelectedNiche] = useState<string>("");
@@ -54,10 +49,7 @@ const AIAgentBuilder = () => {
   });
   const [knowledge, setKnowledge] = useState("");
   const [welcomeMessage, setWelcomeMessage] = useState("Olá! Sou seu assistente virtual. Como posso ajudar você hoje?");
-  const [testMessage, setTestMessage] = useState("");
-  const [testResponse, setTestResponse] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [nicheSearch, setNicheSearch] = useState("");
 
@@ -84,31 +76,6 @@ const AIAgentBuilder = () => {
 
   const handleNicheDataChange = (field: string, value: string) => {
     setNicheData({ ...nicheData, [field]: value });
-  };
-
-  const handleTest = async () => {
-    if (!testMessage.trim() || !user) return;
-
-    try {
-      if (agentId) {
-        const response = await processMessage(agentId, testMessage, user.id);
-        setTestResponse(response);
-      } else {
-        // Simulação local se ainda não salvou
-        const responses = [
-          `Olá! ${testMessage.includes("preço") || testMessage.includes("valor") ? "Vou te ajudar com informações sobre valores e formas de pagamento." : ""}`,
-          `Com base no seu interesse, posso te ajudar com ${currentNiche?.name.toLowerCase()}. ${testMessage}`,
-          `Perfeito! Deixa eu te ajudar com isso. ${testMessage.includes("?") ? "Vou buscar essa informação para você." : "O que mais gostaria de saber?"}`,
-        ];
-        setTestResponse(responses[Math.floor(Math.random() * responses.length)]);
-      }
-      toast({
-        title: "Resposta gerada! 🤖",
-        description: "Seu agente IA respondeu com base no treinamento.",
-      });
-    } catch (error) {
-      console.error('Test error:', error);
-    }
   };
 
   const handleSave = async () => {
@@ -197,11 +164,6 @@ const AIAgentBuilder = () => {
             <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <Input
-              value={agentName}
-              onChange={(e) => setAgentName(e.target.value)}
-              className="text-xl font-bold border-none bg-transparent max-w-xs"
-            />
             <div className="bg-primary/10 px-3 py-1 rounded-full text-sm font-medium text-primary flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
               Agente IA
@@ -209,102 +171,91 @@ const AIAgentBuilder = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button
-              variant={showPreview ? "default" : "outline"}
-              onClick={() => setShowPreview(!showPreview)}
-              className={showPreview ? "" : "hover:bg-primary/10 hover:border-primary"}
-            >
-              {showPreview ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
-              {showPreview ? 'Desativar modo lado a lado' : 'Ativar modo lado a lado'}
-            </Button>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card">
-              <Label htmlFor="active-switch" className="">
-                <Power className="w-4 h-4" />
-              </Label>
-              <Switch
-                id="active-switch"
-                checked={isActive}
-                onCheckedChange={setIsActive}
-              />
-              <span className="text-sm font-medium">
-                {isActive ? 'Ativo' : 'Inativo'}
-              </span>
-            </div>
-            <Button 
-              variant="outline" 
-              onClick={handleCopyLink}
-              className="hover:bg-primary/10 hover:border-primary"
-            >
-              <Link2 className="w-4 h-4 mr-2" />
-              Copiar Link
-            </Button>
-            <Dialog>
-              <DialogTrigger asChild>
+            {agentId && (
+              <>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card">
+                  <Label htmlFor="active-switch" className="">
+                    <Power className="w-4 h-4" />
+                  </Label>
+                  <Switch
+                    id="active-switch"
+                    checked={isActive}
+                    onCheckedChange={setIsActive}
+                  />
+                  <span className="text-sm font-medium">
+                    {isActive ? 'Ativo' : 'Inativo'}
+                  </span>
+                </div>
                 <Button 
                   variant="outline" 
+                  onClick={handleCopyLink}
                   className="hover:bg-primary/10 hover:border-primary"
-                  disabled={!agentId}
                 >
-                  <Code2 className="w-4 h-4 mr-2" />
-                  Widget de Chat
+                  <Link2 className="w-4 h-4 mr-2" />
+                  Copiar Link
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Widget de Chat Online</DialogTitle>
-                </DialogHeader>
-                {agentId && (
-                  <ChatWidgetGenerator 
-                    botId={agentId} 
-                    type="agent"
-                  />
-                )}
-              </DialogContent>
-            </Dialog>
-            <Button 
-              variant="outline" 
-              onClick={handleTestInNewTab}
-              className="hover:bg-primary/10 hover:border-primary"
-            >
-              <Play className="w-4 h-4 mr-2" />
-              Testar Bot
-            </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="hover:bg-primary/10 hover:border-primary"
+                    >
+                      <Code2 className="w-4 h-4 mr-2" />
+                      Widget de Chat
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Widget de Chat Online</DialogTitle>
+                    </DialogHeader>
+                    <ChatWidgetGenerator 
+                      botId={agentId} 
+                      type="agent"
+                    />
+                  </DialogContent>
+                </Dialog>
+                <Button 
+                  variant="outline" 
+                  onClick={handleTestInNewTab}
+                  className="hover:bg-primary/10 hover:border-primary"
+                >
+                  <Play className="w-4 h-4 mr-2" />
+                  Testar Bot
+                </Button>
+              </>
+            )}
             <Button 
               onClick={handleSave} 
               className="bg-primary hover:bg-primary/90"
-              disabled={isSaving || !selectedNiche}
+              disabled={isSaving || !selectedNiche || !agentName.trim()}
             >
               <Save className="w-4 h-4 mr-2" />
-              {isSaving ? "Salvando..." : "Salvar Agente"}
+              {isSaving ? "Salvando..." : agentId ? "Salvar Alterações" : "Salvar Agente"}
             </Button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 flex gap-6">
-        <div className={showPreview ? "flex-1" : "w-full"}>
-        <Tabs defaultValue="niche" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="niche" className="flex items-center gap-2">
-              <Target className="w-4 h-4" />
-              Nicho
-            </TabsTrigger>
-            <TabsTrigger value="personality" className="flex items-center gap-2">
-              <Brain className="w-4 h-4" />
-              Personalidade
-            </TabsTrigger>
-            <TabsTrigger value="knowledge" className="flex items-center gap-2">
-              <MessageSquare className="w-4 h-4" />
-              Base de Conhecimento
-            </TabsTrigger>
-            <TabsTrigger value="test" className="flex items-center gap-2">
-              <Zap className="w-4 h-4" />
-              Testar
-            </TabsTrigger>
-          </TabsList>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="space-y-6">
+          {/* Nome do Agente - Destaque */}
+          <Card className="p-8 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+            <div className="max-w-2xl">
+              <Label className="text-lg font-semibold mb-3 block">Nome do Agente IA</Label>
+              <Input
+                value={agentName}
+                onChange={(e) => setAgentName(e.target.value)}
+                placeholder="Digite o nome do seu agente IA..."
+                className="text-2xl font-bold h-14 bg-background"
+              />
+              <p className="text-sm text-muted-foreground mt-2">
+                Escolha um nome que represente bem o seu agente de atendimento
+              </p>
+            </div>
+          </Card>
 
-          {/* Seleção de Nicho */}
-          <TabsContent value="niche" className="space-y-6">
+          {!agentId ? (
+            /* Seleção de Nicho - Criação inicial */
             <Card className="p-6">
               <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
                 <Target className="w-6 h-6 text-primary" />
@@ -329,7 +280,7 @@ const AIAgentBuilder = () => {
                   return (
                     <Card
                       key={niche.id}
-                      className={`p-4 transition-smooth hover:shadow-glow ${
+                      className={`p-4 cursor-pointer transition-all hover:shadow-lg ${
                         selectedNiche === niche.id
                           ? "border-primary bg-primary/5"
                           : "hover:border-primary/50"
@@ -373,313 +324,217 @@ const AIAgentBuilder = () => {
                       ))}
                     </div>
                   </div>
-
-                  <div className="bg-accent/50 p-6 rounded-xl">
-                    <h4 className="font-semibold mb-3 flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4" />
-                      Exemplos de perguntas que seu agente poderá responder:
-                    </h4>
-                    <ul className="space-y-2">
-                      {currentNiche.examples.map((example, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                          <span className="text-primary">•</span>
-                          {example}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
                 </div>
               )}
             </Card>
-          </TabsContent>
+          ) : (
+            /* Tabs para agente já salvo - Treinar e Base de Conhecimento */
+            <Tabs defaultValue="niche" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="niche" className="flex items-center gap-2">
+                  <Target className="w-4 h-4" />
+                  Nicho
+                </TabsTrigger>
+                <TabsTrigger value="personality" className="flex items-center gap-2">
+                  <Brain className="w-4 h-4" />
+                  Treinar Agente
+                </TabsTrigger>
+                <TabsTrigger value="knowledge" className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4" />
+                  Base de Conhecimento
+                </TabsTrigger>
+              </TabsList>
 
-          {/* Personalidade */}
-          <TabsContent value="personality" className="space-y-6">
-            <Card className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <Brain className="w-6 h-6 text-primary" />
-                Configure a Personalidade do Agente
-              </h2>
-              <p className="text-muted-foreground mb-6">
-                Defina como seu agente IA deve se comunicar com os clientes
-              </p>
+              {/* Nicho */}
+              <TabsContent value="niche" className="space-y-6">
+                <Card className="p-6">
+                  <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                    <Target className="w-6 h-6 text-primary" />
+                    Nicho do Agente
+                  </h2>
+                  <p className="text-muted-foreground mb-6">
+                    Segmento do seu negócio
+                  </p>
 
-              <div className="space-y-8">
-                <div>
-                  <Label className="mb-3 block">Tom de Voz</Label>
-                  <Select value={personality.tone} onValueChange={(v) => setPersonality({...personality, tone: v})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="friendly">Amigável e Casual</SelectItem>
-                      <SelectItem value="professional">Profissional</SelectItem>
-                      <SelectItem value="enthusiastic">Entusiasmado</SelectItem>
-                      <SelectItem value="calm">Calmo e Sereno</SelectItem>
-                      <SelectItem value="humorous">Com Humor</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label className="mb-3 block">Nível de Formalidade: {personality.formality}%</Label>
-                  <Slider
-                    value={[personality.formality]}
-                    onValueChange={(v) => setPersonality({...personality, formality: v[0]})}
-                    max={100}
-                    step={10}
-                    className="mb-2"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Informal</span>
-                    <span>Formal</span>
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="mb-3 block">Proatividade: {personality.proactivity}%</Label>
-                  <Slider
-                    value={[personality.proactivity]}
-                    onValueChange={(v) => setPersonality({...personality, proactivity: v[0]})}
-                    max={100}
-                    step={10}
-                    className="mb-2"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Aguarda perguntas</span>
-                    <span>Oferece ajuda ativamente</span>
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="mb-3 block">Empatia: {personality.empathy}%</Label>
-                  <Slider
-                    value={[personality.empathy]}
-                    onValueChange={(v) => setPersonality({...personality, empathy: v[0]})}
-                    max={100}
-                    step={10}
-                    className="mb-2"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Objetivo e direto</span>
-                    <span>Empático e compreensivo</span>
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="mb-3 block">Mensagem de Boas-vindas</Label>
-                  <Textarea
-                    value={welcomeMessage}
-                    onChange={(e) => setWelcomeMessage(e.target.value)}
-                    rows={4}
-                    placeholder="Digite a mensagem inicial do agente..."
-                  />
-                </div>
-              </div>
-            </Card>
-          </TabsContent>
-
-          {/* Base de Conhecimento */}
-          <TabsContent value="knowledge" className="space-y-6">
-            <Card className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <MessageSquare className="w-6 h-6 text-primary" />
-                Base de Conhecimento Adicional
-              </h2>
-              <p className="text-muted-foreground mb-6">
-                Adicione informações extras para deixar seu agente ainda mais inteligente
-              </p>
-
-              <div className="space-y-4">
-                <div>
-                  <Label className="mb-3 block">Conhecimento Específico do Negócio</Label>
-                  <Textarea
-                    value={knowledge}
-                    onChange={(e) => setKnowledge(e.target.value)}
-                    rows={12}
-                    placeholder="Cole aqui informações importantes sobre:&#10;• História da empresa&#10;• Produtos e serviços em detalhes&#10;• Perguntas frequentes e respostas&#10;• Políticas e procedimentos&#10;• Diferenciais competitivos&#10;• Qualquer informação que o agente deva saber..."
-                  />
-                </div>
-
-                <div className="bg-accent/50 p-6 rounded-xl">
-                  <h4 className="font-semibold mb-3 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4" />
-                    Dicas para Treinamento Eficaz:
-                  </h4>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex gap-2">
-                      <span>•</span>
-                      <span>Seja específico e detalhado nas informações</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span>•</span>
-                      <span>Use exemplos reais de situações e respostas</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span>•</span>
-                      <span>Inclua variações de perguntas que clientes costumam fazer</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span>•</span>
-                      <span>Atualize frequentemente com novos casos e informações</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </Card>
-          </TabsContent>
-
-          {/* Teste */}
-          <TabsContent value="test" className="space-y-6">
-            <div className="grid lg:grid-cols-2 gap-6">
-              <Card className="p-6">
-                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                  <Zap className="w-6 h-6 text-primary" />
-                  Teste seu Agente IA
-                </h2>
-                <p className="text-muted-foreground mb-6">
-                  Simule uma conversa para ver como seu agente responde
-                </p>
-
-                <div className="space-y-4">
-                  <div>
-                    <Label className="mb-3 block">Mensagem do Cliente</Label>
-                    <Textarea
-                      value={testMessage}
-                      onChange={(e) => setTestMessage(e.target.value)}
-                      rows={4}
-                      placeholder="Digite uma pergunta que um cliente faria..."
+                  <div className="mb-6">
+                    <Input
+                      placeholder="🔍 Pesquisar nichos..."
+                      value={nicheSearch}
+                      onChange={(e) => setNicheSearch(e.target.value)}
+                      className="max-w-md"
                     />
                   </div>
 
-                  <Button 
-                    onClick={handleTest} 
-                    className="w-full gradient-primary shadow-glow"
-                    disabled={isProcessing || !testMessage.trim()}
-                  >
-                    <Play className="w-4 h-4 mr-2" />
-                    {isProcessing ? "Gerando..." : "Gerar Resposta do Agente"}
-                  </Button>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                    {filteredNiches.map((niche) => {
+                      const Icon = niche.icon;
+                      return (
+                        <Card
+                          key={niche.id}
+                          className={`p-4 cursor-pointer transition-all hover:shadow-lg ${
+                            selectedNiche === niche.id
+                              ? "border-primary bg-primary/5"
+                              : "hover:border-primary/50"
+                          }`}
+                          onClick={() => setSelectedNiche(niche.id)}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="bg-primary/10 p-3 rounded-xl">
+                              <Icon className="w-6 h-6 text-primary" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-semibold mb-1">{niche.name}</h3>
+                              <p className="text-xs text-muted-foreground">
+                                {niche.questions.length} perguntas personalizadas
+                              </p>
+                            </div>
+                          </div>
+                        </Card>
+                      );
+                    })}
+                  </div>
 
-                  {testResponse && (
-                    <div className="bg-primary/5 p-6 rounded-xl border border-primary/20 animate-fade-in">
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className="bg-primary/10 p-2 rounded-lg">
-                          <Sparkles className="w-5 h-5 text-primary" />
+                  {currentNiche && (
+                    <div className="space-y-6 animate-fade-in">
+                      <div className="bg-primary/5 p-6 rounded-xl border border-primary/20">
+                        <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                          <Settings2 className="w-5 h-5 text-primary" />
+                          Configuração: {currentNiche.name}
+                        </h3>
+                        <div className="space-y-4">
+                          {currentNiche.questions.map((q) => (
+                            <div key={q.field}>
+                              <Label className="mb-2">{q.label}</Label>
+                              <Textarea
+                                placeholder={q.placeholder}
+                                value={nicheData[q.field] || ""}
+                                onChange={(e) => handleNicheDataChange(q.field, e.target.value)}
+                                rows={3}
+                              />
+                            </div>
+                          ))}
                         </div>
-                        <div>
-                          <h4 className="font-semibold">Resposta do Agente IA</h4>
-                          <p className="text-xs text-muted-foreground">Gerado com base no treinamento</p>
-                        </div>
                       </div>
-                      <p className="text-foreground leading-relaxed">{testResponse}</p>
                     </div>
                   )}
-                </div>
-              </Card>
+                </Card>
+              </TabsContent>
 
-              <Card className="p-6">
-                <h3 className="text-xl font-bold mb-4">Preview de Configuração</h3>
-                
-                <div className="space-y-4">
-                  <div className="p-4 bg-accent/50 rounded-lg">
-                    <h4 className="font-semibold text-sm mb-2">Nome do Agente</h4>
-                    <p className="text-foreground">{agentName}</p>
-                  </div>
+              {/* Treinar Agente (Personalidade) */}
+              <TabsContent value="personality" className="space-y-6">
+                <Card className="p-6">
+                  <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                    <Brain className="w-6 h-6 text-primary" />
+                    Treinar a Personalidade do Agente
+                  </h2>
+                  <p className="text-muted-foreground mb-6">
+                    Defina como seu agente IA deve se comunicar com os clientes
+                  </p>
 
-                  {selectedNiche && (
-                    <div className="p-4 bg-accent/50 rounded-lg">
-                      <h4 className="font-semibold text-sm mb-2">Nicho</h4>
-                      <p className="text-foreground">{currentNiche?.name}</p>
+                  <div className="space-y-8">
+                    <div>
+                      <Label className="mb-3 block">Tom de Voz</Label>
+                      <Select value={personality.tone} onValueChange={(v) => setPersonality({...personality, tone: v})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="friendly">Amigável e Casual</SelectItem>
+                          <SelectItem value="professional">Profissional</SelectItem>
+                          <SelectItem value="enthusiastic">Entusiasmado</SelectItem>
+                          <SelectItem value="calm">Calmo e Sereno</SelectItem>
+                          <SelectItem value="humorous">Com Humor</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                  )}
 
-                  <div className="p-4 bg-accent/50 rounded-lg">
-                    <h4 className="font-semibold text-sm mb-2">Personalidade</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Tom:</span>
-                        <span className="text-foreground capitalize">{personality.tone}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Formalidade:</span>
-                        <span className="text-foreground">{personality.formality}%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Proatividade:</span>
-                        <span className="text-foreground">{personality.proactivity}%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Empatia:</span>
-                        <span className="text-foreground">{personality.empathy}%</span>
+                    <div>
+                      <Label className="mb-3 block">Nível de Formalidade: {personality.formality}%</Label>
+                      <Slider
+                        value={[personality.formality]}
+                        onValueChange={(v) => setPersonality({...personality, formality: v[0]})}
+                        max={100}
+                        step={10}
+                        className="mb-2"
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Informal</span>
+                        <span>Formal</span>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                    <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-primary" />
-                      Mensagem Inicial
-                    </h4>
-                    <p className="text-sm text-foreground">{welcomeMessage}</p>
-                  </div>
-
-                  {knowledge && (
-                    <div className="p-4 bg-accent/50 rounded-lg">
-                      <h4 className="font-semibold text-sm mb-2">Base de Conhecimento</h4>
-                      <p className="text-xs text-muted-foreground">
-                        {knowledge.length} caracteres de treinamento
-                      </p>
+                    <div>
+                      <Label className="mb-3 block">Proatividade: {personality.proactivity}%</Label>
+                      <Slider
+                        value={[personality.proactivity]}
+                        onValueChange={(v) => setPersonality({...personality, proactivity: v[0]})}
+                        max={100}
+                        step={10}
+                        className="mb-2"
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Aguarda perguntas</span>
+                        <span>Oferece ajuda ativamente</span>
+                      </div>
                     </div>
-                  )}
-                </div>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-        </div>
 
-        {showPreview && (
-          <div className="w-96">
-            <Card className="h-[600px] flex flex-col">
-              <div className="p-4 border-b border-border bg-card">
-                <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 p-2 rounded-lg">
-                    <Sparkles className="w-5 h-5 text-primary" />
+                    <div>
+                      <Label className="mb-3 block">Empatia: {personality.empathy}%</Label>
+                      <Slider
+                        value={[personality.empathy]}
+                        onValueChange={(v) => setPersonality({...personality, empathy: v[0]})}
+                        max={100}
+                        step={10}
+                        className="mb-2"
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Objetivo</span>
+                        <span>Empático</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="mb-3 block">Mensagem de Boas-vindas</Label>
+                      <Textarea
+                        placeholder="Olá! Como posso ajudar você hoje?"
+                        value={welcomeMessage}
+                        onChange={(e) => setWelcomeMessage(e.target.value)}
+                        rows={3}
+                      />
+                    </div>
                   </div>
+                </Card>
+              </TabsContent>
+
+              {/* Base de Conhecimento */}
+              <TabsContent value="knowledge" className="space-y-6">
+                <Card className="p-6">
+                  <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                    <BookOpen className="w-6 h-6 text-primary" />
+                    Base de Conhecimento do Agente
+                  </h2>
+                  <p className="text-muted-foreground mb-6">
+                    Adicione informações detalhadas que o agente deve conhecer para responder melhor
+                  </p>
+
                   <div>
-                    <h3 className="font-bold">{agentName}</h3>
-                    <p className="text-xs text-muted-foreground">Pré-visualização</p>
+                    <Label className="mb-3 block">Conhecimento Especializado</Label>
+                    <Textarea
+                      placeholder="Adicione aqui informações detalhadas sobre seus produtos, serviços, políticas, FAQs, etc. Quanto mais informação você fornecer, mais preciso será o agente."
+                      value={knowledge}
+                      onChange={(e) => setKnowledge(e.target.value)}
+                      rows={15}
+                      className="font-mono text-sm"
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Dica: Forneça informações em formato de perguntas e respostas, listas ou parágrafos descritivos.
+                    </p>
                   </div>
-                </div>
-              </div>
-              
-              <div className="flex-1 p-4 space-y-4 overflow-y-auto">
-                <div className="flex justify-start">
-                  <div className="bg-card border border-border rounded-2xl px-4 py-3 max-w-[80%]">
-                    <p className="text-sm">{welcomeMessage}</p>
-                  </div>
-                </div>
-                
-                {testMessage && (
-                  <div className="flex justify-end">
-                    <div className="bg-primary text-primary-foreground rounded-2xl px-4 py-3 max-w-[80%]">
-                      <p className="text-sm">{testMessage}</p>
-                    </div>
-                  </div>
-                )}
-                
-                {testResponse && (
-                  <div className="flex justify-start">
-                    <div className="bg-card border border-border rounded-2xl px-4 py-3 max-w-[80%]">
-                      <p className="text-sm">{testResponse}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </Card>
-          </div>
-        )}
+                </Card>
+              </TabsContent>
+            </Tabs>
+          )}
+        </div>
       </div>
     </div>
   );
