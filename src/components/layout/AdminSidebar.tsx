@@ -67,7 +67,16 @@ export function AdminSidebar() {
     return currentTab === tab;
   };
 
-  const handleNavigation = (tab: string) => {
+  const handleNavigation = async (tab: string) => {
+    // Se clicar em tickets, marcar todas as notificações como lidas
+    if (tab === 'tickets' && user) {
+      await supabase
+        .from('ticket_notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+    }
+    
     navigate(`/admin?section=${tab}`);
   };
 
