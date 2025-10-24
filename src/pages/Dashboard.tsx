@@ -24,6 +24,7 @@ import { PixelsManager } from "@/components/PixelsManager";
 import { PageCloner } from "@/components/PageCloner";
 import { ChatbotConversations } from "@/components/ChatbotConversations";
 import { LinkShortener } from "@/components/LinkShortener";
+import { CapturedLeads } from "@/components/CapturedLeads";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -778,6 +779,22 @@ const Dashboard = () => {
                 <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
                 <p className="text-muted-foreground mb-4">
                   Faça upgrade do seu plano para acessar o suporte
+                </p>
+                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
+                  Ver Planos
+                </Button>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="leads">
+            {hasFeature('chatbot_conversations') ? (
+              <CapturedLeads />
+            ) : (
+              <Card className="p-12 text-center">
+                <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
+                <p className="text-muted-foreground mb-4">
+                  Faça upgrade do seu plano para acessar leads capturados
                 </p>
                 <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
                   Ver Planos
