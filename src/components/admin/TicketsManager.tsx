@@ -30,6 +30,7 @@ interface TicketMessage {
   created_at: string;
   user_id: string;
   attachments?: { url: string; name: string }[];
+  agent_name?: string;
 }
 
 export const TicketsManager = () => {
@@ -39,6 +40,7 @@ export const TicketsManager = () => {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [messages, setMessages] = useState<TicketMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [agentName, setAgentName] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [displayCount, setDisplayCount] = useState(5);
 
@@ -170,7 +172,14 @@ export const TicketsManager = () => {
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedTicket) return;
+    if (!newMessage.trim() || !selectedTicket || !agentName.trim()) {
+      toast({
+        title: "Erro",
+        description: "Preencha o nome do atendente e a mensagem",
+        variant: "destructive"
+      });
+      return;
+    }
 
     const { error } = await supabase
       .from('ticket_messages')
@@ -178,7 +187,8 @@ export const TicketsManager = () => {
         ticket_id: selectedTicket.id,
         user_id: selectedTicket.user_id,
         message: newMessage,
-        is_admin: true
+        is_admin: true,
+        agent_name: agentName
       });
 
     if (error) {
@@ -349,12 +359,15 @@ export const TicketsManager = () => {
                     className={`flex ${msg.is_admin ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                      className={`max-w-[80%] rounded-2xl px-4 py-2 shadow-sm ${
                         msg.is_admin
-                          ? 'bg-green-600 text-white'
-                          : 'bg-green-600 text-white'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-secondary text-secondary-foreground'
                       }`}
                     >
+                      <p className="text-xs font-semibold mb-1 opacity-80">
+                        {msg.is_admin ? (msg.agent_name || 'Atendente') : (selectedTicket?.user_name || 'Usuário')}
+                      </p>
                       <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
                       {msg.attachments && msg.attachments.length > 0 && (
                         <div className="mt-2 space-y-2">
@@ -382,16 +395,24 @@ export const TicketsManager = () => {
                 ))}
               </div>
 
-              <div className="flex gap-2">
+              <div className="space-y-2">
                 <Input
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="Responder ao ticket..."
+                  value={agentName}
+                  onChange={(e) => setAgentName(e.target.value)}
+                  placeholder="Seu nome (atendente)"
+                  className="mb-2"
                 />
-                <Button onClick={handleSendMessage} className="gradient-primary" size="icon">
-                  <Send className="w-4 h-4" />
-                </Button>
+                <div className="flex gap-2">
+                  <Input
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    placeholder="Responder ao ticket..."
+                  />
+                  <Button onClick={handleSendMessage} className="gradient-primary" size="icon">
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </>
           ) : (

@@ -21,6 +21,7 @@ interface Ticket {
   category: string | null;
   created_at: string;
   updated_at: string;
+  user_name?: string;
 }
 
 interface TicketMessage {
@@ -30,6 +31,7 @@ interface TicketMessage {
   created_at: string;
   user_id: string;
   attachments?: { url: string; name: string }[];
+  agent_name?: string;
 }
 
 export const TicketSystem = () => {
@@ -45,7 +47,8 @@ export const TicketSystem = () => {
     title: "",
     description: "",
     category: "",
-    priority: "medium"
+    priority: "medium",
+    user_name: ""
   });
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [messageAttachments, setMessageAttachments] = useState<{ url: string; name: string }[]>([]);
@@ -155,7 +158,7 @@ export const TicketSystem = () => {
   };
 
   const handleCreateTicket = async () => {
-    if (!newTicket.title || !newTicket.description) {
+    if (!newTicket.title || !newTicket.description || !newTicket.user_name) {
       toast({
         title: "Erro",
         description: "Preencha todos os campos obrigatórios",
@@ -198,7 +201,7 @@ export const TicketSystem = () => {
         description: "Responderemos em breve."
       });
       setTickets([data, ...tickets]);
-      setNewTicket({ title: "", description: "", category: "", priority: "medium" });
+      setNewTicket({ title: "", description: "", category: "", priority: "medium", user_name: "" });
       setUploadedImages([]);
       setIsCreateDialogOpen(false);
     }
@@ -360,6 +363,14 @@ export const TicketSystem = () => {
               <DialogTitle>Criar Novo Ticket</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 mt-4">
+              <div>
+                <Label>Seu Nome *</Label>
+                <Input
+                  value={newTicket.user_name}
+                  onChange={(e) => setNewTicket({ ...newTicket, user_name: e.target.value })}
+                  placeholder="Digite seu nome completo"
+                />
+              </div>
               <div>
                 <Label>Título *</Label>
                 <Input
@@ -524,21 +535,21 @@ export const TicketSystem = () => {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto space-y-3 mb-4 bg-green-50 dark:bg-green-950 p-4 rounded-lg">
+              <div className="flex-1 overflow-y-auto space-y-3 mb-4 bg-gradient-to-b from-muted/20 to-muted/5 p-4 rounded-lg">
                 {messages.map((msg) => (
                   <div
                     key={msg.id}
                     className={`flex ${msg.is_admin ? 'justify-start' : 'justify-end'}`}
                   >
                     <div
-                      className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                      className={`max-w-[80%] rounded-2xl px-4 py-2 shadow-sm ${
                         msg.is_admin
-                          ? 'bg-white text-green-700 shadow-sm'
-                          : 'bg-white text-green-700 shadow-sm'
+                          ? 'bg-primary/10 border border-primary/20'
+                          : 'bg-secondary/10 border border-secondary/20'
                       }`}
                     >
                       <p className="text-xs font-semibold mb-1 opacity-70">
-                        {msg.is_admin ? 'Admin' : 'Você'}
+                        {msg.is_admin ? (msg.agent_name || 'Atendente') : (selectedTicket?.user_name || 'Você')}
                       </p>
                       <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
                       {msg.attachments && msg.attachments.length > 0 && (

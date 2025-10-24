@@ -1048,6 +1048,7 @@ export type Database = {
       }
       ticket_messages: {
         Row: {
+          agent_name: string | null
           attachments: Json | null
           created_at: string
           id: string
@@ -1057,6 +1058,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          agent_name?: string | null
           attachments?: Json | null
           created_at?: string
           id?: string
@@ -1066,6 +1068,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          agent_name?: string | null
           attachments?: Json | null
           created_at?: string
           id?: string
@@ -1138,6 +1141,7 @@ export type Database = {
           title: string
           updated_at: string
           user_id: string
+          user_name: string | null
         }
         Insert: {
           category?: string | null
@@ -1150,6 +1154,7 @@ export type Database = {
           title: string
           updated_at?: string
           user_id: string
+          user_name?: string | null
         }
         Update: {
           category?: string | null
@@ -1162,6 +1167,7 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+          user_name?: string | null
         }
         Relationships: []
       }
