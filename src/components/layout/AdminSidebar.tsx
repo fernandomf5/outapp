@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Users, DollarSign, TrendingUp, Settings, Video, FileText, Package, Crown, MessageSquare, LifeBuoy, Globe } from "lucide-react";
 import {
@@ -11,14 +12,56 @@ import {
   SidebarMenuButton,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function AdminSidebar() {
   const { state } = useSidebar();
+  const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
   const currentTab = searchParams.get('section') || 'overview';
   const collapsed = state === "collapsed";
+  const [unreadTicketNotifications, setUnreadTicketNotifications] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchUnreadCount = async () => {
+      const { count } = await supabase
+        .from('ticket_notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+
+      setUnreadTicketNotifications(count || 0);
+    };
+
+    fetchUnreadCount();
+
+    // Realtime para notificações
+    const channel = supabase
+      .channel(`admin_ticket_notifications:${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'ticket_notifications',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          fetchUnreadCount();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const isActive = (tab: string) => {
     return currentTab === tab;
@@ -105,8 +148,17 @@ export function AdminSidebar() {
                     onClick={() => handleNavigation(item.tab)}
                     className={isActive(item.tab) ? "bg-primary text-primary-foreground" : ""}
                   >
-                    <item.icon className="h-4 w-4" />
-                    {!collapsed && <span>{item.title}</span>}
+                    <div className="flex items-center gap-2 flex-1">
+                      <item.icon className="h-4 w-4" />
+                      {!collapsed && <span>{item.title}</span>}
+                      {item.tab === 'tickets' && unreadTicketNotifications > 0 && (
+                        <Badge 
+                          className="ml-auto h-5 w-5 flex items-center justify-center p-0 bg-destructive text-destructive-foreground"
+                        >
+                          {unreadTicketNotifications > 9 ? '9+' : unreadTicketNotifications}
+                        </Badge>
+                      )}
+                    </div>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
