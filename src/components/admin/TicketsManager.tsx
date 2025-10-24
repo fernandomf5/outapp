@@ -203,6 +203,24 @@ export const TicketsManager = () => {
     }
   };
 
+  const markTicketNotificationsAsRead = async (ticketId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    await supabase
+      .from('ticket_notifications')
+      .update({ is_read: true })
+      .eq('ticket_id', ticketId)
+      .eq('user_id', user.id)
+      .eq('is_read', false);
+  };
+
+  const handleTicketClick = async (ticket: Ticket) => {
+    setSelectedTicket(ticket);
+    await markTicketNotificationsAsRead(ticket.id);
+    fetchTickets(); // Atualiza contadores
+  };
+
   const handleUpdateStatus = async (ticketId: string, newStatus: string) => {
     const { error } = await supabase
       .from('tickets')
@@ -279,7 +297,7 @@ export const TicketsManager = () => {
               className={`p-4 transition-smooth hover:shadow-lg relative ${
                 selectedTicket?.id === ticket.id ? 'border-primary bg-primary/5' : ''
               }`}
-              onClick={() => setSelectedTicket(ticket)}
+              onClick={() => handleTicketClick(ticket)}
             >
               {ticket.unread_count && ticket.unread_count > 0 && (
                 <Badge className="absolute -top-2 -right-2 bg-red-500 text-white">
