@@ -61,7 +61,8 @@ export const TicketSystem = () => {
   useEffect(() => {
     if (selectedTicket) {
       fetchMessages(selectedTicket.id);
-      subscribeToMessages(selectedTicket.id);
+      const cleanup = subscribeToMessages(selectedTicket.id);
+      return cleanup;
     }
   }, [selectedTicket]);
 
