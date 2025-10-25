@@ -60,7 +60,7 @@ export const FAQSection = ({ hideSupportCTA = false }: { hideSupportCTA?: boolea
                   {faq.question}
                 </span>
               </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground text-xs sm:text-sm md:text-base leading-relaxed pt-2">
+              <AccordionContent className="text-muted-foreground text-xs sm:text-sm md:text-base leading-relaxed pt-2 whitespace-pre-wrap">
                 {faq.answer}
               </AccordionContent>
             </AccordionItem>

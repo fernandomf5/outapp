@@ -141,7 +141,7 @@ export const FAQEditor = () => {
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <h4 className="font-semibold text-sm mb-1">{faq.question}</h4>
-                  <p className="text-xs text-muted-foreground">{faq.answer}</p>
+                  <p className="text-xs text-muted-foreground whitespace-pre-wrap">{faq.answer}</p>
                 </div>
                 <div className="flex gap-2 ml-4">
                   <Button
