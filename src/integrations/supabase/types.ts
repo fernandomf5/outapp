@@ -1151,6 +1151,7 @@ export type Database = {
           border_style: string | null
           border_width: number | null
           button_color: string | null
+          button_spacing: number | null
           button_text_color: string | null
           created_at: string
           custom_css: string | null
@@ -1178,6 +1179,7 @@ export type Database = {
           border_style?: string | null
           border_width?: number | null
           button_color?: string | null
+          button_spacing?: number | null
           button_text_color?: string | null
           created_at?: string
           custom_css?: string | null
@@ -1205,6 +1207,7 @@ export type Database = {
           border_style?: string | null
           border_width?: number | null
           button_color?: string | null
+          button_spacing?: number | null
           button_text_color?: string | null
           created_at?: string
           custom_css?: string | null
