@@ -47,42 +47,60 @@ export default function ChatbotCustomerChat() {
   }, [messages]);
 
   const loadChatbotAndConversation = async (customerId: string) => {
-    // Load chatbot info
-    const { data: chatbot } = await supabase
-      .from('chatbots')
-      .select('*')
-      .eq('id', chatbotId)
-      .single();
-
-    setChatbotInfo(chatbot);
-
-    // Load or create conversation
-    const { data: existingConv } = await supabase
-      .from('chatbot_conversations')
-      .select('*')
-      .eq('chatbot_id', chatbotId)
-      .eq('visitor_email', customer?.email)
-      .eq('status', 'active')
-      .single();
-
-    if (existingConv) {
-      setConversationId(existingConv.id);
-      loadMessages(existingConv.id);
-    } else {
-      const sessionId = `customer_${customerId}_${Date.now()}`;
-      const { data: newConv } = await supabase
-        .from('chatbot_conversations')
-        .insert({
-          chatbot_id: chatbotId,
-          session_id: sessionId,
-          visitor_email: customer?.email,
-          visitor_name: customer?.name,
-          visitor_phone: customer?.phone,
-        })
-        .select()
+    try {
+      // Load chatbot info
+      const { data: chatbot } = await supabase
+        .from('chatbots')
+        .select('*')
+        .eq('id', chatbotId)
         .single();
 
-      setConversationId(newConv.id);
+      setChatbotInfo(chatbot);
+
+      // Load all conversations for this customer
+      const { data: conversations } = await supabase
+        .from('chatbot_conversations')
+        .select('*')
+        .eq('chatbot_id', chatbotId)
+        .eq('session_id', customerId)
+        .order('last_message_at', { ascending: false });
+
+      // Get active conversation or create new one
+      let activeConv = conversations?.find(c => c.status === 'active');
+
+      if (activeConv) {
+        setConversationId(activeConv.id);
+        await loadMessages(activeConv.id);
+      } else {
+        // Create new conversation and notification
+        const { data: newConv } = await supabase
+          .from('chatbot_conversations')
+          .insert({
+            chatbot_id: chatbotId,
+            session_id: customerId,
+            visitor_email: customer?.email,
+            visitor_name: customer?.name,
+            visitor_phone: customer?.phone,
+            status: 'active',
+          })
+          .select()
+          .single();
+
+        setConversationId(newConv.id);
+
+        // Create notification for new conversation
+        await supabase
+          .from('chatbot_notifications')
+          .insert({
+            chatbot_id: chatbotId,
+            type: 'new_conversation',
+            title: 'Nova Conversa',
+            message: `${customer?.name} iniciou uma conversa`,
+            is_read: false,
+          });
+      }
+    } catch (error) {
+      console.error('Error loading chatbot:', error);
     }
   };
 

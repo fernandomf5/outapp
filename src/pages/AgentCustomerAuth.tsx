@@ -6,12 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { LogIn, MessageSquare } from "lucide-react";
 
 export default function AgentCustomerAuth() {
   const { agentId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isLogin, setIsLogin] = useState(true);
+  const [authMode, setAuthMode] = useState<'choice' | 'login' | 'register'>('choice');
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -27,7 +28,7 @@ export default function AgentCustomerAuth() {
     try {
       const { data, error } = await supabase.functions.invoke('agent-customer-auth', {
         body: {
-          action: isLogin ? 'login' : 'register',
+          action: authMode === 'login' ? 'login' : 'register',
           agentId,
           ...formData,
         }
@@ -36,12 +37,13 @@ export default function AgentCustomerAuth() {
       if (error) throw error;
 
       if (data.customer) {
-        // Store customer data in localStorage
         localStorage.setItem(`agent_customer_${agentId}`, JSON.stringify(data.customer));
         
         toast({
-          title: isLogin ? "Login realizado!" : "Cadastro realizado!",
-          description: "Bem-vindo ao chat!",
+          title: authMode === 'login' ? "Login realizado!" : "Cadastro realizado!",
+          description: authMode === 'login' 
+            ? "Bem-vindo de volta!" 
+            : "Sua conta foi criada! Por favor, confirme seu email.",
         });
 
         navigate(`/agent-chat/${agentId}`);
@@ -57,29 +59,61 @@ export default function AgentCustomerAuth() {
     }
   };
 
+  if (authMode === 'choice') {
+    return (
+      <div className="min-h-screen flex items-center justify-center gradient-primary p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Bem-vindo ao Chat</CardTitle>
+            <CardDescription>
+              Escolha como deseja acessar
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button 
+              className="w-full h-auto py-6 flex-col gap-2" 
+              onClick={() => setAuthMode('register')}
+            >
+              <MessageSquare className="w-6 h-6" />
+              <span className="font-semibold">Iniciar Chat</span>
+              <span className="text-xs opacity-80">Novo cadastro com nome, email e telefone</span>
+            </Button>
+
+            <Button 
+              variant="outline"
+              className="w-full h-auto py-6 flex-col gap-2"
+              onClick={() => setAuthMode('login')}
+            >
+              <LogIn className="w-6 h-6" />
+              <span className="font-semibold">Entrar com Login e Senha</span>
+              <span className="text-xs opacity-80">Já tenho uma conta</span>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center gradient-primary p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>{isLogin ? "Entrar" : "Cadastrar"}</CardTitle>
+          <CardTitle>{authMode === 'login' ? 'Entrar no Chat' : 'Iniciar Novo Chat'}</CardTitle>
           <CardDescription>
-            {isLogin 
-              ? "Entre para continuar conversando" 
-              : "Crie sua conta para começar"}
+            {authMode === 'login' ? 'Entre com suas credenciais' : 'Preencha seus dados para iniciar'}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
+            {authMode === 'register' && (
               <>
                 <div className="space-y-2">
                   <Label htmlFor="name">Nome</Label>
                   <Input
                     id="name"
-                    type="text"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required={!isLogin}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    required
                   />
                 </div>
                 <div className="space-y-2">
@@ -88,7 +122,7 @@ export default function AgentCustomerAuth() {
                     id="phone"
                     type="tel"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
                   />
                 </div>
               </>
@@ -100,7 +134,7 @@ export default function AgentCustomerAuth() {
                 id="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
                 required
               />
             </div>
@@ -111,22 +145,28 @@ export default function AgentCustomerAuth() {
                 id="password"
                 type="password"
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
                 required
               />
             </div>
 
+            {authMode === 'register' && (
+              <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-md text-sm text-blue-900 dark:text-blue-100">
+                ⚠️ Você receberá um email de confirmação. Por favor, verifique sua caixa de entrada.
+              </div>
+            )}
+
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Processando..." : (isLogin ? "Entrar" : "Cadastrar")}
+              {loading ? 'Processando...' : (authMode === 'login' ? 'Entrar' : 'Cadastrar e Iniciar Chat')}
             </Button>
 
             <Button
               type="button"
               variant="ghost"
               className="w-full"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => setAuthMode('choice')}
             >
-              {isLogin ? "Não tem conta? Cadastre-se" : "Já tem conta? Entre"}
+              ← Voltar
             </Button>
           </form>
         </CardContent>

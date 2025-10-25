@@ -30,6 +30,17 @@ export const ChatbotNotificationsPanel = ({ chatbotId }: { chatbotId: string }) 
     }
   };
 
+  const handleMarkAsRead = async (notificationId: string) => {
+    await supabase
+      .from('chatbot_notifications')
+      .update({ is_read: true })
+      .eq('id', notificationId);
+    
+    setNotifications(notifications.map(n => 
+      n.id === notificationId ? { ...n, is_read: true } : n
+    ));
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center p-12">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -44,10 +55,19 @@ export const ChatbotNotificationsPanel = ({ chatbotId }: { chatbotId: string }) 
       </h3>
       <div className="grid gap-4">
         {notifications.map((notification) => (
-          <Card key={notification.id} className={`p-4 ${!notification.is_read ? 'border-primary' : ''}`}>
+          <Card 
+            key={notification.id} 
+            className={`p-4 cursor-pointer transition-all ${!notification.is_read ? 'border-primary' : ''}`}
+            onClick={() => !notification.is_read && handleMarkAsRead(notification.id)}
+          >
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <h4 className="font-medium">{notification.title}</h4>
+                <h4 className="font-medium flex items-center gap-2">
+                  {notification.title}
+                  {!notification.is_read && (
+                    <span className="inline-block w-2 h-2 bg-primary rounded-full"></span>
+                  )}
+                </h4>
                 <span className="text-xs text-muted-foreground">
                   {formatDistanceToNow(new Date(notification.created_at), { 
                     addSuffix: true,

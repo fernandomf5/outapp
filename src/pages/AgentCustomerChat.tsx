@@ -48,38 +48,57 @@ export default function AgentCustomerChat() {
   }, [messages]);
 
   const loadAgentAndConversation = async (customerId: string) => {
-    // Load agent info
-    const { data: agent } = await supabase
-      .from('ai_agents')
-      .select('*')
-      .eq('id', agentId)
-      .single();
-
-    setAgentInfo(agent);
-
-    // Load or create conversation
-    const { data: existingConv } = await supabase
-      .from('agent_conversations')
-      .select('*')
-      .eq('agent_id', agentId)
-      .eq('customer_id', customerId)
-      .eq('status', 'active')
-      .single();
-
-    if (existingConv) {
-      setConversationId(existingConv.id);
-      loadMessages(existingConv.id);
-    } else {
-      const { data: newConv } = await supabase
-        .from('agent_conversations')
-        .insert({
-          agent_id: agentId,
-          customer_id: customerId,
-        })
-        .select()
+    try {
+      // Load agent info
+      const { data: agent } = await supabase
+        .from('ai_agents')
+        .select('*')
+        .eq('id', agentId)
         .single();
 
-      setConversationId(newConv.id);
+      setAgentInfo(agent);
+
+      // Load all conversations for this customer
+      const { data: conversations } = await supabase
+        .from('agent_conversations')
+        .select('*')
+        .eq('agent_id', agentId)
+        .eq('customer_id', customerId)
+        .order('last_message_at', { ascending: false });
+
+      // Get active conversation or create new one
+      let activeConv = conversations?.find(c => c.status === 'active');
+
+      if (activeConv) {
+        setConversationId(activeConv.id);
+        await loadMessages(activeConv.id);
+      } else {
+        // Create new conversation and notification
+        const { data: newConv } = await supabase
+          .from('agent_conversations')
+          .insert({
+            agent_id: agentId,
+            customer_id: customerId,
+            status: 'active',
+          })
+          .select()
+          .single();
+
+        setConversationId(newConv.id);
+
+        // Create notification for new conversation
+        await supabase
+          .from('agent_notifications')
+          .insert({
+            agent_id: agentId,
+            notification_type: 'new_conversation',
+            title: 'Nova Conversa',
+            message: `${customer?.name} iniciou uma conversa`,
+            is_read: false,
+          });
+      }
+    } catch (error) {
+      console.error('Error loading agent:', error);
     }
   };
 
