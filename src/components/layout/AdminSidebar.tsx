@@ -105,7 +105,7 @@ export function AdminSidebar() {
     { title: t('vouchers'), icon: Package, tab: "vouchers" },
     { title: t('custom_pages'), icon: FileText, tab: "custom-pages" },
     { title: t('integrations'), icon: Settings, tab: "integrations" },
-    { title: t('settings'), icon: Settings, tab: "settings" },
+    { title: "Config da Landing Page", icon: Settings, tab: "settings" },
   ];
 
   return (
