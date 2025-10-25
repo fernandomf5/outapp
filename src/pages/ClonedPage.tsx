@@ -153,14 +153,29 @@ export default function ClonedPage() {
         });
       }
 
-      // 2.5) Apply checkout link replacements
+      // 2.5) Apply checkout link replacements (robust URL normalization)
       if (settings.detected_checkout_links && settings.detected_checkout_links.length > 0) {
+        const resolve = (u: string) => {
+          try { return new URL(u, baseOrigin || undefined).href; } catch { return u; }
+        };
         settings.detected_checkout_links.forEach((linkConfig: any) => {
           if (linkConfig.replaced && linkConfig.newUrl && linkConfig.originalUrl) {
+            const targetResolved = resolve(linkConfig.originalUrl);
+            let targetKey = targetResolved;
+            try {
+              const tu = new URL(targetResolved);
+              targetKey = tu.origin + tu.pathname; // ignore query/hash when matching
+            } catch {}
             const links = doc.querySelectorAll('a[href]');
             links.forEach((link: any) => {
-              const href = link.getAttribute('href');
-              if (href === linkConfig.originalUrl) {
+              const href = link.getAttribute('href') || '';
+              const currentResolved = resolve(href);
+              let currentKey = currentResolved;
+              try {
+                const cu = new URL(currentResolved);
+                currentKey = cu.origin + cu.pathname;
+              } catch {}
+              if (currentKey === targetKey || currentResolved === targetResolved) {
                 link.setAttribute('href', linkConfig.newUrl);
                 link.setAttribute('target', '_blank');
                 link.setAttribute('rel', 'noopener noreferrer');
