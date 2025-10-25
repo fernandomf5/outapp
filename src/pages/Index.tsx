@@ -14,7 +14,6 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { CookieNotice } from "@/components/CookieNotice";
 import { SocialLinks } from "@/components/SocialLinks";
-import { CustomCursor } from "@/components/CustomCursor";
 
 interface Plan {
   id: string;
@@ -347,9 +346,7 @@ const Index = () => {
   );
 
   return (
-    <>
-      <CustomCursor />
-      <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
         <div className="container mx-auto px-6 sm:px-8 py-3 sm:py-4">
@@ -689,7 +686,6 @@ const Index = () => {
         </DialogContent>
       </Dialog>
     </div>
-    </>
   );
 };
 

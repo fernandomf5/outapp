@@ -27,7 +27,6 @@ import { PlanFeaturesManager } from "@/components/admin/PlanFeaturesManager";
 import { LandingPageEditor } from "@/components/admin/LandingPageEditor";
 import { FAQEditor } from "@/components/admin/FAQEditor";
 import { LandingFeaturesEditor } from "@/components/admin/LandingFeaturesEditor";
-import { CustomCursor } from "@/components/CustomCursor";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -478,10 +477,8 @@ const AdminDashboard = () => {
   };
 
   return (
-    <>
-      <CustomCursor />
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-gradient-to-br from-background via-background to-primary/5">
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-background via-background to-primary/5">
         <AdminSidebar />
         
         <div className="flex-1 flex flex-col">
@@ -1259,7 +1256,6 @@ const AdminDashboard = () => {
         </DialogContent>
       </Dialog>
     </SidebarProvider>
-    </>
   );
 };
 
