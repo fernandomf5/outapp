@@ -55,7 +55,7 @@ export const PageCloner = () => {
   const [selectedPage, setSelectedPage] = useState<ClonedPage | null>(null);
   const [isCloning, setIsCloning] = useState(false);
   const [newDomain, setNewDomain] = useState("");
-  const [availableDomains, setAvailableDomains] = useState<string[]>([]);
+  const [availableDomains, setAvailableDomains] = useState<string[]>(GENERIC_DOMAINS);
   const [cloneData, setCloneData] = useState({
     original_url: "",
     custom_slug: "",
@@ -241,7 +241,7 @@ export const PageCloner = () => {
           clicks: 0
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
