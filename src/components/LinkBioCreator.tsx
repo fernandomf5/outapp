@@ -623,24 +623,6 @@ export function LinkBioCreator() {
               </div>
 
               <div>
-                <Label htmlFor="customSlug">Link Personalizado (Opcional)</Label>
-                <div className="flex gap-2">
-                  <span className="flex items-center px-3 py-2 bg-muted rounded-l-md text-muted-foreground">
-                    /l/
-                  </span>
-                  <Input
-                    id="customSlug"
-                    value={customSlug}
-                    onChange={(e) => setCustomSlug(e.target.value)}
-                    placeholder="meulink"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Link curto e personalizado. Apenas letras, números, - e _
-                </p>
-              </div>
-
-              <div>
                 <Label htmlFor="displayName">Nome de Exibição</Label>
                 <Input
                   id="displayName"
