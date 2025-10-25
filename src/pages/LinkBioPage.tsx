@@ -84,7 +84,7 @@ export default function LinkBioPage() {
       .single();
 
     if (bioData) {
-      setBio(bioData);
+      setBio(bioData as LinkBio);
       
       const { data: linksData } = await supabase
         .from('link_bio_links')

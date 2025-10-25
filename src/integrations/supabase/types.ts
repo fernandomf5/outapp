@@ -1145,6 +1145,9 @@ export type Database = {
           background_color: string | null
           background_image: string | null
           bio: string | null
+          border_color: string | null
+          border_style: string | null
+          border_width: number | null
           button_color: string | null
           button_text_color: string | null
           created_at: string
@@ -1164,6 +1167,9 @@ export type Database = {
           background_color?: string | null
           background_image?: string | null
           bio?: string | null
+          border_color?: string | null
+          border_style?: string | null
+          border_width?: number | null
           button_color?: string | null
           button_text_color?: string | null
           created_at?: string
@@ -1183,6 +1189,9 @@ export type Database = {
           background_color?: string | null
           background_image?: string | null
           bio?: string | null
+          border_color?: string | null
+          border_style?: string | null
+          border_width?: number | null
           button_color?: string | null
           button_text_color?: string | null
           created_at?: string

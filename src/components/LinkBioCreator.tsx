@@ -134,7 +134,7 @@ export function LinkBioCreator() {
       .single();
 
     if (bioData) {
-      setBio(bioData);
+      setBio(bioData as LinkBio);
       setUsername(bioData.username);
       setDisplayName(bioData.display_name || '');
       setBioText(bioData.bio || '');
@@ -232,7 +232,7 @@ export function LinkBioCreator() {
           title: "Sucesso!",
           description: "Perfil criado com sucesso",
         });
-        setBio(data);
+        setBio(data as LinkBio);
       }
     }
 
@@ -988,10 +988,15 @@ export function LinkBioCreator() {
                               ) : (
                                 <div
                                   key={link.id}
-                                  className="px-4 py-3 rounded-full text-center font-medium shadow-md"
+                                  className={`px-4 py-3 rounded-full text-center font-medium shadow-md ${
+                                    borderStyle === 'rgb' ? 'rgb-border' : ''
+                                  }`}
                                   style={{ 
                                     backgroundColor: buttonColor,
-                                    color: buttonTextColor 
+                                    color: buttonTextColor,
+                                    ...(borderStyle !== 'rgb' && {
+                                      border: `${borderWidth}px ${borderStyle} ${borderColor}`
+                                    })
                                   }}
                                 >
                                   {link.title}
