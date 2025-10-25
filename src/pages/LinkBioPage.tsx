@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ExternalLink } from "lucide-react";
@@ -258,7 +258,7 @@ export default function LinkBioPage() {
                   ...(bio.border_animation !== 'rgb' && {
                     border: `${bio.border_width || 2}px ${bio.border_style || 'solid'} ${bio.border_color || '#000000'}`
                   })
-                } as React.CSSProperties}
+                } as CSSProperties}
               >
                 <img 
                   src={link.image_url} 
@@ -289,7 +289,7 @@ export default function LinkBioPage() {
                   ...(bio.border_animation !== 'rgb' && {
                     border: `${bio.border_width || 2}px ${bio.border_style || 'solid'} ${bio.border_color || '#000000'}`
                   })
-                } as React.CSSProperties}
+                } as CSSProperties}
               >
                 <IconComponent iconName={link.icon} />
                 <span className="flex-1 text-center">{link.title}</span>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import type { CSSProperties } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1404,7 +1405,7 @@ export function LinkBioCreator() {
                                     ...(borderAnimation !== 'rgb' && {
                                       border: `${borderWidth}px ${borderStyle} ${borderColor}`
                                     })
-                                  } as React.CSSProperties}
+                                  } as CSSProperties}
                                 >
                                   <img 
                                     src={link.image_url} 
@@ -1434,7 +1435,7 @@ export function LinkBioCreator() {
                                     ...(borderAnimation !== 'rgb' && {
                                       border: `${borderWidth}px ${borderStyle} ${borderColor}`
                                     })
-                                  } as React.CSSProperties}
+                                  } as CSSProperties}
                                 >
                                   {link.title}
                                 </div>
