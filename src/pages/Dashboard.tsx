@@ -13,6 +13,7 @@ import { UserSidebar } from "@/components/layout/UserSidebar";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { CustomCursor } from "@/components/CustomCursor";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { TutorialVideos } from "@/components/TutorialVideos";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
@@ -30,7 +31,6 @@ import { CapturedLeads } from "@/components/CapturedLeads";
 import { LinkBioCreator } from "@/components/LinkBioCreator";
 import { MyChatbots } from "@/components/MyChatbots";
 import { MyAIAgents } from "@/components/MyAIAgents";
-import { CustomCursor } from "@/components/CustomCursor";
 import {
   AlertDialog,
   AlertDialogAction,
