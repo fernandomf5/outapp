@@ -7,7 +7,7 @@ import { Link2, Instagram, Youtube, Facebook, Twitter, Linkedin, Mail, Phone, Gl
 interface LinkBio {
   id: string;
   username: string;
-  custom_slug: string;
+  custom_domain: string;
   display_name: string;
   bio: string;
   avatar_url: string;
@@ -52,16 +52,19 @@ const iconOptions = {
 };
 
 export default function LinkBioPage() {
-  const { username, slug } = useParams<{ username?: string; slug?: string }>();
+  const { username } = useParams<{ username?: string }>();
   const [bio, setBio] = useState<LinkBio | null>(null);
   const [links, setLinks] = useState<BioLink[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (username || slug) {
+    if (username) {
       fetchBioPage();
+    } else {
+      // Se não tiver username na URL, verificar domínio customizado
+      fetchBioByDomain();
     }
-  }, [username, slug]);
+  }, [username]);
 
   useEffect(() => {
     if (bio) {
@@ -82,20 +85,41 @@ export default function LinkBioPage() {
     }
   }, [bio]);
 
-  const fetchBioPage = async () => {
-    let query = supabase
+  const fetchBioByDomain = async () => {
+    const currentDomain = window.location.hostname;
+    
+    const { data: bioData } = await supabase
       .from('link_bios')
       .select('*')
-      .eq('is_active', true);
+      .eq('custom_domain', currentDomain)
+      .eq('is_active', true)
+      .single();
 
-    // Buscar por slug personalizado ou username
-    if (slug) {
-      query = query.eq('custom_slug', slug);
-    } else if (username) {
-      query = query.eq('username', username);
+    if (bioData) {
+      setBio(bioData as LinkBio);
+      
+      const { data: linksData } = await supabase
+        .from('link_bio_links')
+        .select('*')
+        .eq('bio_id', bioData.id)
+        .eq('is_active', true)
+        .order('position', { ascending: true });
+
+      if (linksData) {
+        setLinks(linksData);
+      }
     }
+    
+    setLoading(false);
+  };
 
-    const { data: bioData } = await query.single();
+  const fetchBioPage = async () => {
+    const { data: bioData } = await supabase
+      .from('link_bios')
+      .select('*')
+      .eq('username', username)
+      .eq('is_active', true)
+      .single();
 
     if (bioData) {
       setBio(bioData as LinkBio);

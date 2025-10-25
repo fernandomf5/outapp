@@ -1155,7 +1155,7 @@ export type Database = {
           button_text_color: string | null
           created_at: string
           custom_css: string | null
-          custom_slug: string | null
+          custom_domain: string | null
           display_name: string | null
           gradient_color1: string | null
           gradient_color2: string | null
@@ -1184,7 +1184,7 @@ export type Database = {
           button_text_color?: string | null
           created_at?: string
           custom_css?: string | null
-          custom_slug?: string | null
+          custom_domain?: string | null
           display_name?: string | null
           gradient_color1?: string | null
           gradient_color2?: string | null
@@ -1213,7 +1213,7 @@ export type Database = {
           button_text_color?: string | null
           created_at?: string
           custom_css?: string | null
-          custom_slug?: string | null
+          custom_domain?: string | null
           display_name?: string | null
           gradient_color1?: string | null
           gradient_color2?: string | null
