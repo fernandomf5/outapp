@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText } from "lucide-react";
+import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText, QrCode } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -384,7 +384,7 @@ const Dashboard = () => {
         <SubscriptionBanner />
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-9 mb-8">
+          <TabsList className="grid w-full grid-cols-10 mb-8">
             <TabsTrigger value="overview">{t('overview')}</TabsTrigger>
             {hasFeature('chatbot_conversations') && (
               <TabsTrigger value="clients" className="relative">
@@ -397,6 +397,10 @@ const Dashboard = () => {
               </TabsTrigger>
             )}
             <TabsTrigger value="tools">{t('tools')}</TabsTrigger>
+            <TabsTrigger value="qrcode">
+              <QrCode className="w-4 h-4 mr-2" />
+              QR Code
+            </TabsTrigger>
             <TabsTrigger value="linkbio">Link na Bio</TabsTrigger>
             {hasFeature('link_shortener') && (
               <TabsTrigger value="shortlinks">
@@ -775,32 +779,23 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="tools">
-            <Tabs defaultValue="whatsapp" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="whatsapp">WhatsApp Link</TabsTrigger>
-                <TabsTrigger value="qrcode">Gerador QR Code</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="whatsapp">
-                {hasFeature('whatsapp_link') ? (
-                  <WhatsAppLinkGenerator />
-                ) : (
-                  <Card className="p-12 text-center">
-                    <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Faça upgrade do seu plano para gerar links do WhatsApp
-                    </p>
-                    <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
-                      Ver Planos
-                    </Button>
-                  </Card>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="qrcode">
-                <QRCodeGenerator />
-              </TabsContent>
-            </Tabs>
+            {hasFeature('whatsapp_link') ? (
+              <WhatsAppLinkGenerator />
+            ) : (
+              <Card className="p-12 text-center">
+                <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
+                <p className="text-muted-foreground mb-4">
+                  Faça upgrade do seu plano para gerar links do WhatsApp
+                </p>
+                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
+                  Ver Planos
+                </Button>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="qrcode">
+            <QRCodeGenerator />
           </TabsContent>
 
           <TabsContent value="linkbio">
