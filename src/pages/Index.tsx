@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { FAQSection } from "@/components/FAQSection";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Plan {
   id: string;
@@ -33,6 +34,7 @@ interface CustomPage {
 
 const Index = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [customPages, setCustomPages] = useState<CustomPage[]>([]);
   const [videoUrl, setVideoUrl] = useState<string>("");
@@ -288,16 +290,16 @@ const Index = () => {
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-6">
               <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
-                Início
+                {t('home')}
               </a>
               <a href="#recursos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
-                Recursos
+                {t('features')}
               </a>
               <a href="#planos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
-                Planos
+                {t('pricing')}
               </a>
               <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
-                FAQ
+                {t('faq')}
               </a>
               {headerPages.map((page) => (
                 <button
@@ -311,10 +313,10 @@ const Index = () => {
               <ThemeToggle />
               <LanguageSelector />
               <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} className="active:scale-95 transition-transform">
-                Entrar
+                {t('login')}
               </Button>
               <Button size="sm" onClick={() => navigate("/auth")} className="gradient-primary shadow-glow active:scale-95 transition-transform">
-                Começar Grátis
+                {t('start_free')}
               </Button>
             </nav>
             

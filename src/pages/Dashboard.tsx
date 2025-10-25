@@ -12,6 +12,7 @@ import { TicketNotificationBell } from "@/components/TicketNotificationBell";
 import { UserSidebar } from "@/components/layout/UserSidebar";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { TutorialVideos } from "@/components/TutorialVideos";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
@@ -43,6 +44,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const { hasFeature, loading: featuresLoading } = useUserFeatures();
   const [searchParams] = useSearchParams();
   const [stats, setStats] = useState({
@@ -343,9 +345,9 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <h1 className="text-xl sm:text-2xl font-bold">
-                    Olá, {user?.email?.split('@')[0] || 'Usuário'}! 👋
+                    {t('hello')}, {user?.email?.split('@')[0] || 'Usuário'}! 👋
                   </h1>
-                  <p className="text-xs sm:text-sm text-muted-foreground">Que bom ver você por aqui!</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{t('welcome_back')}</p>
                 </div>
               </div>
               
@@ -356,7 +358,7 @@ const Dashboard = () => {
                 <ThemeToggle />
                 <Button variant="outline" onClick={() => navigate("/settings")} className="flex-1 sm:flex-none" size="sm">
                   <Settings className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Configurações</span>
+                  <span className="hidden sm:inline">{t('settings')}</span>
                 </Button>
                 <Button
                   onClick={handleLogout}
@@ -365,7 +367,7 @@ const Dashboard = () => {
                   size="sm"
                 >
                   <LogOut className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Sair</span>
+                  <span className="hidden sm:inline">{t('logout')}</span>
                 </Button>
               </div>
             </div>
@@ -378,10 +380,10 @@ const Dashboard = () => {
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-8 mb-8">
-            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="overview">{t('overview')}</TabsTrigger>
             {hasFeature('chatbot_conversations') && (
               <TabsTrigger value="clients" className="relative">
-                Clientes
+                {t('clients')}
                 {unreadClientMessages > 0 && (
                   <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                     {unreadClientMessages > 9 ? '9+' : unreadClientMessages}
@@ -389,18 +391,18 @@ const Dashboard = () => {
                 )}
               </TabsTrigger>
             )}
-            <TabsTrigger value="tools">Ferramentas</TabsTrigger>
+            <TabsTrigger value="tools">{t('tools')}</TabsTrigger>
             {hasFeature('link_shortener') && (
               <TabsTrigger value="shortlinks">
                 <Link2 className="w-4 h-4 mr-2" />
-                Links
+                {t('shortlinks')}
               </TabsTrigger>
             )}
             {hasFeature('page_cloner') && (
-              <TabsTrigger value="cloner">Clonador</TabsTrigger>
+              <TabsTrigger value="cloner">{t('cloner')}</TabsTrigger>
             )}
             {hasFeature('ticket_system') && (
-              <TabsTrigger value="support">Suporte</TabsTrigger>
+              <TabsTrigger value="support">{t('support')}</TabsTrigger>
             )}
             <TabsTrigger value="voucher">Voucher</TabsTrigger>
             <TabsTrigger 
