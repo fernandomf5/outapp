@@ -134,19 +134,27 @@ export default function ClonedPage() {
         try { return new URL(pageData.original_url).origin; } catch { return ''; }
       })();
 
-      // Rewrite same-origin links to anchors or no-op to avoid leaving the cloned page
+      // Rewrite same-origin links: use traffic link (sales page backup) or anchors
+      const trafficLink = settings.traffic_tracking_link || '';
       doc.querySelectorAll('a[href]').forEach((a: any) => {
         const href = a.getAttribute('href') || '';
         try {
           const u = new URL(href, baseOrigin || undefined);
           if (baseOrigin && u.origin === baseOrigin) {
             if (u.hash) {
+              // Keep anchor links working
               a.setAttribute('href', u.hash);
+              a.setAttribute('target', '_self');
+            } else if (trafficLink) {
+              // Redirect to sales page backup instead of original site
+              a.setAttribute('href', trafficLink);
+              a.setAttribute('target', '_blank');
+              a.setAttribute('rel', 'noopener noreferrer');
             } else {
-              // Keep user on the same cloned page (no external navigation)
+              // No traffic link configured, keep on same page
               a.setAttribute('href', '#');
+              a.setAttribute('target', '_self');
             }
-            a.setAttribute('target', '_self');
           }
         } catch {}
       });
@@ -249,7 +257,7 @@ export default function ClonedPage() {
       blocker.textContent = `try { Object.defineProperty(window, 'top', { get: () => window }); } catch (e) {}\n` +
         `try { window.location.assign = function(){ console.log('blocked assign'); }; } catch(e) {}\n` +
         `try { window.location.replace = function(){ console.log('blocked replace'); }; } catch(e) {}\n` +
-        // Intercept clicks on same-origin links to keep navigation inside the cloned page
+        // Intercept clicks: handle anchors smoothly, let sales backup links open
         `document.addEventListener('click', function(e){\n` +
         `  try {\n` +
         `    var a = e.target && e.target.closest ? e.target.closest('a') : null;\n` +
@@ -257,11 +265,13 @@ export default function ClonedPage() {
         `    var href = a.getAttribute('href') || '';\n` +
         `    if (!href) return;\n` +
         `    var origin = '${baseOrigin}';\n` +
+        `    var trafficLink = '${trafficLink}';\n` +
         `    var url;\n` +
         `    try { url = new URL(href, origin || undefined); } catch (ex) { return; }\n` +
         `    if (origin && url.origin === origin) {\n` +
-        `      e.preventDefault();\n` +
+        `      // If it's an anchor link, handle smooth scroll\n` +
         `      if (url.hash) {\n` +
+        `        e.preventDefault();\n` +
         `        var id = decodeURIComponent(url.hash.slice(1));\n` +
         `        try {\n` +
         `          var el = document.getElementById(id) || document.querySelector('[name="' + CSS.escape(id) + '"]') || document.querySelector('#' + CSS.escape(id));\n` +
@@ -270,6 +280,13 @@ export default function ClonedPage() {
         `            if (history && history.replaceState) { history.replaceState(null, '', url.hash); }\n` +
         `          }\n` +
         `        } catch(_) {}\n` +
+        `      } else if (trafficLink) {\n` +
+        `        // Redirect to sales backup page instead of original\n` +
+        `        e.preventDefault();\n` +
+        `        window.open(trafficLink, '_blank');\n` +
+        `      } else {\n` +
+        `        // No traffic link, prevent navigation\n` +
+        `        e.preventDefault();\n` +
         `      }\n` +
         `    }\n` +
         `  } catch(_) {}\n` +
