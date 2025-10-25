@@ -33,6 +33,7 @@ import { MyChatbots } from "@/components/MyChatbots";
 import { MyAIAgents } from "@/components/MyAIAgents";
 import { QRCodeGenerator } from "@/components/QRCodeGenerator";
 import AgentManagementPanel from "@/components/AgentManagementPanel";
+import { ChatbotManagementPanel } from "@/components/ChatbotManagementPanel";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -61,6 +62,7 @@ const Dashboard = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null);
   const [selectedAgentForManagement, setSelectedAgentForManagement] = useState<any>(null);
+  const [selectedChatbotForManagement, setSelectedChatbotForManagement] = useState<any>(null);
   const activeTab = searchParams.get('tab') || 'overview';
   const [unreadClientMessages, setUnreadClientMessages] = useState(0);
 
@@ -819,6 +821,19 @@ const Dashboard = () => {
                   agentName={selectedAgentForManagement.name}
                 />
               </div>
+            ) : selectedChatbotForManagement ? (
+              <div>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setSelectedChatbotForManagement(null)}
+                  className="mb-4"
+                >
+                  ← Voltar para lista de chatbots
+                </Button>
+                <ChatbotManagementPanel 
+                  chatbot={selectedChatbotForManagement}
+                />
+              </div>
             ) : (
               <Card>
                 <CardHeader>
@@ -956,7 +971,12 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="chatbots">
-            <MyChatbots />
+            <MyChatbots 
+              onManage={(chatbot) => {
+                setSelectedChatbotForManagement(chatbot);
+                navigate('/dashboard?tab=management');
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="ai-agents">

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, Pencil, Trash2, Copy, ExternalLink } from "lucide-react";
+import { Bot, Pencil, Trash2, Copy, ExternalLink, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,7 +18,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export const MyChatbots = () => {
+interface MyChatbotsProps {
+  onManage?: (chatbot: { id: string; name: string }) => void;
+}
+
+export const MyChatbots = ({ onManage }: MyChatbotsProps = {}) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -182,25 +186,38 @@ export const MyChatbots = () => {
               </span>
             </div>
 
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={() => handleCopyLink(bot.id)}
-              >
-                <Copy className="w-3 h-3 mr-2" />
-                {t('copy_link')}
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                className="flex-1"
-                onClick={() => handleOpenChat(bot.id)}
-              >
-                <ExternalLink className="w-3 h-3 mr-2" />
-                {t('open_chat')}
-              </Button>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => handleCopyLink(bot.id)}
+                >
+                  <Copy className="w-3 h-3 mr-2" />
+                  {t('copy_link')}
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => handleOpenChat(bot.id)}
+                >
+                  <ExternalLink className="w-3 h-3 mr-2" />
+                  {t('open_chat')}
+                </Button>
+              </div>
+              {onManage && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => onManage({ id: bot.id, name: bot.name })}
+                >
+                  <Settings className="w-3 h-3 mr-2" />
+                  Gerenciar Chatbot
+                </Button>
+              )}
             </div>
           </Card>
         ))}

@@ -934,6 +934,89 @@ export type Database = {
           },
         ]
       }
+      chatbot_appointments: {
+        Row: {
+          chatbot_id: string
+          created_at: string
+          customer_id: string
+          date: string
+          id: string
+          notes: string | null
+          status: string
+        }
+        Insert: {
+          chatbot_id: string
+          created_at?: string
+          customer_id: string
+          date: string
+          id?: string
+          notes?: string | null
+          status?: string
+        }
+        Update: {
+          chatbot_id?: string
+          created_at?: string
+          customer_id?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_appointments_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chatbot_appointments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "chatbot_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chatbot_automations: {
+        Row: {
+          chatbot_id: string
+          created_at: string
+          delay_minutes: number | null
+          id: string
+          is_active: boolean
+          message: string
+          trigger_type: string
+        }
+        Insert: {
+          chatbot_id: string
+          created_at?: string
+          delay_minutes?: number | null
+          id?: string
+          is_active?: boolean
+          message: string
+          trigger_type: string
+        }
+        Update: {
+          chatbot_id?: string
+          created_at?: string
+          delay_minutes?: number | null
+          id?: string
+          is_active?: boolean
+          message?: string
+          trigger_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_automations_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chatbot_conversations: {
         Row: {
           chatbot_id: string
@@ -981,6 +1064,44 @@ export type Database = {
           },
         ]
       }
+      chatbot_customers: {
+        Row: {
+          chatbot_id: string
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          chatbot_id: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          chatbot_id?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_customers_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chatbot_messages: {
         Row: {
           content: string
@@ -1018,6 +1139,252 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "chatbot_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chatbot_notifications: {
+        Row: {
+          chatbot_id: string
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          title: string
+          type: string
+        }
+        Insert: {
+          chatbot_id: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          title: string
+          type: string
+        }
+        Update: {
+          chatbot_id?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_notifications_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chatbot_order_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          price: number
+          product_id: string
+          quantity: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          price: number
+          product_id: string
+          quantity?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          price?: number
+          product_id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "chatbot_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chatbot_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "chatbot_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chatbot_orders: {
+        Row: {
+          chatbot_id: string
+          created_at: string
+          customer_id: string
+          id: string
+          payment_method: string | null
+          status: string
+          total: number
+        }
+        Insert: {
+          chatbot_id: string
+          created_at?: string
+          customer_id: string
+          id?: string
+          payment_method?: string | null
+          status?: string
+          total: number
+        }
+        Update: {
+          chatbot_id?: string
+          created_at?: string
+          customer_id?: string
+          id?: string
+          payment_method?: string | null
+          status?: string
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_orders_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chatbot_orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "chatbot_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chatbot_products: {
+        Row: {
+          chatbot_id: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          price: number
+          type: string
+        }
+        Insert: {
+          chatbot_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          price: number
+          type: string
+        }
+        Update: {
+          chatbot_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_products_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chatbot_reviews: {
+        Row: {
+          chatbot_id: string
+          comment: string | null
+          created_at: string
+          customer_id: string
+          id: string
+          rating: number
+        }
+        Insert: {
+          chatbot_id: string
+          comment?: string | null
+          created_at?: string
+          customer_id: string
+          id?: string
+          rating: number
+        }
+        Update: {
+          chatbot_id?: string
+          comment?: string | null
+          created_at?: string
+          customer_id?: string
+          id?: string
+          rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_reviews_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chatbot_reviews_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "chatbot_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chatbot_schedules: {
+        Row: {
+          chatbot_id: string
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_active: boolean
+          start_time: string
+        }
+        Insert: {
+          chatbot_id: string
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_active?: boolean
+          start_time: string
+        }
+        Update: {
+          chatbot_id?: string
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_schedules_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
             referencedColumns: ["id"]
           },
         ]
