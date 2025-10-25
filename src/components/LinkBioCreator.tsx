@@ -337,9 +337,14 @@ export function LinkBioCreator() {
       toast({
         title: "Bio excluído com sucesso",
       });
-      await fetchBios();
+      
+      // Atualizar estado local imediatamente
+      const updatedBios = bios.filter(b => b.id !== bioId);
+      setBios(updatedBios);
+      
+      // Se o bio excluído era o selecionado, selecionar o primeiro disponível
       if (selectedBioId === bioId) {
-        setSelectedBioId(bios[0]?.id || null);
+        setSelectedBioId(updatedBios[0]?.id || null);
       }
     }
   };
@@ -1260,7 +1265,8 @@ export function LinkBioCreator() {
                               link.image_url ? (
                                 <div
                                   key={link.id}
-                                  className={`overflow-hidden shadow-md transition-all duration-300
+                                  className={`shadow-md transition-all duration-300
+                                    ${borderAnimation !== 'rgb' ? 'overflow-hidden' : ''}
                                     ${borderAnimation === 'rgb' ? 'bio-border-rgb' : ''} 
                                     ${borderAnimation === 'pulse' ? 'bio-border-pulse' : ''}
                                     ${borderAnimation === 'glow' ? 'bio-border-glow' : ''}
@@ -1283,6 +1289,9 @@ export function LinkBioCreator() {
                                     src={link.image_url} 
                                     alt={link.title}
                                     className="w-full h-auto object-cover"
+                                    style={{
+                                      borderRadius: `${borderRadius}px`,
+                                    }}
                                   />
                                 </div>
                               ) : (
