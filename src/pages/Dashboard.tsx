@@ -960,7 +960,12 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="ai-agents">
-            <MyAIAgents />
+            <MyAIAgents 
+              onManage={(agent) => {
+                setSelectedAgentForManagement(agent);
+                navigate('/dashboard?tab=management');
+              }}
+            />
           </TabsContent>
 
 

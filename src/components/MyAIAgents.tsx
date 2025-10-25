@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Pencil, Trash2, Copy, ExternalLink } from "lucide-react";
+import { Sparkles, Pencil, Trash2, Copy, ExternalLink, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,7 +18,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export const MyAIAgents = () => {
+interface MyAIAgentsProps {
+  onManage?: (agent: { id: string; name: string; niche: string }) => void;
+}
+
+export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -199,25 +203,38 @@ export const MyAIAgents = () => {
               <span className="text-sm ml-2 capitalize">{agent.niche || t('not_defined')}</span>
             </div>
 
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={() => handleCopyLink(agent.id, agent.name)}
-              >
-                <Copy className="w-3 h-3 mr-2" />
-                {t('copy_link')}
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                className="flex-1"
-                onClick={() => handleOpenChat(agent.id, agent.name)}
-              >
-                <ExternalLink className="w-3 h-3 mr-2" />
-                {t('open_chat')}
-              </Button>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => handleCopyLink(agent.id, agent.name)}
+                >
+                  <Copy className="w-3 h-3 mr-2" />
+                  {t('copy_link')}
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => handleOpenChat(agent.id, agent.name)}
+                >
+                  <ExternalLink className="w-3 h-3 mr-2" />
+                  {t('open_chat')}
+                </Button>
+              </div>
+              {onManage && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => onManage({ id: agent.id, name: agent.name, niche: agent.niche })}
+                >
+                  <Settings className="w-3 h-3 mr-2" />
+                  Gerenciar Agente
+                </Button>
+              )}
             </div>
           </Card>
         ))}
