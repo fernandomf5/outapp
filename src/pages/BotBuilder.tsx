@@ -18,6 +18,7 @@ import { Label } from '@/components/ui/label';
 import { ChatWidgetGenerator } from '@/components/ChatWidgetGenerator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
+import { CustomCursor } from '@/components/CustomCursor';
 
 const BotBuilder = () => {
   const { toast } = useToast();
@@ -294,8 +295,10 @@ const BotBuilder = () => {
   }, [chatbotId, toggleActive, toast]);
 
   return (
-    <ReactFlowProvider>
-      <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-background flex flex-col">
+    <>
+      <CustomCursor />
+      <ReactFlowProvider>
+        <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-background flex flex-col">
         {/* Header */}
         <header className="bg-card/95 backdrop-blur-sm border-b border-border px-6 py-5 shadow-md z-10">
           <div className="max-w-full flex items-center justify-between">
@@ -595,6 +598,7 @@ const BotBuilder = () => {
         </div>
       </div>
     </ReactFlowProvider>
+    </>
   );
 };
 

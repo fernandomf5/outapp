@@ -311,7 +311,23 @@ All colors MUST be HSL.
     0 0 10px hsl(151 95% 45% / 0.8),
     0 0 20px hsl(151 95% 45% / 0.6),
     0 0 30px hsl(151 95% 45% / 0.4);
-  transition: transform 0.1s ease;
+  transition: all 0.1s ease;
+}
+
+.custom-cursor.on-green {
+  background: hsl(0 0% 100%);
+  box-shadow: 
+    0 0 10px hsl(0 0% 100% / 0.8),
+    0 0 20px hsl(0 0% 100% / 0.6),
+    0 0 30px hsl(0 0% 100% / 0.4);
+}
+
+.dark .custom-cursor.on-green {
+  background: hsl(0 0% 0%);
+  box-shadow: 
+    0 0 10px hsl(0 0% 0% / 0.8),
+    0 0 20px hsl(0 0% 0% / 0.6),
+    0 0 30px hsl(0 0% 0% / 0.4);
 }
 
 .custom-cursor-trail {
@@ -326,10 +342,25 @@ All colors MUST be HSL.
   transition: all 0.15s ease-out;
 }
 
+.custom-cursor-trail.on-green {
+  border-color: hsl(0 0% 100% / 0.5);
+}
+
+.dark .custom-cursor-trail.on-green {
+  border-color: hsl(0 0% 0% / 0.5);
+}
+
 .custom-cursor-trail.clicking {
   transform: translate(-50%, -50%) scale(0.8);
-  border-color: hsl(151 95% 45% / 0.8);
   border-width: 3px;
+}
+
+.custom-cursor-trail.clicking.on-green {
+  border-color: hsl(0 0% 100% / 0.8);
+}
+
+.dark .custom-cursor-trail.clicking.on-green {
+  border-color: hsl(0 0% 0% / 0.8);
 }
 
 .cursor-ripple {
@@ -342,6 +373,14 @@ All colors MUST be HSL.
   z-index: 9997;
   transform: translate(-50%, -50%);
   animation: ripple-expand 1s ease-out forwards;
+}
+
+.cursor-ripple.on-green {
+  border-color: hsl(0 0% 100%);
+}
+
+.dark .cursor-ripple.on-green {
+  border-color: hsl(0 0% 0%);
 }
 
 @keyframes ripple-expand {
@@ -371,7 +410,6 @@ textarea:hover ~ .custom-cursor,
 select:hover ~ .custom-cursor,
 [role="button"]:hover ~ .custom-cursor {
   transform: translate(-50%, -50%) scale(1.5);
-  background: hsl(151 95% 50%);
 }
 
 .dark .custom-cursor {

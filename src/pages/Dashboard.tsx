@@ -382,46 +382,9 @@ const Dashboard = () => {
         {/* Subscription Banner */}
         <SubscriptionBanner />
 
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-9 mb-8">
-            <TabsTrigger value="overview">{t('overview')}</TabsTrigger>
-            {hasFeature('chatbot_conversations') && (
-              <TabsTrigger value="clients" className="relative">
-                {t('clients')}
-                {unreadClientMessages > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                    {unreadClientMessages > 9 ? '9+' : unreadClientMessages}
-                  </span>
-                )}
-              </TabsTrigger>
-            )}
-            <TabsTrigger value="tools">{t('tools')}</TabsTrigger>
-            <TabsTrigger value="linkbio">Link na Bio</TabsTrigger>
-            {hasFeature('link_shortener') && (
-              <TabsTrigger value="shortlinks">
-                <Link2 className="w-4 h-4 mr-2" />
-                {t('shortlinks')}
-              </TabsTrigger>
-            )}
-            {hasFeature('page_cloner') && (
-              <TabsTrigger value="cloner">{t('cloner')}</TabsTrigger>
-            )}
-            {hasFeature('ticket_system') && (
-              <TabsTrigger value="support">{t('support')}</TabsTrigger>
-            )}
-            <TabsTrigger value="voucher">Voucher</TabsTrigger>
-            <TabsTrigger 
-              value="plan" 
-              className="flex items-center gap-2 data-[state=active]:bg-success data-[state=active]:text-white"
-            >
-              <CreditCard className="w-4 h-4" />
-              Meu Plano
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6 sm:space-y-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="space-y-6 sm:space-y-8">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Card className="p-4 sm:p-6 hover:shadow-lg transition-smooth">
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="bg-primary/10 p-2 sm:p-3 rounded-xl">
@@ -492,23 +455,6 @@ const Dashboard = () => {
               </Button>
             </Card>
           )}
-
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth" onClick={() => navigate("/funnel-builder")}>
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Criar Funil de Vendas</h3>
-                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Construa jornadas de vendas com blocos personalizáveis
-                </p>
-              </div>
-              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <Zap className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
-              </div>
-            </div>
-            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
-              Criar Funil
-            </Button>
-          </Card>
         </div>
 
         {/* Tutorial Videos */}
@@ -700,142 +646,8 @@ const Dashboard = () => {
             </div>
           )}
         </Card>
-          </TabsContent>
-
-          <TabsContent value="clients">
-            {hasFeature('chatbot_conversations') ? (
-              <ChatbotConversations />
-            ) : (
-              <Card className="p-12 text-center">
-                <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
-                <p className="text-muted-foreground mb-4">
-                  Faça upgrade do seu plano para acessar as conversas dos chatbots
-                </p>
-                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
-                  Ver Planos
-                </Button>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="tools">
-            {hasFeature('whatsapp_link') ? (
-              <WhatsAppLinkGenerator />
-            ) : (
-              <Card className="p-12 text-center">
-                <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
-                <p className="text-muted-foreground mb-4">
-                  Faça upgrade do seu plano para gerar links do WhatsApp
-                </p>
-                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
-                  Ver Planos
-                </Button>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="linkbio">
-            <LinkBioCreator />
-          </TabsContent>
-
-          <TabsContent value="cloner">
-            {hasFeature('page_cloner') ? (
-              <PageCloner />
-            ) : (
-              <Card className="p-12 text-center">
-                <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
-                <p className="text-muted-foreground mb-4">
-                  Faça upgrade do seu plano para clonar páginas
-                </p>
-                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
-                  Ver Planos
-                </Button>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="crm">
-            {hasFeature('crm_contacts') ? (
-              <CRMContacts />
-            ) : (
-              <Card className="p-12 text-center">
-                <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
-                <p className="text-muted-foreground mb-4">
-                  Faça upgrade do seu plano para acessar o CRM
-                </p>
-                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
-                  Ver Planos
-                </Button>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="shortlinks">
-            {hasFeature('link_shortener') ? (
-              <LinkShortener />
-            ) : (
-              <Card className="p-12 text-center">
-                <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
-                <p className="text-muted-foreground mb-4">
-                  Faça upgrade do seu plano para encurtar links
-                </p>
-                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
-                  Ver Planos
-                </Button>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="support">
-            {hasFeature('ticket_system') ? (
-              <TicketSystem />
-            ) : (
-              <Card className="p-12 text-center">
-                <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
-                <p className="text-muted-foreground mb-4">
-                  Faça upgrade do seu plano para acessar o suporte
-                </p>
-                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
-                  Ver Planos
-                </Button>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="leads">
-            {hasFeature('chatbot_conversations') ? (
-              <CapturedLeads />
-            ) : (
-              <Card className="p-12 text-center">
-                <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
-                <p className="text-muted-foreground mb-4">
-                  Faça upgrade do seu plano para acessar leads capturados
-                </p>
-                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
-                  Ver Planos
-                </Button>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="chatbots">
-            <MyChatbots />
-          </TabsContent>
-
-          <TabsContent value="ai-agents">
-            <MyAIAgents />
-          </TabsContent>
-
-
-          <TabsContent value="voucher">
-            <VoucherRedemption />
-          </TabsContent>
-
-          <TabsContent value="plan">
-            <MyPlanSection />
-          </TabsContent>
-        </Tabs>
-      </main>
+        </div>
+          </main>
 
       {/* Delete Confirmation Dialogs */}
       <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>
