@@ -337,6 +337,44 @@ export const PageCloner = () => {
     }
   };
 
+  const handleDuplicatePage = async (page: ClonedPage) => {
+    try {
+      const slug = `${page.slug}-copia-${Math.random().toString(36).substring(2, 6)}`;
+      const clonedUrl = `${window.location.origin}/${page.custom_domain}/${slug}`;
+
+      const { data, error } = await supabase
+        .from('cloned_pages')
+        .insert({
+          user_id: user!.id,
+          original_url: page.original_url,
+          cloned_url: clonedUrl,
+          slug: slug,
+          custom_domain: page.custom_domain,
+          page_content: page.page_content,
+          custom_settings: page.custom_settings,
+          is_active: true,
+          clicks: 0
+        })
+        .select()
+        .maybeSingle();
+
+      if (error) throw error;
+
+      toast({ 
+        title: "Página duplicada!",
+        description: "Configurações copiadas com sucesso" 
+      });
+      
+      await fetchClonedPages();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao duplicar",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
   const copyLink = (url: string) => {
     navigator.clipboard.writeText(url);
     toast({ title: "Link copiado!" });
@@ -621,7 +659,7 @@ export const PageCloner = () => {
                       Criado em: {new Date(page.created_at).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
-                  <div className="flex gap-2 flex-shrink-0">
+                  <div className="flex gap-2 flex-shrink-0 flex-wrap">
                     <Button
                       size="sm"
                       variant="outline"
@@ -629,6 +667,36 @@ export const PageCloner = () => {
                       title="Copiar link"
                     >
                       <Copy className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedPage(page);
+                        setIsAnalyticsDialogOpen(true);
+                      }}
+                      title="Ver Analytics"
+                    >
+                      <BarChart3 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedPage(page);
+                        setIsLeadsDialogOpen(true);
+                      }}
+                      title="Ver Leads"
+                    >
+                      <Users className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDuplicatePage(page)}
+                      title="Duplicar Página"
+                    >
+                      <FileText className="w-4 h-4" />
                     </Button>
                     <Button
                       size="sm"
@@ -1392,6 +1460,26 @@ export const PageCloner = () => {
               </ul>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Analytics */}
+      <Dialog open={isAnalyticsDialogOpen} onOpenChange={setIsAnalyticsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Analytics - {selectedPage?.slug}</DialogTitle>
+          </DialogHeader>
+          {selectedPage && <AnalyticsPanel pageId={selectedPage.id} />}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Leads */}
+      <Dialog open={isLeadsDialogOpen} onOpenChange={setIsLeadsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Leads Capturados - {selectedPage?.slug}</DialogTitle>
+          </DialogHeader>
+          {selectedPage && <LeadsManager pageId={selectedPage.id} />}
         </DialogContent>
       </Dialog>
     </div>

@@ -238,6 +238,254 @@ export default function ClonedPage() {
         doc.querySelector('body')?.insertAdjacentHTML('beforeend', whatsappHtml);
       }
 
+      // 7.1) Inject Countdown Timer
+      if (settings.countdown_timer?.enabled && settings.countdown_timer?.end_date) {
+        const body = doc.querySelector('body');
+        const position = settings.countdown_timer.position === 'top' ? 'top: 0;' : 'bottom: 0;';
+        const timerHtml = `
+          <div id="countdown-timer" style="position: fixed; ${position} left: 0; right: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 20px; text-align: center; z-index: 9999999; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+            <div style="max-width: 1200px; margin: 0 auto;">
+              <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">${settings.countdown_timer.message}</div>
+              <div id="timer-display" style="font-size: 24px; font-weight: 700; letter-spacing: 1px;"></div>
+            </div>
+          </div>
+          <script>
+            (function() {
+              var endDate = new Date('${settings.countdown_timer.end_date}').getTime();
+              var expiredMsg = '${settings.countdown_timer.expired_message}';
+              var timerEl = document.getElementById('timer-display');
+              
+              function updateTimer() {
+                var now = new Date().getTime();
+                var distance = endDate - now;
+                
+                if (distance < 0) {
+                  timerEl.innerHTML = expiredMsg;
+                  return;
+                }
+                
+                var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                
+                timerEl.innerHTML = days + 'd ' + hours + 'h ' + minutes + 'm ' + seconds + 's';
+                setTimeout(updateTimer, 1000);
+              }
+              
+              updateTimer();
+            })();
+          </script>
+        `;
+        body?.insertAdjacentHTML('beforeend', timerHtml);
+      }
+
+      // 7.2) Inject Exit Intent Popup
+      if (settings.exit_intent?.enabled) {
+        const body = doc.querySelector('body');
+        const exitIntentHtml = `
+          <div id="exit-intent-popup" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 999999999; justify-content: center; align-items: center; animation: fadeIn 0.3s ease;">
+            <div style="background: white; border-radius: 16px; padding: 40px; max-width: 500px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: slideUp 0.3s ease;">
+              <h2 style="font-size: 32px; font-weight: 700; margin-bottom: 16px; color: #1a202c; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">${settings.exit_intent.title}</h2>
+              <p style="font-size: 18px; color: #4a5568; margin-bottom: 32px; line-height: 1.6;">${settings.exit_intent.message}</p>
+              <div style="display: flex; gap: 12px; justify-content: center;">
+                <a href="${settings.exit_intent.button_link}" target="_blank" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 32px; border-radius: 8px; font-weight: 600; text-decoration: none; font-size: 16px; transition: transform 0.2s;">${settings.exit_intent.button_text}</a>
+                <button onclick="document.getElementById('exit-intent-popup').style.display='none'" style="background: #e2e8f0; color: #4a5568; padding: 16px 32px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 16px;">Fechar</button>
+              </div>
+            </div>
+          </div>
+          <style>
+            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+          </style>
+          <script>
+            (function() {
+              var shown = false;
+              document.addEventListener('mouseout', function(e) {
+                if (!shown && e.clientY <= 0) {
+                  shown = true;
+                  document.getElementById('exit-intent-popup').style.display = 'flex';
+                }
+              });
+            })();
+          </script>
+        `;
+        body?.insertAdjacentHTML('beforeend', exitIntentHtml);
+      }
+
+      // 7.3) Inject Social Proof Notifications
+      if (settings.social_proof?.enabled && settings.social_proof?.notifications?.length > 0) {
+        const body = doc.querySelector('body');
+        const notificationsJson = JSON.stringify(settings.social_proof.notifications);
+        const socialProofHtml = `
+          <div id="social-proof-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 99999999; max-width: 350px;"></div>
+          <script>
+            (function() {
+              var notifications = ${notificationsJson};
+              var container = document.getElementById('social-proof-container');
+              var index = 0;
+              
+              function showNotification() {
+                if (index >= notifications.length) index = 0;
+                var notif = notifications[index];
+                
+                var div = document.createElement('div');
+                div.style.cssText = 'background: white; padding: 16px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 12px; animation: slideInLeft 0.5s ease, fadeOut 0.5s ease 4.5s; font-family: -apple-system, BlinkMacSystemFont, \\'Segoe UI\\', Roboto, sans-serif; border-left: 4px solid #10b981;';
+                div.innerHTML = '<div style="display: flex; align-items: center; gap: 12px;"><div style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; animation: pulse 2s ease infinite;"></div><div style="font-size: 14px; color: #1a202c; font-weight: 500;">' + notif.message + '</div></div>';
+                
+                container.appendChild(div);
+                setTimeout(function() { div.remove(); }, 5000);
+                
+                index++;
+                setTimeout(showNotification, (notif.delay || 5) * 1000 + 5000);
+              }
+              
+              setTimeout(showNotification, 3000);
+            })();
+          </script>
+          <style>
+            @keyframes slideInLeft { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+            @keyframes fadeOut { to { opacity: 0; transform: translateX(-20px); } }
+            @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+          </style>
+        `;
+        body?.insertAdjacentHTML('beforeend', socialProofHtml);
+      }
+
+      // 7.4) Inject Lead Capture Form
+      if (settings.lead_capture?.enabled) {
+        const body = doc.querySelector('body');
+        const fields = settings.lead_capture.fields || ['name', 'email'];
+        const fieldsHtml = fields.map(field => {
+          const label = field === 'name' ? 'Nome' : field === 'email' ? 'Email' : 'Telefone';
+          const type = field === 'email' ? 'email' : field === 'phone' ? 'tel' : 'text';
+          const required = field === 'email' ? 'required' : '';
+          return '<input type="' + type + '" name="' + field + '" placeholder="' + label + '" ' + required + ' style="width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 15px; margin-bottom: 12px;">';
+        }).join('');
+        
+        const leadCaptureHtml = `
+          <div id="lead-capture-form" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 999999999; justify-content: center; align-items: center; animation: fadeIn 0.3s ease;">
+            <div style="background: white; border-radius: 16px; padding: 40px; max-width: 450px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+              <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 12px; color: #1a202c; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">${settings.lead_capture.title}</h2>
+              <p style="font-size: 16px; color: #4a5568; margin-bottom: 24px;">${settings.lead_capture.description}</p>
+              <form id="lead-form" style="margin-bottom: 16px;">
+                ${fieldsHtml}
+                <button type="submit" style="width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; transition: transform 0.2s;">${settings.lead_capture.button_text}</button>
+              </form>
+              <button onclick="document.getElementById('lead-capture-form').style.display='none'" style="width: 100%; background: transparent; color: #718096; border: none; padding: 8px; cursor: pointer; font-size: 14px;">Fechar</button>
+            </div>
+          </div>
+          <script>
+            (function() {
+              var form = document.getElementById('lead-form');
+              var popup = document.getElementById('lead-capture-form');
+              var shown = false;
+              var trigger = '${settings.lead_capture.trigger}';
+              var triggerValue = ${settings.lead_capture.trigger_value || 5};
+              var pageId = '${pageData.id}';
+              
+              function showPopup() {
+                if (!shown) {
+                  shown = true;
+                  popup.style.display = 'flex';
+                }
+              }
+              
+              // Triggers
+              if (trigger === 'exit_intent') {
+                document.addEventListener('mouseout', function(e) {
+                  if (!shown && e.clientY <= 0) showPopup();
+                });
+              } else if (trigger === 'time_delay') {
+                setTimeout(showPopup, triggerValue * 1000);
+              } else if (trigger === 'scroll') {
+                window.addEventListener('scroll', function() {
+                  var scrollPercent = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+                  if (!shown && scrollPercent >= triggerValue) showPopup();
+                });
+              }
+              
+              // Form submission
+              form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                var formData = new FormData(form);
+                var data = { page_id: pageId };
+                formData.forEach((value, key) => { data[key] = value; });
+                
+                try {
+                  // Save to Supabase
+                  await fetch('https://mlocikcfxbleddsvxciv.supabase.co/rest/v1/cloned_page_leads', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sb2Npa2NmeGJsZWRkc3Z4Y2l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMjcxOTYsImV4cCI6MjA3NTcwMzE5Nn0.BN-spC1ijxlrQahDRaRDcx2Y50Q_0H5eY0UpIaNLDyg'
+                    },
+                    body: JSON.stringify(data)
+                  });
+                  
+                  popup.innerHTML = '<div style="background: white; border-radius: 16px; padding: 40px; text-align: center;"><h2 style="font-size: 24px; color: #10b981; margin-bottom: 16px;">✓</h2><p style="font-size: 18px; color: #1a202c;">${settings.lead_capture.success_message}</p></div>';
+                  
+                  setTimeout(function() {
+                    popup.style.display = 'none';
+                  }, 2000);
+                } catch (error) {
+                  console.error('Error saving lead:', error);
+                }
+              });
+            })();
+          </script>
+        `;
+        body?.insertAdjacentHTML('beforeend', leadCaptureHtml);
+      }
+
+      // 7.5) Inject Analytics Tracking
+      const analyticsScript = doc.createElement('script');
+      analyticsScript.textContent = `
+        (function() {
+          var pageId = '${pageData.id}';
+          var sessionId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+          var visitorId = localStorage.getItem('visitor_id') || (function() {
+            var id = crypto.randomUUID();
+            localStorage.setItem('visitor_id', id);
+            return id;
+          })();
+          var startTime = Date.now();
+          var maxScroll = 0;
+          
+          // Detect device
+          var deviceType = /Mobile|Android|iPhone/i.test(navigator.userAgent) ? 'mobile' : 
+                          /Tablet|iPad/i.test(navigator.userAgent) ? 'tablet' : 'desktop';
+          
+          // Track scroll
+          window.addEventListener('scroll', function() {
+            var scrollPercent = Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100);
+            if (scrollPercent > maxScroll) maxScroll = scrollPercent;
+          });
+          
+          // Send analytics on page unload
+          window.addEventListener('beforeunload', function() {
+            var timeOnPage = Math.round((Date.now() - startTime) / 1000);
+            var data = {
+              page_id: pageId,
+              visitor_id: visitorId,
+              session_id: sessionId,
+              time_on_page: timeOnPage,
+              scroll_depth: maxScroll,
+              device_type: deviceType,
+              user_agent: navigator.userAgent,
+              referrer: document.referrer || null
+            };
+            
+            // Use sendBeacon for reliable tracking on page exit
+            navigator.sendBeacon(
+              'https://mlocikcfxbleddsvxciv.supabase.co/rest/v1/cloned_page_analytics',
+              JSON.stringify(data)
+            );
+          });
+        })();
+      `;
+      head?.appendChild(analyticsScript);
+
       // 8) Block top-level navigation attempts inside iframe
       const blocker = doc.createElement('script');
       blocker.textContent = `try { Object.defineProperty(window, 'top', { get: () => window }); } catch (e) {}\n` +
