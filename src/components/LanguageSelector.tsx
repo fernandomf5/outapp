@@ -22,6 +22,9 @@ const languages: { code: Language; name: string; flag: string }[] = [
   { code: 'ar', name: 'العربية', flag: '🇸🇦' },
   { code: 'ko', name: '한국어', flag: '🇰🇷' },
   { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' },
+  { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
+  { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
+  { code: 'pl', name: 'Polski', flag: '🇵🇱' },
 ];
 
 export const LanguageSelector = () => {

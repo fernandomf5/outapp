@@ -16,12 +16,14 @@ import {
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useUserFeatures } from "@/hooks/useUserFeatures";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function UserSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
   const { hasFeature } = useUserFeatures();
+  const { t } = useLanguage();
   const currentPath = location.pathname;
   const searchParams = new URLSearchParams(location.search);
   const currentTab = searchParams.get('tab') || 'overview';
@@ -43,42 +45,42 @@ export function UserSidebar() {
   };
 
   const mainItems = [
-    { title: "Visão Geral", icon: TrendingUp, path: "/dashboard", tab: "overview" },
-    { title: "Criar Funil", icon: TrendingUp, path: "/funnel-builder" },
+    { title: t('overview'), icon: TrendingUp, path: "/dashboard", tab: "overview" },
+    { title: t('create_funnel'), icon: TrendingUp, path: "/funnel-builder" },
   ];
 
   const chatbotItems = [
-    { title: "Criar Chatbot", icon: Bot, path: "/bot-builder" },
-    { title: "Meus Chatbots", icon: Bot, path: "/dashboard", tab: "chatbots" },
+    { title: t('create_chatbot'), icon: Bot, path: "/bot-builder" },
+    { title: t('my_chatbots'), icon: Bot, path: "/dashboard", tab: "chatbots" },
   ];
 
   const aiAgentItems = [
-    { title: "Criar Agente IA", icon: Sparkles, path: "/ai-agent" },
-    { title: "Meus Agentes IA", icon: Sparkles, path: "/dashboard", tab: "ai-agents" },
+    { title: t('create_ai_agent'), icon: Sparkles, path: "/ai-agent" },
+    { title: t('my_ai_agents'), icon: Sparkles, path: "/dashboard", tab: "ai-agents" },
   ];
 
   const crmItems = [
-    { title: "Conversas de Clientes", icon: MessageSquare, path: "/dashboard", tab: "clients", feature: "chatbot_conversations" },
-    { title: "Leads Capturados", icon: Users, path: "/dashboard", tab: "leads", feature: "chatbot_conversations" },
+    { title: t('client_conversations'), icon: MessageSquare, path: "/dashboard", tab: "clients", feature: "chatbot_conversations" },
+    { title: t('captured_leads_title'), icon: Users, path: "/dashboard", tab: "leads", feature: "chatbot_conversations" },
   ];
 
   const toolsItems = [
-    { title: "Gerenciador de Links", icon: Wrench, path: "/dashboard", tab: "tools" },
-    { title: "Encurtador de Links", icon: Link2, path: "/dashboard", tab: "shortlinks", feature: "link_shortener" },
-    { title: "Clonador de Páginas", icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner" },
+    { title: t('tools_manager'), icon: Wrench, path: "/dashboard", tab: "tools" },
+    { title: t('link_shortener_title'), icon: Link2, path: "/dashboard", tab: "shortlinks", feature: "link_shortener" },
+    { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner" },
   ];
 
   const supportItems = [
-    { title: "Suporte Ticket", icon: LifeBuoy, path: "/dashboard", tab: "support", feature: "ticket_system" },
-    { title: "Voucher", icon: Gift, path: "/dashboard", tab: "voucher" },
-    { title: "Meu Plano", icon: CreditCard, path: "/dashboard", tab: "plan" },
+    { title: t('support_ticket'), icon: LifeBuoy, path: "/dashboard", tab: "support", feature: "ticket_system" },
+    { title: t('voucher'), icon: Gift, path: "/dashboard", tab: "voucher" },
+    { title: t('my_plan'), icon: CreditCard, path: "/dashboard", tab: "plan" },
   ];
 
   return (
     <Sidebar className={collapsed ? "w-14" : "w-60"} collapsible="icon">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Principal</SidebarGroupLabel>
+          <SidebarGroupLabel>{t('main')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.map((item) => (
@@ -98,7 +100,7 @@ export function UserSidebar() {
                   <CollapsibleTrigger asChild>
                     <SidebarMenuButton>
                       <Bot className="h-4 w-4" />
-                      {!collapsed && <span>Chatbot</span>}
+                      {!collapsed && <span>{t('chatbots')}</span>}
                       {!collapsed && <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />}
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
@@ -125,7 +127,7 @@ export function UserSidebar() {
                   <CollapsibleTrigger asChild>
                     <SidebarMenuButton>
                       <Sparkles className="h-4 w-4" />
-                      {!collapsed && <span>Agente IA</span>}
+                      {!collapsed && <span>{t('ai_agents')}</span>}
                       {!collapsed && <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />}
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
@@ -151,7 +153,7 @@ export function UserSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>CRM</SidebarGroupLabel>
+          <SidebarGroupLabel>{t('crm')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <Collapsible defaultOpen className="group/collapsible">
@@ -159,7 +161,7 @@ export function UserSidebar() {
                   <CollapsibleTrigger asChild>
                     <SidebarMenuButton>
                       <MessageSquare className="h-4 w-4" />
-                      {!collapsed && <span>CRM</span>}
+                      {!collapsed && <span>{t('crm')}</span>}
                       {!collapsed && <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />}
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
@@ -188,7 +190,7 @@ export function UserSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Ferramentas</SidebarGroupLabel>
+          <SidebarGroupLabel>{t('tools')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {toolsItems.map((item) => {
@@ -210,7 +212,7 @@ export function UserSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Suporte & Plano</SidebarGroupLabel>
+          <SidebarGroupLabel>{t('support_plan')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {supportItems.map((item) => {

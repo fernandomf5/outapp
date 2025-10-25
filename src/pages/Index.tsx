@@ -231,21 +231,21 @@ const Index = () => {
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Bot className="w-5 h-5 text-primary" />
-            Menu
+            {t('menu')}
           </SheetTitle>
         </SheetHeader>
         <nav className="flex flex-col gap-4 mt-8">
           <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
-            Início
+            {t('home')}
           </a>
           <a href="#recursos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
-            Recursos
+            {t('features')}
           </a>
           <a href="#planos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
-            Planos
+            {t('pricing')}
           </a>
           <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
-            FAQ
+            {t('faq')}
           </a>
           {headerPages.map((page) => (
             <button
@@ -258,10 +258,10 @@ const Index = () => {
           ))}
           <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-border">
             <Button variant="ghost" onClick={() => navigate("/auth")} className="w-full justify-start">
-              Entrar
+              {t('login')}
             </Button>
             <Button onClick={() => navigate("/auth")} className="gradient-primary shadow-glow w-full">
-              Começar Grátis
+              {t('start_free')}
             </Button>
           </div>
           <div className="mt-4 flex gap-2">

@@ -15,12 +15,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function AdminSidebar() {
   const { state } = useSidebar();
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const searchParams = new URLSearchParams(location.search);
   const currentTab = searchParams.get('section') || 'overview';
   const collapsed = state === "collapsed";
@@ -81,36 +83,36 @@ export function AdminSidebar() {
   };
 
   const dashboardItems = [
-    { title: "Visão Geral", icon: TrendingUp, tab: "overview" },
-    { title: "Usuários", icon: Users, tab: "users" },
-    { title: "Assinaturas", icon: DollarSign, tab: "subscriptions" },
-    { title: "Receita", icon: DollarSign, tab: "revenue" },
+    { title: t('overview'), icon: TrendingUp, tab: "overview" },
+    { title: t('users'), icon: Users, tab: "users" },
+    { title: t('subscriptions'), icon: DollarSign, tab: "subscriptions" },
+    { title: t('revenue'), icon: DollarSign, tab: "revenue" },
   ];
 
   const contentItems = [
-    { title: "Landing Page", icon: Globe, tab: "landing" },
-    { title: "Recursos", icon: Package, tab: "features-landing" },
-    { title: "FAQ", icon: FileText, tab: "faq" },
-    { title: "Vídeos Tutoriais", icon: Video, tab: "videos" },
+    { title: t('landing_page'), icon: Globe, tab: "landing" },
+    { title: t('features_manager'), icon: Package, tab: "features-landing" },
+    { title: t('faq_manager'), icon: FileText, tab: "faq" },
+    { title: t('tutorial_videos'), icon: Video, tab: "videos" },
   ];
 
   const systemItems = [
-    { title: "Planos", icon: Crown, tab: "plans" },
-    { title: "Recursos", icon: Package, tab: "features" },
-    { title: "Recursos dos Planos", icon: Settings, tab: "plan-features" },
-    { title: "Mensagens", icon: MessageSquare, tab: "messages" },
-    { title: "Tickets", icon: LifeBuoy, tab: "tickets" },
-    { title: "Vouchers", icon: Package, tab: "vouchers" },
-    { title: "Páginas Customizadas", icon: FileText, tab: "custom-pages" },
-    { title: "Integrações", icon: Settings, tab: "integrations" },
-    { title: "Configurações", icon: Settings, tab: "settings" },
+    { title: t('plans_manager'), icon: Crown, tab: "plans" },
+    { title: t('features_manager'), icon: Package, tab: "features" },
+    { title: t('plan_features'), icon: Settings, tab: "plan-features" },
+    { title: t('messages'), icon: MessageSquare, tab: "messages" },
+    { title: t('tickets'), icon: LifeBuoy, tab: "tickets" },
+    { title: t('vouchers'), icon: Package, tab: "vouchers" },
+    { title: t('custom_pages'), icon: FileText, tab: "custom-pages" },
+    { title: t('integrations'), icon: Settings, tab: "integrations" },
+    { title: t('settings'), icon: Settings, tab: "settings" },
   ];
 
   return (
     <Sidebar className={collapsed ? "w-14" : "w-60"} collapsible="icon">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Dashboard</SidebarGroupLabel>
+          <SidebarGroupLabel>{t('dashboard')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {dashboardItems.map((item) => (
@@ -129,7 +131,7 @@ export function AdminSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Conteúdo</SidebarGroupLabel>
+          <SidebarGroupLabel>{t('content')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {contentItems.map((item) => (
@@ -148,7 +150,7 @@ export function AdminSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Sistema</SidebarGroupLabel>
+          <SidebarGroupLabel>{t('system')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {systemItems.map((item) => (
