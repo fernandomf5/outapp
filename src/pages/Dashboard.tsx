@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy } from "lucide-react";
@@ -27,7 +27,7 @@ import { PageCloner } from "@/components/PageCloner";
 import { ChatbotConversations } from "@/components/ChatbotConversations";
 import { LinkShortener } from "@/components/LinkShortener";
 import { CapturedLeads } from "@/components/CapturedLeads";
-const LinkBioCreatorLazy = lazy(() => import("@/components/LinkBioCreator").then(m => ({ default: m.LinkBioCreator })));
+import { LinkBioCreator } from "@/components/LinkBioCreator";
 import { MyChatbots } from "@/components/MyChatbots";
 import { MyAIAgents } from "@/components/MyAIAgents";
 import {
@@ -732,9 +732,7 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="linkbio">
-            <Suspense fallback={<Card className="p-6">Carregando Link na Bio…</Card>}>
-              <LinkBioCreatorLazy />
-            </Suspense>
+            <LinkBioCreator />
           </TabsContent>
 
           <TabsContent value="cloner">
