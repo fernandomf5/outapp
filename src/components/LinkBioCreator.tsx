@@ -43,6 +43,7 @@ interface LinkBio {
   text_color: string;
   button_color: string;
   button_text_color: string;
+  background_image: string;
   is_active: boolean;
   total_clicks: number;
 }
@@ -52,6 +53,7 @@ interface BioLink {
   title: string;
   url: string;
   icon: string;
+  image_url: string;
   position: number;
   is_active: boolean;
   clicks: number;
@@ -94,11 +96,13 @@ export function LinkBioCreator() {
   const [textColor, setTextColor] = useState("#000000");
   const [buttonColor, setButtonColor] = useState("#000000");
   const [buttonTextColor, setButtonTextColor] = useState("#ffffff");
+  const [backgroundImage, setBackgroundImage] = useState("");
   
   // New link states
   const [newLinkTitle, setNewLinkTitle] = useState("");
   const [newLinkUrl, setNewLinkUrl] = useState("");
   const [newLinkIcon, setNewLinkIcon] = useState("link");
+  const [newLinkImage, setNewLinkImage] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -126,6 +130,7 @@ export function LinkBioCreator() {
       setTextColor(bioData.text_color);
       setButtonColor(bioData.button_color);
       setButtonTextColor(bioData.button_text_color);
+      setBackgroundImage(bioData.background_image || '');
       
       fetchLinks(bioData.id);
     }
@@ -166,6 +171,7 @@ export function LinkBioCreator() {
       text_color: textColor,
       button_color: buttonColor,
       button_text_color: buttonTextColor,
+      background_image: backgroundImage,
       is_active: true,
     };
 
@@ -230,6 +236,7 @@ export function LinkBioCreator() {
         title: newLinkTitle,
         url: newLinkUrl,
         icon: newLinkIcon,
+        image_url: newLinkImage,
         position: links.length,
         is_active: true,
       }]);
@@ -248,6 +255,7 @@ export function LinkBioCreator() {
       setNewLinkTitle("");
       setNewLinkUrl("");
       setNewLinkIcon("link");
+      setNewLinkImage("");
       fetchLinks(bio.id);
     }
   };
@@ -453,6 +461,18 @@ export function LinkBioCreator() {
                         </SelectContent>
                       </Select>
                     </div>
+                    <div>
+                      <Label htmlFor="linkImage">URL da Imagem (opcional)</Label>
+                      <Input
+                        id="linkImage"
+                        value={newLinkImage}
+                        onChange={(e) => setNewLinkImage(e.target.value)}
+                        placeholder="https://exemplo.com/imagem.jpg"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Se adicionar uma imagem, ela substituirá o botão
+                      </p>
+                    </div>
                     <Button onClick={addLink} className="w-full">
                       <Plus className="w-4 h-4 mr-2" />
                       Adicionar Link
@@ -471,10 +491,17 @@ export function LinkBioCreator() {
                       <Card key={link.id} className="p-4">
                         <div className="flex items-center gap-3">
                           <GripVertical className="w-4 h-4 text-muted-foreground cursor-move" />
-                          <IconComponent iconName={link.icon} />
+                          {link.image_url ? (
+                            <img src={link.image_url} alt={link.title} className="w-10 h-10 object-cover rounded" />
+                          ) : (
+                            <IconComponent iconName={link.icon} />
+                          )}
                           <div className="flex-1">
                             <p className="font-medium">{link.title}</p>
                             <p className="text-sm text-muted-foreground truncate">{link.url}</p>
+                            {link.image_url && (
+                              <p className="text-xs text-muted-foreground">Com imagem</p>
+                            )}
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-sm text-muted-foreground">
@@ -556,6 +583,19 @@ export function LinkBioCreator() {
                     onChange={(e) => setButtonTextColor(e.target.value)}
                   />
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="backgroundImage">Imagem de Fundo (URL)</Label>
+                <Input
+                  id="backgroundImage"
+                  value={backgroundImage}
+                  onChange={(e) => setBackgroundImage(e.target.value)}
+                  placeholder="https://exemplo.com/fundo.jpg"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  A imagem de fundo sobrepõe a cor de fundo
+                </p>
               </div>
 
               <Button onClick={createOrUpdateBio} disabled={loading} className="w-full">

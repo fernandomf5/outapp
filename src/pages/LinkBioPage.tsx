@@ -15,6 +15,7 @@ interface LinkBio {
   text_color: string;
   button_color: string;
   button_text_color: string;
+  background_image: string;
   is_active: boolean;
 }
 
@@ -23,6 +24,7 @@ interface BioLink {
   title: string;
   url: string;
   icon: string;
+  image_url: string;
   position: number;
   is_active: boolean;
 }
@@ -144,14 +146,22 @@ export default function LinkBioPage() {
   }
 
   const isGradient = bio.background_color.includes('gradient');
+  const hasBackgroundImage = bio.background_image && bio.background_image.trim() !== '';
 
   return (
     <div 
       className="min-h-screen py-12 px-4"
       style={
-        isGradient 
-          ? { background: bio.background_color }
-          : { backgroundColor: bio.background_color }
+        hasBackgroundImage
+          ? {
+              backgroundImage: `url(${bio.background_image})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat'
+            }
+          : isGradient 
+            ? { background: bio.background_color }
+            : { backgroundColor: bio.background_color }
       }
     >
       <div className="max-w-2xl mx-auto">
@@ -183,19 +193,33 @@ export default function LinkBioPage() {
 
         <div className="space-y-4 max-w-md mx-auto">
           {links.map((link) => (
-            <button
-              key={link.id}
-              onClick={() => handleLinkClick(link)}
-              className="w-full px-6 py-4 rounded-full font-medium transition-all hover:scale-105 hover:shadow-lg flex items-center justify-center gap-3 group"
-              style={{ 
-                backgroundColor: bio.button_color,
-                color: bio.button_text_color 
-              }}
-            >
-              <IconComponent iconName={link.icon} />
-              <span className="flex-1 text-center">{link.title}</span>
-              <ExternalLink className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </button>
+            link.image_url ? (
+              <div
+                key={link.id}
+                onClick={() => handleLinkClick(link)}
+                className="cursor-pointer rounded-lg overflow-hidden transition-all hover:scale-105 hover:shadow-lg"
+              >
+                <img 
+                  src={link.image_url} 
+                  alt={link.title}
+                  className="w-full h-auto object-cover"
+                />
+              </div>
+            ) : (
+              <button
+                key={link.id}
+                onClick={() => handleLinkClick(link)}
+                className="w-full px-6 py-4 rounded-full font-medium transition-all hover:scale-105 hover:shadow-lg flex items-center justify-center gap-3 group"
+                style={{ 
+                  backgroundColor: bio.button_color,
+                  color: bio.button_text_color 
+                }}
+              >
+                <IconComponent iconName={link.icon} />
+                <span className="flex-1 text-center">{link.title}</span>
+                <ExternalLink className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            )
           ))}
         </div>
 

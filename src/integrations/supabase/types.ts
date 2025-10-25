@@ -1096,6 +1096,7 @@ export type Database = {
           created_at: string
           icon: string | null
           id: string
+          image_url: string | null
           is_active: boolean | null
           position: number
           title: string
@@ -1108,6 +1109,7 @@ export type Database = {
           created_at?: string
           icon?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           position?: number
           title: string
@@ -1120,6 +1122,7 @@ export type Database = {
           created_at?: string
           icon?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           position?: number
           title?: string
@@ -1140,6 +1143,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           background_color: string | null
+          background_image: string | null
           bio: string | null
           button_color: string | null
           button_text_color: string | null
@@ -1158,6 +1162,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           background_color?: string | null
+          background_image?: string | null
           bio?: string | null
           button_color?: string | null
           button_text_color?: string | null
@@ -1176,6 +1181,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           background_color?: string | null
+          background_image?: string | null
           bio?: string | null
           button_color?: string | null
           button_text_color?: string | null
