@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +27,15 @@ interface ClonedPage {
   created_at: string;
 }
 
+// Domínios genéricos da BotRealsZap para clonadores de páginas
+const GENERIC_DOMAINS = [
+  "clonezap1.botrealszap.com",
+  "clonezap2.botrealszap.com",
+  "clonezap3.botrealszap.com",
+  "clonezap4.botrealszap.com",
+  "clonezap5.botrealszap.com"
+];
+
 export const PageCloner = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -34,10 +44,11 @@ export const PageCloner = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedPage, setSelectedPage] = useState<ClonedPage | null>(null);
   const [isCloning, setIsCloning] = useState(false);
+  const [availableDomains, setAvailableDomains] = useState<string[]>([]);
   const [cloneData, setCloneData] = useState({
     original_url: "",
     custom_slug: "",
-    custom_domain: ""
+    selected_domain: ""
   });
   const [editSettings, setEditSettings] = useState({
     custom_links: [] as { selector: string; newUrl: string }[],
@@ -65,6 +76,7 @@ export const PageCloner = () => {
   useEffect(() => {
     if (user) {
       fetchClonedPages();
+      fetchUserDomains();
     }
   }, [user]);
 
@@ -78,6 +90,28 @@ export const PageCloner = () => {
     if (!error && data) {
       setClonedPages(data);
       setTotalClicks(data.reduce((sum, page) => sum + (page.clicks || 0), 0));
+    }
+  };
+
+  const fetchUserDomains = async () => {
+    // Buscar domínios personalizados do usuário
+    const { data, error } = await supabase
+      .from('cloned_pages')
+      .select('custom_domain')
+      .eq('user_id', user!.id)
+      .not('custom_domain', 'is', null);
+
+    if (!error && data) {
+      const userDomains = [...new Set(data.map(d => d.custom_domain).filter(Boolean))];
+      
+      // Combinar domínios personalizados com domínios genéricos
+      if (userDomains.length > 0) {
+        setAvailableDomains([...userDomains, ...GENERIC_DOMAINS]);
+      } else {
+        setAvailableDomains(GENERIC_DOMAINS);
+      }
+    } else {
+      setAvailableDomains(GENERIC_DOMAINS);
     }
   };
 
@@ -107,10 +141,8 @@ export const PageCloner = () => {
         ? cloneData.custom_slug.toLowerCase().replace(/[^a-z0-9-]/g, '-')
         : `clone-${Math.random().toString(36).substring(2, 10)}`;
 
-      const baseUrl = window.location.origin;
-      const clonedUrl = cloneData.custom_domain 
-        ? `https://${cloneData.custom_domain}/page/${slug}`
-        : `${baseUrl}/page/${slug}`;
+      const selectedDomain = cloneData.selected_domain || GENERIC_DOMAINS[0];
+      const clonedUrl = `https://${selectedDomain}/page/${slug}`;
 
       // Detect checkout links
       const detectedLinks = detectCheckoutLinks(cloneResult.content);
@@ -123,7 +155,7 @@ export const PageCloner = () => {
           original_url: cloneData.original_url,
           cloned_url: clonedUrl,
           slug: slug,
-          custom_domain: cloneData.custom_domain || null,
+          custom_domain: selectedDomain,
           page_content: cloneResult.content,
           custom_settings: { detected_checkout_links: detectedLinks },
           is_active: true,
@@ -140,7 +172,7 @@ export const PageCloner = () => {
       });
       
       await fetchClonedPages();
-      setCloneData({ original_url: "", custom_slug: "", custom_domain: "" });
+      setCloneData({ original_url: "", custom_slug: "", selected_domain: "" });
       setIsCloneDialogOpen(false);
     } catch (error: any) {
       console.error('Clone error:', error);
@@ -308,6 +340,30 @@ export const PageCloner = () => {
                 </p>
               </div>
               <div>
+                <Label>Selecione o Domínio *</Label>
+                <Select
+                  value={cloneData.selected_domain}
+                  onValueChange={(value) => setCloneData({ ...cloneData, selected_domain: value })}
+                  disabled={isCloning}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Escolha um domínio" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableDomains.map((domain) => (
+                      <SelectItem key={domain} value={domain}>
+                        {domain}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {availableDomains.length > GENERIC_DOMAINS.length 
+                    ? "Seus domínios personalizados e domínios genéricos disponíveis"
+                    : "Domínios genéricos da BotRealsZap para clonadores de páginas"}
+                </p>
+              </div>
+              <div>
                 <Label>Slug Personalizada (Opcional)</Label>
                 <Input
                   value={cloneData.custom_slug}
@@ -316,19 +372,7 @@ export const PageCloner = () => {
                   disabled={isCloning}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Deixe vazio para gerar automaticamente
-                </p>
-              </div>
-              <div>
-                <Label>Domínio Personalizado (Opcional)</Label>
-                <Input
-                  value={cloneData.custom_domain}
-                  onChange={(e) => setCloneData({ ...cloneData, custom_domain: e.target.value })}
-                  placeholder="meudominio.com"
-                  disabled={isCloning}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Configure seu domínio nas configurações de DNS
+                  Deixe vazio para gerar automaticamente. URL final: https://{cloneData.selected_domain || 'dominio'}/page/{cloneData.custom_slug || 'slug'}
                 </p>
               </div>
               <Button 
