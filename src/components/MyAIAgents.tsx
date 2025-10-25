@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +22,7 @@ export const MyAIAgents = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [agents, setAgents] = useState<any[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,15 +78,15 @@ export const MyAIAgents = () => {
 
     if (error) {
       toast({
-        title: "Erro ao excluir",
+        title: t('error'),
         description: error.message,
         variant: "destructive",
       });
     } else {
       setAgents(agents.filter(agent => agent.id !== deletingId));
       toast({
-        title: "Agente IA excluído",
-        description: "O agente foi removido com sucesso.",
+        title: t('ai_agent_deleted'),
+        description: t('ai_agent_deleted_desc'),
       });
     }
     setDeletingId(null);
@@ -127,13 +129,13 @@ export const MyAIAgents = () => {
     return (
       <Card className="p-12 text-center">
         <Sparkles className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-        <h3 className="text-xl font-semibold mb-2">Nenhum agente IA criado ainda</h3>
+        <h3 className="text-xl font-semibold mb-2">{t('no_ai_agents')}</h3>
         <p className="text-muted-foreground mb-6">
-          Crie seu primeiro agente IA para automatizar atendimentos com inteligência artificial
+          {t('no_ai_agents_desc')}
         </p>
         <Button onClick={() => navigate("/ai-agent")} className="mx-auto">
           <Sparkles className="w-4 h-4 mr-2" />
-          Criar Agente IA
+          {t('create_ai_agent')}
         </Button>
       </Card>
     );
@@ -142,10 +144,10 @@ export const MyAIAgents = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Meus Agentes IA</h2>
+        <h2 className="text-2xl font-bold">{t('my_ai_agents')}</h2>
         <Button onClick={() => navigate("/ai-agent")}>
           <Sparkles className="w-4 h-4 mr-2" />
-          Novo Agente IA
+          {t('new_ai_agent')}
         </Button>
       </div>
 
@@ -185,7 +187,7 @@ export const MyAIAgents = () => {
 
             <div className="flex items-center justify-between text-sm mb-4">
               <span className={`px-2 py-1 rounded-full ${agent.is_active ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}`}>
-                {agent.is_active ? 'Ativo' : 'Inativo'}
+                {agent.is_active ? t('chatbot_active') : t('chatbot_inactive')}
               </span>
               <span className="text-muted-foreground">
                 {new Date(agent.created_at).toLocaleDateString('pt-BR')}
@@ -193,8 +195,8 @@ export const MyAIAgents = () => {
             </div>
 
             <div className="mb-3">
-              <span className="text-xs font-medium text-muted-foreground">Nicho:</span>
-              <span className="text-sm ml-2 capitalize">{agent.niche || 'Não definido'}</span>
+              <span className="text-xs font-medium text-muted-foreground">{t('niche')}:</span>
+              <span className="text-sm ml-2 capitalize">{agent.niche || t('not_defined')}</span>
             </div>
 
             <div className="flex gap-2">
@@ -205,7 +207,7 @@ export const MyAIAgents = () => {
                 onClick={() => handleCopyLink(agent.id, agent.name)}
               >
                 <Copy className="w-3 h-3 mr-2" />
-                Copiar Link
+                {t('copy_link')}
               </Button>
               <Button
                 variant="default"
@@ -214,7 +216,7 @@ export const MyAIAgents = () => {
                 onClick={() => handleOpenChat(agent.id, agent.name)}
               >
                 <ExternalLink className="w-3 h-3 mr-2" />
-                Abrir Chat
+                {t('open_chat')}
               </Button>
             </div>
           </Card>
@@ -224,15 +226,15 @@ export const MyAIAgents = () => {
       <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Agente IA</AlertDialogTitle>
+            <AlertDialogTitle>{t('delete_ai_agent')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir este agente IA? Esta ação não pode ser desfeita.
+              {t('delete_ai_agent_confirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-              Excluir
+              {t('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

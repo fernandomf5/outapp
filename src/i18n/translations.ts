@@ -104,6 +104,38 @@ export const translations = {
     close: "Fechar",
     copy_link: "Copiar Link",
     open_chat: "Abrir Chat",
+    error: "Erro",
+    success: "Sucesso",
+    
+    // My Chatbots
+    no_chatbots: "Nenhum chatbot criado ainda",
+    no_chatbots_desc: "Crie seu primeiro chatbot para começar a interagir com seus clientes",
+    new_chatbot: "Novo Chatbot",
+    delete_chatbot: "Excluir Chatbot",
+    delete_chatbot_confirm: "Tem certeza que deseja excluir este chatbot? Esta ação não pode ser desfeita.",
+    chatbot_deleted: "Chatbot excluído",
+    chatbot_deleted_desc: "O chatbot foi removido com sucesso.",
+    chatbot_active: "Ativo",
+    chatbot_inactive: "Inativo",
+    
+    // My AI Agents
+    no_ai_agents: "Nenhum agente IA criado ainda",
+    no_ai_agents_desc: "Crie seu primeiro agente IA para automatizar atendimentos com inteligência artificial",
+    new_ai_agent: "Novo Agente IA",
+    delete_ai_agent: "Excluir Agente IA",
+    delete_ai_agent_confirm: "Tem certeza que deseja excluir este agente IA? Esta ação não pode ser desfeita.",
+    ai_agent_deleted: "Agente IA excluído",
+    ai_agent_deleted_desc: "O agente foi removido com sucesso.",
+    niche: "Nicho",
+    not_defined: "Não definido",
+    
+    // Quick Actions Cards
+    create_web_chatbot: "Criar Chatbot Web",
+    create_web_chatbot_desc: "Bot conversacional para seu site com fluxos personalizados",
+    create_ai_agent_card: "Criar Agente IA",
+    create_ai_agent_card_desc: "Agente com IA para atendimento inteligente 24/7",
+    create_whatsapp_funnel: "Criar Funil WhatsApp",
+    create_whatsapp_funnel_desc: "Sequência automatizada de mensagens no WhatsApp",
     
     // Time
     days: "Dias",
@@ -216,6 +248,38 @@ export const translations = {
     close: "Close",
     copy_link: "Copy Link",
     open_chat: "Open Chat",
+    error: "Error",
+    success: "Success",
+    
+    // My Chatbots
+    no_chatbots: "No chatbots created yet",
+    no_chatbots_desc: "Create your first chatbot to start interacting with your customers",
+    new_chatbot: "New Chatbot",
+    delete_chatbot: "Delete Chatbot",
+    delete_chatbot_confirm: "Are you sure you want to delete this chatbot? This action cannot be undone.",
+    chatbot_deleted: "Chatbot deleted",
+    chatbot_deleted_desc: "The chatbot was successfully removed.",
+    chatbot_active: "Active",
+    chatbot_inactive: "Inactive",
+    
+    // My AI Agents
+    no_ai_agents: "No AI agents created yet",
+    no_ai_agents_desc: "Create your first AI agent to automate support with artificial intelligence",
+    new_ai_agent: "New AI Agent",
+    delete_ai_agent: "Delete AI Agent",
+    delete_ai_agent_confirm: "Are you sure you want to delete this AI agent? This action cannot be undone.",
+    ai_agent_deleted: "AI Agent deleted",
+    ai_agent_deleted_desc: "The agent was successfully removed.",
+    niche: "Niche",
+    not_defined: "Not defined",
+    
+    // Quick Actions Cards
+    create_web_chatbot: "Create Web Chatbot",
+    create_web_chatbot_desc: "Conversational bot for your website with custom flows",
+    create_ai_agent_card: "Create AI Agent",
+    create_ai_agent_card_desc: "AI-powered agent for intelligent 24/7 support",
+    create_whatsapp_funnel: "Create WhatsApp Funnel",
+    create_whatsapp_funnel_desc: "Automated message sequence on WhatsApp",
     
     // Time
     days: "Days",

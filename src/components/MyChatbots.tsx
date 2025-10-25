@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +22,7 @@ export const MyChatbots = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [chatbots, setChatbots] = useState<any[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,15 +78,15 @@ export const MyChatbots = () => {
 
     if (error) {
       toast({
-        title: "Erro ao excluir",
+        title: t('error'),
         description: error.message,
         variant: "destructive",
       });
     } else {
       setChatbots(chatbots.filter(bot => bot.id !== deletingId));
       toast({
-        title: "Chatbot excluído",
-        description: "O chatbot foi removido com sucesso.",
+        title: t('chatbot_deleted'),
+        description: t('chatbot_deleted_desc'),
       });
     }
     setDeletingId(null);
@@ -115,13 +117,13 @@ export const MyChatbots = () => {
     return (
       <Card className="p-12 text-center">
         <Bot className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-        <h3 className="text-xl font-semibold mb-2">Nenhum chatbot criado ainda</h3>
+        <h3 className="text-xl font-semibold mb-2">{t('no_chatbots')}</h3>
         <p className="text-muted-foreground mb-6">
-          Crie seu primeiro chatbot para começar a interagir com seus clientes
+          {t('no_chatbots_desc')}
         </p>
         <Button onClick={() => navigate("/bot-builder")} className="mx-auto">
           <Bot className="w-4 h-4 mr-2" />
-          Criar Chatbot
+          {t('create_chatbot')}
         </Button>
       </Card>
     );
@@ -130,10 +132,10 @@ export const MyChatbots = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Meus Chatbots</h2>
+        <h2 className="text-2xl font-bold">{t('my_chatbots')}</h2>
         <Button onClick={() => navigate("/bot-builder")}>
           <Bot className="w-4 h-4 mr-2" />
-          Novo Chatbot
+          {t('new_chatbot')}
         </Button>
       </div>
 
@@ -173,7 +175,7 @@ export const MyChatbots = () => {
 
             <div className="flex items-center justify-between text-sm mb-4">
               <span className={`px-2 py-1 rounded-full ${bot.is_active ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}`}>
-                {bot.is_active ? 'Ativo' : 'Inativo'}
+                {bot.is_active ? t('chatbot_active') : t('chatbot_inactive')}
               </span>
               <span className="text-muted-foreground">
                 {new Date(bot.created_at).toLocaleDateString('pt-BR')}
@@ -188,7 +190,7 @@ export const MyChatbots = () => {
                 onClick={() => handleCopyLink(bot.id)}
               >
                 <Copy className="w-3 h-3 mr-2" />
-                Copiar Link
+                {t('copy_link')}
               </Button>
               <Button
                 variant="default"
@@ -197,7 +199,7 @@ export const MyChatbots = () => {
                 onClick={() => handleOpenChat(bot.id)}
               >
                 <ExternalLink className="w-3 h-3 mr-2" />
-                Abrir Chat
+                {t('open_chat')}
               </Button>
             </div>
           </Card>
@@ -207,15 +209,15 @@ export const MyChatbots = () => {
       <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Chatbot</AlertDialogTitle>
+            <AlertDialogTitle>{t('delete_chatbot')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir este chatbot? Esta ação não pode ser desfeita.
+              {t('delete_chatbot_confirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-              Excluir
+              {t('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
