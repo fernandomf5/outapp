@@ -12,7 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Globe, Copy, Trash2, Link2, Settings, BarChart3, Loader2, ExternalLink, MousePointerClick, Plus } from "lucide-react";
+import { Globe, Copy, Trash2, Link2, Settings, BarChart3, Loader2, ExternalLink, MousePointerClick, Plus, Users, FileText } from "lucide-react";
+import { AnalyticsPanel } from "./cloner/AnalyticsPanel";
+import { LeadsManager } from "./cloner/LeadsManager";
 
 interface ClonedPage {
   id: string;
@@ -52,6 +54,8 @@ export const PageCloner = () => {
   const [isCloneDialogOpen, setIsCloneDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDomainDialogOpen, setIsDomainDialogOpen] = useState(false);
+  const [isAnalyticsDialogOpen, setIsAnalyticsDialogOpen] = useState(false);
+  const [isLeadsDialogOpen, setIsLeadsDialogOpen] = useState(false);
   const [selectedPage, setSelectedPage] = useState<ClonedPage | null>(null);
   const [isCloning, setIsCloning] = useState(false);
   const [newDomain, setNewDomain] = useState("");
@@ -69,6 +73,38 @@ export const PageCloner = () => {
       phone: "",
       message: "",
       position: "bottom-right"
+    },
+    countdown_timer: {
+      enabled: false,
+      end_date: "",
+      message: "Oferta Termina Em:",
+      expired_message: "Oferta Encerrada!",
+      position: "top"
+    },
+    exit_intent: {
+      enabled: false,
+      title: "Não Vá Embora!",
+      message: "Aproveite esta oferta antes de sair",
+      button_text: "Ver Oferta",
+      button_link: ""
+    },
+    social_proof: {
+      enabled: false,
+      notifications: [] as Array<{ message: string; delay: number }>
+    },
+    lead_capture: {
+      enabled: false,
+      trigger: "exit_intent", // 'exit_intent', 'time_delay', 'scroll'
+      trigger_value: 5, // segundos ou %
+      title: "Receba Acesso Exclusivo",
+      description: "Preencha os dados abaixo",
+      fields: ["name", "email"],
+      button_text: "Enviar",
+      success_message: "Obrigado! Redirecionando..."
+    },
+    content_editor: {
+      enabled: false,
+      text_replacements: [] as Array<{ selector: string; newText: string }>
     },
     header_code: "",
     footer_code: ""
@@ -351,6 +387,38 @@ export const PageCloner = () => {
         message: "",
         position: "bottom-right"
       },
+      countdown_timer: settings.countdown_timer || {
+        enabled: false,
+        end_date: "",
+        message: "Oferta Termina Em:",
+        expired_message: "Oferta Encerrada!",
+        position: "top"
+      },
+      exit_intent: settings.exit_intent || {
+        enabled: false,
+        title: "Não Vá Embora!",
+        message: "Aproveite esta oferta antes de sair",
+        button_text: "Ver Oferta",
+        button_link: ""
+      },
+      social_proof: settings.social_proof || {
+        enabled: false,
+        notifications: []
+      },
+      lead_capture: settings.lead_capture || {
+        enabled: false,
+        trigger: "exit_intent",
+        trigger_value: 5,
+        title: "Receba Acesso Exclusivo",
+        description: "Preencha os dados abaixo",
+        fields: ["name", "email"],
+        button_text: "Enviar",
+        success_message: "Obrigado! Redirecionando..."
+      },
+      content_editor: settings.content_editor || {
+        enabled: false,
+        text_replacements: []
+      },
       header_code: settings.header_code || "",
       footer_code: settings.footer_code || ""
     });
@@ -594,12 +662,15 @@ export const PageCloner = () => {
             <DialogTitle>Configurar Página Clonada</DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="checkout" className="w-full mt-4">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-1">
               <TabsTrigger value="checkout">Checkout</TabsTrigger>
               <TabsTrigger value="links">Links</TabsTrigger>
+              <TabsTrigger value="timer">Timer</TabsTrigger>
+              <TabsTrigger value="exit">Exit Intent</TabsTrigger>
+              <TabsTrigger value="social">Prova Social</TabsTrigger>
+              <TabsTrigger value="leads">Captura Leads</TabsTrigger>
               <TabsTrigger value="pixels">Pixels</TabsTrigger>
               <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
-              <TabsTrigger value="code">Código</TabsTrigger>
             </TabsList>
 
             <TabsContent value="checkout" className="space-y-4">
@@ -834,6 +905,348 @@ export const PageCloner = () => {
                   </select>
                 </div>
               </div>
+            </TabsContent>
+
+            {/* Timer/Countdown Tab */}
+            <TabsContent value="timer" className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={editSettings.countdown_timer.enabled}
+                  onCheckedChange={(checked) => setEditSettings({
+                    ...editSettings,
+                    countdown_timer: { ...editSettings.countdown_timer, enabled: checked }
+                  })}
+                />
+                <Label>Ativar Timer/Countdown</Label>
+              </div>
+              
+              {editSettings.countdown_timer.enabled && (
+                <>
+                  <div>
+                    <Label>Data Final da Oferta</Label>
+                    <Input
+                      type="datetime-local"
+                      value={editSettings.countdown_timer.end_date}
+                      onChange={(e) => setEditSettings({
+                        ...editSettings,
+                        countdown_timer: { ...editSettings.countdown_timer, end_date: e.target.value }
+                      })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Mensagem do Timer</Label>
+                    <Input
+                      value={editSettings.countdown_timer.message}
+                      onChange={(e) => setEditSettings({
+                        ...editSettings,
+                        countdown_timer: { ...editSettings.countdown_timer, message: e.target.value }
+                      })}
+                      placeholder="Oferta Termina Em:"
+                    />
+                  </div>
+                  <div>
+                    <Label>Mensagem Após Expirar</Label>
+                    <Input
+                      value={editSettings.countdown_timer.expired_message}
+                      onChange={(e) => setEditSettings({
+                        ...editSettings,
+                        countdown_timer: { ...editSettings.countdown_timer, expired_message: e.target.value }
+                      })}
+                      placeholder="Oferta Encerrada!"
+                    />
+                  </div>
+                  <div>
+                    <Label>Posição</Label>
+                    <Select
+                      value={editSettings.countdown_timer.position}
+                      onValueChange={(value) => setEditSettings({
+                        ...editSettings,
+                        countdown_timer: { ...editSettings.countdown_timer, position: value }
+                      })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="top">Topo</SelectItem>
+                        <SelectItem value="bottom">Rodapé</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+            </TabsContent>
+
+            {/* Exit Intent Tab */}
+            <TabsContent value="exit" className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={editSettings.exit_intent.enabled}
+                  onCheckedChange={(checked) => setEditSettings({
+                    ...editSettings,
+                    exit_intent: { ...editSettings.exit_intent, enabled: checked }
+                  })}
+                />
+                <Label>Ativar Exit Intent Popup</Label>
+              </div>
+              
+              {editSettings.exit_intent.enabled && (
+                <>
+                  <div>
+                    <Label>Título</Label>
+                    <Input
+                      value={editSettings.exit_intent.title}
+                      onChange={(e) => setEditSettings({
+                        ...editSettings,
+                        exit_intent: { ...editSettings.exit_intent, title: e.target.value }
+                      })}
+                      placeholder="Não Vá Embora!"
+                    />
+                  </div>
+                  <div>
+                    <Label>Mensagem</Label>
+                    <Textarea
+                      value={editSettings.exit_intent.message}
+                      onChange={(e) => setEditSettings({
+                        ...editSettings,
+                        exit_intent: { ...editSettings.exit_intent, message: e.target.value }
+                      })}
+                      placeholder="Aproveite esta oferta antes de sair"
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <Label>Texto do Botão</Label>
+                    <Input
+                      value={editSettings.exit_intent.button_text}
+                      onChange={(e) => setEditSettings({
+                        ...editSettings,
+                        exit_intent: { ...editSettings.exit_intent, button_text: e.target.value }
+                      })}
+                      placeholder="Ver Oferta"
+                    />
+                  </div>
+                  <div>
+                    <Label>Link do Botão</Label>
+                    <Input
+                      value={editSettings.exit_intent.button_link}
+                      onChange={(e) => setEditSettings({
+                        ...editSettings,
+                        exit_intent: { ...editSettings.exit_intent, button_link: e.target.value }
+                      })}
+                      placeholder="https://seu-checkout.com"
+                    />
+                  </div>
+                </>
+              )}
+            </TabsContent>
+
+            {/* Social Proof Tab */}
+            <TabsContent value="social" className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={editSettings.social_proof.enabled}
+                  onCheckedChange={(checked) => setEditSettings({
+                    ...editSettings,
+                    social_proof: { ...editSettings.social_proof, enabled: checked }
+                  })}
+                />
+                <Label>Ativar Notificações de Prova Social</Label>
+              </div>
+              
+              {editSettings.social_proof.enabled && (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Adicione notificações que aparecem na página simulando compras/ações recentes
+                  </p>
+                  
+                  {editSettings.social_proof.notifications.map((notif, index) => (
+                    <Card key={index} className="p-3">
+                      <div className="space-y-2">
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Maria acabou de comprar..."
+                            value={notif.message}
+                            onChange={(e) => {
+                              const newNotifs = [...editSettings.social_proof.notifications];
+                              newNotifs[index].message = e.target.value;
+                              setEditSettings({
+                                ...editSettings,
+                                social_proof: { ...editSettings.social_proof, notifications: newNotifs }
+                              });
+                            }}
+                            className="flex-1"
+                          />
+                          <Input
+                            type="number"
+                            placeholder="Delay (s)"
+                            value={notif.delay}
+                            onChange={(e) => {
+                              const newNotifs = [...editSettings.social_proof.notifications];
+                              newNotifs[index].delay = parseInt(e.target.value) || 5;
+                              setEditSettings({
+                                ...editSettings,
+                                social_proof: { ...editSettings.social_proof, notifications: newNotifs }
+                              });
+                            }}
+                            className="w-24"
+                          />
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              const newNotifs = editSettings.social_proof.notifications.filter((_, i) => i !== index);
+                              setEditSettings({
+                                ...editSettings,
+                                social_proof: { ...editSettings.social_proof, notifications: newNotifs }
+                              });
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                  
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setEditSettings({
+                        ...editSettings,
+                        social_proof: {
+                          ...editSettings.social_proof,
+                          notifications: [...editSettings.social_proof.notifications, { message: "", delay: 5 }]
+                        }
+                      });
+                    }}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Adicionar Notificação
+                  </Button>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Lead Capture Tab */}
+            <TabsContent value="leads" className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={editSettings.lead_capture.enabled}
+                  onCheckedChange={(checked) => setEditSettings({
+                    ...editSettings,
+                    lead_capture: { ...editSettings.lead_capture, enabled: checked }
+                  })}
+                />
+                <Label>Ativar Captura de Leads</Label>
+              </div>
+              
+              {editSettings.lead_capture.enabled && (
+                <>
+                  <div>
+                    <Label>Gatilho de Exibição</Label>
+                    <Select
+                      value={editSettings.lead_capture.trigger}
+                      onValueChange={(value) => setEditSettings({
+                        ...editSettings,
+                        lead_capture: { ...editSettings.lead_capture, trigger: value }
+                      })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="exit_intent">Exit Intent (tentar sair)</SelectItem>
+                        <SelectItem value="time_delay">Tempo (segundos na página)</SelectItem>
+                        <SelectItem value="scroll">Rolagem (% da página)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>
+                      Valor do Gatilho {editSettings.lead_capture.trigger === 'scroll' ? '(%)' : '(segundos)'}
+                    </Label>
+                    <Input
+                      type="number"
+                      value={editSettings.lead_capture.trigger_value}
+                      onChange={(e) => setEditSettings({
+                        ...editSettings,
+                        lead_capture: { ...editSettings.lead_capture, trigger_value: parseInt(e.target.value) || 5 }
+                      })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Título do Formulário</Label>
+                    <Input
+                      value={editSettings.lead_capture.title}
+                      onChange={(e) => setEditSettings({
+                        ...editSettings,
+                        lead_capture: { ...editSettings.lead_capture, title: e.target.value }
+                      })}
+                      placeholder="Receba Acesso Exclusivo"
+                    />
+                  </div>
+                  <div>
+                    <Label>Descrição</Label>
+                    <Textarea
+                      value={editSettings.lead_capture.description}
+                      onChange={(e) => setEditSettings({
+                        ...editSettings,
+                        lead_capture: { ...editSettings.lead_capture, description: e.target.value }
+                      })}
+                      placeholder="Preencha os dados abaixo"
+                      rows={2}
+                    />
+                  </div>
+                  <div>
+                    <Label>Campos do Formulário</Label>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {['name', 'email', 'phone'].map((field) => (
+                        <label key={field} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={editSettings.lead_capture.fields.includes(field)}
+                            onChange={(e) => {
+                              const newFields = e.target.checked
+                                ? [...editSettings.lead_capture.fields, field]
+                                : editSettings.lead_capture.fields.filter(f => f !== field);
+                              setEditSettings({
+                                ...editSettings,
+                                lead_capture: { ...editSettings.lead_capture, fields: newFields }
+                              });
+                            }}
+                            className="rounded border-gray-300"
+                          />
+                          <span className="text-sm capitalize">{field === 'name' ? 'Nome' : field === 'email' ? 'Email' : 'Telefone'}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Texto do Botão</Label>
+                    <Input
+                      value={editSettings.lead_capture.button_text}
+                      onChange={(e) => setEditSettings({
+                        ...editSettings,
+                        lead_capture: { ...editSettings.lead_capture, button_text: e.target.value }
+                      })}
+                      placeholder="Enviar"
+                    />
+                  </div>
+                  <div>
+                    <Label>Mensagem de Sucesso</Label>
+                    <Input
+                      value={editSettings.lead_capture.success_message}
+                      onChange={(e) => setEditSettings({
+                        ...editSettings,
+                        lead_capture: { ...editSettings.lead_capture, success_message: e.target.value }
+                      })}
+                      placeholder="Obrigado! Redirecionando..."
+                    />
+                  </div>
+                </>
+              )}
             </TabsContent>
 
             <TabsContent value="code" className="space-y-4">
