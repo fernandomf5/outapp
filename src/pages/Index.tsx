@@ -13,6 +13,7 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { CookieNotice } from "@/components/CookieNotice";
+import { SocialLinks } from "@/components/SocialLinks";
 
 interface Plan {
   id: string;
@@ -48,6 +49,7 @@ const Index = () => {
   const [footerText, setFooterText] = useState("");
   const [footerMenus, setFooterMenus] = useState<any[]>([]);
   const [footerImages, setFooterImages] = useState<string[]>([]);
+  const [socialLinks, setSocialLinks] = useState<any[]>([]);
   const [landingSettings, setLandingSettings] = useState({
     hero_title: "Plataforma Completa de Automação<br />e Marketing Digital com IA",
     hero_subtitle: "Construtor visual de automações, CRM, sistema de afiliados, pixels de conversão, agentes IA e muito mais. Tudo em uma plataforma. Teste grátis por 3 dias.",
@@ -150,7 +152,7 @@ const Index = () => {
   };
 
   const fetchSiteSettings = async () => {
-    const keys = ['site_title', 'site_logo_url', 'site_favicon_url', 'footer_text', 'footer_menus', 'footer_images'];
+    const keys = ['site_title', 'site_logo_url', 'site_favicon_url', 'footer_text', 'footer_menus', 'footer_images', 'social_links'];
     const { data } = await supabase
       .from('site_settings')
       .select('key, value')
@@ -179,6 +181,11 @@ const Index = () => {
           case 'footer_images':
             try {
               setFooterImages(JSON.parse(item.value || '[]'));
+            } catch (e) {}
+            break;
+          case 'social_links':
+            try {
+              setSocialLinks(JSON.parse(item.value || '[]'));
             } catch (e) {}
             break;
         }
@@ -375,6 +382,7 @@ const Index = () => {
                   {page.title}
                 </button>
               ))}
+              <SocialLinks links={socialLinks} />
               <ThemeToggle />
               <LanguageSelector />
               <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} className="active:scale-95 transition-transform">
@@ -608,25 +616,60 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-5 sm:py-6 md:py-8 px-6 sm:px-8 bg-muted/30 border-t border-border">
-        <div className="container mx-auto max-w-7xl">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
-            <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
-              © 2024 Bot Reals Zapp. Todos os direitos reservados.
-            </p>
-            {footerPages.length > 0 && (
-              <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-                {footerPages.map((page) => (
-                  <button
-                    key={page.id}
-                    onClick={() => page.open_as_popup && openPageDialog(page)}
-                    className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-smooth"
-                  >
-                    {page.title}
-                  </button>
-                ))}
+      <footer className="bg-muted/50 border-t">
+        <div className="container mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div className="space-y-4">
+              {logoUrl ? (
+                <img src={logoUrl} alt={siteTitle} className="h-12 w-auto mb-4" />
+              ) : (
+                <div className="flex items-center gap-2 mb-4">
+                  <Bot className="h-8 w-8 text-primary" />
+                  <span className="font-bold text-xl">{siteTitle || "Automação"}</span>
+                </div>
+              )}
+              {footerText && (
+                <p className="text-sm text-muted-foreground">{footerText}</p>
+              )}
+              <SocialLinks links={socialLinks} variant="footer" />
+            </div>
+            
+            {footerMenus.map((menu: any, index: number) => (
+              <div key={index}>
+                <h4 className="font-semibold mb-4">{menu.title}</h4>
+                <ul className="space-y-2">
+                  {menu.links?.map((link: any, linkIndex: number) => (
+                    <li key={linkIndex}>
+                      <a 
+                        href={link.url} 
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {link.text}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            )}
+            ))}
+          </div>
+
+          {footerImages.length > 0 && (
+            <div className="flex items-center justify-center gap-8 py-6 border-t">
+              {footerImages.map((img, index) => (
+                <img 
+                  key={index} 
+                  src={img} 
+                  alt={`Partner ${index + 1}`}
+                  className="h-12 w-auto opacity-70 hover:opacity-100 transition-opacity"
+                />
+              ))}
+            </div>
+          )}
+
+          <div className="pt-8 border-t text-center">
+            <p className="text-sm text-muted-foreground">
+              {footerText || `© ${new Date().getFullYear()} ${siteTitle || 'Automação'}. Todos os direitos reservados.`}
+            </p>
           </div>
         </div>
       </footer>

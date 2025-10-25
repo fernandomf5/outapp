@@ -15,6 +15,11 @@ interface FooterMenu {
   links: { text: string; url: string }[];
 }
 
+interface SocialLink {
+  platform: string;
+  url: string;
+}
+
 export const SiteSettingsManager = () => {
   const { toast } = useToast();
   const [videoUrl, setVideoUrl] = useState("");
@@ -30,6 +35,7 @@ export const SiteSettingsManager = () => {
   const [footerImages, setFooterImages] = useState<string[]>([]);
   const [cookieNoticeText, setCookieNoticeText] = useState("");
   const [cookieNoticeEnabled, setCookieNoticeEnabled] = useState(true);
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
 
   useEffect(() => {
     fetchSettings();
@@ -45,7 +51,8 @@ export const SiteSettingsManager = () => {
       'footer_menus',
       'footer_images',
       'cookie_notice_text',
-      'cookie_notice_enabled'
+      'cookie_notice_enabled',
+      'social_links'
     ];
     
     const { data, error } = await supabase
@@ -91,6 +98,13 @@ export const SiteSettingsManager = () => {
           case 'cookie_notice_enabled':
             setCookieNoticeEnabled(item.value === 'true');
             break;
+          case 'social_links':
+            try {
+              setSocialLinks(JSON.parse(item.value || '[]'));
+            } catch (e) {
+              console.error('Error parsing social links:', e);
+            }
+            break;
         }
       });
     }
@@ -127,7 +141,8 @@ export const SiteSettingsManager = () => {
       saveSetting('footer_menus', JSON.stringify(footerMenus)),
       saveSetting('footer_images', JSON.stringify(footerImages)),
       saveSetting('cookie_notice_text', cookieNoticeText),
-      saveSetting('cookie_notice_enabled', cookieNoticeEnabled.toString())
+      saveSetting('cookie_notice_enabled', cookieNoticeEnabled.toString()),
+      saveSetting('social_links', JSON.stringify(socialLinks))
     ]);
 
     toast({ title: "Todas as configurações salvas com sucesso!" });
@@ -239,6 +254,20 @@ export const SiteSettingsManager = () => {
     setFooterMenus(updated);
   };
 
+  const addSocialLink = () => {
+    setSocialLinks([...socialLinks, { platform: "facebook", url: "" }]);
+  };
+
+  const removeSocialLink = (index: number) => {
+    setSocialLinks(socialLinks.filter((_, i) => i !== index));
+  };
+
+  const updateSocialLink = (index: number, field: 'platform' | 'url', value: string) => {
+    const updated = [...socialLinks];
+    updated[index][field] = value;
+    setSocialLinks(updated);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -254,8 +283,9 @@ export const SiteSettingsManager = () => {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="branding" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="branding">Marca</TabsTrigger>
+            <TabsTrigger value="social">Redes Sociais</TabsTrigger>
             <TabsTrigger value="footer">Rodapé</TabsTrigger>
             <TabsTrigger value="cookie">Cookie Notice</TabsTrigger>
             <TabsTrigger value="video">Vídeo</TabsTrigger>
@@ -324,6 +354,72 @@ export const SiteSettingsManager = () => {
               <p className="text-xs text-muted-foreground">
                 Ícone que aparece na aba do navegador. Tamanho: 32x32px ou 64x64px
               </p>
+            </div>
+          </TabsContent>
+
+          {/* Social Links Tab */}
+          <TabsContent value="social" className="space-y-6">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Redes Sociais</Label>
+                <Button onClick={addSocialLink} variant="outline" size="sm">
+                  + Adicionar Rede Social
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Os ícones das redes sociais aparecerão no menu superior e no rodapé
+              </p>
+              
+              {socialLinks.map((link, index) => (
+                <Card key={index} className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <Label className="text-xs mb-2">Plataforma</Label>
+                      <select
+                        value={link.platform}
+                        onChange={(e) => updateSocialLink(index, 'platform', e.target.value)}
+                        className="w-full px-3 py-2 border rounded-md bg-background"
+                      >
+                        <option value="facebook">Facebook</option>
+                        <option value="instagram">Instagram</option>
+                        <option value="twitter">Twitter/X</option>
+                        <option value="linkedin">LinkedIn</option>
+                        <option value="youtube">YouTube</option>
+                        <option value="whatsapp">WhatsApp</option>
+                        <option value="email">Email</option>
+                        <option value="phone">Telefone</option>
+                      </select>
+                    </div>
+                    <div className="flex-[2]">
+                      <Label className="text-xs mb-2">URL</Label>
+                      <Input
+                        value={link.url}
+                        onChange={(e) => updateSocialLink(index, 'url', e.target.value)}
+                        placeholder={
+                          link.platform === 'email' ? 'mailto:contato@exemplo.com' :
+                          link.platform === 'phone' ? 'tel:+5511999999999' :
+                          link.platform === 'whatsapp' ? 'https://wa.me/5511999999999' :
+                          'https://...'
+                        }
+                      />
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeSocialLink(index)}
+                      className="mt-5"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+
+              {socialLinks.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  Nenhuma rede social adicionada. Clique em "Adicionar Rede Social" para começar.
+                </div>
+              )}
             </div>
           </TabsContent>
 
