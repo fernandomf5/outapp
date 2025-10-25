@@ -131,34 +131,10 @@ export function UserSidebar() {
 
   const chatbotManagementItems = [
     { title: "Chatbots", icon: Bot, path: "/dashboard", tab: "chatbots" },
-    { title: "Analytics", icon: BarChart3, path: "/dashboard", tab: "chatbot-analytics" },
-    { title: "Clientes", icon: Users, path: "/dashboard", tab: "chatbot-customers" },
-    { title: "Conversas", icon: MessageSquare, path: "/dashboard", tab: "chatbot-conversations" },
-    { title: "Produtos", icon: ShoppingBag, path: "/dashboard", tab: "chatbot-products" },
-    { title: "Agendamentos", icon: Calendar, path: "/dashboard", tab: "chatbot-appointments" },
-    { title: "Pedidos", icon: ShoppingBag, path: "/dashboard", tab: "chatbot-orders" },
-    { title: "Financeiro", icon: DollarSign, path: "/dashboard", tab: "chatbot-financial" },
-    { title: "Horários", icon: Clock, path: "/dashboard", tab: "chatbot-schedule" },
-    { title: "Automações", icon: Zap, path: "/dashboard", tab: "chatbot-automations" },
-    { title: "Avaliações", icon: Star, path: "/dashboard", tab: "chatbot-reviews" },
-    { title: "Notificações", icon: Bell, path: "/dashboard", tab: "chatbot-notifications" },
-    { title: "Relatórios", icon: FileText, path: "/dashboard", tab: "chatbot-reports" },
   ];
 
   const agentManagementItems = [
     { title: "Agentes IA", icon: Sparkles, path: "/dashboard", tab: "ai-agents" },
-    { title: "Analytics", icon: BarChart3, path: "/dashboard", tab: "agent-analytics" },
-    { title: "Clientes", icon: Users, path: "/dashboard", tab: "agent-customers" },
-    { title: "Conversas", icon: MessageSquare, path: "/dashboard", tab: "agent-conversations" },
-    { title: "Produtos", icon: ShoppingBag, path: "/dashboard", tab: "agent-products" },
-    { title: "Agendamentos", icon: Calendar, path: "/dashboard", tab: "agent-appointments" },
-    { title: "Pedidos", icon: ShoppingBag, path: "/dashboard", tab: "agent-orders" },
-    { title: "Financeiro", icon: DollarSign, path: "/dashboard", tab: "agent-financial" },
-    { title: "Horários", icon: Clock, path: "/dashboard", tab: "agent-schedule" },
-    { title: "Automações", icon: Zap, path: "/dashboard", tab: "agent-automations" },
-    { title: "Avaliações", icon: Star, path: "/dashboard", tab: "agent-reviews" },
-    { title: "Notificações", icon: Bell, path: "/dashboard", tab: "agent-notifications" },
-    { title: "Relatórios", icon: FileText, path: "/dashboard", tab: "agent-reports" },
   ];
 
   const crmItems = [
