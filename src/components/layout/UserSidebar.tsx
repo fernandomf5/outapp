@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Bot, Sparkles, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ChevronDown } from "lucide-react";
+import { Bot, Sparkles, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ChevronDown, ExternalLink } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -64,7 +64,8 @@ export function UserSidebar() {
   ];
 
   const toolsItems = [
-    { title: t('tools_manager'), icon: Link2, path: "/dashboard", tab: "tools" },
+    { title: t('tools_manager'), icon: Wrench, path: "/dashboard", tab: "tools" },
+    { title: "Link na Bio", icon: ExternalLink, path: "/dashboard", tab: "tools" },
     { title: t('link_shortener_title'), icon: Link2, path: "/dashboard", tab: "shortlinks", feature: "link_shortener" },
     { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner" },
   ];
