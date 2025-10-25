@@ -32,6 +32,7 @@ import { LinkBioCreator } from "@/components/LinkBioCreator";
 import { MyChatbots } from "@/components/MyChatbots";
 import { MyAIAgents } from "@/components/MyAIAgents";
 import { QRCodeGenerator } from "@/components/QRCodeGenerator";
+import { GeneralCRMPanel } from "@/components/GeneralCRMPanel";
 import AgentManagementPanel from "@/components/AgentManagementPanel";
 import { ChatbotManagementPanel } from "@/components/ChatbotManagementPanel";
 import { ChatbotAnalyticsPanel } from "@/components/ChatbotAnalyticsPanel";
@@ -414,6 +415,7 @@ const Dashboard = () => {
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="flex flex-wrap w-full mb-8 h-auto">
             <TabsTrigger value="overview">{t('overview')}</TabsTrigger>
+            <TabsTrigger value="crm-geral">CRM Geral</TabsTrigger>
             <TabsTrigger value="chatbots">{t('chatbots')}</TabsTrigger>
             <TabsTrigger value="ai-agents">{t('ai_agents')}</TabsTrigger>
             <TabsTrigger value="leads">{t('captured_leads_title')}</TabsTrigger>
@@ -786,6 +788,10 @@ const Dashboard = () => {
             </div>
           )}
         </Card>
+          </TabsContent>
+
+          <TabsContent value="crm-geral">
+            <GeneralCRMPanel />
           </TabsContent>
 
           <TabsContent value="clients">
