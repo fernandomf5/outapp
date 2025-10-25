@@ -204,6 +204,7 @@ export function LinkBioCreator() {
     setBorderColor("#000000");
     setBorderAnimation("none");
     setHoverAnimation("none");
+    setBorderRadius(12);
     setGradientColor1("#667eea");
     setGradientColor2("#764ba2");
     setLinks([]);
@@ -236,9 +237,10 @@ export function LinkBioCreator() {
       border_style: borderStyle,
       border_width: borderWidth,
       border_color: borderColor,
-      border_animation: borderAnimation,
-      hover_animation: hoverAnimation,
-      gradient_color1: gradientColor1,
+        border_animation: borderAnimation,
+        hover_animation: hoverAnimation,
+        border_radius: borderRadius,
+        gradient_color1: gradientColor1,
       gradient_color2: gradientColor2,
       is_active: true,
     };
