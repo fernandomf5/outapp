@@ -148,6 +148,8 @@ export function LinkBioCreator() {
       setBorderStyle(bioData.border_style || 'solid');
       setBorderWidth(bioData.border_width || 2);
       setBorderColor(bioData.border_color || '#000000');
+      setBorderAnimation(bioData.border_animation || 'none');
+      setHoverAnimation(bioData.hover_animation || 'none');
       
       fetchLinks(bioData.id);
     }
@@ -192,6 +194,8 @@ export function LinkBioCreator() {
       border_style: borderStyle,
       border_width: borderWidth,
       border_color: borderColor,
+      border_animation: borderAnimation,
+      hover_animation: hoverAnimation,
       is_active: true,
     };
 
