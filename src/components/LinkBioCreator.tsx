@@ -91,10 +91,13 @@ const themeOptions = [
 export function LinkBioCreator() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [bio, setBio] = useState<LinkBio | null>(null);
+  const [bios, setBios] = useState<LinkBio[]>([]);
+  const [selectedBioId, setSelectedBioId] = useState<string | null>(null);
   const [links, setLinks] = useState<BioLink[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  
+  const selectedBio = bios.find(b => b.id === selectedBioId) || null;
   
   // Form states
   const [username, setUsername] = useState("");
@@ -124,38 +127,45 @@ export function LinkBioCreator() {
 
   useEffect(() => {
     if (user) {
-      fetchBio();
+      fetchBios();
     }
   }, [user]);
 
-  const fetchBio = async () => {
+  useEffect(() => {
+    if (selectedBio) {
+      setUsername(selectedBio.username);
+      setDisplayName(selectedBio.display_name || '');
+      setBioText(selectedBio.bio || '');
+      setAvatarUrl(selectedBio.avatar_url || '');
+      setTheme(selectedBio.theme);
+      setBackgroundColor(selectedBio.background_color);
+      setTextColor(selectedBio.text_color);
+      setButtonColor(selectedBio.button_color);
+      setButtonTextColor(selectedBio.button_text_color);
+      setBackgroundImage(selectedBio.background_image || '');
+      setBorderStyle(selectedBio.border_style || 'solid');
+      setBorderWidth(selectedBio.border_width || 2);
+      setBorderColor(selectedBio.border_color || '#000000');
+      setBorderAnimation(selectedBio.border_animation || 'none');
+      setHoverAnimation(selectedBio.hover_animation || 'none');
+      fetchLinks(selectedBio.id);
+    }
+  }, [selectedBio]);
+
+  const fetchBios = async () => {
     if (!user) return;
     
-    const { data: bioData } = await supabase
+    const { data: biosData } = await supabase
       .from('link_bios')
       .select('*')
       .eq('user_id', user.id)
-      .single();
+      .order('created_at', { ascending: false });
 
-    if (bioData) {
-      setBio(bioData as LinkBio);
-      setUsername(bioData.username);
-      setDisplayName(bioData.display_name || '');
-      setBioText(bioData.bio || '');
-      setAvatarUrl(bioData.avatar_url || '');
-      setTheme(bioData.theme);
-      setBackgroundColor(bioData.background_color);
-      setTextColor(bioData.text_color);
-      setButtonColor(bioData.button_color);
-      setButtonTextColor(bioData.button_text_color);
-      setBackgroundImage(bioData.background_image || '');
-      setBorderStyle(bioData.border_style || 'solid');
-      setBorderWidth(bioData.border_width || 2);
-      setBorderColor(bioData.border_color || '#000000');
-      setBorderAnimation(bioData.border_animation || 'none');
-      setHoverAnimation(bioData.hover_animation || 'none');
-      
-      fetchLinks(bioData.id);
+    if (biosData && biosData.length > 0) {
+      setBios(biosData as LinkBio[]);
+      if (!selectedBioId) {
+        setSelectedBioId(biosData[0].id);
+      }
     }
   };
 
@@ -169,6 +179,26 @@ export function LinkBioCreator() {
     if (data) {
       setLinks(data);
     }
+  };
+
+  const createNewBio = () => {
+    setSelectedBioId(null);
+    setUsername("");
+    setDisplayName("");
+    setBioText("");
+    setAvatarUrl("");
+    setTheme("default");
+    setBackgroundColor("#ffffff");
+    setTextColor("#000000");
+    setButtonColor("#000000");
+    setButtonTextColor("#ffffff");
+    setBackgroundImage("");
+    setBorderStyle("solid");
+    setBorderWidth(2);
+    setBorderColor("#000000");
+    setBorderAnimation("none");
+    setHoverAnimation("none");
+    setLinks([]);
   };
 
   const createOrUpdateBio = async () => {
@@ -203,11 +233,11 @@ export function LinkBioCreator() {
       is_active: true,
     };
 
-    if (bio) {
+    if (selectedBio) {
       const { error } = await supabase
         .from('link_bios')
         .update(bioData)
-        .eq('id', bio.id);
+        .eq('id', selectedBio.id);
 
       if (error) {
         toast({
@@ -218,9 +248,9 @@ export function LinkBioCreator() {
       } else {
         toast({
           title: "Sucesso!",
-          description: "Perfil atualizado com sucesso",
+          description: "Bio atualizado com sucesso",
         });
-        fetchBio();
+        await fetchBios();
       }
     } else {
       const { data, error } = await supabase
@@ -238,17 +268,43 @@ export function LinkBioCreator() {
       } else {
         toast({
           title: "Sucesso!",
-          description: "Perfil criado com sucesso",
+          description: "Bio criado com sucesso",
         });
-        setBio(data as LinkBio);
+        await fetchBios();
+        setSelectedBioId(data.id);
       }
     }
 
     setLoading(false);
   };
 
+  const deleteBio = async (bioId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este bio?')) return;
+
+    const { error } = await supabase
+      .from('link_bios')
+      .delete()
+      .eq('id', bioId);
+
+    if (error) {
+      toast({
+        title: "Erro ao excluir",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Bio excluído com sucesso",
+      });
+      await fetchBios();
+      if (selectedBioId === bioId) {
+        setSelectedBioId(bios[0]?.id || null);
+      }
+    }
+  };
+
   const addLink = async () => {
-    if (!bio || !newLinkTitle || !newLinkUrl) {
+    if (!selectedBio || !newLinkTitle || !newLinkUrl) {
       toast({
         title: "Erro",
         description: "Título e URL são obrigatórios",
@@ -260,7 +316,7 @@ export function LinkBioCreator() {
     const { error } = await supabase
       .from('link_bio_links')
       .insert([{
-        bio_id: bio.id,
+        bio_id: selectedBio.id,
         title: newLinkTitle,
         url: newLinkUrl,
         icon: newLinkIcon,
@@ -284,7 +340,7 @@ export function LinkBioCreator() {
       setNewLinkUrl("");
       setNewLinkIcon("link");
       setNewLinkImage("");
-      fetchLinks(bio.id);
+      fetchLinks(selectedBio.id);
     }
   };
 
@@ -304,7 +360,7 @@ export function LinkBioCreator() {
       toast({
         title: "Link removido",
       });
-      if (bio) fetchLinks(bio.id);
+      if (selectedBio) fetchLinks(selectedBio.id);
     }
   };
 
@@ -321,7 +377,7 @@ export function LinkBioCreator() {
         variant: "destructive",
       });
     } else {
-      if (bio) fetchLinks(bio.id);
+      if (selectedBio) fetchLinks(selectedBio.id);
     }
   };
 
@@ -337,8 +393,8 @@ export function LinkBioCreator() {
   };
 
   const copyBioLink = () => {
-    if (bio) {
-      const link = `${window.location.origin}/bio/${bio.username}`;
+    if (selectedBio) {
+      const link = `${window.location.origin}/bio/${selectedBio.username}`;
       navigator.clipboard.writeText(link);
       toast({
         title: "Link copiado! 🔗",
@@ -428,24 +484,70 @@ export function LinkBioCreator() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold">Criador de Link na Bio</h2>
-            <p className="text-muted-foreground">Crie sua página de links personalizada estilo Linktree</p>
+            <p className="text-muted-foreground">Crie múltiplas páginas de links personalizadas estilo Linktree</p>
           </div>
-          {bio && (
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={copyBioLink}>
-                <Copy className="w-4 h-4 mr-2" />
-                Copiar Link
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => window.open(`/bio/${bio.username}`, '_blank')}
-              >
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Visualizar
-              </Button>
-            </div>
-          )}
+          <Button onClick={createNewBio}>
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Bio
+          </Button>
         </div>
+
+        {bios.length > 0 && (
+          <div className="mb-6">
+            <Label className="mb-2 block">Seus Bios</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {bios.map((bio) => (
+                <Card
+                  key={bio.id}
+                  className={`p-4 cursor-pointer transition-all ${
+                    selectedBioId === bio.id ? 'ring-2 ring-primary' : ''
+                  }`}
+                  onClick={() => setSelectedBioId(bio.id)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-semibold">{bio.display_name || bio.username}</h3>
+                      <p className="text-sm text-muted-foreground">@{bio.username}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{bio.total_clicks} cliques</p>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyBioLink();
+                        }}
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(`/bio/${bio.username}`, '_blank');
+                        }}
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteBio(bio.id);
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
 
         <Tabs defaultValue="profile" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
@@ -476,7 +578,7 @@ export function LinkBioCreator() {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="seuusername"
-                    disabled={!!bio}
+                    disabled={!!selectedBio}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -506,16 +608,16 @@ export function LinkBioCreator() {
               </div>
 
               <Button onClick={createOrUpdateBio} disabled={loading} className="w-full">
-                {bio ? 'Atualizar Perfil' : 'Criar Perfil'}
+                {selectedBio ? 'Atualizar Bio' : 'Criar Bio'}
               </Button>
             </div>
           </TabsContent>
 
           <TabsContent value="links" className="space-y-4">
-            {!bio ? (
+            {!selectedBio ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground">
-                  Crie seu perfil primeiro para adicionar links
+                  Selecione ou crie um bio primeiro para adicionar links
                 </p>
               </div>
             ) : (
@@ -932,7 +1034,7 @@ export function LinkBioCreator() {
                 Salvar Aparência
               </Button>
 
-              {bio && (
+              {selectedBio && (
                 <Card className="p-4 mt-6">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold">Preview</h3>
@@ -1066,7 +1168,7 @@ export function LinkBioCreator() {
         </Tabs>
       </Card>
 
-      {bio && (
+      {selectedBio && (
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-bold">Estatísticas</h3>
@@ -1077,7 +1179,7 @@ export function LinkBioCreator() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 bg-accent/50 rounded-lg">
-              <p className="text-2xl font-bold">{bio.total_clicks}</p>
+              <p className="text-2xl font-bold">{selectedBio.total_clicks}</p>
               <p className="text-sm text-muted-foreground">Total de Cliques</p>
             </div>
             <div className="p-4 bg-accent/50 rounded-lg">
