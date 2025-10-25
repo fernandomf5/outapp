@@ -217,7 +217,8 @@ export default function LinkBioPage() {
               <div
                 key={link.id}
                 onClick={() => handleLinkClick(link)}
-                className={`cursor-pointer overflow-hidden transition-all hover:shadow-lg active:scale-95
+                className={`cursor-pointer transition-all hover:shadow-lg active:scale-95
+                  ${bio.border_animation !== 'rgb' ? 'overflow-hidden' : ''}
                   ${bio.border_animation === 'rgb' ? 'bio-border-rgb' : ''} 
                   ${bio.border_animation === 'pulse' ? 'bio-border-pulse' : ''}
                   ${bio.border_animation === 'glow' ? 'bio-border-glow' : ''}
@@ -240,6 +241,9 @@ export default function LinkBioPage() {
                   src={link.image_url} 
                   alt={link.title}
                   className="w-full h-auto object-cover"
+                  style={{
+                    borderRadius: `${bio.border_radius || 12}px`,
+                  }}
                 />
               </div>
             ) : (
