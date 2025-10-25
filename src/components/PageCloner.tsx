@@ -89,6 +89,13 @@ export const PageCloner = () => {
     setAvailableDomains([...GENERIC_DOMAINS, ...userDomains]);
   }, [customDomains]);
 
+  // Pré-selecionar automaticamente o primeiro domínio disponível ao abrir o modal
+  useEffect(() => {
+    if (isCloneDialogOpen && !cloneData.selected_domain && availableDomains.length > 0) {
+      setCloneData((prev) => ({ ...prev, selected_domain: availableDomains[0] }));
+    }
+  }, [isCloneDialogOpen, availableDomains]);
+
   const fetchClonedPages = async () => {
     const { data, error } = await supabase
       .from('cloned_pages')
@@ -207,9 +214,14 @@ export const PageCloner = () => {
     setIsCloning(true);
 
     try {
+      // Normalizar URL (adiciona https:// se o usuário não incluir)
+      const originalUrl = /^https?:\/\//i.test(cloneData.original_url)
+        ? cloneData.original_url
+        : `https://${cloneData.original_url}`;
+
       // Call edge function to fetch and clone the page
       const { data: cloneResult, error: cloneError } = await supabase.functions.invoke('clone-page', {
-        body: { url: cloneData.original_url }
+        body: { url: originalUrl }
       });
 
       if (cloneError) throw cloneError;
@@ -221,7 +233,7 @@ export const PageCloner = () => {
         : `clone-${Math.random().toString(36).substring(2, 10)}`;
 
       const selectedDomain = cloneData.selected_domain;
-      const clonedUrl = `https://${selectedDomain}/page/${slug}`;
+      const clonedUrl = `${window.location.origin}/page/${slug}`;
 
       // Detect checkout links
       const detectedLinks = detectCheckoutLinks(cloneResult.content);

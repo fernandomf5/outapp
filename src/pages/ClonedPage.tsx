@@ -180,8 +180,9 @@ export default function ClonedPage() {
         a.setAttribute('rel', 'noopener noreferrer');
       });
 
-      // 5) Remove meta refresh redirects
+      // 5) Remove meta refresh redirects e CSP inline
       doc.querySelectorAll('meta[http-equiv="refresh" i]').forEach((m) => m.parentElement?.removeChild(m));
+      doc.querySelectorAll('meta[http-equiv="content-security-policy" i], meta[content*="Content-Security-Policy" i]').forEach((m) => m.parentElement?.removeChild(m));
 
       // 6) Inject pixels/header/footer
       if (settings.header_code) {
