@@ -1,0 +1,212 @@
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { ExternalLink } from "lucide-react";
+import { Link2, Instagram, Youtube, Facebook, Twitter, Linkedin, Mail, Phone, Globe } from "lucide-react";
+
+interface LinkBio {
+  id: string;
+  username: string;
+  display_name: string;
+  bio: string;
+  avatar_url: string;
+  theme: string;
+  background_color: string;
+  text_color: string;
+  button_color: string;
+  button_text_color: string;
+  is_active: boolean;
+}
+
+interface BioLink {
+  id: string;
+  title: string;
+  url: string;
+  icon: string;
+  position: number;
+  is_active: boolean;
+}
+
+const iconOptions = {
+  link: Link2,
+  instagram: Instagram,
+  youtube: Youtube,
+  facebook: Facebook,
+  twitter: Twitter,
+  linkedin: Linkedin,
+  email: Mail,
+  phone: Phone,
+  website: Globe,
+};
+
+export default function LinkBioPage() {
+  const { username } = useParams<{ username: string }>();
+  const [bio, setBio] = useState<LinkBio | null>(null);
+  const [links, setLinks] = useState<BioLink[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (username) {
+      fetchBioPage();
+    }
+  }, [username]);
+
+  useEffect(() => {
+    if (bio) {
+      const pageTitle = `${bio.display_name || bio.username} | Links`;
+      const pageDescription = bio.bio || `Todos os links de ${bio.display_name || bio.username} em um só lugar`;
+      
+      document.title = pageTitle;
+      
+      const metaDescription = document.querySelector('meta[name="description"]');
+      if (metaDescription) {
+        metaDescription.setAttribute('content', pageDescription);
+      } else {
+        const meta = document.createElement('meta');
+        meta.name = 'description';
+        meta.content = pageDescription;
+        document.head.appendChild(meta);
+      }
+    }
+  }, [bio]);
+
+  const fetchBioPage = async () => {
+    const { data: bioData } = await supabase
+      .from('link_bios')
+      .select('*')
+      .eq('username', username)
+      .eq('is_active', true)
+      .single();
+
+    if (bioData) {
+      setBio(bioData);
+      
+      const { data: linksData } = await supabase
+        .from('link_bio_links')
+        .select('*')
+        .eq('bio_id', bioData.id)
+        .eq('is_active', true)
+        .order('position', { ascending: true });
+
+      if (linksData) {
+        setLinks(linksData);
+      }
+    }
+    
+    setLoading(false);
+  };
+
+  const trackClick = async (linkId: string) => {
+    if (!bio) return;
+    
+    const visitorId = localStorage.getItem('visitor_id') || `visitor_${Date.now()}_${Math.random()}`;
+    localStorage.setItem('visitor_id', visitorId);
+
+    await supabase
+      .from('link_bio_clicks')
+      .insert([{
+        bio_id: bio.id,
+        link_id: linkId,
+        visitor_id: visitorId,
+        referrer: document.referrer,
+        user_agent: navigator.userAgent,
+        device_type: /Mobile|Android|iPhone|iPad/.test(navigator.userAgent) ? 'mobile' : 'desktop',
+      }]);
+  };
+
+  const handleLinkClick = (link: BioLink) => {
+    trackClick(link.id);
+    window.open(link.url, '_blank');
+  };
+
+  const IconComponent = ({ iconName }: { iconName: string }) => {
+    const Icon = iconOptions[iconName as keyof typeof iconOptions] || Link2;
+    return <Icon className="w-5 h-5" />;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!bio) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold mb-4">404</h1>
+          <p className="text-muted-foreground">Página não encontrada</p>
+        </div>
+      </div>
+    );
+  }
+
+  const isGradient = bio.background_color.includes('gradient');
+
+  return (
+    <div 
+      className="min-h-screen py-12 px-4"
+      style={
+        isGradient 
+          ? { background: bio.background_color }
+          : { backgroundColor: bio.background_color }
+      }
+    >
+      <div className="max-w-2xl mx-auto">
+        <div className="flex flex-col items-center mb-8">
+          {bio.avatar_url && (
+            <img 
+              src={bio.avatar_url} 
+              alt={bio.display_name || bio.username}
+              className="w-32 h-32 rounded-full mb-6 shadow-lg object-cover"
+            />
+          )}
+          
+          <h1 
+            className="text-3xl font-bold mb-3 text-center"
+            style={{ color: bio.text_color }}
+          >
+            {bio.display_name || bio.username}
+          </h1>
+          
+          {bio.bio && (
+            <p 
+              className="text-center max-w-md mb-8"
+              style={{ color: bio.text_color }}
+            >
+              {bio.bio}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-4 max-w-md mx-auto">
+          {links.map((link) => (
+            <button
+              key={link.id}
+              onClick={() => handleLinkClick(link)}
+              className="w-full px-6 py-4 rounded-full font-medium transition-all hover:scale-105 hover:shadow-lg flex items-center justify-center gap-3 group"
+              style={{ 
+                backgroundColor: bio.button_color,
+                color: bio.button_text_color 
+              }}
+            >
+              <IconComponent iconName={link.icon} />
+              <span className="flex-1 text-center">{link.title}</span>
+              <ExternalLink className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+          ))}
+        </div>
+
+        {links.length === 0 && (
+          <div className="text-center py-12">
+            <p style={{ color: bio.text_color }} className="opacity-60">
+              Nenhum link disponível no momento
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1038,6 +1038,161 @@ export type Database = {
         }
         Relationships: []
       }
+      link_bio_clicks: {
+        Row: {
+          bio_id: string | null
+          clicked_at: string
+          country: string | null
+          device_type: string | null
+          id: string
+          link_id: string | null
+          referrer: string | null
+          user_agent: string | null
+          visitor_id: string | null
+        }
+        Insert: {
+          bio_id?: string | null
+          clicked_at?: string
+          country?: string | null
+          device_type?: string | null
+          id?: string
+          link_id?: string | null
+          referrer?: string | null
+          user_agent?: string | null
+          visitor_id?: string | null
+        }
+        Update: {
+          bio_id?: string | null
+          clicked_at?: string
+          country?: string | null
+          device_type?: string | null
+          id?: string
+          link_id?: string | null
+          referrer?: string | null
+          user_agent?: string | null
+          visitor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "link_bio_clicks_bio_id_fkey"
+            columns: ["bio_id"]
+            isOneToOne: false
+            referencedRelation: "link_bios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "link_bio_clicks_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "link_bio_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      link_bio_links: {
+        Row: {
+          bio_id: string
+          clicks: number | null
+          created_at: string
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          position: number
+          title: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          bio_id: string
+          clicks?: number | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          position?: number
+          title: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          bio_id?: string
+          clicks?: number | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          position?: number
+          title?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "link_bio_links_bio_id_fkey"
+            columns: ["bio_id"]
+            isOneToOne: false
+            referencedRelation: "link_bios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      link_bios: {
+        Row: {
+          avatar_url: string | null
+          background_color: string | null
+          bio: string | null
+          button_color: string | null
+          button_text_color: string | null
+          created_at: string
+          custom_css: string | null
+          display_name: string | null
+          id: string
+          is_active: boolean | null
+          text_color: string | null
+          theme: string | null
+          total_clicks: number | null
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          background_color?: string | null
+          bio?: string | null
+          button_color?: string | null
+          button_text_color?: string | null
+          created_at?: string
+          custom_css?: string | null
+          display_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          text_color?: string | null
+          theme?: string | null
+          total_clicks?: number | null
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          avatar_url?: string | null
+          background_color?: string | null
+          bio?: string | null
+          button_color?: string | null
+          button_text_color?: string | null
+          created_at?: string
+          custom_css?: string | null
+          display_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          text_color?: string | null
+          theme?: string | null
+          total_clicks?: number | null
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       payment_integrations: {
         Row: {
           api_key: string | null

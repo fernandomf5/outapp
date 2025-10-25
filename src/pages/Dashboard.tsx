@@ -27,6 +27,7 @@ import { PageCloner } from "@/components/PageCloner";
 import { ChatbotConversations } from "@/components/ChatbotConversations";
 import { LinkShortener } from "@/components/LinkShortener";
 import { CapturedLeads } from "@/components/CapturedLeads";
+import { LinkBioCreator } from "@/components/LinkBioCreator";
 import { MyChatbots } from "@/components/MyChatbots";
 import { MyAIAgents } from "@/components/MyAIAgents";
 import {
@@ -713,20 +714,33 @@ const Dashboard = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="tools">
-            {hasFeature('whatsapp_link') ? (
-              <WhatsAppLinkGenerator />
-            ) : (
-              <Card className="p-12 text-center">
-                <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
-                <p className="text-muted-foreground mb-4">
-                  Faça upgrade do seu plano para gerar links do WhatsApp
-                </p>
-                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
-                  Ver Planos
-                </Button>
-              </Card>
-            )}
+          <TabsContent value="tools" className="space-y-6">
+            <Tabs defaultValue="whatsapp" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+                <TabsTrigger value="linkbio">Link na Bio</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="whatsapp">
+                {hasFeature('whatsapp_link') ? (
+                  <WhatsAppLinkGenerator />
+                ) : (
+                  <Card className="p-12 text-center">
+                    <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Faça upgrade do seu plano para gerar links do WhatsApp
+                    </p>
+                    <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
+                      Ver Planos
+                    </Button>
+                  </Card>
+                )}
+              </TabsContent>
+
+              <TabsContent value="linkbio">
+                <LinkBioCreator />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="cloner">

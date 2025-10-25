@@ -21,6 +21,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ShortLinkRedirect from "./pages/ShortLinkRedirect";
 import ClonedPage from "./pages/ClonedPage";
+import LinkBioPage from "./pages/LinkBioPage";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="/page3/:slug" element={<ClonedPage />} />
               <Route path="/page4/:slug" element={<ClonedPage />} />
               <Route path="/page5/:slug" element={<ClonedPage />} />
+              <Route path="/bio/:username" element={<LinkBioPage />} />
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Dashboard />
