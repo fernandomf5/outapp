@@ -7,7 +7,7 @@ import { Link2, Instagram, Youtube, Facebook, Twitter, Linkedin, Mail, Phone, Gl
 interface LinkBio {
   id: string;
   username: string;
-  custom_slug: string;
+  custom_slug?: string | null;
   display_name: string;
   bio: string;
   avatar_url: string;
@@ -83,19 +83,28 @@ export default function LinkBioPage() {
   }, [bio]);
 
   const fetchBioPage = async () => {
-    let query = supabase
-      .from('link_bios')
-      .select('*')
-      .eq('is_active', true);
-
     // Buscar por slug personalizado ou username
+    let bioData = null;
+    
     if (slug) {
-      query = query.eq('custom_slug', slug);
+      // @ts-ignore - Type instantiation issue with Supabase query
+      const { data } = await supabase
+        .from('link_bios')
+        .select('*')
+        .eq('is_active', true)
+        .eq('custom_slug', slug)
+        .maybeSingle();
+      bioData = data;
     } else if (username) {
-      query = query.eq('username', username);
+      // @ts-ignore - Type instantiation issue with Supabase query  
+      const { data } = await supabase
+        .from('link_bios')
+        .select('*')
+        .eq('is_active', true)
+        .eq('username', username)
+        .maybeSingle();
+      bioData = data;
     }
-
-    const { data: bioData } = await query.single();
 
     if (bioData) {
       setBio(bioData as LinkBio);

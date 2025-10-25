@@ -72,9 +72,38 @@ const Index = () => {
     fetchLandingSettings();
     fetchFeatures();
     fetchSiteSettings();
+  }, []);
+
+  useEffect(() => {
     updatePageTitle();
+  }, [siteTitle]);
+
+  useEffect(() => {
     updateFavicon();
-  }, [siteTitle, faviconUrl]);
+  }, [faviconUrl]);
+
+  // Realtime subscription para atualizar configurações do site
+  useEffect(() => {
+    const channel = supabase
+      .channel('site_settings_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'site_settings',
+          filter: 'key=in.(site_title,site_logo_url,site_favicon_url)'
+        },
+        () => {
+          fetchSiteSettings();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const fetchPlans = async () => {
     const { data, error } = await supabase
@@ -353,10 +382,22 @@ const Index = () => {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center gap-2">
-              <div className="bg-primary/10 p-1.5 sm:p-2 rounded-lg">
-                <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-              </div>
-              <span className="text-base sm:text-lg md:text-xl font-bold">Bot Reals Zapp</span>
+              {logoUrl ? (
+                <img 
+                  src={logoUrl} 
+                  alt={siteTitle || "Logo"} 
+                  className="h-8 sm:h-10 w-auto object-contain"
+                />
+              ) : (
+                <>
+                  <div className="bg-primary/10 p-1.5 sm:p-2 rounded-lg">
+                    <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                  </div>
+                  <span className="text-base sm:text-lg md:text-xl font-bold">
+                    {siteTitle || "Bot Reals Zapp"}
+                  </span>
+                </>
+              )}
             </div>
             
             {/* Desktop Navigation */}
