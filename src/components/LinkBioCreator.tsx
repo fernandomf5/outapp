@@ -55,6 +55,7 @@ interface LinkBio {
   border_animation: string;
   hover_animation: string;
   border_radius: number;
+  button_spacing: number;
   is_active: boolean;
   total_clicks: number;
   gradient_color1: string;
@@ -119,6 +120,7 @@ export function LinkBioCreator() {
   const [borderAnimation, setBorderAnimation] = useState("none");
   const [hoverAnimation, setHoverAnimation] = useState("none");
   const [borderRadius, setBorderRadius] = useState(12);
+  const [buttonSpacing, setButtonSpacing] = useState(12);
   const [gradientColor1, setGradientColor1] = useState("#667eea");
   const [gradientColor2, setGradientColor2] = useState("#764ba2");
   
@@ -155,6 +157,7 @@ export function LinkBioCreator() {
       setBorderAnimation(selectedBio.border_animation || 'none');
       setHoverAnimation(selectedBio.hover_animation || 'none');
       setBorderRadius(selectedBio.border_radius || 12);
+      setButtonSpacing(selectedBio.button_spacing || 12);
       setGradientColor1(selectedBio.gradient_color1 || '#667eea');
       setGradientColor2(selectedBio.gradient_color2 || '#764ba2');
       fetchLinks(selectedBio.id);
@@ -171,7 +174,7 @@ export function LinkBioCreator() {
       .order('created_at', { ascending: false });
 
     if (biosData && biosData.length > 0) {
-      setBios(biosData as LinkBio[]);
+      setBios(biosData as unknown as LinkBio[]);
       if (!selectedBioId) {
         setSelectedBioId(biosData[0].id);
       }
@@ -208,6 +211,7 @@ export function LinkBioCreator() {
     setBorderAnimation("none");
     setHoverAnimation("none");
     setBorderRadius(12);
+    setButtonSpacing(12);
     setGradientColor1("#667eea");
     setGradientColor2("#764ba2");
     setLinks([]);
@@ -240,9 +244,10 @@ export function LinkBioCreator() {
       border_style: borderStyle,
       border_width: borderWidth,
       border_color: borderColor,
-        border_animation: borderAnimation,
+      border_animation: borderAnimation,
         hover_animation: hoverAnimation,
         border_radius: borderRadius,
+        button_spacing: buttonSpacing,
         gradient_color1: gradientColor1,
       gradient_color2: gradientColor2,
       is_active: true,
@@ -1112,6 +1117,22 @@ export function LinkBioCreator() {
                   </div>
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="buttonSpacing">Espaçamento dos Botões (px)</Label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="range"
+                      id="buttonSpacing"
+                      min="0"
+                      max="48"
+                      value={buttonSpacing}
+                      onChange={(e) => setButtonSpacing(Number(e.target.value))}
+                      className="flex-1"
+                    />
+                    <span className="text-sm text-muted-foreground w-12">{buttonSpacing}px</span>
+                  </div>
+                </div>
+
                 <div>
                   <Label>Animação ao Passar o Mouse</Label>
                   <Select value={hoverAnimation} onValueChange={setHoverAnimation}>
@@ -1195,9 +1216,6 @@ export function LinkBioCreator() {
                               className="w-24 h-24 mb-4 object-cover shadow-lg"
                               style={{
                                 borderRadius: `${borderRadius}px`,
-                                borderWidth: `${borderWidth}px`,
-                                borderStyle: borderStyle,
-                                borderColor: borderColor,
                               }}
                             />
                           )}
@@ -1215,7 +1233,7 @@ export function LinkBioCreator() {
                               {bioText}
                             </p>
                           )}
-                          <div className="w-full max-w-md space-y-3">
+                          <div className="w-full max-w-md" style={{ display: 'flex', flexDirection: 'column', gap: `${buttonSpacing}px` }}>
                             {links.filter(l => l.is_active).slice(0, 3).map((link) => (
                               link.image_url ? (
                                 <div
@@ -1231,10 +1249,13 @@ export function LinkBioCreator() {
                                   `}
                                   style={{ 
                                     borderRadius: `${borderRadius}px`,
+                                    ...(borderAnimation === 'rgb' && {
+                                      '--border-width': `${borderWidth}px`
+                                    }),
                                     ...(borderAnimation !== 'rgb' && {
                                       border: `${borderWidth}px ${borderStyle} ${borderColor}`
                                     })
-                                  }}
+                                  } as React.CSSProperties}
                                 >
                                   <img 
                                     src={link.image_url} 
@@ -1258,10 +1279,13 @@ export function LinkBioCreator() {
                                     borderRadius: `${borderRadius}px`,
                                     backgroundColor: buttonColor,
                                     color: buttonTextColor,
+                                    ...(borderAnimation === 'rgb' && {
+                                      '--border-width': `${borderWidth}px`
+                                    }),
                                     ...(borderAnimation !== 'rgb' && {
                                       border: `${borderWidth}px ${borderStyle} ${borderColor}`
                                     })
-                                  }}
+                                  } as React.CSSProperties}
                                 >
                                   {link.title}
                                 </div>

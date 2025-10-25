@@ -22,6 +22,7 @@ interface LinkBio {
   border_animation: string;
   hover_animation: string;
   border_radius: number;
+  button_spacing: number;
   is_active: boolean;
   gradient_color1: string;
   gradient_color2: string;
@@ -89,7 +90,7 @@ export default function LinkBioPage() {
       .single();
 
     if (bioData) {
-      setBio(bioData as LinkBio);
+      setBio(bioData as unknown as LinkBio);
       
       const { data: linksData } = await supabase
         .from('link_bio_links')
@@ -181,9 +182,6 @@ export default function LinkBioPage() {
               className="w-24 h-24 sm:w-32 sm:h-32 mb-4 sm:mb-6 shadow-lg object-cover"
               style={{
                 borderRadius: `${bio.border_radius || 12}px`,
-                borderWidth: `${bio.border_width || 2}px`,
-                borderStyle: bio.border_style || "solid",
-                borderColor: bio.border_color || "#000000",
               }}
             />
           )}
@@ -205,7 +203,7 @@ export default function LinkBioPage() {
           )}
         </div>
 
-        <div className="space-y-3 sm:space-y-4 max-w-md mx-auto px-4">
+        <div className="max-w-md mx-auto px-4" style={{ display: 'flex', flexDirection: 'column', gap: `${bio.button_spacing || 12}px` }}>
           {links.map((link) => (
             link.image_url ? (
               <div
@@ -222,10 +220,13 @@ export default function LinkBioPage() {
                 `}
                 style={{ 
                   borderRadius: `${bio.border_radius || 12}px`,
+                  ...(bio.border_animation === 'rgb' && {
+                    '--border-width': `${bio.border_width || 2}px`
+                  }),
                   ...(bio.border_animation !== 'rgb' && {
                     border: `${bio.border_width || 2}px ${bio.border_style || 'solid'} ${bio.border_color || '#000000'}`
                   })
-                }}
+                } as React.CSSProperties}
               >
                 <img 
                   src={link.image_url} 
@@ -250,10 +251,13 @@ export default function LinkBioPage() {
                   borderRadius: `${bio.border_radius || 12}px`,
                   backgroundColor: bio.button_color,
                   color: bio.button_text_color,
+                  ...(bio.border_animation === 'rgb' && {
+                    '--border-width': `${bio.border_width || 2}px`
+                  }),
                   ...(bio.border_animation !== 'rgb' && {
                     border: `${bio.border_width || 2}px ${bio.border_style || 'solid'} ${bio.border_color || '#000000'}`
                   })
-                }}
+                } as React.CSSProperties}
               >
                 <IconComponent iconName={link.icon} />
                 <span className="flex-1 text-center">{link.title}</span>
