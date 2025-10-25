@@ -41,7 +41,7 @@ import { Badge } from "@/components/ui/badge";
 interface LinkBio {
   id: string;
   username: string;
-  custom_domain: string;
+  custom_domain: string | null;
   display_name: string;
   bio: string;
   avatar_url: string;
@@ -214,15 +214,21 @@ export function LinkBioCreator() {
   const fetchCustomDomains = async () => {
     if (!user) return;
     
-    const { data, error } = await supabase
-      .from('custom_domains')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('custom_domains')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
-    if (!error && data) {
-      setCustomDomains(data);
+      if (!error && data) {
+        setCustomDomains(data);
+      }
+    } catch (error) {
+      console.error('Error fetching custom domains:', error);
+      // Não bloquear o componente se falhar
+      setCustomDomains([]);
     }
   };
 
@@ -727,7 +733,7 @@ export function LinkBioCreator() {
               <div>
                 <Label htmlFor="customDomain">Domínio Próprio (Opcional)</Label>
                 <div className="flex gap-2">
-                  <Select value={customDomain} onValueChange={setCustomDomain}>
+                  <Select value={customDomain || ""} onValueChange={setCustomDomain}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione um domínio cadastrado" />
                     </SelectTrigger>

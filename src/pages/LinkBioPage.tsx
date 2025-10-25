@@ -7,7 +7,7 @@ import { Link2, Instagram, Youtube, Facebook, Twitter, Linkedin, Mail, Phone, Gl
 interface LinkBio {
   id: string;
   username: string;
-  custom_domain: string;
+  custom_domain: string | null;
   display_name: string;
   bio: string;
   avatar_url: string;
