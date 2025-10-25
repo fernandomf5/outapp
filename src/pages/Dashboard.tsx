@@ -30,7 +30,6 @@ import { CapturedLeads } from "@/components/CapturedLeads";
 import { LinkBioCreator } from "@/components/LinkBioCreator";
 import { MyChatbots } from "@/components/MyChatbots";
 import { MyAIAgents } from "@/components/MyAIAgents";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -733,10 +732,7 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="linkbio">
-            {/* Protege contra erros de runtime desta ferramenta */}
-            <ErrorBoundary>
-              <LinkBioCreator />
-            </ErrorBoundary>
+            <LinkBioCreator />
           </TabsContent>
 
           <TabsContent value="cloner">
