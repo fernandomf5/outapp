@@ -65,7 +65,7 @@ export function UserSidebar() {
   ];
 
   const toolsItems = [
-    { title: t('tools_manager'), icon: Wrench, path: "/dashboard", tab: "tools" },
+    { title: t('tools_manager'), icon: Link2, path: "/dashboard", tab: "tools" },
     { title: t('link_shortener_title'), icon: Link2, path: "/dashboard", tab: "shortlinks", feature: "link_shortener" },
     { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner" },
   ];
