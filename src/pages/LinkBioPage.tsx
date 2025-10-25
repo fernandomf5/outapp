@@ -178,14 +178,12 @@ export default function LinkBioPage() {
             <img 
               src={bio.avatar_url} 
               alt={bio.display_name || bio.username}
-              className={`w-24 h-24 sm:w-32 sm:h-32 mb-4 sm:mb-6 shadow-lg object-cover ${
-                bio.border_animation === "rgb" ? "bio-border-rgb" : ""
-              }`}
+              className="w-24 h-24 sm:w-32 sm:h-32 mb-4 sm:mb-6 shadow-lg object-cover"
               style={{
                 borderRadius: `${bio.border_radius || 12}px`,
                 borderWidth: `${bio.border_width || 2}px`,
                 borderStyle: bio.border_style || "solid",
-                borderColor: bio.border_animation === "none" ? bio.border_color || "#000000" : undefined,
+                borderColor: bio.border_color || "#000000",
               }}
             />
           )}
@@ -224,7 +222,9 @@ export default function LinkBioPage() {
                 `}
                 style={{ 
                   borderRadius: `${bio.border_radius || 12}px`,
-                  border: `${bio.border_width || 2}px ${bio.border_style || 'solid'} ${bio.border_color || '#000000'}`
+                  ...(bio.border_animation !== 'rgb' && {
+                    border: `${bio.border_width || 2}px ${bio.border_style || 'solid'} ${bio.border_color || '#000000'}`
+                  })
                 }}
               >
                 <img 
@@ -250,7 +250,9 @@ export default function LinkBioPage() {
                   borderRadius: `${bio.border_radius || 12}px`,
                   backgroundColor: bio.button_color,
                   color: bio.button_text_color,
-                  border: `${bio.border_width || 2}px ${bio.border_style || 'solid'} ${bio.border_color || '#000000'}`
+                  ...(bio.border_animation !== 'rgb' && {
+                    border: `${bio.border_width || 2}px ${bio.border_style || 'solid'} ${bio.border_color || '#000000'}`
+                  })
                 }}
               >
                 <IconComponent iconName={link.icon} />

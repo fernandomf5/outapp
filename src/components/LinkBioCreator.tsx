@@ -1192,14 +1192,12 @@ export function LinkBioCreator() {
                             <img 
                               src={avatarUrl} 
                               alt="Avatar" 
-                              className={`w-24 h-24 mb-4 object-cover shadow-lg ${
-                                borderAnimation === "rgb" ? "bio-border-rgb" : ""
-                              }`}
+                              className="w-24 h-24 mb-4 object-cover shadow-lg"
                               style={{
                                 borderRadius: `${borderRadius}px`,
                                 borderWidth: `${borderWidth}px`,
                                 borderStyle: borderStyle,
-                                borderColor: borderAnimation === "none" ? borderColor : undefined,
+                                borderColor: borderColor,
                               }}
                             />
                           )}
@@ -1233,7 +1231,9 @@ export function LinkBioCreator() {
                                   `}
                                   style={{ 
                                     borderRadius: `${borderRadius}px`,
-                                    border: `${borderWidth}px ${borderStyle} ${borderColor}`
+                                    ...(borderAnimation !== 'rgb' && {
+                                      border: `${borderWidth}px ${borderStyle} ${borderColor}`
+                                    })
                                   }}
                                 >
                                   <img 
@@ -1258,7 +1258,9 @@ export function LinkBioCreator() {
                                     borderRadius: `${borderRadius}px`,
                                     backgroundColor: buttonColor,
                                     color: buttonTextColor,
-                                    border: `${borderWidth}px ${borderStyle} ${borderColor}`
+                                    ...(borderAnimation !== 'rgb' && {
+                                      border: `${borderWidth}px ${borderStyle} ${borderColor}`
+                                    })
                                   }}
                                 >
                                   {link.title}

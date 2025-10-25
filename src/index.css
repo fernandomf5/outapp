@@ -195,63 +195,35 @@ All colors MUST be HSL.
 /* Border Animations */
 .bio-border-rgb {
   position: relative;
-  border: 4px solid;
-  border-image: linear-gradient(90deg, 
+  border: 4px solid transparent;
+  background-clip: padding-box;
+}
+
+.bio-border-rgb::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  padding: 4px;
+  background: linear-gradient(90deg, 
     #ff0000, #ff7f00, #ffff00, #00ff00, 
     #0000ff, #4b0082, #9400d3, #ff0000
-  ) 1;
+  );
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
   animation: rgb-rotate 3s linear infinite;
+  pointer-events: none;
 }
 
 @keyframes rgb-rotate {
-  0% { 
-    border-image: linear-gradient(90deg, 
-      #ff0000, #ff7f00, #ffff00, #00ff00, 
-      #0000ff, #4b0082, #9400d3, #ff0000
-    ) 1;
-  }
-  14% { 
-    border-image: linear-gradient(90deg, 
-      #ff7f00, #ffff00, #00ff00, #0000ff, 
-      #4b0082, #9400d3, #ff0000, #ff7f00
-    ) 1;
-  }
-  28% { 
-    border-image: linear-gradient(90deg, 
-      #ffff00, #00ff00, #0000ff, #4b0082, 
-      #9400d3, #ff0000, #ff7f00, #ffff00
-    ) 1;
-  }
-  42% { 
-    border-image: linear-gradient(90deg, 
-      #00ff00, #0000ff, #4b0082, #9400d3, 
-      #ff0000, #ff7f00, #ffff00, #00ff00
-    ) 1;
-  }
-  57% { 
-    border-image: linear-gradient(90deg, 
-      #0000ff, #4b0082, #9400d3, #ff0000, 
-      #ff7f00, #ffff00, #00ff00, #0000ff
-    ) 1;
-  }
-  71% { 
-    border-image: linear-gradient(90deg, 
-      #4b0082, #9400d3, #ff0000, #ff7f00, 
-      #ffff00, #00ff00, #0000ff, #4b0082
-    ) 1;
-  }
-  85% { 
-    border-image: linear-gradient(90deg, 
-      #9400d3, #ff0000, #ff7f00, #ffff00, 
-      #00ff00, #0000ff, #4b0082, #9400d3
-    ) 1;
-  }
-  100% { 
-    border-image: linear-gradient(90deg, 
-      #ff0000, #ff7f00, #ffff00, #00ff00, 
-      #0000ff, #4b0082, #9400d3, #ff0000
-    ) 1;
-  }
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
 }
 
 .bio-border-pulse {
