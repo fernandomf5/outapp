@@ -1147,6 +1147,7 @@ export type Database = {
           bio: string | null
           border_animation: string | null
           border_color: string | null
+          border_radius: number | null
           border_style: string | null
           border_width: number | null
           button_color: string | null
@@ -1173,6 +1174,7 @@ export type Database = {
           bio?: string | null
           border_animation?: string | null
           border_color?: string | null
+          border_radius?: number | null
           border_style?: string | null
           border_width?: number | null
           button_color?: string | null
@@ -1199,6 +1201,7 @@ export type Database = {
           bio?: string | null
           border_animation?: string | null
           border_color?: string | null
+          border_radius?: number | null
           border_style?: string | null
           border_width?: number | null
           button_color?: string | null

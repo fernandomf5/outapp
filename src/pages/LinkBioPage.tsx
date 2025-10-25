@@ -21,6 +21,7 @@ interface LinkBio {
   border_color: string;
   border_animation: string;
   hover_animation: string;
+  border_radius: number;
   is_active: boolean;
   gradient_color1: string;
   gradient_color2: string;
@@ -177,7 +178,15 @@ export default function LinkBioPage() {
             <img 
               src={bio.avatar_url} 
               alt={bio.display_name || bio.username}
-              className="w-24 h-24 sm:w-32 sm:h-32 rounded-full mb-4 sm:mb-6 shadow-lg object-cover"
+              className={`w-24 h-24 sm:w-32 sm:h-32 mb-4 sm:mb-6 shadow-lg object-cover ${
+                bio.border_animation === "rgb" ? "bio-border-rgb" : ""
+              }`}
+              style={{
+                borderRadius: `${bio.border_radius || 12}px`,
+                borderWidth: `${bio.border_width || 2}px`,
+                borderStyle: bio.border_style || "solid",
+                borderColor: bio.border_animation === "none" ? bio.border_color || "#000000" : undefined,
+              }}
             />
           )}
           
@@ -204,7 +213,7 @@ export default function LinkBioPage() {
               <div
                 key={link.id}
                 onClick={() => handleLinkClick(link)}
-                className={`cursor-pointer rounded-lg overflow-hidden transition-all hover:shadow-lg active:scale-95
+                className={`cursor-pointer overflow-hidden transition-all hover:shadow-lg active:scale-95
                   ${bio.border_animation === 'rgb' ? 'bio-border-rgb' : ''} 
                   ${bio.border_animation === 'pulse' ? 'bio-border-pulse' : ''}
                   ${bio.border_animation === 'glow' ? 'bio-border-glow' : ''}
@@ -214,6 +223,7 @@ export default function LinkBioPage() {
                   ${bio.hover_animation === 'rotate' ? 'bio-hover-rotate' : ''}
                 `}
                 style={{ 
+                  borderRadius: `${bio.border_radius || 12}px`,
                   border: `${bio.border_width || 2}px ${bio.border_style || 'solid'} ${bio.border_color || '#000000'}`
                 }}
               >
@@ -227,7 +237,7 @@ export default function LinkBioPage() {
               <button
                 key={link.id}
                 onClick={() => handleLinkClick(link)}
-                className={`w-full px-4 sm:px-6 py-3 sm:py-4 rounded-full font-medium transition-all hover:shadow-lg active:scale-95 flex items-center justify-center gap-2 sm:gap-3 group text-sm sm:text-base
+                className={`w-full px-4 sm:px-6 py-3 sm:py-4 font-medium transition-all hover:shadow-lg active:scale-95 flex items-center justify-center gap-2 sm:gap-3 group text-sm sm:text-base
                   ${bio.border_animation === 'rgb' ? 'bio-border-rgb' : ''} 
                   ${bio.border_animation === 'pulse' ? 'bio-border-pulse' : ''}
                   ${bio.border_animation === 'glow' ? 'bio-border-glow' : ''}
@@ -237,6 +247,7 @@ export default function LinkBioPage() {
                   ${bio.hover_animation === 'rotate' ? 'bio-hover-rotate' : ''}
                 `}
                 style={{ 
+                  borderRadius: `${bio.border_radius || 12}px`,
                   backgroundColor: bio.button_color,
                   color: bio.button_text_color,
                   border: `${bio.border_width || 2}px ${bio.border_style || 'solid'} ${bio.border_color || '#000000'}`

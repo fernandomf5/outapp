@@ -54,6 +54,7 @@ interface LinkBio {
   border_color: string;
   border_animation: string;
   hover_animation: string;
+  border_radius: number;
   is_active: boolean;
   total_clicks: number;
   gradient_color1: string;
@@ -117,6 +118,7 @@ export function LinkBioCreator() {
   const [borderColor, setBorderColor] = useState("#000000");
   const [borderAnimation, setBorderAnimation] = useState("none");
   const [hoverAnimation, setHoverAnimation] = useState("none");
+  const [borderRadius, setBorderRadius] = useState(12);
   const [gradientColor1, setGradientColor1] = useState("#667eea");
   const [gradientColor2, setGradientColor2] = useState("#764ba2");
   
@@ -152,6 +154,7 @@ export function LinkBioCreator() {
       setBorderColor(selectedBio.border_color || '#000000');
       setBorderAnimation(selectedBio.border_animation || 'none');
       setHoverAnimation(selectedBio.hover_animation || 'none');
+      setBorderRadius(selectedBio.border_radius || 12);
       setGradientColor1(selectedBio.gradient_color1 || '#667eea');
       setGradientColor2(selectedBio.gradient_color2 || '#764ba2');
       fetchLinks(selectedBio.id);
@@ -1093,6 +1096,22 @@ export function LinkBioCreator() {
                   </Select>
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="borderRadius">Raio da Borda (px)</Label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="range"
+                      id="borderRadius"
+                      min="0"
+                      max="50"
+                      value={borderRadius}
+                      onChange={(e) => setBorderRadius(Number(e.target.value))}
+                      className="flex-1"
+                    />
+                    <span className="text-sm text-muted-foreground w-12">{borderRadius}px</span>
+                  </div>
+                </div>
+
                 <div>
                   <Label>Animação ao Passar o Mouse</Label>
                   <Select value={hoverAnimation} onValueChange={setHoverAnimation}>
@@ -1173,7 +1192,15 @@ export function LinkBioCreator() {
                             <img 
                               src={avatarUrl} 
                               alt="Avatar" 
-                              className="w-24 h-24 rounded-full mb-4 object-cover shadow-lg"
+                              className={`w-24 h-24 mb-4 object-cover shadow-lg ${
+                                borderAnimation === "rgb" ? "bio-border-rgb" : ""
+                              }`}
+                              style={{
+                                borderRadius: `${borderRadius}px`,
+                                borderWidth: `${borderWidth}px`,
+                                borderStyle: borderStyle,
+                                borderColor: borderAnimation === "none" ? borderColor : undefined,
+                              }}
                             />
                           )}
                           <h2 
@@ -1195,7 +1222,7 @@ export function LinkBioCreator() {
                               link.image_url ? (
                                 <div
                                   key={link.id}
-                                  className={`rounded-lg overflow-hidden shadow-md transition-all duration-300
+                                  className={`overflow-hidden shadow-md transition-all duration-300
                                     ${borderAnimation === 'rgb' ? 'bio-border-rgb' : ''} 
                                     ${borderAnimation === 'pulse' ? 'bio-border-pulse' : ''}
                                     ${borderAnimation === 'glow' ? 'bio-border-glow' : ''}
@@ -1205,6 +1232,7 @@ export function LinkBioCreator() {
                                     ${hoverAnimation === 'rotate' ? 'bio-hover-rotate' : ''}
                                   `}
                                   style={{ 
+                                    borderRadius: `${borderRadius}px`,
                                     border: `${borderWidth}px ${borderStyle} ${borderColor}`
                                   }}
                                 >
@@ -1217,7 +1245,7 @@ export function LinkBioCreator() {
                               ) : (
                                 <div
                                   key={link.id}
-                                  className={`px-4 py-3 rounded-full text-center font-medium shadow-md transition-all duration-300 
+                                  className={`px-4 py-3 text-center font-medium shadow-md transition-all duration-300 
                                     ${borderAnimation === 'rgb' ? 'bio-border-rgb' : ''} 
                                     ${borderAnimation === 'pulse' ? 'bio-border-pulse' : ''}
                                     ${borderAnimation === 'glow' ? 'bio-border-glow' : ''}
@@ -1227,6 +1255,7 @@ export function LinkBioCreator() {
                                     ${hoverAnimation === 'rotate' ? 'bio-hover-rotate' : ''}
                                   `}
                                   style={{ 
+                                    borderRadius: `${borderRadius}px`,
                                     backgroundColor: buttonColor,
                                     color: buttonTextColor,
                                     border: `${borderWidth}px ${borderStyle} ${borderColor}`
