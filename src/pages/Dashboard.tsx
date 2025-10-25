@@ -412,49 +412,6 @@ const Dashboard = () => {
         <SubscriptionBanner />
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-11 mb-8">
-            <TabsTrigger value="overview">{t('overview')}</TabsTrigger>
-            {hasFeature('chatbot_conversations') && (
-              <TabsTrigger value="clients" className="relative">
-                {t('clients')}
-                {unreadClientMessages > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                    {unreadClientMessages > 9 ? '9+' : unreadClientMessages}
-                  </span>
-                )}
-              </TabsTrigger>
-            )}
-            <TabsTrigger value="tools">{t('tools')}</TabsTrigger>
-            <TabsTrigger value="qrcode">
-              <QrCode className="w-4 h-4 mr-2" />
-              QR Code
-            </TabsTrigger>
-            <TabsTrigger value="management">
-              <Calendar className="w-4 h-4 mr-2" />
-              Gestão
-            </TabsTrigger>
-            <TabsTrigger value="linkbio">Link na Bio</TabsTrigger>
-            {hasFeature('link_shortener') && (
-              <TabsTrigger value="shortlinks">
-                <Link2 className="w-4 h-4 mr-2" />
-                {t('shortlinks')}
-              </TabsTrigger>
-            )}
-            {hasFeature('page_cloner') && (
-              <TabsTrigger value="cloner">{t('cloner')}</TabsTrigger>
-            )}
-            {hasFeature('ticket_system') && (
-              <TabsTrigger value="support">{t('support')}</TabsTrigger>
-            )}
-            <TabsTrigger value="voucher">Voucher</TabsTrigger>
-            <TabsTrigger 
-              value="plan" 
-              className="flex items-center gap-2 data-[state=active]:bg-success data-[state=active]:text-white"
-            >
-              <CreditCard className="w-4 h-4" />
-              Meu Plano
-            </TabsTrigger>
-          </TabsList>
 
           <TabsContent value="overview" className="space-y-6 sm:space-y-8">
         {/* Stats Grid */}
