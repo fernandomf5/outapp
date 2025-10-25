@@ -22,6 +22,8 @@ import ResetPassword from "./pages/ResetPassword";
 import ShortLinkRedirect from "./pages/ShortLinkRedirect";
 import ClonedPage from "./pages/ClonedPage";
 import LinkBioPage from "./pages/LinkBioPage";
+import AgentCustomerAuth from "./pages/AgentCustomerAuth";
+import AgentCustomerChat from "./pages/AgentCustomerChat";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +57,8 @@ const App = () => (
               } />
               <Route path="/chat/:botId" element={<PublicChat />} />
               <Route path="/chat/:botId/:slug" element={<PublicChat />} />
+              <Route path="/agent-auth/:agentId" element={<AgentCustomerAuth />} />
+              <Route path="/agent-chat/:agentId" element={<AgentCustomerChat />} />
               <Route path="/bot-builder" element={
                 <ProtectedRoute>
                   <BotBuilder />

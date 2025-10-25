@@ -247,6 +247,258 @@ export type Database = {
           },
         ]
       }
+      agent_appointments: {
+        Row: {
+          agent_id: string
+          conversation_id: string | null
+          created_at: string
+          customer_id: string
+          customer_notes: string | null
+          id: string
+          scheduled_date: string
+          service_description: string | null
+          service_name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          conversation_id?: string | null
+          created_at?: string
+          customer_id: string
+          customer_notes?: string | null
+          id?: string
+          scheduled_date: string
+          service_description?: string | null
+          service_name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          conversation_id?: string | null
+          created_at?: string
+          customer_id?: string
+          customer_notes?: string | null
+          id?: string
+          scheduled_date?: string
+          service_description?: string | null
+          service_name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_appointments_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_appointments_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "agent_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_appointments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "agent_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_conversations: {
+        Row: {
+          agent_id: string
+          created_at: string
+          customer_id: string
+          id: string
+          last_message_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          customer_id: string
+          id?: string
+          last_message_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          customer_id?: string
+          id?: string
+          last_message_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_conversations_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_conversations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "agent_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_customers: {
+        Row: {
+          agent_id: string
+          created_at: string
+          email: string
+          id: string
+          last_login_at: string | null
+          name: string
+          password_hash: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          email: string
+          id?: string
+          last_login_at?: string | null
+          name: string
+          password_hash: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          last_login_at?: string | null
+          name?: string
+          password_hash?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_customers_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          role: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          role: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "agent_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_orders: {
+        Row: {
+          agent_id: string
+          conversation_id: string | null
+          created_at: string
+          customer_id: string
+          customer_notes: string | null
+          delivery_address: string | null
+          id: string
+          items: Json
+          order_number: string
+          status: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          conversation_id?: string | null
+          created_at?: string
+          customer_id: string
+          customer_notes?: string | null
+          delivery_address?: string | null
+          id?: string
+          items?: Json
+          order_number: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          conversation_id?: string | null
+          created_at?: string
+          customer_id?: string
+          customer_notes?: string | null
+          delivery_address?: string | null
+          id?: string
+          items?: Json
+          order_number?: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_orders_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_orders_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "agent_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "agent_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_agents: {
         Row: {
           config: Json

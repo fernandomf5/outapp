@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.clone-page]
 verify_jwt = false
+
+[functions.agent-customer-auth]
+verify_jwt = false
+
+[functions.process-agent-customer-message]
+verify_jwt = false
