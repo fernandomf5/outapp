@@ -170,22 +170,8 @@ export default function ClonedPage() {
         });
       }
 
-      // 3) Append UTM params to all anchors
-      if (settings.utm_params) {
-        const params = new URLSearchParams();
-        Object.entries(settings.utm_params).forEach(([key, value]) => {
-          if (value) params.append(key, value as string);
-        });
-        if (params.toString()) {
-          doc.querySelectorAll('a[href]').forEach((a: any) => {
-            try {
-              const url = new URL(a.href, baseOrigin);
-              params.forEach((v, k) => url.searchParams.append(k, v));
-              a.setAttribute('href', url.toString());
-            } catch {}
-          });
-        }
-      }
+      // (UTM desativado conforme solicitação do cliente)
+      // Nenhuma UTM será adicionada automaticamente aos links.
 
       // 4) Normalize anchors target and security
       doc.querySelectorAll('a').forEach((a: any) => {
