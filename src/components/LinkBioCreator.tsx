@@ -40,7 +40,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 interface LinkBio {
   id: string;
   username: string;
-  custom_slug: string;
   display_name: string;
   bio: string;
   avatar_url: string;
@@ -106,7 +105,6 @@ export function LinkBioCreator() {
   
   // Form states
   const [username, setUsername] = useState("");
-  const [customSlug, setCustomSlug] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [bioText, setBioText] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -144,7 +142,6 @@ export function LinkBioCreator() {
   useEffect(() => {
     if (selectedBio) {
       setUsername(selectedBio.username);
-      setCustomSlug(selectedBio.custom_slug || '');
       setDisplayName(selectedBio.display_name || '');
       setBioText(selectedBio.bio || '');
       setAvatarUrl(selectedBio.avatar_url || '');
@@ -199,7 +196,6 @@ export function LinkBioCreator() {
   const createNewBio = () => {
     setSelectedBioId(null);
     setUsername("");
-    setCustomSlug("");
     setDisplayName("");
     setBioText("");
     setAvatarUrl("");
@@ -233,10 +229,30 @@ export function LinkBioCreator() {
 
     setLoading(true);
 
+    const cleanUsername = username.toLowerCase().replace(/[^a-z0-9-_]/g, '');
+
+    // Verificar se o username já existe (apenas ao criar novo)
+    if (!selectedBio) {
+      const { data: existingBio } = await supabase
+        .from('link_bios')
+        .select('id')
+        .eq('username', cleanUsername)
+        .maybeSingle();
+
+      if (existingBio) {
+        toast({
+          title: "Erro",
+          description: "Este nome de usuário já está em uso. Escolha outro.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+    }
+
     const bioData = {
       user_id: user.id,
-      username: username.toLowerCase().replace(/[^a-z0-9-_]/g, ''),
-      custom_slug: customSlug ? customSlug.toLowerCase().replace(/[^a-z0-9-_]/g, '') : null,
+      username: cleanUsername,
       display_name: displayName,
       bio: bioText,
       avatar_url: avatarUrl,
@@ -250,10 +266,10 @@ export function LinkBioCreator() {
       border_width: borderWidth,
       border_color: borderColor,
       border_animation: borderAnimation,
-        hover_animation: hoverAnimation,
-        border_radius: borderRadius,
-        button_spacing: buttonSpacing,
-        gradient_color1: gradientColor1,
+      hover_animation: hoverAnimation,
+      border_radius: borderRadius,
+      button_spacing: buttonSpacing,
+      gradient_color1: gradientColor1,
       gradient_color2: gradientColor2,
       is_active: true,
     };
@@ -424,9 +440,7 @@ export function LinkBioCreator() {
 
   const copyBioLink = () => {
     if (selectedBio) {
-      const link = selectedBio.custom_slug 
-        ? `${window.location.origin}/l/${selectedBio.custom_slug}`
-        : `${window.location.origin}/bio/${selectedBio.username}`;
+      const link = `${window.location.origin}/bio/${selectedBio.username}`;
       navigator.clipboard.writeText(link);
       toast({
         title: "Link copiado! 🔗",
@@ -540,9 +554,6 @@ export function LinkBioCreator() {
                     <div className="flex-1">
                       <h3 className="font-semibold">{bio.display_name || bio.username}</h3>
                       <p className="text-sm text-muted-foreground">@{bio.username}</p>
-                      {bio.custom_slug && (
-                        <p className="text-xs text-primary font-medium">/l/{bio.custom_slug}</p>
-                      )}
                       <p className="text-xs text-muted-foreground mt-1">{bio.total_clicks} cliques</p>
                     </div>
                     <div className="flex gap-1">
@@ -561,7 +572,7 @@ export function LinkBioCreator() {
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          const url = bio.custom_slug ? `/l/${bio.custom_slug}` : `/bio/${bio.username}`;
+                          const url = `/bio/${bio.username}`;
                           window.open(url, '_blank');
                         }}
                       >
