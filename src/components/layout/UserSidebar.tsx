@@ -59,14 +59,14 @@ export function UserSidebar() {
   ];
 
   const crmItems = [
-    { title: t('client_conversations'), icon: MessageSquare, path: "/dashboard", tab: "clients", feature: "chatbot_conversations" },
+    { title: t('chatbot_management'), icon: MessageSquare, path: "/dashboard", tab: "clients", feature: "chatbot_conversations" },
     { title: t('captured_leads_title'), icon: Users, path: "/dashboard", tab: "leads", feature: "chatbot_conversations" },
+    { title: t('agent_management'), icon: Calendar, path: "/dashboard", tab: "management" },
   ];
 
   const toolsItems = [
     { title: t('tools_manager'), icon: Wrench, path: "/dashboard", tab: "tools" },
     { title: "Gerador QR Code", icon: QrCode, path: "/dashboard", tab: "qrcode" },
-    { title: "Gestão de Agentes", icon: Calendar, path: "/dashboard", tab: "management" },
     { title: "Link na Bio", icon: ExternalLink, path: "/dashboard", tab: "linkbio" },
     { title: t('link_shortener_title'), icon: Link2, path: "/dashboard", tab: "shortlinks", feature: "link_shortener" },
     { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner" },
