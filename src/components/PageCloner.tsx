@@ -233,7 +233,7 @@ export const PageCloner = () => {
         : `clone-${Math.random().toString(36).substring(2, 10)}`;
 
       const selectedDomain = cloneData.selected_domain;
-      const clonedUrl = `https://${selectedDomain}/page/${slug}`;
+      const clonedUrl = `${window.location.origin}/page/${slug}`;
 
       // Detect checkout links
       const detectedLinks = detectCheckoutLinks(cloneResult.content);
@@ -571,17 +571,32 @@ export const PageCloner = () => {
                     </p>
                     <div className="flex items-center gap-2 mb-2">
                       <p className="text-sm text-primary break-all flex-1">
-                        <strong>Clone:</strong> {page.cloned_url}
+                        <strong>Pré-visualização:</strong> {page.cloned_url}
                       </p>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => window.open(page.cloned_url, '_blank')}
-                        title="Abrir página"
+                        title="Abrir pré-visualização"
                       >
                         <ExternalLink className="w-4 h-4" />
                       </Button>
                     </div>
+                    {page.custom_domain && page.slug && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <p className="text-sm break-all flex-1">
+                          <strong>Público (domínio):</strong> {`https://${page.custom_domain}/page/${page.slug}`}
+                        </p>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => window.open(`https://${page.custom_domain}/page/${page.slug}`, '_blank')}
+                          title="Abrir domínio público"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       Criado em: {new Date(page.created_at).toLocaleDateString('pt-BR')}
                     </p>
