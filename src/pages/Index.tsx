@@ -12,6 +12,7 @@ import { FAQSection } from "@/components/FAQSection";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { CookieNotice } from "@/components/CookieNotice";
 
 interface Plan {
   id: string;
@@ -41,6 +42,12 @@ const Index = () => {
   const [selectedPage, setSelectedPage] = useState<CustomPage | null>(null);
   const [pageDialogOpen, setPageDialogOpen] = useState(false);
   const [features, setFeatures] = useState<any[]>([]);
+  const [siteTitle, setSiteTitle] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
+  const [faviconUrl, setFaviconUrl] = useState("");
+  const [footerText, setFooterText] = useState("");
+  const [footerMenus, setFooterMenus] = useState<any[]>([]);
+  const [footerImages, setFooterImages] = useState<string[]>([]);
   const [landingSettings, setLandingSettings] = useState({
     hero_title: "Plataforma Completa de Automação<br />e Marketing Digital com IA",
     hero_subtitle: "Construtor visual de automações, CRM, sistema de afiliados, pixels de conversão, agentes IA e muito mais. Tudo em uma plataforma. Teste grátis por 3 dias.",
@@ -62,7 +69,10 @@ const Index = () => {
     fetchVideoUrl();
     fetchLandingSettings();
     fetchFeatures();
-  }, []);
+    fetchSiteSettings();
+    updatePageTitle();
+    updateFavicon();
+  }, [siteTitle, faviconUrl]);
 
   const fetchPlans = async () => {
     const { data, error } = await supabase
@@ -136,6 +146,61 @@ const Index = () => {
       }
     } else {
       setFeatures(getDefaultFeatures());
+    }
+  };
+
+  const fetchSiteSettings = async () => {
+    const keys = ['site_title', 'site_logo_url', 'site_favicon_url', 'footer_text', 'footer_menus', 'footer_images'];
+    const { data } = await supabase
+      .from('site_settings')
+      .select('key, value')
+      .in('key', keys);
+
+    if (data) {
+      data.forEach(item => {
+        switch(item.key) {
+          case 'site_title':
+            setSiteTitle(item.value || "Automação & Marketing");
+            break;
+          case 'site_logo_url':
+            setLogoUrl(item.value || "");
+            break;
+          case 'site_favicon_url':
+            setFaviconUrl(item.value || "");
+            break;
+          case 'footer_text':
+            setFooterText(item.value || "");
+            break;
+          case 'footer_menus':
+            try {
+              setFooterMenus(JSON.parse(item.value || '[]'));
+            } catch (e) {}
+            break;
+          case 'footer_images':
+            try {
+              setFooterImages(JSON.parse(item.value || '[]'));
+            } catch (e) {}
+            break;
+        }
+      });
+    }
+  };
+
+  const updatePageTitle = () => {
+    if (siteTitle) {
+      document.title = siteTitle;
+    }
+  };
+
+  const updateFavicon = () => {
+    if (faviconUrl) {
+      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = faviconUrl;
     }
   };
 
