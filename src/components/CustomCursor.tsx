@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export function CustomCursor() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -42,7 +43,7 @@ export function CustomCursor() {
     };
   }, []);
 
-  return (
+  return createPortal(
     <>
       {/* Main cursor */}
       <div
@@ -73,6 +74,7 @@ export function CustomCursor() {
           }}
         />
       ))}
-    </>
+    </>,
+    document.body
   );
 }
