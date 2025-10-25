@@ -106,6 +106,7 @@ export function LinkBioCreator() {
   const [newLinkUrl, setNewLinkUrl] = useState("");
   const [newLinkIcon, setNewLinkIcon] = useState("link");
   const [newLinkImage, setNewLinkImage] = useState("");
+  const [previewDevice, setPreviewDevice] = useState<"mobile" | "tablet" | "desktop">("mobile");
 
   useEffect(() => {
     if (user) {
@@ -687,46 +688,108 @@ export function LinkBioCreator() {
 
               {bio && (
                 <Card className="p-4 mt-6">
-                  <h3 className="font-semibold mb-3">Preview</h3>
-                  <div 
-                    className="rounded-lg p-6 min-h-[300px]"
-                    style={{ backgroundColor }}
-                  >
-                    <div className="flex flex-col items-center">
-                      {avatarUrl && (
-                        <img 
-                          src={avatarUrl} 
-                          alt="Avatar" 
-                          className="w-24 h-24 rounded-full mb-4"
-                        />
-                      )}
-                      <h2 
-                        className="text-xl font-bold mb-2"
-                        style={{ color: textColor }}
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold">Preview</h3>
+                    <div className="flex gap-1 bg-muted p-1 rounded-lg">
+                      <Button
+                        variant={previewDevice === "mobile" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setPreviewDevice("mobile")}
+                        className="h-8 px-3"
                       >
-                        {displayName || username}
-                      </h2>
-                      {bioText && (
-                        <p 
-                          className="text-center mb-6"
-                          style={{ color: textColor }}
-                        >
-                          {bioText}
-                        </p>
-                      )}
-                      <div className="w-full max-w-md space-y-3">
-                        {links.filter(l => l.is_active).slice(0, 3).map((link) => (
-                          <div
-                            key={link.id}
-                            className="px-4 py-3 rounded-lg text-center font-medium"
-                            style={{ 
-                              backgroundColor: buttonColor,
-                              color: buttonTextColor 
-                            }}
+                        📱 Mobile
+                      </Button>
+                      <Button
+                        variant={previewDevice === "tablet" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setPreviewDevice("tablet")}
+                        className="h-8 px-3"
+                      >
+                        📱 Tablet
+                      </Button>
+                      <Button
+                        variant={previewDevice === "desktop" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setPreviewDevice("desktop")}
+                        className="h-8 px-3"
+                      >
+                        💻 Desktop
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex justify-center bg-muted/30 p-4 rounded-lg">
+                    <div 
+                      className="rounded-lg overflow-hidden transition-all duration-300 shadow-xl"
+                      style={{ 
+                        width: previewDevice === "mobile" ? "375px" : previewDevice === "tablet" ? "768px" : "100%",
+                        maxWidth: "100%"
+                      }}
+                    >
+                      <div 
+                        className="p-6 min-h-[400px]"
+                        style={
+                          backgroundImage && backgroundImage.trim() !== ''
+                            ? {
+                                backgroundImage: `url(${backgroundImage})`,
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                                backgroundRepeat: 'no-repeat'
+                              }
+                            : backgroundColor.includes('gradient')
+                              ? { background: backgroundColor }
+                              : { backgroundColor }
+                        }
+                      >
+                        <div className="flex flex-col items-center">
+                          {avatarUrl && (
+                            <img 
+                              src={avatarUrl} 
+                              alt="Avatar" 
+                              className="w-24 h-24 rounded-full mb-4 object-cover shadow-lg"
+                            />
+                          )}
+                          <h2 
+                            className="text-xl font-bold mb-2 text-center"
+                            style={{ color: textColor }}
                           >
-                            {link.title}
+                            {displayName || username}
+                          </h2>
+                          {bioText && (
+                            <p 
+                              className="text-center mb-6 max-w-md"
+                              style={{ color: textColor }}
+                            >
+                              {bioText}
+                            </p>
+                          )}
+                          <div className="w-full max-w-md space-y-3">
+                            {links.filter(l => l.is_active).slice(0, 3).map((link) => (
+                              link.image_url ? (
+                                <div
+                                  key={link.id}
+                                  className="rounded-lg overflow-hidden shadow-md"
+                                >
+                                  <img 
+                                    src={link.image_url} 
+                                    alt={link.title}
+                                    className="w-full h-auto object-cover"
+                                  />
+                                </div>
+                              ) : (
+                                <div
+                                  key={link.id}
+                                  className="px-4 py-3 rounded-full text-center font-medium shadow-md"
+                                  style={{ 
+                                    backgroundColor: buttonColor,
+                                    color: buttonTextColor 
+                                  }}
+                                >
+                                  {link.title}
+                                </div>
+                              )
+                            ))}
                           </div>
-                        ))}
+                        </div>
                       </div>
                     </div>
                   </div>

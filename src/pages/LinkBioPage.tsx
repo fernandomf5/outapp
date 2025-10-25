@@ -150,7 +150,7 @@ export default function LinkBioPage() {
 
   return (
     <div 
-      className="min-h-screen py-12 px-4"
+      className="min-h-screen py-8 sm:py-12 px-4"
       style={
         hasBackgroundImage
           ? {
@@ -165,17 +165,17 @@ export default function LinkBioPage() {
       }
     >
       <div className="max-w-2xl mx-auto">
-        <div className="flex flex-col items-center mb-8">
+        <div className="flex flex-col items-center mb-6 sm:mb-8">
           {bio.avatar_url && (
             <img 
               src={bio.avatar_url} 
               alt={bio.display_name || bio.username}
-              className="w-32 h-32 rounded-full mb-6 shadow-lg object-cover"
+              className="w-24 h-24 sm:w-32 sm:h-32 rounded-full mb-4 sm:mb-6 shadow-lg object-cover"
             />
           )}
           
           <h1 
-            className="text-3xl font-bold mb-3 text-center"
+            className="text-2xl sm:text-3xl font-bold mb-2 sm:mb-3 text-center px-4"
             style={{ color: bio.text_color }}
           >
             {bio.display_name || bio.username}
@@ -183,7 +183,7 @@ export default function LinkBioPage() {
           
           {bio.bio && (
             <p 
-              className="text-center max-w-md mb-8"
+              className="text-center max-w-md mb-6 sm:mb-8 px-4 text-sm sm:text-base"
               style={{ color: bio.text_color }}
             >
               {bio.bio}
@@ -191,13 +191,13 @@ export default function LinkBioPage() {
           )}
         </div>
 
-        <div className="space-y-4 max-w-md mx-auto">
+        <div className="space-y-3 sm:space-y-4 max-w-md mx-auto px-4">
           {links.map((link) => (
             link.image_url ? (
               <div
                 key={link.id}
                 onClick={() => handleLinkClick(link)}
-                className="cursor-pointer rounded-lg overflow-hidden transition-all hover:scale-105 hover:shadow-lg"
+                className="cursor-pointer rounded-lg overflow-hidden transition-all hover:scale-105 hover:shadow-lg active:scale-95"
               >
                 <img 
                   src={link.image_url} 
@@ -209,7 +209,7 @@ export default function LinkBioPage() {
               <button
                 key={link.id}
                 onClick={() => handleLinkClick(link)}
-                className="w-full px-6 py-4 rounded-full font-medium transition-all hover:scale-105 hover:shadow-lg flex items-center justify-center gap-3 group"
+                className="w-full px-4 sm:px-6 py-3 sm:py-4 rounded-full font-medium transition-all hover:scale-105 hover:shadow-lg active:scale-95 flex items-center justify-center gap-2 sm:gap-3 group text-sm sm:text-base"
                 style={{ 
                   backgroundColor: bio.button_color,
                   color: bio.button_text_color 
@@ -224,8 +224,8 @@ export default function LinkBioPage() {
         </div>
 
         {links.length === 0 && (
-          <div className="text-center py-12">
-            <p style={{ color: bio.text_color }} className="opacity-60">
+          <div className="text-center py-12 px-4">
+            <p style={{ color: bio.text_color }} className="opacity-60 text-sm sm:text-base">
               Nenhum link disponível no momento
             </p>
           </div>
