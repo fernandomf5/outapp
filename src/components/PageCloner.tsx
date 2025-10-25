@@ -5,14 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Globe, Copy, Trash2, Link2, Settings, BarChart3, Loader2, ExternalLink, MousePointerClick } from "lucide-react";
+import { Globe, Copy, Trash2, Link2, Settings, BarChart3, Loader2, ExternalLink, MousePointerClick, Plus } from "lucide-react";
 
 interface ClonedPage {
   id: string;
@@ -23,6 +23,14 @@ interface ClonedPage {
   custom_domain: string | null;
   slug: string | null;
   clicks: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+interface CustomDomain {
+  id: string;
+  domain: string;
+  is_verified: boolean;
   is_active: boolean;
   created_at: string;
 }
@@ -40,10 +48,13 @@ export const PageCloner = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [clonedPages, setClonedPages] = useState<ClonedPage[]>([]);
+  const [customDomains, setCustomDomains] = useState<CustomDomain[]>([]);
   const [isCloneDialogOpen, setIsCloneDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDomainDialogOpen, setIsDomainDialogOpen] = useState(false);
   const [selectedPage, setSelectedPage] = useState<ClonedPage | null>(null);
   const [isCloning, setIsCloning] = useState(false);
+  const [newDomain, setNewDomain] = useState("");
   const [availableDomains, setAvailableDomains] = useState<string[]>([]);
   const [cloneData, setCloneData] = useState({
     original_url: "",
@@ -68,9 +79,15 @@ export const PageCloner = () => {
   useEffect(() => {
     if (user) {
       fetchClonedPages();
-      fetchUserDomains();
+      fetchCustomDomains();
     }
   }, [user]);
+
+  useEffect(() => {
+    // Atualizar lista de domínios disponíveis
+    const userDomains = customDomains.map(d => d.domain);
+    setAvailableDomains([...GENERIC_DOMAINS, ...userDomains]);
+  }, [customDomains]);
 
   const fetchClonedPages = async () => {
     const { data, error } = await supabase
@@ -85,26 +102,87 @@ export const PageCloner = () => {
     }
   };
 
-  const fetchUserDomains = async () => {
-    // Buscar domínios personalizados do usuário
+  const fetchCustomDomains = async () => {
     const { data, error } = await supabase
-      .from('cloned_pages')
-      .select('custom_domain')
+      .from('custom_domains')
+      .select('*')
       .eq('user_id', user!.id)
-      .not('custom_domain', 'is', null);
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
 
     if (!error && data) {
-      const userDomains = [...new Set(data.map(d => d.custom_domain).filter(Boolean))];
-      
-      // Combinar domínios personalizados com domínios genéricos
-      if (userDomains.length > 0) {
-        setAvailableDomains([...userDomains, ...GENERIC_DOMAINS]);
-      } else {
-        setAvailableDomains(GENERIC_DOMAINS);
-      }
-    } else {
-      setAvailableDomains(GENERIC_DOMAINS);
+      setCustomDomains(data);
     }
+  };
+
+  const handleAddDomain = async () => {
+    if (!newDomain.trim()) {
+      toast({
+        title: "Erro",
+        description: "Por favor, insira um domínio válido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validar formato do domínio
+    const domainRegex = /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,}$/i;
+    if (!domainRegex.test(newDomain.trim())) {
+      toast({
+        title: "Erro",
+        description: "Formato de domínio inválido. Use algo como: seudominio.com",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from("custom_domains")
+      .insert({
+        user_id: user!.id,
+        domain: newDomain.trim().toLowerCase(),
+        is_verified: false,
+        is_active: true,
+      });
+
+    if (error) {
+      toast({
+        title: "Erro ao adicionar domínio",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Domínio adicionado!",
+      description: "Configure os registros DNS conforme as instruções.",
+    });
+
+    setNewDomain("");
+    fetchCustomDomains();
+  };
+
+  const handleDeleteDomain = async (domainId: string) => {
+    const { error } = await supabase
+      .from("custom_domains")
+      .delete()
+      .eq("id", domainId);
+
+    if (error) {
+      toast({
+        title: "Erro ao remover domínio",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Domínio removido com sucesso",
+    });
+
+    fetchCustomDomains();
   };
 
   const handleClonePage = async () => {
@@ -300,90 +378,97 @@ export const PageCloner = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-bold">Clonador de Páginas Profissional</h2>
           <p className="text-sm text-muted-foreground mt-1">
             Clone landing pages e personalize links, pixels e códigos
           </p>
         </div>
-        <Dialog open={isCloneDialogOpen} onOpenChange={setIsCloneDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gradient-primary">
-              <Globe className="w-4 h-4 mr-2" />
-              Clonar Nova Página
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Clonar Nova Página</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 mt-4">
-              <div>
-                <Label>URL da Página Original *</Label>
-                <Input
-                  value={cloneData.original_url}
-                  onChange={(e) => setCloneData({ ...cloneData, original_url: e.target.value })}
-                  placeholder="https://exemplo.com/landing-page"
-                  disabled={isCloning}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Cole a URL completa da página que deseja clonar
-                </p>
-              </div>
-              <div>
-                <Label>Selecione o Domínio *</Label>
-                <Select
-                  value={cloneData.selected_domain}
-                  onValueChange={(value) => setCloneData({ ...cloneData, selected_domain: value })}
+        <div className="flex gap-2">
+          <Dialog open={isCloneDialogOpen} onOpenChange={setIsCloneDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gradient-primary">
+                <Globe className="w-4 h-4 mr-2" />
+                Clonar Nova Página
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Clonar Nova Página</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 mt-4">
+                <div>
+                  <Label>URL da Página Original *</Label>
+                  <Input
+                    value={cloneData.original_url}
+                    onChange={(e) => setCloneData({ ...cloneData, original_url: e.target.value })}
+                    placeholder="https://exemplo.com/landing-page"
+                    disabled={isCloning}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Cole a URL completa da página que deseja clonar
+                  </p>
+                </div>
+                <div>
+                  <Label>Selecione o Domínio *</Label>
+                  <Select
+                    value={cloneData.selected_domain}
+                    onValueChange={(value) => setCloneData({ ...cloneData, selected_domain: value })}
+                    disabled={isCloning}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Escolha um domínio" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableDomains.map((domain) => (
+                        <SelectItem key={domain} value={domain}>
+                          {domain}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {customDomains.length > 0 
+                      ? "Seus domínios personalizados e domínios genéricos disponíveis"
+                      : "Domínios genéricos da BotRealsZap"}
+                  </p>
+                </div>
+                <div>
+                  <Label>Slug Personalizada (Opcional)</Label>
+                  <Input
+                    value={cloneData.custom_slug}
+                    onChange={(e) => setCloneData({ ...cloneData, custom_slug: e.target.value })}
+                    placeholder="minha-pagina"
+                    disabled={isCloning}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Use letras, números e hífens. URL final: {cloneData.selected_domain || 'selecione-dominio'}/page/{cloneData.custom_slug || 'sua-slug'}
+                  </p>
+                </div>
+                <Button 
+                  onClick={handleClonePage} 
+                  className="w-full gradient-primary"
                   disabled={isCloning}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Escolha um domínio" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableDomains.map((domain) => (
-                      <SelectItem key={domain} value={domain}>
-                        {domain}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {availableDomains.length > GENERIC_DOMAINS.length 
-                    ? "Seus domínios personalizados e domínios genéricos disponíveis"
-                    : "Domínios genéricos da BotRealsZap para clonadores de páginas"}
-                </p>
+                  {isCloning ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Clonando...
+                    </>
+                  ) : (
+                    "Clonar Página"
+                  )}
+                </Button>
               </div>
-              <div>
-                <Label>Slug Personalizada (Opcional)</Label>
-                <Input
-                  value={cloneData.custom_slug}
-                  onChange={(e) => setCloneData({ ...cloneData, custom_slug: e.target.value })}
-                  placeholder="minha-pagina"
-                  disabled={isCloning}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Deixe vazio para gerar automaticamente. Use apenas letras, números e hífens. URL final: https://{cloneData.selected_domain || 'selecione-dominio'}/page/{cloneData.custom_slug || 'sua-slug'}
-                </p>
-              </div>
-              <Button 
-                onClick={handleClonePage} 
-                className="w-full gradient-primary"
-                disabled={isCloning}
-              >
-                {isCloning ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Clonando...
-                  </>
-                ) : (
-                  "Clonar Página"
-                )}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+          
+          <Button variant="outline" onClick={() => setIsDomainDialogOpen(true)}>
+            <Settings className="w-4 h-4 mr-2" />
+            Configurar Domínio Próprio
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -699,7 +784,6 @@ export const PageCloner = () => {
               </div>
             </TabsContent>
 
-
             <TabsContent value="pixels" className="space-y-4">
               <div>
                 <Label>Pixels e Tags de Conversão</Label>
@@ -810,6 +894,108 @@ export const PageCloner = () => {
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
               Cancelar
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Configuração de Domínio Próprio */}
+      <Dialog open={isDomainDialogOpen} onOpenChange={setIsDomainDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Configurar Domínio Próprio</DialogTitle>
+            <DialogDescription>
+              Adicione seus próprios domínios para usar nas páginas clonadas
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Instruções de DNS */}
+            <div className="bg-muted p-4 rounded-lg space-y-3">
+              <h3 className="font-semibold text-sm">Como Configurar o DNS:</h3>
+              <ol className="list-decimal list-inside space-y-2 text-sm">
+                <li>Acesse o painel de controle do seu provedor de domínio</li>
+                <li>Adicione um registro do tipo <strong>A</strong></li>
+                <li>Configure os seguintes valores:
+                  <div className="bg-background p-2 rounded mt-2 ml-4">
+                    <div><strong>Tipo:</strong> A</div>
+                    <div><strong>Nome:</strong> @ (para domínio raiz) ou www</div>
+                    <div><strong>Valor:</strong> 185.158.133.1</div>
+                    <div><strong>TTL:</strong> 3600 (ou automático)</div>
+                  </div>
+                </li>
+                <li>Aguarde a propagação do DNS (pode levar até 24-48 horas)</li>
+                <li>O SSL (HTTPS) será provisionado automaticamente</li>
+              </ol>
+            </div>
+
+            {/* Adicionar novo domínio */}
+            <div className="space-y-2">
+              <Label htmlFor="new-domain">Adicionar Novo Domínio</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="new-domain"
+                  placeholder="exemplo.com"
+                  value={newDomain}
+                  onChange={(e) => setNewDomain(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddDomain()}
+                />
+                <Button onClick={handleAddDomain}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Digite apenas o domínio sem http:// ou https://
+              </p>
+            </div>
+
+            {/* Lista de domínios cadastrados */}
+            {customDomains.length > 0 && (
+              <div className="space-y-2">
+                <Label>Seus Domínios Cadastrados</Label>
+                <div className="space-y-2">
+                  {customDomains.map((domain) => (
+                    <div
+                      key={domain.id}
+                      className="flex items-center justify-between p-3 border rounded-lg"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Globe className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-mono text-sm">{domain.domain}</span>
+                        {domain.is_verified && (
+                          <Badge variant="default" className="text-xs">
+                            Verificado
+                          </Badge>
+                        )}
+                        {!domain.is_verified && (
+                          <Badge variant="secondary" className="text-xs">
+                            Aguardando DNS
+                          </Badge>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteDomain(domain.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Dicas */}
+            <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
+              <h4 className="font-semibold text-sm mb-2">💡 Dicas Importantes:</h4>
+              <ul className="text-sm space-y-1 list-disc list-inside">
+                <li>Remova qualquer registro A, AAAA ou CNAME existente antes de adicionar o novo</li>
+                <li>Use ferramentas como DNSChecker.org para verificar a propagação</li>
+                <li>Se o domínio já estava em outro projeto, remova-o de lá primeiro</li>
+                <li>Domínios só podem estar conectados a um projeto por vez</li>
+              </ul>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
