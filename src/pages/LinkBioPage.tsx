@@ -16,6 +16,9 @@ interface LinkBio {
   button_color: string;
   button_text_color: string;
   background_image: string;
+  border_style: string;
+  border_width: number;
+  border_color: string;
   is_active: boolean;
 }
 
@@ -209,10 +212,15 @@ export default function LinkBioPage() {
               <button
                 key={link.id}
                 onClick={() => handleLinkClick(link)}
-                className="w-full px-4 sm:px-6 py-3 sm:py-4 rounded-full font-medium transition-all hover:scale-105 hover:shadow-lg active:scale-95 flex items-center justify-center gap-2 sm:gap-3 group text-sm sm:text-base"
+                className={`w-full px-4 sm:px-6 py-3 sm:py-4 rounded-full font-medium transition-all hover:scale-105 hover:shadow-lg active:scale-95 flex items-center justify-center gap-2 sm:gap-3 group text-sm sm:text-base ${
+                  bio.border_style === 'rgb' ? 'rgb-border' : ''
+                }`}
                 style={{ 
                   backgroundColor: bio.button_color,
-                  color: bio.button_text_color 
+                  color: bio.button_text_color,
+                  ...(bio.border_style !== 'rgb' && {
+                    border: `${bio.border_width || 2}px ${bio.border_style || 'solid'} ${bio.border_color || '#000000'}`
+                  })
                 }}
               >
                 <IconComponent iconName={link.icon} />

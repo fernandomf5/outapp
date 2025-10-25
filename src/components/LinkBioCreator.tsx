@@ -49,6 +49,9 @@ interface LinkBio {
   button_color: string;
   button_text_color: string;
   background_image: string;
+  border_style: string;
+  border_width: number;
+  border_color: string;
   is_active: boolean;
   total_clicks: number;
 }
@@ -102,6 +105,9 @@ export function LinkBioCreator() {
   const [buttonColor, setButtonColor] = useState("#000000");
   const [buttonTextColor, setButtonTextColor] = useState("#ffffff");
   const [backgroundImage, setBackgroundImage] = useState("");
+  const [borderStyle, setBorderStyle] = useState("solid");
+  const [borderWidth, setBorderWidth] = useState(2);
+  const [borderColor, setBorderColor] = useState("#000000");
   
   // New link states
   const [newLinkTitle, setNewLinkTitle] = useState("");
@@ -139,6 +145,9 @@ export function LinkBioCreator() {
       setButtonColor(bioData.button_color);
       setButtonTextColor(bioData.button_text_color);
       setBackgroundImage(bioData.background_image || '');
+      setBorderStyle(bioData.border_style || 'solid');
+      setBorderWidth(bioData.border_width || 2);
+      setBorderColor(bioData.border_color || '#000000');
       
       fetchLinks(bioData.id);
     }
@@ -180,6 +189,9 @@ export function LinkBioCreator() {
       button_color: buttonColor,
       button_text_color: buttonTextColor,
       background_image: backgroundImage,
+      border_style: borderStyle,
+      border_width: borderWidth,
+      border_color: borderColor,
       is_active: true,
     };
 
@@ -805,6 +817,79 @@ export function LinkBioCreator() {
                 <p className="text-xs text-muted-foreground mt-1">
                   A imagem de fundo sobrepõe a cor de fundo
                 </p>
+              </div>
+
+              <div className="space-y-4 p-4 border rounded-lg bg-accent/20">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <Palette className="w-5 h-5" />
+                  Bordas dos Botões
+                </h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="borderStyle">Estilo da Borda</Label>
+                    <Select value={borderStyle} onValueChange={setBorderStyle}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="solid">Sólida</SelectItem>
+                        <SelectItem value="dashed">Tracejada</SelectItem>
+                        <SelectItem value="dotted">Pontilhada</SelectItem>
+                        <SelectItem value="double">Dupla</SelectItem>
+                        <SelectItem value="rgb">RGB Animado 🌈</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="borderWidth">Largura da Borda</Label>
+                    <Select value={borderWidth.toString()} onValueChange={(v) => setBorderWidth(Number(v))}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1px</SelectItem>
+                        <SelectItem value="2">2px</SelectItem>
+                        <SelectItem value="3">3px</SelectItem>
+                        <SelectItem value="4">4px</SelectItem>
+                        <SelectItem value="5">5px</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {borderStyle !== 'rgb' && (
+                  <div>
+                    <Label htmlFor="borderColor">Cor da Borda</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal"
+                        >
+                          <div className="flex items-center gap-2 w-full">
+                            <Pipette className="w-4 h-4" />
+                            <div
+                              className="h-6 w-6 rounded border"
+                              style={{ backgroundColor: borderColor }}
+                            />
+                            <span className="flex-1">{borderColor}</span>
+                          </div>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-3">
+                        <HexColorPicker color={borderColor} onChange={setBorderColor} />
+                        <Input
+                          value={borderColor}
+                          onChange={(e) => setBorderColor(e.target.value)}
+                          className="mt-2"
+                          placeholder="#000000"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                )}
               </div>
 
               <Button onClick={createOrUpdateBio} disabled={loading} className="w-full">
