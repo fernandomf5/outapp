@@ -258,6 +258,9 @@ export const PageCloner = () => {
   const handleUpdateSettings = async () => {
     if (!selectedPage) return;
 
+    const replacedCount = editSettings.detected_checkout_links.filter(l => l.replaced).length;
+    const customLinksCount = editSettings.custom_links.length;
+
     const { error } = await supabase
       .from('cloned_pages')
       .update({
@@ -272,7 +275,10 @@ export const PageCloner = () => {
         variant: "destructive"
       });
     } else {
-      toast({ title: "Configurações atualizadas com sucesso!" });
+      toast({ 
+        title: "✅ Configurações salvas!",
+        description: `${replacedCount} link(s) de checkout e ${customLinksCount} link(s) personalizado(s) configurados. Abra sua página para ver as mudanças.`
+      });
       await fetchClonedPages();
       setIsEditDialogOpen(false);
     }
@@ -613,11 +619,20 @@ export const PageCloner = () => {
 
             <TabsContent value="checkout" className="space-y-4">
               <div className="space-y-4">
+                <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+                  <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">💡 Como modificar links</h4>
+                  <ol className="text-xs text-blue-800 dark:text-blue-200 space-y-1 list-decimal list-inside">
+                    <li>Cole seu link de afiliado no campo abaixo de cada link original</li>
+                    <li>Clique em "Salvar Configurações" no final da página</li>
+                    <li>Abra sua página clonada para ver as mudanças</li>
+                  </ol>
+                </div>
+                
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-semibold">Links de Checkout Detectados</h4>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {editSettings.detected_checkout_links.length} link(s) de checkout/afiliado detectado(s)
+                      {editSettings.detected_checkout_links.length} link(s) detectado(s) • {editSettings.detected_checkout_links.filter(l => l.replaced).length} configurado(s)
                     </p>
                   </div>
                   <Button
@@ -671,23 +686,25 @@ export const PageCloner = () => {
                             )}
                           </div>
                           
-                          <div>
-                            <Label className="text-xs">Seu Link de Afiliado</Label>
-                            <div className="flex gap-2">
-                              <Input
-                                placeholder="Cole seu link de afiliado aqui"
-                                value={link.newUrl || ''}
-                                onChange={(e) => {
-                                  const newLinks = [...editSettings.detected_checkout_links];
-                                  newLinks[index] = { 
-                                    ...newLinks[index], 
-                                    newUrl: e.target.value,
-                                    replaced: !!e.target.value 
-                                  };
-                                  setEditSettings({ ...editSettings, detected_checkout_links: newLinks });
-                                }}
-                                className="text-xs"
-                              />
+                           <div>
+                             <Label className="text-xs font-semibold">
+                               Seu Link de Afiliado {link.replaced && '✓'}
+                             </Label>
+                             <div className="flex gap-2">
+                               <Input
+                                 placeholder="https://seu-link-de-afiliado.com"
+                                 value={link.newUrl || ''}
+                                 onChange={(e) => {
+                                   const newLinks = [...editSettings.detected_checkout_links];
+                                   newLinks[index] = { 
+                                     ...newLinks[index], 
+                                     newUrl: e.target.value,
+                                     replaced: !!e.target.value 
+                                   };
+                                   setEditSettings({ ...editSettings, detected_checkout_links: newLinks });
+                                 }}
+                                 className={`text-xs ${link.newUrl ? 'border-success' : ''}`}
+                               />
                               {link.newUrl && (
                                 <Button
                                   size="sm"
@@ -723,10 +740,18 @@ export const PageCloner = () => {
 
             <TabsContent value="links" className="space-y-4">
               <div className="space-y-4">
+                <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
+                  <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-2">🎯 Links Personalizados</h4>
+                  <p className="text-xs text-amber-800 dark:text-amber-200">
+                    Use seletores CSS para modificar links específicos. Exemplo: <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">a.btn-checkout</code> ou <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">#button-comprar</code>
+                  </p>
+                </div>
+                
                 <div className="flex items-center justify-between">
-                  <Label>Links Personalizados</Label>
+                  <Label>Links Personalizados ({editSettings.custom_links.length})</Label>
                   <Button size="sm" variant="outline" onClick={addCustomLink}>
-                    + Adicionar Link
+                    <Plus className="w-4 h-4 mr-2" />
+                    Adicionar Link
                   </Button>
                 </div>
                 {editSettings.custom_links.map((link, index) => (
@@ -875,11 +900,14 @@ export const PageCloner = () => {
             </TabsContent>
           </Tabs>
 
-          <div className="flex gap-2 mt-4">
-            <Button onClick={handleUpdateSettings} className="flex-1 gradient-primary">
-              Salvar Configurações
+          <div className="flex gap-2 mt-6 pt-4 border-t">
+            <Button 
+              onClick={handleUpdateSettings} 
+              className="flex-1 gradient-primary text-lg py-6"
+            >
+              💾 Salvar Todas as Configurações
             </Button>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="py-6">
               Cancelar
             </Button>
           </div>
