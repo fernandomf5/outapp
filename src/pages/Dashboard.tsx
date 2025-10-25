@@ -30,6 +30,7 @@ import { CapturedLeads } from "@/components/CapturedLeads";
 import { LinkBioCreator } from "@/components/LinkBioCreator";
 import { MyChatbots } from "@/components/MyChatbots";
 import { MyAIAgents } from "@/components/MyAIAgents";
+import { CustomCursor } from "@/components/CustomCursor";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -331,8 +332,10 @@ const Dashboard = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+    <>
+      <CustomCursor />
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full bg-background">
         <UserSidebar />
         
         <div className="flex-1 flex flex-col">
@@ -871,6 +874,7 @@ const Dashboard = () => {
         </div>
       </div>
     </SidebarProvider>
+    </>
   );
 };
 
