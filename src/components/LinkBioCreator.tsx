@@ -40,6 +40,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 interface LinkBio {
   id: string;
   username: string;
+  custom_slug: string;
   display_name: string;
   bio: string;
   avatar_url: string;
@@ -105,6 +106,7 @@ export function LinkBioCreator() {
   
   // Form states
   const [username, setUsername] = useState("");
+  const [customSlug, setCustomSlug] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [bioText, setBioText] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -142,6 +144,7 @@ export function LinkBioCreator() {
   useEffect(() => {
     if (selectedBio) {
       setUsername(selectedBio.username);
+      setCustomSlug(selectedBio.custom_slug || '');
       setDisplayName(selectedBio.display_name || '');
       setBioText(selectedBio.bio || '');
       setAvatarUrl(selectedBio.avatar_url || '');
@@ -174,7 +177,7 @@ export function LinkBioCreator() {
       .order('created_at', { ascending: false });
 
     if (biosData && biosData.length > 0) {
-      setBios(biosData as unknown as LinkBio[]);
+      setBios(biosData as LinkBio[]);
       if (!selectedBioId) {
         setSelectedBioId(biosData[0].id);
       }
@@ -196,6 +199,7 @@ export function LinkBioCreator() {
   const createNewBio = () => {
     setSelectedBioId(null);
     setUsername("");
+    setCustomSlug("");
     setDisplayName("");
     setBioText("");
     setAvatarUrl("");
@@ -232,6 +236,7 @@ export function LinkBioCreator() {
     const bioData = {
       user_id: user.id,
       username: username.toLowerCase().replace(/[^a-z0-9-_]/g, ''),
+      custom_slug: customSlug ? customSlug.toLowerCase().replace(/[^a-z0-9-_]/g, '') : null,
       display_name: displayName,
       bio: bioText,
       avatar_url: avatarUrl,
@@ -419,7 +424,9 @@ export function LinkBioCreator() {
 
   const copyBioLink = () => {
     if (selectedBio) {
-      const link = `${window.location.origin}/bio/${selectedBio.username}`;
+      const link = selectedBio.custom_slug 
+        ? `${window.location.origin}/l/${selectedBio.custom_slug}`
+        : `${window.location.origin}/bio/${selectedBio.username}`;
       navigator.clipboard.writeText(link);
       toast({
         title: "Link copiado! 🔗",
@@ -533,6 +540,9 @@ export function LinkBioCreator() {
                     <div className="flex-1">
                       <h3 className="font-semibold">{bio.display_name || bio.username}</h3>
                       <p className="text-sm text-muted-foreground">@{bio.username}</p>
+                      {bio.custom_slug && (
+                        <p className="text-xs text-primary font-medium">/l/{bio.custom_slug}</p>
+                      )}
                       <p className="text-xs text-muted-foreground mt-1">{bio.total_clicks} cliques</p>
                     </div>
                     <div className="flex gap-1">
@@ -551,7 +561,8 @@ export function LinkBioCreator() {
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          window.open(`/bio/${bio.username}`, '_blank');
+                          const url = bio.custom_slug ? `/l/${bio.custom_slug}` : `/bio/${bio.username}`;
+                          window.open(url, '_blank');
                         }}
                       >
                         <ExternalLink className="w-4 h-4" />
@@ -608,6 +619,24 @@ export function LinkBioCreator() {
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Apenas letras, números, - e _
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="customSlug">Link Personalizado (Opcional)</Label>
+                <div className="flex gap-2">
+                  <span className="flex items-center px-3 py-2 bg-muted rounded-l-md text-muted-foreground">
+                    /l/
+                  </span>
+                  <Input
+                    id="customSlug"
+                    value={customSlug}
+                    onChange={(e) => setCustomSlug(e.target.value)}
+                    placeholder="meulink"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Link curto e personalizado. Apenas letras, números, - e _
                 </p>
               </div>
 

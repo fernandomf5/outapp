@@ -47,6 +47,7 @@ const App = () => (
               <Route path="/page4/:slug" element={<ClonedPage />} />
               <Route path="/page5/:slug" element={<ClonedPage />} />
               <Route path="/bio/:username" element={<LinkBioPage />} />
+              <Route path="/l/:slug" element={<LinkBioPage />} />
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Dashboard />

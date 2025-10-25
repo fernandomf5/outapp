@@ -7,6 +7,7 @@ import { Link2, Instagram, Youtube, Facebook, Twitter, Linkedin, Mail, Phone, Gl
 interface LinkBio {
   id: string;
   username: string;
+  custom_slug: string;
   display_name: string;
   bio: string;
   avatar_url: string;
@@ -51,16 +52,16 @@ const iconOptions = {
 };
 
 export default function LinkBioPage() {
-  const { username } = useParams<{ username: string }>();
+  const { username, slug } = useParams<{ username?: string; slug?: string }>();
   const [bio, setBio] = useState<LinkBio | null>(null);
   const [links, setLinks] = useState<BioLink[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (username) {
+    if (username || slug) {
       fetchBioPage();
     }
-  }, [username]);
+  }, [username, slug]);
 
   useEffect(() => {
     if (bio) {
@@ -82,15 +83,22 @@ export default function LinkBioPage() {
   }, [bio]);
 
   const fetchBioPage = async () => {
-    const { data: bioData } = await supabase
+    let query = supabase
       .from('link_bios')
       .select('*')
-      .eq('username', username)
-      .eq('is_active', true)
-      .single();
+      .eq('is_active', true);
+
+    // Buscar por slug personalizado ou username
+    if (slug) {
+      query = query.eq('custom_slug', slug);
+    } else if (username) {
+      query = query.eq('username', username);
+    }
+
+    const { data: bioData } = await query.single();
 
     if (bioData) {
-      setBio(bioData as unknown as LinkBio);
+      setBio(bioData as LinkBio);
       
       const { data: linksData } = await supabase
         .from('link_bio_links')
