@@ -64,6 +64,7 @@ export const PageCloner = () => {
     custom_links: [] as { selector: string; newUrl: string }[],
     detected_checkout_links: [] as { originalUrl: string; text: string; replaced?: boolean; newUrl?: string }[],
     tracking_pixels: "",
+    traffic_tracking_link: "",
     whatsapp_button: {
       enabled: false,
       phone: "",
@@ -360,6 +361,7 @@ export const PageCloner = () => {
       custom_links: settings.custom_links || [],
       detected_checkout_links: settings.detected_checkout_links || [],
       tracking_pixels: settings.tracking_pixels || "",
+      traffic_tracking_link: settings.traffic_tracking_link || "",
       whatsapp_button: settings.whatsapp_button || {
         enabled: false,
         phone: "",
@@ -740,6 +742,35 @@ export const PageCloner = () => {
 
             <TabsContent value="links" className="space-y-4">
               <div className="space-y-4">
+                {/* Link Marca Tráfego */}
+                <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2 flex items-center gap-2">
+                    📊 Link Marca Tráfego
+                  </h4>
+                  <p className="text-xs text-blue-800 dark:text-blue-200 mb-3">
+                    Configure um link para rastrear de onde vem o tráfego da sua página clonada. 
+                    Útil para identificar a origem dos visitantes (Facebook, Instagram, Google Ads, TikTok, etc).
+                  </p>
+                  <div className="space-y-2">
+                    <Label htmlFor="traffic-link" className="text-sm">URL de Rastreamento</Label>
+                    <Input
+                      id="traffic-link"
+                      placeholder="https://seudominio.com/rastreio?source=facebook&campaign=lancamento"
+                      value={editSettings.traffic_tracking_link || ''}
+                      onChange={(e) => setEditSettings({
+                        ...editSettings,
+                        traffic_tracking_link: e.target.value
+                      })}
+                      className="font-mono text-xs"
+                    />
+                    <p className="text-xs text-blue-700 dark:text-blue-300">
+                      💡 <strong>Dica:</strong> Use parâmetros UTM para rastreamento detalhado. 
+                      Exemplos: <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">?utm_source=facebook&utm_campaign=promo</code> ou 
+                      <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded ml-1">?source=instagram&ref=stories</code>
+                    </p>
+                  </div>
+                </div>
+
                 <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
                   <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-2">🎯 Links Personalizados</h4>
                   <p className="text-xs text-amber-800 dark:text-amber-200">
