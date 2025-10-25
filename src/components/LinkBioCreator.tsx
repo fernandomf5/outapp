@@ -36,6 +36,7 @@ import { Switch } from "@/components/ui/switch";
 import { AvatarUpload } from "@/components/AvatarUpload";
 import { HexColorPicker } from "react-colorful";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 
 interface LinkBio {
   id: string;
@@ -74,6 +75,16 @@ interface BioLink {
   clicks: number;
 }
 
+interface CustomDomain {
+  id: string;
+  domain: string;
+  is_verified: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+}
+
 const iconOptions = [
   { value: 'link', label: 'Link', icon: Link2 },
   { value: 'instagram', label: 'Instagram', icon: Instagram },
@@ -99,6 +110,9 @@ export function LinkBioCreator() {
   const [bios, setBios] = useState<LinkBio[]>([]);
   const [selectedBioId, setSelectedBioId] = useState<string | null>(null);
   const [links, setLinks] = useState<BioLink[]>([]);
+  const [customDomains, setCustomDomains] = useState<CustomDomain[]>([]);
+  const [newDomain, setNewDomain] = useState("");
+  const [isDomainDialogOpen, setIsDomainDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   
@@ -138,6 +152,7 @@ export function LinkBioCreator() {
   useEffect(() => {
     if (user) {
       fetchBios();
+      fetchCustomDomains();
     }
   }, [user]);
 
@@ -194,6 +209,91 @@ export function LinkBioCreator() {
     if (data) {
       setLinks(data);
     }
+  };
+
+  const fetchCustomDomains = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from('custom_domains')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      setCustomDomains(data);
+    }
+  };
+
+  const handleAddDomain = async () => {
+    if (!newDomain.trim()) {
+      toast({
+        title: "Erro",
+        description: "Por favor, insira um domínio válido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validar formato do domínio
+    const domainRegex = /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,}$/i;
+    if (!domainRegex.test(newDomain.trim())) {
+      toast({
+        title: "Erro",
+        description: "Formato de domínio inválido. Use algo como: seudominio.com",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from("custom_domains")
+      .insert({
+        user_id: user!.id,
+        domain: newDomain.trim().toLowerCase(),
+        is_verified: false,
+        is_active: true,
+      });
+
+    if (error) {
+      toast({
+        title: "Erro ao adicionar domínio",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Domínio adicionado!",
+      description: "Configure os registros DNS conforme as instruções.",
+    });
+
+    setNewDomain("");
+    fetchCustomDomains();
+  };
+
+  const handleDeleteDomain = async (domainId: string) => {
+    const { error } = await supabase
+      .from("custom_domains")
+      .delete()
+      .eq("id", domainId);
+
+    if (error) {
+      toast({
+        title: "Erro ao remover domínio",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Domínio removido com sucesso",
+    });
+
+    fetchCustomDomains();
   };
 
   const createNewBio = () => {
@@ -626,14 +726,31 @@ export function LinkBioCreator() {
 
               <div>
                 <Label htmlFor="customDomain">Domínio Próprio (Opcional)</Label>
-                <Input
-                  id="customDomain"
-                  value={customDomain}
-                  onChange={(e) => setCustomDomain(e.target.value)}
-                  placeholder="meusite.com.br"
-                />
+                <div className="flex gap-2">
+                  <Select value={customDomain} onValueChange={setCustomDomain}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um domínio cadastrado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Sem domínio próprio</SelectItem>
+                      {customDomains.map((domain) => (
+                        <SelectItem key={domain.id} value={domain.domain}>
+                          {domain.domain}
+                          {domain.is_verified ? " ✓" : " (Aguardando DNS)"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsDomainDialogOpen(true)}
+                    type="button"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Configure seu domínio próprio. Exemplo: meusite.com.br
+                  Configure seu domínio próprio clicando no botão +
                 </p>
               </div>
 
@@ -1350,6 +1467,98 @@ export function LinkBioCreator() {
           </div>
         </Card>
       )}
+
+      {/* Dialog de Gerenciamento de Domínios */}
+      <Dialog open={isDomainDialogOpen} onOpenChange={setIsDomainDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Domínios Personalizados</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Adicionar novo domínio */}
+            <div className="space-y-2">
+              <Label htmlFor="newDomain">Adicionar Novo Domínio</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="newDomain"
+                  value={newDomain}
+                  onChange={(e) => setNewDomain(e.target.value)}
+                  placeholder="meudominio.com.br"
+                />
+                <Button onClick={handleAddDomain}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Digite apenas o domínio sem http:// ou https://
+              </p>
+            </div>
+
+            {/* Lista de domínios cadastrados */}
+            {customDomains.length > 0 && (
+              <div className="space-y-2">
+                <Label>Seus Domínios Cadastrados</Label>
+                <div className="space-y-2">
+                  {customDomains.map((domain) => (
+                    <div
+                      key={domain.id}
+                      className="flex items-center justify-between p-3 border rounded-lg"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Globe className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-mono text-sm">{domain.domain}</span>
+                        {domain.is_verified && (
+                          <Badge variant="default" className="text-xs">
+                            Verificado
+                          </Badge>
+                        )}
+                        {!domain.is_verified && (
+                          <Badge variant="secondary" className="text-xs">
+                            Aguardando DNS
+                          </Badge>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteDomain(domain.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Instruções de Configuração DNS */}
+            <div className="bg-muted p-4 rounded-lg space-y-2">
+              <h4 className="font-semibold text-sm mb-2">📋 Instruções de Configuração DNS</h4>
+              <p className="text-sm">Para conectar seu domínio, adicione os seguintes registros no seu provedor de domínio:</p>
+              <div className="bg-background p-3 rounded border font-mono text-xs space-y-1">
+                <div>Tipo: <strong>A</strong></div>
+                <div>Nome: <strong>@</strong> (para domínio raiz)</div>
+                <div>Valor: <strong>185.158.133.1</strong></div>
+                <div className="mt-2">Nome: <strong>www</strong> (para www)</div>
+                <div>Valor: <strong>185.158.133.1</strong></div>
+              </div>
+            </div>
+
+            {/* Dicas */}
+            <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
+              <h4 className="font-semibold text-sm mb-2">💡 Dicas Importantes:</h4>
+              <ul className="text-sm space-y-1 list-disc list-inside">
+                <li>Remova qualquer registro A, AAAA ou CNAME existente antes de adicionar o novo</li>
+                <li>Use ferramentas como DNSChecker.org para verificar a propagação</li>
+                <li>Se o domínio já estava em outro projeto, remova-o de lá primeiro</li>
+                <li>Domínios só podem estar conectados a um projeto por vez</li>
+                <li>A propagação DNS pode levar até 24-48 horas</li>
+              </ul>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

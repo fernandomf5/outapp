@@ -88,12 +88,12 @@ export default function LinkBioPage() {
   const fetchBioByDomain = async () => {
     const currentDomain = window.location.hostname;
     
-    const { data: bioData } = await supabase
+    const { data: bioData, error } = await supabase
       .from('link_bios')
       .select('*')
       .eq('custom_domain', currentDomain)
       .eq('is_active', true)
-      .single();
+      .maybeSingle();
 
     if (bioData) {
       setBio(bioData as LinkBio);
@@ -114,12 +114,12 @@ export default function LinkBioPage() {
   };
 
   const fetchBioPage = async () => {
-    const { data: bioData } = await supabase
+    const { data: bioData, error } = await supabase
       .from('link_bios')
       .select('*')
       .eq('username', username)
       .eq('is_active', true)
-      .single();
+      .maybeSingle();
 
     if (bioData) {
       setBio(bioData as LinkBio);
