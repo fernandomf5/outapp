@@ -486,6 +486,89 @@ export type Database = {
           },
         ]
       }
+      cloned_page_analytics: {
+        Row: {
+          browser: string | null
+          clicks_count: number | null
+          conversion_type: string | null
+          converted: boolean | null
+          created_at: string
+          device_type: string | null
+          id: string
+          ip_address: string | null
+          os: string | null
+          page_id: string
+          referrer: string | null
+          scroll_depth: number | null
+          session_id: string | null
+          time_on_page: number | null
+          updated_at: string
+          user_agent: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+          visitor_id: string | null
+        }
+        Insert: {
+          browser?: string | null
+          clicks_count?: number | null
+          conversion_type?: string | null
+          converted?: boolean | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          os?: string | null
+          page_id: string
+          referrer?: string | null
+          scroll_depth?: number | null
+          session_id?: string | null
+          time_on_page?: number | null
+          updated_at?: string
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          visitor_id?: string | null
+        }
+        Update: {
+          browser?: string | null
+          clicks_count?: number | null
+          conversion_type?: string | null
+          converted?: boolean | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          os?: string | null
+          page_id?: string
+          referrer?: string | null
+          scroll_depth?: number | null
+          session_id?: string | null
+          time_on_page?: number | null
+          updated_at?: string
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          visitor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloned_page_analytics_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "cloned_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cloned_page_clicks: {
         Row: {
           created_at: string | null
@@ -517,6 +600,133 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "cloned_page_clicks_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "cloned_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloned_page_leads: {
+        Row: {
+          created_at: string
+          custom_fields: Json | null
+          email: string | null
+          id: string
+          ip_address: string | null
+          name: string | null
+          notes: string | null
+          page_id: string
+          phone: string | null
+          referrer: string | null
+          status: string | null
+          updated_at: string
+          user_agent: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          visitor_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          custom_fields?: Json | null
+          email?: string | null
+          id?: string
+          ip_address?: string | null
+          name?: string | null
+          notes?: string | null
+          page_id: string
+          phone?: string | null
+          referrer?: string | null
+          status?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          visitor_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          custom_fields?: Json | null
+          email?: string | null
+          id?: string
+          ip_address?: string | null
+          name?: string | null
+          notes?: string | null
+          page_id?: string
+          phone?: string | null
+          referrer?: string | null
+          status?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          visitor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloned_page_leads_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "cloned_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloned_page_variants: {
+        Row: {
+          conversion_rate: number | null
+          conversions: number | null
+          created_at: string
+          custom_settings: Json | null
+          id: string
+          is_active: boolean | null
+          is_winner: boolean | null
+          page_content_changes: Json | null
+          page_id: string
+          traffic_percentage: number
+          updated_at: string
+          variant_letter: string
+          variant_name: string
+          views: number | null
+        }
+        Insert: {
+          conversion_rate?: number | null
+          conversions?: number | null
+          created_at?: string
+          custom_settings?: Json | null
+          id?: string
+          is_active?: boolean | null
+          is_winner?: boolean | null
+          page_content_changes?: Json | null
+          page_id: string
+          traffic_percentage?: number
+          updated_at?: string
+          variant_letter: string
+          variant_name: string
+          views?: number | null
+        }
+        Update: {
+          conversion_rate?: number | null
+          conversions?: number | null
+          created_at?: string
+          custom_settings?: Json | null
+          id?: string
+          is_active?: boolean | null
+          is_winner?: boolean | null
+          page_content_changes?: Json | null
+          page_id?: string
+          traffic_percentage?: number
+          updated_at?: string
+          variant_letter?: string
+          variant_name?: string
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloned_page_variants_page_id_fkey"
             columns: ["page_id"]
             isOneToOne: false
             referencedRelation: "cloned_pages"
