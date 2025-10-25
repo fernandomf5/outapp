@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import type { CSSProperties } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,14 +34,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { AvatarUpload } from "@/components/AvatarUpload";
+import { HexColorPicker } from "react-colorful";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
-import { ColorPicker } from "@/components/ColorPicker";
 
 interface LinkBio {
   id: string;
   username: string;
-  custom_domain: string | null;
+  custom_slug: string;
   display_name: string;
   bio: string;
   avatar_url: string;
@@ -76,16 +74,6 @@ interface BioLink {
   clicks: number;
 }
 
-interface CustomDomain {
-  id: string;
-  domain: string;
-  is_verified: boolean;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  user_id: string;
-}
-
 const iconOptions = [
   { value: 'link', label: 'Link', icon: Link2 },
   { value: 'instagram', label: 'Instagram', icon: Instagram },
@@ -111,9 +99,6 @@ export function LinkBioCreator() {
   const [bios, setBios] = useState<LinkBio[]>([]);
   const [selectedBioId, setSelectedBioId] = useState<string | null>(null);
   const [links, setLinks] = useState<BioLink[]>([]);
-  const [customDomains, setCustomDomains] = useState<CustomDomain[]>([]);
-  const [newDomain, setNewDomain] = useState("");
-  const [isDomainDialogOpen, setIsDomainDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   
@@ -121,7 +106,7 @@ export function LinkBioCreator() {
   
   // Form states
   const [username, setUsername] = useState("");
-  const [customDomain, setCustomDomain] = useState("");
+  const [customSlug, setCustomSlug] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [bioText, setBioText] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -153,14 +138,13 @@ export function LinkBioCreator() {
   useEffect(() => {
     if (user) {
       fetchBios();
-      fetchCustomDomains();
     }
   }, [user]);
 
   useEffect(() => {
     if (selectedBio) {
       setUsername(selectedBio.username);
-      setCustomDomain(selectedBio.custom_domain || '');
+      setCustomSlug(selectedBio.custom_slug || '');
       setDisplayName(selectedBio.display_name || '');
       setBioText(selectedBio.bio || '');
       setAvatarUrl(selectedBio.avatar_url || '');
@@ -185,159 +169,37 @@ export function LinkBioCreator() {
 
   const fetchBios = async () => {
     if (!user) return;
-    try {
-      console.log('[LinkBioCreator] fetchBios start', { userId: user.id });
-      const { data: biosData, error } = await supabase
-        .from('link_bios')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+    
+    const { data: biosData } = await supabase
+      .from('link_bios')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('[LinkBioCreator] fetchBios error', error);
-        toast({ title: 'Erro ao carregar seus Bios', description: error.message, variant: 'destructive' });
-        return;
+    if (biosData && biosData.length > 0) {
+      setBios(biosData as LinkBio[]);
+      if (!selectedBioId) {
+        setSelectedBioId(biosData[0].id);
       }
-
-      if (biosData && biosData.length > 0) {
-        setBios(biosData as LinkBio[]);
-        if (!selectedBioId) {
-          setSelectedBioId(biosData[0].id);
-        }
-      } else {
-        setBios([]);
-      }
-      console.log('[LinkBioCreator] fetchBios done', { count: biosData?.length || 0 });
-    } catch (err: any) {
-      console.error('[LinkBioCreator] fetchBios unexpected error', err);
-      toast({ title: 'Erro ao carregar', description: 'Não foi possível carregar seus Bios.', variant: 'destructive' });
     }
   };
 
   const fetchLinks = async (bioId: string) => {
-    try {
-      console.log('[LinkBioCreator] fetchLinks start', { bioId });
-      const { data, error } = await supabase
-        .from('link_bio_links')
-        .select('*')
-        .eq('bio_id', bioId)
-        .order('position', { ascending: true });
+    const { data } = await supabase
+      .from('link_bio_links')
+      .select('*')
+      .eq('bio_id', bioId)
+      .order('position', { ascending: true });
 
-      if (error) {
-        console.error('[LinkBioCreator] fetchLinks error', error);
-        toast({ title: 'Erro ao carregar links', description: error.message, variant: 'destructive' });
-        setLinks([]);
-        return;
-      }
-
-      if (data) {
-        setLinks(data);
-      } else {
-        setLinks([]);
-      }
-      console.log('[LinkBioCreator] fetchLinks done', { count: data?.length || 0 });
-    } catch (err: any) {
-      console.error('[LinkBioCreator] fetchLinks unexpected error', err);
-      toast({ title: 'Erro ao carregar links', description: 'Tente novamente.', variant: 'destructive' });
-      setLinks([]);
+    if (data) {
+      setLinks(data);
     }
-  };
-
-  const fetchCustomDomains = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('custom_domains')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
-      if (!error && data) {
-        setCustomDomains(data);
-      }
-    } catch (error) {
-      console.error('Error fetching custom domains:', error);
-      // Não bloquear o componente se falhar
-      setCustomDomains([]);
-    }
-  };
-
-  const handleAddDomain = async () => {
-    if (!newDomain.trim()) {
-      toast({
-        title: "Erro",
-        description: "Por favor, insira um domínio válido",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validar formato do domínio
-    const domainRegex = /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,}$/i;
-    if (!domainRegex.test(newDomain.trim())) {
-      toast({
-        title: "Erro",
-        description: "Formato de domínio inválido. Use algo como: seudominio.com",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const { error } = await supabase
-      .from("custom_domains")
-      .insert({
-        user_id: user!.id,
-        domain: newDomain.trim().toLowerCase(),
-        is_verified: false,
-        is_active: true,
-      });
-
-    if (error) {
-      toast({
-        title: "Erro ao adicionar domínio",
-        description: error.message,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    toast({
-      title: "Domínio adicionado!",
-      description: "Configure os registros DNS conforme as instruções.",
-    });
-
-    setNewDomain("");
-    fetchCustomDomains();
-  };
-
-  const handleDeleteDomain = async (domainId: string) => {
-    const { error } = await supabase
-      .from("custom_domains")
-      .delete()
-      .eq("id", domainId);
-
-    if (error) {
-      toast({
-        title: "Erro ao remover domínio",
-        description: error.message,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    toast({
-      title: "Domínio removido com sucesso",
-    });
-
-    fetchCustomDomains();
   };
 
   const createNewBio = () => {
     setSelectedBioId(null);
     setUsername("");
-    setCustomDomain("");
+    setCustomSlug("");
     setDisplayName("");
     setBioText("");
     setAvatarUrl("");
@@ -374,7 +236,7 @@ export function LinkBioCreator() {
     const bioData = {
       user_id: user.id,
       username: username.toLowerCase().replace(/[^a-z0-9-_]/g, ''),
-      custom_domain: customDomain || null,
+      custom_slug: customSlug ? customSlug.toLowerCase().replace(/[^a-z0-9-_]/g, '') : null,
       display_name: displayName,
       bio: bioText,
       avatar_url: avatarUrl,
@@ -562,8 +424,8 @@ export function LinkBioCreator() {
 
   const copyBioLink = () => {
     if (selectedBio) {
-      const link = selectedBio.custom_domain 
-        ? `https://${selectedBio.custom_domain}`
+      const link = selectedBio.custom_slug 
+        ? `${window.location.origin}/l/${selectedBio.custom_slug}`
         : `${window.location.origin}/bio/${selectedBio.username}`;
       navigator.clipboard.writeText(link);
       toast({
@@ -678,8 +540,8 @@ export function LinkBioCreator() {
                     <div className="flex-1">
                       <h3 className="font-semibold">{bio.display_name || bio.username}</h3>
                       <p className="text-sm text-muted-foreground">@{bio.username}</p>
-                      {bio.custom_domain && (
-                        <p className="text-xs text-primary font-medium">🌐 {bio.custom_domain}</p>
+                      {bio.custom_slug && (
+                        <p className="text-xs text-primary font-medium">/l/{bio.custom_slug}</p>
                       )}
                       <p className="text-xs text-muted-foreground mt-1">{bio.total_clicks} cliques</p>
                     </div>
@@ -699,9 +561,7 @@ export function LinkBioCreator() {
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          const url = bio.custom_domain 
-                            ? `https://${bio.custom_domain}` 
-                            : `/bio/${bio.username}`;
+                          const url = bio.custom_slug ? `/l/${bio.custom_slug}` : `/bio/${bio.username}`;
                           window.open(url, '_blank');
                         }}
                       >
@@ -763,32 +623,20 @@ export function LinkBioCreator() {
               </div>
 
               <div>
-                <Label htmlFor="customDomain">Domínio Próprio (Opcional)</Label>
+                <Label htmlFor="customSlug">Link Personalizado (Opcional)</Label>
                 <div className="flex gap-2">
-                  <Select value={customDomain || ""} onValueChange={setCustomDomain}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um domínio cadastrado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Sem domínio próprio</SelectItem>
-                      {customDomains.map((domain) => (
-                        <SelectItem key={domain.id} value={domain.domain}>
-                          {domain.domain}
-                          {domain.is_verified ? " ✓" : " (Aguardando DNS)"}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsDomainDialogOpen(true)}
-                    type="button"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
+                  <span className="flex items-center px-3 py-2 bg-muted rounded-l-md text-muted-foreground">
+                    /l/
+                  </span>
+                  <Input
+                    id="customSlug"
+                    value={customSlug}
+                    onChange={(e) => setCustomSlug(e.target.value)}
+                    placeholder="meulink"
+                  />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Configure seu domínio próprio clicando no botão +
+                  Link curto e personalizado. Apenas letras, números, - e _
                 </p>
               </div>
 
@@ -988,7 +836,7 @@ export function LinkBioCreator() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-3">
-                        <ColorPicker color={gradientColor1} onChange={setGradientColor1} />
+                        <HexColorPicker color={gradientColor1} onChange={setGradientColor1} />
                         <Input
                           value={gradientColor1}
                           onChange={(e) => setGradientColor1(e.target.value)}
@@ -1017,7 +865,7 @@ export function LinkBioCreator() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-3">
-                        <ColorPicker color={gradientColor2} onChange={setGradientColor2} />
+                        <HexColorPicker color={gradientColor2} onChange={setGradientColor2} />
                         <Input
                           value={gradientColor2}
                           onChange={(e) => setGradientColor2(e.target.value)}
@@ -1050,7 +898,7 @@ export function LinkBioCreator() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-3">
-                      <ColorPicker color={backgroundColor} onChange={setBackgroundColor} />
+                      <HexColorPicker color={backgroundColor} onChange={setBackgroundColor} />
                       <Input
                         value={backgroundColor}
                         onChange={(e) => setBackgroundColor(e.target.value)}
@@ -1079,7 +927,7 @@ export function LinkBioCreator() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-3">
-                      <ColorPicker color={textColor} onChange={setTextColor} />
+                      <HexColorPicker color={textColor} onChange={setTextColor} />
                       <Input
                         value={textColor}
                         onChange={(e) => setTextColor(e.target.value)}
@@ -1108,7 +956,7 @@ export function LinkBioCreator() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-3">
-                      <ColorPicker color={buttonColor} onChange={setButtonColor} />
+                      <HexColorPicker color={buttonColor} onChange={setButtonColor} />
                       <Input
                         value={buttonColor}
                         onChange={(e) => setButtonColor(e.target.value)}
@@ -1137,7 +985,7 @@ export function LinkBioCreator() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-3">
-                      <ColorPicker color={buttonTextColor} onChange={setButtonTextColor} />
+                      <HexColorPicker color={buttonTextColor} onChange={setButtonTextColor} />
                       <Input
                         value={buttonTextColor}
                         onChange={(e) => setButtonTextColor(e.target.value)}
@@ -1256,7 +1104,7 @@ export function LinkBioCreator() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-3">
-                      <ColorPicker color={borderColor} onChange={setBorderColor} />
+                      <HexColorPicker color={borderColor} onChange={setBorderColor} />
                       <Input
                         value={borderColor}
                         onChange={(e) => setBorderColor(e.target.value)}
@@ -1436,7 +1284,7 @@ export function LinkBioCreator() {
                                     ...(borderAnimation !== 'rgb' && {
                                       border: `${borderWidth}px ${borderStyle} ${borderColor}`
                                     })
-                                  } as CSSProperties}
+                                  } as React.CSSProperties}
                                 >
                                   <img 
                                     src={link.image_url} 
@@ -1466,7 +1314,7 @@ export function LinkBioCreator() {
                                     ...(borderAnimation !== 'rgb' && {
                                       border: `${borderWidth}px ${borderStyle} ${borderColor}`
                                     })
-                                  } as CSSProperties}
+                                  } as React.CSSProperties}
                                 >
                                   {link.title}
                                 </div>
@@ -1505,98 +1353,6 @@ export function LinkBioCreator() {
           </div>
         </Card>
       )}
-
-      {/* Dialog de Gerenciamento de Domínios */}
-      <Dialog open={isDomainDialogOpen} onOpenChange={setIsDomainDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Gerenciar Domínios Personalizados</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {/* Adicionar novo domínio */}
-            <div className="space-y-2">
-              <Label htmlFor="newDomain">Adicionar Novo Domínio</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="newDomain"
-                  value={newDomain}
-                  onChange={(e) => setNewDomain(e.target.value)}
-                  placeholder="meudominio.com.br"
-                />
-                <Button onClick={handleAddDomain}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Adicionar
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Digite apenas o domínio sem http:// ou https://
-              </p>
-            </div>
-
-            {/* Lista de domínios cadastrados */}
-            {customDomains.length > 0 && (
-              <div className="space-y-2">
-                <Label>Seus Domínios Cadastrados</Label>
-                <div className="space-y-2">
-                  {customDomains.map((domain) => (
-                    <div
-                      key={domain.id}
-                      className="flex items-center justify-between p-3 border rounded-lg"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Globe className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-mono text-sm">{domain.domain}</span>
-                        {domain.is_verified && (
-                          <Badge variant="default" className="text-xs">
-                            Verificado
-                          </Badge>
-                        )}
-                        {!domain.is_verified && (
-                          <Badge variant="secondary" className="text-xs">
-                            Aguardando DNS
-                          </Badge>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteDomain(domain.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Instruções de Configuração DNS */}
-            <div className="bg-muted p-4 rounded-lg space-y-2">
-              <h4 className="font-semibold text-sm mb-2">📋 Instruções de Configuração DNS</h4>
-              <p className="text-sm">Para conectar seu domínio, adicione os seguintes registros no seu provedor de domínio:</p>
-              <div className="bg-background p-3 rounded border font-mono text-xs space-y-1">
-                <div>Tipo: <strong>A</strong></div>
-                <div>Nome: <strong>@</strong> (para domínio raiz)</div>
-                <div>Valor: <strong>185.158.133.1</strong></div>
-                <div className="mt-2">Nome: <strong>www</strong> (para www)</div>
-                <div>Valor: <strong>185.158.133.1</strong></div>
-              </div>
-            </div>
-
-            {/* Dicas */}
-            <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
-              <h4 className="font-semibold text-sm mb-2">💡 Dicas Importantes:</h4>
-              <ul className="text-sm space-y-1 list-disc list-inside">
-                <li>Remova qualquer registro A, AAAA ou CNAME existente antes de adicionar o novo</li>
-                <li>Use ferramentas como DNSChecker.org para verificar a propagação</li>
-                <li>Se o domínio já estava em outro projeto, remova-o de lá primeiro</li>
-                <li>Domínios só podem estar conectados a um projeto por vez</li>
-                <li>A propagação DNS pode levar até 24-48 horas</li>
-              </ul>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

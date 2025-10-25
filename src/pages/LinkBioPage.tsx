@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ExternalLink } from "lucide-react";
@@ -7,7 +7,7 @@ import { Link2, Instagram, Youtube, Facebook, Twitter, Linkedin, Mail, Phone, Gl
 interface LinkBio {
   id: string;
   username: string;
-  custom_domain: string | null;
+  custom_slug: string;
   display_name: string;
   bio: string;
   avatar_url: string;
@@ -52,19 +52,16 @@ const iconOptions = {
 };
 
 export default function LinkBioPage() {
-  const { username } = useParams<{ username?: string }>();
+  const { username, slug } = useParams<{ username?: string; slug?: string }>();
   const [bio, setBio] = useState<LinkBio | null>(null);
   const [links, setLinks] = useState<BioLink[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (username) {
+    if (username || slug) {
       fetchBioPage();
-    } else {
-      // Se não tiver username na URL, verificar domínio customizado
-      fetchBioByDomain();
     }
-  }, [username]);
+  }, [username, slug]);
 
   useEffect(() => {
     if (bio) {
@@ -85,41 +82,20 @@ export default function LinkBioPage() {
     }
   }, [bio]);
 
-  const fetchBioByDomain = async () => {
-    const currentDomain = window.location.hostname;
-    
-    const { data: bioData, error } = await supabase
-      .from('link_bios')
-      .select('*')
-      .eq('custom_domain', currentDomain)
-      .eq('is_active', true)
-      .maybeSingle();
-
-    if (bioData) {
-      setBio(bioData as LinkBio);
-      
-      const { data: linksData } = await supabase
-        .from('link_bio_links')
-        .select('*')
-        .eq('bio_id', bioData.id)
-        .eq('is_active', true)
-        .order('position', { ascending: true });
-
-      if (linksData) {
-        setLinks(linksData);
-      }
-    }
-    
-    setLoading(false);
-  };
-
   const fetchBioPage = async () => {
-    const { data: bioData, error } = await supabase
+    let query = supabase
       .from('link_bios')
       .select('*')
-      .eq('username', username)
-      .eq('is_active', true)
-      .maybeSingle();
+      .eq('is_active', true);
+
+    // Buscar por slug personalizado ou username
+    if (slug) {
+      query = query.eq('custom_slug', slug);
+    } else if (username) {
+      query = query.eq('username', username);
+    }
+
+    const { data: bioData } = await query.single();
 
     if (bioData) {
       setBio(bioData as LinkBio);
@@ -258,7 +234,7 @@ export default function LinkBioPage() {
                   ...(bio.border_animation !== 'rgb' && {
                     border: `${bio.border_width || 2}px ${bio.border_style || 'solid'} ${bio.border_color || '#000000'}`
                   })
-                } as CSSProperties}
+                } as React.CSSProperties}
               >
                 <img 
                   src={link.image_url} 
@@ -289,7 +265,7 @@ export default function LinkBioPage() {
                   ...(bio.border_animation !== 'rgb' && {
                     border: `${bio.border_width || 2}px ${bio.border_style || 'solid'} ${bio.border_color || '#000000'}`
                   })
-                } as CSSProperties}
+                } as React.CSSProperties}
               >
                 <IconComponent iconName={link.icon} />
                 <span className="flex-1 text-center">{link.title}</span>
