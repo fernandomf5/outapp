@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText, QrCode } from "lucide-react";
+import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText, QrCode, Calendar, ShoppingBag } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +32,7 @@ import { LinkBioCreator } from "@/components/LinkBioCreator";
 import { MyChatbots } from "@/components/MyChatbots";
 import { MyAIAgents } from "@/components/MyAIAgents";
 import { QRCodeGenerator } from "@/components/QRCodeGenerator";
+import AgentManagementPanel from "@/components/AgentManagementPanel";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,6 +60,7 @@ const Dashboard = () => {
   const [aiAgents, setAiAgents] = useState<any[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null);
+  const [selectedAgentForManagement, setSelectedAgentForManagement] = useState<any>(null);
   const activeTab = searchParams.get('tab') || 'overview';
   const [unreadClientMessages, setUnreadClientMessages] = useState(0);
 
@@ -384,7 +386,7 @@ const Dashboard = () => {
         <SubscriptionBanner />
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-10 mb-8">
+          <TabsList className="grid w-full grid-cols-11 mb-8">
             <TabsTrigger value="overview">{t('overview')}</TabsTrigger>
             {hasFeature('chatbot_conversations') && (
               <TabsTrigger value="clients" className="relative">
@@ -400,6 +402,10 @@ const Dashboard = () => {
             <TabsTrigger value="qrcode">
               <QrCode className="w-4 h-4 mr-2" />
               QR Code
+            </TabsTrigger>
+            <TabsTrigger value="management">
+              <Calendar className="w-4 h-4 mr-2" />
+              Gestão
             </TabsTrigger>
             <TabsTrigger value="linkbio">Link na Bio</TabsTrigger>
             {hasFeature('link_shortener') && (
@@ -796,6 +802,73 @@ const Dashboard = () => {
 
           <TabsContent value="qrcode">
             <QRCodeGenerator />
+          </TabsContent>
+
+          <TabsContent value="management">
+            {selectedAgentForManagement ? (
+              <div>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setSelectedAgentForManagement(null)}
+                  className="mb-4"
+                >
+                  ← Voltar para lista de agentes
+                </Button>
+                <AgentManagementPanel 
+                  agentId={selectedAgentForManagement.id}
+                  agentName={selectedAgentForManagement.name}
+                />
+              </div>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Gestão de Agentes</CardTitle>
+                  <CardDescription>
+                    Selecione um agente para gerenciar agendamentos e pedidos
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {aiAgents.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Calendar className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                      <p className="text-muted-foreground mb-4">
+                        Você ainda não tem agentes IA criados
+                      </p>
+                      <Button onClick={() => handleTabChange('agentes')}>
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Criar Agente IA
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {aiAgents.map((agent) => (
+                        <Card key={agent.id} className="cursor-pointer hover:shadow-lg transition-shadow"
+                          onClick={() => setSelectedAgentForManagement(agent)}
+                        >
+                          <CardHeader>
+                            <CardTitle className="text-lg">{agent.name}</CardTitle>
+                            <CardDescription>{agent.niche}</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Calendar className="w-4 h-4" />
+                              <span>Agendamentos</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+                              <ShoppingBag className="w-4 h-4" />
+                              <span>Pedidos</span>
+                            </div>
+                            <Button className="w-full mt-4" variant="outline">
+                              Gerenciar
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="linkbio">
