@@ -19,6 +19,8 @@ interface LinkBio {
   border_style: string;
   border_width: number;
   border_color: string;
+  border_animation: string;
+  hover_animation: string;
   is_active: boolean;
 }
 
@@ -212,15 +214,19 @@ export default function LinkBioPage() {
               <button
                 key={link.id}
                 onClick={() => handleLinkClick(link)}
-                className={`w-full px-4 sm:px-6 py-3 sm:py-4 rounded-full font-medium transition-all hover:scale-105 hover:shadow-lg active:scale-95 flex items-center justify-center gap-2 sm:gap-3 group text-sm sm:text-base ${
-                  bio.border_style === 'rgb' ? 'rgb-border' : ''
-                }`}
+                className={`w-full px-4 sm:px-6 py-3 sm:py-4 rounded-full font-medium transition-all hover:shadow-lg active:scale-95 flex items-center justify-center gap-2 sm:gap-3 group text-sm sm:text-base
+                  ${bio.border_animation === 'rgb' ? 'bio-border-rgb' : ''} 
+                  ${bio.border_animation === 'pulse' ? 'bio-border-pulse' : ''}
+                  ${bio.border_animation === 'glow' ? 'bio-border-glow' : ''}
+                  ${bio.hover_animation === 'scale' ? 'bio-hover-scale' : ''}
+                  ${bio.hover_animation === 'bounce' ? 'bio-hover-bounce' : ''}
+                  ${bio.hover_animation === 'shake' ? 'bio-hover-shake' : ''}
+                  ${bio.hover_animation === 'rotate' ? 'bio-hover-rotate' : ''}
+                `}
                 style={{ 
                   backgroundColor: bio.button_color,
                   color: bio.button_text_color,
-                  ...(bio.border_style !== 'rgb' && {
-                    border: `${bio.border_width || 2}px ${bio.border_style || 'solid'} ${bio.border_color || '#000000'}`
-                  })
+                  border: `${bio.border_width || 2}px ${bio.border_style || 'solid'} ${bio.border_color || '#000000'}`
                 }}
               >
                 <IconComponent iconName={link.icon} />

@@ -52,6 +52,8 @@ interface LinkBio {
   border_style: string;
   border_width: number;
   border_color: string;
+  border_animation: string;
+  hover_animation: string;
   is_active: boolean;
   total_clicks: number;
 }
@@ -108,6 +110,8 @@ export function LinkBioCreator() {
   const [borderStyle, setBorderStyle] = useState("solid");
   const [borderWidth, setBorderWidth] = useState(2);
   const [borderColor, setBorderColor] = useState("#000000");
+  const [borderAnimation, setBorderAnimation] = useState("none");
+  const [hoverAnimation, setHoverAnimation] = useState("none");
   
   // New link states
   const [newLinkTitle, setNewLinkTitle] = useState("");
@@ -831,7 +835,7 @@ export function LinkBioCreator() {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="borderStyle">Estilo da Borda</Label>
+                    <Label>Estilo da Borda</Label>
                     <Select value={borderStyle} onValueChange={setBorderStyle}>
                       <SelectTrigger>
                         <SelectValue />
@@ -841,13 +845,12 @@ export function LinkBioCreator() {
                         <SelectItem value="dashed">Tracejada</SelectItem>
                         <SelectItem value="dotted">Pontilhada</SelectItem>
                         <SelectItem value="double">Dupla</SelectItem>
-                        <SelectItem value="rgb">RGB Animado 🌈</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div>
-                    <Label htmlFor="borderWidth">Largura da Borda</Label>
+                    <Label>Largura da Borda</Label>
                     <Select value={borderWidth.toString()} onValueChange={(v) => setBorderWidth(Number(v))}>
                       <SelectTrigger>
                         <SelectValue />
@@ -863,37 +866,66 @@ export function LinkBioCreator() {
                   </div>
                 </div>
 
-                {borderStyle !== 'rgb' && (
-                  <div>
-                    <Label htmlFor="borderColor">Cor da Borda</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start text-left font-normal"
-                        >
-                          <div className="flex items-center gap-2 w-full">
-                            <Pipette className="w-4 h-4" />
-                            <div
-                              className="h-6 w-6 rounded border"
-                              style={{ backgroundColor: borderColor }}
-                            />
-                            <span className="flex-1">{borderColor}</span>
-                          </div>
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-3">
-                        <HexColorPicker color={borderColor} onChange={setBorderColor} />
-                        <Input
-                          value={borderColor}
-                          onChange={(e) => setBorderColor(e.target.value)}
-                          className="mt-2"
-                          placeholder="#000000"
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                )}
+                <div>
+                  <Label htmlFor="borderColor">Cor da Borda</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <div className="flex items-center gap-2 w-full">
+                          <Pipette className="w-4 h-4" />
+                          <div
+                            className="h-6 w-6 rounded border"
+                            style={{ backgroundColor: borderColor }}
+                          />
+                          <span className="flex-1">{borderColor}</span>
+                        </div>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-3">
+                      <HexColorPicker color={borderColor} onChange={setBorderColor} />
+                      <Input
+                        value={borderColor}
+                        onChange={(e) => setBorderColor(e.target.value)}
+                        className="mt-2"
+                        placeholder="#000000"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div>
+                  <Label>Animação da Borda</Label>
+                  <Select value={borderAnimation} onValueChange={setBorderAnimation}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem Animação</SelectItem>
+                      <SelectItem value="rgb">RGB Arco-Íris 🌈</SelectItem>
+                      <SelectItem value="pulse">Pulsar</SelectItem>
+                      <SelectItem value="glow">Brilho</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Animação ao Passar o Mouse</Label>
+                  <Select value={hoverAnimation} onValueChange={setHoverAnimation}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem Animação</SelectItem>
+                      <SelectItem value="scale">Aumentar</SelectItem>
+                      <SelectItem value="bounce">Pular</SelectItem>
+                      <SelectItem value="shake">Tremer</SelectItem>
+                      <SelectItem value="rotate">Girar</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <Button onClick={createOrUpdateBio} disabled={loading} className="w-full">
@@ -992,15 +1024,19 @@ export function LinkBioCreator() {
                               ) : (
                                 <div
                                   key={link.id}
-                                  className={`px-4 py-3 rounded-full text-center font-medium shadow-md ${
-                                    borderStyle === 'rgb' ? 'rgb-border' : ''
-                                  }`}
+                                  className={`px-4 py-3 rounded-full text-center font-medium shadow-md transition-all duration-300 
+                                    ${borderAnimation === 'rgb' ? 'bio-border-rgb' : ''} 
+                                    ${borderAnimation === 'pulse' ? 'bio-border-pulse' : ''}
+                                    ${borderAnimation === 'glow' ? 'bio-border-glow' : ''}
+                                    ${hoverAnimation === 'scale' ? 'bio-hover-scale' : ''}
+                                    ${hoverAnimation === 'bounce' ? 'bio-hover-bounce' : ''}
+                                    ${hoverAnimation === 'shake' ? 'bio-hover-shake' : ''}
+                                    ${hoverAnimation === 'rotate' ? 'bio-hover-rotate' : ''}
+                                  `}
                                   style={{ 
                                     backgroundColor: buttonColor,
                                     color: buttonTextColor,
-                                    ...(borderStyle !== 'rgb' && {
-                                      border: `${borderWidth}px ${borderStyle} ${borderColor}`
-                                    })
+                                    border: `${borderWidth}px ${borderStyle} ${borderColor}`
                                   }}
                                 >
                                   {link.title}

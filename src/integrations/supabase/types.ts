@@ -1145,6 +1145,7 @@ export type Database = {
           background_color: string | null
           background_image: string | null
           bio: string | null
+          border_animation: string | null
           border_color: string | null
           border_style: string | null
           border_width: number | null
@@ -1153,6 +1154,7 @@ export type Database = {
           created_at: string
           custom_css: string | null
           display_name: string | null
+          hover_animation: string | null
           id: string
           is_active: boolean | null
           text_color: string | null
@@ -1167,6 +1169,7 @@ export type Database = {
           background_color?: string | null
           background_image?: string | null
           bio?: string | null
+          border_animation?: string | null
           border_color?: string | null
           border_style?: string | null
           border_width?: number | null
@@ -1175,6 +1178,7 @@ export type Database = {
           created_at?: string
           custom_css?: string | null
           display_name?: string | null
+          hover_animation?: string | null
           id?: string
           is_active?: boolean | null
           text_color?: string | null
@@ -1189,6 +1193,7 @@ export type Database = {
           background_color?: string | null
           background_image?: string | null
           bio?: string | null
+          border_animation?: string | null
           border_color?: string | null
           border_style?: string | null
           border_width?: number | null
@@ -1197,6 +1202,7 @@ export type Database = {
           created_at?: string
           custom_css?: string | null
           display_name?: string | null
+          hover_animation?: string | null
           id?: string
           is_active?: boolean | null
           text_color?: string | null
