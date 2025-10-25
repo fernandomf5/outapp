@@ -31,6 +31,7 @@ import { CapturedLeads } from "@/components/CapturedLeads";
 import { LinkBioCreator } from "@/components/LinkBioCreator";
 import { MyChatbots } from "@/components/MyChatbots";
 import { MyAIAgents } from "@/components/MyAIAgents";
+import { QRCodeGenerator } from "@/components/QRCodeGenerator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -774,19 +775,32 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="tools">
-            {hasFeature('whatsapp_link') ? (
-              <WhatsAppLinkGenerator />
-            ) : (
-              <Card className="p-12 text-center">
-                <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
-                <p className="text-muted-foreground mb-4">
-                  Faça upgrade do seu plano para gerar links do WhatsApp
-                </p>
-                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
-                  Ver Planos
-                </Button>
-              </Card>
-            )}
+            <Tabs defaultValue="whatsapp" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="whatsapp">WhatsApp Link</TabsTrigger>
+                <TabsTrigger value="qrcode">Gerador QR Code</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="whatsapp">
+                {hasFeature('whatsapp_link') ? (
+                  <WhatsAppLinkGenerator />
+                ) : (
+                  <Card className="p-12 text-center">
+                    <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Faça upgrade do seu plano para gerar links do WhatsApp
+                    </p>
+                    <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
+                      Ver Planos
+                    </Button>
+                  </Card>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="qrcode">
+                <QRCodeGenerator />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="linkbio">
