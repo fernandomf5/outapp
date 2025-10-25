@@ -129,17 +129,27 @@ export default function ClonedPage() {
         head?.appendChild(link);
       });
 
-      // 1) Force links to stay inside the iframe and resolve relative URLs
+      // 1) Prepare original origin and rewrite internal links to stay on the cloned page
       const baseOrigin = (() => {
         try { return new URL(pageData.original_url).origin; } catch { return ''; }
       })();
-      
-      if (head) {
-        const baseEl = doc.createElement('base');
-        baseEl.setAttribute('href', baseOrigin + '/');
-        baseEl.setAttribute('target', '_self');
-        head.prepend(baseEl);
-      }
+
+      // Rewrite same-origin links to anchors or no-op to avoid leaving the cloned page
+      doc.querySelectorAll('a[href]').forEach((a: any) => {
+        const href = a.getAttribute('href') || '';
+        try {
+          const u = new URL(href, baseOrigin || undefined);
+          if (baseOrigin && u.origin === baseOrigin) {
+            if (u.hash) {
+              a.setAttribute('href', u.hash);
+            } else {
+              // Keep user on the same cloned page (no external navigation)
+              a.setAttribute('href', '#');
+            }
+            a.setAttribute('target', '_self');
+          }
+        } catch {}
+      });
 
       // 2) Apply custom link replacements from settings
       if (settings.custom_links && settings.custom_links.length > 0) {
@@ -238,7 +248,32 @@ export default function ClonedPage() {
       const blocker = doc.createElement('script');
       blocker.textContent = `try { Object.defineProperty(window, 'top', { get: () => window }); } catch (e) {}\n` +
         `try { window.location.assign = function(){ console.log('blocked assign'); }; } catch(e) {}\n` +
-        `try { window.location.replace = function(){ console.log('blocked replace'); }; } catch(e) {};`;
+        `try { window.location.replace = function(){ console.log('blocked replace'); }; } catch(e) {}\n` +
+        // Intercept clicks on same-origin links to keep navigation inside the cloned page
+        `document.addEventListener('click', function(e){\n` +
+        `  try {\n` +
+        `    var a = e.target && e.target.closest ? e.target.closest('a') : null;\n` +
+        `    if (!a) return;\n` +
+        `    var href = a.getAttribute('href') || '';\n` +
+        `    if (!href) return;\n` +
+        `    var origin = '${baseOrigin}';\n` +
+        `    var url;\n` +
+        `    try { url = new URL(href, origin || undefined); } catch (ex) { return; }\n` +
+        `    if (origin && url.origin === origin) {\n` +
+        `      e.preventDefault();\n` +
+        `      if (url.hash) {\n` +
+        `        var id = decodeURIComponent(url.hash.slice(1));\n` +
+        `        try {\n` +
+        `          var el = document.getElementById(id) || document.querySelector('[name="' + CSS.escape(id) + '"]') || document.querySelector('#' + CSS.escape(id));\n` +
+        `          if (el) {\n` +
+        `            el.scrollIntoView({ behavior: 'smooth' });\n` +
+        `            if (history && history.replaceState) { history.replaceState(null, '', url.hash); }\n` +
+        `          }\n` +
+        `        } catch(_) {}\n` +
+        `      }\n` +
+        `    }\n` +
+        `  } catch(_) {}\n` +
+        `}, true);`;
       head?.appendChild(blocker);
 
       modifiedHtml = '<!DOCTYPE html>' + doc.documentElement.outerHTML;
