@@ -159,21 +159,7 @@ export default function ClonedPage() {
         } catch {}
       });
 
-      // 2) Apply custom link replacements from settings
-      if (settings.custom_links && settings.custom_links.length > 0) {
-        settings.custom_links.forEach((link: any) => {
-          try {
-            const elements = doc.querySelectorAll(link.selector);
-            elements.forEach((el: any) => {
-              if (el && link.newUrl) el.setAttribute('href', link.newUrl);
-            });
-          } catch (e) {
-            console.warn('Invalid selector in custom_links:', link.selector);
-          }
-        });
-      }
-
-      // 2.5) Apply checkout link replacements (robust URL normalization)
+      // 2) Apply checkout link replacements (robust URL normalization)
       if (settings.detected_checkout_links && settings.detected_checkout_links.length > 0) {
         const resolve = (u: string) => {
           try { return new URL(u, baseOrigin || undefined).href; } catch { return u; }

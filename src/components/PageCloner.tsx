@@ -61,7 +61,6 @@ export const PageCloner = () => {
     selected_page_path: ""
   });
   const [editSettings, setEditSettings] = useState({
-    custom_links: [] as { selector: string; newUrl: string }[],
     detected_checkout_links: [] as { originalUrl: string; text: string; replaced?: boolean; newUrl?: string }[],
     tracking_pixels: "",
     traffic_tracking_link: "",
@@ -260,7 +259,6 @@ export const PageCloner = () => {
     if (!selectedPage) return;
 
     const replacedCount = editSettings.detected_checkout_links.filter(l => l.replaced).length;
-    const customLinksCount = editSettings.custom_links.length;
 
     const { error } = await supabase
       .from('cloned_pages')
@@ -278,7 +276,7 @@ export const PageCloner = () => {
     } else {
       toast({ 
         title: "✅ Configurações salvas!",
-        description: `${replacedCount} link(s) de checkout e ${customLinksCount} link(s) personalizado(s) configurados. Abra sua página para ver as mudanças.`
+        description: `${replacedCount} link(s) de checkout configurados. Abra sua página para ver as mudanças.`
       });
       await fetchClonedPages();
       setIsEditDialogOpen(false);
@@ -306,20 +304,6 @@ export const PageCloner = () => {
   const copyLink = (url: string) => {
     navigator.clipboard.writeText(url);
     toast({ title: "Link copiado!" });
-  };
-
-  const addCustomLink = () => {
-    setEditSettings({
-      ...editSettings,
-      custom_links: [...editSettings.custom_links, { selector: "", newUrl: "" }]
-    });
-  };
-
-  const removeCustomLink = (index: number) => {
-    setEditSettings({
-      ...editSettings,
-      custom_links: editSettings.custom_links.filter((_, i) => i !== index)
-    });
   };
 
   const detectCheckoutLinks = (html: string) => {
@@ -358,7 +342,6 @@ export const PageCloner = () => {
     setSelectedPage(page);
     const settings = page.custom_settings || {};
     setEditSettings({
-      custom_links: settings.custom_links || [],
       detected_checkout_links: settings.detected_checkout_links || [],
       tracking_pixels: settings.tracking_pixels || "",
       traffic_tracking_link: settings.traffic_tracking_link || "",
@@ -777,61 +760,6 @@ export const PageCloner = () => {
                     </p>
                   </div>
                 </div>
-
-                <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
-                  <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-2">🎯 Links Personalizados</h4>
-                  <p className="text-xs text-amber-800 dark:text-amber-200">
-                    Use seletores CSS para modificar links específicos. Exemplo: <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">a.btn-checkout</code> ou <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">#button-comprar</code>
-                  </p>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <Label>Links Personalizados ({editSettings.custom_links.length})</Label>
-                  <Button size="sm" variant="outline" onClick={addCustomLink}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Adicionar Link
-                  </Button>
-                </div>
-                {editSettings.custom_links.map((link, index) => (
-                  <div key={index} className="flex gap-2 items-end">
-                    <div className="flex-1">
-                      <Label className="text-xs">Seletor CSS</Label>
-                      <Input
-                        placeholder="a.btn-primary"
-                        value={link.selector}
-                        onChange={(e) => {
-                          const newLinks = [...editSettings.custom_links];
-                          newLinks[index].selector = e.target.value;
-                          setEditSettings({ ...editSettings, custom_links: newLinks });
-                        }}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <Label className="text-xs">Nova URL</Label>
-                      <Input
-                        placeholder="https://seulink.com"
-                        value={link.newUrl}
-                        onChange={(e) => {
-                          const newLinks = [...editSettings.custom_links];
-                          newLinks[index].newUrl = e.target.value;
-                          setEditSettings({ ...editSettings, custom_links: newLinks });
-                        }}
-                      />
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => removeCustomLink(index)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-                {editSettings.custom_links.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    Nenhum link personalizado configurado
-                  </p>
-                )}
               </div>
             </TabsContent>
 
