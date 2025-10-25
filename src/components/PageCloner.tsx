@@ -221,7 +221,7 @@ export const PageCloner = () => {
         : `clone-${Math.random().toString(36).substring(2, 10)}`;
 
       const selectedDomain = cloneData.selected_domain;
-      const clonedUrl = `${window.location.origin}/page/${slug}`;
+      const clonedUrl = `https://${selectedDomain}/page/${slug}`;
 
       // Detect checkout links
       const detectedLinks = detectCheckoutLinks(cloneResult.content);
