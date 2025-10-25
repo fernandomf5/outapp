@@ -29,8 +29,13 @@ export const RevenuePanel = () => {
     
     const currentMonth = new Date();
     const lastMonth = subMonths(currentMonth, 1);
+    const currentMonthStart = startOfMonth(currentMonth);
+    const currentMonthEnd = endOfMonth(currentMonth);
+    const lastMonthStart = startOfMonth(lastMonth);
+    const lastMonthEnd = endOfMonth(lastMonth);
     
-    // Buscar assinaturas ativas do mês atual
+    // Buscar TODAS as assinaturas ativas que estão gerando receita no mês atual
+    // (começaram antes ou durante o mês E ainda estão ativas)
     const { data: currentSubs, error: currentError } = await supabase
       .from('subscriptions')
       .select(`
@@ -38,10 +43,10 @@ export const RevenuePanel = () => {
         plan:plans(price)
       `)
       .eq('status', 'active')
-      .gte('started_at', startOfMonth(currentMonth).toISOString())
-      .lte('started_at', endOfMonth(currentMonth).toISOString());
+      .lte('started_at', currentMonthEnd.toISOString())
+      .gte('expires_at', currentMonthStart.toISOString());
 
-    // Buscar assinaturas do mês anterior
+    // Buscar assinaturas que estavam ativas no mês anterior
     const { data: lastSubs, error: lastError } = await supabase
       .from('subscriptions')
       .select(`
@@ -49,8 +54,8 @@ export const RevenuePanel = () => {
         plan:plans(price)
       `)
       .eq('status', 'active')
-      .gte('started_at', startOfMonth(lastMonth).toISOString())
-      .lte('started_at', endOfMonth(lastMonth).toISOString());
+      .lte('started_at', lastMonthEnd.toISOString())
+      .gte('expires_at', lastMonthStart.toISOString());
 
     if (!currentError && currentSubs) {
       const totalRevenue = currentSubs.reduce((sum, sub: any) => 

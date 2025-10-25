@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { LanguageSelector } from "@/components/LanguageSelector";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { UsersPanel } from "@/components/admin/UsersPanel";
 import { SubscriptionsPanel } from "@/components/admin/SubscriptionsPanel";
@@ -499,6 +500,7 @@ const AdminDashboard = () => {
 
               <div className="flex gap-3 items-center">
                 <TicketNotificationBell isAdmin={true} />
+                <LanguageSelector />
                 <ThemeToggle />
                 <Button variant="outline" onClick={() => setIsBroadcastOpen(true)} className="hover:bg-primary/10 hover:border-primary transition-all">
                   <MessageSquare className="w-4 h-4 mr-2" />

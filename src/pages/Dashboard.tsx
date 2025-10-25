@@ -11,6 +11,7 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { TicketNotificationBell } from "@/components/TicketNotificationBell";
 import { UserSidebar } from "@/components/layout/UserSidebar";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { LanguageSelector } from "@/components/LanguageSelector";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { TutorialVideos } from "@/components/TutorialVideos";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
@@ -351,6 +352,7 @@ const Dashboard = () => {
               <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
                 <NotificationBell />
                 <TicketNotificationBell />
+                <LanguageSelector />
                 <ThemeToggle />
                 <Button variant="outline" onClick={() => navigate("/settings")} className="flex-1 sm:flex-none" size="sm">
                   <Settings className="w-4 h-4 sm:mr-2" />

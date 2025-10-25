@@ -1,0 +1,358 @@
+export const translations = {
+  pt: {
+    // Landing Page
+    hero_title: "Automatize seu Negócio com IA",
+    hero_subtitle: "Crie chatbots inteligentes, agentes de IA e automatize processos sem código",
+    get_started: "Começar Agora",
+    watch_demo: "Ver Demonstração",
+    features: "Recursos",
+    pricing: "Planos",
+    faq: "Perguntas Frequentes",
+    contact: "Contato",
+    
+    // Dashboard
+    dashboard: "Painel",
+    my_plan: "Meu Plano",
+    tools: "Ferramentas",
+    bot_builder: "Construtor de Bot",
+    ai_agent_builder: "Construtor de Agente IA",
+    chatbots: "Chatbots",
+    ai_agents: "Agentes IA",
+    conversations: "Conversas",
+    captured_leads: "Leads Capturados",
+    crm: "CRM",
+    link_shortener: "Encurtador de Links",
+    page_cloner: "Clonador de Páginas",
+    whatsapp_generator: "Gerador WhatsApp",
+    chat_widget: "Widget de Chat",
+    pixels: "Pixels de Rastreamento",
+    tutorials: "Tutoriais",
+    support: "Suporte",
+    settings: "Configurações",
+    logout: "Sair",
+    
+    // Stats
+    total_users: "Total de Usuários",
+    active_subscriptions: "Assinaturas Ativas",
+    monthly_revenue: "Receita Mensal",
+    growth_rate: "Taxa de Crescimento",
+    
+    // Common
+    save: "Salvar",
+    cancel: "Cancelar",
+    delete: "Excluir",
+    edit: "Editar",
+    create: "Criar",
+    loading: "Carregando...",
+    search: "Buscar",
+    filter: "Filtrar",
+    export: "Exportar",
+    import: "Importar",
+    yes: "Sim",
+    no: "Não",
+    close: "Fechar",
+    
+    // Time
+    days: "Dias",
+    months: "Meses",
+    years: "Anos",
+  },
+  
+  en: {
+    // Landing Page
+    hero_title: "Automate Your Business with AI",
+    hero_subtitle: "Create intelligent chatbots, AI agents and automate processes without code",
+    get_started: "Get Started",
+    watch_demo: "Watch Demo",
+    features: "Features",
+    pricing: "Pricing",
+    faq: "FAQ",
+    contact: "Contact",
+    
+    // Dashboard
+    dashboard: "Dashboard",
+    my_plan: "My Plan",
+    tools: "Tools",
+    bot_builder: "Bot Builder",
+    ai_agent_builder: "AI Agent Builder",
+    chatbots: "Chatbots",
+    ai_agents: "AI Agents",
+    conversations: "Conversations",
+    captured_leads: "Captured Leads",
+    crm: "CRM",
+    link_shortener: "Link Shortener",
+    page_cloner: "Page Cloner",
+    whatsapp_generator: "WhatsApp Generator",
+    chat_widget: "Chat Widget",
+    pixels: "Tracking Pixels",
+    tutorials: "Tutorials",
+    support: "Support",
+    settings: "Settings",
+    logout: "Logout",
+    
+    // Stats
+    total_users: "Total Users",
+    active_subscriptions: "Active Subscriptions",
+    monthly_revenue: "Monthly Revenue",
+    growth_rate: "Growth Rate",
+    
+    // Common
+    save: "Save",
+    cancel: "Cancel",
+    delete: "Delete",
+    edit: "Edit",
+    create: "Create",
+    loading: "Loading...",
+    search: "Search",
+    filter: "Filter",
+    export: "Export",
+    import: "Import",
+    yes: "Yes",
+    no: "No",
+    close: "Close",
+    
+    // Time
+    days: "Days",
+    months: "Months",
+    years: "Years",
+  },
+  
+  es: {
+    // Landing Page
+    hero_title: "Automatiza tu Negocio con IA",
+    hero_subtitle: "Crea chatbots inteligentes, agentes de IA y automatiza procesos sin código",
+    get_started: "Comenzar Ahora",
+    watch_demo: "Ver Demostración",
+    features: "Características",
+    pricing: "Precios",
+    faq: "Preguntas Frecuentes",
+    contact: "Contacto",
+    
+    // Dashboard
+    dashboard: "Panel",
+    my_plan: "Mi Plan",
+    tools: "Herramientas",
+    bot_builder: "Constructor de Bot",
+    ai_agent_builder: "Constructor de Agente IA",
+    chatbots: "Chatbots",
+    ai_agents: "Agentes IA",
+    conversations: "Conversaciones",
+    captured_leads: "Leads Capturados",
+    crm: "CRM",
+    link_shortener: "Acortador de Enlaces",
+    page_cloner: "Clonador de Páginas",
+    whatsapp_generator: "Generador WhatsApp",
+    chat_widget: "Widget de Chat",
+    pixels: "Píxeles de Seguimiento",
+    tutorials: "Tutoriales",
+    support: "Soporte",
+    settings: "Configuración",
+    logout: "Salir",
+    
+    // Stats
+    total_users: "Total de Usuarios",
+    active_subscriptions: "Suscripciones Activas",
+    monthly_revenue: "Ingresos Mensuales",
+    growth_rate: "Tasa de Crecimiento",
+    
+    // Common
+    save: "Guardar",
+    cancel: "Cancelar",
+    delete: "Eliminar",
+    edit: "Editar",
+    create: "Crear",
+    loading: "Cargando...",
+    search: "Buscar",
+    filter: "Filtrar",
+    export: "Exportar",
+    import: "Importar",
+    yes: "Sí",
+    no: "No",
+    close: "Cerrar",
+    
+    // Time
+    days: "Días",
+    months: "Meses",
+    years: "Años",
+  },
+  
+  fr: {
+    // Landing Page
+    hero_title: "Automatisez votre Entreprise avec l'IA",
+    hero_subtitle: "Créez des chatbots intelligents, des agents IA et automatisez les processus sans code",
+    get_started: "Commencer",
+    watch_demo: "Voir la Démo",
+    features: "Fonctionnalités",
+    pricing: "Tarifs",
+    faq: "FAQ",
+    contact: "Contact",
+    
+    // Dashboard
+    dashboard: "Tableau de bord",
+    my_plan: "Mon Plan",
+    tools: "Outils",
+    bot_builder: "Constructeur de Bot",
+    ai_agent_builder: "Constructeur d'Agent IA",
+    chatbots: "Chatbots",
+    ai_agents: "Agents IA",
+    conversations: "Conversations",
+    captured_leads: "Leads Capturés",
+    crm: "CRM",
+    link_shortener: "Raccourcisseur de Liens",
+    page_cloner: "Clonateur de Pages",
+    whatsapp_generator: "Générateur WhatsApp",
+    chat_widget: "Widget de Chat",
+    pixels: "Pixels de Suivi",
+    tutorials: "Tutoriels",
+    support: "Support",
+    settings: "Paramètres",
+    logout: "Déconnexion",
+    
+    // Stats
+    total_users: "Total des Utilisateurs",
+    active_subscriptions: "Abonnements Actifs",
+    monthly_revenue: "Revenus Mensuels",
+    growth_rate: "Taux de Croissance",
+    
+    // Common
+    save: "Enregistrer",
+    cancel: "Annuler",
+    delete: "Supprimer",
+    edit: "Modifier",
+    create: "Créer",
+    loading: "Chargement...",
+    search: "Rechercher",
+    filter: "Filtrer",
+    export: "Exporter",
+    import: "Importer",
+    yes: "Oui",
+    no: "Non",
+    close: "Fermer",
+    
+    // Time
+    days: "Jours",
+    months: "Mois",
+    years: "Années",
+  },
+  
+  de: {
+    // Landing Page
+    hero_title: "Automatisieren Sie Ihr Geschäft mit KI",
+    hero_subtitle: "Erstellen Sie intelligente Chatbots, KI-Agenten und automatisieren Sie Prozesse ohne Code",
+    get_started: "Jetzt Starten",
+    watch_demo: "Demo Ansehen",
+    features: "Funktionen",
+    pricing: "Preise",
+    faq: "FAQ",
+    contact: "Kontakt",
+    
+    // Dashboard
+    dashboard: "Dashboard",
+    my_plan: "Mein Plan",
+    tools: "Werkzeuge",
+    bot_builder: "Bot-Builder",
+    ai_agent_builder: "KI-Agenten-Builder",
+    chatbots: "Chatbots",
+    ai_agents: "KI-Agenten",
+    conversations: "Gespräche",
+    captured_leads: "Erfasste Leads",
+    crm: "CRM",
+    link_shortener: "Link-Verkürzer",
+    page_cloner: "Seiten-Kloner",
+    whatsapp_generator: "WhatsApp-Generator",
+    chat_widget: "Chat-Widget",
+    pixels: "Tracking-Pixel",
+    tutorials: "Tutorials",
+    support: "Support",
+    settings: "Einstellungen",
+    logout: "Abmelden",
+    
+    // Stats
+    total_users: "Gesamtbenutzer",
+    active_subscriptions: "Aktive Abonnements",
+    monthly_revenue: "Monatliche Einnahmen",
+    growth_rate: "Wachstumsrate",
+    
+    // Common
+    save: "Speichern",
+    cancel: "Abbrechen",
+    delete: "Löschen",
+    edit: "Bearbeiten",
+    create: "Erstellen",
+    loading: "Wird geladen...",
+    search: "Suchen",
+    filter: "Filtern",
+    export: "Exportieren",
+    import: "Importieren",
+    yes: "Ja",
+    no: "Nein",
+    close: "Schließen",
+    
+    // Time
+    days: "Tage",
+    months: "Monate",
+    years: "Jahre",
+  },
+  
+  zh: {
+    // Landing Page
+    hero_title: "用AI自动化您的业务",
+    hero_subtitle: "创建智能聊天机器人、AI代理并自动化流程，无需编码",
+    get_started: "立即开始",
+    watch_demo: "观看演示",
+    features: "功能",
+    pricing: "定价",
+    faq: "常见问题",
+    contact: "联系我们",
+    
+    // Dashboard
+    dashboard: "仪表板",
+    my_plan: "我的计划",
+    tools: "工具",
+    bot_builder: "机器人构建器",
+    ai_agent_builder: "AI代理构建器",
+    chatbots: "聊天机器人",
+    ai_agents: "AI代理",
+    conversations: "对话",
+    captured_leads: "已捕获的潜在客户",
+    crm: "客户关系管理",
+    link_shortener: "链接缩短器",
+    page_cloner: "页面克隆器",
+    whatsapp_generator: "WhatsApp生成器",
+    chat_widget: "聊天小部件",
+    pixels: "跟踪像素",
+    tutorials: "教程",
+    support: "支持",
+    settings: "设置",
+    logout: "登出",
+    
+    // Stats
+    total_users: "总用户数",
+    active_subscriptions: "活跃订阅",
+    monthly_revenue: "月收入",
+    growth_rate: "增长率",
+    
+    // Common
+    save: "保存",
+    cancel: "取消",
+    delete: "删除",
+    edit: "编辑",
+    create: "创建",
+    loading: "加载中...",
+    search: "搜索",
+    filter: "筛选",
+    export: "导出",
+    import: "导入",
+    yes: "是",
+    no: "否",
+    close: "关闭",
+    
+    // Time
+    days: "天",
+    months: "月",
+    years: "年",
+  },
+};
+
+export type Language = keyof typeof translations;
+export type TranslationKey = keyof typeof translations.pt;
