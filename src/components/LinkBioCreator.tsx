@@ -35,9 +35,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { AvatarUpload } from "@/components/AvatarUpload";
-import { HexColorPicker } from "react-colorful";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { ColorPicker } from "@/components/ColorPicker";
 
 interface LinkBio {
   id: string;
@@ -988,7 +988,7 @@ export function LinkBioCreator() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-3">
-                        <HexColorPicker color={gradientColor1} onChange={setGradientColor1} />
+                        <ColorPicker color={gradientColor1} onChange={setGradientColor1} />
                         <Input
                           value={gradientColor1}
                           onChange={(e) => setGradientColor1(e.target.value)}
@@ -1017,7 +1017,7 @@ export function LinkBioCreator() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-3">
-                        <HexColorPicker color={gradientColor2} onChange={setGradientColor2} />
+                        <ColorPicker color={gradientColor2} onChange={setGradientColor2} />
                         <Input
                           value={gradientColor2}
                           onChange={(e) => setGradientColor2(e.target.value)}
@@ -1050,7 +1050,7 @@ export function LinkBioCreator() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-3">
-                      <HexColorPicker color={backgroundColor} onChange={setBackgroundColor} />
+                      <ColorPicker color={backgroundColor} onChange={setBackgroundColor} />
                       <Input
                         value={backgroundColor}
                         onChange={(e) => setBackgroundColor(e.target.value)}
@@ -1079,7 +1079,7 @@ export function LinkBioCreator() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-3">
-                      <HexColorPicker color={textColor} onChange={setTextColor} />
+                      <ColorPicker color={textColor} onChange={setTextColor} />
                       <Input
                         value={textColor}
                         onChange={(e) => setTextColor(e.target.value)}
@@ -1108,7 +1108,7 @@ export function LinkBioCreator() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-3">
-                      <HexColorPicker color={buttonColor} onChange={setButtonColor} />
+                      <ColorPicker color={buttonColor} onChange={setButtonColor} />
                       <Input
                         value={buttonColor}
                         onChange={(e) => setButtonColor(e.target.value)}
@@ -1137,7 +1137,7 @@ export function LinkBioCreator() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-3">
-                      <HexColorPicker color={buttonTextColor} onChange={setButtonTextColor} />
+                      <ColorPicker color={buttonTextColor} onChange={setButtonTextColor} />
                       <Input
                         value={buttonTextColor}
                         onChange={(e) => setButtonTextColor(e.target.value)}
@@ -1256,7 +1256,7 @@ export function LinkBioCreator() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-3">
-                      <HexColorPicker color={borderColor} onChange={setBorderColor} />
+                      <ColorPicker color={borderColor} onChange={setBorderColor} />
                       <Input
                         value={borderColor}
                         onChange={(e) => setBorderColor(e.target.value)}
