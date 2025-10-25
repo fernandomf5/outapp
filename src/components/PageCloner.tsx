@@ -29,11 +29,11 @@ interface ClonedPage {
 
 // Domínios genéricos da BotRealsZap para clonadores de páginas
 const GENERIC_DOMAINS = [
-  "clonezap1.botrealszap.com",
-  "clonezap2.botrealszap.com",
-  "clonezap3.botrealszap.com",
-  "clonezap4.botrealszap.com",
-  "clonezap5.botrealszap.com"
+  "page1.botrealszap.com",
+  "page2.botrealszap.com",
+  "page3.botrealszap.com",
+  "page4.botrealszap.com",
+  "page5.botrealszap.com"
 ];
 
 export const PageCloner = () => {
