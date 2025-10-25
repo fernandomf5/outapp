@@ -22,6 +22,8 @@ interface LinkBio {
   border_animation: string;
   hover_animation: string;
   is_active: boolean;
+  gradient_color1: string;
+  gradient_color2: string;
 }
 
 interface BioLink {
@@ -150,7 +152,7 @@ export default function LinkBioPage() {
     );
   }
 
-  const isGradient = bio.background_color.includes('gradient');
+  const isGradient = bio.theme === 'gradient';
   const hasBackgroundImage = bio.background_image && bio.background_image.trim() !== '';
 
   return (
@@ -165,7 +167,7 @@ export default function LinkBioPage() {
               backgroundRepeat: 'no-repeat'
             }
           : isGradient 
-            ? { background: bio.background_color }
+            ? { background: `linear-gradient(135deg, ${bio.gradient_color1 || '#667eea'} 0%, ${bio.gradient_color2 || '#764ba2'} 100%)` }
             : { backgroundColor: bio.background_color }
       }
     >

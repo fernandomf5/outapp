@@ -1154,6 +1154,8 @@ export type Database = {
           created_at: string
           custom_css: string | null
           display_name: string | null
+          gradient_color1: string | null
+          gradient_color2: string | null
           hover_animation: string | null
           id: string
           is_active: boolean | null
@@ -1178,6 +1180,8 @@ export type Database = {
           created_at?: string
           custom_css?: string | null
           display_name?: string | null
+          gradient_color1?: string | null
+          gradient_color2?: string | null
           hover_animation?: string | null
           id?: string
           is_active?: boolean | null
@@ -1202,6 +1206,8 @@ export type Database = {
           created_at?: string
           custom_css?: string | null
           display_name?: string | null
+          gradient_color1?: string | null
+          gradient_color2?: string | null
           hover_animation?: string | null
           id?: string
           is_active?: boolean | null

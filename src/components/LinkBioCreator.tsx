@@ -56,6 +56,8 @@ interface LinkBio {
   hover_animation: string;
   is_active: boolean;
   total_clicks: number;
+  gradient_color1: string;
+  gradient_color2: string;
 }
 
 interface BioLink {
@@ -115,6 +117,8 @@ export function LinkBioCreator() {
   const [borderColor, setBorderColor] = useState("#000000");
   const [borderAnimation, setBorderAnimation] = useState("none");
   const [hoverAnimation, setHoverAnimation] = useState("none");
+  const [gradientColor1, setGradientColor1] = useState("#667eea");
+  const [gradientColor2, setGradientColor2] = useState("#764ba2");
   
   // New link states
   const [newLinkTitle, setNewLinkTitle] = useState("");
@@ -148,6 +152,8 @@ export function LinkBioCreator() {
       setBorderColor(selectedBio.border_color || '#000000');
       setBorderAnimation(selectedBio.border_animation || 'none');
       setHoverAnimation(selectedBio.hover_animation || 'none');
+      setGradientColor1(selectedBio.gradient_color1 || '#667eea');
+      setGradientColor2(selectedBio.gradient_color2 || '#764ba2');
       fetchLinks(selectedBio.id);
     }
   }, [selectedBio]);
@@ -198,6 +204,8 @@ export function LinkBioCreator() {
     setBorderColor("#000000");
     setBorderAnimation("none");
     setHoverAnimation("none");
+    setGradientColor1("#667eea");
+    setGradientColor2("#764ba2");
     setLinks([]);
   };
 
@@ -230,6 +238,8 @@ export function LinkBioCreator() {
       border_color: borderColor,
       border_animation: borderAnimation,
       hover_animation: hoverAnimation,
+      gradient_color1: gradientColor1,
+      gradient_color2: gradientColor2,
       is_active: true,
     };
 
@@ -389,6 +399,11 @@ export function LinkBioCreator() {
       setTextColor(selectedTheme.text);
       setButtonColor(selectedTheme.button);
       setButtonTextColor(selectedTheme.buttonText);
+      
+      if (themeValue === 'gradient') {
+        setGradientColor1('#667eea');
+        setGradientColor2('#764ba2');
+      }
     }
   };
 
@@ -761,6 +776,69 @@ export function LinkBioCreator() {
                 </Select>
               </div>
 
+              {theme === 'gradient' && (
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <Label htmlFor="gradientColor1">Cor do Gradiente 1</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal"
+                        >
+                          <div className="flex items-center gap-2 w-full">
+                            <Pipette className="w-4 h-4" />
+                            <div
+                              className="h-6 w-6 rounded border"
+                              style={{ backgroundColor: gradientColor1 }}
+                            />
+                            <span className="flex-1">{gradientColor1}</span>
+                          </div>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-3">
+                        <HexColorPicker color={gradientColor1} onChange={setGradientColor1} />
+                        <Input
+                          value={gradientColor1}
+                          onChange={(e) => setGradientColor1(e.target.value)}
+                          className="mt-2"
+                          placeholder="#667eea"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div>
+                    <Label htmlFor="gradientColor2">Cor do Gradiente 2</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal"
+                        >
+                          <div className="flex items-center gap-2 w-full">
+                            <Pipette className="w-4 h-4" />
+                            <div
+                              className="h-6 w-6 rounded border"
+                              style={{ backgroundColor: gradientColor2 }}
+                            />
+                            <span className="flex-1">{gradientColor2}</span>
+                          </div>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-3">
+                        <HexColorPicker color={gradientColor2} onChange={setGradientColor2} />
+                        <Input
+                          value={gradientColor2}
+                          onChange={(e) => setGradientColor2(e.target.value)}
+                          className="mt-2"
+                          placeholder="#764ba2"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="bgColor">Cor de Fundo</Label>
@@ -1083,8 +1161,8 @@ export function LinkBioCreator() {
                                 backgroundPosition: 'center',
                                 backgroundRepeat: 'no-repeat'
                               }
-                            : backgroundColor.includes('gradient')
-                              ? { background: backgroundColor }
+                            : theme === 'gradient'
+                              ? { background: `linear-gradient(135deg, ${gradientColor1} 0%, ${gradientColor2} 100%)` }
                               : { backgroundColor }
                         }
                       >
