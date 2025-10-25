@@ -185,30 +185,61 @@ export function LinkBioCreator() {
 
   const fetchBios = async () => {
     if (!user) return;
-    
-    const { data: biosData } = await supabase
-      .from('link_bios')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+    try {
+      console.log('[LinkBioCreator] fetchBios start', { userId: user.id });
+      const { data: biosData, error } = await supabase
+        .from('link_bios')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
-    if (biosData && biosData.length > 0) {
-      setBios(biosData as LinkBio[]);
-      if (!selectedBioId) {
-        setSelectedBioId(biosData[0].id);
+      if (error) {
+        console.error('[LinkBioCreator] fetchBios error', error);
+        toast({ title: 'Erro ao carregar seus Bios', description: error.message, variant: 'destructive' });
+        return;
       }
+
+      if (biosData && biosData.length > 0) {
+        setBios(biosData as LinkBio[]);
+        if (!selectedBioId) {
+          setSelectedBioId(biosData[0].id);
+        }
+      } else {
+        setBios([]);
+      }
+      console.log('[LinkBioCreator] fetchBios done', { count: biosData?.length || 0 });
+    } catch (err: any) {
+      console.error('[LinkBioCreator] fetchBios unexpected error', err);
+      toast({ title: 'Erro ao carregar', description: 'Não foi possível carregar seus Bios.', variant: 'destructive' });
     }
   };
 
   const fetchLinks = async (bioId: string) => {
-    const { data } = await supabase
-      .from('link_bio_links')
-      .select('*')
-      .eq('bio_id', bioId)
-      .order('position', { ascending: true });
+    try {
+      console.log('[LinkBioCreator] fetchLinks start', { bioId });
+      const { data, error } = await supabase
+        .from('link_bio_links')
+        .select('*')
+        .eq('bio_id', bioId)
+        .order('position', { ascending: true });
 
-    if (data) {
-      setLinks(data);
+      if (error) {
+        console.error('[LinkBioCreator] fetchLinks error', error);
+        toast({ title: 'Erro ao carregar links', description: error.message, variant: 'destructive' });
+        setLinks([]);
+        return;
+      }
+
+      if (data) {
+        setLinks(data);
+      } else {
+        setLinks([]);
+      }
+      console.log('[LinkBioCreator] fetchLinks done', { count: data?.length || 0 });
+    } catch (err: any) {
+      console.error('[LinkBioCreator] fetchLinks unexpected error', err);
+      toast({ title: 'Erro ao carregar links', description: 'Tente novamente.', variant: 'destructive' });
+      setLinks([]);
     }
   };
 
