@@ -15,6 +15,7 @@ import { ChatPreview } from "@/components/flowbuilder/ChatPreview";
 import { ChatWidgetGenerator } from "@/components/ChatWidgetGenerator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ReactFlowProvider } from 'reactflow';
+import { CustomCursor } from "@/components/CustomCursor";
 
 
 interface FunnelData {
@@ -162,7 +163,9 @@ const FunnelBuilder = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <>
+      <CustomCursor />
+      <div className="h-screen flex flex-col bg-background">
       <header className="bg-card border-b border-border px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" onClick={() => navigate("/dashboard")}>
@@ -264,6 +267,7 @@ const FunnelBuilder = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
