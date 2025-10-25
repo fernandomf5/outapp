@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy } from "lucide-react";
+import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -456,7 +456,7 @@ const Dashboard = () => {
         {/* Quick Actions */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {hasFeature('chatbot_web') && (
-            <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth" onClick={() => navigate("/bot-builder")}>
+            <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/bot-builder")}>
               <div className="flex items-start justify-between mb-3 sm:mb-4">
                 <div className="flex-1">
                   <h3 className="text-lg sm:text-xl font-bold mb-2">Criar Chatbot Web</h3>
@@ -475,7 +475,7 @@ const Dashboard = () => {
           )}
 
           {hasFeature('ai_agent') && (
-            <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth" onClick={() => navigate("/ai-agent")}>
+            <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/ai-agent")}>
               <div className="flex items-start justify-between mb-3 sm:mb-4">
                 <div className="flex-1">
                   <h3 className="text-lg sm:text-xl font-bold mb-2">Criar Agente IA</h3>
@@ -493,22 +493,77 @@ const Dashboard = () => {
             </Card>
           )}
 
-          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth" onClick={() => navigate("/funnel-builder")}>
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('tools')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Criar Funil de Vendas</h3>
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Gerenciador de Links</h3>
                 <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                  Construa jornadas de vendas com blocos personalizáveis
+                  Crie links personalizados para seu WhatsApp
                 </p>
               </div>
               <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                <Zap className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+                <ExternalLink className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
               </div>
             </div>
             <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
-              Criar Funil
+              Acessar
             </Button>
           </Card>
+
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('linkbio')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Link na Bio</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Centralize todos os seus links em uma única página
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <UserCircle className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Criar Link
+            </Button>
+          </Card>
+
+          {hasFeature('link_shortener') && (
+            <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('shortlinks')}>
+              <div className="flex items-start justify-between mb-3 sm:mb-4">
+                <div className="flex-1">
+                  <h3 className="text-lg sm:text-xl font-bold mb-2">Encurtador de Links</h3>
+                  <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                    Encurte e rastreie seus links de forma profissional
+                  </p>
+                </div>
+                <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                  <Scissors className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+                </div>
+              </div>
+              <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+                Encurtar Link
+              </Button>
+            </Card>
+          )}
+
+          {hasFeature('page_cloner') && (
+            <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('cloner')}>
+              <div className="flex items-start justify-between mb-3 sm:mb-4">
+                <div className="flex-1">
+                  <h3 className="text-lg sm:text-xl font-bold mb-2">Clonador de Páginas</h3>
+                  <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                    Clone páginas da web e personalize conforme sua necessidade
+                  </p>
+                </div>
+                <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                  <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+                </div>
+              </div>
+              <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+                Clonar Página
+              </Button>
+            </Card>
+          )}
         </div>
 
         {/* Tutorial Videos */}
