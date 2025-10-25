@@ -53,7 +53,6 @@ export const PageCloner = () => {
   const [editSettings, setEditSettings] = useState({
     custom_links: [] as { selector: string; newUrl: string }[],
     detected_checkout_links: [] as { originalUrl: string; text: string; replaced?: boolean; newUrl?: string }[],
-    custom_domain: "",
     tracking_pixels: "",
     whatsapp_button: {
       enabled: false,
@@ -62,14 +61,7 @@ export const PageCloner = () => {
       position: "bottom-right"
     },
     header_code: "",
-    footer_code: "",
-    utm_params: {
-      utm_source: "",
-      utm_medium: "",
-      utm_campaign: "",
-      utm_term: "",
-      utm_content: ""
-    }
+    footer_code: ""
   });
   const [totalClicks, setTotalClicks] = useState(0);
 
@@ -125,6 +117,15 @@ export const PageCloner = () => {
       return;
     }
 
+    if (!cloneData.selected_domain) {
+      toast({
+        title: "Erro",
+        description: "Selecione um domínio",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsCloning(true);
 
     try {
@@ -134,14 +135,14 @@ export const PageCloner = () => {
       });
 
       if (cloneError) throw cloneError;
-      if (!cloneResult.success) throw new Error(cloneResult.error);
+      if (!cloneResult?.success) throw new Error(cloneResult?.error || 'Erro ao clonar página');
 
-      // Generate slug
+      // Generate slug - permite letras, números e hífens
       const slug = cloneData.custom_slug 
-        ? cloneData.custom_slug.toLowerCase().replace(/[^a-z0-9-]/g, '-')
+        ? cloneData.custom_slug.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '')
         : `clone-${Math.random().toString(36).substring(2, 10)}`;
 
-      const selectedDomain = cloneData.selected_domain || GENERIC_DOMAINS[0];
+      const selectedDomain = cloneData.selected_domain;
       const clonedUrl = `https://${selectedDomain}/page/${slug}`;
 
       // Detect checkout links
@@ -192,8 +193,7 @@ export const PageCloner = () => {
     const { error } = await supabase
       .from('cloned_pages')
       .update({
-        custom_settings: editSettings,
-        custom_domain: editSettings.custom_domain || null,
+        custom_settings: editSettings
       })
       .eq('id', selectedPage.id);
 
@@ -285,7 +285,6 @@ export const PageCloner = () => {
     setEditSettings({
       custom_links: settings.custom_links || [],
       detected_checkout_links: settings.detected_checkout_links || [],
-      custom_domain: page.custom_domain || "",
       tracking_pixels: settings.tracking_pixels || "",
       whatsapp_button: settings.whatsapp_button || {
         enabled: false,
@@ -294,14 +293,7 @@ export const PageCloner = () => {
         position: "bottom-right"
       },
       header_code: settings.header_code || "",
-      footer_code: settings.footer_code || "",
-      utm_params: settings.utm_params || {
-        utm_source: "",
-        utm_medium: "",
-        utm_campaign: "",
-        utm_term: "",
-        utm_content: ""
-      }
+      footer_code: settings.footer_code || ""
     });
     setIsEditDialogOpen(true);
   };
@@ -372,7 +364,7 @@ export const PageCloner = () => {
                   disabled={isCloning}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Deixe vazio para gerar automaticamente. URL final: https://{cloneData.selected_domain || 'dominio'}/page/{cloneData.custom_slug || 'slug'}
+                  Deixe vazio para gerar automaticamente. Use apenas letras, números e hífens. URL final: https://{cloneData.selected_domain || 'selecione-dominio'}/page/{cloneData.custom_slug || 'sua-slug'}
                 </p>
               </div>
               <Button 
@@ -537,39 +529,14 @@ export const PageCloner = () => {
           <DialogHeader>
             <DialogTitle>Configurar Página Clonada</DialogTitle>
           </DialogHeader>
-          <Tabs defaultValue="domain" className="w-full mt-4">
-            <TabsList className="grid w-full grid-cols-7">
-              <TabsTrigger value="domain">Domínio</TabsTrigger>
+          <Tabs defaultValue="checkout" className="w-full mt-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="checkout">Checkout</TabsTrigger>
               <TabsTrigger value="links">Links</TabsTrigger>
-              <TabsTrigger value="utm">UTM</TabsTrigger>
               <TabsTrigger value="pixels">Pixels</TabsTrigger>
               <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
               <TabsTrigger value="code">Código</TabsTrigger>
             </TabsList>
-
-            <TabsContent value="domain" className="space-y-4">
-              <div>
-                <Label>Domínio Personalizado</Label>
-                <Input
-                  value={editSettings.custom_domain}
-                  onChange={(e) => setEditSettings({ ...editSettings, custom_domain: e.target.value })}
-                  placeholder="meudominio.com"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Configure os registros DNS do seu domínio para apontar para este site
-                </p>
-              </div>
-              <div className="p-4 bg-muted rounded-lg">
-                <h4 className="font-semibold mb-2">Como configurar:</h4>
-                <ol className="text-sm space-y-2 list-decimal list-inside text-muted-foreground">
-                  <li>Acesse o painel do seu provedor de domínio</li>
-                  <li>Adicione um registro A apontando para o IP do servidor</li>
-                  <li>Ou adicione um CNAME apontando para {window.location.host}</li>
-                  <li>Aguarde a propagação DNS (pode levar até 48h)</li>
-                </ol>
-              </div>
-            </TabsContent>
 
             <TabsContent value="checkout" className="space-y-4">
               <div className="space-y-4">
@@ -732,65 +699,6 @@ export const PageCloner = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="utm" className="space-y-4">
-              <div className="space-y-4">
-                <div>
-                  <Label>UTM Source</Label>
-                  <Input
-                    value={editSettings.utm_params.utm_source}
-                    onChange={(e) => setEditSettings({
-                      ...editSettings,
-                      utm_params: { ...editSettings.utm_params, utm_source: e.target.value }
-                    })}
-                    placeholder="facebook, google, instagram..."
-                  />
-                </div>
-                <div>
-                  <Label>UTM Medium</Label>
-                  <Input
-                    value={editSettings.utm_params.utm_medium}
-                    onChange={(e) => setEditSettings({
-                      ...editSettings,
-                      utm_params: { ...editSettings.utm_params, utm_medium: e.target.value }
-                    })}
-                    placeholder="cpc, banner, email..."
-                  />
-                </div>
-                <div>
-                  <Label>UTM Campaign</Label>
-                  <Input
-                    value={editSettings.utm_params.utm_campaign}
-                    onChange={(e) => setEditSettings({
-                      ...editSettings,
-                      utm_params: { ...editSettings.utm_params, utm_campaign: e.target.value }
-                    })}
-                    placeholder="black-friday, lancamento..."
-                  />
-                </div>
-                <div>
-                  <Label>UTM Term</Label>
-                  <Input
-                    value={editSettings.utm_params.utm_term}
-                    onChange={(e) => setEditSettings({
-                      ...editSettings,
-                      utm_params: { ...editSettings.utm_params, utm_term: e.target.value }
-                    })}
-                    placeholder="palavra-chave..."
-                  />
-                </div>
-                <div>
-                  <Label>UTM Content</Label>
-                  <Input
-                    value={editSettings.utm_params.utm_content}
-                    onChange={(e) => setEditSettings({
-                      ...editSettings,
-                      utm_params: { ...editSettings.utm_params, utm_content: e.target.value }
-                    })}
-                    placeholder="variacao-a, banner-top..."
-                  />
-                </div>
-              </div>
-            </TabsContent>
 
             <TabsContent value="pixels" className="space-y-4">
               <div>
