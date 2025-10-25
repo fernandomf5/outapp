@@ -46,7 +46,6 @@ export function UserSidebar() {
 
   const mainItems = [
     { title: t('overview'), icon: TrendingUp, path: "/dashboard", tab: "overview" },
-    { title: t('create_funnel'), icon: TrendingUp, path: "/funnel-builder" },
   ];
 
   const chatbotItems = [
