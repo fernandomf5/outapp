@@ -34,6 +34,30 @@ import { MyAIAgents } from "@/components/MyAIAgents";
 import { QRCodeGenerator } from "@/components/QRCodeGenerator";
 import AgentManagementPanel from "@/components/AgentManagementPanel";
 import { ChatbotManagementPanel } from "@/components/ChatbotManagementPanel";
+import { ChatbotAnalyticsPanel } from "@/components/ChatbotAnalyticsPanel";
+import { ChatbotCustomersPanel } from "@/components/ChatbotCustomersPanel";
+import { ChatbotConversationsPanel } from "@/components/ChatbotConversationsPanel";
+import { ChatbotProductsPanel } from "@/components/ChatbotProductsPanel";
+import { ChatbotAppointmentsPanel } from "@/components/ChatbotAppointmentsPanel";
+import { ChatbotOrdersPanel } from "@/components/ChatbotOrdersPanel";
+import { ChatbotFinancialPanel } from "@/components/ChatbotFinancialPanel";
+import { ChatbotSchedulePanel } from "@/components/ChatbotSchedulePanel";
+import { ChatbotAutomationsPanel } from "@/components/ChatbotAutomationsPanel";
+import { ChatbotReviewsPanel } from "@/components/ChatbotReviewsPanel";
+import { ChatbotNotificationsPanel } from "@/components/ChatbotNotificationsPanel";
+import { ChatbotReportsPanel } from "@/components/ChatbotReportsPanel";
+import AgentAnalyticsPanel from "@/components/AgentAnalyticsPanel";
+import AgentCustomersPanel from "@/components/AgentCustomersPanel";
+import AgentConversationsPanel from "@/components/AgentConversationsPanel";
+import AgentProductsPanel from "@/components/AgentProductsPanel";
+import AgentAppointmentsPanel from "@/components/AgentAppointmentsPanel";
+import AgentOrdersPanel from "@/components/AgentOrdersPanel";
+import AgentFinancialPanel from "@/components/AgentFinancialPanel";
+import AgentSchedulePanel from "@/components/AgentSchedulePanel";
+import AgentAutomationsPanel from "@/components/AgentAutomationsPanel";
+import AgentReviewsPanel from "@/components/AgentReviewsPanel";
+import AgentNotificationsPanel from "@/components/AgentNotificationsPanel";
+import AgentReportsPanel from "@/components/AgentReportsPanel";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -988,6 +1012,200 @@ const Dashboard = () => {
             />
           </TabsContent>
 
+
+          {/* Chatbot Management Tabs */}
+          <TabsContent value="chatbot-analytics">
+            {selectedChatbotForManagement ? (
+              <ChatbotAnalyticsPanel chatbotId={selectedChatbotForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um chatbot primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="chatbot-customers">
+            {selectedChatbotForManagement ? (
+              <ChatbotCustomersPanel chatbotId={selectedChatbotForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um chatbot primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="chatbot-conversations">
+            {selectedChatbotForManagement ? (
+              <ChatbotConversationsPanel chatbotId={selectedChatbotForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um chatbot primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="chatbot-products">
+            {selectedChatbotForManagement ? (
+              <ChatbotProductsPanel chatbotId={selectedChatbotForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um chatbot primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="chatbot-appointments">
+            {selectedChatbotForManagement ? (
+              <ChatbotAppointmentsPanel chatbotId={selectedChatbotForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um chatbot primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="chatbot-orders">
+            {selectedChatbotForManagement ? (
+              <ChatbotOrdersPanel chatbotId={selectedChatbotForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um chatbot primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="chatbot-financial">
+            {selectedChatbotForManagement ? (
+              <ChatbotFinancialPanel chatbotId={selectedChatbotForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um chatbot primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="chatbot-schedule">
+            {selectedChatbotForManagement ? (
+              <ChatbotSchedulePanel chatbotId={selectedChatbotForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um chatbot primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="chatbot-automations">
+            {selectedChatbotForManagement ? (
+              <ChatbotAutomationsPanel chatbotId={selectedChatbotForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um chatbot primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="chatbot-reviews">
+            {selectedChatbotForManagement ? (
+              <ChatbotReviewsPanel chatbotId={selectedChatbotForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um chatbot primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="chatbot-notifications">
+            {selectedChatbotForManagement ? (
+              <ChatbotNotificationsPanel chatbotId={selectedChatbotForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um chatbot primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="chatbot-reports">
+            {selectedChatbotForManagement ? (
+              <ChatbotReportsPanel chatbotId={selectedChatbotForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um chatbot primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          {/* Agent Management Tabs */}
+          <TabsContent value="agent-analytics">
+            {selectedAgentForManagement ? (
+              <AgentAnalyticsPanel agentId={selectedAgentForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um agente primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="agent-customers">
+            {selectedAgentForManagement ? (
+              <AgentCustomersPanel agentId={selectedAgentForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um agente primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="agent-conversations">
+            {selectedAgentForManagement ? (
+              <AgentConversationsPanel agentId={selectedAgentForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um agente primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="agent-products">
+            {selectedAgentForManagement ? (
+              <AgentProductsPanel agentId={selectedAgentForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um agente primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="agent-appointments">
+            {selectedAgentForManagement ? (
+              <AgentAppointmentsPanel agentId={selectedAgentForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um agente primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="agent-orders">
+            {selectedAgentForManagement ? (
+              <AgentOrdersPanel agentId={selectedAgentForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um agente primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="agent-financial">
+            {selectedAgentForManagement ? (
+              <AgentFinancialPanel agentId={selectedAgentForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um agente primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="agent-schedule">
+            {selectedAgentForManagement ? (
+              <AgentSchedulePanel agentId={selectedAgentForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um agente primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="agent-automations">
+            {selectedAgentForManagement ? (
+              <AgentAutomationsPanel agentId={selectedAgentForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um agente primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="agent-reviews">
+            {selectedAgentForManagement ? (
+              <AgentReviewsPanel agentId={selectedAgentForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um agente primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="agent-notifications">
+            {selectedAgentForManagement ? (
+              <AgentNotificationsPanel agentId={selectedAgentForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um agente primeiro</CardContent></Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="agent-reports">
+            {selectedAgentForManagement ? (
+              <AgentReportsPanel agentId={selectedAgentForManagement.id} />
+            ) : (
+              <Card><CardContent className="p-8 text-center">Selecione um agente primeiro</CardContent></Card>
+            )}
+          </TabsContent>
 
           <TabsContent value="voucher">
             <VoucherRedemption />

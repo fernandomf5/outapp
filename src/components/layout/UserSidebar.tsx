@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Bot, Sparkles, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ChevronDown, ExternalLink, QrCode, Calendar } from "lucide-react";
+import { Bot, Sparkles, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ChevronDown, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -58,10 +58,38 @@ export function UserSidebar() {
     { title: t('my_ai_agents'), icon: Sparkles, path: "/dashboard", tab: "ai-agents" },
   ];
 
+  const chatbotManagementItems = [
+    { title: "Analytics", icon: BarChart3, path: "/dashboard", tab: "chatbot-analytics" },
+    { title: "Clientes", icon: Users, path: "/dashboard", tab: "chatbot-customers" },
+    { title: "Conversas", icon: MessageSquare, path: "/dashboard", tab: "chatbot-conversations" },
+    { title: "Produtos", icon: ShoppingBag, path: "/dashboard", tab: "chatbot-products" },
+    { title: "Agendamentos", icon: Calendar, path: "/dashboard", tab: "chatbot-appointments" },
+    { title: "Pedidos", icon: ShoppingBag, path: "/dashboard", tab: "chatbot-orders" },
+    { title: "Financeiro", icon: DollarSign, path: "/dashboard", tab: "chatbot-financial" },
+    { title: "Horários", icon: Clock, path: "/dashboard", tab: "chatbot-schedule" },
+    { title: "Automações", icon: Zap, path: "/dashboard", tab: "chatbot-automations" },
+    { title: "Avaliações", icon: Star, path: "/dashboard", tab: "chatbot-reviews" },
+    { title: "Notificações", icon: Bell, path: "/dashboard", tab: "chatbot-notifications" },
+    { title: "Relatórios", icon: FileText, path: "/dashboard", tab: "chatbot-reports" },
+  ];
+
+  const agentManagementItems = [
+    { title: "Analytics", icon: BarChart3, path: "/dashboard", tab: "agent-analytics" },
+    { title: "Clientes", icon: Users, path: "/dashboard", tab: "agent-customers" },
+    { title: "Conversas", icon: MessageSquare, path: "/dashboard", tab: "agent-conversations" },
+    { title: "Produtos", icon: ShoppingBag, path: "/dashboard", tab: "agent-products" },
+    { title: "Agendamentos", icon: Calendar, path: "/dashboard", tab: "agent-appointments" },
+    { title: "Pedidos", icon: ShoppingBag, path: "/dashboard", tab: "agent-orders" },
+    { title: "Financeiro", icon: DollarSign, path: "/dashboard", tab: "agent-financial" },
+    { title: "Horários", icon: Clock, path: "/dashboard", tab: "agent-schedule" },
+    { title: "Automações", icon: Zap, path: "/dashboard", tab: "agent-automations" },
+    { title: "Avaliações", icon: Star, path: "/dashboard", tab: "agent-reviews" },
+    { title: "Notificações", icon: Bell, path: "/dashboard", tab: "agent-notifications" },
+    { title: "Relatórios", icon: FileText, path: "/dashboard", tab: "agent-reports" },
+  ];
+
   const crmItems = [
-    { title: t('chatbot_management'), icon: MessageSquare, path: "/dashboard", tab: "clients", feature: "chatbot_conversations" },
     { title: t('captured_leads_title'), icon: Users, path: "/dashboard", tab: "leads", feature: "chatbot_conversations" },
-    { title: t('agent_management'), icon: Calendar, path: "/dashboard", tab: "management" },
   ];
 
   const toolsItems = [
@@ -162,31 +190,70 @@ export function UserSidebar() {
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
                     <SidebarMenuButton>
-                      <MessageSquare className="h-4 w-4" />
-                      {!collapsed && <span>{t('crm')}</span>}
+                      <Bot className="h-4 w-4" />
+                      {!collapsed && <span>Gestão de Chatbots</span>}
                       {!collapsed && <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />}
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
-                      {crmItems.map((item) => {
-                        if (item.feature && !hasFeature(item.feature)) return null;
-                        return (
-                          <SidebarMenuSubItem key={item.title}>
-                            <SidebarMenuSubButton
-                              onClick={() => handleNavigation(item.path, item.tab)}
-                              className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
-                            >
-                              <item.icon className="h-4 w-4" />
-                              {!collapsed && <span>{item.title}</span>}
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        );
-                      })}
+                      {chatbotManagementItems.map((item) => (
+                        <SidebarMenuSubItem key={item.title}>
+                          <SidebarMenuSubButton
+                            onClick={() => handleNavigation(item.path, item.tab)}
+                            className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                          >
+                            <item.icon className="h-4 w-4" />
+                            {!collapsed && <span>{item.title}</span>}
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
                     </SidebarMenuSub>
                   </CollapsibleContent>
                 </SidebarMenuItem>
               </Collapsible>
+
+              <Collapsible defaultOpen className="group/collapsible">
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton>
+                      <Sparkles className="h-4 w-4" />
+                      {!collapsed && <span>Gestão de Agentes</span>}
+                      {!collapsed && <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />}
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {agentManagementItems.map((item) => (
+                        <SidebarMenuSubItem key={item.title}>
+                          <SidebarMenuSubButton
+                            onClick={() => handleNavigation(item.path, item.tab)}
+                            className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                          >
+                            <item.icon className="h-4 w-4" />
+                            {!collapsed && <span>{item.title}</span>}
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
+
+              {crmItems.map((item) => {
+                if (item.feature && !hasFeature(item.feature)) return null;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      onClick={() => handleNavigation(item.path, item.tab)}
+                      className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
