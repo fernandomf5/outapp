@@ -130,6 +130,7 @@ export function UserSidebar() {
   ];
 
   const chatbotManagementItems = [
+    { title: "Chatbots", icon: Bot, path: "/dashboard", tab: "chatbots" },
     { title: "Analytics", icon: BarChart3, path: "/dashboard", tab: "chatbot-analytics" },
     { title: "Clientes", icon: Users, path: "/dashboard", tab: "chatbot-customers" },
     { title: "Conversas", icon: MessageSquare, path: "/dashboard", tab: "chatbot-conversations" },
@@ -145,6 +146,7 @@ export function UserSidebar() {
   ];
 
   const agentManagementItems = [
+    { title: "Agentes IA", icon: Sparkles, path: "/dashboard", tab: "ai-agents" },
     { title: "Analytics", icon: BarChart3, path: "/dashboard", tab: "agent-analytics" },
     { title: "Clientes", icon: Users, path: "/dashboard", tab: "agent-customers" },
     { title: "Conversas", icon: MessageSquare, path: "/dashboard", tab: "agent-conversations" },
