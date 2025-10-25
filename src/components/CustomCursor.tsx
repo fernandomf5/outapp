@@ -4,37 +4,10 @@ export function CustomCursor() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [clicking, setClicking] = useState(false);
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
-  const [isOnGreen, setIsOnGreen] = useState(false);
 
   useEffect(() => {
     const updatePosition = (e: MouseEvent) => {
       setPosition({ x: e.clientX, y: e.clientY });
-      
-      // Detectar se o cursor está sobre um elemento verde
-      const elementUnderCursor = document.elementFromPoint(e.clientX, e.clientY);
-      if (elementUnderCursor) {
-        const computedStyle = window.getComputedStyle(elementUnderCursor);
-        const bgColor = computedStyle.backgroundColor;
-        const textColor = computedStyle.color;
-        const borderColor = computedStyle.borderColor;
-        
-        // Verificar se alguma cor é verde (hsl 151 ou rgb verde)
-        const isGreen = 
-          bgColor.includes('151') || 
-          bgColor.includes('rgb(0, 200') || 
-          bgColor.includes('rgb(0, 190') ||
-          bgColor.includes('rgb(16, 185') ||
-          textColor.includes('151') ||
-          borderColor.includes('151') ||
-          elementUnderCursor.classList.contains('bg-primary') ||
-          elementUnderCursor.classList.contains('text-primary') ||
-          elementUnderCursor.classList.contains('border-primary') ||
-          elementUnderCursor.closest('.bg-primary') ||
-          elementUnderCursor.closest('.text-primary') ||
-          elementUnderCursor.closest('[class*="primary"]');
-        
-        setIsOnGreen(!!isGreen);
-      }
     };
 
     const handleMouseDown = () => {
@@ -66,7 +39,7 @@ export function CustomCursor() {
     <>
       {/* Main cursor */}
       <div
-        className={`custom-cursor ${isOnGreen ? 'on-green' : ''}`}
+        className="custom-cursor"
         style={{
           left: `${position.x}px`,
           top: `${position.y}px`,
@@ -75,7 +48,7 @@ export function CustomCursor() {
       
       {/* Cursor trail */}
       <div
-        className={`custom-cursor-trail ${clicking ? 'clicking' : ''} ${isOnGreen ? 'on-green' : ''}`}
+        className={`custom-cursor-trail ${clicking ? 'clicking' : ''}`}
         style={{
           left: `${position.x}px`,
           top: `${position.y}px`,
@@ -86,7 +59,7 @@ export function CustomCursor() {
       {ripples.map((ripple) => (
         <div
           key={ripple.id}
-          className={`cursor-ripple ${isOnGreen ? 'on-green' : ''}`}
+          className="cursor-ripple"
           style={{
             left: `${ripple.x}px`,
             top: `${ripple.y}px`,
