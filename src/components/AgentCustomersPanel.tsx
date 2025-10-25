@@ -118,7 +118,7 @@ export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-2xl font-bold">Clientes (CRM)</h3>
+        <h3 className="text-2xl font-bold">Dados de Clientes</h3>
         <Badge variant="outline">{customers.length} total</Badge>
       </div>
 

@@ -83,7 +83,7 @@ export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId: string }) => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Clientes CRM
+            Dados de Clientes
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">

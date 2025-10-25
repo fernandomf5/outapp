@@ -25,9 +25,7 @@ import { VoucherRedemption } from "@/components/VoucherRedemption";
 import { CRMContacts } from "@/components/CRMContacts";
 import { PixelsManager } from "@/components/PixelsManager";
 import { PageCloner } from "@/components/PageCloner";
-import { ChatbotConversations } from "@/components/ChatbotConversations";
 import { LinkShortener } from "@/components/LinkShortener";
-import { CapturedLeads } from "@/components/CapturedLeads";
 import { LinkBioCreator } from "@/components/LinkBioCreator";
 import { MyChatbots } from "@/components/MyChatbots";
 import { MyAIAgents } from "@/components/MyAIAgents";
@@ -89,7 +87,7 @@ const Dashboard = () => {
   const [selectedAgentForManagement, setSelectedAgentForManagement] = useState<any>(null);
   const [selectedChatbotForManagement, setSelectedChatbotForManagement] = useState<any>(null);
   const activeTab = searchParams.get('tab') || 'overview';
-  const [unreadClientMessages, setUnreadClientMessages] = useState(0);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -172,90 +170,6 @@ const Dashboard = () => {
       agentsSubscription.unsubscribe();
     };
   }, [user]);
-
-  // Monitorar mensagens de clientes em tempo real
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchChatbotIds = async () => {
-      const { data: chatbots } = await supabase
-        .from('chatbots')
-        .select('id')
-        .eq('user_id', user.id);
-
-      if (!chatbots || chatbots.length === 0) return [];
-      return chatbots.map(c => c.id);
-    };
-
-    fetchChatbotIds().then(chatbotIds => {
-      if (chatbotIds.length === 0) return;
-
-      // Subscrever a mensagens de clientes (role='user')
-      const clientMessagesChannel = supabase
-        .channel('client-messages-notification')
-        .on('postgres_changes', {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chatbot_messages',
-        }, async (payload) => {
-          const newMessage = payload.new as any;
-          
-          console.log('📨 Nova mensagem inserida:', {
-            role: newMessage.role,
-            node_id: newMessage.node_id,
-            node_id_type: typeof newMessage.node_id,
-            content: newMessage.content.substring(0, 50)
-          });
-          
-          // Verificar se é mensagem de cliente (role='user') E mensagem livre (sem node_id)
-          // Quando o cliente clica em botão do fluxo, node_id vem preenchido
-          // Quando o cliente digita livremente, node_id é null, undefined ou string vazia
-          const isUserMessage = newMessage.role === 'user';
-          const isFreeMessage = !newMessage.node_id || newMessage.node_id === null || newMessage.node_id === '';
-          
-          if (!isUserMessage) {
-            console.log('⏭️ Mensagem ignorada - não é do usuário');
-            return;
-          }
-          
-          if (!isFreeMessage) {
-            console.log('⏭️ Mensagem ignorada - tem node_id (botão do fluxo)');
-            return;
-          }
-
-          console.log('🔔 Mensagem livre detectada! Incrementando contador');
-
-          // Verificar se a conversa pertence a um dos chatbots do usuário
-          const { data: conversation } = await supabase
-            .from('chatbot_conversations')
-            .select('chatbot_id')
-            .eq('id', newMessage.conversation_id)
-            .single();
-
-          if (conversation && chatbotIds.includes(conversation.chatbot_id)) {
-            // Incrementar contador apenas se não estiver na aba clientes
-            if (activeTab !== 'clients') {
-              console.log('✅ Incrementando contador de mensagens não lidas');
-              setUnreadClientMessages(prev => prev + 1);
-            } else {
-              console.log('ℹ️ Usuário já está na aba clientes - não incrementar');
-            }
-          }
-        })
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(clientMessagesChannel);
-      };
-    });
-  }, [user, activeTab]);
-
-  // Resetar contador quando entrar na aba clientes
-  useEffect(() => {
-    if (activeTab === 'clients') {
-      setUnreadClientMessages(0);
-    }
-  }, [activeTab]);
 
   const handleTabChange = (value: string) => {
     navigate(`/dashboard?tab=${value}`);
@@ -418,15 +332,6 @@ const Dashboard = () => {
             <TabsTrigger value="crm-geral">CRM Geral</TabsTrigger>
             <TabsTrigger value="chatbots">{t('chatbots')}</TabsTrigger>
             <TabsTrigger value="ai-agents">{t('ai_agents')}</TabsTrigger>
-            <TabsTrigger value="leads">{t('captured_leads_title')}</TabsTrigger>
-            <TabsTrigger value="clients" className="relative">
-              {t('clients')}
-              {unreadClientMessages > 0 && (
-                <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                  {unreadClientMessages > 9 ? '9+' : unreadClientMessages}
-                </span>
-              )}
-            </TabsTrigger>
             <TabsTrigger value="tools">{t('tools')}</TabsTrigger>
             <TabsTrigger value="qrcode">
               <QrCode className="w-4 h-4 mr-2" />
@@ -794,21 +699,6 @@ const Dashboard = () => {
             <GeneralCRMPanel />
           </TabsContent>
 
-          <TabsContent value="clients">
-            {hasFeature('chatbot_conversations') ? (
-              <ChatbotConversations />
-            ) : (
-              <Card className="p-12 text-center">
-                <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
-                <p className="text-muted-foreground mb-4">
-                  Faça upgrade do seu plano para acessar as conversas dos chatbots
-                </p>
-                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
-                  Ver Planos
-                </Button>
-              </Card>
-            )}
-          </TabsContent>
 
           <TabsContent value="tools">
             {hasFeature('whatsapp_link') ? (
@@ -978,21 +868,6 @@ const Dashboard = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="leads">
-            {hasFeature('chatbot_conversations') ? (
-              <CapturedLeads />
-            ) : (
-              <Card className="p-12 text-center">
-                <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
-                <p className="text-muted-foreground mb-4">
-                  Faça upgrade do seu plano para acessar leads capturados
-                </p>
-                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
-                  Ver Planos
-                </Button>
-              </Card>
-            )}
-          </TabsContent>
 
           <TabsContent value="chatbots">
             <MyChatbots 
