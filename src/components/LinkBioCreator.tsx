@@ -24,13 +24,16 @@ import {
   Linkedin,
   Mail,
   Phone,
-  Globe
+  Globe,
+  Pipette
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { AvatarUpload } from "@/components/AvatarUpload";
+import { HexColorPicker } from "react-colorful";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface LinkBio {
   id: string;
@@ -549,39 +552,119 @@ export function LinkBioCreator() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="bgColor">Cor de Fundo</Label>
-                  <Input
-                    id="bgColor"
-                    type="color"
-                    value={backgroundColor}
-                    onChange={(e) => setBackgroundColor(e.target.value)}
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <div className="flex items-center gap-2 w-full">
+                          <Pipette className="w-4 h-4" />
+                          <div
+                            className="h-6 w-6 rounded border"
+                            style={{ backgroundColor }}
+                          />
+                          <span className="flex-1">{backgroundColor}</span>
+                        </div>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-3">
+                      <HexColorPicker color={backgroundColor} onChange={setBackgroundColor} />
+                      <Input
+                        value={backgroundColor}
+                        onChange={(e) => setBackgroundColor(e.target.value)}
+                        className="mt-2"
+                        placeholder="#ffffff"
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div>
                   <Label htmlFor="textColor">Cor do Texto</Label>
-                  <Input
-                    id="textColor"
-                    type="color"
-                    value={textColor}
-                    onChange={(e) => setTextColor(e.target.value)}
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <div className="flex items-center gap-2 w-full">
+                          <Pipette className="w-4 h-4" />
+                          <div
+                            className="h-6 w-6 rounded border"
+                            style={{ backgroundColor: textColor }}
+                          />
+                          <span className="flex-1">{textColor}</span>
+                        </div>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-3">
+                      <HexColorPicker color={textColor} onChange={setTextColor} />
+                      <Input
+                        value={textColor}
+                        onChange={(e) => setTextColor(e.target.value)}
+                        className="mt-2"
+                        placeholder="#000000"
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div>
                   <Label htmlFor="buttonColor">Cor dos Botões</Label>
-                  <Input
-                    id="buttonColor"
-                    type="color"
-                    value={buttonColor}
-                    onChange={(e) => setButtonColor(e.target.value)}
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <div className="flex items-center gap-2 w-full">
+                          <Pipette className="w-4 h-4" />
+                          <div
+                            className="h-6 w-6 rounded border"
+                            style={{ backgroundColor: buttonColor }}
+                          />
+                          <span className="flex-1">{buttonColor}</span>
+                        </div>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-3">
+                      <HexColorPicker color={buttonColor} onChange={setButtonColor} />
+                      <Input
+                        value={buttonColor}
+                        onChange={(e) => setButtonColor(e.target.value)}
+                        className="mt-2"
+                        placeholder="#000000"
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div>
                   <Label htmlFor="buttonTextColor">Texto dos Botões</Label>
-                  <Input
-                    id="buttonTextColor"
-                    type="color"
-                    value={buttonTextColor}
-                    onChange={(e) => setButtonTextColor(e.target.value)}
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <div className="flex items-center gap-2 w-full">
+                          <Pipette className="w-4 h-4" />
+                          <div
+                            className="h-6 w-6 rounded border"
+                            style={{ backgroundColor: buttonTextColor }}
+                          />
+                          <span className="flex-1">{buttonTextColor}</span>
+                        </div>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-3">
+                      <HexColorPicker color={buttonTextColor} onChange={setButtonTextColor} />
+                      <Input
+                        value={buttonTextColor}
+                        onChange={(e) => setButtonTextColor(e.target.value)}
+                        className="mt-2"
+                        placeholder="#ffffff"
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
 
