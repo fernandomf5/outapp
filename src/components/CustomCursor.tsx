@@ -35,6 +35,13 @@ export function CustomCursor() {
     };
   }, [position.x, position.y]);
 
+  useEffect(() => {
+    document.body.classList.add('custom-cursor-active');
+    return () => {
+      document.body.classList.remove('custom-cursor-active');
+    };
+  }, []);
+
   return (
     <>
       {/* Main cursor */}

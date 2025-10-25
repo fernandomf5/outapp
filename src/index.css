@@ -153,14 +153,11 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
     font-family: 'Poppins', sans-serif;
-    cursor: none;
   }
   
-  * {
-    cursor: none !important;
-  }
-  
-  a, button, input, textarea, select {
+  /* Hide native cursor only when custom cursor is active */
+  body.custom-cursor-active,
+  body.custom-cursor-active * {
     cursor: none !important;
   }
   
