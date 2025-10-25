@@ -28,7 +28,6 @@ import { nicheConfigs } from "@/data/nicheConfigs";
 import { ChatWidgetGenerator } from '@/components/ChatWidgetGenerator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Switch } from "@/components/ui/switch";
-import { CustomCursor } from '@/components/CustomCursor';
 
 const AIAgentBuilder = () => {
   const { toast } = useToast();
@@ -157,9 +156,7 @@ const AIAgentBuilder = () => {
   };
 
   return (
-    <>
-      <CustomCursor />
-      <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-card border-b border-border px-6 py-4 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -540,7 +537,6 @@ const AIAgentBuilder = () => {
         </div>
       </div>
     </div>
-    </>
   );
 };
 

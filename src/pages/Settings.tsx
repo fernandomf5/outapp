@@ -25,7 +25,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CustomCursor } from "@/components/CustomCursor";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -198,9 +197,7 @@ const Settings = () => {
   };
 
   return (
-    <>
-      <CustomCursor />
-      <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-card border-b border-border px-4 sm:px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
@@ -435,7 +432,6 @@ const Settings = () => {
         </DialogContent>
       </Dialog>
     </div>
-    </>
   );
 };
 

@@ -29,32 +29,51 @@ export function UserSidebar() {
   const currentTab = searchParams.get('tab') || 'overview';
   const collapsed = state === "collapsed";
 
-  const isActive = (path: string) => {
+  const isActive = (path: string, tab?: string) => {
+    if (tab) {
+      return currentPath === path && currentTab === tab;
+    }
     return currentPath === path;
   };
 
-  const handleNavigation = (path: string) => {
-    navigate(path);
+  const handleNavigation = (path: string, tab?: string) => {
+    if (tab) {
+      navigate(`${path}?tab=${tab}`);
+    } else {
+      navigate(path);
+    }
   };
 
   const mainItems = [
-    { title: t('overview'), icon: TrendingUp, path: "/dashboard" },
+    { title: t('overview'), icon: TrendingUp, path: "/dashboard", tab: "overview" },
   ];
 
   const chatbotItems = [
     { title: t('create_chatbot'), icon: Bot, path: "/bot-builder" },
+    { title: t('my_chatbots'), icon: Bot, path: "/dashboard", tab: "chatbots" },
   ];
 
   const aiAgentItems = [
     { title: t('create_ai_agent'), icon: Sparkles, path: "/ai-agent" },
+    { title: t('my_ai_agents'), icon: Sparkles, path: "/dashboard", tab: "ai-agents" },
+  ];
+
+  const crmItems = [
+    { title: t('client_conversations'), icon: MessageSquare, path: "/dashboard", tab: "clients", feature: "chatbot_conversations" },
+    { title: t('captured_leads_title'), icon: Users, path: "/dashboard", tab: "leads", feature: "chatbot_conversations" },
   ];
 
   const toolsItems = [
-    { title: "Link na Bio", icon: ExternalLink, path: "/dashboard" },
+    { title: t('tools_manager'), icon: Wrench, path: "/dashboard", tab: "tools" },
+    { title: "Link na Bio", icon: ExternalLink, path: "/dashboard", tab: "linkbio" },
+    { title: t('link_shortener_title'), icon: Link2, path: "/dashboard", tab: "shortlinks", feature: "link_shortener" },
+    { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner" },
   ];
 
   const supportItems = [
-    { title: t('my_plan'), icon: CreditCard, path: "/dashboard" },
+    { title: t('support_ticket'), icon: LifeBuoy, path: "/dashboard", tab: "support", feature: "ticket_system" },
+    { title: t('voucher'), icon: Gift, path: "/dashboard", tab: "voucher" },
+    { title: t('my_plan'), icon: CreditCard, path: "/dashboard", tab: "plan" },
   ];
 
   return (
@@ -67,8 +86,8 @@ export function UserSidebar() {
               {mainItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
-                    onClick={() => handleNavigation(item.path)}
-                    className={isActive(item.path) ? "bg-primary text-primary-foreground" : ""}
+                    onClick={() => handleNavigation(item.path, item.tab)}
+                    className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
                   >
                     <item.icon className="h-4 w-4" />
                     {!collapsed && <span>{item.title}</span>}
@@ -90,8 +109,8 @@ export function UserSidebar() {
                       {chatbotItems.map((item) => (
                         <SidebarMenuSubItem key={item.title}>
                           <SidebarMenuSubButton
-                            onClick={() => handleNavigation(item.path)}
-                            className={isActive(item.path) ? "bg-primary text-primary-foreground" : ""}
+                            onClick={() => handleNavigation(item.path, item.tab)}
+                            className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
                           >
                             <item.icon className="h-4 w-4" />
                             {!collapsed && <span>{item.title}</span>}
@@ -117,8 +136,8 @@ export function UserSidebar() {
                       {aiAgentItems.map((item) => (
                         <SidebarMenuSubItem key={item.title}>
                           <SidebarMenuSubButton
-                            onClick={() => handleNavigation(item.path)}
-                            className={isActive(item.path) ? "bg-primary text-primary-foreground" : ""}
+                            onClick={() => handleNavigation(item.path, item.tab)}
+                            className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
                           >
                             <item.icon className="h-4 w-4" />
                             {!collapsed && <span>{item.title}</span>}
@@ -134,20 +153,60 @@ export function UserSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
+          <SidebarGroupLabel>{t('crm')}</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <Collapsible defaultOpen className="group/collapsible">
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton>
+                      <MessageSquare className="h-4 w-4" />
+                      {!collapsed && <span>{t('crm')}</span>}
+                      {!collapsed && <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />}
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {crmItems.map((item) => {
+                        if (item.feature && !hasFeature(item.feature)) return null;
+                        return (
+                          <SidebarMenuSubItem key={item.title}>
+                            <SidebarMenuSubButton
+                              onClick={() => handleNavigation(item.path, item.tab)}
+                              className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                            >
+                              <item.icon className="h-4 w-4" />
+                              {!collapsed && <span>{item.title}</span>}
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        );
+                      })}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
           <SidebarGroupLabel>{t('tools')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {toolsItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    onClick={() => handleNavigation(item.path)}
-                    className={isActive(item.path) ? "bg-primary text-primary-foreground" : ""}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {!collapsed && <span>{item.title}</span>}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {toolsItems.map((item) => {
+                if (item.feature && !hasFeature(item.feature)) return null;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      onClick={() => handleNavigation(item.path, item.tab)}
+                      className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -156,17 +215,20 @@ export function UserSidebar() {
           <SidebarGroupLabel>{t('support_plan')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {supportItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    onClick={() => handleNavigation(item.path)}
-                    className={isActive(item.path) ? "bg-primary text-primary-foreground" : ""}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {!collapsed && <span>{item.title}</span>}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {supportItems.map((item) => {
+                if (item.feature && !hasFeature(item.feature)) return null;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      onClick={() => handleNavigation(item.path, item.tab)}
+                      className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

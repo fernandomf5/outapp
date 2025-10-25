@@ -303,13 +303,14 @@ All colors MUST be HSL.
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: hsl(151 95% 50%);
-  pointer-events: none !important;
+  background: hsl(151 95% 45%);
+  pointer-events: none;
   z-index: 9999;
   transform: translate(-50%, -50%);
   box-shadow: 
-    0 0 15px hsl(151 95% 50% / 0.8),
-    0 0 25px hsl(151 95% 50% / 0.5);
+    0 0 10px hsl(151 95% 45% / 0.8),
+    0 0 20px hsl(151 95% 45% / 0.6),
+    0 0 30px hsl(151 95% 45% / 0.4);
   transition: transform 0.1s ease;
 }
 
@@ -317,18 +318,17 @@ All colors MUST be HSL.
   position: fixed;
   width: 40px;
   height: 40px;
-  border: 2px solid hsl(151 95% 50% / 0.4);
+  border: 2px solid hsl(151 95% 45% / 0.5);
   border-radius: 50%;
-  pointer-events: none !important;
+  pointer-events: none;
   z-index: 9998;
   transform: translate(-50%, -50%);
-  transition: all 0.15s ease;
-  box-shadow: 0 0 15px hsl(151 95% 50% / 0.3);
+  transition: all 0.15s ease-out;
 }
 
 .custom-cursor-trail.clicking {
-  transform: translate(-50%, -50%) scale(0.75);
-  border-color: hsl(151 95% 50% / 0.7);
+  transform: translate(-50%, -50%) scale(0.8);
+  border-color: hsl(151 95% 45% / 0.8);
   border-width: 3px;
 }
 
@@ -336,9 +336,9 @@ All colors MUST be HSL.
   position: fixed;
   width: 20px;
   height: 20px;
-  border: 2px solid hsl(151 95% 50%);
+  border: 2px solid hsl(151 95% 45%);
   border-radius: 50%;
-  pointer-events: none !important;
+  pointer-events: none;
   z-index: 9997;
   transform: translate(-50%, -50%);
   animation: ripple-expand 1s ease-out forwards;
@@ -363,18 +363,29 @@ All colors MUST be HSL.
   }
 }
 
+/* Hover effects for interactive elements */
+a:hover ~ .custom-cursor,
+button:hover ~ .custom-cursor,
+input:hover ~ .custom-cursor,
+textarea:hover ~ .custom-cursor,
+select:hover ~ .custom-cursor,
+[role="button"]:hover ~ .custom-cursor {
+  transform: translate(-50%, -50%) scale(1.5);
+  background: hsl(151 95% 50%);
+}
+
 .dark .custom-cursor {
-  background: hsl(151 95% 55%);
+  background: hsl(151 95% 50%);
   box-shadow: 
-    0 0 20px hsl(151 95% 55% / 0.9),
-    0 0 30px hsl(151 95% 55% / 0.6);
+    0 0 10px hsl(151 95% 50% / 0.9),
+    0 0 20px hsl(151 95% 50% / 0.7),
+    0 0 30px hsl(151 95% 50% / 0.5);
 }
 
 .dark .custom-cursor-trail {
-  border-color: hsl(151 95% 55% / 0.5);
-  box-shadow: 0 0 20px hsl(151 95% 55% / 0.4);
+  border-color: hsl(151 95% 50% / 0.6);
 }
 
 .dark .cursor-ripple {
-  border-color: hsl(151 95% 55%);
+  border-color: hsl(151 95% 50%);
 }
