@@ -1070,7 +1070,9 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          last_login_at: string | null
           name: string
+          password_hash: string | null
           phone: string | null
           updated_at: string
         }
@@ -1079,7 +1081,9 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          last_login_at?: string | null
           name: string
+          password_hash?: string | null
           phone?: string | null
           updated_at?: string
         }
@@ -1088,7 +1092,9 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          last_login_at?: string | null
           name?: string
+          password_hash?: string | null
           phone?: string | null
           updated_at?: string
         }

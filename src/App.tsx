@@ -24,6 +24,8 @@ import ClonedPage from "./pages/ClonedPage";
 import LinkBioPage from "./pages/LinkBioPage";
 import AgentCustomerAuth from "./pages/AgentCustomerAuth";
 import AgentCustomerChat from "./pages/AgentCustomerChat";
+import ChatbotCustomerAuth from "./pages/ChatbotCustomerAuth";
+import ChatbotCustomerChat from "./pages/ChatbotCustomerChat";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +61,8 @@ const App = () => (
               <Route path="/chat/:botId/:slug" element={<PublicChat />} />
               <Route path="/agent-auth/:agentId" element={<AgentCustomerAuth />} />
               <Route path="/agent-chat/:agentId" element={<AgentCustomerChat />} />
+              <Route path="/chatbot-auth/:chatbotId" element={<ChatbotCustomerAuth />} />
+              <Route path="/chatbot-chat/:chatbotId" element={<ChatbotCustomerChat />} />
               <Route path="/bot-builder" element={
                 <ProtectedRoute>
                   <BotBuilder />
