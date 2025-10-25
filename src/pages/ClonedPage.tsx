@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 
 export default function ClonedPage() {
   const { slug } = useParams<{ slug: string }>();
+  const currentPath = window.location.pathname.split('/')[1]; // page1, page2, etc.
   const [pageData, setPageData] = useState<any>(null);
   const [renderHtml, setRenderHtml] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -22,11 +23,12 @@ export default function ClonedPage() {
       console.log('Loading cloned page with slug:', slug);
 
       try {
-        // Fetch page data
+        // Fetch page data - buscar por slug E custom_domain (que agora é o page path)
         const { data: page, error: pageError } = await supabase
           .from('cloned_pages')
           .select('*')
           .eq('slug', slug)
+          .eq('custom_domain', currentPath)
           .eq('is_active', true)
           .maybeSingle();
 

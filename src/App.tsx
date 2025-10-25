@@ -40,6 +40,11 @@ const App = () => (
               <Route path="/email-confirmed" element={<EmailConfirmed />} />
               <Route path="/s/:shortCode" element={<ShortLinkRedirect />} />
               <Route path="/page/:slug" element={<ClonedPage />} />
+              <Route path="/page1/:slug" element={<ClonedPage />} />
+              <Route path="/page2/:slug" element={<ClonedPage />} />
+              <Route path="/page3/:slug" element={<ClonedPage />} />
+              <Route path="/page4/:slug" element={<ClonedPage />} />
+              <Route path="/page5/:slug" element={<ClonedPage />} />
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Dashboard />

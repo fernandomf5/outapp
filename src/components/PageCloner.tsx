@@ -35,6 +35,15 @@ interface CustomDomain {
   created_at: string;
 }
 
+// Páginas disponíveis para clonagem
+const AVAILABLE_PAGE_PATHS = [
+  "page1",
+  "page2",
+  "page3",
+  "page4",
+  "page5"
+];
+
 export const PageCloner = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -49,7 +58,7 @@ export const PageCloner = () => {
   const [cloneData, setCloneData] = useState({
     original_url: "",
     custom_slug: "",
-    selected_domain: ""
+    selected_page_path: ""
   });
   const [editSettings, setEditSettings] = useState({
     custom_links: [] as { selector: string; newUrl: string }[],
@@ -200,9 +209,9 @@ export const PageCloner = () => {
         ? cloneData.custom_slug.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '')
         : `clone-${Math.random().toString(36).substring(2, 10)}`;
 
-      // Usar domínio selecionado ou domínio atual do projeto
-      const selectedDomain = cloneData.selected_domain || window.location.host;
-      const clonedUrl = `${window.location.origin}/page/${slug}`;
+      // Usar page path selecionado ou page1 como padrão
+      const selectedPagePath = cloneData.selected_page_path || "page1";
+      const clonedUrl = `${window.location.origin}/${selectedPagePath}/${slug}`;
 
       // Detect checkout links
       const detectedLinks = detectCheckoutLinks(cloneResult.content);
@@ -215,7 +224,7 @@ export const PageCloner = () => {
           original_url: cloneData.original_url,
           cloned_url: clonedUrl,
           slug: slug,
-          custom_domain: selectedDomain,
+          custom_domain: selectedPagePath,
           page_content: cloneResult.content,
           custom_settings: { detected_checkout_links: detectedLinks },
           is_active: true,
@@ -232,7 +241,7 @@ export const PageCloner = () => {
       });
       
       await fetchClonedPages();
-      setCloneData({ original_url: "", custom_slug: "", selected_domain: "" });
+      setCloneData({ original_url: "", custom_slug: "", selected_page_path: "" });
       setIsCloneDialogOpen(false);
     } catch (error: any) {
       console.error('Clone error:', error);
@@ -391,31 +400,28 @@ export const PageCloner = () => {
                     Cole a URL completa da página que deseja clonar
                   </p>
                 </div>
-                {customDomains.length > 0 && (
-                  <div>
-                    <Label>Domínio Customizado (Opcional)</Label>
-                    <Select
-                      value={cloneData.selected_domain}
-                      onValueChange={(value) => setCloneData({ ...cloneData, selected_domain: value })}
-                      disabled={isCloning}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Usar domínio do projeto" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">Domínio do projeto ({window.location.host})</SelectItem>
-                        {customDomains.map((domain) => (
-                          <SelectItem key={domain.domain} value={domain.domain}>
-                            {domain.domain}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Por padrão, usa o domínio do projeto. Selecione um domínio customizado se preferir.
-                    </p>
-                  </div>
-                )}
+                <div>
+                  <Label>Selecione a Página *</Label>
+                  <Select
+                    value={cloneData.selected_page_path}
+                    onValueChange={(value) => setCloneData({ ...cloneData, selected_page_path: value })}
+                    disabled={isCloning}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Escolha uma página" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AVAILABLE_PAGE_PATHS.map((pagePath) => (
+                        <SelectItem key={pagePath} value={pagePath}>
+                          {window.location.host}/{pagePath}/sua-slug
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Selecione qual página usar para clonar (page1, page2, etc.)
+                  </p>
+                </div>
                 <div>
                   <Label>Slug Personalizada (Opcional)</Label>
                   <Input
@@ -425,7 +431,7 @@ export const PageCloner = () => {
                     disabled={isCloning}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Use letras, números e hífens. URL: {window.location.host}/page/{cloneData.custom_slug || 'sua-slug'}
+                    URL final: {window.location.host}/{cloneData.selected_page_path || 'page1'}/{cloneData.custom_slug || 'sua-slug'}
                   </p>
                 </div>
                 <Button 
