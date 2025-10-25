@@ -195,6 +195,7 @@ All colors MUST be HSL.
 /* Border Animations */
 .bio-border-rgb {
   position: relative;
+  isolation: isolate;
   border: var(--border-width, 4px) solid transparent;
   background-clip: padding-box;
 }
@@ -209,6 +210,7 @@ All colors MUST be HSL.
     #ff0000, #ff7f00, #ffff00, #00ff00, 
     #0000ff, #4b0082, #9400d3, #ff0000
   );
+  background-size: 200% 100%;
   -webkit-mask: 
     linear-gradient(#fff 0 0) content-box, 
     linear-gradient(#fff 0 0);
@@ -219,6 +221,7 @@ All colors MUST be HSL.
   mask-composite: exclude;
   animation: rgb-rotate 3s linear infinite;
   pointer-events: none;
+  z-index: -1;
 }
 
 @keyframes rgb-rotate {
