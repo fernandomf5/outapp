@@ -1013,7 +1013,18 @@ export function LinkBioCreator() {
                               link.image_url ? (
                                 <div
                                   key={link.id}
-                                  className="rounded-lg overflow-hidden shadow-md"
+                                  className={`rounded-lg overflow-hidden shadow-md transition-all duration-300
+                                    ${borderAnimation === 'rgb' ? 'bio-border-rgb' : ''} 
+                                    ${borderAnimation === 'pulse' ? 'bio-border-pulse' : ''}
+                                    ${borderAnimation === 'glow' ? 'bio-border-glow' : ''}
+                                    ${hoverAnimation === 'scale' ? 'bio-hover-scale' : ''}
+                                    ${hoverAnimation === 'bounce' ? 'bio-hover-bounce' : ''}
+                                    ${hoverAnimation === 'shake' ? 'bio-hover-shake' : ''}
+                                    ${hoverAnimation === 'rotate' ? 'bio-hover-rotate' : ''}
+                                  `}
+                                  style={{ 
+                                    border: `${borderWidth}px ${borderStyle} ${borderColor}`
+                                  }}
                                 >
                                   <img 
                                     src={link.image_url} 
