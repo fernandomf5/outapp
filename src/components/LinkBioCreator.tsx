@@ -25,7 +25,9 @@ import {
   Mail,
   Phone,
   Globe,
-  Pipette
+  Pipette,
+  Upload,
+  Image as ImageIcon
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -107,6 +109,8 @@ export function LinkBioCreator() {
   const [newLinkIcon, setNewLinkIcon] = useState("link");
   const [newLinkImage, setNewLinkImage] = useState("");
   const [previewDevice, setPreviewDevice] = useState<"mobile" | "tablet" | "desktop">("mobile");
+  const [uploadingBackground, setUploadingBackground] = useState(false);
+  const [uploadingLinkImage, setUploadingLinkImage] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -323,6 +327,76 @@ export function LinkBioCreator() {
     }
   };
 
+  const uploadBackgroundImage = async (file: File) => {
+    if (!user) return;
+    
+    setUploadingBackground(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/background-${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError, data } = await supabase.storage
+        .from('chatbot-media')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('chatbot-media')
+        .getPublicUrl(fileName);
+
+      setBackgroundImage(publicUrl);
+      
+      toast({
+        title: "Sucesso!",
+        description: "Imagem de fundo enviada",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao enviar imagem",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingBackground(false);
+    }
+  };
+
+  const uploadLinkImage = async (file: File) => {
+    if (!user) return;
+    
+    setUploadingLinkImage(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/link-${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError, data } = await supabase.storage
+        .from('chatbot-media')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('chatbot-media')
+        .getPublicUrl(fileName);
+
+      setNewLinkImage(publicUrl);
+      
+      toast({
+        title: "Sucesso!",
+        description: "Imagem do link enviada",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao enviar imagem",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingLinkImage(false);
+    }
+  };
+
   const IconComponent = ({ iconName }: { iconName: string }) => {
     const Icon = iconOptions.find(opt => opt.value === iconName)?.icon || Link2;
     return <Icon className="w-4 h-4" />;
@@ -466,15 +540,30 @@ export function LinkBioCreator() {
                       </Select>
                     </div>
                     <div>
-                      <Label htmlFor="linkImage">URL da Imagem (opcional)</Label>
-                      <Input
-                        id="linkImage"
-                        value={newLinkImage}
-                        onChange={(e) => setNewLinkImage(e.target.value)}
-                        placeholder="https://exemplo.com/imagem.jpg"
-                      />
+                      <Label htmlFor="linkImage">Imagem do Link (opcional)</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) uploadLinkImage(file);
+                          }}
+                          className="flex-1"
+                          disabled={uploadingLinkImage}
+                        />
+                        {newLinkImage && (
+                          <div className="relative w-20 h-20 border rounded overflow-hidden">
+                            <img 
+                              src={newLinkImage} 
+                              alt="Preview" 
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                      </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Se adicionar uma imagem, ela substituirá o botão
+                        {uploadingLinkImage ? "Enviando imagem..." : "Se adicionar uma imagem, ela substituirá o botão"}
                       </p>
                     </div>
                     <Button onClick={addLink} className="w-full">
@@ -670,13 +759,49 @@ export function LinkBioCreator() {
               </div>
 
               <div>
-                <Label htmlFor="backgroundImage">Imagem de Fundo (URL)</Label>
-                <Input
-                  id="backgroundImage"
-                  value={backgroundImage}
-                  onChange={(e) => setBackgroundImage(e.target.value)}
-                  placeholder="https://exemplo.com/fundo.jpg"
-                />
+                <Label htmlFor="backgroundImage">Imagem de Fundo</Label>
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1"
+                      disabled={uploadingBackground}
+                      onClick={() => document.getElementById('bg-upload')?.click()}
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      {uploadingBackground ? "Enviando..." : "Fazer Upload"}
+                    </Button>
+                    <input
+                      id="bg-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) uploadBackgroundImage(file);
+                      }}
+                    />
+                  </div>
+                  {backgroundImage && (
+                    <div className="relative w-full h-32 border rounded overflow-hidden">
+                      <img 
+                        src={backgroundImage} 
+                        alt="Background Preview" 
+                        className="w-full h-full object-cover"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={() => setBackgroundImage("")}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   A imagem de fundo sobrepõe a cor de fundo
                 </p>
