@@ -13,6 +13,7 @@ interface ChatbotData {
   };
   is_active: boolean;
   user_id: string;
+  access_type?: string;
 }
 
 export const useChatbot = () => {

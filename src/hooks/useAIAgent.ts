@@ -53,6 +53,7 @@ export const useAIAgent = () => {
         is_active: agent.is_active ?? true,
         description: agent.description,
         user_id: userId,
+        access_type: (agent as any).access_type || 'public',
         updated_at: new Date().toISOString(),
       };
 

@@ -40,7 +40,7 @@ const BotBuilder = () => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
-  const [accessType, setAccessType] = useState<'public' | 'private' | 'anonymous'>('public');
+  const [accessType, setAccessType] = useState<'public' | 'restricted' | 'anonymous'>('public');
 
   // Carregar chatbot existente
   useEffect(() => {
@@ -237,13 +237,7 @@ const BotBuilder = () => {
 
   const handleTest = useCallback(() => {
     if (chatbotId) {
-      const slug = (botName || '')
-        .normalize('NFD').replace(/\p{Diacritic}/gu, '')
-        .toLowerCase().trim()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-');
-      const link = `${window.location.origin}/chat/${chatbotId}/${slug || 'bot'}`;
+      const link = `${window.location.origin}/chatbot-auth/${chatbotId}`;
       window.open(link, '_blank');
     } else {
       toast({
@@ -271,7 +265,7 @@ const BotBuilder = () => {
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-');
 
-    const link = `${window.location.origin}/chat/${chatbotId}/${slug || 'bot'}`;
+    const link = `${window.location.origin}/chatbot-auth/${chatbotId}`;
     navigator.clipboard.writeText(link);
     toast({
       title: "Link copiado! 🔗",
@@ -402,7 +396,7 @@ const BotBuilder = () => {
                 <Card className="p-6 border-primary/20">
                   <div className="space-y-4">
                     <Label className="text-lg font-semibold">Tipo de Acesso ao Chatbot</Label>
-                    <Select value={accessType} onValueChange={(value: 'public' | 'private' | 'anonymous') => setAccessType(value)}>
+                    <Select value={accessType} onValueChange={(value: 'public' | 'restricted' | 'anonymous') => setAccessType(value)}>
                       <SelectTrigger className="w-full h-12">
                         <SelectValue />
                       </SelectTrigger>
@@ -419,7 +413,7 @@ const BotBuilder = () => {
                             <span className="text-xs text-muted-foreground">Qualquer pessoa pode se cadastrar e usar</span>
                           </div>
                         </SelectItem>
-                        <SelectItem value="private">
+                        <SelectItem value="restricted">
                           <div className="flex flex-col items-start">
                             <span className="font-semibold">🔒 Acesso Privado (Com Aprovação)</span>
                             <span className="text-xs text-muted-foreground">Requer aprovação para acessar</span>
