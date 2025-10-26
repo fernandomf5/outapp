@@ -14,6 +14,7 @@ interface Message {
   role: 'customer' | 'agent';
   content: string;
   created_at: string;
+  sender_name?: string;
 }
 
 export default function AgentCustomerChat() {
@@ -40,8 +41,14 @@ export default function AgentCustomerChat() {
     setCustomer(parsedCustomer);
 
     loadAgentAndConversation(parsedCustomer.id);
-    setupRealtimeSubscription();
   }, [agentId]);
+
+  useEffect(() => {
+    if (conversationId) {
+      const cleanup = setupRealtimeSubscription();
+      return cleanup;
+    }
+  }, [conversationId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -217,8 +224,11 @@ export default function AgentCustomerChat() {
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex ${message.role === 'customer' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex flex-col ${message.role === 'customer' ? 'items-end' : 'items-start'}`}
                 >
+                  <span className="text-xs text-muted-foreground mb-1 px-1">
+                    {message.role === 'customer' ? customer?.name : (message.sender_name || agentInfo?.name)}
+                  </span>
                   <div
                     className={`max-w-[80%] rounded-lg p-3 ${
                       message.role === 'customer'

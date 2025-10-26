@@ -30,11 +30,18 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   const [messages, setMessages] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [newMessage, setNewMessage] = useState("");
+  const [senderName, setSenderName] = useState("");
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const { toast } = useToast();
+
+  // Carregar nome salvo do localStorage
+  useEffect(() => {
+    const savedName = localStorage.getItem(`agent_sender_name_${agentId}`);
+    if (savedName) setSenderName(savedName);
+  }, [agentId]);
 
   useEffect(() => {
     loadConversations();
@@ -145,6 +152,17 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedConversation) return;
+    if (!senderName.trim()) {
+      toast({
+        title: "Nome obrigatório",
+        description: "Por favor, digite seu nome antes de enviar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Salvar nome no localStorage
+    localStorage.setItem(`agent_sender_name_${agentId}`, senderName);
 
     const { error } = await supabase
       .from('agent_messages')
@@ -152,6 +170,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         conversation_id: selectedConversation.id,
         role: 'agent',
         content: newMessage,
+        sender_name: senderName,
       });
 
     if (error) {
@@ -366,10 +385,17 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
               <div className="p-4 border-t">
                 <div className="flex gap-2">
                   <Input
+                    placeholder="Seu nome"
+                    value={senderName}
+                    onChange={(e) => setSenderName(e.target.value)}
+                    className="w-[200px]"
+                  />
+                  <Input
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                     placeholder="Digite sua mensagem..."
+                    className="flex-1"
                   />
                   <Button onClick={handleSendMessage} disabled={!newMessage.trim()}>
                     <Send className="w-5 h-5" />

@@ -10,9 +10,10 @@ import { Send, LogOut } from "lucide-react";
 
 interface Message {
   id: string;
-  role: 'user' | 'bot';
+  role: 'user' | 'bot' | 'assistant';
   content: string;
   created_at: string;
+  sender_name?: string;
 }
 
 export default function ChatbotCustomerChat() {
@@ -39,8 +40,14 @@ export default function ChatbotCustomerChat() {
     setCustomer(parsedCustomer);
 
     loadChatbotAndConversation(parsedCustomer.id);
-    setupRealtimeSubscription();
   }, [chatbotId]);
+
+  useEffect(() => {
+    if (conversationId) {
+      const cleanup = setupRealtimeSubscription();
+      return cleanup;
+    }
+  }, [conversationId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -206,8 +213,11 @@ export default function ChatbotCustomerChat() {
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}
                 >
+                  <span className="text-xs text-muted-foreground mb-1 px-1">
+                    {message.role === 'user' ? customer?.name : (message.role === 'assistant' ? (message.sender_name || 'Atendente') : chatbotInfo?.name)}
+                  </span>
                   <div
                     className={`max-w-[80%] rounded-lg p-3 ${
                       message.role === 'user'
