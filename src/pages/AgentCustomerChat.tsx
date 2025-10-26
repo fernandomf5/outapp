@@ -353,8 +353,8 @@ export default function AgentCustomerChat() {
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && !loading && input.trim()) {
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey && !loading && input.trim()) {
                     e.preventDefault();
                     handleSendMessage();
                   }
