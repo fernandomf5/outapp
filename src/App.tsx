@@ -27,39 +27,8 @@ import AgentCustomerAuth from "./pages/AgentCustomerAuth";
 import AgentCustomerChat from "./pages/AgentCustomerChat";
 import ChatbotCustomerAuth from "./pages/ChatbotCustomerAuth";
 import ChatbotCustomerChat from "./pages/ChatbotCustomerChat";
-import { CustomCursor } from "./components/CustomCursor";
 
 const queryClient = new QueryClient();
-
-const CursorGuard = () => {
-  const location = useLocation();
-  const [shouldShowCursor, setShouldShowCursor] = useState(false);
-  
-  useEffect(() => {
-    const customCursorEnabled = localStorage.getItem("customCursorEnabled");
-    const isEnabled = customCursorEnabled !== null ? customCursorEnabled === "true" : true;
-    const isDashboard = location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin");
-
-    setShouldShowCursor(isEnabled && isDashboard);
-
-    const sync = () => {
-      const cursorEls = document.querySelectorAll('.custom-cursor, .custom-cursor-trail, .cursor-ripple');
-      if (!isEnabled || !isDashboard) {
-        document.body.classList.remove("custom-cursor-active");
-        if (cursorEls.length) cursorEls.forEach(el => el.remove());
-      }
-    };
-
-    sync();
-
-    const observer = new MutationObserver(sync);
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
-
-    return () => observer.disconnect();
-  }, [location.pathname]);
-  
-  return shouldShowCursor ? <CustomCursor /> : null;
-};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -69,7 +38,6 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <CursorGuard />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />

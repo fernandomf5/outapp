@@ -152,17 +152,13 @@ const Dashboard = () => {
   const handleLogout = async () => {
     try {
       await signOut();
-    } catch (error) {
-      // Ignora erros de sessão já expirada
-      console.log('Logout error (pode ser ignorado):', error);
-    } finally {
-      // Limpa qualquer resquício do cursor personalizado para evitar travamentos
-      document.body.classList.remove('custom-cursor-active');
-      document.querySelectorAll('.custom-cursor, .custom-cursor-trail, .cursor-ripple').forEach(el => el.remove());
       toast({
         title: "Logout realizado",
         description: "Até logo!",
       });
+    } catch (error) {
+      console.log('Logout error (pode ser ignorado):', error);
+    } finally {
       navigate("/auth", { replace: true });
     }
   };
@@ -281,12 +277,7 @@ const Dashboard = () => {
                 <ThemeToggle />
                   <Button 
                     variant="outline" 
-                    onClick={() => {
-                      // Garante que o cursor volte ao normal antes de navegar
-                      document.body.classList.remove('custom-cursor-active');
-                      document.querySelectorAll('.custom-cursor, .custom-cursor-trail, .cursor-ripple').forEach(el => el.remove());
-                      navigate("/settings");
-                    }} 
+                    onClick={() => navigate("/settings")} 
                     className="flex-1 sm:flex-none" 
                     size="sm"
                   >

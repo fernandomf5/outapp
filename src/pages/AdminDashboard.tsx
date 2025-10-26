@@ -473,12 +473,10 @@ const AdminDashboard = () => {
   const handleLogout = async () => {
     try {
       await signOut();
+      toast({ title: "Logout realizado", description: "Você saiu da conta." });
     } catch (e) {
       console.log('Logout error (pode ser ignorado):', e);
     } finally {
-      document.body.classList.remove('custom-cursor-active');
-      document.querySelectorAll('.custom-cursor, .custom-cursor-trail, .cursor-ripple').forEach(el => el.remove());
-      toast({ title: "Logout realizado", description: "Você saiu da conta." });
       navigate("/auth", { replace: true });
     }
   };
