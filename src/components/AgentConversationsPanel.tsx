@@ -82,11 +82,20 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
       setConversations(data || []);
       setFilteredConversations(data || []);
       
-      // Contar conversas não lidas (ativas)
-      const unread = data?.filter((conv: any) => conv.status === 'active').length || 0;
-      setUnreadCount(unread);
+      // Contar notificações não lidas
+      await loadUnreadCount();
     }
     setLoading(false);
+  };
+
+  const loadUnreadCount = async () => {
+    const { data } = await supabase
+      .from('agent_notifications')
+      .select('id')
+      .eq('agent_id', agentId)
+      .eq('is_read', false);
+    
+    setUnreadCount(data?.length || 0);
   };
 
   const loadMessages = async (conversationId: string) => {
@@ -259,7 +268,16 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                   className={`cursor-pointer transition-all ${
                     selectedConversation?.id === conv.id ? 'ring-2 ring-primary' : ''
                   }`}
-                  onClick={() => setSelectedConversation(conv)}
+                  onClick={async () => {
+                    setSelectedConversation(conv);
+                    // Marcar notificações relacionadas como lidas
+                    await supabase
+                      .from('agent_notifications')
+                      .update({ is_read: true })
+                      .eq('agent_id', agentId)
+                      .eq('is_read', false);
+                    loadUnreadCount();
+                  }}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">

@@ -59,15 +59,24 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
       if (error) throw error;
       setConversations(data || []);
       
-      // Contar conversas não lidas (ativas)
-      const unread = data?.filter((conv: any) => conv.status === 'active').length || 0;
-      setUnreadCount(unread);
+      // Contar notificações não lidas
+      await loadUnreadCount();
       
       setLoading(false);
     } catch (error) {
       console.error('Error loading conversations:', error);
       setLoading(false);
     }
+  };
+
+  const loadUnreadCount = async () => {
+    const { data } = await supabase
+      .from('chatbot_notifications')
+      .select('id')
+      .eq('chatbot_id', chatbotId)
+      .eq('is_read', false);
+    
+    setUnreadCount(data?.length || 0);
   };
 
   const loadMessages = async (conversationId: string) => {
@@ -214,7 +223,16 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
                   className={`p-3 cursor-pointer hover:bg-muted/50 ${
                     selectedConversation?.id === conversation.id ? 'bg-muted' : ''
                   }`}
-                  onClick={() => setSelectedConversation(conversation)}
+                  onClick={async () => {
+                    setSelectedConversation(conversation);
+                    // Marcar notificações relacionadas como lidas
+                    await supabase
+                      .from('chatbot_notifications')
+                      .update({ is_read: true })
+                      .eq('chatbot_id', chatbotId)
+                      .eq('is_read', false);
+                    loadUnreadCount();
+                  }}
                 >
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
