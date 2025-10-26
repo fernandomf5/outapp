@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.process-agent-customer-message]
 verify_jwt = false
+
+[functions.init-agent-conversation]
+verify_jwt = false
