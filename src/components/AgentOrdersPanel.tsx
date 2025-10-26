@@ -66,7 +66,15 @@ export default function AgentOrdersPanel({ agentId }: { agentId: string }) {
     const { data, error } = await supabase
       .from('agent_orders')
       .select(`
-        *,
+        id,
+        order_number,
+        items,
+        total_amount,
+        status,
+        delivery_address,
+        customer_notes,
+        created_at,
+        conversation_id,
         agent_customers (
           name,
           email,
