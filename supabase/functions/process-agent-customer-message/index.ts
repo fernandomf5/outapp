@@ -31,12 +31,19 @@ serve(async (req) => {
       throw new Error('Agente não encontrado');
     }
 
-    // Get customer info
-    const { data: customer } = await supabase
+    // Get customer info (tolerate anonymous/no-record sessions)
+    const { data: customerRecord } = await supabase
       .from('agent_customers')
       .select('*')
       .eq('id', customerId)
-      .single();
+      .maybeSingle();
+
+    const customerSafe = customerRecord || {
+      id: customerId,
+      name: 'Visitante',
+      email: 'anon@temp.local',
+      phone: null
+    };
 
     // Get conversation history
     const { data: messages } = await supabase
@@ -53,9 +60,9 @@ serve(async (req) => {
 
     // Enhanced system prompt
     const systemPrompt = `Você é um assistente virtual especializado em ${agent.niche}.
-Nome do cliente: ${customer.name}
-Email: ${customer.email}
-${customer.phone ? `Telefone: ${customer.phone}` : ''}
+Nome do cliente: ${customerSafe.name}
+Email: ${customerSafe.email}
+${customerSafe.phone ? `Telefone: ${customerSafe.phone}` : ''}
 
 ${agent.training_data?.knowledge || ''}
 
@@ -129,7 +136,7 @@ Seja profissional, atencioso e eficiente.`;
         
         // Create pending confirmation message
         const formattedDate = new Date(dateTime).toLocaleString('pt-BR');
-        const pendingMsg = `\n\n⏳ *Dados enviados, esperando resposta...*\n\n📋 *Serviço:* ${serviceName}\n📅 *Data/Hora:* ${formattedDate}\n👤 *Nome:* ${customer.name}\n📧 *Email:* ${customer.email}\n${customer.phone ? `📱 *Telefone:* ${customer.phone}` : ''}\n${notes ? `📝 *Observações:* ${notes}` : ''}\n\n*Aguarde a confirmação do agendamento.*`;
+        const pendingMsg = `\n\n⏳ *Dados enviados, esperando resposta...*\n\n📋 *Serviço:* ${serviceName}\n📅 *Data/Hora:* ${formattedDate}\n👤 *Nome:* ${customerSafe.name}\n📧 *Email:* ${customerSafe.email}\n${customerSafe.phone ? `📱 *Telefone:* ${customerSafe.phone}` : ''}\n${notes ? `📝 *Observações:* ${notes}` : ''}\n\n*Aguarde a confirmação do agendamento.*`;
         
         // Save pending message
         await supabase.from('agent_messages').insert({
@@ -144,7 +151,7 @@ Seja profissional, atencioso e eficiente.`;
           agent_id: agentId,
           notification_type: 'new_appointment',
           title: 'Novo Agendamento',
-          message: `${customer.name} solicitou agendamento de ${serviceName}`,
+          message: `${customerSafe.name} solicitou agendamento de ${serviceName}`,
           reference_id: newAppointment.id,
           is_read: false
         });
@@ -194,7 +201,7 @@ Seja profissional, atencioso e eficiente.`;
           `  • ${item.name} - Qtd: ${item.quantity} - R$ ${item.price.toFixed(2)}`
         ).join('\n');
         
-        const pendingMsg = `\n\n⏳ *Dados enviados, esperando resposta...*\n\n🛒 *Número do Pedido:* ${orderNumber}\n👤 *Nome:* ${customer.name}\n📧 *Email:* ${customer.email}\n${customer.phone ? `📱 *Telefone:* ${customer.phone}` : ''}\n${address ? `📍 *Endereço:* ${address}` : ''}\n\n*Itens do Pedido:*\n${itemsList}\n\n💰 *Total:* R$ ${parseFloat(total).toFixed(2)}\n${notes ? `\n📝 *Observações:* ${notes}` : ''}\n\n*Aguarde a confirmação do pedido.*`;
+        const pendingMsg = `\n\n⏳ *Dados enviados, esperando resposta...*\n\n🛒 *Número do Pedido:* ${orderNumber}\n👤 *Nome:* ${customerSafe.name}\n📧 *Email:* ${customerSafe.email}\n${customerSafe.phone ? `📱 *Telefone:* ${customerSafe.phone}` : ''}\n${address ? `📍 *Endereço:* ${address}` : ''}\n\n*Itens do Pedido:*\n${itemsList}\n\n💰 *Total:* R$ ${parseFloat(total).toFixed(2)}\n${notes ? `\n📝 *Observações:* ${notes}` : ''}\n\n*Aguarde a confirmação do pedido.*`;
         
         // Save pending message
         await supabase.from('agent_messages').insert({
@@ -209,7 +216,7 @@ Seja profissional, atencioso e eficiente.`;
           agent_id: agentId,
           notification_type: 'new_order',
           title: 'Novo Pedido',
-          message: `${customer.name} fez um pedido de R$ ${parseFloat(total).toFixed(2)}`,
+          message: `${customerSafe.name} fez um pedido de R$ ${parseFloat(total).toFixed(2)}`,
           reference_id: newOrder.id,
           is_read: false
         });
