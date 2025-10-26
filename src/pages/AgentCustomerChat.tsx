@@ -91,11 +91,22 @@ export default function AgentCustomerChat() {
   const loadAgentAndConversation = async (customerId: string) => {
     try {
       // Load agent info
-      const { data: agent } = await supabase
+      const { data: agent, error: agentError } = await supabase
         .from('ai_agents')
         .select('*')
         .eq('id', agentId)
-        .single();
+        .maybeSingle();
+
+      if (agentError) throw agentError;
+      if (!agent) {
+        toast({
+          title: "Agente indisponível",
+          description: "Este agente não existe ou está inativo.",
+          variant: "destructive",
+        });
+        navigate(`/agent-auth/${agentId}`, { replace: true });
+        return;
+      }
 
       setAgentInfo(agent);
 
