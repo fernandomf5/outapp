@@ -78,8 +78,21 @@ export default function AgentAppointmentDialog({
       .eq('is_active', true)
       .order('name');
 
-    if (!error && data) {
-      setServices(data);
+    if (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar serviços",
+        variant: "destructive",
+      });
+    } else {
+      setServices(data || []);
+      if (!data || data.length === 0) {
+        toast({
+          title: "Aviso",
+          description: "Nenhum serviço disponível para agendamento",
+          variant: "destructive",
+        });
+      }
     }
   };
 

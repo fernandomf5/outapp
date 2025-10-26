@@ -33,6 +33,8 @@ export default function AgentCustomerChat() {
   const sentMessagesRef = useRef<Set<string>>(new Set());
   const [showAppointmentDialog, setShowAppointmentDialog] = useState(false);
   const [showOrderDialog, setShowOrderDialog] = useState(false);
+  const [hasServices, setHasServices] = useState(false);
+  const [hasProducts, setHasProducts] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -93,6 +95,32 @@ export default function AgentCustomerChat() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Check if agent has services and products
+  useEffect(() => {
+    if (!agentId) return;
+
+    const checkServicesAndProducts = async () => {
+      const { data: services } = await supabase
+        .from('agent_services')
+        .select('id')
+        .eq('agent_id', agentId)
+        .eq('is_active', true)
+        .limit(1);
+
+      const { data: products } = await supabase
+        .from('agent_products')
+        .select('id')
+        .eq('agent_id', agentId)
+        .eq('is_available', true)
+        .limit(1);
+
+      setHasServices(services && services.length > 0);
+      setHasProducts(products && products.length > 0);
+    };
+
+    checkServicesAndProducts();
+  }, [agentId]);
 
   const loadAgentAndConversation = async (customerId: string, customerName?: string) => {
     try {
@@ -315,6 +343,8 @@ export default function AgentCustomerChat() {
                 variant="outline"
                 className="flex-1"
                 onClick={() => setShowAppointmentDialog(true)}
+                disabled={!hasServices}
+                title={!hasServices ? "Nenhum serviço disponível" : ""}
               >
                 <Calendar className="w-4 h-4 mr-2" />
                 Agendar
@@ -323,6 +353,8 @@ export default function AgentCustomerChat() {
                 variant="outline"
                 className="flex-1"
                 onClick={() => setShowOrderDialog(true)}
+                disabled={!hasProducts}
+                title={!hasProducts ? "Nenhum produto disponível" : ""}
               >
                 <ShoppingBag className="w-4 h-4 mr-2" />
                 Fazer Pedido

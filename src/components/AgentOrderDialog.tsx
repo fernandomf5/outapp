@@ -70,8 +70,21 @@ export default function AgentOrderDialog({
       .eq('is_available', true)
       .order('name');
 
-    if (!error && data) {
-      setProducts(data);
+    if (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar produtos",
+        variant: "destructive",
+      });
+    } else {
+      setProducts(data || []);
+      if (!data || data.length === 0) {
+        toast({
+          title: "Aviso",
+          description: "Nenhum produto disponível para pedidos",
+          variant: "destructive",
+        });
+      }
     }
   };
 
