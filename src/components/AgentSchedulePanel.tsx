@@ -223,48 +223,50 @@ export default function AgentSchedulePanel({ agentId }: AgentSchedulePanelProps)
           </Dialog>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Dia</TableHead>
-                <TableHead>Horário</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {schedules.length === 0 ? (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    Nenhum horário configurado
-                  </TableCell>
+                  <TableHead>Dia</TableHead>
+                  <TableHead>Horário</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Ações</TableHead>
                 </TableRow>
-              ) : (
-                schedules.map((schedule) => (
-                  <TableRow key={schedule.id}>
-                    <TableCell>{daysOfWeek[schedule.day_of_week]}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        {schedule.start_time} - {schedule.end_time}
-                      </div>
+              </TableHeader>
+              <TableBody>
+                {schedules.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground">
+                      Nenhum horário configurado
                     </TableCell>
-                    <TableCell>
-                      <Badge className={schedule.is_active ? "bg-green-500" : "bg-gray-500"}>
-                        {schedule.is_active ? "Ativo" : "Inativo"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Switch
-                        checked={schedule.is_active}
-                        onCheckedChange={() => toggleSchedule(schedule.id, schedule.is_active)}
+                  </TableRow>
+                ) : (
+                  schedules.map((schedule) => (
+                    <TableRow key={schedule.id}>
+                      <TableCell>{daysOfWeek[schedule.day_of_week]}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          {schedule.start_time} - {schedule.end_time}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={schedule.is_active ? "bg-green-500" : "bg-gray-500"}>
+                          {schedule.is_active ? "Ativo" : "Inativo"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={schedule.is_active}
+                          onCheckedChange={() => toggleSchedule(schedule.id, schedule.is_active)}
                       />
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                      ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 

@@ -167,60 +167,62 @@ export default function AgentFinancialPanel({ agentId }: AgentFinancialPanelProp
             </TabsList>
 
             <TabsContent value={filter} className="mt-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Método</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Data</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredPayments.length === 0 ? (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground">
-                        Nenhum pagamento encontrado
-                      </TableCell>
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Valor</TableHead>
+                      <TableHead>Método</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Data</TableHead>
                     </TableRow>
-                  ) : (
-                    filteredPayments.map((payment) => (
-                      <TableRow key={payment.id}>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{payment.agent_customers?.name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {payment.agent_customers?.email}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          R$ {Number(payment.amount).toFixed(2)}
-                        </TableCell>
-                        <TableCell>
-                          {payment.payment_method || '-'}
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={statusColors[payment.status]}>
-                            {statusLabels[payment.status]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {payment.payment_date ? (
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4 text-muted-foreground" />
-                              {format(new Date(payment.payment_date), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">Aguardando</span>
-                          )}
+                  </TableHeader>
+                  <TableBody>
+                    {filteredPayments.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center text-muted-foreground">
+                          Nenhum pagamento encontrado
                         </TableCell>
                       </TableRow>
-                    ))
+                    ) : (
+                      filteredPayments.map((payment) => (
+                        <TableRow key={payment.id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{payment.agent_customers?.name}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {payment.agent_customers?.email}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            R$ {Number(payment.amount).toFixed(2)}
+                          </TableCell>
+                          <TableCell>
+                            {payment.payment_method || '-'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={statusColors[payment.status]}>
+                              {statusLabels[payment.status]}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {payment.payment_date ? (
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-muted-foreground" />
+                                {format(new Date(payment.payment_date), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">Aguardando</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))
                   )}
                 </TableBody>
               </Table>
+              </div>
             </TabsContent>
           </Tabs>
         </CardContent>

@@ -148,53 +148,55 @@ const AIAgentBuilder = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-card border-b border-border px-6 py-4 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
+      <header className="bg-card border-b border-border px-3 sm:px-6 py-3 sm:py-4 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="shrink-0">
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <div className="bg-primary/10 px-3 py-1 rounded-full text-sm font-medium text-primary flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
+            <div className="bg-primary/10 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium text-primary flex items-center gap-2">
+              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
               Agente IA
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
             {agentId && (
               <>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card">
+                <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-border bg-card shrink-0">
                   <Label htmlFor="active-switch" className="">
-                    <Power className="w-4 h-4" />
+                    <Power className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Label>
                   <Switch
                     id="active-switch"
                     checked={isActive}
                     onCheckedChange={setIsActive}
                   />
-                  <span className="text-sm font-medium">
+                  <span className="text-xs sm:text-sm font-medium hidden sm:inline">
                     {isActive ? 'Ativo' : 'Inativo'}
                   </span>
                 </div>
                 <Button 
                   variant="outline" 
                   onClick={handleCopyLink}
-                  className="hover:bg-primary/10 hover:border-primary"
+                  className="hover:bg-primary/10 hover:border-primary shrink-0"
+                  size="sm"
                 >
-                  <Link2 className="w-4 h-4 mr-2" />
-                  Copiar Link
+                  <Link2 className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Copiar Link</span>
                 </Button>
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button 
                       variant="outline" 
-                      className="hover:bg-primary/10 hover:border-primary"
+                      className="hover:bg-primary/10 hover:border-primary shrink-0"
+                      size="sm"
                     >
-                      <Code2 className="w-4 h-4 mr-2" />
-                      Widget de Chat
+                      <Code2 className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Widget</span>
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
                     <DialogHeader>
                       <DialogTitle>Widget de Chat Online</DialogTitle>
                     </DialogHeader>
@@ -207,73 +209,75 @@ const AIAgentBuilder = () => {
                 <Button 
                   variant="outline" 
                   onClick={handleTestInNewTab}
-                  className="hover:bg-primary/10 hover:border-primary"
+                  className="hover:bg-primary/10 hover:border-primary shrink-0"
+                  size="sm"
                 >
-                  <Play className="w-4 h-4 mr-2" />
-                  Testar Bot
+                  <Play className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Testar</span>
                 </Button>
               </>
             )}
             <Button 
               onClick={handleSave} 
-              className="bg-primary hover:bg-primary/90"
+              className="bg-primary hover:bg-primary/90 shrink-0"
               disabled={isSaving || !selectedNiche || !agentName.trim()}
+              size="sm"
             >
-              <Save className="w-4 h-4 mr-2" />
-              {isSaving ? "Salvando..." : agentId ? "Salvar Alterações" : "Salvar Agente"}
+              <Save className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+              {isSaving ? "Salvando..." : agentId ? "Salvar" : "Salvar"}
             </Button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="space-y-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
+        <div className="space-y-4 sm:space-y-6">
           {/* Nome do Agente - Destaque */}
-          <Card className="p-8 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+          <Card className="p-4 sm:p-8 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
             <div className="max-w-2xl">
-              <Label className="text-lg font-semibold mb-3 block">Nome do Agente IA</Label>
+              <Label className="text-base sm:text-lg font-semibold mb-3 block">Nome do Agente IA</Label>
               <Input
                 value={agentName}
                 onChange={(e) => setAgentName(e.target.value)}
                 placeholder="Digite o nome do seu agente IA..."
-                className="text-2xl font-bold h-14 bg-background"
+                className="text-lg sm:text-2xl font-bold h-12 sm:h-14 bg-background"
               />
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-2">
                 Escolha um nome que represente bem o seu agente de atendimento
               </p>
             </div>
           </Card>
 
           {/* Tipo de Acesso */}
-          <Card className="p-6 border-primary/20">
+          <Card className="p-4 sm:p-6 border-primary/20">
             <div className="max-w-2xl">
-              <Label className="text-lg font-semibold mb-3 block">Tipo de Acesso</Label>
+              <Label className="text-base sm:text-lg font-semibold mb-3 block">Tipo de Acesso</Label>
               <Select value={accessType} onValueChange={(value: 'public' | 'restricted' | 'anonymous') => setAccessType(value)}>
-                <SelectTrigger className="w-full h-12">
+                <SelectTrigger className="w-full h-10 sm:h-12">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="anonymous">
                     <div className="flex flex-col items-start">
-                      <span className="font-semibold">💬 Acesso Direto (Sem Cadastro)</span>
+                      <span className="font-semibold text-sm">💬 Acesso Direto (Sem Cadastro)</span>
                       <span className="text-xs text-muted-foreground">Chat instantâneo sem login</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="public">
                     <div className="flex flex-col items-start">
-                      <span className="font-semibold">🌐 Acesso Livre (Com Cadastro)</span>
+                      <span className="font-semibold text-sm">🌐 Acesso Livre (Com Cadastro)</span>
                       <span className="text-xs text-muted-foreground">Qualquer pessoa pode se cadastrar e usar</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="restricted">
                     <div className="flex flex-col items-start">
-                      <span className="font-semibold">🔒 Acesso Privado (Com Aprovação)</span>
+                      <span className="font-semibold text-sm">🔒 Acesso Privado (Com Aprovação)</span>
                       <span className="text-xs text-muted-foreground">Requer aprovação para acessar</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-2">
                 {accessType === 'anonymous' 
                   ? '⚡ Usuários entram direto no chat sem precisar se cadastrar ou fazer login'
                   : accessType === 'public' 
@@ -285,12 +289,12 @@ const AIAgentBuilder = () => {
 
           {!agentId ? (
             /* Seleção de Nicho - Criação inicial */
-            <Card className="p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <Target className="w-6 h-6 text-primary" />
+            <Card className="p-4 sm:p-6">
+              <h2 className="text-xl sm:text-2xl font-bold mb-4 flex items-center gap-2">
+                <Target className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 Escolha o Nicho do seu Agente IA
               </h2>
-              <p className="text-muted-foreground mb-6">
+              <p className="text-sm sm:text-base text-muted-foreground mb-6">
                 Selecione o segmento do seu negócio para personalizar o agente com perguntas específicas
               </p>
 

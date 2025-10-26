@@ -114,7 +114,7 @@ export function CapturedLeads() {
         {leads.length === 0 ? (
           <p className="text-muted-foreground">Nenhum lead capturado ainda.</p>
         ) : (
-          <div className="rounded-md border">
+          <div className="overflow-x-auto rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
