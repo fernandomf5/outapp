@@ -139,8 +139,20 @@ export default function AgentCustomerChat() {
 
         setConversationId(newConv.id);
 
-        // Create notification for new conversation
-        await supabase
+        // Send welcome message from agent config (if any)
+        const agentConfig = (agent as any)?.config || {};
+        const welcome = agentConfig.welcomeMessage || 'Olá! Como posso ajudar você hoje?';
+        const senderName = (agent as any)?.name || 'Atendente';
+        await supabase.from('agent_messages').insert({
+          conversation_id: newConv.id,
+          role: 'assistant',
+          content: welcome,
+          sender_name: senderName,
+        });
+        await loadMessages(newConv.id);
+
+        // Create notification for new conversation (best-effort)
+        const { error: notifError } = await supabase
           .from('agent_notifications')
           .insert({
             agent_id: agentId,
@@ -149,6 +161,9 @@ export default function AgentCustomerChat() {
             message: `${customer?.name || 'Cliente'} iniciou uma conversa`,
             is_read: false,
           });
+        if (notifError) {
+          console.warn('Notification insert skipped due to RLS:', notifError.message);
+        }
       }
     } catch (error) {
       console.error('Error loading agent:', error);
