@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Bot, Zap, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 
 const emailSchema = z.string().email("Por favor, insira um e-mail válido");
@@ -21,9 +22,26 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string>("");
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, isAdmin, signUp, signIn, loading } = useAuth();
+
+  // Carregar logo do site
+  useEffect(() => {
+    const loadLogo = async () => {
+      const { data } = await supabase
+        .from('site_settings')
+        .select('value')
+        .eq('key', 'site_logo_url')
+        .maybeSingle();
+      
+      if (data?.value) {
+        setLogoUrl(data.value);
+      }
+    };
+    loadLogo();
+  }, []);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -138,7 +156,11 @@ const Auth = () => {
         <div className="hidden md:block text-white space-y-6 px-0">
           <div className="flex items-center gap-3 mb-8 animate-fade-in">
             <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl shadow-glow">
-              <Bot className="w-12 h-12" />
+              {logoUrl ? (
+                <img src={logoUrl} alt="Logo" className="w-12 h-12 object-contain" />
+              ) : (
+                <Bot className="w-12 h-12" />
+              )}
             </div>
             <div>
               <h1 className="text-4xl md:text-5xl font-bold">Bot Reals Zapp</h1>
@@ -184,7 +206,11 @@ const Auth = () => {
           {/* Logo Mobile - Aparece apenas no mobile */}
           <div className="md:hidden flex items-center justify-center gap-2 mb-6">
             <div className="bg-primary/10 p-2 rounded-lg">
-              <Bot className="w-8 h-8 text-primary" />
+              {logoUrl ? (
+                <img src={logoUrl} alt="Logo" className="w-8 h-8 object-contain" />
+              ) : (
+                <Bot className="w-8 h-8 text-primary" />
+              )}
             </div>
             <span className="text-xl font-bold">Bot Reals Zapp</span>
           </div>
