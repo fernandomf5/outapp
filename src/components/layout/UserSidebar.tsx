@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Bot, Sparkles, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ChevronDown, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, Database } from "lucide-react";
+import { Bot, Sparkles, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ChevronDown, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, Database, Target, Globe, HelpCircle, Package, Lightbulb, UserCog, Megaphone } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,6 +20,7 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useUserFeatures } from "@/hooks/useUserFeatures";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Badge } from "@/components/ui/badge";
 
 interface MenuItem {
   title: string;
@@ -28,6 +29,7 @@ interface MenuItem {
   tab?: string;
   feature?: string;
   badge?: number;
+  inDevelopment?: boolean;
 }
 
 export function UserSidebar() {
@@ -115,31 +117,45 @@ export function UserSidebar() {
     }
   };
 
-  const mainItems = [
+  const mainItems: MenuItem[] = [
     { title: t('overview'), icon: TrendingUp, path: "/dashboard", tab: "overview" },
+  ];
+
+  const managementItems: MenuItem[] = [
+    { title: "Gestão Financeira", icon: DollarSign, path: "/dashboard", tab: "financeiro", inDevelopment: true },
+    { title: "Gestão de Equipe", icon: UserCog, path: "/dashboard", tab: "equipe", inDevelopment: true },
+    { title: "Gestão de Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios", inDevelopment: true },
+  ];
+
+  const crmItems: MenuItem[] = [
     { title: "CRM Geral", icon: Database, path: "/dashboard", tab: "crm-geral" },
   ];
 
-  const chatbotItems = [
+  const chatbotItems: MenuItem[] = [
     { title: t('create_chatbot'), icon: Bot, path: "/bot-builder" },
     { title: t('my_chatbots'), icon: Bot, path: "/dashboard", tab: "chatbots" },
   ];
 
-  const aiAgentItems = [
+  const aiAgentItems: MenuItem[] = [
     { title: t('create_ai_agent'), icon: Sparkles, path: "/ai-agent" },
     { title: t('my_ai_agents'), icon: Sparkles, path: "/dashboard", tab: "ai-agents" },
   ];
 
 
-  const toolsItems = [
+  const toolsItems: MenuItem[] = [
     { title: t('tools_manager'), icon: Wrench, path: "/dashboard", tab: "tools" },
     { title: "Gerador QR Code", icon: QrCode, path: "/dashboard", tab: "qrcode" },
     { title: "Link na Bio", icon: ExternalLink, path: "/dashboard", tab: "linkbio" },
     { title: t('link_shortener_title'), icon: Link2, path: "/dashboard", tab: "shortlinks", feature: "link_shortener" },
     { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner" },
+    { title: "Espionar Anúncios", icon: Target, path: "/dashboard", tab: "espionar", inDevelopment: true },
+    { title: "Criador de Sites", icon: Globe, path: "/dashboard", tab: "criador-sites", inDevelopment: true },
+    { title: "Criador de Quizz", icon: HelpCircle, path: "/dashboard", tab: "criador-quizz", inDevelopment: true },
+    { title: "Criador de Produto Digital", icon: Package, path: "/dashboard", tab: "produto-digital", inDevelopment: true },
+    { title: "Gerador de Prompt", icon: Lightbulb, path: "/dashboard", tab: "gerador-prompt", inDevelopment: true },
   ];
 
-  const supportItems = [
+  const supportItems: MenuItem[] = [
     { title: t('support_ticket'), icon: LifeBuoy, path: "/dashboard", tab: "support", feature: "ticket_system" },
     { title: t('voucher'), icon: Gift, path: "/dashboard", tab: "voucher" },
     { title: t('my_plan'), icon: CreditCard, path: "/dashboard", tab: "plan" },
@@ -160,6 +176,9 @@ export function UserSidebar() {
                   >
                     <item.icon className="h-4 w-4" />
                     {!collapsed && <span>{item.title}</span>}
+                    {!collapsed && item.inDevelopment && (
+                      <Badge variant="outline" className="ml-auto text-xs">Em desenvolvimento</Badge>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -222,6 +241,47 @@ export function UserSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
+          <SidebarGroupLabel>Gestão</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {managementItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    onClick={() => handleNavigation(item.path, item.tab)}
+                    className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {!collapsed && <span>{item.title}</span>}
+                    {!collapsed && item.inDevelopment && (
+                      <Badge variant="outline" className="ml-auto text-xs">Em desenvolvimento</Badge>
+                    )}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>CRM</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {crmItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    onClick={() => handleNavigation(item.path, item.tab)}
+                    className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {!collapsed && <span>{item.title}</span>}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
           <SidebarGroupLabel>{t('tools')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -235,6 +295,9 @@ export function UserSidebar() {
                     >
                       <item.icon className="h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
+                      {!collapsed && item.inDevelopment && (
+                        <Badge variant="outline" className="ml-auto text-xs">Em desenvolvimento</Badge>
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
