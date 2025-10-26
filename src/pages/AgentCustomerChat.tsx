@@ -155,6 +155,7 @@ export default function AgentCustomerChat() {
 
 
   const setupRealtimeSubscription = () => {
+    console.log('Configurando realtime para conversation_id:', conversationId);
     const channel = supabase
       .channel('agent-messages')
       .on(
@@ -166,6 +167,7 @@ export default function AgentCustomerChat() {
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
+          console.log('Nova mensagem recebida via realtime:', payload);
           const newMessage = payload.new as Message;
           const key = `${newMessage.role}:${newMessage.content}`;
           if (sentMessagesRef.current.has(key)) {
