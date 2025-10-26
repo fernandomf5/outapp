@@ -194,20 +194,26 @@ export default function AgentAppointmentDialog({
       const scheduledDate = new Date(selectedDate);
       scheduledDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('agent_appointments')
         .insert({
           agent_id: agentId,
           customer_id: customerId,
-          conversation_id: conversationId,
+          conversation_id: conversationId || null,
           service_id: selectedService.id,
           service_name: selectedService.name,
+          service_description: selectedService.description || null,
           scheduled_date: scheduledDate.toISOString(),
           customer_notes: notes || null,
           status: 'pending_approval',
-        });
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao criar agendamento:', error);
+        throw error;
+      }
 
       // Criar notificação
       await supabase.from('agent_notifications').insert({
