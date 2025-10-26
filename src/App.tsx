@@ -34,9 +34,22 @@ const CursorGuard = () => {
   const location = useLocation();
   useEffect(() => {
     const isDashboard = location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin");
-    if (!isDashboard) {
-      document.body.classList.remove("custom-cursor-active");
-    }
+
+    const sync = () => {
+      const hasCursor = !!document.querySelector('.custom-cursor');
+      if (!isDashboard || !hasCursor) {
+        document.body.classList.remove("custom-cursor-active");
+      }
+    };
+
+    // Initial sync on route change
+    sync();
+
+    // Observe DOM/class changes to keep state consistent
+    const observer = new MutationObserver(sync);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+
+    return () => observer.disconnect();
   }, [location.pathname]);
   return null;
 };
