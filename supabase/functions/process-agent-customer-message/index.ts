@@ -115,7 +115,7 @@ Seja profissional, atencioso e eficiente.`;
             service_name: serviceName,
             scheduled_date: dateTime,
             customer_notes: notes,
-            status: 'pending_approval'
+            status: 'pending'
           })
           .select()
           .single();
@@ -177,7 +177,7 @@ Seja profissional, atencioso e eficiente.`;
             delivery_address: address || null,
             customer_notes: notes || null,
             total_amount: parseFloat(total),
-            status: 'pending_approval'
+            status: 'pending'
           })
           .select()
           .single();
