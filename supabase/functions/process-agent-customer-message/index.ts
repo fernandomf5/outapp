@@ -136,7 +136,7 @@ Seja profissional, atencioso e eficiente.`;
             service_name: serviceName,
             scheduled_date: dateTime,
             customer_notes: notes,
-            status: 'pending'
+            status: 'pending_approval'
           })
           .select()
           .single();
