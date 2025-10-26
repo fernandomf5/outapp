@@ -90,78 +90,25 @@ export default function AgentCustomerChat() {
 
   const loadAgentAndConversation = async (customerId: string) => {
     try {
-      // Load agent info
-      const { data: agent, error: agentError } = await supabase
-        .from('ai_agents')
-        .select('*')
-        .eq('id', agentId)
-        .maybeSingle();
-      console.log('[AgentCustomerChat] Agent query', { agentId, agentError, hasAgent: !!agent });
+      // Chamar edge function para inicializar conversa (bypass RLS)
+      const { data, error } = await supabase.functions.invoke('init-agent-conversation', {
+        body: { agentId, customerId }
+      });
 
-      if (agentError) throw agentError;
-      if (!agent) {
-        console.warn('[AgentCustomerChat] Agent not found or not public/active', { agentId });
+      if (error) throw error;
+      if (!data || data.error) {
         toast({
           title: "Agente indisponível",
-          description: "Este agente não existe ou está inativo.",
+          description: data?.error || "Este agente não existe ou está inativo.",
           variant: "destructive",
         });
         navigate(`/agent-auth/${agentId}`, { replace: true });
         return;
       }
 
-      setAgentInfo(agent);
-
-      // Load all conversations for this customer
-      const { data: conversations, error: convError } = await supabase
-        .from('agent_conversations')
-        .select('*')
-        .eq('agent_id', agentId)
-        .eq('customer_id', customerId)
-        .order('last_message_at', { ascending: false });
-      if (convError) {
-        console.error('[AgentCustomerChat] Conversations query error', convError);
-        throw convError;
-      }
-
-      // Get active conversation or create new one
-      let activeConv = conversations?.find(c => c.status === 'active');
-
-      if (activeConv) {
-        setConversationId(activeConv.id);
-        await loadMessages(activeConv.id);
-      } else {
-        // Create new conversation with last_message_at
-        const { data: newConv } = await supabase
-          .from('agent_conversations')
-          .insert({
-            agent_id: agentId,
-            customer_id: customerId,
-            status: 'active',
-            last_message_at: new Date().toISOString(),
-          })
-          .select()
-          .single();
-
-        setConversationId(newConv.id);
-
-        // Não insere mensagem de boas-vindas no banco - será exibida direto do config
-        await loadMessages(newConv.id);
-
-        // Create notification for new conversation (best-effort)
-        const { error: notifError } = await supabase
-          .from('agent_notifications')
-          .insert({
-            agent_id: agentId,
-            notification_type: 'new_conversation',
-            title: 'Nova Conversa',
-            message: `${customer?.name || 'Cliente'} iniciou uma conversa`,
-            is_read: false,
-          });
-        if (notifError) {
-          console.warn('Notification insert skipped due to RLS:', notifError.message);
-        }
-      }
+      setAgentInfo(data.agent);
+      setConversationId(data.conversationId);
+      setMessages(data.messages || []);
     } catch (error) {
       console.error('Error loading agent:', error);
       toast({
@@ -172,15 +119,6 @@ export default function AgentCustomerChat() {
     }
   };
 
-  const loadMessages = async (convId: string) => {
-    const { data } = await supabase
-      .from('agent_messages')
-      .select('*')
-      .eq('conversation_id', convId)
-      .order('created_at', { ascending: true });
-
-    setMessages((data || []) as Message[]);
-  };
 
   const setupRealtimeSubscription = () => {
     const channel = supabase
@@ -228,110 +166,11 @@ export default function AgentCustomerChat() {
     if (!input.trim() || !conversationId || !customer) return;
 
     setLoading(true);
-    const userMessage = input.trim().toLowerCase();
     const originalInput = input;
     setInput("");
 
-    // Check if user is responding to a date change suggestion
-    if (userMessage === 'aceitar' || userMessage === 'recusar') {
-      try {
-        // Find pending appointment with date change
-        const { data: pendingAppointments } = await supabase
-          .from('agent_appointments')
-          .select('*')
-          .eq('conversation_id', conversationId)
-          .eq('response_type', 'date_change')
-          .eq('status', 'pending')
-          .order('created_at', { ascending: false })
-          .limit(1);
-
-        if (pendingAppointments && pendingAppointments.length > 0) {
-          const appointment = pendingAppointments[0];
-          
-          if (userMessage === 'aceitar') {
-            // Accept the date change
-            await supabase
-              .from('agent_appointments')
-              .update({ 
-                scheduled_date: appointment.proposed_date,
-                status: 'confirmed',
-                response_type: 'approved'
-              })
-              .eq('id', appointment.id);
-
-            await supabase.from('agent_messages').insert({
-              conversation_id: conversationId,
-              role: 'assistant',
-              content: `✅ *Data Confirmada!*\n\n📋 *Serviço:* ${appointment.service_name}\n📅 *Nova Data/Hora:* ${new Date(appointment.proposed_date!).toLocaleString('pt-BR')}\n\nAgendamento confirmado com sucesso!`,
-              sender_name: 'Sistema'
-            });
-
-            toast({
-              title: "✅ Confirmado!",
-              description: "Nova data aceita com sucesso",
-            });
-          } else {
-            // Reject the date change
-            await supabase
-              .from('agent_appointments')
-              .update({ 
-                status: 'cancelled',
-                response_type: 'rejected'
-              })
-              .eq('id', appointment.id);
-
-            await supabase.from('agent_messages').insert({
-              conversation_id: conversationId,
-              role: 'assistant',
-              content: `❌ *Data Recusada*\n\nVocê recusou a nova data sugerida. Por favor, entre em contato para agendar em outra data.`,
-              sender_name: 'Sistema'
-            });
-
-            toast({
-              title: "❌ Recusado",
-              description: "Data recusada",
-            });
-          }
-
-          setLoading(false);
-          return;
-        }
-      } catch (error: any) {
-        toast({
-          title: "Erro",
-          description: error.message,
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
-    }
-
     try {
-      // Save user message
-      const { data: savedUserMessage, error: userMessageError } = await supabase
-        .from('agent_messages')
-        .insert({
-          conversation_id: conversationId,
-          role: 'customer',
-          content: originalInput,
-        })
-        .select()
-        .single();
-
-      if (userMessageError) throw userMessageError;
-
-      // Add user message to state immediately
-      if (savedUserMessage) {
-        setMessages((prev) => [...prev, savedUserMessage as Message]);
-      }
-
-      await supabase
-        .from('agent_conversations')
-        .update({ last_message_at: new Date().toISOString() })
-        .eq('id', conversationId);
-
-      // Process with AI
+      // Process message via edge function (handles saving + AI response)
       const { data, error } = await supabase.functions.invoke('process-agent-customer-message', {
         body: {
           agentId,
@@ -342,29 +181,6 @@ export default function AgentCustomerChat() {
       });
 
       if (error) throw error;
-
-      // Save agent response
-      const { data: savedAgentMessage, error: agentMessageError } = await supabase
-        .from('agent_messages')
-        .insert({
-          conversation_id: conversationId,
-          role: 'agent',
-          content: data.response,
-        })
-        .select()
-        .single();
-
-      if (agentMessageError) throw agentMessageError;
-
-      // Add agent response to state immediately
-      if (savedAgentMessage) {
-        setMessages((prev) => [...prev, savedAgentMessage as Message]);
-      }
-
-      await supabase
-        .from('agent_conversations')
-        .update({ last_message_at: new Date().toISOString() })
-        .eq('id', conversationId);
 
       // Show notifications for appointments/orders
       if (data.appointment) {
