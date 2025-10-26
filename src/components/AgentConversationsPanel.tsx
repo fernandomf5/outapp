@@ -360,25 +360,45 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
 
               <ScrollArea className="flex-1 p-4">
                 <div className="space-y-4">
-                  {messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`flex ${msg.role === 'customer' ? 'justify-start' : 'justify-end'}`}
-                    >
+                  {messages.map((msg) => {
+                    // Mensagens do sistema (notificações automáticas)
+                    if (msg.role === 'assistant' || msg.sender_name === 'Sistema') {
+                      return (
+                        <div key={msg.id} className="flex justify-center">
+                          <div className="max-w-[85%] rounded-lg p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge variant="outline" className="text-xs">Sistema</Badge>
+                            </div>
+                            <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
+                            <span className="text-xs opacity-70 mt-1 block">
+                              {format(new Date(msg.created_at), "HH:mm", { locale: ptBR })}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    }
+                    
+                    // Mensagens normais (cliente ou agente)
+                    return (
                       <div
-                        className={`max-w-[80%] rounded-lg p-3 ${
-                          msg.role === 'customer'
-                            ? 'bg-muted'
-                            : 'bg-primary text-primary-foreground'
-                        }`}
+                        key={msg.id}
+                        className={`flex ${msg.role === 'customer' ? 'justify-start' : 'justify-end'}`}
                       >
-                        <p className="whitespace-pre-wrap">{msg.content}</p>
-                        <span className="text-xs opacity-70 mt-1 block">
-                          {format(new Date(msg.created_at), "HH:mm", { locale: ptBR })}
-                        </span>
+                        <div
+                          className={`max-w-[80%] rounded-lg p-3 ${
+                            msg.role === 'customer'
+                              ? 'bg-muted'
+                              : 'bg-primary text-primary-foreground'
+                          }`}
+                        >
+                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                          <span className="text-xs opacity-70 mt-1 block">
+                            {format(new Date(msg.created_at), "HH:mm", { locale: ptBR })}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </ScrollArea>
 

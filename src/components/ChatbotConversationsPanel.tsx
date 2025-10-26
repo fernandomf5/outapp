@@ -311,28 +311,51 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
             <div className="space-y-4">
               <ScrollArea className="h-[400px] border rounded-lg p-4">
                 <div className="space-y-4">
-                  {messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                    >
+                  {messages.map((message) => {
+                    // Mensagens do sistema (notificações automáticas)
+                    if (message.role === 'assistant' || message.sender_name === 'Sistema') {
+                      return (
+                        <div key={message.id} className="flex justify-center">
+                          <div className="max-w-[85%] rounded-lg p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge variant="outline" className="text-xs">Sistema</Badge>
+                            </div>
+                            <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                            <span className="text-xs opacity-70 mt-1 block">
+                              {formatDistanceToNow(new Date(message.created_at), { 
+                                addSuffix: true,
+                                locale: ptBR 
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    }
+                    
+                    // Mensagens normais (usuário ou chatbot)
+                    return (
                       <div
-                        className={`max-w-[70%] rounded-lg p-3 ${
-                          message.role === 'user'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted'
-                        }`}
+                        key={message.id}
+                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                       >
-                        <p className="text-sm">{message.content}</p>
-                        <span className="text-xs opacity-70 mt-1 block">
-                          {formatDistanceToNow(new Date(message.created_at), { 
-                            addSuffix: true,
-                            locale: ptBR 
-                          })}
-                        </span>
+                        <div
+                          className={`max-w-[70%] rounded-lg p-3 ${
+                            message.role === 'user'
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted'
+                          }`}
+                        >
+                          <p className="text-sm">{message.content}</p>
+                          <span className="text-xs opacity-70 mt-1 block">
+                            {formatDistanceToNow(new Date(message.created_at), { 
+                              addSuffix: true,
+                              locale: ptBR 
+                            })}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </ScrollArea>
 
