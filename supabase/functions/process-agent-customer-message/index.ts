@@ -106,7 +106,7 @@ Seja profissional, atencioso e eficiente.`;
         const [, serviceName, dateTime, notes] = match;
         
         // Create appointment with pending_approval status
-        const { data: newAppointment } = await supabase
+        const { data: newAppointment, error: appointmentError } = await supabase
           .from('agent_appointments')
           .insert({
             agent_id: agentId,
@@ -119,6 +119,11 @@ Seja profissional, atencioso e eficiente.`;
           })
           .select()
           .single();
+
+        if (appointmentError || !newAppointment) {
+          console.error('Error creating appointment:', appointmentError);
+          throw new Error('Erro ao criar agendamento');
+        }
 
         appointment = newAppointment;
         
@@ -161,7 +166,7 @@ Seja profissional, atencioso e eficiente.`;
         const items = JSON.parse(itemsJson);
         
         // Create order with pending_approval status
-        const { data: newOrder } = await supabase
+        const { data: newOrder, error: orderError } = await supabase
           .from('agent_orders')
           .insert({
             agent_id: agentId,
@@ -176,6 +181,11 @@ Seja profissional, atencioso e eficiente.`;
           })
           .select()
           .single();
+
+        if (orderError || !newOrder) {
+          console.error('Error creating order:', orderError);
+          throw new Error('Erro ao criar pedido');
+        }
 
         order = newOrder;
         
