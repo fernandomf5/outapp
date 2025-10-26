@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Bot, Send, Loader2, Sparkles, FileText } from "lucide-react";
+import { Bot, Send, Loader2, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -271,33 +271,11 @@ const PublicChat = () => {
         return;
       }
 
-      // Tentar buscar como agente IA
-      const { data: agent, error: agentError } = await supabase
-        .from('ai_agents')
-        .select('*')
-        .eq('id', botId)
-        .maybeSingle();
-
-      console.log('🤖 Buscando agent:', agent);
-      console.log('❌ Erro agent:', agentError);
-
-      if (agent && agent.is_active) {
-        setBotData({ ...agent, type: 'agent' });
-        const config = agent.config as any || {};
-        setMessages([{
-          id: '1',
-          role: 'bot',
-          content: config.welcomeMessage || 'Olá! Sou seu assistente inteligente. Como posso ajudar?',
-          timestamp: new Date()
-        }]);
-        return;
-      }
-
-      // Se chegou aqui, não encontrou nada
-      console.error('❌ Bot não encontrado ou inativo');
+      // Se chegou aqui, não encontrou chatbot - exibir erro
+      console.error('❌ Chatbot não encontrado ou inativo');
       toast({
-        title: "Bot não encontrado",
-        description: "Este bot não existe ou está inativo.",
+        title: "Chatbot não encontrado",
+        description: "Este chatbot não existe ou está inativo.",
         variant: "destructive"
       });
     } catch (error) {
@@ -527,68 +505,43 @@ const PublicChat = () => {
     }
 
     try {
-      if (botData.type === 'agent') {
-        // Processar com IA
-        const { data, error } = await supabase.functions.invoke('process-ai-message', {
-          body: {
-            agentId: botId,
-            message: textToSend,
-            conversationHistory: messages.map(m => ({
-              role: m.role === 'user' ? 'user' : 'assistant',
-              content: m.content
-            }))
-          }
-        });
-
-        if (error) throw error;
-
-        const botResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          role: 'bot',
-          content: data.response || "Desculpe, não consegui processar sua mensagem.",
-          timestamp: new Date()
-        };
-
-        setMessages(prev => [...prev, botResponse]);
-      } else {
-        // Chatbot com fluxo - só processar se veio de um botão (originNodeId definido)
-        if (originNodeId) {
-          const contextNodeId = originNodeId;
-          console.log('🔍 Nó de contexto:', contextNodeId);
-          console.log('📝 Texto enviado pelo usuário:', textToSend);
-          
-          const nextNode = findNextNode(contextNodeId, textToSend);
-          console.log('➡️ Próximo nó encontrado:', nextNode);
-          
-          if (nextNode) {
-            // Calcular delay total (500ms base + delay configurado)
-            const delayMs = 500 + ((nextNode.data?.delaySeconds || 0) * 1000);
-            
-            // Mostrar indicador de digitando
-            setIsTyping(true);
-            
-            setTimeout(async () => {
-              setIsTyping(false);
-              await processNode(nextNode, botData.config.nodes, botData.config.edges);
-              setIsLoading(false);
-            }, delayMs);
-            return;
-          } else {
-            console.log('⚠️ Botão sem conexão - apenas salvando mensagem do usuário');
-            // Não processar nenhum nó, apenas finalizar
-            setIsLoading(false);
-            return;
-          }
-        } else {
-          console.log('💬 Mensagem livre do usuário - aguardando atendente');
-        }
+      // Chatbot sempre usa fluxo - só processar se veio de um botão (originNodeId definido)
+      if (originNodeId) {
+        const contextNodeId = originNodeId;
+        console.log('🔍 Nó de contexto:', contextNodeId);
+        console.log('📝 Texto enviado pelo usuário:', textToSend);
         
-        // Finalizar carregamento
-        setTimeout(() => {
+        const nextNode = findNextNode(contextNodeId, textToSend);
+        console.log('➡️ Próximo nó encontrado:', nextNode);
+        
+        if (nextNode) {
+          // Calcular delay total (500ms base + delay configurado)
+          const delayMs = 500 + ((nextNode.data?.delaySeconds || 0) * 1000);
+          
+          // Mostrar indicador de digitando
+          setIsTyping(true);
+          
+          setTimeout(async () => {
+            setIsTyping(false);
+            await processNode(nextNode, botData.config.nodes, botData.config.edges);
+            setIsLoading(false);
+          }, delayMs);
+          return;
+        } else {
+          console.log('⚠️ Botão sem conexão - apenas salvando mensagem do usuário');
+          // Não processar nenhum nó, apenas finalizar
           setIsLoading(false);
-        }, 500);
-        return;
+          return;
+        }
+      } else {
+        console.log('💬 Mensagem livre do usuário - aguardando atendente');
       }
+      
+      // Finalizar carregamento
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 500);
+      return;
     } catch (error) {
       console.error('Erro ao processar mensagem:', error);
       toast({
@@ -684,11 +637,7 @@ const PublicChat = () => {
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 p-3 rounded-xl">
-              {botData.type === 'agent' ? (
-                <Sparkles className="w-6 h-6 text-primary" />
-              ) : (
-                <Bot className="w-6 h-6 text-primary" />
-              )}
+              <Bot className="w-6 h-6 text-primary" />
             </div>
             <div>
               <h1 className="text-xl font-bold">
