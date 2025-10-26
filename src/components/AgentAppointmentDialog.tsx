@@ -123,7 +123,7 @@ export default function AgentAppointmentDialog({
     const dayOfWeek = selectedDate.getDay();
     
     // Buscar horário de funcionamento
-    const { data: schedule } = await supabase
+    const { data: schedule, error: scheduleError } = await supabase
       .from('agent_schedule')
       .select('start_time, end_time')
       .eq('agent_id', agentId)
@@ -131,8 +131,13 @@ export default function AgentAppointmentDialog({
       .eq('is_active', true)
       .single();
 
-    if (!schedule) {
+    if (scheduleError || !schedule) {
       setAvailableTimes([]);
+      toast({
+        title: "Horário não configurado",
+        description: "Este dia não possui horário de funcionamento configurado. Configure em Gestão > Horários.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -299,37 +304,31 @@ export default function AgentAppointmentDialog({
                 />
               </div>
 
-              {selectedDate && (
+              {selectedDate && availableTimes.length > 0 && (
                 <div>
-                  <Label>Horário *</Label>
-                  {availableTimes.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                      Não há horários disponíveis para este dia
-                    </p>
-                  ) : (
-                    <div className="grid grid-cols-4 gap-2 mt-2">
-                      {availableTimes.map((time) => {
-                        const isBooked = bookedTimes.includes(time);
-                        return (
-                          <Button
-                            key={time}
-                            variant={selectedTime === time ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => !isBooked && setSelectedTime(time)}
-                            disabled={isBooked}
-                            className="relative"
-                          >
-                            {time}
-                            {isBooked && (
-                              <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 text-[10px]">
-                                X
-                              </Badge>
-                            )}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  )}
+                  <Label>Horário * (selecione um horário disponível)</Label>
+                  <div className="grid grid-cols-4 gap-2 mt-2">
+                    {availableTimes.map((time) => {
+                      const isBooked = bookedTimes.includes(time);
+                      return (
+                        <Button
+                          key={time}
+                          variant={selectedTime === time ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => !isBooked && setSelectedTime(time)}
+                          disabled={isBooked}
+                          className="relative"
+                        >
+                          {time}
+                          {isBooked && (
+                            <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 text-[10px]">
+                              X
+                            </Badge>
+                          )}
+                        </Button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </>
