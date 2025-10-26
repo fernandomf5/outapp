@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, LogOut, Calendar, ShoppingBag } from "lucide-react";
+import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import AgentAppointmentDialog from "@/components/AgentAppointmentDialog";
 import AgentOrderDialog from "@/components/AgentOrderDialog";
 
@@ -35,6 +36,10 @@ export default function AgentCustomerChat() {
   const [showOrderDialog, setShowOrderDialog] = useState(false);
   const [hasServices, setHasServices] = useState(false);
   const [hasProducts, setHasProducts] = useState(false);
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [showAppointments, setShowAppointments] = useState(false);
+  const [showOrders, setShowOrders] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -121,6 +126,70 @@ export default function AgentCustomerChat() {
 
     checkServicesAndProducts();
   }, [agentId]);
+
+  // Fetch customer appointments and orders
+  useEffect(() => {
+    if (!customer?.id || !agentId) return;
+
+    const fetchCustomerData = async () => {
+      const { data: appointmentsData } = await supabase
+        .from('agent_appointments')
+        .select('*')
+        .eq('agent_id', agentId)
+        .eq('customer_id', customer.id)
+        .order('created_at', { ascending: false });
+
+      const { data: ordersData } = await supabase
+        .from('agent_orders')
+        .select('*')
+        .eq('agent_id', agentId)
+        .eq('customer_id', customer.id)
+        .order('created_at', { ascending: false });
+
+      setAppointments(appointmentsData || []);
+      setOrders(ordersData || []);
+    };
+
+    fetchCustomerData();
+
+    // Real-time subscriptions for appointments and orders
+    const appointmentsChannel = supabase
+      .channel(`customer-appointments-${customer.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'agent_appointments',
+          filter: `customer_id=eq.${customer.id}`,
+        },
+        () => {
+          fetchCustomerData();
+        }
+      )
+      .subscribe();
+
+    const ordersChannel = supabase
+      .channel(`customer-orders-${customer.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'agent_orders',
+          filter: `customer_id=eq.${customer.id}`,
+        },
+        () => {
+          fetchCustomerData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(appointmentsChannel);
+      supabase.removeChannel(ordersChannel);
+    };
+  }, [customer?.id, agentId]);
 
   const loadAgentAndConversation = async (customerId: string, customerName?: string) => {
     try {
@@ -349,6 +418,107 @@ export default function AgentCustomerChat() {
                 Fazer Pedido
               </Button>
             </div>
+
+            {/* Meus Agendamentos */}
+            {appointments.length > 0 && (
+              <Collapsible open={showAppointments} onOpenChange={setShowAppointments}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between">
+                    <span className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      Meus Agendamentos
+                      <Badge variant="secondary">{appointments.length}</Badge>
+                    </span>
+                    {showAppointments ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-2 mt-2">
+                  {appointments.map((appointment) => (
+                    <Card key={appointment.id} className="p-3">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <p className="font-medium">{appointment.service_name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(appointment.scheduled_date).toLocaleString('pt-BR')}
+                          </p>
+                          {appointment.service_description && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {appointment.service_description}
+                            </p>
+                          )}
+                        </div>
+                        <Badge 
+                          variant={
+                            appointment.status === 'confirmed' ? 'default' : 
+                            appointment.status === 'rejected' ? 'destructive' : 
+                            'secondary'
+                          }
+                        >
+                          {appointment.status === 'pending' && 'Pendente'}
+                          {appointment.status === 'confirmed' && 'Confirmado'}
+                          {appointment.status === 'rejected' && 'Recusado'}
+                          {appointment.status === 'rescheduled' && 'Reagendado'}
+                        </Badge>
+                      </div>
+                    </Card>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+
+            {/* Meus Pedidos */}
+            {orders.length > 0 && (
+              <Collapsible open={showOrders} onOpenChange={setShowOrders}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between">
+                    <span className="flex items-center gap-2">
+                      <ShoppingBag className="w-4 h-4" />
+                      Meus Pedidos
+                      <Badge variant="secondary">{orders.length}</Badge>
+                    </span>
+                    {showOrders ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-2 mt-2">
+                  {orders.map((order) => (
+                    <Card key={order.id} className="p-3">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <p className="font-medium">Pedido #{order.order_number}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(order.created_at).toLocaleString('pt-BR')}
+                          </p>
+                          <p className="text-sm font-medium mt-1">
+                            Total: R$ {Number(order.total_amount).toFixed(2)}
+                          </p>
+                          {order.delivery_address && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Entrega: {order.delivery_address}
+                            </p>
+                          )}
+                        </div>
+                        <Badge 
+                          variant={
+                            order.status === 'confirmed' ? 'default' : 
+                            order.status === 'delivered' ? 'default' :
+                            order.status === 'cancelled' ? 'destructive' : 
+                            'secondary'
+                          }
+                        >
+                          {order.status === 'pending' && 'Pendente'}
+                          {order.status === 'confirmed' && 'Confirmado'}
+                          {order.status === 'preparing' && 'Preparando'}
+                          {order.status === 'shipped' && 'Enviado'}
+                          {order.status === 'delivered' && 'Entregue'}
+                          {order.status === 'cancelled' && 'Cancelado'}
+                        </Badge>
+                      </div>
+                    </Card>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+
             <div className="flex gap-2">
               <Input
                 value={input}
