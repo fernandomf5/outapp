@@ -52,6 +52,7 @@ const AIAgentBuilder = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [nicheSearch, setNicheSearch] = useState("");
+  const [accessType, setAccessType] = useState<'public' | 'private'>('public');
 
   const currentNiche = nicheConfigs.find(n => n.id === selectedNiche);
   const filteredNiches = nicheSearch
@@ -70,6 +71,7 @@ const AIAgentBuilder = () => {
         setKnowledge(agent.training_data?.knowledge || "");
         setWelcomeMessage(agent.config?.welcomeMessage || welcomeMessage);
         setIsActive(agent.is_active);
+        setAccessType((agent as any).access_type || 'public');
       }).catch(console.error);
     }
   }, [agentId, user]);
@@ -96,6 +98,7 @@ const AIAgentBuilder = () => {
           knowledge,
         },
         is_active: isActive,
+        access_type: accessType,
       };
 
       const result = await saveAgent(agentData, user.id);
@@ -250,6 +253,37 @@ const AIAgentBuilder = () => {
               />
               <p className="text-sm text-muted-foreground mt-2">
                 Escolha um nome que represente bem o seu agente de atendimento
+              </p>
+            </div>
+          </Card>
+
+          {/* Tipo de Acesso */}
+          <Card className="p-6 border-primary/20">
+            <div className="max-w-2xl">
+              <Label className="text-lg font-semibold mb-3 block">Tipo de Acesso</Label>
+              <Select value={accessType} onValueChange={(value: 'public' | 'private') => setAccessType(value)}>
+                <SelectTrigger className="w-full h-12">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="public">
+                    <div className="flex flex-col items-start">
+                      <span className="font-semibold">🌐 Acesso Livre</span>
+                      <span className="text-xs text-muted-foreground">Qualquer pessoa pode se cadastrar e usar</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="private">
+                    <div className="flex flex-col items-start">
+                      <span className="font-semibold">🔒 Acesso Privado</span>
+                      <span className="text-xs text-muted-foreground">Requer aprovação para acessar</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-muted-foreground mt-2">
+                {accessType === 'public' 
+                  ? '✓ Usuários podem se cadastrar e usar o agente livremente'
+                  : '🔐 Você precisará aprovar cada solicitação de acesso individualmente (ideal para produtos digitais)'}
               </p>
             </div>
           </Card>

@@ -247,6 +247,54 @@ export type Database = {
           },
         ]
       }
+      agent_access_requests: {
+        Row: {
+          agent_id: string
+          customer_id: string
+          id: string
+          notes: string | null
+          requested_at: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          agent_id: string
+          customer_id: string
+          id?: string
+          notes?: string | null
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          agent_id?: string
+          customer_id?: string
+          id?: string
+          notes?: string | null
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_access_requests_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_access_requests_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "agent_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_appointments: {
         Row: {
           agent_id: string
@@ -838,6 +886,7 @@ export type Database = {
       }
       ai_agents: {
         Row: {
+          access_type: string
           config: Json
           created_at: string
           description: string | null
@@ -851,6 +900,7 @@ export type Database = {
           whatsapp_connection_id: string | null
         }
         Insert: {
+          access_type?: string
           config?: Json
           created_at?: string
           description?: string | null
@@ -864,6 +914,7 @@ export type Database = {
           whatsapp_connection_id?: string | null
         }
         Update: {
+          access_type?: string
           config?: Json
           created_at?: string
           description?: string | null
@@ -939,6 +990,54 @@ export type Database = {
             columns: ["chatbot_id"]
             isOneToOne: false
             referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chatbot_access_requests: {
+        Row: {
+          chatbot_id: string
+          customer_id: string
+          id: string
+          notes: string | null
+          requested_at: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          chatbot_id: string
+          customer_id: string
+          id?: string
+          notes?: string | null
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          chatbot_id?: string
+          customer_id?: string
+          id?: string
+          notes?: string | null
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_access_requests_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chatbot_access_requests_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "chatbot_customers"
             referencedColumns: ["id"]
           },
         ]
@@ -1409,6 +1508,7 @@ export type Database = {
       }
       chatbots: {
         Row: {
+          access_type: string
           config: Json
           created_at: string
           description: string | null
@@ -1420,6 +1520,7 @@ export type Database = {
           whatsapp_connection_id: string | null
         }
         Insert: {
+          access_type?: string
           config?: Json
           created_at?: string
           description?: string | null
@@ -1431,6 +1532,7 @@ export type Database = {
           whatsapp_connection_id?: string | null
         }
         Update: {
+          access_type?: string
           config?: Json
           created_at?: string
           description?: string | null

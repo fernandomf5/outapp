@@ -17,6 +17,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { ChatWidgetGenerator } from '@/components/ChatWidgetGenerator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 
 const BotBuilder = () => {
@@ -39,6 +40,7 @@ const BotBuilder = () => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [accessType, setAccessType] = useState<'public' | 'private'>('public');
 
   // Carregar chatbot existente
   useEffect(() => {
@@ -62,6 +64,7 @@ const BotBuilder = () => {
         if (config?.edges) {
           setEdges(config.edges);
         }
+        setAccessType((chatbot as any).access_type || 'public');
       }).catch(console.error);
     }
   }, [chatbotId, user]);
@@ -219,6 +222,7 @@ const BotBuilder = () => {
         },
         is_active: isActive,
         user_id: user.id,
+        access_type: accessType,
       };
 
       const result = await saveChatbot(chatbotData);
@@ -395,6 +399,36 @@ const BotBuilder = () => {
           <main className="flex-1 relative p-6 overflow-auto">
             {!showFlowEditor ? (
               <div className="max-w-2xl mx-auto space-y-6 mt-8">
+                <Card className="p-6 border-primary/20">
+                  <div className="space-y-4">
+                    <Label className="text-lg font-semibold">Tipo de Acesso ao Chatbot</Label>
+                    <Select value={accessType} onValueChange={(value: 'public' | 'private') => setAccessType(value)}>
+                      <SelectTrigger className="w-full h-12">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="public">
+                          <div className="flex flex-col items-start">
+                            <span className="font-semibold">🌐 Acesso Livre</span>
+                            <span className="text-xs text-muted-foreground">Qualquer pessoa pode se cadastrar e usar</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="private">
+                          <div className="flex flex-col items-start">
+                            <span className="font-semibold">🔒 Acesso Privado</span>
+                            <span className="text-xs text-muted-foreground">Requer aprovação para acessar</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground">
+                      {accessType === 'public' 
+                        ? '✓ Usuários podem se cadastrar e usar o chatbot livremente'
+                        : '🔐 Você precisará aprovar cada solicitação de acesso individualmente (ideal para produtos digitais)'}
+                    </p>
+                  </div>
+                </Card>
+
                 <Card className="p-8 border-2 border-primary/20 shadow-xl">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="bg-primary/10 p-3 rounded-xl">
