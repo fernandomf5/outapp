@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ShoppingBag, User, Phone, Mail, MapPin, Package, Printer, FileText, DollarSign } from "lucide-react";
+import { ShoppingBag, User, Phone, Mail, MapPin, Package, Printer, FileText, DollarSign, Pencil, Trash2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -12,6 +12,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Order {
   id: string;
@@ -33,6 +53,8 @@ interface Order {
 export default function AgentOrdersPanel({ agentId }: { agentId: string }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editDialog, setEditDialog] = useState<{ open: boolean; order: Order | null }>({ open: false, order: null });
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; orderId: string | null }>({ open: false, orderId: null });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -118,7 +140,7 @@ export default function AgentOrdersPanel({ agentId }: { agentId: string }) {
     if (statusMessages[newStatus] && order.conversation_id) {
       await supabase.from('agent_messages').insert({
         conversation_id: order.conversation_id,
-        role: 'assistant',
+        role: 'agent',
         content: statusMessages[newStatus],
         sender_name: 'Sistema'
       });
@@ -153,6 +175,85 @@ export default function AgentOrdersPanel({ agentId }: { agentId: string }) {
       cancelled: "Cancelado",
     };
     return labels[status] || status;
+  };
+
+  const handleEditOrder = async () => {
+    if (!editDialog.order) return;
+
+    const { error } = await supabase
+      .from('agent_orders')
+      .update({
+        delivery_address: editDialog.order.delivery_address,
+        customer_notes: editDialog.order.customer_notes,
+        total_amount: editDialog.order.total_amount,
+      })
+      .eq('id', editDialog.order.id);
+
+    if (error) {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Enviar mensagem ao chat
+    if (editDialog.order.conversation_id) {
+      await supabase.from('agent_messages').insert({
+        conversation_id: editDialog.order.conversation_id,
+        role: 'agent',
+        content: `ℹ️ *Pedido Atualizado*\n\n👤 *Cliente:* ${editDialog.order.agent_customers.name}\n📦 *Pedido:* ${editDialog.order.order_number}\n💰 *Novo Valor:* R$ ${editDialog.order.total_amount.toFixed(2)}\n\nSeu pedido foi atualizado.`,
+        sender_name: 'Sistema'
+      });
+    }
+
+    toast({
+      title: "Pedido atualizado!",
+      description: "Pedido atualizado e cliente notificado.",
+    });
+
+    setEditDialog({ open: false, order: null });
+    loadOrders();
+  };
+
+  const handleDeleteOrder = async () => {
+    if (!deleteDialog.orderId) return;
+
+    const order = orders.find(o => o.id === deleteDialog.orderId);
+    if (!order) return;
+
+    const { error } = await supabase
+      .from('agent_orders')
+      .delete()
+      .eq('id', deleteDialog.orderId);
+
+    if (error) {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Enviar mensagem ao chat
+    if (order.conversation_id) {
+      await supabase.from('agent_messages').insert({
+        conversation_id: order.conversation_id,
+        role: 'agent',
+        content: `🗑️ *Pedido Excluído*\n\n👤 *Cliente:* ${order.agent_customers.name}\n📦 *Pedido:* ${order.order_number}\n\nO pedido foi removido do sistema. Entre em contato para mais informações.`,
+        sender_name: 'Sistema'
+      });
+    }
+
+    toast({
+      title: "Pedido excluído!",
+      description: "Pedido excluído com sucesso.",
+    });
+
+    setDeleteDialog({ open: false, orderId: null });
+    loadOrders();
   };
 
   const printOrder = (order: Order) => {
@@ -370,20 +471,113 @@ export default function AgentOrdersPanel({ agentId }: { agentId: string }) {
                     </Select>
                   </div>
 
-                  <Button 
-                    onClick={() => printOrder(order)}
-                    variant="outline"
-                    className="w-full mt-2"
-                  >
-                    <Printer className="w-4 h-4 mr-2" />
-                    Imprimir Pedido
-                  </Button>
+                  <div className="flex gap-2 mt-2">
+                    <Button 
+                      onClick={() => printOrder(order)}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      <Printer className="w-4 h-4 mr-2" />
+                      Imprimir
+                    </Button>
+                    <Button 
+                      onClick={() => setEditDialog({ open: true, order })}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      <Pencil className="w-4 h-4 mr-2" />
+                      Editar
+                    </Button>
+                    <Button 
+                      onClick={() => setDeleteDialog({ open: true, orderId: order.id })}
+                      variant="outline"
+                      className="flex-1 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Excluir
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+
+      {/* Dialog de Edição */}
+      <Dialog open={editDialog.open} onOpenChange={(open) => setEditDialog({ open, order: null })}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Editar Pedido #{editDialog.order?.order_number}</DialogTitle>
+          </DialogHeader>
+          {editDialog.order && (
+            <div className="space-y-4">
+              <div>
+                <Label>Endereço de Entrega</Label>
+                <Textarea
+                  value={editDialog.order.delivery_address || ''}
+                  onChange={(e) => setEditDialog({
+                    ...editDialog,
+                    order: { ...editDialog.order!, delivery_address: e.target.value }
+                  })}
+                  placeholder="Endereço completo de entrega"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <Label>Observações do Cliente</Label>
+                <Textarea
+                  value={editDialog.order.customer_notes || ''}
+                  onChange={(e) => setEditDialog({
+                    ...editDialog,
+                    order: { ...editDialog.order!, customer_notes: e.target.value }
+                  })}
+                  placeholder="Observações adicionais"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <Label>Valor Total (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={editDialog.order.total_amount}
+                  onChange={(e) => setEditDialog({
+                    ...editDialog,
+                    order: { ...editDialog.order!, total_amount: parseFloat(e.target.value) || 0 }
+                  })}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialog({ open: false, order: null })}>
+              Cancelar
+            </Button>
+            <Button onClick={handleEditOrder}>
+              Salvar Alterações
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Confirmação de Exclusão */}
+      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, orderId: null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este pedido? Esta ação não pode ser desfeita e o cliente será notificado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteOrder} className="bg-destructive text-destructive-foreground">
+              Excluir Pedido
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
