@@ -46,7 +46,7 @@ export default function AgentCustomerChat() {
           try {
             const parsedCustomer = JSON.parse(customerData);
             setCustomer(parsedCustomer);
-            loadAgentAndConversation(parsedCustomer.id);
+            loadAgentAndConversation(parsedCustomer.id, parsedCustomer.name);
             return;
           } catch (error) {
             console.error('Error parsing customer data:', error);
@@ -64,7 +64,7 @@ export default function AgentCustomerChat() {
           };
           setCustomer(tempCustomer);
           localStorage.setItem(`agent_customer_${agentId}`, JSON.stringify(tempCustomer));
-          loadAgentAndConversation(tempCustomer.id);
+          loadAgentAndConversation(tempCustomer.id, tempCustomer.name);
           return;
         }
 
@@ -89,11 +89,11 @@ export default function AgentCustomerChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const loadAgentAndConversation = async (customerId: string) => {
+  const loadAgentAndConversation = async (customerId: string, customerName?: string) => {
     try {
       // Chamar edge function para inicializar conversa (bypass RLS)
       const { data, error } = await supabase.functions.invoke('init-agent-conversation', {
-        body: { agentId, customerId }
+        body: { agentId, customerId, customerName }
       });
 
       if (error) throw error;

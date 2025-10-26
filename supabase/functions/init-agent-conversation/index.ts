@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { agentId, customerId } = await req.json();
+    const { agentId, customerId, customerName } = await req.json();
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -58,8 +58,16 @@ serve(async (req) => {
         });
       }
       // Create anonymous/customer placeholder so FK is satisfied
-      const anonName = 'Visitante';
+      const anonName = customerName || 'Visitante';
       const anonEmail = `anon_${Date.now()}@temp.com`;
+
+      // Generate a password hash placeholder for anonymous customers
+      const encoder = new TextEncoder();
+      const randomSeed = `${customerId}:${Date.now()}:${Math.random()}`;
+      const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(randomSeed));
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
       const { error: createCustomerError } = await supabase
         .from('agent_customers')
         .insert({
@@ -67,6 +75,8 @@ serve(async (req) => {
           agent_id: agentId,
           name: anonName,
           email: anonEmail,
+          password_hash: passwordHash,
+          email_verified: false,
         });
       if (createCustomerError) {
         console.error('Error creating anonymous customer:', createCustomerError);
