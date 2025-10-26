@@ -64,12 +64,12 @@ export default function ChatbotCustomerChat() {
 
       setChatbotInfo(chatbot);
 
-      // Load all conversations for this customer
+      // Search for existing conversation by customer email/phone
       const { data: conversations } = await supabase
         .from('chatbot_conversations')
         .select('*')
         .eq('chatbot_id', chatbotId)
-        .eq('session_id', customerId)
+        .or(`visitor_email.eq.${customerData?.email},visitor_phone.eq.${customerData?.phone}`)
         .order('last_message_at', { ascending: false });
 
       // Get active conversation or create new one
@@ -79,16 +79,18 @@ export default function ChatbotCustomerChat() {
         setConversationId(activeConv.id);
         await loadMessages(activeConv.id);
       } else {
-        // Create new conversation and notification
+        // Create new conversation with unique session_id
+        const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const { data: newConv } = await supabase
           .from('chatbot_conversations')
           .insert({
             chatbot_id: chatbotId,
-            session_id: customerId,
+            session_id: sessionId,
             visitor_email: customerData?.email || null,
             visitor_name: customerData?.name || null,
             visitor_phone: customerData?.phone || null,
             status: 'active',
+            last_message_at: new Date().toISOString(),
           })
           .select()
           .single();
@@ -102,12 +104,17 @@ export default function ChatbotCustomerChat() {
             chatbot_id: chatbotId,
             type: 'new_conversation',
             title: 'Nova Conversa',
-            message: `${customer?.name} iniciou uma conversa`,
+            message: `${customerData?.name || 'Visitante'} iniciou uma conversa`,
             is_read: false,
           });
       }
     } catch (error) {
       console.error('Error loading chatbot:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar o chatbot",
+        variant: "destructive",
+      });
     }
   };
 

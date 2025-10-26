@@ -80,13 +80,14 @@ export default function AgentCustomerChat() {
         setConversationId(activeConv.id);
         await loadMessages(activeConv.id);
       } else {
-        // Create new conversation and notification
+        // Create new conversation with last_message_at
         const { data: newConv } = await supabase
           .from('agent_conversations')
           .insert({
             agent_id: agentId,
             customer_id: customerId,
             status: 'active',
+            last_message_at: new Date().toISOString(),
           })
           .select()
           .single();
@@ -100,12 +101,17 @@ export default function AgentCustomerChat() {
             agent_id: agentId,
             notification_type: 'new_conversation',
             title: 'Nova Conversa',
-            message: `${customer?.name} iniciou uma conversa`,
+            message: `${customer?.name || 'Cliente'} iniciou uma conversa`,
             is_read: false,
           });
       }
     } catch (error) {
       console.error('Error loading agent:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar o agente",
+        variant: "destructive",
+      });
     }
   };
 
