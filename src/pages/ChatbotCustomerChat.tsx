@@ -275,6 +275,18 @@ export default function ChatbotCustomerChat() {
 
           <ScrollArea className="flex-1 p-4">
             <div className="space-y-4">
+              {/* Mensagem inicial do chatbot (não salva no banco) */}
+              {chatbotInfo?.config?.initialMessage && messages.length === 0 && (
+                <div className="flex flex-col items-start">
+                  <span className="text-xs text-muted-foreground mb-1 px-1">
+                    {chatbotInfo?.config?.attendantName || chatbotInfo?.name || 'Atendente'}
+                  </span>
+                  <div className="max-w-[80%] rounded-lg p-3 bg-muted">
+                    <p className="whitespace-pre-wrap">{chatbotInfo.config.initialMessage}</p>
+                  </div>
+                </div>
+              )}
+              
               {messages.map((message) => (
                 <div
                   key={message.id}

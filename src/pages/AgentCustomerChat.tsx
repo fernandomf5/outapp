@@ -145,16 +145,7 @@ export default function AgentCustomerChat() {
 
         setConversationId(newConv.id);
 
-        // Send welcome message from agent config (if any)
-        const agentConfig = (agent as any)?.config || {};
-        const welcome = agentConfig.welcomeMessage || 'Olá! Como posso ajudar você hoje?';
-        const senderName = (agent as any)?.name || 'Atendente';
-        await supabase.from('agent_messages').insert({
-          conversation_id: newConv.id,
-          role: 'assistant',
-          content: welcome,
-          sender_name: senderName,
-        });
+        // Não insere mensagem de boas-vindas no banco - será exibida direto do config
         await loadMessages(newConv.id);
 
         // Create notification for new conversation (best-effort)
@@ -421,6 +412,18 @@ export default function AgentCustomerChat() {
 
           <ScrollArea className="flex-1 p-4">
             <div className="space-y-4">
+              {/* Mensagem de boas-vindas do agente (não salva no banco) */}
+              {agentInfo?.config?.welcomeMessage && messages.length === 0 && (
+                <div className="flex flex-col items-start">
+                  <span className="text-xs text-muted-foreground mb-1 px-1">
+                    {agentInfo?.name || 'Atendente'}
+                  </span>
+                  <div className="max-w-[80%] rounded-lg p-3 bg-muted">
+                    <p className="whitespace-pre-wrap">{agentInfo.config.welcomeMessage}</p>
+                  </div>
+                </div>
+              )}
+              
               {messages.map((message) => (
                 <div
                   key={message.id}
