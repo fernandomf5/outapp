@@ -79,20 +79,11 @@ ${customerSafe.phone ? `Telefone: ${customerSafe.phone}` : ''}
 
 ${agent.training_data?.knowledge || ''}
 
-IMPORTANTE - CAPACIDADES:
-1. AGENDAMENTOS: Você pode agendar serviços. Quando o cliente quiser agendar, extraia:
-   - Nome do serviço
-   - Data e hora desejada
-   - Observações
-   Responda no formato: [AGENDAR|nome_servico|data_hora_iso|observacoes]
+IMPORTANTE:
+O cliente pode fazer agendamentos e pedidos através de botões específicos no chat.
+Quando o cliente perguntar sobre serviços, produtos, agendamentos ou pedidos, informe de forma amigável que ele pode usar os botões "Agendar" ou "Fazer Pedido" disponíveis no chat.
 
-2. PEDIDOS: Você pode processar pedidos. Quando o cliente fizer um pedido, extraia:
-   - Itens do pedido (nome, quantidade, preço)
-   - Endereço de entrega (se aplicável)
-   - Observações
-   Responda no formato: [PEDIDO|items_json|endereco|observacoes|total]
-
-Seja profissional, atencioso e eficiente.`;
+Seja profissional, atencioso e eficiente nas respostas.`;
 
     // Call AI
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -114,148 +105,19 @@ Seja profissional, atencioso e eficiente.`;
     const aiData = await aiResponse.json();
     const responseText = aiData.choices[0].message.content;
 
-    // Process special commands
-    let finalResponse = responseText;
-    let appointment = null;
-    let order = null;
-    let shouldSaveAiMessage = true;
-
-    // Check for appointment
-    if (responseText.includes('[AGENDAR|')) {
-      const match = responseText.match(/\[AGENDAR\|(.*?)\|(.*?)\|(.*?)\]/);
-      if (match) {
-        const [, serviceName, dateTime, notes] = match;
-        
-        // Create appointment with pending_approval status
-        const { data: newAppointment, error: appointmentError } = await supabase
-          .from('agent_appointments')
-          .insert({
-            agent_id: agentId,
-            customer_id: customerId,
-            conversation_id: conversationId,
-            service_name: serviceName,
-            scheduled_date: dateTime,
-            customer_notes: notes,
-            status: 'pending_approval'
-          })
-          .select()
-          .single();
-
-        if (appointmentError || !newAppointment) {
-          console.error('Error creating appointment:', appointmentError);
-          throw new Error('Erro ao criar agendamento');
-        }
-
-        appointment = newAppointment;
-        
-        // Create pending confirmation message
-        const formattedDate = new Date(dateTime).toLocaleString('pt-BR');
-        const pendingMsg = `\n\n⏳ *Dados enviados, esperando resposta...*\n\n📋 *Serviço:* ${serviceName}\n📅 *Data/Hora:* ${formattedDate}\n👤 *Nome:* ${customerSafe.name}\n📧 *Email:* ${customerSafe.email}\n${customerSafe.phone ? `📱 *Telefone:* ${customerSafe.phone}` : ''}\n${notes ? `📝 *Observações:* ${notes}` : ''}\n\n*Aguarde a confirmação do agendamento.*`;
-        
-        // Save pending message
-        await supabase.from('agent_messages').insert({
-          conversation_id: conversationId,
-          role: 'assistant',
-          content: pendingMsg,
-          sender_name: 'Sistema'
-        });
-
-        // Create notification for agent owner
-        await supabase.from('agent_notifications').insert({
-          agent_id: agentId,
-          notification_type: 'new_appointment',
-          title: 'Novo Agendamento',
-          message: `${customerSafe.name} solicitou agendamento de ${serviceName}`,
-          reference_id: newAppointment.id,
-          is_read: false
-        });
-        
-        finalResponse = responseText.replace(/\[AGENDAR\|.*?\]/, pendingMsg);
-        shouldSaveAiMessage = false; // Pending message already saved
-      }
-    }
-
-    // Check for order
-    if (responseText.includes('[PEDIDO|')) {
-      const match = responseText.match(/\[PEDIDO\|(.*?)\|(.*?)\|(.*?)\|(.*?)\]/);
-      if (match) {
-        const [, itemsJson, address, notes, total] = match;
-        
-        // Generate order number
-        const orderNumber = `ORD-${Date.now()}`;
-        
-        // Parse items
-        const items = JSON.parse(itemsJson);
-        
-        // Create order with pending_approval status
-        const { data: newOrder, error: orderError } = await supabase
-          .from('agent_orders')
-          .insert({
-            agent_id: agentId,
-            customer_id: customerId,
-            conversation_id: conversationId,
-            order_number: orderNumber,
-            items: items,
-            delivery_address: address || null,
-            customer_notes: notes || null,
-            total_amount: parseFloat(total),
-            status: 'pending'
-          })
-          .select()
-          .single();
-
-        if (orderError || !newOrder) {
-          console.error('Error creating order:', orderError);
-          throw new Error('Erro ao criar pedido');
-        }
-
-        order = newOrder;
-        
-        // Create pending message with order details
-        const itemsList = items.map((item: any) => 
-          `  • ${item.name} - Qtd: ${item.quantity} - R$ ${item.price.toFixed(2)}`
-        ).join('\n');
-        
-        const pendingMsg = `\n\n⏳ *Dados enviados, esperando resposta...*\n\n🛒 *Número do Pedido:* ${orderNumber}\n👤 *Nome:* ${customerSafe.name}\n📧 *Email:* ${customerSafe.email}\n${customerSafe.phone ? `📱 *Telefone:* ${customerSafe.phone}` : ''}\n${address ? `📍 *Endereço:* ${address}` : ''}\n\n*Itens do Pedido:*\n${itemsList}\n\n💰 *Total:* R$ ${parseFloat(total).toFixed(2)}\n${notes ? `\n📝 *Observações:* ${notes}` : ''}\n\n*Aguarde a confirmação do pedido.*`;
-        
-        // Save pending message
-        await supabase.from('agent_messages').insert({
-          conversation_id: conversationId,
-          role: 'assistant',
-          content: pendingMsg,
-          sender_name: 'Sistema'
-        });
-
-        // Create notification for agent owner
-        await supabase.from('agent_notifications').insert({
-          agent_id: agentId,
-          notification_type: 'new_order',
-          title: 'Novo Pedido',
-          message: `${customerSafe.name} fez um pedido de R$ ${parseFloat(total).toFixed(2)}`,
-          reference_id: newOrder.id,
-          is_read: false
-        });
-        
-        finalResponse = responseText.replace(/\[PEDIDO\|.*?\]/, pendingMsg);
-        shouldSaveAiMessage = false; // Pending message already saved
-      }
-    }
-
-    // Save AI response to database
-    if (shouldSaveAiMessage && finalResponse.trim()) {
+    // Save AI response to database directly (no more automatic processing)
+    if (responseText.trim()) {
       await supabase.from('agent_messages').insert({
         conversation_id: conversationId,
         role: 'agent',
-        content: finalResponse.trim(),
+        content: responseText.trim(),
         sender_name: agent.name
       });
     }
 
     return new Response(
       JSON.stringify({
-        response: finalResponse.trim(),
-        appointment,
-        order
+        response: responseText.trim()
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

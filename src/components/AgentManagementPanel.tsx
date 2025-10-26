@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, ShoppingBag, MessageSquare, Users } from "lucide-react";
+import { Calendar, ShoppingBag, MessageSquare, Users, Package, Wrench } from "lucide-react";
 import AgentAppointmentsPanel from "./AgentAppointmentsPanel";
 import AgentOrdersPanel from "./AgentOrdersPanel";
 import AgentCustomersPanel from "./AgentCustomersPanel";
 import AgentConversationsPanel from "./AgentConversationsPanel";
+import AgentProductsPanel from "./AgentProductsPanel";
+import AgentServicesPanel from "./AgentServicesPanel";
 
 interface AgentManagementPanelProps {
   agentId: string;
@@ -24,7 +26,15 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 gap-2">
+        <TabsList className="grid w-full grid-cols-6 gap-2">
+          <TabsTrigger value="services">
+            <Wrench className="w-4 h-4 mr-2" />
+            Serviços
+          </TabsTrigger>
+          <TabsTrigger value="products">
+            <Package className="w-4 h-4 mr-2" />
+            Produtos
+          </TabsTrigger>
           <TabsTrigger value="appointments">
             <Calendar className="w-4 h-4 mr-2" />
             Agendamentos
@@ -42,6 +52,14 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
             Conversas
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="services">
+          <AgentServicesPanel agentId={agentId} />
+        </TabsContent>
+
+        <TabsContent value="products">
+          <AgentProductsPanel agentId={agentId} />
+        </TabsContent>
 
         <TabsContent value="appointments">
           <AgentAppointmentsPanel agentId={agentId} />

@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Send, LogOut, Calendar, ShoppingBag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import AgentAppointmentDialog from "@/components/AgentAppointmentDialog";
+import AgentOrderDialog from "@/components/AgentOrderDialog";
 
 interface Message {
   id: string;
@@ -29,6 +31,8 @@ export default function AgentCustomerChat() {
   const [agentInfo, setAgentInfo] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const sentMessagesRef = useRef<Set<string>>(new Set());
+  const [showAppointmentDialog, setShowAppointmentDialog] = useState(false);
+  const [showOrderDialog, setShowOrderDialog] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -305,7 +309,25 @@ export default function AgentCustomerChat() {
             </div>
           </ScrollArea>
 
-          <div className="p-4 border-t">
+          <div className="p-4 border-t space-y-2">
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowAppointmentDialog(true)}
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                Agendar
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowOrderDialog(true)}
+              >
+                <ShoppingBag className="w-4 h-4 mr-2" />
+                Fazer Pedido
+              </Button>
+            </div>
             <div className="flex gap-2">
               <Input
                 value={input}
@@ -320,6 +342,37 @@ export default function AgentCustomerChat() {
             </div>
           </div>
         </Card>
+
+        {customer && conversationId && (
+          <>
+            <AgentAppointmentDialog
+              open={showAppointmentDialog}
+              onOpenChange={setShowAppointmentDialog}
+              agentId={agentId!}
+              customerId={customer.id}
+              conversationId={conversationId}
+              onSuccess={() => {
+                toast({
+                  title: "Agendamento solicitado!",
+                  description: "Aguarde a confirmação",
+                });
+              }}
+            />
+            <AgentOrderDialog
+              open={showOrderDialog}
+              onOpenChange={setShowOrderDialog}
+              agentId={agentId!}
+              customerId={customer.id}
+              conversationId={conversationId}
+              onSuccess={() => {
+                toast({
+                  title: "Pedido realizado!",
+                  description: "Aguarde a confirmação",
+                });
+              }}
+            />
+          </>
+        )}
       </div>
     </div>
   );

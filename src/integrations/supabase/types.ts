@@ -307,6 +307,7 @@ export type Database = {
           response_type: string | null
           scheduled_date: string
           service_description: string | null
+          service_id: string | null
           service_name: string
           status: string
           updated_at: string
@@ -322,6 +323,7 @@ export type Database = {
           response_type?: string | null
           scheduled_date: string
           service_description?: string | null
+          service_id?: string | null
           service_name: string
           status?: string
           updated_at?: string
@@ -337,6 +339,7 @@ export type Database = {
           response_type?: string | null
           scheduled_date?: string
           service_description?: string | null
+          service_id?: string | null
           service_name?: string
           status?: string
           updated_at?: string
@@ -361,6 +364,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "agent_customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_appointments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "agent_services"
             referencedColumns: ["id"]
           },
         ]
@@ -886,6 +896,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "agent_schedule_blocks_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_services: {
+        Row: {
+          agent_id: string
+          created_at: string
+          description: string | null
+          duration_minutes: number
+          id: string
+          is_active: boolean
+          name: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          price?: number
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_services_agent_id_fkey"
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "ai_agents"
