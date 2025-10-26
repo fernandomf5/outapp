@@ -20,29 +20,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Auto logout após 5 minutos de inatividade
+  // Auto logout após 30 minutos de inatividade
   useEffect(() => {
     if (!user) return;
 
     let inactivityTimer: NodeJS.Timeout;
+    let debounceTimer: NodeJS.Timeout;
 
     const resetTimer = () => {
-      clearTimeout(inactivityTimer);
-      inactivityTimer = setTimeout(async () => {
-        console.log('Auto logout por inatividade');
-        await supabase.auth.signOut();
-      }, 5 * 60 * 1000); // 5 minutos
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(async () => {
+          console.log('Auto logout por inatividade');
+          await supabase.auth.signOut();
+        }, 30 * 60 * 1000); // 30 minutos
+      }, 100); // Debounce de 100ms
     };
 
-    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'mousemove'];
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'mousemove', 'click', 'input'];
     events.forEach(event => {
-      document.addEventListener(event, resetTimer);
+      document.addEventListener(event, resetTimer, { passive: true });
     });
 
     resetTimer();
 
     return () => {
       clearTimeout(inactivityTimer);
+      clearTimeout(debounceTimer);
       events.forEach(event => {
         document.removeEventListener(event, resetTimer);
       });
