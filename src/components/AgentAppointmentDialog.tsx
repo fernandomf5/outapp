@@ -232,6 +232,16 @@ export default function AgentAppointmentDialog({
         throw error;
       }
 
+      // Enviar mensagem ao chat quando o agendamento é criado
+      if (conversationId) {
+        await supabase.from('agent_messages').insert({
+          conversation_id: conversationId,
+          role: 'customer',
+          content: `📅 *Novo Agendamento Solicitado*\n\n📋 *Serviço:* ${selectedService.name}\n💰 *Preço:* R$ ${selectedService.price}\n⏱️ *Duração:* ${selectedService.duration_minutes} minutos\n📅 *Data/Hora:* ${scheduledDate.toLocaleString('pt-BR')}${notes ? `\n\n📝 *Observações:* ${notes}` : ''}\n\n⏳ Aguardando confirmação...`,
+          sender_name: 'Sistema'
+        });
+      }
+
       // Criar notificação
       await supabase.from('agent_notifications').insert({
         agent_id: agentId,
