@@ -57,10 +57,12 @@ export default function AgentAppointmentDialog({
   const [loading, setLoading] = useState(false);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [bookedTimes, setBookedTimes] = useState<string[]>([]);
+  const [blockedDates, setBlockedDates] = useState<Date[]>([]);
 
   useEffect(() => {
     if (open) {
       loadServices();
+      loadBlockedDates();
     }
   }, [open, agentId]);
 
@@ -93,6 +95,25 @@ export default function AgentAppointmentDialog({
           variant: "destructive",
         });
       }
+    }
+  };
+
+  const loadBlockedDates = async () => {
+    const { data } = await supabase
+      .from('agent_schedule_blocks')
+      .select('start_date, end_date')
+      .eq('agent_id', agentId);
+
+    if (data) {
+      const blocked: Date[] = [];
+      data.forEach(block => {
+        const start = new Date(block.start_date);
+        const end = new Date(block.end_date);
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+          blocked.push(new Date(d));
+        }
+      });
+      setBlockedDates(blocked);
     }
   };
 
@@ -264,7 +285,15 @@ export default function AgentAppointmentDialog({
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
-                  disabled={(date) => date < new Date() || date < new Date(new Date().setHours(0, 0, 0, 0))}
+                  disabled={(date) => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    if (date < today) return true;
+                    
+                    return blockedDates.some(blocked => 
+                      blocked.toDateString() === date.toDateString()
+                    );
+                  }}
                   locale={ptBR}
                   className="rounded-md border"
                 />
