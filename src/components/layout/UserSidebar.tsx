@@ -175,7 +175,7 @@ export function UserSidebar() {
                   >
                     <item.icon className="h-4 w-4" />
                     {!collapsed && (
-                      <div className="flex items-center gap-2 flex-1">
+                      <div className="flex flex-col gap-0.5 flex-1">
                         <span>{item.title}</span>
                         {item.inDevelopment && (
                           <span className="text-[9px] text-red-500">em desenvolvimento</span>
@@ -255,7 +255,7 @@ export function UserSidebar() {
                   >
                     <item.icon className="h-4 w-4" />
                     {!collapsed && (
-                      <div className="flex items-center gap-2 flex-1">
+                      <div className="flex flex-col gap-0.5 flex-1">
                         <span>{item.title}</span>
                         {item.inDevelopment && (
                           <span className="text-[9px] text-red-500">em desenvolvimento</span>
@@ -302,7 +302,7 @@ export function UserSidebar() {
                     >
                       <item.icon className="h-4 w-4" />
                       {!collapsed && (
-                        <div className="flex items-center gap-2 flex-1">
+                        <div className="flex flex-col gap-0.5 flex-1">
                           <span>{item.title}</span>
                           {item.inDevelopment && (
                             <span className="text-[9px] text-red-500">em desenvolvimento</span>
