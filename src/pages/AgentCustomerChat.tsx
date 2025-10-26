@@ -6,9 +6,12 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp } from "lucide-react";
+import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import AgentAppointmentDialog from "@/components/AgentAppointmentDialog";
 import AgentOrderDialog from "@/components/AgentOrderDialog";
 
@@ -40,6 +43,12 @@ export default function AgentCustomerChat() {
   const [orders, setOrders] = useState<any[]>([]);
   const [showAppointments, setShowAppointments] = useState(false);
   const [showOrders, setShowOrders] = useState(false);
+  const [cancelDialog, setCancelDialog] = useState<{open: boolean, type: 'appointment' | 'order', id: string}>({
+    open: false,
+    type: 'appointment',
+    id: ''
+  });
+  const [cancelReason, setCancelReason] = useState("");
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -341,6 +350,106 @@ export default function AgentCustomerChat() {
     navigate(`/agent-auth/${agentId}`);
   };
 
+  const handleCancelAppointment = async () => {
+    if (!cancelReason.trim()) {
+      toast({
+        title: "Erro",
+        description: "Por favor, informe o motivo do cancelamento",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const appointment = appointments.find(a => a.id === cancelDialog.id);
+      
+      // Update appointment status
+      const { error } = await supabase
+        .from('agent_appointments')
+        .update({ 
+          status: 'cancelled',
+          customer_notes: cancelReason.trim()
+        })
+        .eq('id', cancelDialog.id);
+
+      if (error) throw error;
+
+      // Send cancellation message to chat
+      if (conversationId) {
+        await supabase.from('agent_messages').insert({
+          conversation_id: conversationId,
+          role: 'customer',
+          content: `❌ Agendamento Cancelado\n\nServiço: ${appointment.service_name}\nData: ${new Date(appointment.scheduled_date).toLocaleString('pt-BR')}\nMotivo: ${cancelReason.trim()}`,
+          sender_name: customer?.name
+        });
+      }
+
+      toast({
+        title: "Agendamento cancelado",
+        description: "O agente foi notificado sobre o cancelamento",
+      });
+
+      setCancelDialog({ open: false, type: 'appointment', id: '' });
+      setCancelReason('');
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Não foi possível cancelar o agendamento",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!cancelReason.trim()) {
+      toast({
+        title: "Erro",
+        description: "Por favor, informe o motivo do cancelamento",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const order = orders.find(o => o.id === cancelDialog.id);
+      
+      // Update order status
+      const { error } = await supabase
+        .from('agent_orders')
+        .update({ 
+          status: 'cancelled',
+          customer_notes: cancelReason.trim()
+        })
+        .eq('id', cancelDialog.id);
+
+      if (error) throw error;
+
+      // Send cancellation message to chat
+      if (conversationId) {
+        await supabase.from('agent_messages').insert({
+          conversation_id: conversationId,
+          role: 'customer',
+          content: `❌ Pedido Cancelado\n\nPedido: #${order.order_number}\nTotal: R$ ${Number(order.total_amount).toFixed(2)}\nMotivo: ${cancelReason.trim()}`,
+          sender_name: customer?.name
+        });
+      }
+
+      toast({
+        title: "Pedido cancelado",
+        description: "O agente foi notificado sobre o cancelamento",
+      });
+
+      setCancelDialog({ open: false, type: 'order', id: '' });
+      setCancelReason('');
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Não foi possível cancelar o pedido",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen gradient-primary">
       <div className="container mx-auto max-w-4xl h-screen flex flex-col p-4">
@@ -435,7 +544,7 @@ export default function AgentCustomerChat() {
                 <CollapsibleContent className="space-y-2 mt-2">
                   {appointments.map((appointment) => (
                     <Card key={appointment.id} className="p-3">
-                      <div className="flex justify-between items-start">
+                      <div className="flex justify-between items-start gap-2">
                         <div className="flex-1">
                           <p className="font-medium">{appointment.service_name}</p>
                           <p className="text-sm text-muted-foreground">
@@ -447,18 +556,32 @@ export default function AgentCustomerChat() {
                             </p>
                           )}
                         </div>
-                        <Badge 
-                          variant={
-                            appointment.status === 'confirmed' ? 'default' : 
-                            appointment.status === 'rejected' ? 'destructive' : 
-                            'secondary'
-                          }
-                        >
-                          {appointment.status === 'pending' && 'Pendente'}
-                          {appointment.status === 'confirmed' && 'Confirmado'}
-                          {appointment.status === 'rejected' && 'Recusado'}
-                          {appointment.status === 'rescheduled' && 'Reagendado'}
-                        </Badge>
+                        <div className="flex flex-col gap-2 items-end">
+                          <Badge 
+                            variant={
+                              appointment.status === 'confirmed' ? 'default' : 
+                              appointment.status === 'rejected' ? 'destructive' :
+                              appointment.status === 'cancelled' ? 'destructive' :
+                              'secondary'
+                            }
+                          >
+                            {appointment.status === 'pending' && 'Pendente'}
+                            {appointment.status === 'confirmed' && 'Confirmado'}
+                            {appointment.status === 'rejected' && 'Recusado'}
+                            {appointment.status === 'rescheduled' && 'Reagendado'}
+                            {appointment.status === 'cancelled' && 'Cancelado'}
+                          </Badge>
+                          {appointment.status !== 'cancelled' && appointment.status !== 'rejected' && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setCancelDialog({ open: true, type: 'appointment', id: appointment.id })}
+                            >
+                              <X className="w-4 h-4 mr-1" />
+                              Cancelar
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </Card>
                   ))}
@@ -482,7 +605,7 @@ export default function AgentCustomerChat() {
                 <CollapsibleContent className="space-y-2 mt-2">
                   {orders.map((order) => (
                     <Card key={order.id} className="p-3">
-                      <div className="flex justify-between items-start">
+                      <div className="flex justify-between items-start gap-2">
                         <div className="flex-1">
                           <p className="font-medium">Pedido #{order.order_number}</p>
                           <p className="text-sm text-muted-foreground">
@@ -497,21 +620,33 @@ export default function AgentCustomerChat() {
                             </p>
                           )}
                         </div>
-                        <Badge 
-                          variant={
-                            order.status === 'confirmed' ? 'default' : 
-                            order.status === 'delivered' ? 'default' :
-                            order.status === 'cancelled' ? 'destructive' : 
-                            'secondary'
-                          }
-                        >
-                          {order.status === 'pending' && 'Pendente'}
-                          {order.status === 'confirmed' && 'Confirmado'}
-                          {order.status === 'preparing' && 'Preparando'}
-                          {order.status === 'shipped' && 'Enviado'}
-                          {order.status === 'delivered' && 'Entregue'}
-                          {order.status === 'cancelled' && 'Cancelado'}
-                        </Badge>
+                        <div className="flex flex-col gap-2 items-end">
+                          <Badge 
+                            variant={
+                              order.status === 'confirmed' ? 'default' : 
+                              order.status === 'delivered' ? 'default' :
+                              order.status === 'cancelled' ? 'destructive' : 
+                              'secondary'
+                            }
+                          >
+                            {order.status === 'pending' && 'Pendente'}
+                            {order.status === 'confirmed' && 'Confirmado'}
+                            {order.status === 'preparing' && 'Preparando'}
+                            {order.status === 'shipped' && 'Enviado'}
+                            {order.status === 'delivered' && 'Entregue'}
+                            {order.status === 'cancelled' && 'Cancelado'}
+                          </Badge>
+                          {order.status !== 'cancelled' && order.status !== 'delivered' && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setCancelDialog({ open: true, type: 'order', id: order.id })}
+                            >
+                              <X className="w-4 h-4 mr-1" />
+                              Cancelar
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </Card>
                   ))}
@@ -559,6 +694,55 @@ export default function AgentCustomerChat() {
             />
           </>
         )}
+
+        <Dialog open={cancelDialog.open} onOpenChange={(open) => {
+          setCancelDialog({ ...cancelDialog, open });
+          if (!open) setCancelReason('');
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                Cancelar {cancelDialog.type === 'appointment' ? 'Agendamento' : 'Pedido'}
+              </DialogTitle>
+              <DialogDescription>
+                Por favor, informe o motivo do cancelamento. O agente será notificado.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="cancelReason">Motivo do cancelamento</Label>
+                <Textarea
+                  id="cancelReason"
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  placeholder="Descreva o motivo do cancelamento..."
+                  rows={4}
+                  maxLength={500}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  {cancelReason.length}/500 caracteres
+                </p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setCancelDialog({ open: false, type: 'appointment', id: '' });
+                  setCancelReason('');
+                }}
+              >
+                Voltar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={cancelDialog.type === 'appointment' ? handleCancelAppointment : handleCancelOrder}
+              >
+                Confirmar Cancelamento
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
