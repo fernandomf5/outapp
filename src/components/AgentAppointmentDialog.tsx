@@ -155,7 +155,7 @@ export default function AgentAppointmentDialog({
       .eq('agent_id', agentId)
       .gte('scheduled_date', startOfDay.toISOString())
       .lte('scheduled_date', endOfDay.toISOString())
-      .in('status', ['pending_approval', 'confirmed']);
+      .in('status', ['pending', 'pending_approval', 'confirmed']);
 
     const bookedTimesList = (appointments || []).map(apt => 
       format(new Date(apt.scheduled_date), 'HH:mm')
@@ -209,19 +209,23 @@ export default function AgentAppointmentDialog({
       const scheduledDate = new Date(selectedDate);
       scheduledDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
+      const payload: any = {
+        agent_id: agentId,
+        customer_id: customerId,
+        service_id: selectedService.id,
+        service_name: selectedService.name,
+        service_description: selectedService.description,
+        scheduled_date: scheduledDate.toISOString(),
+        customer_notes: notes,
+        status: 'pending',
+      };
+      if (conversationId) {
+        payload.conversation_id = conversationId;
+      }
+
       const { error } = await supabase
         .from('agent_appointments')
-        .insert({
-          agent_id: agentId,
-          customer_id: customerId,
-          conversation_id: conversationId,
-          service_id: selectedService.id,
-          service_name: selectedService.name,
-          service_description: selectedService.description,
-          scheduled_date: scheduledDate.toISOString(),
-          customer_notes: notes,
-          status: 'pending_approval',
-        });
+        .insert(payload);
 
       if (error) {
         console.error('Erro ao criar agendamento:', error);
@@ -319,7 +323,7 @@ export default function AgentAppointmentDialog({
                     );
                   }}
                   locale={ptBR}
-                  className="rounded-md border"
+                  className="p-3 pointer-events-auto rounded-md border"
                 />
               </div>
 
