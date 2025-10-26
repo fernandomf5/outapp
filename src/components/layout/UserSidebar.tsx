@@ -20,7 +20,6 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useUserFeatures } from "@/hooks/useUserFeatures";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Badge } from "@/components/ui/badge";
 
 interface MenuItem {
   title: string;
@@ -175,9 +174,13 @@ export function UserSidebar() {
                     className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
                   >
                     <item.icon className="h-4 w-4" />
-                    {!collapsed && <span>{item.title}</span>}
-                    {!collapsed && item.inDevelopment && (
-                      <Badge variant="outline" className="ml-auto text-xs">Em desenvolvimento</Badge>
+                    {!collapsed && (
+                      <div className="flex flex-col gap-0.5 flex-1">
+                        <span>{item.title}</span>
+                        {item.inDevelopment && (
+                          <span className="text-[10px] text-green-500">em desenvolvimento</span>
+                        )}
+                      </div>
                     )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -251,9 +254,13 @@ export function UserSidebar() {
                     className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
                   >
                     <item.icon className="h-4 w-4" />
-                    {!collapsed && <span>{item.title}</span>}
-                    {!collapsed && item.inDevelopment && (
-                      <Badge variant="outline" className="ml-auto text-xs">Em desenvolvimento</Badge>
+                    {!collapsed && (
+                      <div className="flex flex-col gap-0.5 flex-1">
+                        <span>{item.title}</span>
+                        {item.inDevelopment && (
+                          <span className="text-[10px] text-green-500">em desenvolvimento</span>
+                        )}
+                      </div>
                     )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -294,9 +301,13 @@ export function UserSidebar() {
                       className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
                     >
                       <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                      {!collapsed && item.inDevelopment && (
-                        <Badge variant="outline" className="ml-auto text-xs">Em desenvolvimento</Badge>
+                      {!collapsed && (
+                        <div className="flex flex-col gap-0.5 flex-1">
+                          <span>{item.title}</span>
+                          {item.inDevelopment && (
+                            <span className="text-[10px] text-green-500">em desenvolvimento</span>
+                          )}
+                        </div>
                       )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
