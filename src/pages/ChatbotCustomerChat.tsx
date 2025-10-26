@@ -39,7 +39,7 @@ export default function ChatbotCustomerChat() {
     const parsedCustomer = JSON.parse(customerData);
     setCustomer(parsedCustomer);
 
-    loadChatbotAndConversation(parsedCustomer.id);
+    loadChatbotAndConversation(parsedCustomer.id, parsedCustomer);
   }, [chatbotId]);
 
   useEffect(() => {
@@ -53,7 +53,7 @@ export default function ChatbotCustomerChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const loadChatbotAndConversation = async (customerId: string) => {
+  const loadChatbotAndConversation = async (customerId: string, customerData?: any) => {
     try {
       // Load chatbot info
       const { data: chatbot } = await supabase
@@ -85,9 +85,9 @@ export default function ChatbotCustomerChat() {
           .insert({
             chatbot_id: chatbotId,
             session_id: customerId,
-            visitor_email: customer?.email,
-            visitor_name: customer?.name,
-            visitor_phone: customer?.phone,
+            visitor_email: customerData?.email || null,
+            visitor_name: customerData?.name || null,
+            visitor_phone: customerData?.phone || null,
             status: 'active',
           })
           .select()
@@ -158,13 +158,19 @@ export default function ChatbotCustomerChat() {
         content: userMessage,
       });
 
+      // Update conversation last_message_at
+      await supabase
+        .from('chatbot_conversations')
+        .update({ last_message_at: new Date().toISOString() })
+        .eq('id', conversationId);
+
       // Process with AI
       const { data, error } = await supabase.functions.invoke('process-ai-message', {
         body: {
           chatbotId,
           conversationId,
+          customerId: customer.id,
           message: userMessage,
-          sessionId: conversationId,
         }
       });
 
@@ -176,6 +182,24 @@ export default function ChatbotCustomerChat() {
           conversation_id: conversationId,
           role: 'bot',
           content: data.response,
+        });
+        await supabase
+          .from('chatbot_conversations')
+          .update({ last_message_at: new Date().toISOString() })
+          .eq('id', conversationId);
+      }
+
+      if (data?.appointment) {
+        toast({
+          title: 'Agendamento criado! 📅',
+          description: new Date(data.appointment.date).toLocaleString('pt-BR'),
+        });
+      }
+
+      if (data?.order) {
+        toast({
+          title: 'Pedido criado! 🛍️',
+          description: `Total: R$ ${Number(data.order.total).toFixed(2)}`,
         });
       }
     } catch (error: any) {

@@ -156,6 +156,11 @@ export default function AgentCustomerChat() {
         content: userMessage,
       });
 
+      await supabase
+        .from('agent_conversations')
+        .update({ last_message_at: new Date().toISOString() })
+        .eq('id', conversationId);
+
       // Process with AI
       const { data, error } = await supabase.functions.invoke('process-agent-customer-message', {
         body: {
@@ -174,6 +179,11 @@ export default function AgentCustomerChat() {
         role: 'agent',
         content: data.response,
       });
+
+      await supabase
+        .from('agent_conversations')
+        .update({ last_message_at: new Date().toISOString() })
+        .eq('id', conversationId);
 
       // Show notifications for appointments/orders
       if (data.appointment) {

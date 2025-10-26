@@ -97,7 +97,7 @@ export const MyChatbots = ({ onManage }: MyChatbotsProps = {}) => {
   };
 
   const handleCopyLink = (botId: string) => {
-    const link = `${window.location.origin}/chat/${botId}`;
+    const link = `${window.location.origin}/chatbot-auth/${botId}`;
     navigator.clipboard.writeText(link);
     toast({
       title: "Link copiado! 🔗",
@@ -106,7 +106,7 @@ export const MyChatbots = ({ onManage }: MyChatbotsProps = {}) => {
   };
 
   const handleOpenChat = (botId: string) => {
-    window.open(`/chat/${botId}`, '_blank');
+    window.open(`/chatbot-auth/${botId}`, '_blank');
   };
 
   if (loading) {

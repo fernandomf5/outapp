@@ -103,7 +103,7 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-');
-    const link = `${window.location.origin}/chat/${agentId}/${slug || 'agent'}`;
+    const link = `${window.location.origin}/agent-auth/${agentId}`;
     navigator.clipboard.writeText(link);
     toast({
       title: "Link copiado! 🔗",
@@ -118,7 +118,7 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-');
-    window.open(`/chat/${agentId}/${slug || 'agent'}`, '_blank');
+    window.open(`/agent-auth/${agentId}`, '_blank');
   };
 
   if (loading) {
