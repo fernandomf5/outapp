@@ -479,6 +479,7 @@ const AdminDashboard = () => {
 
   return (
     <>
+      <CustomCursor />
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-gradient-to-br from-background via-background to-primary/5">
         <AdminSidebar />

@@ -252,6 +252,7 @@ const Dashboard = () => {
 
   return (
     <>
+      <CustomCursor />
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-background">
         <UserSidebar />

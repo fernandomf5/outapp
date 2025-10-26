@@ -26,7 +26,6 @@ import AgentCustomerAuth from "./pages/AgentCustomerAuth";
 import AgentCustomerChat from "./pages/AgentCustomerChat";
 import ChatbotCustomerAuth from "./pages/ChatbotCustomerAuth";
 import ChatbotCustomerChat from "./pages/ChatbotCustomerChat";
-import { CustomCursor } from "./components/CustomCursor";
 
 const queryClient = new QueryClient();
 
@@ -35,7 +34,6 @@ const App = () => (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <AuthProvider>
         <TooltipProvider>
-          <CustomCursor />
           <Toaster />
           <Sonner />
           <BrowserRouter>
