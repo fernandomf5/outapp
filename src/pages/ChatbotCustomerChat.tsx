@@ -38,6 +38,22 @@ export default function ChatbotCustomerChat() {
           .eq('id', chatbotId)
           .single();
 
+        // Verificar se tem dados no localStorage
+        const customerData = localStorage.getItem(`chatbot_customer_${chatbotId}`);
+        
+        if (customerData) {
+          try {
+            const parsedCustomer = JSON.parse(customerData);
+            setCustomer(parsedCustomer);
+            loadChatbotAndConversation(parsedCustomer.id, parsedCustomer);
+            return;
+          } catch (error) {
+            console.error('Error parsing customer data:', error);
+            localStorage.removeItem(`chatbot_customer_${chatbotId}`);
+          }
+        }
+
+        // Se não tem dados no localStorage
         if (chatbot?.access_type === 'anonymous') {
           // Acesso anônimo - criar sessão temporária
           const tempCustomer = {
@@ -50,22 +66,8 @@ export default function ChatbotCustomerChat() {
           return;
         }
 
-        // Verificar autenticação normal
-        const customerData = localStorage.getItem(`chatbot_customer_${chatbotId}`);
-        if (!customerData) {
-          navigate(`/chatbot-auth/${chatbotId}`, { replace: true });
-          return;
-        }
-
-        try {
-          const parsedCustomer = JSON.parse(customerData);
-          setCustomer(parsedCustomer);
-          loadChatbotAndConversation(parsedCustomer.id, parsedCustomer);
-        } catch (error) {
-          console.error('Error parsing customer data:', error);
-          localStorage.removeItem(`chatbot_customer_${chatbotId}`);
-          navigate(`/chatbot-auth/${chatbotId}`, { replace: true });
-        }
+        // Redirecionar para autenticação
+        navigate(`/chatbot-auth/${chatbotId}`, { replace: true });
       } catch (error) {
         console.error('Error checking auth:', error);
       }

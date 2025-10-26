@@ -39,6 +39,22 @@ export default function AgentCustomerChat() {
           .eq('id', agentId)
           .single();
 
+        // Verificar se tem dados no localStorage
+        const customerData = localStorage.getItem(`agent_customer_${agentId}`);
+        
+        if (customerData) {
+          try {
+            const parsedCustomer = JSON.parse(customerData);
+            setCustomer(parsedCustomer);
+            loadAgentAndConversation(parsedCustomer.id);
+            return;
+          } catch (error) {
+            console.error('Error parsing customer data:', error);
+            localStorage.removeItem(`agent_customer_${agentId}`);
+          }
+        }
+
+        // Se não tem dados no localStorage
         if (agent?.access_type === 'anonymous') {
           // Acesso anônimo - criar sessão temporária
           const tempCustomer = {
@@ -51,22 +67,8 @@ export default function AgentCustomerChat() {
           return;
         }
 
-        // Verificar autenticação normal
-        const customerData = localStorage.getItem(`agent_customer_${agentId}`);
-        if (!customerData) {
-          navigate(`/agent-auth/${agentId}`, { replace: true });
-          return;
-        }
-
-        try {
-          const parsedCustomer = JSON.parse(customerData);
-          setCustomer(parsedCustomer);
-          loadAgentAndConversation(parsedCustomer.id);
-        } catch (error) {
-          console.error('Error parsing customer data:', error);
-          localStorage.removeItem(`agent_customer_${agentId}`);
-          navigate(`/agent-auth/${agentId}`, { replace: true });
-        }
+        // Redirecionar para autenticação
+        navigate(`/agent-auth/${agentId}`, { replace: true });
       } catch (error) {
         console.error('Error checking auth:', error);
       }
