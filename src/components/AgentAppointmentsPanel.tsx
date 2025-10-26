@@ -47,7 +47,8 @@ export default function AgentAppointmentsPanel({ agentId }: { agentId: string })
 
   useEffect(() => {
     loadAppointments();
-    setupRealtimeSubscription();
+    const cleanup = setupRealtimeSubscription();
+    return cleanup;
   }, [agentId]);
 
   const loadAppointments = async () => {

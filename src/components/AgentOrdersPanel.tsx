@@ -59,7 +59,8 @@ export default function AgentOrdersPanel({ agentId }: { agentId: string }) {
 
   useEffect(() => {
     loadOrders();
-    setupRealtimeSubscription();
+    const cleanup = setupRealtimeSubscription();
+    return cleanup;
   }, [agentId]);
 
   const loadOrders = async () => {
