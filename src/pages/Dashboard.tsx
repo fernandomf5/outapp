@@ -832,15 +832,7 @@ const Dashboard = () => {
 
 
           <TabsContent value="chatbots">
-            <Card className="p-6">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold mb-2">Meus Chatbots</h2>
-                <p className="text-muted-foreground">
-                  Gerencie suas conversas com clientes
-                </p>
-              </div>
-              <ChatbotConversations />
-            </Card>
+            <MyChatbots />
           </TabsContent>
 
           <TabsContent value="ai-agents">
