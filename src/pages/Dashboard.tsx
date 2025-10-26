@@ -279,11 +279,19 @@ const Dashboard = () => {
                 <TicketNotificationBell />
                 <LanguageSelector />
                 <ThemeToggle />
-                  <Button asChild variant="outline" className="flex-1 sm:flex-none" size="sm">
-                    <Link to="/settings">
-                      <Settings className="w-4 h-4 sm:mr-2" />
-                      <span className="hidden sm:inline">{t('settings')}</span>
-                    </Link>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      // Garante que o cursor volte ao normal antes de navegar
+                      document.body.classList.remove('custom-cursor-active');
+                      document.querySelectorAll('.custom-cursor, .custom-cursor-trail, .cursor-ripple').forEach(el => el.remove());
+                      navigate("/settings");
+                    }} 
+                    className="flex-1 sm:flex-none" 
+                    size="sm"
+                  >
+                    <Settings className="w-4 h-4 sm:mr-2" />
+                    <span className="hidden sm:inline">{t('settings')}</span>
                   </Button>
                 <Button
                   onClick={handleLogout}
