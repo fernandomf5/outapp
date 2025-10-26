@@ -58,7 +58,7 @@ export default function AgentCustomerChat() {
         if (agent?.access_type === 'anonymous') {
           // Acesso anônimo - criar sessão temporária
           const tempCustomer = {
-            id: `anon_${Date.now()}`,
+            id: crypto.randomUUID(),
             name: 'Visitante',
             email: `anon_${Date.now()}@temp.com`,
           };
@@ -96,9 +96,11 @@ export default function AgentCustomerChat() {
         .select('*')
         .eq('id', agentId)
         .maybeSingle();
+      console.log('[AgentCustomerChat] Agent query', { agentId, agentError, hasAgent: !!agent });
 
       if (agentError) throw agentError;
       if (!agent) {
+        console.warn('[AgentCustomerChat] Agent not found or not public/active', { agentId });
         toast({
           title: "Agente indisponível",
           description: "Este agente não existe ou está inativo.",
@@ -111,12 +113,16 @@ export default function AgentCustomerChat() {
       setAgentInfo(agent);
 
       // Load all conversations for this customer
-      const { data: conversations } = await supabase
+      const { data: conversations, error: convError } = await supabase
         .from('agent_conversations')
         .select('*')
         .eq('agent_id', agentId)
         .eq('customer_id', customerId)
         .order('last_message_at', { ascending: false });
+      if (convError) {
+        console.error('[AgentCustomerChat] Conversations query error', convError);
+        throw convError;
+      }
 
       // Get active conversation or create new one
       let activeConv = conversations?.find(c => c.status === 'active');

@@ -57,7 +57,7 @@ export default function ChatbotCustomerChat() {
         if (chatbot?.access_type === 'anonymous') {
           // Acesso anônimo - criar sessão temporária
           const tempCustomer = {
-            id: `anon_${Date.now()}`,
+            id: crypto.randomUUID(),
             name: 'Visitante',
             email: `anon_${Date.now()}@temp.com`,
           };
