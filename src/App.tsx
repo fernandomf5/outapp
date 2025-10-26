@@ -36,9 +36,11 @@ const CursorGuard = () => {
     const isDashboard = location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin");
 
     const sync = () => {
-      const hasCursor = !!document.querySelector('.custom-cursor');
-      if (!isDashboard || !hasCursor) {
+      const cursorEls = document.querySelectorAll('.custom-cursor, .custom-cursor-trail, .cursor-ripple');
+      if (!isDashboard) {
         document.body.classList.remove("custom-cursor-active");
+        // Remove any orphaned custom cursor elements if present
+        if (cursorEls.length) cursorEls.forEach(el => el.remove());
       }
     };
 
