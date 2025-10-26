@@ -22,6 +22,7 @@ interface Order {
   delivery_address: string;
   customer_notes: string;
   created_at: string;
+  conversation_id: string;
   agent_customers: {
     name: string;
     email: string;
@@ -88,6 +89,9 @@ export default function AgentOrdersPanel({ agentId }: { agentId: string }) {
   };
 
   const updateStatus = async (orderId: string, newStatus: string) => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
     const { error } = await supabase
       .from('agent_orders')
       .update({ status: newStatus })
@@ -99,13 +103,32 @@ export default function AgentOrdersPanel({ agentId }: { agentId: string }) {
         description: error.message,
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Status atualizado!",
-        description: "Pedido atualizado com sucesso.",
-      });
-      loadOrders();
+      return;
     }
+
+    // Enviar mensagem ao chat quando o status é atualizado
+    const statusMessages: Record<string, string> = {
+      confirmed: `✅ *Pedido Confirmado!*\n\n📦 *Pedido:* ${order.order_number}\n💰 *Valor:* R$ ${order.total_amount.toFixed(2)}\n\nSeu pedido foi confirmado e está sendo preparado!`,
+      preparing: `👨‍🍳 *Pedido em Preparo*\n\n📦 *Pedido:* ${order.order_number}\n\nSeu pedido está sendo preparado com cuidado!`,
+      ready: `✨ *Pedido Pronto!*\n\n📦 *Pedido:* ${order.order_number}\n\nSeu pedido está pronto para entrega/retirada!`,
+      delivered: `🎉 *Pedido Entregue!*\n\n📦 *Pedido:* ${order.order_number}\n\nObrigado pela preferência!`,
+      cancelled: `❌ *Pedido Cancelado*\n\n📦 *Pedido:* ${order.order_number}\n💰 *Valor:* R$ ${order.total_amount.toFixed(2)}\n\nSeu pedido foi cancelado. Entre em contato para mais informações.`,
+    };
+
+    if (statusMessages[newStatus] && order.conversation_id) {
+      await supabase.from('agent_messages').insert({
+        conversation_id: order.conversation_id,
+        role: 'assistant',
+        content: statusMessages[newStatus],
+        sender_name: 'Sistema'
+      });
+    }
+
+    toast({
+      title: "Status atualizado!",
+      description: "Pedido atualizado e cliente notificado.",
+    });
+    loadOrders();
   };
 
   const getStatusColor = (status: string) => {

@@ -169,6 +169,18 @@ export default function AgentOrderDialog({
 
       if (error) throw error;
 
+      // Enviar mensagem ao chat quando o pedido é criado
+      const itemsList = items.map((item: any) => 
+        `• ${item.quantity}x ${item.name} - R$ ${item.price.toFixed(2)}`
+      ).join('\n');
+
+      await supabase.from('agent_messages').insert({
+        conversation_id: conversationId,
+        role: 'customer',
+        content: `🛍️ *Novo Pedido Realizado*\n\n📦 *Pedido:* ${orderNumber}\n\n*Itens:*\n${itemsList}\n\n💰 *Total:* R$ ${calculateTotal().toFixed(2)}${deliveryAddress ? `\n📍 *Entrega:* ${deliveryAddress}` : ''}${notes ? `\n\n📝 *Observações:* ${notes}` : ''}\n\n⏳ Aguardando confirmação...`,
+        sender_name: 'Sistema'
+      });
+
       // Criar notificação
       await supabase.from('agent_notifications').insert({
         agent_id: agentId,
