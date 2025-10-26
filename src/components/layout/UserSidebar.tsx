@@ -29,6 +29,7 @@ interface MenuItem {
   feature?: string;
   badge?: number;
   inDevelopment?: boolean;
+  superscript?: string;
 }
 
 export function UserSidebar() {
@@ -150,7 +151,7 @@ export function UserSidebar() {
     { title: "Espionar Anúncios", icon: Target, path: "/dashboard", tab: "espionar", inDevelopment: true },
     { title: "Criador de Sites", icon: Globe, path: "/dashboard", tab: "criador-sites", inDevelopment: true },
     { title: "Criador de Quizz", icon: HelpCircle, path: "/dashboard", tab: "criador-quizz", inDevelopment: true },
-    { title: "Criador de produto", icon: Package, path: "/dashboard", tab: "produto-digital", inDevelopment: true },
+    { title: "Criador de Produtos", icon: Package, path: "/dashboard", tab: "produto-digital", inDevelopment: true, superscript: "digital" },
     { title: "Gerador de Prompt", icon: Lightbulb, path: "/dashboard", tab: "gerador-prompt", inDevelopment: true },
   ];
 
@@ -303,7 +304,12 @@ export function UserSidebar() {
                       <item.icon className="h-4 w-4" />
                       {!collapsed && (
                         <div className="flex flex-col gap-0.5 flex-1">
-                          <span>{item.title}</span>
+                          <div className="flex items-baseline gap-1">
+                            <span>{item.title}</span>
+                            {item.superscript && (
+                              <span className="text-[8px] align-super">{item.superscript}</span>
+                            )}
+                          </div>
                           {item.inDevelopment && (
                             <span className="text-[9px] text-red-500">em desenvolvimento</span>
                           )}
