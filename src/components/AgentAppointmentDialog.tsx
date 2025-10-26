@@ -165,10 +165,22 @@ export default function AgentAppointmentDialog({
     const [startHour, startMinute] = schedule.start_time.split(':').map(Number);
     const [endHour, endMinute] = schedule.end_time.split(':').map(Number);
     
+    const now = new Date();
+    const isToday = selectedDate.toDateString() === now.toDateString();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    
     for (let h = startHour; h <= endHour; h++) {
       for (let m = 0; m < 60; m += 30) {
         if (h === endHour && m > endMinute) break;
         if (h === startHour && m < startMinute) continue;
+        
+        // Se for hoje, pular horários que já passaram
+        if (isToday) {
+          if (h < currentHour || (h === currentHour && m <= currentMinute)) {
+            continue;
+          }
+        }
         
         const timeStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
         times.push(timeStr);
@@ -194,21 +206,19 @@ export default function AgentAppointmentDialog({
       const scheduledDate = new Date(selectedDate);
       scheduledDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('agent_appointments')
         .insert({
           agent_id: agentId,
           customer_id: customerId,
-          conversation_id: conversationId || null,
+          conversation_id: conversationId,
           service_id: selectedService.id,
           service_name: selectedService.name,
-          service_description: selectedService.description || null,
+          service_description: selectedService.description,
           scheduled_date: scheduledDate.toISOString(),
-          customer_notes: notes || null,
+          customer_notes: notes,
           status: 'pending_approval',
-        })
-        .select()
-        .single();
+        });
 
       if (error) {
         console.error('Erro ao criar agendamento:', error);
