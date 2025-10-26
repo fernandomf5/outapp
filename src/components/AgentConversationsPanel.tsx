@@ -6,9 +6,11 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, Search, User, Send } from "lucide-react";
+import { MessageSquare, Search, User, Send, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface Conversation {
   id: string;
@@ -29,6 +31,9 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   const [searchTerm, setSearchTerm] = useState("");
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -76,6 +81,10 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     } else {
       setConversations(data || []);
       setFilteredConversations(data || []);
+      
+      // Contar conversas não lidas (ativas)
+      const unread = data?.filter((conv: any) => conv.status === 'active').length || 0;
+      setUnreadCount(unread);
     }
     setLoading(false);
   };
@@ -170,16 +179,64 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     }
   };
 
+  const handleDeleteConversation = async () => {
+    if (!conversationToDelete) return;
+
+    try {
+      // Deletar mensagens primeiro
+      await supabase
+        .from('agent_messages')
+        .delete()
+        .eq('conversation_id', conversationToDelete);
+
+      // Deletar conversa
+      const { error } = await supabase
+        .from('agent_conversations')
+        .delete()
+        .eq('id', conversationToDelete);
+
+      if (error) throw error;
+
+      if (selectedConversation?.id === conversationToDelete) {
+        setSelectedConversation(null);
+      }
+      
+      loadConversations();
+      setDeleteDialogOpen(false);
+      setConversationToDelete(null);
+      
+      toast({
+        title: "Conversa excluída",
+        description: "A conversa foi excluída com sucesso.",
+      });
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      toast({
+        title: "Erro ao excluir conversa",
+        description: "Não foi possível excluir a conversa.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return <div>Carregando conversas...</div>;
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-2xl font-bold">Conversas</h3>
-        <Badge variant="outline">{conversations.length} total</Badge>
-      </div>
+    <>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-2xl font-bold">Conversas</h3>
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <Badge variant="destructive" className="rounded-full">
+                {unreadCount} novas
+              </Badge>
+            )}
+            <Badge variant="outline">{conversations.length} total</Badge>
+          </div>
+        </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         {/* Lista de conversas */}
@@ -213,9 +270,23 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                           <div className="text-xs text-muted-foreground">{conv.agent_customers.email}</div>
                         </div>
                       </div>
-                      <Badge variant="outline" className="text-xs">
-                        {conv.status}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={conv.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                          {conv.status === 'active' ? 'Ativa' : conv.status === 'closed' ? 'Fechada' : conv.status}
+                        </Badge>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 w-6 p-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConversationToDelete(conv.id);
+                            setDeleteDialogOpen(true);
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
                     <div className="text-xs text-muted-foreground mt-2">
                       {format(new Date(conv.last_message_at), "dd/MM HH:mm", { locale: ptBR })}
@@ -237,22 +308,16 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                     <CardTitle className="text-lg">{selectedConversation.agent_customers.name}</CardTitle>
                     <p className="text-sm text-muted-foreground">{selectedConversation.agent_customers.email}</p>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant={selectedConversation.status === 'active' ? 'default' : 'outline'}
-                      onClick={() => updateStatus('active')}
-                    >
-                      Ativa
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={selectedConversation.status === 'closed' ? 'default' : 'outline'}
-                      onClick={() => updateStatus('closed')}
-                    >
-                      Fechada
-                    </Button>
-                  </div>
+                  <Select value={selectedConversation.status} onValueChange={updateStatus}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Ativa</SelectItem>
+                      <SelectItem value="closed">Fechada</SelectItem>
+                      <SelectItem value="resolved">Resolvida</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardHeader>
 
@@ -305,5 +370,23 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         </div>
       </div>
     </div>
+
+    <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Excluir conversa?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Esta ação não pode ser desfeita. Todas as mensagens desta conversa serão excluídas permanentemente.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={handleDeleteConversation} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            Excluir
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </>
   );
 }
