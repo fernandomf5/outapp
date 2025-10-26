@@ -60,6 +60,7 @@ interface LinkBio {
   total_clicks: number;
   gradient_color1: string;
   gradient_color2: string;
+  custom_domain: string;
 }
 
 interface BioLink {
@@ -123,6 +124,7 @@ export function LinkBioCreator() {
   const [buttonSpacing, setButtonSpacing] = useState(12);
   const [gradientColor1, setGradientColor1] = useState("#667eea");
   const [gradientColor2, setGradientColor2] = useState("#764ba2");
+  const [customDomain, setCustomDomain] = useState("");
   
   // New link states
   const [newLinkTitle, setNewLinkTitle] = useState("");
@@ -160,6 +162,7 @@ export function LinkBioCreator() {
       setButtonSpacing(selectedBio.button_spacing || 12);
       setGradientColor1(selectedBio.gradient_color1 || '#667eea');
       setGradientColor2(selectedBio.gradient_color2 || '#764ba2');
+      setCustomDomain(selectedBio.custom_domain || '');
       fetchLinks(selectedBio.id);
     }
   }, [selectedBio]);
@@ -214,6 +217,7 @@ export function LinkBioCreator() {
     setButtonSpacing(12);
     setGradientColor1("#667eea");
     setGradientColor2("#764ba2");
+    setCustomDomain("");
     setLinks([]);
   };
 
@@ -271,6 +275,7 @@ export function LinkBioCreator() {
       button_spacing: buttonSpacing,
       gradient_color1: gradientColor1,
       gradient_color2: gradientColor2,
+      custom_domain: customDomain,
       is_active: true,
     };
 
@@ -657,6 +662,19 @@ export function LinkBioCreator() {
                   placeholder="Conte um pouco sobre você..."
                   rows={4}
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="customDomain">Domínio Personalizado (opcional)</Label>
+                <Input
+                  id="customDomain"
+                  value={customDomain}
+                  onChange={(e) => setCustomDomain(e.target.value)}
+                  placeholder="seudominio.com"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Configure seu domínio próprio para acessar seu bio (ex: seusite.com)
+                </p>
               </div>
 
               <Button onClick={createOrUpdateBio} disabled={loading} className="w-full">
