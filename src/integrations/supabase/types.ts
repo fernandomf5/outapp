@@ -448,6 +448,7 @@ export type Database = {
           created_at: string
           id: string
           role: string
+          sender_name: string | null
         }
         Insert: {
           content: string
@@ -455,6 +456,7 @@ export type Database = {
           created_at?: string
           id?: string
           role: string
+          sender_name?: string | null
         }
         Update: {
           content?: string
@@ -462,6 +464,7 @@ export type Database = {
           created_at?: string
           id?: string
           role?: string
+          sender_name?: string | null
         }
         Relationships: [
           {
@@ -1118,6 +1121,7 @@ export type Database = {
           media_url: string | null
           node_id: string | null
           role: string
+          sender_name: string | null
         }
         Insert: {
           content: string
@@ -1128,6 +1132,7 @@ export type Database = {
           media_url?: string | null
           node_id?: string | null
           role: string
+          sender_name?: string | null
         }
         Update: {
           content?: string
@@ -1138,6 +1143,7 @@ export type Database = {
           media_url?: string | null
           node_id?: string | null
           role?: string
+          sender_name?: string | null
         }
         Relationships: [
           {
