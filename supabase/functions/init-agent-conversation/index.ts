@@ -36,6 +36,44 @@ serve(async (req) => {
       });
     }
 
+    // Ensure customer exists or create anonymous if allowed
+    const { data: existingCustomer, error: customerCheckError } = await supabase
+      .from('agent_customers')
+      .select('id, agent_id')
+      .eq('id', customerId)
+      .eq('agent_id', agentId)
+      .maybeSingle();
+
+    if (customerCheckError) {
+      console.error('Error checking customer:', customerCheckError);
+    }
+
+    if (!existingCustomer) {
+      const access = (agent.access_type || '').toString().toLowerCase();
+      const isRestricted = access === 'restricted' || access === 'private' || access === 'privado' || access === 'acesso_privado';
+      if (isRestricted) {
+        return new Response(JSON.stringify({ error: 'Agente requer autenticação' }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      // Create anonymous/customer placeholder so FK is satisfied
+      const anonName = 'Visitante';
+      const anonEmail = `anon_${Date.now()}@temp.com`;
+      const { error: createCustomerError } = await supabase
+        .from('agent_customers')
+        .insert({
+          id: customerId,
+          agent_id: agentId,
+          name: anonName,
+          email: anonEmail,
+        });
+      if (createCustomerError) {
+        console.error('Error creating anonymous customer:', createCustomerError);
+        throw new Error('Falha ao preparar sessão do cliente');
+      }
+    }
+
     // Find existing conversation
     const { data: conversations, error: convError } = await supabase
       .from('agent_conversations')

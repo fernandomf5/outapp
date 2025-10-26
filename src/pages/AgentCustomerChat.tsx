@@ -63,6 +63,7 @@ export default function AgentCustomerChat() {
             email: `anon_${Date.now()}@temp.com`,
           };
           setCustomer(tempCustomer);
+          localStorage.setItem(`agent_customer_${agentId}`, JSON.stringify(tempCustomer));
           loadAgentAndConversation(tempCustomer.id);
           return;
         }
