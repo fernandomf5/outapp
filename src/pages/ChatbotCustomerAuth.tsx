@@ -12,14 +12,16 @@ export default function ChatbotCustomerAuth() {
   const { chatbotId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [authMode, setAuthMode] = useState<'choice' | 'login' | 'register'>('choice');
+  const [authMode, setAuthMode] = useState<'choice' | 'login' | 'register' | 'anonymous'>('choice');
   const [loading, setLoading] = useState(false);
   const [checkingAccess, setCheckingAccess] = useState(true);
+  const [accessType, setAccessType] = useState<string>('public');
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     password: "",
+    confirmPassword: "",
   });
 
   // Verifica o tipo de acesso do chatbot
@@ -32,10 +34,14 @@ export default function ChatbotCustomerAuth() {
           .eq('id', chatbotId)
           .single();
 
+        setAccessType(chatbot?.access_type || 'public');
+
         if (chatbot?.access_type === 'anonymous') {
-          // Acesso direto - redireciona para o chat sem autenticação
-          navigate(`/chatbot-chat/${chatbotId}`, { replace: true });
-          return;
+          // Acesso direto - mostra apenas campo de nome
+          setAuthMode('anonymous');
+        } else if (chatbot?.access_type === 'restricted') {
+          // Acesso privado - mostra apenas cadastro
+          setAuthMode('register');
         }
 
         // Limpa qualquer autenticação antiga ao montar o componente
@@ -58,10 +64,34 @@ export default function ChatbotCustomerAuth() {
     setLoading(true);
 
     try {
+      // Validação de senha para acesso privado
+      if (accessType === 'restricted' && formData.password !== formData.confirmPassword) {
+        toast({
+          title: "Erro",
+          description: "As senhas não coincidem",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Acesso direto - apenas nome
+      if (authMode === 'anonymous') {
+        const customer = {
+          id: crypto.randomUUID(),
+          name: formData.name,
+          chatbot_id: chatbotId,
+        };
+        localStorage.setItem(`chatbot_customer_${chatbotId}`, JSON.stringify(customer));
+        navigate(`/chatbot-chat/${chatbotId}`);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('chatbot-customer-auth', {
         body: {
           action: authMode === 'login' ? 'login' : 'register',
           chatbotId,
+          accessType,
           ...formData,
         }
       });
@@ -71,14 +101,20 @@ export default function ChatbotCustomerAuth() {
       if (data.customer) {
         localStorage.setItem(`chatbot_customer_${chatbotId}`, JSON.stringify(data.customer));
         
-        toast({
-          title: authMode === 'login' ? "Login realizado!" : "Cadastro realizado!",
-          description: authMode === 'login' 
-            ? "Bem-vindo de volta!" 
-            : "Sua conta foi criada! Por favor, confirme seu email.",
-        });
-
-        navigate(`/chatbot-chat/${chatbotId}`);
+        if (accessType === 'restricted') {
+          toast({
+            title: "Cadastro enviado!",
+            description: "Aguarde a aprovação do administrador para acessar o chat.",
+          });
+        } else {
+          toast({
+            title: authMode === 'login' ? "Login realizado!" : "Cadastro realizado!",
+            description: authMode === 'login' 
+              ? "Bem-vindo de volta!" 
+              : "Bem-vindo!",
+          });
+          navigate(`/chatbot-chat/${chatbotId}`);
+        }
       }
     } catch (error: any) {
       toast({
@@ -104,7 +140,39 @@ export default function ChatbotCustomerAuth() {
     );
   }
 
-  if (authMode === 'choice') {
+  // Acesso direto - apenas nome
+  if (authMode === 'anonymous') {
+    return (
+      <div className="min-h-screen flex items-center justify-center gradient-primary p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Bem-vindo ao Chat</CardTitle>
+            <CardDescription>Digite seu nome para iniciar</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  required
+                  placeholder="Seu nome"
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Entrando...' : 'Entrar no Chat'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Acesso livre - escolha entre login e cadastro
+  if (authMode === 'choice' && accessType === 'public') {
     return (
       <div className="min-h-screen flex items-center justify-center gradient-primary p-4">
         <Card className="w-full max-w-md">
@@ -120,8 +188,8 @@ export default function ChatbotCustomerAuth() {
               onClick={() => setAuthMode('register')}
             >
               <MessageSquare className="w-6 h-6" />
-              <span className="font-semibold">Iniciar Chat</span>
-              <span className="text-xs opacity-80">Novo cadastro com nome, email e telefone</span>
+              <span className="font-semibold">Cadastre-se para Iniciar Chat</span>
+              <span className="text-xs opacity-80">Novo cadastro</span>
             </Button>
 
             <Button 
@@ -143,9 +211,14 @@ export default function ChatbotCustomerAuth() {
     <div className="min-h-screen flex items-center justify-center gradient-primary p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>{authMode === 'login' ? 'Entrar no Chat' : 'Iniciar Novo Chat'}</CardTitle>
+          <CardTitle>
+            {authMode === 'login' ? 'Entrar no Chat' : 
+             accessType === 'restricted' ? 'Solicitar Acesso' : 'Iniciar Novo Chat'}
+          </CardTitle>
           <CardDescription>
-            {authMode === 'login' ? 'Entre com suas credenciais' : 'Preencha seus dados para iniciar'}
+            {authMode === 'login' ? 'Entre com suas credenciais' : 
+             accessType === 'restricted' ? 'Preencha seus dados para solicitar acesso' :
+             'Preencha seus dados para iniciar'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -159,6 +232,7 @@ export default function ChatbotCustomerAuth() {
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     required
+                    placeholder="Seu nome completo"
                   />
                 </div>
                 <div className="space-y-2">
@@ -168,6 +242,8 @@ export default function ChatbotCustomerAuth() {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    required={accessType === 'restricted'}
+                    placeholder="(00) 00000-0000"
                   />
                 </div>
               </>
@@ -181,6 +257,7 @@ export default function ChatbotCustomerAuth() {
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
                 required
+                placeholder="seu@email.com"
               />
             </div>
 
@@ -192,27 +269,50 @@ export default function ChatbotCustomerAuth() {
                 value={formData.password}
                 onChange={(e) => setFormData({...formData, password: e.target.value})}
                 required
+                placeholder="Mínimo 6 caracteres"
+                minLength={6}
               />
             </div>
 
-            {authMode === 'register' && (
-              <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-md text-sm text-blue-900 dark:text-blue-100">
-                ⚠️ Você receberá um email de confirmação. Por favor, verifique sua caixa de entrada.
+            {authMode === 'register' && accessType === 'restricted' && (
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                  required
+                  placeholder="Digite a senha novamente"
+                  minLength={6}
+                />
+              </div>
+            )}
+
+            {authMode === 'register' && accessType === 'restricted' && (
+              <div className="bg-yellow-50 dark:bg-yellow-950 p-3 rounded-md text-sm text-yellow-900 dark:text-yellow-100">
+                ⚠️ Após o cadastro, você precisará aguardar a aprovação do administrador para acessar o chat.
               </div>
             )}
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Processando...' : (authMode === 'login' ? 'Entrar' : 'Cadastrar e Iniciar Chat')}
+              {loading ? 'Processando...' : (
+                authMode === 'login' ? 'Entrar' : 
+                accessType === 'restricted' ? 'Solicitar Acesso' : 
+                'Cadastrar e Iniciar Chat'
+              )}
             </Button>
 
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full"
-              onClick={() => setAuthMode('choice')}
-            >
-              ← Voltar
-            </Button>
+            {accessType === 'public' && (
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full"
+                onClick={() => setAuthMode('choice')}
+              >
+                ← Voltar
+              </Button>
+            )}
           </form>
         </CardContent>
       </Card>

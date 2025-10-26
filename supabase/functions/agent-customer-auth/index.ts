@@ -16,7 +16,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { action, agentId, email, password, name, phone } = await req.json();
+    const { action, agentId, email, password, name, phone, accessType } = await req.json();
 
     if (action === 'register') {
       // Hash password
@@ -55,6 +55,38 @@ serve(async (req) => {
         .single();
 
       if (createError) throw createError;
+
+      // If restricted access, create access request
+      if (accessType === 'restricted') {
+        const { error: requestError } = await supabase
+          .from('agent_access_requests')
+          .insert({
+            agent_id: agentId,
+            customer_id: customer.id,
+            status: 'pending',
+          });
+
+        if (requestError) console.error('Error creating access request:', requestError);
+
+        // Create notification for agent owner
+        const { data: agent } = await supabase
+          .from('ai_agents')
+          .select('user_id, name')
+          .eq('id', agentId)
+          .single();
+
+        if (agent) {
+          await supabase
+            .from('agent_notifications')
+            .insert({
+              agent_id: agentId,
+              notification_type: 'access_request',
+              title: 'Nova Solicitação de Acesso',
+              message: `${customer.name} solicitou acesso ao agente ${agent.name}`,
+              reference_id: customer.id,
+            });
+        }
+      }
 
       return new Response(
         JSON.stringify({ customer }),

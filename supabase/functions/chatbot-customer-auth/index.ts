@@ -16,7 +16,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { action, chatbotId, email, password, name, phone } = await req.json();
+    const { action, chatbotId, email, password, name, phone, accessType } = await req.json();
 
     if (action === 'register') {
       // Hash password
@@ -55,6 +55,37 @@ serve(async (req) => {
         .single();
 
       if (createError) throw createError;
+
+      // If restricted access, create access request
+      if (accessType === 'restricted') {
+        const { error: requestError } = await supabase
+          .from('chatbot_access_requests')
+          .insert({
+            chatbot_id: chatbotId,
+            customer_id: customer.id,
+            status: 'pending',
+          });
+
+        if (requestError) console.error('Error creating access request:', requestError);
+
+        // Create notification for chatbot owner
+        const { data: chatbot } = await supabase
+          .from('chatbots')
+          .select('user_id, name')
+          .eq('id', chatbotId)
+          .single();
+
+        if (chatbot) {
+          await supabase
+            .from('chatbot_notifications')
+            .insert({
+              chatbot_id: chatbotId,
+              type: 'access_request',
+              title: 'Nova Solicitação de Acesso',
+              message: `${customer.name} solicitou acesso ao chatbot ${chatbot.name}`,
+            });
+        }
+      }
 
       return new Response(
         JSON.stringify({ customer }),
