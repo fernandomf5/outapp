@@ -460,7 +460,7 @@ export default function AgentAppointmentsPanel({ agentId }: { agentId: string })
                     </div>
                   )}
 
-                  {appointment.status === 'pending_approval' && (
+                  {(appointment.status === 'pending' || appointment.status === 'pending_approval') && (
                     <div className="flex flex-col gap-2 pt-2">
                       <div className="flex gap-2">
                         <Button 
@@ -469,7 +469,7 @@ export default function AgentAppointmentsPanel({ agentId }: { agentId: string })
                           variant="default"
                         >
                           <CheckCircle className="w-4 h-4 mr-2" />
-                          Aprovar
+                          Aceitar
                         </Button>
                         <Button 
                           onClick={() => rejectAppointment(appointment)}
