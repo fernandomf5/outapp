@@ -456,34 +456,43 @@ export type Database = {
           agent_id: string
           created_at: string
           email: string
+          email_verified: boolean
           id: string
           last_login_at: string | null
           name: string
           password_hash: string
           phone: string | null
           updated_at: string
+          verification_token: string | null
+          verification_token_expires_at: string | null
         }
         Insert: {
           agent_id: string
           created_at?: string
           email: string
+          email_verified?: boolean
           id?: string
           last_login_at?: string | null
           name: string
           password_hash: string
           phone?: string | null
           updated_at?: string
+          verification_token?: string | null
+          verification_token_expires_at?: string | null
         }
         Update: {
           agent_id?: string
           created_at?: string
           email?: string
+          email_verified?: boolean
           id?: string
           last_login_at?: string | null
           name?: string
           password_hash?: string
           phone?: string | null
           updated_at?: string
+          verification_token?: string | null
+          verification_token_expires_at?: string | null
         }
         Relationships: [
           {
@@ -1177,34 +1186,43 @@ export type Database = {
           chatbot_id: string
           created_at: string
           email: string | null
+          email_verified: boolean
           id: string
           last_login_at: string | null
           name: string
           password_hash: string | null
           phone: string | null
           updated_at: string
+          verification_token: string | null
+          verification_token_expires_at: string | null
         }
         Insert: {
           chatbot_id: string
           created_at?: string
           email?: string | null
+          email_verified?: boolean
           id?: string
           last_login_at?: string | null
           name: string
           password_hash?: string | null
           phone?: string | null
           updated_at?: string
+          verification_token?: string | null
+          verification_token_expires_at?: string | null
         }
         Update: {
           chatbot_id?: string
           created_at?: string
           email?: string | null
+          email_verified?: boolean
           id?: string
           last_login_at?: string | null
           name?: string
           password_hash?: string | null
           phone?: string | null
           updated_at?: string
+          verification_token?: string | null
+          verification_token_expires_at?: string | null
         }
         Relationships: [
           {
