@@ -54,6 +54,7 @@ export default function AgentOrderDialog({
   const [cart, setCart] = useState<CartItem[]>([]);
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [notes, setNotes] = useState("");
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [customerName, setCustomerName] = useState("");
 
@@ -167,6 +168,8 @@ export default function AgentOrderDialog({
         price: item.product.price,
       }));
 
+      const notesWithPhone = phone ? `📱 Telefone: ${phone}${notes ? `\n\n${notes}` : ''}` : notes;
+
       const { error } = await supabase
         .from('agent_orders')
         .insert({
@@ -176,7 +179,7 @@ export default function AgentOrderDialog({
           order_number: orderNumber,
           items: items,
           delivery_address: deliveryAddress || null,
-          customer_notes: notes || null,
+          customer_notes: notesWithPhone || null,
           total_amount: calculateTotal(),
           status: 'pending',
         });
@@ -191,7 +194,7 @@ export default function AgentOrderDialog({
       await supabase.from('agent_messages').insert({
         conversation_id: conversationId,
         role: 'customer',
-        content: `🛍️ *Novo Pedido Realizado*\n\n👤 *Cliente:* ${customerName}\n📦 *Pedido:* ${orderNumber}\n\n*Itens:*\n${itemsList}\n\n💰 *Total:* R$ ${calculateTotal().toFixed(2)}${deliveryAddress ? `\n📍 *Entrega:* ${deliveryAddress}` : ''}${notes ? `\n\n📝 *Observações:* ${notes}` : ''}\n\n⏳ Aguardando confirmação...`,
+        content: `🛍️ *Novo Pedido Realizado*\n\n👤 *Cliente:* ${customerName}${phone ? `\n📱 *Telefone:* ${phone}` : ''}\n📦 *Pedido:* ${orderNumber}\n\n*Itens:*\n${itemsList}\n\n💰 *Total:* R$ ${calculateTotal().toFixed(2)}${deliveryAddress ? `\n📍 *Entrega:* ${deliveryAddress}` : ''}${notes ? `\n\n📝 *Observações:* ${notes}` : ''}\n\n⏳ Aguardando confirmação...`,
         sender_name: 'Sistema'
       });
 
@@ -227,6 +230,7 @@ export default function AgentOrderDialog({
     setCart([]);
     setDeliveryAddress("");
     setNotes("");
+    setPhone("");
   };
 
   return (
@@ -358,6 +362,17 @@ export default function AgentOrderDialog({
                       </CardContent>
                     </Card>
                   ))}
+                </div>
+
+                <div>
+                  <Label htmlFor="phone">Telefone para Contato</Label>
+                  <Input
+                    id="phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="(00) 00000-0000"
+                    maxLength={15}
+                  />
                 </div>
 
                 <div>

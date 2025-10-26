@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -54,6 +55,7 @@ export default function AgentAppointmentDialog({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState("");
   const [notes, setNotes] = useState("");
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [bookedTimes, setBookedTimes] = useState<string[]>([]);
@@ -223,6 +225,8 @@ export default function AgentAppointmentDialog({
       const scheduledDate = new Date(selectedDate);
       scheduledDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
+      const notesWithPhone = phone ? `📱 Telefone: ${phone}${notes ? `\n\n${notes}` : ''}` : notes;
+      
       const payload: any = {
         agent_id: agentId,
         customer_id: customerId,
@@ -230,7 +234,7 @@ export default function AgentAppointmentDialog({
         service_name: selectedService.name,
         service_description: selectedService.description,
         scheduled_date: scheduledDate.toISOString(),
-        customer_notes: notes,
+        customer_notes: notesWithPhone,
         status: 'pending',
       };
       if (conversationId) {
@@ -251,7 +255,7 @@ export default function AgentAppointmentDialog({
         await supabase.from('agent_messages').insert({
           conversation_id: conversationId,
           role: 'customer',
-          content: `📅 *Novo Agendamento Solicitado*\n\n👤 *Cliente:* ${customerName}\n📋 *Serviço:* ${selectedService.name}\n💰 *Preço:* R$ ${selectedService.price}\n⏱️ *Duração:* ${selectedService.duration_minutes} minutos\n📅 *Data/Hora:* ${scheduledDate.toLocaleString('pt-BR')}${notes ? `\n\n📝 *Observações:* ${notes}` : ''}\n\n⏳ Aguardando confirmação...`,
+          content: `📅 *Novo Agendamento Solicitado*\n\n👤 *Cliente:* ${customerName}${phone ? `\n📱 *Telefone:* ${phone}` : ''}\n📋 *Serviço:* ${selectedService.name}\n💰 *Preço:* R$ ${selectedService.price}\n⏱️ *Duração:* ${selectedService.duration_minutes} minutos\n📅 *Data/Hora:* ${scheduledDate.toLocaleString('pt-BR')}${notes ? `\n\n📝 *Observações:* ${notes}` : ''}\n\n⏳ Aguardando confirmação...`,
           sender_name: 'Sistema'
         });
       }
@@ -289,6 +293,7 @@ export default function AgentAppointmentDialog({
     setSelectedDate(undefined);
     setSelectedTime("");
     setNotes("");
+    setPhone("");
   };
 
   return (
@@ -400,6 +405,17 @@ export default function AgentAppointmentDialog({
               )}
             </>
           )}
+
+          <div>
+            <Label htmlFor="phone">Telefone para Contato</Label>
+            <Input
+              id="phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="(00) 00000-0000"
+              maxLength={15}
+            />
+          </div>
 
           <div>
             <Label htmlFor="notes">Observações</Label>
