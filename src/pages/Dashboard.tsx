@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText, QrCode, Calendar, ShoppingBag, ArrowLeft } from "lucide-react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -152,16 +152,18 @@ const Dashboard = () => {
   const handleLogout = async () => {
     try {
       await signOut();
-      toast({
-        title: "Logout realizado",
-        description: "Até logo!",
-      });
     } catch (error) {
       // Ignora erros de sessão já expirada
       console.log('Logout error (pode ser ignorado):', error);
     } finally {
-      // Sempre redireciona para auth, mesmo com erro
-      navigate("/auth");
+      // Limpa qualquer resquício do cursor personalizado para evitar travamentos
+      document.body.classList.remove('custom-cursor-active');
+      document.querySelectorAll('.custom-cursor, .custom-cursor-trail, .cursor-ripple').forEach(el => el.remove());
+      toast({
+        title: "Logout realizado",
+        description: "Até logo!",
+      });
+      navigate("/auth", { replace: true });
     }
   };
 
@@ -277,10 +279,12 @@ const Dashboard = () => {
                 <TicketNotificationBell />
                 <LanguageSelector />
                 <ThemeToggle />
-                <Button variant="outline" onClick={() => navigate("/settings")} className="flex-1 sm:flex-none" size="sm">
-                  <Settings className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">{t('settings')}</span>
-                </Button>
+                  <Button asChild variant="outline" className="flex-1 sm:flex-none" size="sm">
+                    <Link to="/settings">
+                      <Settings className="w-4 h-4 sm:mr-2" />
+                      <span className="hidden sm:inline">{t('settings')}</span>
+                    </Link>
+                  </Button>
                 <Button
                   onClick={handleLogout}
                   variant="ghost"
