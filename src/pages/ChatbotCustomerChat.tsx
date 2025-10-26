@@ -32,15 +32,21 @@ export default function ChatbotCustomerChat() {
     // Check authentication
     const customerData = localStorage.getItem(`chatbot_customer_${chatbotId}`);
     if (!customerData) {
-      navigate(`/chatbot-auth/${chatbotId}`);
+      navigate(`/chatbot-auth/${chatbotId}`, { replace: true });
       return;
     }
 
-    const parsedCustomer = JSON.parse(customerData);
-    setCustomer(parsedCustomer);
-
-    loadChatbotAndConversation(parsedCustomer.id, parsedCustomer);
-  }, [chatbotId]);
+    try {
+      const parsedCustomer = JSON.parse(customerData);
+      setCustomer(parsedCustomer);
+      loadChatbotAndConversation(parsedCustomer.id, parsedCustomer);
+    } catch (error) {
+      // Se houver erro ao parsear, limpa o localStorage e redireciona
+      console.error('Error parsing customer data:', error);
+      localStorage.removeItem(`chatbot_customer_${chatbotId}`);
+      navigate(`/chatbot-auth/${chatbotId}`, { replace: true });
+    }
+  }, [chatbotId, navigate]);
 
   useEffect(() => {
     if (conversationId) {

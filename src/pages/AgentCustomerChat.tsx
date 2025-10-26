@@ -33,15 +33,21 @@ export default function AgentCustomerChat() {
     // Check authentication
     const customerData = localStorage.getItem(`agent_customer_${agentId}`);
     if (!customerData) {
-      navigate(`/agent-auth/${agentId}`);
+      navigate(`/agent-auth/${agentId}`, { replace: true });
       return;
     }
 
-    const parsedCustomer = JSON.parse(customerData);
-    setCustomer(parsedCustomer);
-
-    loadAgentAndConversation(parsedCustomer.id);
-  }, [agentId]);
+    try {
+      const parsedCustomer = JSON.parse(customerData);
+      setCustomer(parsedCustomer);
+      loadAgentAndConversation(parsedCustomer.id);
+    } catch (error) {
+      // Se houver erro ao parsear, limpa o localStorage e redireciona
+      console.error('Error parsing customer data:', error);
+      localStorage.removeItem(`agent_customer_${agentId}`);
+      navigate(`/agent-auth/${agentId}`, { replace: true });
+    }
+  }, [agentId, navigate]);
 
   useEffect(() => {
     if (conversationId) {

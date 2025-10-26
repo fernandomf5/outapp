@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,14 @@ export default function ChatbotCustomerAuth() {
     phone: "",
     password: "",
   });
+
+  // Limpa qualquer autenticação antiga ao montar o componente
+  useEffect(() => {
+    const existingAuth = localStorage.getItem(`chatbot_customer_${chatbotId}`);
+    if (existingAuth) {
+      localStorage.removeItem(`chatbot_customer_${chatbotId}`);
+    }
+  }, [chatbotId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
