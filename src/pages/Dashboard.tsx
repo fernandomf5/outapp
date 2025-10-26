@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText, QrCode, Calendar, ShoppingBag } from "lucide-react";
+import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText, QrCode, Calendar, ShoppingBag, ArrowLeft } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -837,10 +837,24 @@ const Dashboard = () => {
 
           <TabsContent value="ai-agents">
             {selectedAgentForManagement ? (
-              <AgentManagementPanel 
-                agentId={selectedAgentForManagement.id} 
-                agentName={selectedAgentForManagement.name}
-              />
+              <Card className="p-6">
+                <div className="mb-6">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setSelectedAgentForManagement(null)}
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Voltar para Agentes IA
+                  </Button>
+                </div>
+                <h2 className="text-2xl font-bold mb-4">
+                  Gestão: {selectedAgentForManagement.name}
+                </h2>
+                <AgentManagementPanel 
+                  agentId={selectedAgentForManagement.id} 
+                  agentName={selectedAgentForManagement.name}
+                />
+              </Card>
             ) : (
               <Card>
                 <CardHeader>

@@ -115,12 +115,26 @@ Seja profissional, atencioso e eficiente.`;
             service_name: serviceName,
             scheduled_date: dateTime,
             customer_notes: notes,
+            status: 'pending'
           })
           .select()
           .single();
 
         appointment = newAppointment;
-        finalResponse = responseText.replace(/\[AGENDAR\|.*?\]/, '');
+        
+        // Create confirmation message
+        const formattedDate = new Date(dateTime).toLocaleString('pt-BR');
+        const confirmationMsg = `\n\n✅ *Agendamento Confirmado!*\n\n📋 *Serviço:* ${serviceName}\n📅 *Data/Hora:* ${formattedDate}\n👤 *Cliente:* ${customer.name}\n${notes ? `📝 *Observações:* ${notes}` : ''}\n\nSeu agendamento foi registrado com sucesso! Você receberá uma confirmação em breve.`;
+        
+        // Save confirmation message
+        await supabase.from('agent_messages').insert({
+          conversation_id: conversationId,
+          role: 'assistant',
+          content: confirmationMsg,
+          sender_name: 'Sistema'
+        });
+        
+        finalResponse = responseText.replace(/\[AGENDAR\|.*?\]/, confirmationMsg);
       }
     }
 
@@ -133,6 +147,9 @@ Seja profissional, atencioso e eficiente.`;
         // Generate order number
         const orderNumber = `ORD-${Date.now()}`;
         
+        // Parse items
+        const items = JSON.parse(itemsJson);
+        
         // Create order
         const { data: newOrder } = await supabase
           .from('agent_orders')
@@ -141,16 +158,33 @@ Seja profissional, atencioso e eficiente.`;
             customer_id: customerId,
             conversation_id: conversationId,
             order_number: orderNumber,
-            items: JSON.parse(itemsJson),
-            delivery_address: address,
-            customer_notes: notes,
+            items: items,
+            delivery_address: address || null,
+            customer_notes: notes || null,
             total_amount: parseFloat(total),
+            status: 'pending'
           })
           .select()
           .single();
 
         order = newOrder;
-        finalResponse = responseText.replace(/\[PEDIDO\|.*?\]/, '');
+        
+        // Create confirmation message with order details
+        const itemsList = items.map((item: any) => 
+          `  • ${item.name} - Qtd: ${item.quantity} - R$ ${item.price.toFixed(2)}`
+        ).join('\n');
+        
+        const confirmationMsg = `\n\n✅ *Pedido Confirmado!*\n\n🛒 *Número do Pedido:* ${orderNumber}\n👤 *Cliente:* ${customer.name}\n${customer.phone ? `📱 *Telefone:* ${customer.phone}` : ''}\n${address ? `📍 *Endereço:* ${address}` : ''}\n\n*Itens do Pedido:*\n${itemsList}\n\n💰 *Total:* R$ ${parseFloat(total).toFixed(2)}\n${notes ? `\n📝 *Observações:* ${notes}` : ''}\n\nSeu pedido foi registrado com sucesso! Aguarde a confirmação.`;
+        
+        // Save confirmation message
+        await supabase.from('agent_messages').insert({
+          conversation_id: conversationId,
+          role: 'assistant',
+          content: confirmationMsg,
+          sender_name: 'Sistema'
+        });
+        
+        finalResponse = responseText.replace(/\[PEDIDO\|.*?\]/, confirmationMsg);
       }
     }
 
