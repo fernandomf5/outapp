@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Check, Crown, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSearchParams } from "react-router-dom";
+import { useMercadoPago } from "@/hooks/useMercadoPago";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +43,7 @@ export const MyPlanSection = () => {
   const [allPlans, setAllPlans] = useState<Plan[]>([]);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { createPayment, loading: paymentLoading } = useMercadoPago();
 
   useEffect(() => {
     if (!user) return;
@@ -100,14 +102,7 @@ export const MyPlanSection = () => {
 
   const handleUpgrade = async (planId: string) => {
     if (!user) return;
-
-    // Aqui você implementaria a lógica de pagamento
-    // Por enquanto, vamos apenas mostrar uma mensagem
-    toast({
-      title: "Em breve!",
-      description: "A funcionalidade de pagamento será implementada em breve.",
-    });
-    setUpgradeDialogOpen(false);
+    await createPayment(planId);
   };
 
   const getDaysLeft = () => {
@@ -261,6 +256,7 @@ export const MyPlanSection = () => {
                   )}
                   <Button
                     onClick={() => handleUpgrade(plan.id)}
+                    disabled={paymentLoading}
                     className={
                       plan.plan_type === 'professional'
                         ? "w-full gradient-primary shadow-glow"
@@ -270,7 +266,7 @@ export const MyPlanSection = () => {
                       plan.plan_type === 'professional' ? "default" : "outline"
                     }
                   >
-                    Assinar Agora
+                    {paymentLoading ? "Processando..." : "Assinar Agora"}
                   </Button>
                 </CardContent>
               </Card>

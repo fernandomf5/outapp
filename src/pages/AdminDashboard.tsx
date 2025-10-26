@@ -18,6 +18,7 @@ import { GrowthChart } from "@/components/admin/GrowthChart";
 import { CustomPagesManager } from "@/components/admin/CustomPagesManager";
 import { SiteSettingsManager } from "@/components/admin/SiteSettingsManager";
 import { PaymentIntegrationsManager } from "@/components/admin/PaymentIntegrationsManager";
+import { MercadoPagoSettings } from "@/components/admin/MercadoPagoSettings";
 import { AdminMessagesManager } from "@/components/admin/AdminMessagesManager";
 import { VouchersManager } from "@/components/admin/VouchersManager";
 import { TicketsManager } from "@/components/admin/TicketsManager";
@@ -668,7 +669,12 @@ const AdminDashboard = () => {
             {currentSection === 'custom-pages' && <CustomPagesManager />}
 
             {/* Integrations Section */}
-            {currentSection === 'integrations' && <PaymentIntegrationsManager />}
+            {currentSection === 'integrations' && (
+              <div className="space-y-6">
+                <MercadoPagoSettings />
+                <PaymentIntegrationsManager />
+              </div>
+            )}
 
             {/* Settings Section */}
             {currentSection === 'settings' && <SiteSettingsManager />}
