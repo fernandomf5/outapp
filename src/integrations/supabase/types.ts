@@ -255,6 +255,8 @@ export type Database = {
           customer_id: string
           customer_notes: string | null
           id: string
+          proposed_date: string | null
+          response_type: string | null
           scheduled_date: string
           service_description: string | null
           service_name: string
@@ -268,6 +270,8 @@ export type Database = {
           customer_id: string
           customer_notes?: string | null
           id?: string
+          proposed_date?: string | null
+          response_type?: string | null
           scheduled_date: string
           service_description?: string | null
           service_name: string
@@ -281,6 +285,8 @@ export type Database = {
           customer_id?: string
           customer_notes?: string | null
           id?: string
+          proposed_date?: string | null
+          response_type?: string | null
           scheduled_date?: string
           service_description?: string | null
           service_name?: string

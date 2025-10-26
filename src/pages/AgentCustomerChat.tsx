@@ -137,7 +137,27 @@ export default function AgentCustomerChat() {
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
-          setMessages((prev) => [...prev, payload.new as Message]);
+          const newMessage = payload.new as Message;
+          setMessages((prev) => [...prev, newMessage]);
+          
+          // Show toast for status updates
+          if (newMessage.content.includes('Aprovado') || newMessage.content.includes('Confirmado')) {
+            toast({
+              title: "✅ Aprovado!",
+              description: "Seu agendamento foi confirmado",
+            });
+          } else if (newMessage.content.includes('Recusado')) {
+            toast({
+              title: "❌ Recusado",
+              description: "Agendamento não pôde ser confirmado",
+              variant: "destructive",
+            });
+          } else if (newMessage.content.includes('Mudança de Data')) {
+            toast({
+              title: "🔄 Nova Data Sugerida",
+              description: "Uma nova data foi sugerida para seu agendamento",
+            });
+          }
         }
       )
       .subscribe();
@@ -151,15 +171,91 @@ export default function AgentCustomerChat() {
     if (!input.trim() || !conversationId || !customer) return;
 
     setLoading(true);
-    const userMessage = input;
+    const userMessage = input.trim().toLowerCase();
+    const originalInput = input;
     setInput("");
+
+    // Check if user is responding to a date change suggestion
+    if (userMessage === 'aceitar' || userMessage === 'recusar') {
+      try {
+        // Find pending appointment with date change
+        const { data: pendingAppointments } = await supabase
+          .from('agent_appointments')
+          .select('*')
+          .eq('conversation_id', conversationId)
+          .eq('response_type', 'date_change')
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (pendingAppointments && pendingAppointments.length > 0) {
+          const appointment = pendingAppointments[0];
+          
+          if (userMessage === 'aceitar') {
+            // Accept the date change
+            await supabase
+              .from('agent_appointments')
+              .update({ 
+                scheduled_date: appointment.proposed_date,
+                status: 'confirmed',
+                response_type: 'approved'
+              })
+              .eq('id', appointment.id);
+
+            await supabase.from('agent_messages').insert({
+              conversation_id: conversationId,
+              role: 'assistant',
+              content: `✅ *Data Confirmada!*\n\n📋 *Serviço:* ${appointment.service_name}\n📅 *Nova Data/Hora:* ${new Date(appointment.proposed_date!).toLocaleString('pt-BR')}\n\nAgendamento confirmado com sucesso!`,
+              sender_name: 'Sistema'
+            });
+
+            toast({
+              title: "✅ Confirmado!",
+              description: "Nova data aceita com sucesso",
+            });
+          } else {
+            // Reject the date change
+            await supabase
+              .from('agent_appointments')
+              .update({ 
+                status: 'cancelled',
+                response_type: 'rejected'
+              })
+              .eq('id', appointment.id);
+
+            await supabase.from('agent_messages').insert({
+              conversation_id: conversationId,
+              role: 'assistant',
+              content: `❌ *Data Recusada*\n\nVocê recusou a nova data sugerida. Por favor, entre em contato para agendar em outra data.`,
+              sender_name: 'Sistema'
+            });
+
+            toast({
+              title: "❌ Recusado",
+              description: "Data recusada",
+            });
+          }
+
+          setLoading(false);
+          return;
+        }
+      } catch (error: any) {
+        toast({
+          title: "Erro",
+          description: error.message,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+    }
 
     try {
       // Save user message
       await supabase.from('agent_messages').insert({
         conversation_id: conversationId,
         role: 'customer',
-        content: userMessage,
+        content: originalInput,
       });
 
       await supabase
@@ -173,7 +269,7 @@ export default function AgentCustomerChat() {
           agentId,
           customerId: customer.id,
           conversationId,
-          message: userMessage,
+          message: originalInput,
         }
       });
 

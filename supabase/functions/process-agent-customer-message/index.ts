@@ -105,7 +105,7 @@ Seja profissional, atencioso e eficiente.`;
       if (match) {
         const [, serviceName, dateTime, notes] = match;
         
-        // Create appointment
+        // Create appointment with pending_approval status
         const { data: newAppointment } = await supabase
           .from('agent_appointments')
           .insert({
@@ -115,26 +115,36 @@ Seja profissional, atencioso e eficiente.`;
             service_name: serviceName,
             scheduled_date: dateTime,
             customer_notes: notes,
-            status: 'pending'
+            status: 'pending_approval'
           })
           .select()
           .single();
 
         appointment = newAppointment;
         
-        // Create confirmation message
+        // Create pending confirmation message
         const formattedDate = new Date(dateTime).toLocaleString('pt-BR');
-        const confirmationMsg = `\n\n✅ *Agendamento Confirmado!*\n\n📋 *Serviço:* ${serviceName}\n📅 *Data/Hora:* ${formattedDate}\n👤 *Cliente:* ${customer.name}\n${notes ? `📝 *Observações:* ${notes}` : ''}\n\nSeu agendamento foi registrado com sucesso! Você receberá uma confirmação em breve.`;
+        const pendingMsg = `\n\n⏳ *Dados enviados, esperando resposta...*\n\n📋 *Serviço:* ${serviceName}\n📅 *Data/Hora:* ${formattedDate}\n👤 *Nome:* ${customer.name}\n📧 *Email:* ${customer.email}\n${customer.phone ? `📱 *Telefone:* ${customer.phone}` : ''}\n${notes ? `📝 *Observações:* ${notes}` : ''}\n\n*Aguarde a confirmação do agendamento.*`;
         
-        // Save confirmation message
+        // Save pending message
         await supabase.from('agent_messages').insert({
           conversation_id: conversationId,
           role: 'assistant',
-          content: confirmationMsg,
+          content: pendingMsg,
           sender_name: 'Sistema'
         });
+
+        // Create notification for agent owner
+        await supabase.from('agent_notifications').insert({
+          agent_id: agentId,
+          notification_type: 'new_appointment',
+          title: 'Novo Agendamento',
+          message: `${customer.name} solicitou agendamento de ${serviceName}`,
+          reference_id: newAppointment.id,
+          is_read: false
+        });
         
-        finalResponse = responseText.replace(/\[AGENDAR\|.*?\]/, confirmationMsg);
+        finalResponse = responseText.replace(/\[AGENDAR\|.*?\]/, pendingMsg);
       }
     }
 
@@ -150,7 +160,7 @@ Seja profissional, atencioso e eficiente.`;
         // Parse items
         const items = JSON.parse(itemsJson);
         
-        // Create order
+        // Create order with pending_approval status
         const { data: newOrder } = await supabase
           .from('agent_orders')
           .insert({
@@ -162,29 +172,39 @@ Seja profissional, atencioso e eficiente.`;
             delivery_address: address || null,
             customer_notes: notes || null,
             total_amount: parseFloat(total),
-            status: 'pending'
+            status: 'pending_approval'
           })
           .select()
           .single();
 
         order = newOrder;
         
-        // Create confirmation message with order details
+        // Create pending message with order details
         const itemsList = items.map((item: any) => 
           `  • ${item.name} - Qtd: ${item.quantity} - R$ ${item.price.toFixed(2)}`
         ).join('\n');
         
-        const confirmationMsg = `\n\n✅ *Pedido Confirmado!*\n\n🛒 *Número do Pedido:* ${orderNumber}\n👤 *Cliente:* ${customer.name}\n${customer.phone ? `📱 *Telefone:* ${customer.phone}` : ''}\n${address ? `📍 *Endereço:* ${address}` : ''}\n\n*Itens do Pedido:*\n${itemsList}\n\n💰 *Total:* R$ ${parseFloat(total).toFixed(2)}\n${notes ? `\n📝 *Observações:* ${notes}` : ''}\n\nSeu pedido foi registrado com sucesso! Aguarde a confirmação.`;
+        const pendingMsg = `\n\n⏳ *Dados enviados, esperando resposta...*\n\n🛒 *Número do Pedido:* ${orderNumber}\n👤 *Nome:* ${customer.name}\n📧 *Email:* ${customer.email}\n${customer.phone ? `📱 *Telefone:* ${customer.phone}` : ''}\n${address ? `📍 *Endereço:* ${address}` : ''}\n\n*Itens do Pedido:*\n${itemsList}\n\n💰 *Total:* R$ ${parseFloat(total).toFixed(2)}\n${notes ? `\n📝 *Observações:* ${notes}` : ''}\n\n*Aguarde a confirmação do pedido.*`;
         
-        // Save confirmation message
+        // Save pending message
         await supabase.from('agent_messages').insert({
           conversation_id: conversationId,
           role: 'assistant',
-          content: confirmationMsg,
+          content: pendingMsg,
           sender_name: 'Sistema'
         });
+
+        // Create notification for agent owner
+        await supabase.from('agent_notifications').insert({
+          agent_id: agentId,
+          notification_type: 'new_order',
+          title: 'Novo Pedido',
+          message: `${customer.name} fez um pedido de R$ ${parseFloat(total).toFixed(2)}`,
+          reference_id: newOrder.id,
+          is_read: false
+        });
         
-        finalResponse = responseText.replace(/\[PEDIDO\|.*?\]/, confirmationMsg);
+        finalResponse = responseText.replace(/\[PEDIDO\|.*?\]/, pendingMsg);
       }
     }
 
