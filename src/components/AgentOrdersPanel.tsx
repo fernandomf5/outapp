@@ -108,11 +108,11 @@ export default function AgentOrdersPanel({ agentId }: { agentId: string }) {
 
     // Enviar mensagem ao chat quando o status é atualizado
     const statusMessages: Record<string, string> = {
-      confirmed: `✅ *Pedido Confirmado!*\n\n📦 *Pedido:* ${order.order_number}\n💰 *Valor:* R$ ${order.total_amount.toFixed(2)}\n\nSeu pedido foi confirmado e está sendo preparado!`,
-      preparing: `👨‍🍳 *Pedido em Preparo*\n\n📦 *Pedido:* ${order.order_number}\n\nSeu pedido está sendo preparado com cuidado!`,
-      ready: `✨ *Pedido Pronto!*\n\n📦 *Pedido:* ${order.order_number}\n\nSeu pedido está pronto para entrega/retirada!`,
-      delivered: `🎉 *Pedido Entregue!*\n\n📦 *Pedido:* ${order.order_number}\n\nObrigado pela preferência!`,
-      cancelled: `❌ *Pedido Cancelado*\n\n📦 *Pedido:* ${order.order_number}\n💰 *Valor:* R$ ${order.total_amount.toFixed(2)}\n\nSeu pedido foi cancelado. Entre em contato para mais informações.`,
+      confirmed: `✅ *Pedido Confirmado!*\n\n👤 *Cliente:* ${order.agent_customers.name}\n📦 *Pedido:* ${order.order_number}\n💰 *Valor:* R$ ${order.total_amount.toFixed(2)}\n\nSeu pedido foi confirmado e está sendo preparado!`,
+      preparing: `👨‍🍳 *Pedido em Preparo*\n\n👤 *Cliente:* ${order.agent_customers.name}\n📦 *Pedido:* ${order.order_number}\n\nSeu pedido está sendo preparado com cuidado!`,
+      ready: `✨ *Pedido Pronto!*\n\n👤 *Cliente:* ${order.agent_customers.name}\n📦 *Pedido:* ${order.order_number}\n\nSeu pedido está pronto para entrega/retirada!`,
+      delivered: `🎉 *Pedido Entregue!*\n\n👤 *Cliente:* ${order.agent_customers.name}\n📦 *Pedido:* ${order.order_number}\n\nObrigado pela preferência!`,
+      cancelled: `❌ *Pedido Cancelado*\n\n👤 *Cliente:* ${order.agent_customers.name}\n📦 *Pedido:* ${order.order_number}\n💰 *Valor:* R$ ${order.total_amount.toFixed(2)}\n\nSeu pedido foi cancelado. Entre em contato para mais informações.`,
     };
 
     if (statusMessages[newStatus] && order.conversation_id) {

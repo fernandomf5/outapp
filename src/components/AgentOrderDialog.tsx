@@ -55,12 +55,26 @@ export default function AgentOrderDialog({
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
+  const [customerName, setCustomerName] = useState("");
 
   useEffect(() => {
     if (open) {
       loadProducts();
+      loadCustomerName();
     }
-  }, [open, agentId]);
+  }, [open, agentId, customerId]);
+
+  const loadCustomerName = async () => {
+    const { data } = await supabase
+      .from('agent_customers')
+      .select('name')
+      .eq('id', customerId)
+      .single();
+    
+    if (data) {
+      setCustomerName(data.name);
+    }
+  };
 
   const loadProducts = async () => {
     const { data, error } = await supabase
@@ -177,7 +191,7 @@ export default function AgentOrderDialog({
       await supabase.from('agent_messages').insert({
         conversation_id: conversationId,
         role: 'customer',
-        content: `🛍️ *Novo Pedido Realizado*\n\n📦 *Pedido:* ${orderNumber}\n\n*Itens:*\n${itemsList}\n\n💰 *Total:* R$ ${calculateTotal().toFixed(2)}${deliveryAddress ? `\n📍 *Entrega:* ${deliveryAddress}` : ''}${notes ? `\n\n📝 *Observações:* ${notes}` : ''}\n\n⏳ Aguardando confirmação...`,
+        content: `🛍️ *Novo Pedido Realizado*\n\n👤 *Cliente:* ${customerName}\n📦 *Pedido:* ${orderNumber}\n\n*Itens:*\n${itemsList}\n\n💰 *Total:* R$ ${calculateTotal().toFixed(2)}${deliveryAddress ? `\n📍 *Entrega:* ${deliveryAddress}` : ''}${notes ? `\n\n📝 *Observações:* ${notes}` : ''}\n\n⏳ Aguardando confirmação...`,
         sender_name: 'Sistema'
       });
 
@@ -186,7 +200,7 @@ export default function AgentOrderDialog({
         agent_id: agentId,
         notification_type: 'new_order',
         title: 'Novo Pedido',
-        message: `Pedido ${orderNumber} no valor de R$ ${calculateTotal().toFixed(2)}`,
+        message: `${customerName} fez um pedido ${orderNumber} no valor de R$ ${calculateTotal().toFixed(2)}`,
         is_read: false,
       });
 
@@ -229,6 +243,12 @@ export default function AgentOrderDialog({
           {/* Produtos */}
           <div className="space-y-4">
             <h3 className="font-semibold">Produtos Disponíveis</h3>
+            {customerName && (
+              <div className="p-3 border rounded-md bg-muted mb-4">
+                <Label className="text-xs text-muted-foreground">Cliente</Label>
+                <p className="font-medium">{customerName}</p>
+              </div>
+            )}
             {products.map((product) => (
               <Card key={product.id}>
                 <CardContent className="p-4">

@@ -59,13 +59,27 @@ export default function AgentAppointmentDialog({
   const [bookedTimes, setBookedTimes] = useState<string[]>([]);
   const [pastTimes, setPastTimes] = useState<string[]>([]);
   const [blockedDates, setBlockedDates] = useState<Date[]>([]);
+  const [customerName, setCustomerName] = useState("");
 
   useEffect(() => {
     if (open) {
       loadServices();
       loadBlockedDates();
+      loadCustomerName();
     }
-  }, [open, agentId]);
+  }, [open, agentId, customerId]);
+
+  const loadCustomerName = async () => {
+    const { data } = await supabase
+      .from('agent_customers')
+      .select('name')
+      .eq('id', customerId)
+      .single();
+    
+    if (data) {
+      setCustomerName(data.name);
+    }
+  };
 
   useEffect(() => {
     if (selectedDate && selectedService) {
@@ -237,7 +251,7 @@ export default function AgentAppointmentDialog({
         await supabase.from('agent_messages').insert({
           conversation_id: conversationId,
           role: 'customer',
-          content: `📅 *Novo Agendamento Solicitado*\n\n📋 *Serviço:* ${selectedService.name}\n💰 *Preço:* R$ ${selectedService.price}\n⏱️ *Duração:* ${selectedService.duration_minutes} minutos\n📅 *Data/Hora:* ${scheduledDate.toLocaleString('pt-BR')}${notes ? `\n\n📝 *Observações:* ${notes}` : ''}\n\n⏳ Aguardando confirmação...`,
+          content: `📅 *Novo Agendamento Solicitado*\n\n👤 *Cliente:* ${customerName}\n📋 *Serviço:* ${selectedService.name}\n💰 *Preço:* R$ ${selectedService.price}\n⏱️ *Duração:* ${selectedService.duration_minutes} minutos\n📅 *Data/Hora:* ${scheduledDate.toLocaleString('pt-BR')}${notes ? `\n\n📝 *Observações:* ${notes}` : ''}\n\n⏳ Aguardando confirmação...`,
           sender_name: 'Sistema'
         });
       }
@@ -247,7 +261,7 @@ export default function AgentAppointmentDialog({
         agent_id: agentId,
         notification_type: 'new_appointment',
         title: 'Novo Agendamento',
-        message: `Solicitação de agendamento para ${selectedService.name}`,
+        message: `${customerName} solicitou agendamento para ${selectedService.name}`,
         is_read: false,
       });
 
@@ -288,6 +302,15 @@ export default function AgentAppointmentDialog({
         </DialogHeader>
 
         <div className="space-y-4">
+          {customerName && (
+            <div>
+              <Label>Nome do Cliente</Label>
+              <div className="p-3 border rounded-md bg-muted">
+                <p className="font-medium">{customerName}</p>
+              </div>
+            </div>
+          )}
+
           <div>
             <Label>Serviço *</Label>
             <Select

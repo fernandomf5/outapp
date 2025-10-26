@@ -120,7 +120,7 @@ export default function AgentAppointmentsPanel({ agentId }: { agentId: string })
     await supabase.from('agent_messages').insert({
       conversation_id: appointment.conversation_id,
       role: 'assistant',
-      content: `✅ *Agendamento Aprovado!*\n\n📋 *Serviço:* ${appointment.service_name}\n📅 *Data/Hora:* ${new Date(appointment.scheduled_date).toLocaleString('pt-BR')}\n\nSeu agendamento foi confirmado com sucesso!`,
+      content: `✅ *Agendamento Aprovado!*\n\n👤 *Cliente:* ${appointment.agent_customers.name}\n📋 *Serviço:* ${appointment.service_name}\n📅 *Data/Hora:* ${new Date(appointment.scheduled_date).toLocaleString('pt-BR')}\n\nSeu agendamento foi confirmado com sucesso!`,
       sender_name: 'Sistema'
     });
 
@@ -153,7 +153,7 @@ export default function AgentAppointmentsPanel({ agentId }: { agentId: string })
     await supabase.from('agent_messages').insert({
       conversation_id: appointment.conversation_id,
       role: 'assistant',
-      content: `❌ *Agendamento Recusado*\n\n📋 *Serviço:* ${appointment.service_name}\n📅 *Data solicitada:* ${new Date(appointment.scheduled_date).toLocaleString('pt-BR')}\n\nInfelizmente não foi possível confirmar este agendamento. Por favor, entre em contato para mais informações.`,
+      content: `❌ *Agendamento Recusado*\n\n👤 *Cliente:* ${appointment.agent_customers.name}\n📋 *Serviço:* ${appointment.service_name}\n📅 *Data solicitada:* ${new Date(appointment.scheduled_date).toLocaleString('pt-BR')}\n\nInfelizmente não foi possível confirmar este agendamento. Por favor, entre em contato para mais informações.`,
       sender_name: 'Sistema'
     });
 
@@ -201,7 +201,7 @@ export default function AgentAppointmentsPanel({ agentId }: { agentId: string })
     await supabase.from('agent_messages').insert({
       conversation_id: appointment.conversation_id,
       role: 'assistant',
-      content: `🔄 *Mudança de Data Sugerida*\n\n📋 *Serviço:* ${appointment.service_name}\n📅 *Data original:* ${new Date(appointment.scheduled_date).toLocaleString('pt-BR')}\n📅 *Nova data sugerida:* ${proposedDateTime.toLocaleString('pt-BR')}\n\n⚠️ A data solicitada não está disponível. Podemos agendar para a nova data sugerida?\n\nResponda "aceitar" para confirmar ou "recusar" se não puder nesta data.`,
+      content: `🔄 *Mudança de Data Sugerida*\n\n👤 *Cliente:* ${appointment.agent_customers.name}\n📋 *Serviço:* ${appointment.service_name}\n📅 *Data original:* ${new Date(appointment.scheduled_date).toLocaleString('pt-BR')}\n📅 *Nova data sugerida:* ${proposedDateTime.toLocaleString('pt-BR')}\n\n⚠️ A data solicitada não está disponível. Podemos agendar para a nova data sugerida?\n\nResponda "aceitar" para confirmar ou "recusar" se não puder nesta data.`,
       sender_name: 'Sistema'
     });
 
@@ -299,7 +299,7 @@ export default function AgentAppointmentsPanel({ agentId }: { agentId: string })
     await supabase.from('agent_messages').insert({
       conversation_id: editDialog.appointment.conversation_id,
       role: 'assistant',
-      content: `ℹ️ *Agendamento Atualizado*\n\n📋 *Serviço:* ${editDialog.appointment.service_name}\n📅 *Nova Data/Hora:* ${newDateTime.toLocaleString('pt-BR')}\n\nSeu agendamento foi atualizado.`,
+      content: `ℹ️ *Agendamento Atualizado*\n\n👤 *Cliente:* ${editDialog.appointment.agent_customers.name}\n📋 *Serviço:* ${editDialog.appointment.service_name}\n📅 *Nova Data/Hora:* ${newDateTime.toLocaleString('pt-BR')}\n\nSeu agendamento foi atualizado.`,
       sender_name: 'Sistema'
     });
 
