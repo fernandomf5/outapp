@@ -11,9 +11,9 @@ export function CustomCursor() {
       setPosition({ x: e.clientX, y: e.clientY });
     };
 
-    const handleMouseDown = () => {
+    const handleMouseDown = (e: MouseEvent) => {
       setClicking(true);
-      const newRipple = { id: Date.now(), x: position.x, y: position.y };
+      const newRipple = { id: Date.now(), x: e.clientX, y: e.clientY };
       setRipples(prev => [...prev, newRipple]);
       
       setTimeout(() => {
@@ -34,7 +34,7 @@ export function CustomCursor() {
       window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [position.x, position.y]);
+  }, []);
 
   useEffect(() => {
     document.body.classList.add('custom-cursor-active');
