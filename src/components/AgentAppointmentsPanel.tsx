@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Clock, User, Phone, Mail, CheckCircle, XCircle, Printer, FileText, CalendarClock } from "lucide-react";
+import { Calendar, Clock, User, Phone, Mail, CheckCircle, XCircle, Printer, FileText, CalendarClock, Trash2, Edit } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -38,8 +38,11 @@ export default function AgentAppointmentsPanel({ agentId }: { agentId: string })
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [dateChangeDialog, setDateChangeDialog] = useState<{ open: boolean; appointmentId: string | null; }>({ open: false, appointmentId: null });
+  const [editDialog, setEditDialog] = useState<{ open: boolean; appointment: Appointment | null; }>({ open: false, appointment: null });
   const [newProposedDate, setNewProposedDate] = useState("");
   const [newProposedTime, setNewProposedTime] = useState("");
+  const [editDate, setEditDate] = useState("");
+  const [editTime, setEditTime] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -235,6 +238,82 @@ export default function AgentAppointmentsPanel({ agentId }: { agentId: string })
     return labels[status] || status;
   };
 
+  const deleteAppointment = async (appointmentId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este agendamento?')) return;
+
+    const { error } = await supabase
+      .from('agent_appointments')
+      .delete()
+      .eq('id', appointmentId);
+
+    if (error) {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Excluído!",
+      description: "Agendamento excluído com sucesso.",
+    });
+    loadAppointments();
+  };
+
+  const openEditDialog = (appointment: Appointment) => {
+    const date = new Date(appointment.scheduled_date);
+    setEditDate(date.toISOString().split('T')[0]);
+    setEditTime(date.toTimeString().slice(0, 5));
+    setEditDialog({ open: true, appointment });
+  };
+
+  const saveEditAppointment = async () => {
+    if (!editDialog.appointment || !editDate || !editTime) {
+      toast({
+        title: "Erro",
+        description: "Por favor, preencha data e hora",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newDateTime = new Date(`${editDate}T${editTime}`);
+
+    const { error } = await supabase
+      .from('agent_appointments')
+      .update({ scheduled_date: newDateTime.toISOString() })
+      .eq('id', editDialog.appointment.id);
+
+    if (error) {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Send notification to customer
+    await supabase.from('agent_messages').insert({
+      conversation_id: editDialog.appointment.conversation_id,
+      role: 'assistant',
+      content: `ℹ️ *Agendamento Atualizado*\n\n📋 *Serviço:* ${editDialog.appointment.service_name}\n📅 *Nova Data/Hora:* ${newDateTime.toLocaleString('pt-BR')}\n\nSeu agendamento foi atualizado.`,
+      sender_name: 'Sistema'
+    });
+
+    setEditDialog({ open: false, appointment: null });
+    setEditDate("");
+    setEditTime("");
+    
+    toast({
+      title: "Atualizado!",
+      description: "Agendamento atualizado com sucesso.",
+    });
+    loadAppointments();
+  };
+
   const printAppointment = (appointment: Appointment) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
@@ -412,6 +491,25 @@ export default function AgentAppointmentsPanel({ agentId }: { agentId: string })
                     </div>
                   )}
 
+                  <div className="flex gap-2 mt-2">
+                    <Button 
+                      onClick={() => openEditDialog(appointment)}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Editar
+                    </Button>
+                    <Button 
+                      onClick={() => deleteAppointment(appointment.id)}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Excluir
+                    </Button>
+                  </div>
+
                   <Button 
                     onClick={() => printAppointment(appointment)}
                     variant="outline"
@@ -461,6 +559,45 @@ export default function AgentAppointmentsPanel({ agentId }: { agentId: string })
             </Button>
             <Button onClick={() => dateChangeDialog.appointmentId && suggestDateChange(dateChangeDialog.appointmentId)}>
               Enviar Sugestão
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editDialog.open} onOpenChange={(open) => setEditDialog({ ...editDialog, open })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Agendamento</DialogTitle>
+            <DialogDescription>
+              Altere a data e hora do agendamento.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-date">Data</Label>
+              <Input
+                id="edit-date"
+                type="date"
+                value={editDate}
+                onChange={(e) => setEditDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-time">Horário</Label>
+              <Input
+                id="edit-time"
+                type="time"
+                value={editTime}
+                onChange={(e) => setEditTime(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialog({ open: false, appointment: null })}>
+              Cancelar
+            </Button>
+            <Button onClick={saveEditAppointment}>
+              Salvar Alterações
             </Button>
           </DialogFooter>
         </DialogContent>
