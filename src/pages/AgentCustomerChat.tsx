@@ -252,11 +252,22 @@ export default function AgentCustomerChat() {
 
     try {
       // Save user message
-      await supabase.from('agent_messages').insert({
-        conversation_id: conversationId,
-        role: 'customer',
-        content: originalInput,
-      });
+      const { data: savedUserMessage, error: userMessageError } = await supabase
+        .from('agent_messages')
+        .insert({
+          conversation_id: conversationId,
+          role: 'customer',
+          content: originalInput,
+        })
+        .select()
+        .single();
+
+      if (userMessageError) throw userMessageError;
+
+      // Add user message to state immediately
+      if (savedUserMessage) {
+        setMessages((prev) => [...prev, savedUserMessage as Message]);
+      }
 
       await supabase
         .from('agent_conversations')
@@ -276,11 +287,22 @@ export default function AgentCustomerChat() {
       if (error) throw error;
 
       // Save agent response
-      await supabase.from('agent_messages').insert({
-        conversation_id: conversationId,
-        role: 'agent',
-        content: data.response,
-      });
+      const { data: savedAgentMessage, error: agentMessageError } = await supabase
+        .from('agent_messages')
+        .insert({
+          conversation_id: conversationId,
+          role: 'agent',
+          content: data.response,
+        })
+        .select()
+        .single();
+
+      if (agentMessageError) throw agentMessageError;
+
+      // Add agent response to state immediately
+      if (savedAgentMessage) {
+        setMessages((prev) => [...prev, savedAgentMessage as Message]);
+      }
 
       await supabase
         .from('agent_conversations')
