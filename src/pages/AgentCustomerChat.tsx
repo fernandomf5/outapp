@@ -28,6 +28,7 @@ export default function AgentCustomerChat() {
   const [customer, setCustomer] = useState<any>(null);
   const [agentInfo, setAgentInfo] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const sentMessagesRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -134,6 +135,12 @@ export default function AgentCustomerChat() {
         },
         (payload) => {
           const newMessage = payload.new as Message;
+          const key = `${newMessage.role}:${newMessage.content}`;
+          if (sentMessagesRef.current.has(key)) {
+            // Prevent duplicate of optimistic message
+            sentMessagesRef.current.delete(key);
+            return;
+          }
           setMessages((prev) => [...prev, newMessage]);
           
           // Show toast for status updates
@@ -170,6 +177,19 @@ export default function AgentCustomerChat() {
     const originalInput = input;
     setInput("");
 
+    // Optimistic UI: show the customer's message immediately
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage: Message = {
+      id: tempId,
+      role: 'customer',
+      content: originalInput,
+      created_at: new Date().toISOString(),
+      sender_name: customer?.name,
+    };
+    const dupKey = `customer:${originalInput}`;
+    sentMessagesRef.current.add(dupKey);
+    setMessages((prev) => [...prev, optimisticMessage]);
+
     try {
       // Process message via edge function (handles saving + AI response)
       const { data, error } = await supabase.functions.invoke('process-agent-customer-message', {
@@ -184,23 +204,41 @@ export default function AgentCustomerChat() {
       if (error) throw error;
 
       // Show notifications for appointments/orders
-      if (data.appointment) {
+      if (data?.appointment) {
         toast({
           title: "Agendamento criado! 📅",
           description: `${data.appointment.service_name} - ${new Date(data.appointment.scheduled_date).toLocaleString()}`,
         });
       }
 
-      if (data.order) {
+      if (data?.order) {
         toast({
           title: "Pedido criado! 🛍️",
           description: `Pedido #${data.order.order_number} - R$ ${data.order.total_amount}`,
         });
       }
+
+      // If the function returned an AI message, append it (fallback if realtime is not active)
+      if (data?.reply || data?.response || data?.message) {
+        const aiContent = data.reply || data.response || data.message;
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `ai-${Date.now()}`,
+            role: 'agent',
+            content: aiContent,
+            created_at: new Date().toISOString(),
+            sender_name: agentInfo?.name,
+          },
+        ]);
+      }
     } catch (error: any) {
+      // Revert optimistic message on error
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      sentMessagesRef.current.delete(dupKey);
       toast({
         title: "Erro",
-        description: error.message,
+        description: error.message || "Não foi possível enviar sua mensagem",
         variant: "destructive",
       });
     } finally {
