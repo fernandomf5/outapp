@@ -118,6 +118,7 @@ Seja profissional, atencioso e eficiente.`;
     let finalResponse = responseText;
     let appointment = null;
     let order = null;
+    let shouldSaveAiMessage = true;
 
     // Check for appointment
     if (responseText.includes('[AGENDAR|')) {
@@ -170,6 +171,7 @@ Seja profissional, atencioso e eficiente.`;
         });
         
         finalResponse = responseText.replace(/\[AGENDAR\|.*?\]/, pendingMsg);
+        shouldSaveAiMessage = false; // Pending message already saved
       }
     }
 
@@ -235,7 +237,18 @@ Seja profissional, atencioso e eficiente.`;
         });
         
         finalResponse = responseText.replace(/\[PEDIDO\|.*?\]/, pendingMsg);
+        shouldSaveAiMessage = false; // Pending message already saved
       }
+    }
+
+    // Save AI response to database
+    if (shouldSaveAiMessage && finalResponse.trim()) {
+      await supabase.from('agent_messages').insert({
+        conversation_id: conversationId,
+        role: 'agent',
+        content: finalResponse.trim(),
+        sender_name: agent.name
+      });
     }
 
     return new Response(

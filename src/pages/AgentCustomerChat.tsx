@@ -267,8 +267,8 @@ export default function AgentCustomerChat() {
 
           <ScrollArea className="flex-1 p-4">
             <div className="space-y-4">
-              {/* Mensagem de boas-vindas do agente (não salva no banco) */}
-              {agentInfo?.config?.welcomeMessage && messages.length === 0 && (
+              {/* Mensagem de boas-vindas do agente (sempre visível) */}
+              {agentInfo?.config?.welcomeMessage && (
                 <div className="flex flex-col items-start">
                   <span className="text-xs text-muted-foreground mb-1 px-1">
                     {agentInfo?.name || 'Atendente'}
