@@ -230,7 +230,7 @@ export default function AgentProductsPanel({ agentId }: { agentId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-2xl font-bold">Produtos & Serviços</h3>
+        <h3 className="text-2xl font-bold">Produtos</h3>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => setEditingProduct(null)}>
