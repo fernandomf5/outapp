@@ -13,7 +13,6 @@ import { UserSidebar } from "@/components/layout/UserSidebar";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { CustomCursor } from "@/components/CustomCursor";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { TutorialVideos } from "@/components/TutorialVideos";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
@@ -252,7 +251,6 @@ const Dashboard = () => {
 
   return (
     <>
-      <CustomCursor />
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-background">
         <UserSidebar />
