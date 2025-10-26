@@ -57,6 +57,7 @@ export default function AgentAppointmentDialog({
   const [loading, setLoading] = useState(false);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [bookedTimes, setBookedTimes] = useState<string[]>([]);
+  const [pastTimes, setPastTimes] = useState<string[]>([]);
   const [blockedDates, setBlockedDates] = useState<Date[]>([]);
 
   useEffect(() => {
@@ -129,10 +130,11 @@ export default function AgentAppointmentDialog({
       .eq('agent_id', agentId)
       .eq('day_of_week', dayOfWeek)
       .eq('is_active', true)
-      .single();
+      .maybeSingle();
 
     if (scheduleError || !schedule) {
       setAvailableTimes([]);
+      setPastTimes([]);
       toast({
         title: "Horário não configurado",
         description: "Este dia não possui horário de funcionamento configurado. Configure em Gestão > Horários.",
@@ -160,8 +162,9 @@ export default function AgentAppointmentDialog({
     );
     setBookedTimes(bookedTimesList);
 
-    // Gerar horários disponíveis
+    // Gerar horários disponíveis e passados
     const times: string[] = [];
+    const pastTimesList: string[] = [];
     const [startHour, startMinute] = schedule.start_time.split(':').map(Number);
     const [endHour, endMinute] = schedule.end_time.split(':').map(Number);
     
@@ -175,19 +178,19 @@ export default function AgentAppointmentDialog({
         if (h === endHour && m > endMinute) break;
         if (h === startHour && m < startMinute) continue;
         
-        // Se for hoje, pular horários que já passaram
-        if (isToday) {
-          if (h < currentHour || (h === currentHour && m <= currentMinute)) {
-            continue;
-          }
-        }
-        
         const timeStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-        times.push(timeStr);
+        
+        // Se for hoje, separar horários passados
+        if (isToday && (h < currentHour || (h === currentHour && m <= currentMinute))) {
+          pastTimesList.push(timeStr);
+        } else {
+          times.push(timeStr);
+        }
       }
     }
     
     setAvailableTimes(times);
+    setPastTimes(pastTimesList);
   };
 
   const handleSubmit = async () => {
@@ -320,10 +323,21 @@ export default function AgentAppointmentDialog({
                 />
               </div>
 
-              {selectedDate && availableTimes.length > 0 && (
+              {selectedDate && (pastTimes.length > 0 || availableTimes.length > 0) && (
                 <div>
                   <Label>Horário * (selecione um horário disponível)</Label>
                   <div className="grid grid-cols-4 gap-2 mt-2">
+                    {pastTimes.map((time) => (
+                      <Button
+                        key={time}
+                        variant="outline"
+                        size="sm"
+                        disabled
+                        className="bg-destructive/10 text-destructive border-destructive/20 cursor-not-allowed hover:bg-destructive/10"
+                      >
+                        {time}
+                      </Button>
+                    ))}
                     {availableTimes.map((time) => {
                       const isBooked = bookedTimes.includes(time);
                       return (
