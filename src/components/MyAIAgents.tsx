@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Sparkles, Pencil, Trash2, Copy, ExternalLink, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,6 +31,7 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
   const [agents, setAgents] = useState<any[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState<Record<string, { appointments: number; orders: number }>>({});
 
   useEffect(() => {
     fetchAgents();
@@ -64,8 +66,44 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
 
     if (!error && data) {
       setAgents(data);
+      fetchNotifications(data.map(agent => agent.id));
     }
     setLoading(false);
+  };
+
+  const fetchNotifications = async (agentIds: string[]) => {
+    if (agentIds.length === 0) return;
+
+    // Buscar agendamentos pendentes
+    const { data: appointmentsData } = await supabase
+      .from('agent_appointments')
+      .select('agent_id')
+      .in('agent_id', agentIds)
+      .eq('status', 'pending');
+
+    // Buscar pedidos pendentes
+    const { data: ordersData } = await supabase
+      .from('agent_orders')
+      .select('agent_id')
+      .in('agent_id', agentIds)
+      .eq('status', 'pending');
+
+    // Contar notificações por agente
+    const notifCounts: Record<string, { appointments: number; orders: number }> = {};
+    
+    agentIds.forEach(id => {
+      notifCounts[id] = { appointments: 0, orders: 0 };
+    });
+
+    appointmentsData?.forEach(item => {
+      notifCounts[item.agent_id].appointments++;
+    });
+
+    ordersData?.forEach(item => {
+      notifCounts[item.agent_id].orders++;
+    });
+
+    setNotifications(notifCounts);
   };
 
   const handleEdit = (agentId: string) => {
@@ -156,8 +194,19 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {agents.map((agent) => (
-          <Card key={agent.id} className="p-6 hover:shadow-lg transition-all">
+        {agents.map((agent) => {
+          const totalNotifications = (notifications[agent.id]?.appointments || 0) + (notifications[agent.id]?.orders || 0);
+          
+          return (
+          <Card key={agent.id} className="p-6 hover:shadow-lg transition-all relative">
+            {totalNotifications > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-2 -right-2 h-6 min-w-6 flex items-center justify-center rounded-full text-xs font-bold"
+              >
+                {totalNotifications}
+              </Badge>
+            )}
             <div className="flex items-start justify-between mb-4">
               <div className="bg-success/10 p-3 rounded-xl">
                 <Sparkles className="w-6 h-6 text-success" />
@@ -237,7 +286,8 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
               )}
             </div>
           </Card>
-        ))}
+        );
+        })}
       </div>
 
       <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>
