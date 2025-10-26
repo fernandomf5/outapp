@@ -29,23 +29,49 @@ export default function ChatbotCustomerChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Check authentication
-    const customerData = localStorage.getItem(`chatbot_customer_${chatbotId}`);
-    if (!customerData) {
-      navigate(`/chatbot-auth/${chatbotId}`, { replace: true });
-      return;
-    }
+    const checkAuth = async () => {
+      try {
+        // Verifica o tipo de acesso do chatbot
+        const { data: chatbot } = await supabase
+          .from('chatbots')
+          .select('access_type')
+          .eq('id', chatbotId)
+          .single();
 
-    try {
-      const parsedCustomer = JSON.parse(customerData);
-      setCustomer(parsedCustomer);
-      loadChatbotAndConversation(parsedCustomer.id, parsedCustomer);
-    } catch (error) {
-      // Se houver erro ao parsear, limpa o localStorage e redireciona
-      console.error('Error parsing customer data:', error);
-      localStorage.removeItem(`chatbot_customer_${chatbotId}`);
-      navigate(`/chatbot-auth/${chatbotId}`, { replace: true });
-    }
+        if (chatbot?.access_type === 'anonymous') {
+          // Acesso anônimo - criar sessão temporária
+          const tempCustomer = {
+            id: `anon_${Date.now()}`,
+            name: 'Visitante',
+            email: `anon_${Date.now()}@temp.com`,
+          };
+          setCustomer(tempCustomer);
+          loadChatbotAndConversation(tempCustomer.id, tempCustomer);
+          return;
+        }
+
+        // Verificar autenticação normal
+        const customerData = localStorage.getItem(`chatbot_customer_${chatbotId}`);
+        if (!customerData) {
+          navigate(`/chatbot-auth/${chatbotId}`, { replace: true });
+          return;
+        }
+
+        try {
+          const parsedCustomer = JSON.parse(customerData);
+          setCustomer(parsedCustomer);
+          loadChatbotAndConversation(parsedCustomer.id, parsedCustomer);
+        } catch (error) {
+          console.error('Error parsing customer data:', error);
+          localStorage.removeItem(`chatbot_customer_${chatbotId}`);
+          navigate(`/chatbot-auth/${chatbotId}`, { replace: true });
+        }
+      } catch (error) {
+        console.error('Error checking auth:', error);
+      }
+    };
+
+    checkAuth();
   }, [chatbotId, navigate]);
 
   useEffect(() => {

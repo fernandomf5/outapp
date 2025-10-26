@@ -30,23 +30,49 @@ export default function AgentCustomerChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Check authentication
-    const customerData = localStorage.getItem(`agent_customer_${agentId}`);
-    if (!customerData) {
-      navigate(`/agent-auth/${agentId}`, { replace: true });
-      return;
-    }
+    const checkAuth = async () => {
+      try {
+        // Verifica o tipo de acesso do agente
+        const { data: agent } = await supabase
+          .from('ai_agents')
+          .select('access_type')
+          .eq('id', agentId)
+          .single();
 
-    try {
-      const parsedCustomer = JSON.parse(customerData);
-      setCustomer(parsedCustomer);
-      loadAgentAndConversation(parsedCustomer.id);
-    } catch (error) {
-      // Se houver erro ao parsear, limpa o localStorage e redireciona
-      console.error('Error parsing customer data:', error);
-      localStorage.removeItem(`agent_customer_${agentId}`);
-      navigate(`/agent-auth/${agentId}`, { replace: true });
-    }
+        if (agent?.access_type === 'anonymous') {
+          // Acesso anônimo - criar sessão temporária
+          const tempCustomer = {
+            id: `anon_${Date.now()}`,
+            name: 'Visitante',
+            email: `anon_${Date.now()}@temp.com`,
+          };
+          setCustomer(tempCustomer);
+          loadAgentAndConversation(tempCustomer.id);
+          return;
+        }
+
+        // Verificar autenticação normal
+        const customerData = localStorage.getItem(`agent_customer_${agentId}`);
+        if (!customerData) {
+          navigate(`/agent-auth/${agentId}`, { replace: true });
+          return;
+        }
+
+        try {
+          const parsedCustomer = JSON.parse(customerData);
+          setCustomer(parsedCustomer);
+          loadAgentAndConversation(parsedCustomer.id);
+        } catch (error) {
+          console.error('Error parsing customer data:', error);
+          localStorage.removeItem(`agent_customer_${agentId}`);
+          navigate(`/agent-auth/${agentId}`, { replace: true });
+        }
+      } catch (error) {
+        console.error('Error checking auth:', error);
+      }
+    };
+
+    checkAuth();
   }, [agentId, navigate]);
 
   useEffect(() => {

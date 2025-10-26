@@ -40,7 +40,7 @@ const BotBuilder = () => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
-  const [accessType, setAccessType] = useState<'public' | 'private'>('public');
+  const [accessType, setAccessType] = useState<'public' | 'private' | 'anonymous'>('public');
 
   // Carregar chatbot existente
   useEffect(() => {
@@ -402,29 +402,37 @@ const BotBuilder = () => {
                 <Card className="p-6 border-primary/20">
                   <div className="space-y-4">
                     <Label className="text-lg font-semibold">Tipo de Acesso ao Chatbot</Label>
-                    <Select value={accessType} onValueChange={(value: 'public' | 'private') => setAccessType(value)}>
+                    <Select value={accessType} onValueChange={(value: 'public' | 'private' | 'anonymous') => setAccessType(value)}>
                       <SelectTrigger className="w-full h-12">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="anonymous">
+                          <div className="flex flex-col items-start">
+                            <span className="font-semibold">💬 Acesso Direto (Sem Cadastro)</span>
+                            <span className="text-xs text-muted-foreground">Chat instantâneo sem login</span>
+                          </div>
+                        </SelectItem>
                         <SelectItem value="public">
                           <div className="flex flex-col items-start">
-                            <span className="font-semibold">🌐 Acesso Livre</span>
+                            <span className="font-semibold">🌐 Acesso Livre (Com Cadastro)</span>
                             <span className="text-xs text-muted-foreground">Qualquer pessoa pode se cadastrar e usar</span>
                           </div>
                         </SelectItem>
                         <SelectItem value="private">
                           <div className="flex flex-col items-start">
-                            <span className="font-semibold">🔒 Acesso Privado</span>
+                            <span className="font-semibold">🔒 Acesso Privado (Com Aprovação)</span>
                             <span className="text-xs text-muted-foreground">Requer aprovação para acessar</span>
                           </div>
                         </SelectItem>
                       </SelectContent>
                     </Select>
                     <p className="text-sm text-muted-foreground">
-                      {accessType === 'public' 
-                        ? '✓ Usuários podem se cadastrar e usar o chatbot livremente'
-                        : '🔐 Você precisará aprovar cada solicitação de acesso individualmente (ideal para produtos digitais)'}
+                      {accessType === 'anonymous' 
+                        ? '⚡ Usuários entram direto no chat sem precisar se cadastrar ou fazer login'
+                        : accessType === 'public' 
+                          ? '✓ Usuários podem se cadastrar e usar o chatbot livremente'
+                          : '🔐 Você precisará aprovar cada solicitação de acesso individualmente (ideal para produtos digitais)'}
                     </p>
                   </div>
                 </Card>

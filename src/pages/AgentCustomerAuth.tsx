@@ -14,6 +14,7 @@ export default function AgentCustomerAuth() {
   const { toast } = useToast();
   const [authMode, setAuthMode] = useState<'choice' | 'login' | 'register'>('choice');
   const [loading, setLoading] = useState(false);
+  const [checkingAccess, setCheckingAccess] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -21,13 +22,36 @@ export default function AgentCustomerAuth() {
     password: "",
   });
 
-  // Limpa qualquer autenticação antiga ao montar o componente
+  // Verifica o tipo de acesso do agente
   useEffect(() => {
-    const existingAuth = localStorage.getItem(`agent_customer_${agentId}`);
-    if (existingAuth) {
-      localStorage.removeItem(`agent_customer_${agentId}`);
-    }
-  }, [agentId]);
+    const checkAccessType = async () => {
+      try {
+        const { data: agent } = await supabase
+          .from('ai_agents')
+          .select('access_type')
+          .eq('id', agentId)
+          .single();
+
+        if (agent?.access_type === 'anonymous') {
+          // Acesso direto - redireciona para o chat sem autenticação
+          navigate(`/agent-chat/${agentId}`, { replace: true });
+          return;
+        }
+
+        // Limpa qualquer autenticação antiga ao montar o componente
+        const existingAuth = localStorage.getItem(`agent_customer_${agentId}`);
+        if (existingAuth) {
+          localStorage.removeItem(`agent_customer_${agentId}`);
+        }
+      } catch (error) {
+        console.error('Error checking access type:', error);
+      } finally {
+        setCheckingAccess(false);
+      }
+    };
+
+    checkAccessType();
+  }, [agentId, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +90,19 @@ export default function AgentCustomerAuth() {
       setLoading(false);
     }
   };
+
+  if (checkingAccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center gradient-primary p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-8 text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Carregando...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (authMode === 'choice') {
     return (
