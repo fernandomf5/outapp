@@ -364,7 +364,12 @@ export default function AgentCustomerChat() {
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
                 placeholder="Digite sua mensagem..."
                 disabled={loading}
               />
@@ -383,12 +388,7 @@ export default function AgentCustomerChat() {
               agentId={agentId!}
               customerId={customer.id}
               conversationId={conversationId}
-              onSuccess={() => {
-                toast({
-                  title: "Agendamento solicitado!",
-                  description: "Aguarde a confirmação",
-                });
-              }}
+              onSuccess={() => {}}
             />
             <AgentOrderDialog
               open={showOrderDialog}
@@ -396,12 +396,7 @@ export default function AgentCustomerChat() {
               agentId={agentId!}
               customerId={customer.id}
               conversationId={conversationId}
-              onSuccess={() => {
-                toast({
-                  title: "Pedido realizado!",
-                  description: "Aguarde a confirmação",
-                });
-              }}
+              onSuccess={() => {}}
             />
           </>
         )}

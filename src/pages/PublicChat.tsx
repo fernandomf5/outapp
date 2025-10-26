@@ -836,7 +836,12 @@ const PublicChat = () => {
           <Input
             value={inputMessage}
             onChange={(e) => handleInputChange(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
             placeholder={isHumanMode ? "Aguardando atendente..." : "Digite sua mensagem..."}
             disabled={isLoading}
             className="flex-1"

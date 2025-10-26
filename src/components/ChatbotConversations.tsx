@@ -675,7 +675,12 @@ export const ChatbotConversations = () => {
                   <Input
                     value={newMessage}
                     onChange={(e) => handleAdminTyping(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
                     placeholder="Digite sua mensagem..."
                     className="flex-1"
                   />
