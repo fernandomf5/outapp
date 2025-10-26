@@ -150,7 +150,7 @@ export function UserSidebar() {
     { title: "Espionar Anúncios", icon: Target, path: "/dashboard", tab: "espionar", inDevelopment: true },
     { title: "Criador de Sites", icon: Globe, path: "/dashboard", tab: "criador-sites", inDevelopment: true },
     { title: "Criador de Quizz", icon: HelpCircle, path: "/dashboard", tab: "criador-quizz", inDevelopment: true },
-    { title: "Criador de Produto Digital", icon: Package, path: "/dashboard", tab: "produto-digital", inDevelopment: true },
+    { title: "Produto Digital", icon: Package, path: "/dashboard", tab: "produto-digital", inDevelopment: true },
     { title: "Gerador de Prompt", icon: Lightbulb, path: "/dashboard", tab: "gerador-prompt", inDevelopment: true },
   ];
 
