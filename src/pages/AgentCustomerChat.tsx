@@ -252,20 +252,7 @@ export default function AgentCustomerChat() {
         });
       }
 
-      // If the function returned an AI message, append it (fallback if realtime is not active)
-      if (data?.reply || data?.response || data?.message) {
-        const aiContent = data.reply || data.response || data.message;
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `ai-${Date.now()}`,
-            role: 'agent',
-            content: aiContent,
-            created_at: new Date().toISOString(),
-            sender_name: agentInfo?.name,
-          },
-        ]);
-      }
+      // AI response will arrive via realtime subscription - no need to add manually
     } catch (error: any) {
       // Revert optimistic message on error
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
@@ -366,8 +353,8 @@ export default function AgentCustomerChat() {
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !loading && input.trim()) {
                     e.preventDefault();
                     handleSendMessage();
                   }
