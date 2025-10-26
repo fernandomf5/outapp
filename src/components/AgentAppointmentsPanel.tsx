@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Clock, User, Phone, Mail, CheckCircle, XCircle } from "lucide-react";
+import { Calendar, Clock, User, Phone, Mail, CheckCircle, XCircle, Printer, FileText } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -127,6 +127,83 @@ export default function AgentAppointmentsPanel({ agentId }: { agentId: string })
     return labels[status] || status;
   };
 
+  const printAppointment = (appointment: Appointment) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Agendamento - ${appointment.service_name}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+            h1 { color: #333; border-bottom: 2px solid #333; padding-bottom: 10px; }
+            .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+            .section { margin: 20px 0; }
+            .label { font-weight: bold; color: #666; }
+            .value { margin-left: 10px; }
+            .status { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; }
+            .status-confirmed { background: #3b82f6; color: white; }
+            .status-pending { background: #eab308; color: white; }
+            .status-cancelled { background: #ef4444; color: white; }
+            .status-completed { background: #22c55e; color: white; }
+            .info-row { margin: 10px 0; display: flex; align-items: center; }
+            .notes { background: #f5f5f5; padding: 15px; border-radius: 8px; margin-top: 20px; }
+            @media print {
+              body { padding: 20px; }
+              button { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>📅 Agendamento</h1>
+            <button onclick="window.print()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 5px; cursor: pointer;">Imprimir</button>
+          </div>
+          
+          <div class="section">
+            <p class="info-row"><span class="label">ID:</span><span class="value">#${appointment.id.substring(0, 8)}</span></p>
+            <p class="info-row"><span class="label">Status:</span> <span class="status status-${appointment.status}">${getStatusLabel(appointment.status)}</span></p>
+          </div>
+
+          <div class="section">
+            <h2>🎯 Serviço</h2>
+            <p class="info-row"><span class="label">Nome:</span><span class="value">${appointment.service_name}</span></p>
+            ${appointment.service_description ? `<p class="info-row"><span class="label">Descrição:</span><span class="value">${appointment.service_description}</span></p>` : ''}
+          </div>
+
+          <div class="section">
+            <h2>📆 Data e Hora</h2>
+            <p class="info-row"><span class="label">Data:</span><span class="value">${new Date(appointment.scheduled_date).toLocaleDateString('pt-BR')}</span></p>
+            <p class="info-row"><span class="label">Hora:</span><span class="value">${new Date(appointment.scheduled_date).toLocaleTimeString('pt-BR')}</span></p>
+          </div>
+
+          <div class="section">
+            <h2>👤 Dados do Cliente</h2>
+            <p class="info-row"><span class="label">Nome:</span><span class="value">${appointment.agent_customers.name}</span></p>
+            <p class="info-row"><span class="label">Email:</span><span class="value">${appointment.agent_customers.email}</span></p>
+            ${appointment.agent_customers.phone ? `<p class="info-row"><span class="label">Telefone:</span><span class="value">${appointment.agent_customers.phone}</span></p>` : ''}
+          </div>
+
+          ${appointment.customer_notes ? `
+          <div class="section">
+            <h2>📝 Observações do Cliente</h2>
+            <div class="notes">${appointment.customer_notes}</div>
+          </div>
+          ` : ''}
+
+          <div class="section" style="margin-top: 40px; color: #999; font-size: 12px;">
+            <p>Agendamento criado em: ${new Date(appointment.created_at).toLocaleString('pt-BR')}</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+  };
+
   if (loading) {
     return <div>Carregando agendamentos...</div>;
   }
@@ -188,7 +265,10 @@ export default function AgentAppointmentsPanel({ agentId }: { agentId: string })
                   )}
                   {appointment.customer_notes && (
                     <div className="mt-2 p-3 bg-muted rounded-lg">
-                      <p className="text-sm font-medium mb-1">Observações:</p>
+                      <div className="flex items-center gap-2 mb-2">
+                        <FileText className="w-4 h-4 text-muted-foreground" />
+                        <p className="text-sm font-medium">Observações do Cliente:</p>
+                      </div>
                       <p className="text-sm">{appointment.customer_notes}</p>
                     </div>
                   )}
@@ -209,6 +289,15 @@ export default function AgentAppointmentsPanel({ agentId }: { agentId: string })
                       </SelectContent>
                     </Select>
                   </div>
+
+                  <Button 
+                    onClick={() => printAppointment(appointment)}
+                    variant="outline"
+                    className="w-full mt-2"
+                  >
+                    <Printer className="w-4 h-4 mr-2" />
+                    Imprimir Agendamento
+                  </Button>
                 </div>
               </CardContent>
             </Card>

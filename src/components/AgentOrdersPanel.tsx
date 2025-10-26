@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ShoppingBag, User, Phone, Mail, MapPin, Package } from "lucide-react";
+import { ShoppingBag, User, Phone, Mail, MapPin, Package, Printer, FileText, DollarSign } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -131,6 +132,115 @@ export default function AgentOrdersPanel({ agentId }: { agentId: string }) {
     return labels[status] || status;
   };
 
+  const printOrder = (order: Order) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const itemsRows = Array.isArray(order.items) ? order.items.map((item: any) => `
+      <tr>
+        <td>${item.name}</td>
+        <td style="text-align: center;">${item.quantity}</td>
+        <td style="text-align: right;">R$ ${Number(item.price).toFixed(2)}</td>
+        <td style="text-align: right;">R$ ${(item.quantity * item.price).toFixed(2)}</td>
+      </tr>
+    `).join('') : '';
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Pedido #${order.order_number}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+            h1 { color: #333; border-bottom: 2px solid #333; padding-bottom: 10px; }
+            .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+            .section { margin: 20px 0; }
+            .label { font-weight: bold; color: #666; }
+            .value { margin-left: 10px; }
+            .status { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; }
+            .status-confirmed { background: #3b82f6; color: white; }
+            .status-pending { background: #eab308; color: white; }
+            .status-preparing { background: #a855f7; color: white; }
+            .status-ready { background: #22c55e; color: white; }
+            .status-delivered { background: #6b7280; color: white; }
+            .status-cancelled { background: #ef4444; color: white; }
+            .info-row { margin: 10px 0; display: flex; align-items: center; }
+            .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            .items-table th, .items-table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+            .items-table th { background: #f5f5f5; font-weight: bold; }
+            .total-row { font-weight: bold; font-size: 18px; background: #f9f9f9; }
+            .notes { background: #f5f5f5; padding: 15px; border-radius: 8px; margin-top: 20px; }
+            @media print {
+              body { padding: 20px; }
+              button { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>🛒 Pedido #${order.order_number}</h1>
+            <button onclick="window.print()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 5px; cursor: pointer;">Imprimir</button>
+          </div>
+          
+          <div class="section">
+            <p class="info-row"><span class="label">ID:</span><span class="value">#${order.id.substring(0, 8)}</span></p>
+            <p class="info-row"><span class="label">Status:</span> <span class="status status-${order.status}">${getStatusLabel(order.status)}</span></p>
+            <p class="info-row"><span class="label">Data:</span><span class="value">${new Date(order.created_at).toLocaleString('pt-BR')}</span></p>
+          </div>
+
+          <div class="section">
+            <h2>👤 Dados do Cliente</h2>
+            <p class="info-row"><span class="label">Nome:</span><span class="value">${order.agent_customers.name}</span></p>
+            <p class="info-row"><span class="label">Email:</span><span class="value">${order.agent_customers.email}</span></p>
+            ${order.agent_customers.phone ? `<p class="info-row"><span class="label">Telefone:</span><span class="value">${order.agent_customers.phone}</span></p>` : ''}
+          </div>
+
+          ${order.delivery_address ? `
+          <div class="section">
+            <h2>📍 Endereço de Entrega</h2>
+            <p>${order.delivery_address}</p>
+          </div>
+          ` : ''}
+
+          <div class="section">
+            <h2>📦 Itens do Pedido</h2>
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th style="text-align: center;">Qtd</th>
+                  <th style="text-align: right;">Preço Unit.</th>
+                  <th style="text-align: right;">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsRows}
+                <tr class="total-row">
+                  <td colspan="3" style="text-align: right;">TOTAL:</td>
+                  <td style="text-align: right;">R$ ${Number(order.total_amount).toFixed(2)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          ${order.customer_notes ? `
+          <div class="section">
+            <h2>📝 Observações do Cliente</h2>
+            <div class="notes">${order.customer_notes}</div>
+          </div>
+          ` : ''}
+
+          <div class="section" style="margin-top: 40px; color: #999; font-size: 12px;">
+            <p>Pedido realizado em: ${new Date(order.created_at).toLocaleString('pt-BR')}</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+  };
+
   if (loading) {
     return <div>Carregando pedidos...</div>;
   }
@@ -210,7 +320,10 @@ export default function AgentOrdersPanel({ agentId }: { agentId: string }) {
 
                   {order.customer_notes && (
                     <div className="p-3 bg-muted rounded-lg">
-                      <p className="text-sm font-medium mb-1">Observações:</p>
+                      <div className="flex items-center gap-2 mb-2">
+                        <FileText className="w-4 h-4 text-muted-foreground" />
+                        <p className="text-sm font-medium">Observações do Cliente:</p>
+                      </div>
                       <p className="text-sm">{order.customer_notes}</p>
                     </div>
                   )}
@@ -233,6 +346,15 @@ export default function AgentOrdersPanel({ agentId }: { agentId: string }) {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  <Button 
+                    onClick={() => printOrder(order)}
+                    variant="outline"
+                    className="w-full mt-2"
+                  >
+                    <Printer className="w-4 h-4 mr-2" />
+                    Imprimir Pedido
+                  </Button>
                 </div>
               </CardContent>
             </Card>
