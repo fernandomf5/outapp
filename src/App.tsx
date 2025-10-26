@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "./contexts/AuthContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -27,33 +27,38 @@ import AgentCustomerAuth from "./pages/AgentCustomerAuth";
 import AgentCustomerChat from "./pages/AgentCustomerChat";
 import ChatbotCustomerAuth from "./pages/ChatbotCustomerAuth";
 import ChatbotCustomerChat from "./pages/ChatbotCustomerChat";
+import { CustomCursor } from "./components/CustomCursor";
 
 const queryClient = new QueryClient();
 
 const CursorGuard = () => {
   const location = useLocation();
+  const [shouldShowCursor, setShouldShowCursor] = useState(false);
+  
   useEffect(() => {
+    const customCursorEnabled = localStorage.getItem("customCursorEnabled");
+    const isEnabled = customCursorEnabled !== null ? customCursorEnabled === "true" : true;
     const isDashboard = location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin");
+
+    setShouldShowCursor(isEnabled && isDashboard);
 
     const sync = () => {
       const cursorEls = document.querySelectorAll('.custom-cursor, .custom-cursor-trail, .cursor-ripple');
-      if (!isDashboard) {
+      if (!isEnabled || !isDashboard) {
         document.body.classList.remove("custom-cursor-active");
-        // Remove any orphaned custom cursor elements if present
         if (cursorEls.length) cursorEls.forEach(el => el.remove());
       }
     };
 
-    // Initial sync on route change
     sync();
 
-    // Observe DOM/class changes to keep state consistent
     const observer = new MutationObserver(sync);
     observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
 
     return () => observer.disconnect();
   }, [location.pathname]);
-  return null;
+  
+  return shouldShowCursor ? <CustomCursor /> : null;
 };
 
 const App = () => (

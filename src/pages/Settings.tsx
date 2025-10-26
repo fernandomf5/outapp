@@ -17,7 +17,9 @@ import {
   EyeOff,
   Save,
   Shield,
+  MousePointer2,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -76,6 +78,12 @@ const Settings = () => {
   const [newEmail, setNewEmail] = useState("");
   const [emailConfirmationCode, setEmailConfirmationCode] = useState("");
   const [isCodeSent, setIsCodeSent] = useState(false);
+  
+  // Custom Cursor Preference
+  const [customCursorEnabled, setCustomCursorEnabled] = useState(() => {
+    const saved = localStorage.getItem("customCursorEnabled");
+    return saved !== null ? saved === "true" : true;
+  });
 
   const handleSaveProfile = async () => {
     if (!user) return;
@@ -196,6 +204,12 @@ const Settings = () => {
     setShowPasswords({ ...showPasswords, [field]: !showPasswords[field] });
   };
 
+  const handleToggleCustomCursor = (checked: boolean) => {
+    setCustomCursorEnabled(checked);
+    localStorage.setItem("customCursorEnabled", checked.toString());
+    window.location.reload(); // Recarrega para aplicar a mudança
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -272,6 +286,35 @@ const Settings = () => {
               <Save className="w-4 h-4 mr-2" />
               Salvar Alterações
             </Button>
+          </div>
+        </Card>
+
+        {/* Interface Preferences */}
+        <Card className="p-4 sm:p-6 glass">
+          <div className="flex items-center gap-3 mb-4 sm:mb-6">
+            <div className="bg-primary/10 p-2 sm:p-3 rounded-xl">
+              <MousePointer2 className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold">Preferências de Interface</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Personalize a experiência visual</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-card/50 rounded-lg border">
+              <div className="flex-1">
+                <h3 className="font-semibold text-sm mb-1">Cursor Personalizado</h3>
+                <p className="text-xs text-muted-foreground">
+                  Ativa um cursor animado com efeitos visuais no painel. Desative se tiver problemas de desempenho.
+                </p>
+              </div>
+              <Switch
+                checked={customCursorEnabled}
+                onCheckedChange={handleToggleCustomCursor}
+                className="ml-4"
+              />
+            </div>
           </div>
         </Card>
 
