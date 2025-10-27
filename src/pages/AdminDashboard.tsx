@@ -17,13 +17,10 @@ import { RevenuePanel } from "@/components/admin/RevenuePanel";
 import { GrowthChart } from "@/components/admin/GrowthChart";
 import { CustomPagesManager } from "@/components/admin/CustomPagesManager";
 import { SiteSettingsManager } from "@/components/admin/SiteSettingsManager";
-import { PaymentIntegrationsManager } from "@/components/admin/PaymentIntegrationsManager";
 import { AdminMessagesManager } from "@/components/admin/AdminMessagesManager";
 import { VouchersManager } from "@/components/admin/VouchersManager";
 import { TicketsManager } from "@/components/admin/TicketsManager";
 import { TicketNotificationBell } from "@/components/TicketNotificationBell";
-import { FeaturesManager } from "@/components/admin/FeaturesManager";
-import { PlanFeaturesManager } from "@/components/admin/PlanFeaturesManager";
 import { LandingPageEditor } from "@/components/admin/LandingPageEditor";
 import { FAQEditor } from "@/components/admin/FAQEditor";
 import { LandingFeaturesEditor } from "@/components/admin/LandingFeaturesEditor";
@@ -68,6 +65,8 @@ interface Plan {
   description: string;
   features: string[];
   order_index?: number;
+  plan_type: 'free' | 'monthly' | 'annual' | 'lifetime';
+  duration_days: number | null;
 }
 
 interface Tutorial {
@@ -176,7 +175,9 @@ const AdminDashboard = () => {
           price: Number(p.price),
           description: p.description || '',
           features: Array.isArray(p.features) ? p.features as string[] : [],
-          order_index: p.order_index || 0
+          order_index: p.order_index || 0,
+          plan_type: (p.plan_type as 'free' | 'monthly' | 'annual' | 'lifetime') || 'monthly',
+          duration_days: p.duration_days || 30
         })));
       }
 
@@ -204,8 +205,8 @@ const AdminDashboard = () => {
             name: editingPlan.name,
             price: editingPlan.price,
             description: editingPlan.description,
-            plan_type: 'chatbot' as const,
-            duration_days: 30,
+            plan_type: editingPlan.plan_type,
+            duration_days: editingPlan.duration_days,
             features: editingPlan.features,
             order_index: editingPlan.order_index ?? plans.length,
             is_active: true
@@ -220,7 +221,9 @@ const AdminDashboard = () => {
             price: Number(data.price),
             description: data.description || '',
             features: Array.isArray(data.features) ? data.features as string[] : [],
-            order_index: data.order_index || 0
+            order_index: data.order_index || 0,
+            plan_type: (data.plan_type as 'free' | 'monthly' | 'annual' | 'lifetime') || 'monthly',
+            duration_days: data.duration_days || 30
           }]);
           toast({
             title: "Plano criado! ✅",
@@ -235,7 +238,9 @@ const AdminDashboard = () => {
             price: editingPlan.price,
             description: editingPlan.description,
             features: editingPlan.features,
-            order_index: editingPlan.order_index
+            order_index: editingPlan.order_index,
+            plan_type: editingPlan.plan_type,
+            duration_days: editingPlan.duration_days
           })
           .eq('id', editingPlan.id);
 
@@ -275,6 +280,8 @@ const AdminDashboard = () => {
       description: "",
       features: [],
       order_index: plans.length,
+      plan_type: 'monthly',
+      duration_days: 30
     });
     setIsDialogOpen(true);
   };
@@ -649,12 +656,6 @@ const AdminDashboard = () => {
             {/* FAQ Section */}
             {currentSection === 'faq' && <FAQEditor />}
 
-            {/* Features Section */}
-            {currentSection === 'features' && <FeaturesManager />}
-
-            {/* Plan Features Section */}
-            {currentSection === 'plan-features' && <PlanFeaturesManager />}
-
             {/* Messages Section */}
             {currentSection === 'messages' && <AdminMessagesManager />}
 
@@ -666,9 +667,6 @@ const AdminDashboard = () => {
 
             {/* Custom Pages Section */}
             {currentSection === 'custom-pages' && <CustomPagesManager />}
-
-            {/* Integrations Section */}
-            {currentSection === 'integrations' && <PaymentIntegrationsManager />}
 
             {/* Settings Section */}
             {currentSection === 'settings' && <SiteSettingsManager />}
@@ -1188,34 +1186,70 @@ const AdminDashboard = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="plan-order">Ordem de Exibição</Label>
-                  <Input
-                    id="plan-order"
-                    type="number"
-                    value={editingPlan.order_index ?? 0}
+                  <Label htmlFor="plan-type">Tipo do Plano</Label>
+                  <select
+                    id="plan-type"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    value={editingPlan.plan_type}
                     onChange={(e) =>
-                      setEditingPlan({ ...editingPlan, order_index: parseInt(e.target.value) || 0 })
+                      setEditingPlan({ ...editingPlan, plan_type: e.target.value as 'free' | 'monthly' | 'annual' | 'lifetime' })
                     }
-                    placeholder="0"
+                  >
+                    <option value="free">Grátis</option>
+                    <option value="monthly">Mensal</option>
+                    <option value="annual">Anual</option>
+                    <option value="lifetime">Vitalício</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="plan-price">Preço (R$)</Label>
+                  <Input
+                    id="plan-price"
+                    type="number"
+                    step="0.01"
+                    value={editingPlan.price}
+                    onChange={(e) =>
+                      setEditingPlan({ ...editingPlan, price: parseFloat(e.target.value) })
+                    }
+                    placeholder="0.00"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="plan-duration">Duração (dias)</Label>
+                  <Input
+                    id="plan-duration"
+                    type="number"
+                    value={editingPlan.duration_days || ''}
+                    onChange={(e) =>
+                      setEditingPlan({ ...editingPlan, duration_days: e.target.value ? parseInt(e.target.value) : null })
+                    }
+                    placeholder="30"
+                    disabled={editingPlan.plan_type === 'lifetime'}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Quanto menor o número, mais cedo aparece
+                    {editingPlan.plan_type === 'lifetime' ? 'Vitalício não expira' : 'Número de dias de validade'}
                   </p>
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="plan-price">Preço (R$)</Label>
+                <Label htmlFor="plan-order">Ordem de Exibição</Label>
                 <Input
-                  id="plan-price"
+                  id="plan-order"
                   type="number"
-                  step="0.01"
-                  value={editingPlan.price}
+                  value={editingPlan.order_index ?? 0}
                   onChange={(e) =>
-                    setEditingPlan({ ...editingPlan, price: parseFloat(e.target.value) })
+                    setEditingPlan({ ...editingPlan, order_index: parseInt(e.target.value) || 0 })
                   }
-                  placeholder="0.00"
+                  placeholder="0"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Quanto menor o número, mais cedo aparece
+                </p>
               </div>
 
               <div>

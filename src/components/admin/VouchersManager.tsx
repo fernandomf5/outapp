@@ -330,18 +330,7 @@ export const VouchersManager = () => {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                <Checkbox
-                  id="custom-features"
-                  checked={useCustomFeatures}
-                  onCheckedChange={(checked) => setUseCustomFeatures(checked as boolean)}
-                />
-                <Label htmlFor="custom-features" className="cursor-pointer">
-                  Configurar recursos e duração customizados
-                </Label>
-              </div>
-
-              {!useCustomFeatures ? (
+              {true ? (
                 <div>
                   <Label>Plano *</Label>
                   <Select value={newVoucher.plan_id} onValueChange={(v) => setNewVoucher({ ...newVoucher, plan_id: v })}>
