@@ -20,6 +20,3 @@ verify_jwt = false
 
 [functions.init-agent-conversation]
 verify_jwt = false
-
-[functions.mercadopago-webhook]
-verify_jwt = false
