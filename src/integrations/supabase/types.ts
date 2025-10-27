@@ -2407,6 +2407,72 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          customer_email: string | null
+          customer_name: string | null
+          id: string
+          metadata: Json | null
+          plan_id: string | null
+          platform: string
+          status: string
+          subscription_id: string | null
+          transaction_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          id?: string
+          metadata?: Json | null
+          plan_id?: string | null
+          platform: string
+          status?: string
+          subscription_id?: string | null
+          transaction_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          id?: string
+          metadata?: Json | null
+          plan_id?: string | null
+          platform?: string
+          status?: string
+          subscription_id?: string | null
+          transaction_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_transactions_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plan_features: {
         Row: {
           created_at: string
@@ -3006,7 +3072,14 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
-      plan_type: "free_trial" | "chatbot" | "ai_agent"
+      plan_type:
+        | "free_trial"
+        | "chatbot"
+        | "ai_agent"
+        | "free"
+        | "monthly"
+        | "annual"
+        | "lifetime"
       subscription_status: "active" | "expired" | "cancelled"
     }
     CompositeTypes: {
@@ -3136,7 +3209,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
-      plan_type: ["free_trial", "chatbot", "ai_agent"],
+      plan_type: [
+        "free_trial",
+        "chatbot",
+        "ai_agent",
+        "free",
+        "monthly",
+        "annual",
+        "lifetime",
+      ],
       subscription_status: ["active", "expired", "cancelled"],
     },
   },
