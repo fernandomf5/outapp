@@ -30,6 +30,7 @@ import { MyChatbots } from "@/components/MyChatbots";
 import { MyAIAgents } from "@/components/MyAIAgents";
 import { QRCodeGenerator } from "@/components/QRCodeGenerator";
 import { GeneralCRMPanel } from "@/components/GeneralCRMPanel";
+import { ChatbotManagementPanel } from "@/components/ChatbotManagementPanel";
 import AgentManagementPanel from "@/components/AgentManagementPanel";
 import { ChatbotConversations } from "@/components/ChatbotConversations";
 import {
@@ -60,7 +61,20 @@ const Dashboard = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null);
   const [selectedAgentForManagement, setSelectedAgentForManagement] = useState<any>(null);
+  const [selectedChatbotForManagement, setSelectedChatbotForManagement] = useState<any>(null);
   const activeTab = searchParams.get('tab') || 'overview';
+  const section = searchParams.get('section');
+  const chatbotId = searchParams.get('chatbotId');
+
+  // Se tiver chatbotId e section=chatbot-management, abrir painel de gerenciamento
+  useEffect(() => {
+    if (section === 'chatbot-management' && chatbotId) {
+      const chatbot = chatbots.find((c) => c.id === chatbotId);
+      if (chatbot) {
+        setSelectedChatbotForManagement(chatbot);
+      }
+    }
+  }, [section, chatbotId, chatbots]);
 
 
   useEffect(() => {

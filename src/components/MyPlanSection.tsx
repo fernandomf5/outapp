@@ -244,8 +244,14 @@ export const MyPlanSection = () => {
                   </CardTitle>
                   <CardDescription>{plan.description}</CardDescription>
                   <div className="mt-4">
-                    <span className="text-3xl font-bold">R$ {plan.price}</span>
-                    <span className="text-muted-foreground">/mês</span>
+                    <span className="text-3xl font-bold">
+                      {plan.price === 0 ? 'Grátis' : `R$ ${plan.price}`}
+                    </span>
+                    {plan.price > 0 && (
+                      <span className="text-muted-foreground">
+                        /{plan.plan_type === 'monthly' ? 'mês' : plan.plan_type === 'annual' ? 'ano' : plan.plan_type === 'lifetime' ? 'vitalício' : 'mês'}
+                      </span>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent>

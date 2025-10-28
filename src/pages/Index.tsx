@@ -594,11 +594,13 @@ const Index = () => {
                   
                   <div className="mb-5 sm:mb-6 md:mb-8">
                     <span className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">
-                      R$ {plan.price}
+                      {plan.price === 0 ? 'Grátis' : `R$ ${plan.price}`}
                     </span>
-                    <span className="text-xs sm:text-sm md:text-base text-muted-foreground">
-                      /{plan.duration_days} dias
-                    </span>
+                    {plan.price > 0 && (
+                      <span className="text-xs sm:text-sm md:text-base text-muted-foreground">
+                        /{plan.plan_type === 'monthly' ? 'mês' : plan.plan_type === 'annual' ? 'ano' : plan.plan_type === 'lifetime' ? 'vitalício' : plan.duration_days + ' dias'}
+                      </span>
+                    )}
                   </div>
                   
                   <ul className="space-y-2 sm:space-y-3">

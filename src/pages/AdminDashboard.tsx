@@ -24,6 +24,7 @@ import { TicketNotificationBell } from "@/components/TicketNotificationBell";
 import { LandingPageEditor } from "@/components/admin/LandingPageEditor";
 import { FAQEditor } from "@/components/admin/FAQEditor";
 import { LandingFeaturesEditor } from "@/components/admin/LandingFeaturesEditor";
+import { MercadoPagoIntegration } from "@/components/admin/MercadoPagoIntegration";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -667,6 +668,9 @@ const AdminDashboard = () => {
 
             {/* Custom Pages Section */}
             {currentSection === 'custom-pages' && <CustomPagesManager />}
+
+            {/* Integrations Section */}
+            {currentSection === 'integrations' && <MercadoPagoIntegration />}
 
             {/* Settings Section */}
             {currentSection === 'settings' && <SiteSettingsManager />}

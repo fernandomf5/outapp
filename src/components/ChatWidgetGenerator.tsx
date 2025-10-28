@@ -20,7 +20,9 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
   const [buttonText, setButtonText] = useState('Chat Online');
 
   const generateWidgetCode = () => {
-    const chatUrl = `${window.location.origin}/chat/${botId}`;
+    const chatUrl = type === 'agent' 
+      ? `${window.location.origin}/agent-auth/${botId}` 
+      : `${window.location.origin}/chatbot-auth/${botId}`;
 
     const positionStyles: Record<string, string> = {
       'bottom-right': 'bottom: 20px; right: 20px;',

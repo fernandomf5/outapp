@@ -182,24 +182,34 @@ export const MyChatbots = () => {
               </span>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => handleCopyLink(bot.id)}
+                >
+                  <Copy className="w-3 h-3 mr-2" />
+                  {t('copy_link')}
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => handleOpenChat(bot.id)}
+                >
+                  <ExternalLink className="w-3 h-3 mr-2" />
+                  {t('open_chat')}
+                </Button>
+              </div>
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
-                className="flex-1"
-                onClick={() => handleCopyLink(bot.id)}
+                className="w-full"
+                onClick={() => navigate(`/dashboard?section=chatbot-management&chatbotId=${bot.id}`)}
               >
-                <Copy className="w-3 h-3 mr-2" />
-                {t('copy_link')}
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                className="flex-1"
-                onClick={() => handleOpenChat(bot.id)}
-              >
-                <ExternalLink className="w-3 h-3 mr-2" />
-                {t('open_chat')}
+                Gerenciar
               </Button>
             </div>
           </Card>

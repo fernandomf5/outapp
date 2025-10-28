@@ -98,8 +98,6 @@ export function AdminSidebar() {
 
   const systemItems = [
     { title: t('plans_manager'), icon: Crown, tab: "plans" },
-    { title: t('features_manager'), icon: Package, tab: "features" },
-    { title: t('plan_features'), icon: Settings, tab: "plan-features" },
     { title: t('messages'), icon: MessageSquare, tab: "messages" },
     { title: t('tickets'), icon: LifeBuoy, tab: "tickets" },
     { title: t('vouchers'), icon: Package, tab: "vouchers" },

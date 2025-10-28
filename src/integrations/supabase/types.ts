@@ -1882,6 +1882,8 @@ export type Database = {
           cloned_url: string
           created_at: string
           custom_domain: string | null
+          custom_footer_code: string | null
+          custom_header_code: string | null
           custom_settings: Json | null
           id: string
           is_active: boolean
@@ -1896,6 +1898,8 @@ export type Database = {
           cloned_url: string
           created_at?: string
           custom_domain?: string | null
+          custom_footer_code?: string | null
+          custom_header_code?: string | null
           custom_settings?: Json | null
           id?: string
           is_active?: boolean
@@ -1910,6 +1914,8 @@ export type Database = {
           cloned_url?: string
           created_at?: string
           custom_domain?: string | null
+          custom_footer_code?: string | null
+          custom_header_code?: string | null
           custom_settings?: Json | null
           id?: string
           is_active?: boolean

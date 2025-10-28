@@ -25,6 +25,8 @@ interface CustomPage {
   open_as_popup: boolean;
   is_active: boolean;
   order_index: number;
+  custom_header_code?: string;
+  custom_footer_code?: string;
 }
 
 export const CustomPagesManager = () => {
@@ -110,6 +112,8 @@ export const CustomPagesManager = () => {
       open_as_popup: true,
       is_active: true,
       order_index: pages.length,
+      custom_header_code: '',
+      custom_footer_code: '',
     });
     setDialogOpen(true);
   };
@@ -253,6 +257,36 @@ export const CustomPagesManager = () => {
                   />
                   <p className="text-xs text-muted-foreground mt-2">
                     O texto será exibido exatamente como você escrever, preservando quebras de linha
+                  </p>
+                </div>
+
+                <div>
+                  <Label>Código Header Personalizado (opcional)</Label>
+                  <Textarea
+                    value={editingPage.custom_header_code || ''}
+                    onChange={(e) =>
+                      setEditingPage({ ...editingPage, custom_header_code: e.target.value })
+                    }
+                    placeholder="<script>...</script> ou <style>...</style>"
+                    className="min-h-[100px] font-mono text-xs"
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Será inserido no &lt;head&gt; do site clonado
+                  </p>
+                </div>
+
+                <div>
+                  <Label>Código Footer Personalizado (opcional)</Label>
+                  <Textarea
+                    value={editingPage.custom_footer_code || ''}
+                    onChange={(e) =>
+                      setEditingPage({ ...editingPage, custom_footer_code: e.target.value })
+                    }
+                    placeholder="<script>...</script>"
+                    className="min-h-[100px] font-mono text-xs"
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Será inserido antes do &lt;/body&gt; do site clonado
                   </p>
                 </div>
 
