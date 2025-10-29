@@ -205,44 +205,11 @@ export default function ChatbotCustomerChat() {
         .update({ last_message_at: new Date().toISOString() })
         .eq('id', conversationId);
 
-      // Process with AI
-      const { data, error } = await supabase.functions.invoke('process-ai-message', {
-        body: {
-          chatbotId,
-          conversationId,
-          customerId: customer.id,
-          message: userMessage,
-        }
-      });
+      // Process message - chatbot usa fluxo, não IA
+      // Para chatbot, não enviar para IA, apenas salvar mensagem do usuário
+      // A resposta virá do fluxo ou manualmente pelo dono do chatbot
 
-      if (error) throw error;
-
-      // Save bot response
-      if (data?.response) {
-        await supabase.from('chatbot_messages').insert({
-          conversation_id: conversationId,
-          role: 'bot',
-          content: data.response,
-        });
-        await supabase
-          .from('chatbot_conversations')
-          .update({ last_message_at: new Date().toISOString() })
-          .eq('id', conversationId);
-      }
-
-      if (data?.appointment) {
-        toast({
-          title: 'Agendamento criado! 📅',
-          description: new Date(data.appointment.date).toLocaleString('pt-BR'),
-        });
-      }
-
-      if (data?.order) {
-        toast({
-          title: 'Pedido criado! 🛍️',
-          description: `Total: R$ ${Number(data.order.total).toFixed(2)}`,
-        });
-      }
+      // Chatbot não responde automaticamente, apenas aguarda resposta manual ou pelo fluxo
     } catch (error: any) {
       toast({
         title: "Erro",

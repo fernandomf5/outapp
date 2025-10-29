@@ -148,11 +148,12 @@ export function UserSidebar() {
     { title: "Link na Bio", icon: ExternalLink, path: "/dashboard", tab: "linkbio" },
     { title: t('link_shortener_title'), icon: Link2, path: "/dashboard", tab: "shortlinks", feature: "link_shortener" },
     { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner" },
+    { title: "Organizador de Tarefas", icon: Target, path: "/dashboard", tab: "tarefas", inDevelopment: true },
+    { title: "Criador de Pop-ups", icon: Megaphone, path: "/dashboard", tab: "popups", inDevelopment: true },
+    { title: "Gerenciador de Domínios", icon: Globe, path: "/dashboard", tab: "dominios", inDevelopment: true },
     { title: "Espionar Anúncios", icon: Target, path: "/dashboard", tab: "espionar", inDevelopment: true },
-    { title: "Criador de Sites", icon: Globe, path: "/dashboard", tab: "criador-sites", inDevelopment: true },
     { title: "Criador de Quizz", icon: HelpCircle, path: "/dashboard", tab: "criador-quizz", inDevelopment: true },
     { title: "Criador de Produtos", icon: Package, path: "/dashboard", tab: "produto-digital", inDevelopment: true },
-    { title: "Gerador de Prompt", icon: Lightbulb, path: "/dashboard", tab: "gerador-prompt", inDevelopment: true },
   ];
 
   const supportItems: MenuItem[] = [
