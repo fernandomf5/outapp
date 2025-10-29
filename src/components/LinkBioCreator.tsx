@@ -61,6 +61,8 @@ interface LinkBio {
   gradient_color1: string;
   gradient_color2: string;
   custom_domain: string;
+  music_url: string;
+  music_autoplay: boolean;
 }
 
 interface BioLink {
@@ -124,7 +126,8 @@ export function LinkBioCreator() {
   const [buttonSpacing, setButtonSpacing] = useState(12);
   const [gradientColor1, setGradientColor1] = useState("#667eea");
   const [gradientColor2, setGradientColor2] = useState("#764ba2");
-  const [customDomain, setCustomDomain] = useState("");
+  const [musicUrl, setMusicUrl] = useState("");
+  const [musicAutoplay, setMusicAutoplay] = useState(false);
   
   // New link states
   const [newLinkTitle, setNewLinkTitle] = useState("");
@@ -162,7 +165,8 @@ export function LinkBioCreator() {
       setButtonSpacing(selectedBio.button_spacing || 12);
       setGradientColor1(selectedBio.gradient_color1 || '#667eea');
       setGradientColor2(selectedBio.gradient_color2 || '#764ba2');
-      setCustomDomain(selectedBio.custom_domain || '');
+      setMusicUrl(selectedBio.music_url || '');
+      setMusicAutoplay(selectedBio.music_autoplay || false);
       fetchLinks(selectedBio.id);
     }
   }, [selectedBio]);
@@ -217,7 +221,8 @@ export function LinkBioCreator() {
     setButtonSpacing(12);
     setGradientColor1("#667eea");
     setGradientColor2("#764ba2");
-    setCustomDomain("");
+    setMusicUrl("");
+    setMusicAutoplay(false);
     setLinks([]);
   };
 
@@ -275,7 +280,8 @@ export function LinkBioCreator() {
       button_spacing: buttonSpacing,
       gradient_color1: gradientColor1,
       gradient_color2: gradientColor2,
-      custom_domain: customDomain,
+      music_url: musicUrl,
+      music_autoplay: musicAutoplay,
       is_active: true,
     };
 
@@ -616,12 +622,50 @@ export function LinkBioCreator() {
           <TabsContent value="profile" className="space-y-4">
             <div className="space-y-4">
               <div>
-                <Label>Foto de Perfil</Label>
-                <AvatarUpload
-                  avatarUrl={avatarUrl}
-                  name={displayName || username}
-                  onUploadComplete={(url) => setAvatarUrl(url)}
-                />
+                <Label>Foto de Perfil do Bio</Label>
+                <div className="flex flex-col gap-2">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file && user) {
+                        const fileExt = file.name.split('.').pop();
+                        const fileName = `${user.id}/bio-avatar-${Date.now()}.${fileExt}`;
+                        
+                        const { error: uploadError } = await supabase.storage
+                          .from('chatbot-media')
+                          .upload(fileName, file);
+
+                        if (uploadError) {
+                          toast({
+                            title: "Erro ao enviar",
+                            description: uploadError.message,
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+
+                        const { data: { publicUrl } } = supabase.storage
+                          .from('chatbot-media')
+                          .getPublicUrl(fileName);
+
+                        setAvatarUrl(publicUrl);
+                        toast({
+                          title: "Foto enviada!",
+                        });
+                      }
+                    }}
+                  />
+                  {avatarUrl && (
+                    <div className="relative w-24 h-24 rounded-full overflow-hidden border-2">
+                      <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Esta foto aparecerá apenas no seu link na bio, separada do seu perfil
+                  </p>
+                </div>
               </div>
 
               <div>
@@ -665,16 +709,33 @@ export function LinkBioCreator() {
               </div>
 
               <div>
-                <Label htmlFor="customDomain">Domínio Personalizado (opcional)</Label>
+                <Label htmlFor="musicUrl">Música de Fundo (opcional)</Label>
                 <Input
-                  id="customDomain"
-                  value={customDomain}
-                  onChange={(e) => setCustomDomain(e.target.value)}
-                  placeholder="seudominio.com"
+                  id="musicUrl"
+                  value={musicUrl}
+                  onChange={(e) => setMusicUrl(e.target.value)}
+                  placeholder="https://exemplo.com/musica.mp3"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Configure seu domínio próprio para acessar seu bio (ex: seusite.com)
+                  Cole o URL direto de um arquivo de áudio (.mp3, .wav, etc)
                 </p>
+              </div>
+
+              {musicUrl && (
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={musicAutoplay}
+                    onCheckedChange={setMusicAutoplay}
+                  />
+                  <Label>Tocar música automaticamente ao abrir a página</Label>
+                </div>
+              )}
+
+              <div className="p-4 bg-muted rounded-lg">
+                <p className="text-sm font-medium mb-1">🔗 Seu Link:</p>
+                <code className="text-xs bg-background p-2 rounded block">
+                  {window.location.origin}/bio/{username || 'seuusername'}
+                </code>
               </div>
 
               <Button onClick={createOrUpdateBio} disabled={loading} className="w-full">

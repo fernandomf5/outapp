@@ -27,6 +27,8 @@ interface LinkBio {
   is_active: boolean;
   gradient_color1: string;
   gradient_color2: string;
+  music_url?: string;
+  music_autoplay?: boolean;
 }
 
 interface BioLink {
@@ -190,6 +192,17 @@ export default function LinkBioPage() {
             : { backgroundColor: bio.background_color }
       }
     >
+      {bio.music_url && (
+        <audio 
+          src={bio.music_url} 
+          autoPlay={bio.music_autoplay}
+          loop
+          controls
+          className="fixed bottom-4 right-4 z-50 opacity-80 hover:opacity-100 transition-opacity"
+          style={{ maxWidth: '250px' }}
+        />
+      )}
+
       <div className="max-w-2xl mx-auto">
         <div className="flex flex-col items-center mb-6 sm:mb-8">
           {bio.avatar_url && (

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, ShoppingBag, MessageSquare, Users, Package, Wrench, Clock } from "lucide-react";
+import { Calendar, ShoppingBag, MessageSquare, Users, Package, Wrench, Clock, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AgentAppointmentsPanel from "./AgentAppointmentsPanel";
 import AgentOrdersPanel from "./AgentOrdersPanel";
@@ -10,6 +10,7 @@ import AgentConversationsPanel from "./AgentConversationsPanel";
 import AgentProductsPanel from "./AgentProductsPanel";
 import AgentServicesPanel from "./AgentServicesPanel";
 import AgentSchedulePanel from "./AgentSchedulePanel";
+import AgentAnalyticsPanel from "./AgentAnalyticsPanel";
 
 interface AgentManagementPanelProps {
   agentId: string;
@@ -17,7 +18,7 @@ interface AgentManagementPanelProps {
 }
 
 export default function AgentManagementPanel({ agentId, agentName }: AgentManagementPanelProps) {
-  const [activeTab, setActiveTab] = useState("appointments");
+  const [activeTab, setActiveTab] = useState("analytics");
   const [pendingAppointments, setPendingAppointments] = useState(0);
   const [pendingOrders, setPendingOrders] = useState(0);
 
@@ -85,7 +86,11 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-7 gap-2">
+        <TabsList className="grid w-full grid-cols-8 gap-2">
+          <TabsTrigger value="analytics">
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Analytics
+          </TabsTrigger>
           <TabsTrigger value="services">
             <Wrench className="w-4 h-4 mr-2" />
             Serviços
@@ -125,6 +130,10 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
             Conversas
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="analytics">
+          <AgentAnalyticsPanel agentId={agentId} />
+        </TabsContent>
 
         <TabsContent value="services">
           <AgentServicesPanel agentId={agentId} />

@@ -1581,6 +1581,53 @@ export type Database = {
           },
         ]
       }
+      chatbot_services: {
+        Row: {
+          chatbot_id: string
+          created_at: string
+          description: string | null
+          duration_minutes: number
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          chatbot_id: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          price?: number
+          updated_at?: string
+        }
+        Update: {
+          chatbot_id?: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_services_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chatbots: {
         Row: {
           access_type: string
@@ -2310,6 +2357,8 @@ export type Database = {
           hover_animation: string | null
           id: string
           is_active: boolean | null
+          music_autoplay: boolean | null
+          music_url: string | null
           text_color: string | null
           theme: string | null
           total_clicks: number | null
@@ -2339,6 +2388,8 @@ export type Database = {
           hover_animation?: string | null
           id?: string
           is_active?: boolean | null
+          music_autoplay?: boolean | null
+          music_url?: string | null
           text_color?: string | null
           theme?: string | null
           total_clicks?: number | null
@@ -2368,6 +2419,8 @@ export type Database = {
           hover_animation?: string | null
           id?: string
           is_active?: boolean | null
+          music_autoplay?: boolean | null
+          music_url?: string | null
           text_color?: string | null
           theme?: string | null
           total_clicks?: number | null
