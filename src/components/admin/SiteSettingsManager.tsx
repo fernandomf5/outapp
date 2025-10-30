@@ -36,6 +36,9 @@ export const SiteSettingsManager = () => {
   const [cookieNoticeText, setCookieNoticeText] = useState("");
   const [cookieNoticeEnabled, setCookieNoticeEnabled] = useState(true);
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
+  const [headCode, setHeadCode] = useState("");
+  const [footerCode, setFooterCode] = useState("");
+  const [checkoutBannerUrl, setCheckoutBannerUrl] = useState("");
 
   useEffect(() => {
     fetchSettings();
@@ -52,7 +55,10 @@ export const SiteSettingsManager = () => {
       'footer_images',
       'cookie_notice_text',
       'cookie_notice_enabled',
-      'social_links'
+      'social_links',
+      'head_code',
+      'footer_code',
+      'checkout_banner_url'
     ];
     
     const { data, error } = await supabase
@@ -105,6 +111,15 @@ export const SiteSettingsManager = () => {
               console.error('Error parsing social links:', e);
             }
             break;
+          case 'head_code':
+            setHeadCode(item.value || "");
+            break;
+          case 'footer_code':
+            setFooterCode(item.value || "");
+            break;
+          case 'checkout_banner_url':
+            setCheckoutBannerUrl(item.value || "");
+            break;
         }
       });
     }
@@ -142,7 +157,10 @@ export const SiteSettingsManager = () => {
       saveSetting('footer_images', JSON.stringify(footerImages)),
       saveSetting('cookie_notice_text', cookieNoticeText),
       saveSetting('cookie_notice_enabled', cookieNoticeEnabled.toString()),
-      saveSetting('social_links', JSON.stringify(socialLinks))
+      saveSetting('social_links', JSON.stringify(socialLinks)),
+      saveSetting('head_code', headCode),
+      saveSetting('footer_code', footerCode),
+      saveSetting('checkout_banner_url', checkoutBannerUrl)
     ]);
 
     toast({ title: "Todas as configurações salvas com sucesso!" });
@@ -283,12 +301,13 @@ export const SiteSettingsManager = () => {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="branding" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="branding">Marca</TabsTrigger>
             <TabsTrigger value="social">Redes Sociais</TabsTrigger>
             <TabsTrigger value="footer">Rodapé</TabsTrigger>
             <TabsTrigger value="cookie">Cookie Notice</TabsTrigger>
             <TabsTrigger value="video">Vídeo</TabsTrigger>
+            <TabsTrigger value="codes">Códigos</TabsTrigger>
           </TabsList>
 
           {/* Branding Tab */}
@@ -581,6 +600,69 @@ export const SiteSettingsManager = () => {
                 Exemplo YouTube: https://www.youtube.com/embed/VIDEO_ID
                 <br />
                 Deixe em branco para não exibir o vídeo na landing page.
+              </p>
+            </div>
+          </TabsContent>
+
+          {/* Codes Tab */}
+          <TabsContent value="codes" className="space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="w-4 h-4" />
+                <Label htmlFor="checkout-banner">Banner do Checkout</Label>
+              </div>
+              <Input
+                id="checkout-banner"
+                value={checkoutBannerUrl}
+                onChange={(e) => setCheckoutBannerUrl(e.target.value)}
+                placeholder="URL da imagem do banner do checkout"
+                className="text-sm"
+              />
+              <p className="text-xs text-muted-foreground">
+                Banner que aparecerá na tela de checkout do Mercado Pago (recomendado: 1200x300px)
+              </p>
+              {checkoutBannerUrl && (
+                <div className="mt-2 rounded-lg overflow-hidden border">
+                  <img src={checkoutBannerUrl} alt="Preview" className="w-full h-auto" />
+                </div>
+              )}
+            </div>
+
+            <Separator />
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Globe className="w-4 h-4" />
+                <Label htmlFor="head-code">Código no &lt;head&gt;</Label>
+              </div>
+              <Textarea
+                id="head-code"
+                value={headCode}
+                onChange={(e) => setHeadCode(e.target.value)}
+                placeholder="Cole aqui códigos de tracking, pixels, meta tags, etc."
+                className="font-mono text-sm min-h-[200px]"
+              />
+              <p className="text-xs text-muted-foreground">
+                Este código será inserido no &lt;head&gt; do seu site (Google Analytics, Facebook Pixel, etc.)
+              </p>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Globe className="w-4 h-4" />
+                <Label htmlFor="footer-code">Código antes do &lt;/body&gt;</Label>
+              </div>
+              <Textarea
+                id="footer-code"
+                value={footerCode}
+                onChange={(e) => setFooterCode(e.target.value)}
+                placeholder="Cole aqui scripts que devem ser carregados no final da página"
+                className="font-mono text-sm min-h-[200px]"
+              />
+              <p className="text-xs text-muted-foreground">
+                Este código será inserido antes do fechamento do &lt;/body&gt; (Chat widgets, scripts, etc.)
               </p>
             </div>
           </TabsContent>

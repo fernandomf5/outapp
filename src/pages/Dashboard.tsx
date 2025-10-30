@@ -17,6 +17,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { TutorialVideos } from "@/components/TutorialVideos";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { MyPlanSection } from "@/components/MyPlanSection";
+import { MercadoPagoCheckout } from "@/components/MercadoPagoCheckout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TicketSystem } from "@/components/TicketSystem";
 import { WhatsAppLinkGenerator } from "@/components/WhatsAppLinkGenerator";
@@ -818,7 +819,27 @@ const Dashboard = () => {
 
 
           <TabsContent value="chatbots">
-            <MyChatbots />
+            {selectedChatbotForManagement ? (
+              <Card className="p-6">
+                <div className="mb-6">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setSelectedChatbotForManagement(null);
+                      navigate('/dashboard?tab=chatbots');
+                    }}
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Voltar para Chatbots
+                  </Button>
+                </div>
+                <ChatbotManagementPanel 
+                  chatbot={selectedChatbotForManagement}
+                />
+              </Card>
+            ) : (
+              <MyChatbots />
+            )}
           </TabsContent>
 
           <TabsContent value="ai-agents">

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Check, Crown, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSearchParams } from "react-router-dom";
+import { MercadoPagoCheckout } from "@/components/MercadoPagoCheckout";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +43,7 @@ export const MyPlanSection = () => {
   const [allPlans, setAllPlans] = useState<Plan[]>([]);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [selectedPlanForCheckout, setSelectedPlanForCheckout] = useState<Plan | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -101,13 +103,12 @@ export const MyPlanSection = () => {
   const handleUpgrade = async (planId: string) => {
     if (!user) return;
 
-    // Aqui você implementaria a lógica de pagamento
-    // Por enquanto, vamos apenas mostrar uma mensagem
-    toast({
-      title: "Em breve!",
-      description: "A funcionalidade de pagamento será implementada em breve.",
-    });
-    setUpgradeDialogOpen(false);
+    // Encontrar o plano selecionado
+    const plan = allPlans.find(p => p.id === planId);
+    if (plan) {
+      setSelectedPlanForCheckout(plan);
+      setUpgradeDialogOpen(false);
+    }
   };
 
   const getDaysLeft = () => {
@@ -284,6 +285,14 @@ export const MyPlanSection = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Mercado Pago Checkout */}
+      {selectedPlanForCheckout && (
+        <MercadoPagoCheckout
+          plan={selectedPlanForCheckout}
+          onClose={() => setSelectedPlanForCheckout(null)}
+        />
+      )}
     </>
   );
 };
