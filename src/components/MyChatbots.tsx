@@ -18,7 +18,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export const MyChatbots = () => {
+interface MyChatbotsProps {
+  onManage?: (chatbot: { id: string; name: string }) => void;
+}
+
+export const MyChatbots = ({ onManage }: MyChatbotsProps = {}) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -203,14 +207,16 @@ export const MyChatbots = () => {
                   {t('open_chat')}
                 </Button>
               </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="w-full"
-                onClick={() => navigate(`/dashboard?section=chatbot-management&chatbotId=${bot.id}`)}
-              >
-                Gerenciar
-              </Button>
+              {onManage && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => onManage({ id: bot.id, name: bot.name })}
+                >
+                  Gerenciar
+                </Button>
+              )}
             </div>
           </Card>
         ))}

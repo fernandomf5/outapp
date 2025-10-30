@@ -67,15 +67,15 @@ const Dashboard = () => {
   const section = searchParams.get('section');
   const chatbotId = searchParams.get('chatbotId');
 
-  // Se tiver chatbotId e section=chatbot-management, abrir painel de gerenciamento
+  // Se tiver chatbotId na URL, abrir painel de gerenciamento
   useEffect(() => {
-    if (section === 'chatbot-management' && chatbotId) {
+    if (chatbotId && activeTab === 'chatbots') {
       const chatbot = chatbots.find((c) => c.id === chatbotId);
       if (chatbot) {
         setSelectedChatbotForManagement(chatbot);
       }
     }
-  }, [section, chatbotId, chatbots]);
+  }, [chatbotId, chatbots, activeTab]);
 
 
   useEffect(() => {
@@ -820,25 +820,26 @@ const Dashboard = () => {
 
           <TabsContent value="chatbots">
             {selectedChatbotForManagement ? (
-              <Card className="p-6">
-                <div className="mb-6">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      setSelectedChatbotForManagement(null);
-                      navigate('/dashboard?tab=chatbots');
-                    }}
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Voltar para Chatbots
-                  </Button>
-                </div>
+              <div>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setSelectedChatbotForManagement(null);
+                    navigate('/dashboard?tab=chatbots');
+                  }}
+                  className="mb-4"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Voltar para Chatbots
+                </Button>
                 <ChatbotManagementPanel 
                   chatbot={selectedChatbotForManagement}
                 />
-              </Card>
+              </div>
             ) : (
-              <MyChatbots />
+              <MyChatbots 
+                onManage={(chatbot) => setSelectedChatbotForManagement(chatbot)}
+              />
             )}
           </TabsContent>
 
