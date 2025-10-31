@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, Pencil, Trash2, Copy, ExternalLink } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Bot, Pencil, Trash2, Copy, ExternalLink, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +31,7 @@ export const MyChatbots = ({ onManage }: MyChatbotsProps = {}) => {
   const [chatbots, setChatbots] = useState<any[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState<Record<string, number>>({});
 
   useEffect(() => {
     fetchChatbots();
@@ -64,8 +66,30 @@ export const MyChatbots = ({ onManage }: MyChatbotsProps = {}) => {
 
     if (!error && data) {
       setChatbots(data);
+      fetchNotifications(data.map(bot => bot.id));
     }
     setLoading(false);
+  };
+
+  const fetchNotifications = async (chatbotIds: string[]) => {
+    if (chatbotIds.length === 0) return;
+
+    const { data: notificationsData } = await supabase
+      .from('chatbot_notifications')
+      .select('chatbot_id')
+      .in('chatbot_id', chatbotIds)
+      .eq('is_read', false);
+
+    const notifCounts: Record<string, number> = {};
+    chatbotIds.forEach(id => {
+      notifCounts[id] = 0;
+    });
+
+    notificationsData?.forEach(item => {
+      notifCounts[item.chatbot_id]++;
+    });
+
+    setNotifications(notifCounts);
   };
 
   const handleEdit = (botId: string) => {
@@ -144,8 +168,19 @@ export const MyChatbots = ({ onManage }: MyChatbotsProps = {}) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {chatbots.map((bot) => (
-          <Card key={bot.id} className="p-6 hover:shadow-lg transition-all">
+        {chatbots.map((bot) => {
+          const unreadCount = notifications[bot.id] || 0;
+          
+          return (
+          <Card key={bot.id} className="p-6 hover:shadow-lg transition-all relative">
+            {unreadCount > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-2 -right-2 h-6 min-w-6 flex items-center justify-center rounded-full text-xs font-bold"
+              >
+                {unreadCount}
+              </Badge>
+            )}
             <div className="flex items-start justify-between mb-4">
               <div className="bg-primary/10 p-3 rounded-xl">
                 <Bot className="w-6 h-6 text-primary" />
@@ -166,6 +201,20 @@ export const MyChatbots = ({ onManage }: MyChatbotsProps = {}) => {
                   title="Excluir"
                 >
                   <Trash2 className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative"
+                  onClick={() => onManage && onManage({ id: bot.id, name: bot.name })}
+                  title="Notificações"
+                >
+                  <Bell className="w-4 h-4" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-destructive rounded-full flex items-center justify-center text-[10px] text-white">
+                      {unreadCount}
+                    </span>
+                  )}
                 </Button>
               </div>
             </div>
@@ -219,7 +268,8 @@ export const MyChatbots = ({ onManage }: MyChatbotsProps = {}) => {
               )}
             </div>
           </Card>
-        ))}
+        );
+        })}
       </div>
 
       <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>

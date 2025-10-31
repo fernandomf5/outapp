@@ -17,6 +17,7 @@ interface Conversation {
   status: string;
   created_at: string;
   last_message_at: string;
+  ai_enabled?: boolean;
   agent_customers: {
     name: string;
     email: string;
@@ -165,6 +166,9 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
       // Salvar nome no localStorage
       localStorage.setItem(`agent_sender_name_${agentId}`, senderName);
 
+      // Verificar se AI está habilitada
+      const needsDisableAI = selectedConversation.ai_enabled;
+
       // Inserir mensagem do atendente humano
       const { error: msgError } = await supabase
         .from('agent_messages')
@@ -177,28 +181,32 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
 
       if (msgError) throw msgError;
 
-      // Desabilitar IA automaticamente quando humano responde
-      const { error: convError } = await supabase
-        .from('agent_conversations')
-        .update({ ai_enabled: false })
-        .eq('id', selectedConversation.id);
+      // Desabilitar IA automaticamente quando humano responde (apenas se ainda estiver habilitada)
+      if (needsDisableAI) {
+        const { error: convError } = await supabase
+          .from('agent_conversations')
+          .update({ ai_enabled: false })
+          .eq('id', selectedConversation.id);
 
-      if (convError) throw convError;
+        if (convError) throw convError;
 
-      // Inserir mensagem de sistema informando "atendente humano"
-      await supabase
-        .from('agent_messages')
-        .insert({
-          conversation_id: selectedConversation.id,
-          role: 'agent',
-          content: '👤 Atendente humano assumiu a conversa',
-          sender_name: 'Sistema',
-        });
+        // Inserir mensagem de sistema informando "atendente humano" apenas 1 vez
+        await supabase
+          .from('agent_messages')
+          .insert({
+            conversation_id: selectedConversation.id,
+            role: 'agent',
+            content: '👤 Atendente humano assumiu a conversa',
+            sender_name: 'Sistema',
+          });
+
+        setSelectedConversation({ ...selectedConversation, ai_enabled: false });
+      }
 
       setNewMessage("");
       toast({
         title: "Mensagem enviada",
-        description: "Você assumiu o atendimento desta conversa. A IA foi desabilitada.",
+        description: needsDisableAI ? "Você assumiu o atendimento desta conversa. A IA foi desabilitada." : "Mensagem enviada com sucesso.",
       });
     } catch (error: any) {
       toast({

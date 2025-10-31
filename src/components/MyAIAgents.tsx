@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Pencil, Trash2, Copy, ExternalLink, Settings } from "lucide-react";
+import { Sparkles, Pencil, Trash2, Copy, ExternalLink, Settings, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,7 +31,7 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
   const [agents, setAgents] = useState<any[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [notifications, setNotifications] = useState<Record<string, { appointments: number; orders: number }>>({});
+  const [notifications, setNotifications] = useState<Record<string, { appointments: number; orders: number; messages: number }>>({});
 
   useEffect(() => {
     fetchAgents();
@@ -88,11 +88,18 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
       .in('agent_id', agentIds)
       .eq('status', 'pending');
 
+    // Buscar notificações não lidas
+    const { data: messagesData } = await supabase
+      .from('agent_notifications')
+      .select('agent_id')
+      .in('agent_id', agentIds)
+      .eq('is_read', false);
+
     // Contar notificações por agente
-    const notifCounts: Record<string, { appointments: number; orders: number }> = {};
+    const notifCounts: Record<string, { appointments: number; orders: number; messages: number }> = {};
     
     agentIds.forEach(id => {
-      notifCounts[id] = { appointments: 0, orders: 0 };
+      notifCounts[id] = { appointments: 0, orders: 0, messages: 0 };
     });
 
     appointmentsData?.forEach(item => {
@@ -101,6 +108,10 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
 
     ordersData?.forEach(item => {
       notifCounts[item.agent_id].orders++;
+    });
+
+    messagesData?.forEach(item => {
+      notifCounts[item.agent_id].messages++;
     });
 
     setNotifications(notifCounts);
@@ -195,7 +206,7 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {agents.map((agent) => {
-          const totalNotifications = (notifications[agent.id]?.appointments || 0) + (notifications[agent.id]?.orders || 0);
+          const totalNotifications = (notifications[agent.id]?.appointments || 0) + (notifications[agent.id]?.orders || 0) + (notifications[agent.id]?.messages || 0);
           
           return (
           <Card key={agent.id} className="p-6 hover:shadow-lg transition-all relative">
@@ -227,6 +238,20 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
                   title="Excluir"
                 >
                   <Trash2 className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative"
+                  onClick={() => onManage && onManage({ id: agent.id, name: agent.name, niche: agent.niche })}
+                  title="Notificações"
+                >
+                  <Bell className="w-4 h-4" />
+                  {totalNotifications > 0 && (
+                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-destructive rounded-full flex items-center justify-center text-[10px] text-white">
+                      {totalNotifications}
+                    </span>
+                  )}
                 </Button>
               </div>
             </div>

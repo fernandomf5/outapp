@@ -39,7 +39,7 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chatbot_messages' }, (payload) => {
         if (selectedConversation && payload.new.conversation_id === selectedConversation.id) {
-          loadMessages(selectedConversation.id);
+          setMessages(prev => [...prev, payload.new]);
         }
       })
       .subscribe();
@@ -47,7 +47,7 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [chatbotId]);
+  }, [chatbotId, selectedConversation]);
 
   useEffect(() => {
     if (selectedConversation) {
@@ -116,6 +116,9 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
       // Salvar nome no localStorage
       localStorage.setItem(`chatbot_sender_name_${chatbotId}`, senderName);
 
+      // Verificar se AI está habilitada
+      const needsDisableAI = selectedConversation.ai_enabled;
+
       // Inserir mensagem do atendente humano com role 'bot' (será exibida do lado do bot)
       const { error: msgError } = await supabase
         .from('chatbot_messages')
@@ -128,29 +131,32 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
 
       if (msgError) throw msgError;
 
-      // Desabilitar IA automaticamente quando humano responde
-      const { error: convError } = await supabase
-        .from('chatbot_conversations')
-        .update({ ai_enabled: false })
-        .eq('id', selectedConversation.id);
+      // Desabilitar IA automaticamente quando humano responde (apenas se ainda estiver habilitada)
+      if (needsDisableAI) {
+        const { error: convError } = await supabase
+          .from('chatbot_conversations')
+          .update({ ai_enabled: false })
+          .eq('id', selectedConversation.id);
 
-      if (convError) throw convError;
+        if (convError) throw convError;
 
-      // Inserir mensagem de sistema informando "atendente humano"
-      await supabase
-        .from('chatbot_messages')
-        .insert({
-          conversation_id: selectedConversation.id,
-          role: 'assistant',
-          content: '👤 Atendente humano entrou na conversa',
-          sender_name: 'Sistema',
-        });
+        // Inserir mensagem de sistema informando "atendente humano" apenas 1 vez
+        await supabase
+          .from('chatbot_messages')
+          .insert({
+            conversation_id: selectedConversation.id,
+            role: 'assistant',
+            content: '👤 Atendente humano entrou na conversa',
+            sender_name: 'Sistema',
+          });
+
+        setSelectedConversation({ ...selectedConversation, ai_enabled: false });
+      }
 
       setNewMessage("");
-      loadMessages(selectedConversation.id);
       toast({
         title: "Mensagem enviada",
-        description: "Você assumiu o atendimento desta conversa.",
+        description: needsDisableAI ? "Você assumiu o atendimento desta conversa." : "Mensagem enviada com sucesso.",
       });
     } catch (error) {
       console.error('Error sending message:', error);
