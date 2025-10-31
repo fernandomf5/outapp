@@ -78,19 +78,27 @@ export const ChatbotManagementPanel = ({ chatbot }: ChatbotManagementPanelProps)
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold mb-2">Gestão do Chatbot: {chatbot.name}</h2>
+        <h2 className="text-3xl font-bold mb-2">Gerenciar Chatbot: {chatbot.name}</h2>
         <p className="text-muted-foreground">
-          Gerencie todos os aspectos do seu chatbot de forma centralizada
+          Gerencie agendamentos, pedidos e clientes do seu chatbot
         </p>
       </div>
 
-      <Tabs defaultValue="analytics" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7 h-auto gap-2">
-          <TabsTrigger value="analytics" className="text-xs">Analytics</TabsTrigger>
-          <TabsTrigger value="services" className="text-xs">Serviços</TabsTrigger>
-          <TabsTrigger value="products" className="text-xs">Produtos</TabsTrigger>
-          <TabsTrigger value="schedule" className="text-xs">Horários</TabsTrigger>
-          <TabsTrigger value="appointments" className="text-xs relative">
+      <Tabs defaultValue="analytics" className="w-full">
+        <TabsList className="grid w-full grid-cols-8 gap-2">
+          <TabsTrigger value="analytics">
+            Analytics
+          </TabsTrigger>
+          <TabsTrigger value="services">
+            Serviços
+          </TabsTrigger>
+          <TabsTrigger value="products">
+            Produtos
+          </TabsTrigger>
+          <TabsTrigger value="schedule">
+            Horários
+          </TabsTrigger>
+          <TabsTrigger value="appointments" className="relative">
             Agendamentos
             {pendingAppointments > 0 && (
               <Badge variant="destructive" className="ml-2 h-5 min-w-5 flex items-center justify-center rounded-full text-xs">
@@ -98,7 +106,7 @@ export const ChatbotManagementPanel = ({ chatbot }: ChatbotManagementPanelProps)
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="orders" className="text-xs relative">
+          <TabsTrigger value="orders" className="relative">
             Pedidos
             {pendingOrders > 0 && (
               <Badge variant="destructive" className="ml-2 h-5 min-w-5 flex items-center justify-center rounded-full text-xs">
@@ -106,8 +114,12 @@ export const ChatbotManagementPanel = ({ chatbot }: ChatbotManagementPanelProps)
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="customers" className="text-xs">Clientes</TabsTrigger>
-          <TabsTrigger value="conversations" className="text-xs">Conversas</TabsTrigger>
+          <TabsTrigger value="customers">
+            Clientes
+          </TabsTrigger>
+          <TabsTrigger value="conversations">
+            Conversas
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="analytics">

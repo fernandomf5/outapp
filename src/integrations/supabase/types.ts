@@ -419,6 +419,7 @@ export type Database = {
       agent_conversations: {
         Row: {
           agent_id: string
+          ai_enabled: boolean
           created_at: string
           customer_id: string
           id: string
@@ -428,6 +429,7 @@ export type Database = {
         }
         Insert: {
           agent_id: string
+          ai_enabled?: boolean
           created_at?: string
           customer_id: string
           id?: string
@@ -437,6 +439,7 @@ export type Database = {
         }
         Update: {
           agent_id?: string
+          ai_enabled?: boolean
           created_at?: string
           customer_id?: string
           id?: string
@@ -1193,6 +1196,7 @@ export type Database = {
       }
       chatbot_conversations: {
         Row: {
+          ai_enabled: boolean
           chatbot_id: string
           created_at: string
           id: string
@@ -1205,6 +1209,7 @@ export type Database = {
           visitor_phone: string | null
         }
         Insert: {
+          ai_enabled?: boolean
           chatbot_id: string
           created_at?: string
           id?: string
@@ -1217,6 +1222,7 @@ export type Database = {
           visitor_phone?: string | null
         }
         Update: {
+          ai_enabled?: boolean
           chatbot_id?: string
           created_at?: string
           id?: string

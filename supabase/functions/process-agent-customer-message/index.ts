@@ -31,6 +31,21 @@ serve(async (req) => {
       throw new Error('Agente não encontrado');
     }
 
+    // Check if AI is enabled for this conversation
+    const { data: conversation } = await supabase
+      .from('agent_conversations')
+      .select('ai_enabled')
+      .eq('id', conversationId)
+      .single();
+
+    // If AI is disabled (human attendant is handling), skip AI processing
+    if (conversation && !conversation.ai_enabled) {
+      return new Response(
+        JSON.stringify({ response: '' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Get customer info (tolerate anonymous/no-record sessions)
     const { data: customerRecord } = await supabase
       .from('agent_customers')

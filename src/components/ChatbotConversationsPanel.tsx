@@ -116,22 +116,41 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
       // Salvar nome no localStorage
       localStorage.setItem(`chatbot_sender_name_${chatbotId}`, senderName);
 
-      const { error } = await supabase
+      // Inserir mensagem do atendente humano com role 'bot' (será exibida do lado do bot)
+      const { error: msgError } = await supabase
         .from('chatbot_messages')
         .insert({
           conversation_id: selectedConversation.id,
-          role: 'assistant',
+          role: 'bot',
           content: newMessage,
           sender_name: senderName,
         });
 
-      if (error) throw error;
+      if (msgError) throw msgError;
+
+      // Desabilitar IA automaticamente quando humano responde
+      const { error: convError } = await supabase
+        .from('chatbot_conversations')
+        .update({ ai_enabled: false })
+        .eq('id', selectedConversation.id);
+
+      if (convError) throw convError;
+
+      // Inserir mensagem de sistema informando "atendente humano"
+      await supabase
+        .from('chatbot_messages')
+        .insert({
+          conversation_id: selectedConversation.id,
+          role: 'assistant',
+          content: '👤 Atendente humano entrou na conversa',
+          sender_name: 'Sistema',
+        });
 
       setNewMessage("");
       loadMessages(selectedConversation.id);
       toast({
         title: "Mensagem enviada",
-        description: "Sua mensagem foi enviada com sucesso.",
+        description: "Você assumiu o atendimento desta conversa.",
       });
     } catch (error) {
       console.error('Error sending message:', error);

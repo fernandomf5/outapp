@@ -49,10 +49,35 @@ export const ChatbotProductsPanel = ({ chatbotId }: { chatbotId: string }) => {
 
   const handleSubmit = async () => {
     try {
+      if (!formData.name.trim() || !formData.price) {
+        toast({ 
+          title: "Campos obrigatórios", 
+          description: "Preencha nome e preço do produto",
+          variant: "destructive" 
+        });
+        return;
+      }
+
+      const priceValue = parseFloat(formData.price);
+      if (isNaN(priceValue) || priceValue < 0) {
+        toast({ 
+          title: "Preço inválido", 
+          description: "Digite um preço válido",
+          variant: "destructive" 
+        });
+        return;
+      }
+
       if (editingProduct) {
         const { error } = await supabase
           .from('chatbot_products')
-          .update({ ...formData, price: parseFloat(formData.price) })
+          .update({ 
+            name: formData.name,
+            description: formData.description,
+            price: priceValue,
+            type: formData.type,
+            is_active: formData.is_active,
+          })
           .eq('id', editingProduct.id);
 
         if (error) throw error;
@@ -60,7 +85,14 @@ export const ChatbotProductsPanel = ({ chatbotId }: { chatbotId: string }) => {
       } else {
         const { error } = await supabase
           .from('chatbot_products')
-          .insert({ ...formData, chatbot_id: chatbotId, price: parseFloat(formData.price) });
+          .insert({ 
+            chatbot_id: chatbotId,
+            name: formData.name,
+            description: formData.description,
+            price: priceValue,
+            type: formData.type,
+            is_active: formData.is_active,
+          });
 
         if (error) throw error;
         toast({ title: "Produto criado com sucesso" });
@@ -70,9 +102,13 @@ export const ChatbotProductsPanel = ({ chatbotId }: { chatbotId: string }) => {
       setEditingProduct(null);
       setFormData({ name: "", description: "", price: "", type: "product", is_active: true, image_url: "" });
       loadProducts();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving product:', error);
-      toast({ title: "Erro ao salvar produto", variant: "destructive" });
+      toast({ 
+        title: "Erro ao salvar produto", 
+        description: error.message || "Erro desconhecido",
+        variant: "destructive" 
+      });
     }
   };
 
