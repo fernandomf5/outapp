@@ -113,6 +113,9 @@ export default function ChatbotCustomerChat() {
         setConversationId(activeConv.id);
         await loadMessages(activeConv.id);
       } else {
+        // Process flow initial message
+        await processInitialFlow(chatbot);
+        
         // Create new conversation with unique session_id
         const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const { data: newConv } = await supabase
@@ -130,6 +133,9 @@ export default function ChatbotCustomerChat() {
           .single();
 
         setConversationId(newConv.id);
+        
+        // Process flow initial message after creating conversation
+        await processInitialFlowMessages(chatbot, newConv.id);
 
         // Create notification for new conversation
         await supabase
@@ -162,6 +168,89 @@ export default function ChatbotCustomerChat() {
     setMessages((data || []) as Message[]);
   };
 
+  const processInitialFlowMessages = async (chatbot: any, convId: string) => {
+    if (!chatbot?.config?.nodes || !chatbot?.config?.edges) return;
+
+    // Find trigger node
+    const triggerNode = chatbot.config.nodes.find((n: any) => n.type === 'triggerNode');
+    if (!triggerNode) return;
+
+    // Find connected nodes from trigger
+    const connectedEdges = chatbot.config.edges.filter((e: any) => e.source === triggerNode.id);
+    
+    for (const edge of connectedEdges) {
+      const targetNode = chatbot.config.nodes.find((n: any) => n.id === edge.target);
+      if (!targetNode) continue;
+
+      // Process node based on type
+      let messageContent = '';
+      let mediaUrl = '';
+      let mediaType = '';
+
+      switch (targetNode.type) {
+        case 'textNode':
+          messageContent = targetNode.data?.text || '';
+          break;
+        case 'messageNode':
+          messageContent = targetNode.data?.message || '';
+          break;
+        case 'imageNode':
+          mediaUrl = targetNode.data?.imageUrl || '';
+          mediaType = 'image';
+          messageContent = targetNode.data?.caption || 'Imagem';
+          break;
+        case 'videoNode':
+          mediaUrl = targetNode.data?.videoUrl || '';
+          mediaType = 'video';
+          messageContent = targetNode.data?.caption || 'Vídeo';
+          break;
+        case 'audioNode':
+          mediaUrl = targetNode.data?.audioUrl || '';
+          mediaType = 'audio';
+          messageContent = targetNode.data?.caption || 'Áudio';
+          break;
+        case 'documentNode':
+          mediaUrl = targetNode.data?.documentUrl || '';
+          mediaType = 'document';
+          messageContent = targetNode.data?.caption || 'Documento';
+          break;
+        case 'buttonNode':
+          const buttons = targetNode.data?.buttons || [];
+          messageContent = targetNode.data?.message || '';
+          if (buttons.length > 0) {
+            messageContent += '\n\nOpções:\n' + buttons.map((b: any, i: number) => `${i + 1}. ${b.text}`).join('\n');
+          }
+          break;
+        case 'quickReplyNode':
+          const replies = targetNode.data?.quickReplies || [];
+          messageContent = targetNode.data?.message || '';
+          if (replies.length > 0) {
+            messageContent += '\n\n' + replies.map((r: any) => `• ${r}`).join('\n');
+          }
+          break;
+        case 'questionNode':
+          messageContent = targetNode.data?.question || '';
+          break;
+      }
+
+      if (messageContent || mediaUrl) {
+        await supabase.from('chatbot_messages').insert({
+          conversation_id: convId,
+          role: 'bot',
+          content: messageContent,
+          media_url: mediaUrl || null,
+          media_type: mediaType || null,
+          node_id: targetNode.id,
+        });
+      }
+    }
+  };
+
+  const processInitialFlow = async (chatbot: any) => {
+    // This function is called before conversation is created
+    // Just marks that flow should be processed
+  };
+
   const setupRealtimeSubscription = () => {
     const channel = supabase
       .channel('chatbot-messages')
@@ -192,11 +281,12 @@ export default function ChatbotCustomerChat() {
     setInput("");
 
     try {
-      // Save user message
+      // Save user message with customer name
       await supabase.from('chatbot_messages').insert({
         conversation_id: conversationId,
         role: 'user',
         content: userMessage,
+        sender_name: customer?.name || 'Visitante',
       });
 
       // Update conversation last_message_at
@@ -242,8 +332,8 @@ export default function ChatbotCustomerChat() {
 
           <ScrollArea className="flex-1 p-4">
             <div className="space-y-4">
-              {/* Mensagem inicial do chatbot (não salva no banco) */}
-              {chatbotInfo?.config?.initialMessage && messages.length === 0 && (
+              {/* Removed static initial message - now using flow */}
+              {chatbotInfo?.config?.initialMessage && false && (
                 <div className="flex flex-col items-start">
                   <span className="text-xs text-muted-foreground mb-1 px-1">
                     {chatbotInfo?.config?.attendantName || chatbotInfo?.name || 'Atendente'}

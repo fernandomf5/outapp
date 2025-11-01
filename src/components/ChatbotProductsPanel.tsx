@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Plus, Edit, Trash, Loader2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Package, Plus, Pencil, Trash2, DollarSign, Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const ChatbotProductsPanel = ({ chatbotId }: { chatbotId: string }) => {
@@ -23,6 +26,8 @@ export const ChatbotProductsPanel = ({ chatbotId }: { chatbotId: string }) => {
     price: "",
     type: "product",
     is_active: true,
+    category: "",
+    stock_quantity: "",
     image_url: "",
   });
 
@@ -48,66 +53,66 @@ export const ChatbotProductsPanel = ({ chatbotId }: { chatbotId: string }) => {
   };
 
   const handleSubmit = async () => {
-    try {
-      if (!formData.name.trim() || !formData.price) {
-        toast({ 
-          title: "Campos obrigatórios", 
-          description: "Preencha nome e preço do produto",
-          variant: "destructive" 
-        });
-        return;
-      }
+    if (!formData.name || !formData.price) {
+      toast({
+        title: "Erro",
+        description: "Nome e preço são obrigatórios",
+        variant: "destructive",
+      });
+      return;
+    }
 
-      const priceValue = parseFloat(formData.price);
-      if (isNaN(priceValue) || priceValue < 0) {
-        toast({ 
-          title: "Preço inválido", 
-          description: "Digite um preço válido",
-          variant: "destructive" 
-        });
-        return;
-      }
+    try {
+      const productData = {
+        chatbot_id: chatbotId,
+        name: formData.name,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        type: formData.type,
+        is_active: formData.is_active,
+      };
 
       if (editingProduct) {
         const { error } = await supabase
           .from('chatbot_products')
-          .update({ 
-            name: formData.name,
-            description: formData.description,
-            price: priceValue,
-            type: formData.type,
-            is_active: formData.is_active,
-          })
+          .update(productData)
           .eq('id', editingProduct.id);
 
         if (error) throw error;
-        toast({ title: "Produto atualizado com sucesso" });
+
+        toast({
+          title: "Produto atualizado!",
+        });
       } else {
         const { error } = await supabase
           .from('chatbot_products')
-          .insert({ 
-            chatbot_id: chatbotId,
-            name: formData.name,
-            description: formData.description,
-            price: priceValue,
-            type: formData.type,
-            is_active: formData.is_active,
-          });
+          .insert(productData);
 
         if (error) throw error;
-        toast({ title: "Produto criado com sucesso" });
+
+        toast({
+          title: "Produto criado!",
+        });
       }
 
       setIsDialogOpen(false);
       setEditingProduct(null);
-      setFormData({ name: "", description: "", price: "", type: "product", is_active: true, image_url: "" });
+      setFormData({
+        name: "",
+        description: "",
+        price: "",
+        type: "product",
+        is_active: true,
+        category: "",
+        stock_quantity: "",
+        image_url: "",
+      });
       loadProducts();
     } catch (error: any) {
-      console.error('Error saving product:', error);
-      toast({ 
-        title: "Erro ao salvar produto", 
-        description: error.message || "Erro desconhecido",
-        variant: "destructive" 
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
       });
     }
   };
@@ -196,43 +201,78 @@ export const ChatbotProductsPanel = ({ chatbotId }: { chatbotId: string }) => {
           <DialogTrigger asChild>
             <Button onClick={() => {
               setEditingProduct(null);
-              setFormData({ name: "", description: "", price: "", type: "product", is_active: true, image_url: "" });
+              setFormData({ 
+                name: "", 
+                description: "", 
+                price: "", 
+                type: "product", 
+                is_active: true, 
+                category: "",
+                stock_quantity: "",
+                image_url: "" 
+              });
             }}>
               <Plus className="h-4 w-4 mr-2" />
               Novo Produto
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>{editingProduct ? "Editar" : "Novo"} Produto</DialogTitle>
+              <DialogTitle>
+                {editingProduct ? "Editar Produto" : "Novo Produto"}
+              </DialogTitle>
+              <DialogDescription>
+                Preencha as informações do produto ou serviço
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <Input
-                placeholder="Nome"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
-              <Textarea
-                placeholder="Descrição"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              />
-              <Input
-                type="number"
-                placeholder="Preço"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-              />
-              <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="product">Produto</SelectItem>
-                  <SelectItem value="service">Serviço</SelectItem>
-                </SelectContent>
-              </Select>
               <div>
+                <Label htmlFor="name">Nome *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">Descrição</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="price">Preço (R$) *</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    step="0.01"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="category">Categoria</Label>
+                  <Input
+                    id="category"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="stock">Estoque</Label>
+                <Input
+                  id="stock"
+                  type="number"
+                  value={formData.stock_quantity}
+                  onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="image">Imagem do Produto</Label>
                 {formData.image_url && (
                   <div className="mb-3 relative">
                     <img 
@@ -253,6 +293,7 @@ export const ChatbotProductsPanel = ({ chatbotId }: { chatbotId: string }) => {
                 )}
                 <div className="flex items-center gap-2">
                   <Input
+                    id="image"
                     type="file"
                     accept="image/*"
                     onChange={handleImageUpload}
@@ -265,31 +306,74 @@ export const ChatbotProductsPanel = ({ chatbotId }: { chatbotId: string }) => {
                   PNG, JPG ou WEBP (máx. 5MB)
                 </p>
               </div>
-              <Button onClick={handleSubmit} className="w-full">Salvar</Button>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="available"
+                  checked={formData.is_active}
+                  onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                />
+                <Label htmlFor="available">Disponível para venda</Label>
+              </div>
+              <Button onClick={handleSubmit} className="w-full">
+                {editingProduct ? "Atualizar" : "Criar"} Produto
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="grid gap-4">
-        {products.map((product) => (
-          <Card key={product.id}>
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <h4 className="font-medium">{product.name}</h4>
-                  <p className="text-sm text-muted-foreground">{product.description}</p>
-                  <p className="text-lg font-bold">R$ {product.price}</p>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    product.is_active ? 'bg-success/10 text-success' : 'bg-muted'
-                  }`}>
-                    {product.is_active ? 'Ativo' : 'Inativo'}
-                  </span>
+      {products.length === 0 ? (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Package className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-muted-foreground mb-4">Nenhum produto cadastrado</p>
+            <Button onClick={() => setIsDialogOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar Primeiro Produto
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {products.map((product) => (
+            <Card key={product.id}>
+              {product.image_url && (
+                <div className="aspect-video w-full overflow-hidden rounded-t-lg">
+                  <img
+                    src={product.image_url}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle className="text-lg">{product.name}</CardTitle>
+                    {product.type && (
+                      <Badge variant="outline" className="mt-1">{product.type}</Badge>
+                    )}
+                  </div>
+                  <Badge variant={product.is_active ? "default" : "secondary"}>
+                    {product.is_active ? "Disponível" : "Indisponível"}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {product.description && (
+                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                    {product.description}
+                  </p>
+                )}
+                <div className="flex items-center gap-2 mb-3">
+                  <DollarSign className="w-4 h-4 text-green-600" />
+                  <span className="text-xl font-bold">R$ {Number(product.price).toFixed(2)}</span>
                 </div>
                 <div className="flex gap-2">
                   <Button
-                    variant="ghost"
-                    size="icon"
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
                     onClick={() => {
                       setEditingProduct(product);
                       setFormData({
@@ -298,26 +382,29 @@ export const ChatbotProductsPanel = ({ chatbotId }: { chatbotId: string }) => {
                         price: product.price.toString(),
                         type: product.type,
                         is_active: product.is_active,
+                        category: "",
+                        stock_quantity: "",
                         image_url: product.image_url || "",
                       });
                       setIsDialogOpen(true);
                     }}
                   >
-                    <Edit className="h-4 w-4" />
+                    <Pencil className="w-4 h-4 mr-1" />
+                    Editar
                   </Button>
                   <Button
-                    variant="ghost"
-                    size="icon"
+                    variant="destructive"
+                    size="sm"
                     onClick={() => handleDelete(product.id)}
                   >
-                    <Trash className="h-4 w-4" />
+                    <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

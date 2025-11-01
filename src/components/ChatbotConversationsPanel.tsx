@@ -357,12 +357,15 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
                       );
                     }
                     
-                    // Mensagens normais (usuário ou chatbot)
+                     // Mensagens normais (usuário ou chatbot)
                     return (
                       <div
                         key={message.id}
-                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                        className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}
                       >
+                        <span className="text-xs text-muted-foreground mb-1 px-1">
+                          {message.role === 'user' ? (selectedConversation.visitor_name || 'Cliente') : (message.sender_name || 'Bot')}
+                        </span>
                         <div
                           className={`max-w-[70%] rounded-lg p-3 ${
                             message.role === 'user'

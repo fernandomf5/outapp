@@ -3,6 +3,7 @@ import { Bot, Sparkles, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, Cred
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { ConversationNotificationBell } from "@/components/ConversationNotificationBell";
 import {
   Sidebar,
   SidebarContent,
