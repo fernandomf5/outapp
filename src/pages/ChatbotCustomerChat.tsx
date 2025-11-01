@@ -6,7 +6,11 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, LogOut } from "lucide-react";
+import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import ChatbotAppointmentDialog from "@/components/ChatbotAppointmentDialog";
+import ChatbotOrderDialog from "@/components/ChatbotOrderDialog";
 
 interface Message {
   id: string;
@@ -27,6 +31,14 @@ export default function ChatbotCustomerChat() {
   const [customer, setCustomer] = useState<any>(null);
   const [chatbotInfo, setChatbotInfo] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [showAppointmentDialog, setShowAppointmentDialog] = useState(false);
+  const [showOrderDialog, setShowOrderDialog] = useState(false);
+  const [hasServices, setHasServices] = useState(false);
+  const [hasProducts, setHasProducts] = useState(false);
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [showAppointments, setShowAppointments] = useState(false);
+  const [showOrders, setShowOrders] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -86,6 +98,93 @@ export default function ChatbotCustomerChat() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Check if chatbot has services and products
+  useEffect(() => {
+    if (!chatbotId) return;
+
+    const checkServicesAndProducts = async () => {
+      const { data: services } = await supabase
+        .from('chatbot_services')
+        .select('id')
+        .eq('chatbot_id', chatbotId)
+        .eq('is_active', true)
+        .limit(1);
+
+      const { data: products } = await supabase
+        .from('chatbot_products')
+        .select('id')
+        .eq('chatbot_id', chatbotId)
+        .eq('is_active', true)
+        .eq('type', 'product')
+        .limit(1);
+
+      setHasServices(services && services.length > 0);
+      setHasProducts(products && products.length > 0);
+    };
+
+    checkServicesAndProducts();
+  }, [chatbotId]);
+
+  // Fetch customer appointments and orders
+  useEffect(() => {
+    if (!customer?.id || !chatbotId) return;
+
+    const fetchCustomerData = async () => {
+      const { data: appointmentsData } = await supabase
+        .from('chatbot_appointments')
+        .select('*')
+        .eq('chatbot_id', chatbotId)
+        .eq('customer_id', customer.id)
+        .order('created_at', { ascending: false });
+
+      const { data: ordersData } = await supabase
+        .from('chatbot_orders')
+        .select('*')
+        .eq('chatbot_id', chatbotId)
+        .eq('customer_id', customer.id)
+        .order('created_at', { ascending: false });
+
+      setAppointments(appointmentsData || []);
+      setOrders(ordersData || []);
+    };
+
+    fetchCustomerData();
+
+    // Real-time subscriptions
+    const appointmentsChannel = supabase
+      .channel(`chatbot-customer-appointments-${customer.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'chatbot_appointments',
+          filter: `customer_id=eq.${customer.id}`,
+        },
+        () => fetchCustomerData()
+      )
+      .subscribe();
+
+    const ordersChannel = supabase
+      .channel(`chatbot-customer-orders-${customer.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'chatbot_orders',
+          filter: `customer_id=eq.${customer.id}`,
+        },
+        () => fetchCustomerData()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(appointmentsChannel);
+      supabase.removeChannel(ordersChannel);
+    };
+  }, [customer?.id, chatbotId]);
 
   const loadChatbotAndConversation = async (customerId: string, customerData?: any) => {
     try {
@@ -320,14 +419,108 @@ export default function ChatbotCustomerChat() {
     <div className="min-h-screen gradient-primary">
       <div className="container mx-auto max-w-4xl h-screen flex flex-col p-4">
         <Card className="flex-1 flex flex-col">
-          <div className="p-4 border-b flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold">{chatbotInfo?.name || 'Chat'}</h2>
-              <p className="text-sm text-muted-foreground">Olá, {customer?.name}!</p>
+          <div className="p-4 border-b">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-bold">{chatbotInfo?.name || 'Chat'}</h2>
+                <p className="text-sm text-muted-foreground">Olá, {customer?.name}!</p>
+              </div>
+              <Button variant="ghost" size="icon" onClick={handleLogout}>
+                <LogOut className="w-5 h-5" />
+              </Button>
             </div>
-            <Button variant="ghost" size="icon" onClick={handleLogout}>
-              <LogOut className="w-5 h-5" />
-            </Button>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+              {hasServices && (
+                <Button
+                  onClick={() => setShowAppointmentDialog(true)}
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Agendar
+                </Button>
+              )}
+              {hasProducts && (
+                <Button
+                  onClick={() => setShowOrderDialog(true)}
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                >
+                  <ShoppingBag className="w-4 h-4 mr-2" />
+                  Fazer Pedido
+                </Button>
+              )}
+            </div>
+
+            {/* Appointments Section */}
+            {appointments.length > 0 && (
+              <Collapsible open={showAppointments} onOpenChange={setShowAppointments} className="mt-4">
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between">
+                    <span className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      Meus Agendamentos ({appointments.length})
+                    </span>
+                    {showAppointments ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-2 mt-2">
+                  {appointments.map((apt) => (
+                    <div key={apt.id} className="p-3 border rounded-lg bg-muted/50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">
+                            {new Date(apt.date).toLocaleString('pt-BR')}
+                          </p>
+                          {apt.notes && (
+                            <p className="text-xs text-muted-foreground mt-1">{apt.notes}</p>
+                          )}
+                        </div>
+                        <Badge variant={apt.status === 'confirmed' ? 'default' : apt.status === 'cancelled' ? 'destructive' : 'secondary'}>
+                          {apt.status === 'pending' ? 'Pendente' : apt.status === 'confirmed' ? 'Confirmado' : 'Cancelado'}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+
+            {/* Orders Section */}
+            {orders.length > 0 && (
+              <Collapsible open={showOrders} onOpenChange={setShowOrders} className="mt-2">
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between">
+                    <span className="flex items-center gap-2">
+                      <ShoppingBag className="w-4 h-4" />
+                      Meus Pedidos ({orders.length})
+                    </span>
+                    {showOrders ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-2 mt-2">
+                  {orders.map((order) => (
+                    <div key={order.id} className="p-3 border rounded-lg bg-muted/50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">R$ {Number(order.total).toFixed(2)}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(order.created_at).toLocaleString('pt-BR')}
+                          </p>
+                        </div>
+                        <Badge variant={order.status === 'confirmed' ? 'default' : order.status === 'cancelled' ? 'destructive' : 'secondary'}>
+                          {order.status === 'pending' ? 'Pendente' : order.status === 'confirmed' ? 'Confirmado' : 'Cancelado'}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            )}
           </div>
 
           <ScrollArea className="flex-1 p-4">
@@ -390,6 +583,40 @@ export default function ChatbotCustomerChat() {
             </div>
           </div>
         </Card>
+
+        {/* Appointment Dialog */}
+        {hasServices && conversationId && customer && (
+          <ChatbotAppointmentDialog
+            open={showAppointmentDialog}
+            onOpenChange={setShowAppointmentDialog}
+            chatbotId={chatbotId!}
+            customerId={customer.id}
+            conversationId={conversationId}
+            onSuccess={() => {
+              toast({
+                title: "Agendamento solicitado!",
+                description: "Aguarde a confirmação",
+              });
+            }}
+          />
+        )}
+
+        {/* Order Dialog */}
+        {hasProducts && conversationId && customer && (
+          <ChatbotOrderDialog
+            open={showOrderDialog}
+            onOpenChange={setShowOrderDialog}
+            chatbotId={chatbotId!}
+            customerId={customer.id}
+            conversationId={conversationId}
+            onSuccess={() => {
+              toast({
+                title: "Pedido realizado!",
+                description: "Aguarde a confirmação",
+              });
+            }}
+          />
+        )}
       </div>
     </div>
   );
