@@ -1244,6 +1244,41 @@ export type Database = {
           },
         ]
       }
+      chatbot_customer_verification_codes: {
+        Row: {
+          code: string
+          created_at: string
+          customer_id: string
+          expires_at: string
+          id: string
+          verified: boolean
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          customer_id: string
+          expires_at: string
+          id?: string
+          verified?: boolean
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          customer_id?: string
+          expires_at?: string
+          id?: string
+          verified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_customer_verification_codes_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "chatbot_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chatbot_customers: {
         Row: {
           chatbot_id: string
