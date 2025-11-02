@@ -1,16 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, Search, Send, Trash2 } from "lucide-react";
+import { MessageSquare, Search, Send, Trash2, ImagePlus, Smile } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import data from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
 
 export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) => {
   const [conversations, setConversations] = useState<any[]>([]);
@@ -22,6 +25,12 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   // Carregar nome salvo do localStorage
@@ -99,10 +108,67 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
     } catch (error) {
       console.error('Error loading messages:', error);
     }
+};
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Arquivo muito grande",
+          description: "O tamanho máximo é 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
-  const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedConversation) return;
+  const uploadImage = async (): Promise<string | null> => {
+    if (!selectedImage) return null;
+    setUploadingImage(true);
+    try {
+      const fileExt = selectedImage.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+      const filePath = `chatbot-images/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('chatbot-media')
+        .upload(filePath, selectedImage);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('chatbot-media')
+        .getPublicUrl(filePath);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({
+        title: "Erro ao enviar imagem",
+        description: "Tente novamente",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const onEmojiSelect = (emoji: any) => {
+    setNewMessage(prev => prev + emoji.native);
+    setShowEmojiPicker(false);
+  };
+
+const handleSendMessage = async () => {
+    if ((!newMessage.trim() && !selectedImage) || !selectedConversation) return;
     if (!senderName.trim()) {
       toast({
         title: "Nome obrigatório",
@@ -116,17 +182,28 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
       // Salvar nome no localStorage
       localStorage.setItem(`chatbot_sender_name_${chatbotId}`, senderName);
 
+      // Upload da imagem se existir
+      let mediaUrl: string | null = null;
+      if (selectedImage) {
+        mediaUrl = await uploadImage();
+        if (!mediaUrl) return; // erro já tratado em uploadImage
+      }
+
+      const messageContent = newMessage.trim() || '📷 Imagem';
+
       // Verificar se AI está habilitada
       const needsDisableAI = selectedConversation.ai_enabled;
 
-      // Inserir mensagem do atendente humano com role 'bot' (será exibida do lado do bot)
+      // Inserir mensagem do atendente humano com role 'bot'
       const { error: msgError } = await supabase
         .from('chatbot_messages')
         .insert({
           conversation_id: selectedConversation.id,
           role: 'bot',
-          content: newMessage,
+          content: messageContent,
           sender_name: senderName,
+          media_url: mediaUrl,
+          media_type: mediaUrl ? 'image' : null,
         });
 
       if (msgError) throw msgError;
@@ -140,7 +217,7 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
 
         if (convError) throw convError;
 
-        // Inserir mensagem de sistema informando "atendente humano" apenas 1 vez
+        // Inserir mensagem de sistema informando "atendente humano"
         await supabase
           .from('chatbot_messages')
           .insert({
@@ -154,10 +231,17 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
       }
 
       setNewMessage("");
+      setSelectedImage(null);
+      setImagePreview(null);
       toast({
         title: "Mensagem enviada",
         description: needsDisableAI ? "Você assumiu o atendimento desta conversa." : "Mensagem enviada com sucesso.",
       });
+
+      // Foco de volta no input após enviar
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -341,7 +425,7 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
             <div className="space-y-4">
               <ScrollArea className="h-[400px] border rounded-lg p-4">
                 <div className="space-y-4">
-                  {messages.map((message) => {
+{messages.map((message) => {
                     // Mensagens do sistema (notificações automáticas)
                     if (message.role === 'assistant' || message.sender_name === 'Sistema') {
                       return (
@@ -362,7 +446,7 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
                       );
                     }
                     
-                     // Mensagens normais (usuário ou chatbot)
+                    // Mensagens normais (usuário ou chatbot)
                     return (
                       <div
                         key={message.id}
@@ -378,7 +462,56 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
                               : 'bg-muted'
                           }`}
                         >
-                          <p className="text-sm">{message.content}</p>
+                          {/* Mídia - imagem */}
+                          {message.media_url && (message.media_type?.toLowerCase()?.startsWith('image') || /(png|jpe?g|webp|gif)$/i.test(message.media_url)) && (
+                            <div className="mb-2">
+                              <img 
+                                src={message.media_url}
+                                alt="Imagem enviada"
+                                className="rounded-lg max-w-full max-h-80 w-auto cursor-pointer hover:opacity-90 transition-opacity border border-border object-contain"
+                                loading="lazy"
+                                onClick={() => window.open(message.media_url!, '_blank')}
+                              />
+                            </div>
+                          )}
+
+                          {/* Mídia - vídeo */}
+                          {message.media_url && (message.media_type?.toLowerCase()?.startsWith('video') || /(mp4|webm|ogg)$/i.test(message.media_url)) && (
+                            <div className="mb-2">
+                              <video controls className="rounded-lg max-w-full max-h-80">
+                                <source src={message.media_url} />
+                                Seu navegador não suporta vídeos.
+                              </video>
+                            </div>
+                          )}
+
+                          {/* Mídia - áudio */}
+                          {message.media_url && (message.media_type?.toLowerCase()?.startsWith('audio') || /(mp3|wav|ogg|m4a)$/i.test(message.media_url)) && (
+                            <div className="mb-2">
+                              <audio controls className="w-full">
+                                <source src={message.media_url} />
+                                Seu navegador não suporta áudio.
+                              </audio>
+                            </div>
+                          )}
+
+                          {/* Link para abrir arquivo */}
+                          {message.media_url && (
+                            <a
+                              href={message.media_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-xs underline mt-1 inline-block"
+                            >
+                              Abrir arquivo
+                            </a>
+                          )}
+
+                          {/* Conteúdo textual (esconde o placeholder de imagem) */}
+                          {!message.media_url && message.content && message.content.trim() !== '' && message.content.trim() !== '📷 Imagem' && (
+                            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                          )}
+                          
                           <span className="text-xs opacity-70 mt-1 block">
                             {formatDistanceToNow(new Date(message.created_at), { 
                               addSuffix: true,
@@ -392,28 +525,77 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
                 </div>
               </ScrollArea>
 
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Seu nome"
-                  value={senderName}
-                  onChange={(e) => setSenderName(e.target.value)}
-                  className="w-[200px]"
-                />
-                <Input
-                  placeholder="Digite sua mensagem..."
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                  className="flex-1"
-                />
-                <Button onClick={handleSendMessage}>
-                  <Send className="h-4 w-4" />
-                </Button>
+<div className="max-w-full w-full">
+                {imagePreview && (
+                  <div className="mb-2 relative inline-block">
+                    <img src={imagePreview} alt="Preview" className="h-20 rounded-lg border border-border" />
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute -top-2 -right-2 h-6 w-6"
+                      onClick={() => {
+                        setSelectedImage(null);
+                        setImagePreview(null);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+
+                <div className="flex gap-2 items-center">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageSelect}
+                  />
+
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingImage}
+                    title="Enviar imagem"
+                  >
+                    <ImagePlus className="w-4 h-4" />
+                  </Button>
+
+                  <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="icon" title="Inserir emoji">
+                        <Smile className="w-4 h-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0 border-0" align="start">
+                      <Picker data={data} onEmojiSelect={onEmojiSelect} theme="light" locale="pt" />
+                    </PopoverContent>
+                  </Popover>
+
+                  <Input
+                    placeholder="Seu nome"
+                    value={senderName}
+                    onChange={(e) => setSenderName(e.target.value)}
+                    className="w-[200px]"
+                  />
+                  <Input
+                    ref={inputRef}
+                    placeholder="Digite sua mensagem..."
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    className="flex-1"
+                  />
+                  <Button onClick={handleSendMessage} disabled={uploadingImage || (!newMessage.trim() && !selectedImage)}>
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           ) : (
