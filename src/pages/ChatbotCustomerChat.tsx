@@ -6,11 +6,10 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import ChatbotAppointmentDialog from "@/components/ChatbotAppointmentDialog";
-import ChatbotOrderDialog from "@/components/ChatbotOrderDialog";
+import { Send, LogOut, Smile, ImagePlus, X } from "lucide-react";
+import data from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface Message {
   id: string;
@@ -18,7 +17,6 @@ interface Message {
   content: string;
   created_at: string;
   sender_name?: string;
-  node_id?: string | null;
   media_url?: string | null;
   media_type?: string | null;
 }
@@ -33,16 +31,12 @@ export default function ChatbotCustomerChat() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [customer, setCustomer] = useState<any>(null);
   const [chatbotInfo, setChatbotInfo] = useState<any>(null);
-const messagesEndRef = useRef<HTMLDivElement>(null);
-const [showAppointmentDialog, setShowAppointmentDialog] = useState(false);
-const [showOrderDialog, setShowOrderDialog] = useState(false);
-const [hasServices, setHasServices] = useState(false);
-const [hasProducts, setHasProducts] = useState(false);
-const [appointments, setAppointments] = useState<any[]>([]);
-const [orders, setOrders] = useState<any[]>([]);
-const [showAppointments, setShowAppointments] = useState(false);
-const [showOrders, setShowOrders] = useState(false);
-const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -103,93 +97,6 @@ const [isTyping, setIsTyping] = useState(false);
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Check if chatbot has services and products
-  useEffect(() => {
-    if (!chatbotId) return;
-
-    const checkServicesAndProducts = async () => {
-      const { data: services } = await supabase
-        .from('chatbot_services')
-        .select('id')
-        .eq('chatbot_id', chatbotId)
-        .eq('is_active', true)
-        .limit(1);
-
-      const { data: products } = await supabase
-        .from('chatbot_products')
-        .select('id')
-        .eq('chatbot_id', chatbotId)
-        .eq('is_active', true)
-        .eq('type', 'product')
-        .limit(1);
-
-      setHasServices(services && services.length > 0);
-      setHasProducts(products && products.length > 0);
-    };
-
-    checkServicesAndProducts();
-  }, [chatbotId]);
-
-  // Fetch customer appointments and orders
-  useEffect(() => {
-    if (!customer?.id || !chatbotId) return;
-
-    const fetchCustomerData = async () => {
-      const { data: appointmentsData } = await supabase
-        .from('chatbot_appointments')
-        .select('*')
-        .eq('chatbot_id', chatbotId)
-        .eq('customer_id', customer.id)
-        .order('created_at', { ascending: false });
-
-      const { data: ordersData } = await supabase
-        .from('chatbot_orders')
-        .select('*')
-        .eq('chatbot_id', chatbotId)
-        .eq('customer_id', customer.id)
-        .order('created_at', { ascending: false });
-
-      setAppointments(appointmentsData || []);
-      setOrders(ordersData || []);
-    };
-
-    fetchCustomerData();
-
-    // Real-time subscriptions
-    const appointmentsChannel = supabase
-      .channel(`chatbot-customer-appointments-${customer.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'chatbot_appointments',
-          filter: `customer_id=eq.${customer.id}`,
-        },
-        () => fetchCustomerData()
-      )
-      .subscribe();
-
-    const ordersChannel = supabase
-      .channel(`chatbot-customer-orders-${customer.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'chatbot_orders',
-          filter: `customer_id=eq.${customer.id}`,
-        },
-        () => fetchCustomerData()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(appointmentsChannel);
-      supabase.removeChannel(ordersChannel);
-    };
-  }, [customer?.id, chatbotId]);
-
   const loadChatbotAndConversation = async (customerId: string, customerData?: any) => {
     try {
       // Load chatbot info
@@ -214,20 +121,8 @@ const [isTyping, setIsTyping] = useState(false);
 
       if (activeConv) {
         setConversationId(activeConv.id);
-        // Verificar se já existem mensagens do fluxo; caso contrário, processar agora
-        const { data: existingMsgs } = await supabase
-          .from('chatbot_messages')
-          .select('id, role, node_id')
-          .eq('conversation_id', activeConv.id);
-        const hasFlowMsgs = (existingMsgs || []).some((m: any) => m.role === 'bot' && m.node_id);
-        if (!hasFlowMsgs) {
-          await processInitialFlowMessages(chatbot, activeConv.id);
-        }
         await loadMessages(activeConv.id);
       } else {
-        // Process flow initial message
-        await processInitialFlow(chatbot);
-        
         // Create new conversation with unique session_id
         const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const { data: newConv } = await supabase
@@ -245,11 +140,6 @@ const [isTyping, setIsTyping] = useState(false);
           .single();
 
         setConversationId(newConv.id);
-        
-        // Process flow initial message after creating conversation
-        await processInitialFlowMessages(chatbot, newConv.id);
-        
-        // Load messages after processing flow
         await loadMessages(newConv.id);
 
         // Create notification for new conversation
@@ -267,7 +157,7 @@ const [isTyping, setIsTyping] = useState(false);
       console.error('Error loading chatbot:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível carregar o chatbot",
+        description: "Não foi possível carregar o chat",
         variant: "destructive",
       });
     }
@@ -283,196 +173,9 @@ const [isTyping, setIsTyping] = useState(false);
     setMessages((data || []) as Message[]);
   };
 
-  const replaceVars = (text: string) => {
-    const fullName = customer?.name || 'Visitante';
-    const firstName = String(fullName).split(' ')[0];
-    return (text || '')
-      .replace(/\{\{\s*name\s*\}\}|\{\s*name\s*\}/gi, fullName)
-      .replace(/\{\{\s*first_name\s*\}\}|\{\s*first_name\s*\}/gi, firstName);
-  };
-
-  const processInitialFlowMessages = async (chatbot: any, convId: string) => {
-    const nodes = chatbot?.config?.nodes || [];
-    const edges = chatbot?.config?.edges || [];
-
-    // Se não houver nenhum nó no fluxo, usar mensagem inicial
-    if (!nodes.length) {
-      const initial = chatbot?.config?.initialMessage;
-      if (initial) {
-        await supabase.from('chatbot_messages').insert({
-          conversation_id: convId,
-          role: 'bot',
-          content: replaceVars(initial),
-        });
-      }
-      return;
-    }
-
-// Tentar iniciar pelo nó "trigger" se existir
-const triggerNode = nodes.find((n: any) => (n.type || '').toLowerCase() === 'trigger' || (n.type || '').toLowerCase() === 'triggernode');
-if (triggerNode) {
-  const candidateEdges = edges.filter((e: any) => e.source === triggerNode.id);
-  const byPosition = (list: any[]) => list.sort((a: any, b: any) => {
-    const ta = nodes.find((n: any) => n.id === a.target);
-    const tb = nodes.find((n: any) => n.id === b.target);
-    const ya = ta?.position?.y ?? 0;
-    const yb = tb?.position?.y ?? 0;
-    if (ya !== yb) return ya - yb;
-    const xa = ta?.position?.x ?? 0;
-    const xb = tb?.position?.x ?? 0;
-    return xa - xb;
-  });
-  const isInteractiveType = (t: string) => {
-    const tt = (t || '').toLowerCase();
-    return tt === 'buttonnode' || tt === 'button' || tt === 'quickreplynode' || tt === 'quickreply' || tt === 'questionnode' || tt === 'question';
-  };
-  const interactive = candidateEdges.filter((e: any) => isInteractiveType((nodes.find((n: any) => n.id === e.target)?.type)));
-  const sorted = byPosition(interactive.length ? interactive : candidateEdges);
-  const firstEdge = sorted[0];
-  if (firstEdge) {
-    const targetNode = nodes.find((n: any) => n.id === firstEdge.target);
-    if (targetNode) {
-      await walkFromNode(targetNode, nodes, edges, convId);
-      return;
-    }
-  }
-}
-
-// Sem trigger: procurar nó inicial (sem entradas) e usar o primeiro por posição Y
-const incomingTargets = new Set(edges.map((e: any) => e.target));
-const startCandidates = nodes.filter((n: any) => (n.type || '').toLowerCase() !== 'trigger' && !incomingTargets.has(n.id));
-
-if (startCandidates.length > 0) {
-  const firstStart = [...startCandidates].sort((a, b) => (a.position?.y || 0) - (b.position?.y || 0))[0];
-  await walkFromNode(firstStart, nodes, edges, convId);
-  return;
-}
-
-    // Último fallback: mensagem inicial
-    const initial = chatbot?.config?.initialMessage;
-    if (initial) {
-      await supabase.from('chatbot_messages').insert({
-        conversation_id: convId,
-        role: 'bot',
-        content: replaceVars(initial),
-      });
-    }
-    return;
-  };
-
-  // Helper para inserir conteúdo de um nó como mensagem
-  const insertNodeAsMessage = async (node: any, convId: string) => {
-    const type = (node.type || '').toLowerCase();
-    let messageContent = '';
-    let mediaUrl = '';
-    let mediaType = '';
-
-    if (type === 'textnode' || type === 'text') {
-      messageContent = node.data?.text || node.data?.label || '';
-    } else if (type === 'messagenode' || type === 'message') {
-      messageContent = node.data?.message || node.data?.label || '';
-    } else if (type === 'imagenode' || type === 'image') {
-      mediaUrl = node.data?.imageUrl || '';
-      mediaType = 'image';
-      messageContent = node.data?.caption || 'Imagem';
-    } else if (type === 'videonode' || type === 'video') {
-      mediaUrl = node.data?.videoUrl || '';
-      mediaType = 'video';
-      messageContent = node.data?.caption || 'Vídeo';
-    } else if (type === 'audionode' || type === 'audio') {
-      mediaUrl = node.data?.audioUrl || '';
-      mediaType = 'audio';
-      messageContent = node.data?.caption || 'Áudio';
-    } else if (type === 'documentnode' || type === 'document') {
-      mediaUrl = node.data?.documentUrl || '';
-      mediaType = 'document';
-      messageContent = node.data?.caption || 'Documento';
-    } else if (type === 'buttonnode' || type === 'button') {
-      const buttons = node.data?.buttons || [];
-      messageContent = node.data?.message || node.data?.label || '';
-      if (buttons.length > 0) {
-        messageContent += '\n\nOpções:\n' + buttons.map((b: any, i: number) => `${i + 1}. ${typeof b === 'string' ? b : (b?.text || '')}`).join('\n');
-      }
-    } else if (type === 'quickreplynode' || type === 'quickreply') {
-      const replies = node.data?.quickReplies || node.data?.buttons || [];
-      messageContent = node.data?.message || node.data?.label || '';
-      if (replies.length > 0) {
-        messageContent += '\n\n' + replies.map((r: any) => `• ${typeof r === 'string' ? r : (r?.text || '')}`).join('\n');
-      }
-    } else if (type === 'questionnode' || type === 'question') {
-      messageContent = node.data?.question || node.data?.label || '';
-    }
-
-    messageContent = replaceVars(messageContent);
-
-  if (messageContent || mediaUrl) {
-    // Evitar duplicar mensagem do mesmo nó na mesma conversa
-    const { data: existing } = await supabase
-      .from('chatbot_messages')
-      .select('id')
-      .eq('conversation_id', convId)
-      .eq('node_id', node.id)
-      .eq('role', 'bot')
-      .limit(1);
-
-    if (!existing || existing.length === 0) {
-      await supabase.from('chatbot_messages').insert({
-        conversation_id: convId,
-        role: 'bot',
-        content: messageContent,
-        media_url: mediaUrl || null,
-        media_type: mediaType || null,
-        node_id: node.id,
-      });
-    }
-  }
-  };
-
-  // Helpers de fluxo
-  const isInteractiveNode = (node: any) => {
-    const t = (node?.type || '').toLowerCase();
-    return t === 'buttonnode' || t === 'button' || t === 'quickreplynode' || t === 'quickreply' || t === 'questionnode' || t === 'question';
-  };
-
-const walkFromNode = async (startNode: any, nodes: any[], edges: any[], convId: string) => {
-  const visited = new Set<string>();
-  let current: any = startNode;
-  while (current && !visited.has(current.id)) {
-    visited.add(current.id);
-
-    const delayMs = (current?.data?.delaySeconds || 0) * 1000;
-    if (delayMs > 0) {
-      setIsTyping(true);
-      await new Promise((res) => setTimeout(res, delayMs));
-      setIsTyping(false);
-    }
-
-    await insertNodeAsMessage(current, convId);
-    if (isInteractiveNode(current)) break;
-    const outs = edges.filter((e: any) => e.source === current.id);
-    if (!outs.length) break;
-    const sortedOuts = outs.sort((a: any, b: any) => {
-      const ta = nodes.find((n: any) => n.id === a.target);
-      const tb = nodes.find((n: any) => n.id === b.target);
-      const ya = ta?.position?.y ?? 0;
-      const yb = tb?.position?.y ?? 0;
-      if (ya !== yb) return ya - yb;
-      const xa = ta?.position?.x ?? 0;
-      const xb = tb?.position?.x ?? 0;
-      return xa - xb;
-    });
-    const nextId = sortedOuts[0].target;
-    current = nodes.find((n: any) => n.id === nextId);
-  }
-};
-
-  const processInitialFlow = async (chatbot: any) => {
-    // This function is called before conversation is created
-    // Just marks that flow should be processed
-  };
   const setupRealtimeSubscription = () => {
     const channel = supabase
-      .channel('chatbot-messages')
+      .channel(`chatbot-conversation-${conversationId}`)
       .on(
         'postgres_changes',
         {
@@ -482,9 +185,10 @@ const walkFromNode = async (startNode: any, nodes: any[], edges: any[], convId: 
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
+          const newMessage = payload.new as Message;
           setMessages((prev) => {
-            const exists = prev.some((m) => m.id === (payload.new as any).id);
-            return exists ? prev : [...prev, payload.new as Message];
+            const exists = prev.some(m => m.id === newMessage.id);
+            return exists ? prev : [...prev, newMessage];
           });
         }
       )
@@ -495,370 +199,284 @@ const walkFromNode = async (startNode: any, nodes: any[], edges: any[], convId: 
     };
   };
 
-const handleSendMessage = async (messageText?: string, originNodeId?: string) => {
-  const textToSend = (messageText ?? input).trim();
-  if (!textToSend || !conversationId || !customer) return;
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Arquivo muito grande",
+          description: "O tamanho máximo é 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
-  setLoading(true);
-  if (!messageText) setInput("");
+  const uploadImage = async (): Promise<string | null> => {
+    if (!selectedImage) return null;
 
-  try {
-    // Save user message with customer name
-    await supabase.from('chatbot_messages').insert({
-      conversation_id: conversationId,
-      role: 'user',
-      content: textToSend,
-      sender_name: customer?.name || 'Visitante',
-    });
+    setUploadingImage(true);
+    try {
+      const fileExt = selectedImage.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+      const filePath = `chatbot-images/${fileName}`;
 
-    // Update conversation last_message_at
-    await supabase
-      .from('chatbot_conversations')
-      .update({ last_message_at: new Date().toISOString() })
-      .eq('id', conversationId);
+      const { error: uploadError } = await supabase.storage
+        .from('chatbot-media')
+        .upload(filePath, selectedImage);
 
-    // 1) Verificar contexto do fluxo (qual node estamos esperando resposta)
-    const nodes = chatbotInfo?.config?.nodes || [];
-    const edges = chatbotInfo?.config?.edges || [];
+      if (uploadError) throw uploadError;
 
-    // Buscar última mensagem do bot para saber qual node foi enviado
-    const lastBotMsg = messages.filter(m => m.role === 'bot').pop();
-    let contextNodeId = originNodeId || (lastBotMsg as any)?.node_id;
+      const { data } = supabase.storage
+        .from('chatbot-media')
+        .getPublicUrl(filePath);
 
-    let nextNode: any = null;
-
-    // Se há um node ativo, procurar o próximo no fluxo
-    if (contextNodeId) {
-      const connectedEdges = edges.filter((e: any) => e.source === contextNodeId);
-      const sortedConnected = connectedEdges.sort((a: any, b: any) => {
-        const ta = nodes.find((n: any) => n.id === a.target);
-        const tb = nodes.find((n: any) => n.id === b.target);
-        const ya = ta?.position?.y ?? 0;
-        const yb = tb?.position?.y ?? 0;
-        if (ya !== yb) return ya - yb;
-        const xa = ta?.position?.x ?? 0;
-        const xb = tb?.position?.x ?? 0;
-        return xa - xb;
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({
+        title: "Erro ao enviar imagem",
+        description: "Tente novamente",
+        variant: "destructive",
       });
+      return null;
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
-      // Para button/quickReply nodes, verificar qual botão foi clicado
-      const lastNode = nodes.find((n: any) => n.id === contextNodeId);
-      const nodeType = (lastNode?.type || '').toLowerCase();
+  const handleSendMessage = async () => {
+    if ((!input.trim() && !selectedImage) || !conversationId || loading) return;
 
-      if ((nodeType === 'buttonnode' || nodeType === 'button' || 
-           nodeType === 'quickreplynode' || nodeType === 'quickreply') && sortedConnected.length > 0) {
-        const buttons = lastNode?.data?.buttons || lastNode?.data?.quickReplies || [];
-        const buttonIndex = buttons.findIndex((b: any) => {
-          const btnText = (typeof b === 'string' ? b : b?.text || '').toLowerCase();
-          const u = textToSend.toLowerCase();
-          return u === btnText || u.includes(btnText);
+    setLoading(true);
+    try {
+      let mediaUrl = null;
+      if (selectedImage) {
+        mediaUrl = await uploadImage();
+        if (!mediaUrl) {
+          setLoading(false);
+          return;
+        }
+      }
+
+      const messageContent = input.trim() || '📷 Imagem';
+
+      const { error } = await supabase
+        .from('chatbot_messages')
+        .insert({
+          conversation_id: conversationId,
+          role: 'user',
+          content: messageContent,
+          sender_name: customer?.name || 'Você',
+          media_url: mediaUrl,
+          media_type: mediaUrl ? 'image' : null,
         });
 
-        if (buttonIndex >= 0) {
-          // Priorizar aresta por handle específico do botão
-          const edgeByHandle = edges.find((e: any) => e.source === contextNodeId && e.sourceHandle === `btn-${buttonIndex}`);
-          if (edgeByHandle) {
-            nextNode = nodes.find((n: any) => n.id === edgeByHandle.target);
-          } else if (sortedConnected[buttonIndex]) {
-            nextNode = nodes.find((n: any) => n.id === sortedConnected[buttonIndex].target);
-          } else if (sortedConnected.length > 0) {
-            nextNode = nodes.find((n: any) => n.id === sortedConnected[0].target);
-          }
-        }
-      } else if (sortedConnected.length > 0) {
-        // Para outros tipos de node, seguir primeira edge (ordenada pela posição)
-        nextNode = nodes.find((n: any) => n.id === sortedConnected[0].target);
-      }
-    }
+      if (error) throw error;
 
-    // 2) Palavras‑chave: procurar bloco correspondente (fallback)
-    if (!nextNode) {
-      const lower = textToSend.toLowerCase();
-      nextNode = nodes.find((n: any) => {
-        const raw = n?.data?.keyword || '';
-        if (!raw) return false;
-        const list = String(raw)
-          .split(',')
-          .map((k: string) => k.trim().toLowerCase())
-          .filter(Boolean);
-        return list.some((k: string) => lower === k || lower.includes(k));
+      // Update conversation last_message_at
+      await supabase
+        .from('chatbot_conversations')
+        .update({ last_message_at: new Date().toISOString() })
+        .eq('id', conversationId);
+
+      setInput("");
+      setSelectedImage(null);
+      setImagePreview(null);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Erro ao enviar mensagem",
+        description: "Tente novamente",
+        variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
-
-    if (nextNode) {
-      // Seguir o fluxo a partir do próximo nó, emitindo mensagens em sequência até um nó interativo
-      await walkFromNode(nextNode, nodes, edges, conversationId);
-    }
-
-    // Observação: próximo passo do fluxo via edges pode ser implementado aqui, se necessário
-  } catch (error: any) {
-    toast({
-      title: "Erro",
-      description: error.message,
-      variant: "destructive",
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleLogout = () => {
     localStorage.removeItem(`chatbot_customer_${chatbotId}`);
     navigate(`/chatbot-auth/${chatbotId}`);
   };
 
-  return (
-    <div className="min-h-screen gradient-primary">
-      <div className="container mx-auto max-w-4xl h-screen flex flex-col p-4">
-        <Card className="flex-1 flex flex-col">
-          <div className="p-4 border-b">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-xl font-bold">{chatbotInfo?.name || 'Chat'}</h2>
-                <p className="text-sm text-muted-foreground">Olá, {customer?.name}!</p>
-              </div>
-              <Button variant="ghost" size="icon" onClick={handleLogout}>
-                <LogOut className="w-5 h-5" />
-              </Button>
-            </div>
+  const onEmojiSelect = (emoji: any) => {
+    setInput(prev => prev + emoji.native);
+    setShowEmojiPicker(false);
+  };
 
-            {/* Action Buttons */}
-            <div className="flex gap-2">
-              {hasServices && (
-                <Button
-                  onClick={() => setShowAppointmentDialog(true)}
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                >
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Agendar
-                </Button>
-              )}
-              {hasProducts && (
-                <Button
-                  onClick={() => setShowOrderDialog(true)}
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                >
-                  <ShoppingBag className="w-4 h-4 mr-2" />
-                  Fazer Pedido
-                </Button>
-              )}
-            </div>
-
-            {/* Appointments Section */}
-            {appointments.length > 0 && (
-              <Collapsible open={showAppointments} onOpenChange={setShowAppointments} className="mt-4">
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between">
-                    <span className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      Meus Agendamentos ({appointments.length})
-                    </span>
-                    {showAppointments ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-2 mt-2">
-                  {appointments.map((apt) => (
-                    <div key={apt.id} className="p-3 border rounded-lg bg-muted/50">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">
-                            {new Date(apt.date).toLocaleString('pt-BR')}
-                          </p>
-                          {apt.notes && (
-                            <p className="text-xs text-muted-foreground mt-1">{apt.notes}</p>
-                          )}
-                        </div>
-                        <Badge variant={apt.status === 'confirmed' ? 'default' : apt.status === 'cancelled' ? 'destructive' : 'secondary'}>
-                          {apt.status === 'pending' ? 'Pendente' : apt.status === 'confirmed' ? 'Confirmado' : 'Cancelado'}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-            )}
-
-            {/* Orders Section */}
-            {orders.length > 0 && (
-              <Collapsible open={showOrders} onOpenChange={setShowOrders} className="mt-2">
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between">
-                    <span className="flex items-center gap-2">
-                      <ShoppingBag className="w-4 h-4" />
-                      Meus Pedidos ({orders.length})
-                    </span>
-                    {showOrders ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-2 mt-2">
-                  {orders.map((order) => (
-                    <div key={order.id} className="p-3 border rounded-lg bg-muted/50">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">R$ {Number(order.total).toFixed(2)}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(order.created_at).toLocaleString('pt-BR')}
-                          </p>
-                        </div>
-                        <Badge variant={order.status === 'confirmed' ? 'default' : order.status === 'cancelled' ? 'destructive' : 'secondary'}>
-                          {order.status === 'pending' ? 'Pendente' : order.status === 'confirmed' ? 'Confirmado' : 'Cancelado'}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-            )}
-          </div>
-
-          <ScrollArea className="flex-1 p-4">
-            <div className="space-y-4">
-              {/* Removed static initial message - now using flow */}
-              {chatbotInfo?.config?.initialMessage && messages.length === 0 && (
-                <div className="flex flex-col items-start">
-                  <span className="text-xs text-muted-foreground mb-1 px-1">
-                    {chatbotInfo?.config?.attendantName || chatbotInfo?.name || 'Atendente'}
-                  </span>
-                  <div className="max-w-[80%] rounded-lg p-3 bg-muted">
-                    <p className="whitespace-pre-wrap">{chatbotInfo.config.initialMessage}</p>
-                  </div>
-                </div>
-              )}
-              
-{messages.map((message) => {
-  const nodeId = (message as any)?.node_id as string | undefined;
-  const node = chatbotInfo?.config?.nodes?.find((n: any) => n.id === nodeId);
-  const buttons = (node?.data?.buttons || node?.data?.quickReplies || []) as any[];
-  const mediaUrl = (message as any)?.media_url as string | undefined;
-  const mediaType = (message as any)?.media_type as string | undefined;
-
-  return (
-    <div
-      key={message.id}
-      className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}
-    >
-      <span className="text-xs text-muted-foreground mb-1 px-1">
-        {message.role === 'user' ? customer?.name : (message.role === 'assistant' ? (message.sender_name || 'Atendente') : chatbotInfo?.name)}
-      </span>
-      <div
-        className={`max-w-[80%] rounded-lg p-3 ${
-          message.role === 'user'
-            ? 'bg-primary text-primary-foreground'
-            : 'bg-muted'
-        }`}
-      >
-        {mediaUrl && mediaType === 'image' && (
-          <img src={mediaUrl} alt="Imagem" className="w-full rounded-md mb-2 max-h-60 object-cover" />
-        )}
-        {mediaUrl && mediaType === 'video' && (
-          <video controls className="w-full rounded-md mb-2 max-h-60">
-            <source src={mediaUrl} />
-          </video>
-        )}
-        {mediaUrl && mediaType === 'audio' && (
-          <audio controls className="w-full mb-2">
-            <source src={mediaUrl} />
-          </audio>
-        )}
-        {mediaUrl && mediaType === 'document' && (
-          <a href={mediaUrl} target="_blank" rel="noopener noreferrer" className="underline text-sm">Ver documento</a>
-        )}
-
-        <p className="whitespace-pre-wrap">{message.content}</p>
-        <span className="text-xs opacity-70 mt-1 block">
-          {new Date(message.created_at).toLocaleTimeString()}
-        </span>
+  if (!customer || !chatbotInfo) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
+    );
+  }
 
-      {message.role !== 'user' && buttons && buttons.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-2 ml-1">
-          {buttons.map((b: any, idx: number) => {
-            const label = typeof b === 'string' ? b : (b?.text || '');
-            if (!label) return null;
-            return (
-              <Button key={idx} size="sm" onClick={() => handleSendMessage(label, nodeId)} className="rounded-full text-xs h-7">
-                {label}
-              </Button>
-            );
-          })}
+  return (
+    <div className="flex flex-col h-screen bg-gradient-to-b from-primary/5 to-background">
+      {/* Header */}
+      <div className="bg-card border-b shadow-sm">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">{chatbotInfo.name}</h1>
+              <p className="text-sm text-muted-foreground">
+                Olá, {customer?.name || 'Visitante'}!
+              </p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Sair
+            </Button>
+          </div>
         </div>
-      )}
-    </div>
-  );
-})}
-{isTyping && (
-  <div className="flex justify-start">
-    <div className="bg-muted rounded-xl px-3 py-2">
-      <div className="flex gap-1">
-        <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-        <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-        <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
       </div>
-    </div>
-  </div>
-)}
-<div ref={messagesEndRef} />
-            </div>
-          </ScrollArea>
 
-          <div className="p-4 border-t">
-            <div className="flex gap-2">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-                placeholder="Digite sua mensagem..."
-                disabled={loading}
+      {/* Messages Area */}
+      <ScrollArea className="flex-1 p-4">
+        <div className="container mx-auto max-w-4xl space-y-4">
+          {messages.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">
+                Envie uma mensagem para começar a conversa
+              </p>
+            </div>
+          )}
+          
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex ${
+                message.role === 'user' ? 'justify-end' : 'justify-start'
+              }`}
+            >
+              <Card
+                className={`max-w-[70%] p-4 ${
+                  message.role === 'user'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-card'
+                }`}
+              >
+                {message.sender_name && message.role !== 'user' && (
+                  <p className="text-xs font-semibold mb-1 text-muted-foreground">
+                    {message.sender_name}
+                  </p>
+                )}
+                {message.media_url && message.media_type === 'image' && (
+                  <img 
+                    src={message.media_url} 
+                    alt="Imagem enviada" 
+                    className="rounded-lg mb-2 max-w-full h-auto"
+                  />
+                )}
+                <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                <p
+                  className={`text-xs mt-2 ${
+                    message.role === 'user'
+                      ? 'text-primary-foreground/70'
+                      : 'text-muted-foreground'
+                  }`}
+                >
+                  {new Date(message.created_at).toLocaleTimeString('pt-BR', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </p>
+              </Card>
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+      </ScrollArea>
+
+      {/* Input Area */}
+      <div className="bg-card border-t p-4">
+        <div className="container mx-auto max-w-4xl">
+          {imagePreview && (
+            <div className="mb-2 relative inline-block">
+              <img 
+                src={imagePreview} 
+                alt="Preview" 
+                className="h-20 rounded-lg"
               />
-<Button onClick={() => handleSendMessage()} disabled={loading || !input.trim()}>
-  <Send className="w-5 h-5" />
-</Button>
+              <Button
+                variant="destructive"
+                size="icon"
+                className="absolute -top-2 -right-2 h-6 w-6"
+                onClick={() => {
+                  setSelectedImage(null);
+                  setImagePreview(null);
+                }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
+          )}
+          
+          <div className="flex gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageSelect}
+            />
+            
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingImage}
+            >
+              <ImagePlus className="w-4 h-4" />
+            </Button>
+
+            <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Smile className="w-4 h-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0 border-0" align="start">
+                <Picker
+                  data={data}
+                  onEmojiSelect={onEmojiSelect}
+                  theme="light"
+                  locale="pt"
+                />
+              </PopoverContent>
+            </Popover>
+
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              placeholder="Digite sua mensagem..."
+              disabled={loading || uploadingImage}
+              className="flex-1"
+            />
+            <Button 
+              onClick={handleSendMessage} 
+              disabled={loading || uploadingImage || (!input.trim() && !selectedImage)}
+            >
+              <Send className="w-4 h-4" />
+            </Button>
           </div>
-        </Card>
-
-        {/* Appointment Dialog */}
-        {hasServices && conversationId && customer && (
-          <ChatbotAppointmentDialog
-            open={showAppointmentDialog}
-            onOpenChange={setShowAppointmentDialog}
-            chatbotId={chatbotId!}
-            customerId={customer.id}
-            conversationId={conversationId}
-            onSuccess={() => {
-              toast({
-                title: "Agendamento solicitado!",
-                description: "Aguarde a confirmação",
-              });
-            }}
-          />
-        )}
-
-        {/* Order Dialog */}
-        {hasProducts && conversationId && customer && (
-          <ChatbotOrderDialog
-            open={showOrderDialog}
-            onOpenChange={setShowOrderDialog}
-            chatbotId={chatbotId!}
-            customerId={customer.id}
-            conversationId={conversationId}
-            onSuccess={() => {
-              toast({
-                title: "Pedido realizado!",
-                description: "Aguarde a confirmação",
-              });
-            }}
-          />
-        )}
+        </div>
       </div>
     </div>
   );

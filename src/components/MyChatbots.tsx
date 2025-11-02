@@ -145,13 +145,13 @@ export const MyChatbots = ({ onManage }: MyChatbotsProps = {}) => {
     return (
       <Card className="p-12 text-center">
         <Bot className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-        <h3 className="text-xl font-semibold mb-2">{t('no_chatbots')}</h3>
+        <h3 className="text-xl font-semibold mb-2">Nenhum Chat Online</h3>
         <p className="text-muted-foreground mb-6">
-          {t('no_chatbots_desc')}
+          Crie seu primeiro chat online para começar a atender clientes em tempo real
         </p>
         <Button onClick={() => navigate("/bot-builder")} className="mx-auto">
           <Bot className="w-4 h-4 mr-2" />
-          {t('create_chatbot')}
+          Criar Chat Online
         </Button>
       </Card>
     );
@@ -160,10 +160,10 @@ export const MyChatbots = ({ onManage }: MyChatbotsProps = {}) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">{t('my_chatbots')}</h2>
+        <h2 className="text-2xl font-bold">Meus Chats Online</h2>
         <Button onClick={() => navigate("/bot-builder")}>
           <Bot className="w-4 h-4 mr-2" />
-          {t('new_chatbot')}
+          Novo Chat Online
         </Button>
       </div>
 

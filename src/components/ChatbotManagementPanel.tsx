@@ -78,42 +78,14 @@ export const ChatbotManagementPanel = ({ chatbot }: ChatbotManagementPanelProps)
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold mb-2">Gerenciar Chatbot: {chatbot.name}</h2>
+        <h2 className="text-3xl font-bold mb-2">Gerenciar Chat Online: {chatbot.name}</h2>
         <p className="text-muted-foreground">
-          Gerencie agendamentos, pedidos e clientes do seu chatbot
+          Gerencie clientes e conversas do seu chat online
         </p>
       </div>
 
-      <Tabs defaultValue="analytics" className="w-full">
-        <TabsList className="grid w-full grid-cols-8 gap-2">
-          <TabsTrigger value="analytics">
-            Analytics
-          </TabsTrigger>
-          <TabsTrigger value="services">
-            Serviços
-          </TabsTrigger>
-          <TabsTrigger value="products">
-            Produtos
-          </TabsTrigger>
-          <TabsTrigger value="schedule">
-            Horários
-          </TabsTrigger>
-          <TabsTrigger value="appointments" className="relative">
-            Agendamentos
-            {pendingAppointments > 0 && (
-              <Badge variant="destructive" className="ml-2 h-5 min-w-5 flex items-center justify-center rounded-full text-xs">
-                {pendingAppointments}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="orders" className="relative">
-            Pedidos
-            {pendingOrders > 0 && (
-              <Badge variant="destructive" className="ml-2 h-5 min-w-5 flex items-center justify-center rounded-full text-xs">
-                {pendingOrders}
-              </Badge>
-            )}
-          </TabsTrigger>
+      <Tabs defaultValue="customers" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 gap-2">
           <TabsTrigger value="customers">
             Clientes
           </TabsTrigger>
@@ -121,30 +93,6 @@ export const ChatbotManagementPanel = ({ chatbot }: ChatbotManagementPanelProps)
             Conversas
           </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="analytics">
-          <ChatbotAnalyticsPanel chatbotId={chatbot.id} />
-        </TabsContent>
-
-        <TabsContent value="services">
-          <ChatbotServicesPanel chatbotId={chatbot.id} />
-        </TabsContent>
-
-        <TabsContent value="products">
-          <ChatbotProductsPanel chatbotId={chatbot.id} />
-        </TabsContent>
-
-        <TabsContent value="schedule">
-          <ChatbotSchedulePanel chatbotId={chatbot.id} />
-        </TabsContent>
-
-        <TabsContent value="appointments">
-          <ChatbotAppointmentsPanel chatbotId={chatbot.id} />
-        </TabsContent>
-
-        <TabsContent value="orders">
-          <ChatbotOrdersPanel chatbotId={chatbot.id} />
-        </TabsContent>
 
         <TabsContent value="customers">
           <ChatbotCustomersPanel chatbotId={chatbot.id} />

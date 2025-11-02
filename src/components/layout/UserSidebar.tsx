@@ -133,8 +133,8 @@ export function UserSidebar() {
   ];
 
   const chatbotItems: MenuItem[] = [
-    { title: t('create_chatbot'), icon: Bot, path: "/bot-builder" },
-    { title: t('my_chatbots'), icon: Bot, path: "/dashboard", tab: "chatbots" },
+    { title: "Criar Chat Online", icon: Bot, path: "/bot-builder" },
+    { title: "Meus Chats Online", icon: Bot, path: "/dashboard", tab: "chatbots" },
   ];
 
   const aiAgentItems: MenuItem[] = [
@@ -194,7 +194,7 @@ export function UserSidebar() {
                   <CollapsibleTrigger asChild>
                     <SidebarMenuButton>
                       <Bot className="h-4 w-4" />
-                      {!collapsed && <span>{t('chatbots')}</span>}
+                      {!collapsed && <span>Chats Online</span>}
                       {!collapsed && <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />}
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
