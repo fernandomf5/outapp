@@ -25,7 +25,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { nicheConfigs } from "@/data/nicheConfigs";
-import { ChatWidgetGenerator } from '@/components/ChatWidgetGenerator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Switch } from "@/components/ui/switch";
 
@@ -185,27 +184,6 @@ const AIAgentBuilder = () => {
                   <Link2 className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
                   <span className="hidden sm:inline">Copiar Link</span>
                 </Button>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="hover:bg-primary/10 hover:border-primary shrink-0"
-                      size="sm"
-                    >
-                      <Code2 className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Widget</span>
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
-                    <DialogHeader>
-                      <DialogTitle>Widget de Chat Online</DialogTitle>
-                    </DialogHeader>
-                    <ChatWidgetGenerator 
-                      botId={agentId} 
-                      type="agent"
-                    />
-                  </DialogContent>
-                </Dialog>
                 <Button 
                   variant="outline" 
                   onClick={handleTestInNewTab}

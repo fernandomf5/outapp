@@ -12,7 +12,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { FlowCanvas } from "@/components/flowbuilder/FlowCanvas";
 import { Sidebar } from "@/components/flowbuilder/Sidebar";
 import { ChatPreview } from "@/components/flowbuilder/ChatPreview";
-import { ChatWidgetGenerator } from "@/components/ChatWidgetGenerator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ReactFlowProvider } from 'reactflow';
 
@@ -200,21 +199,6 @@ const FunnelBuilder = () => {
             <Link2 className="w-4 h-4 mr-2" />
             Copiar Link
           </Button>
-
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <Copy className="w-4 h-4 mr-2" />
-                Widget de Chat
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Código do Widget</DialogTitle>
-              </DialogHeader>
-              {funnelId && <ChatWidgetGenerator botId={funnelId} />}
-            </DialogContent>
-          </Dialog>
 
           <Button variant="outline" onClick={handleTestInNewTab}>
             <Eye className="w-4 h-4 mr-2" />
