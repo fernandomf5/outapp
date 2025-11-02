@@ -53,7 +53,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email via Resend
     const emailResponse = await resend.emails.send({
-      from: "Bot Reals Zap <onboarding@resend.dev>",
+      from: "Bot Reals Zap <noreply@botrealszapp.com.br>",
       to: [email],
       subject: "Recuperação de Senha - Bot Reals Zap",
       html: `
