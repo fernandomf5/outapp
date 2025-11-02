@@ -171,9 +171,10 @@ const Dashboard = () => {
         title: "Logout realizado",
         description: "Até logo!",
       });
+      navigate("/auth", { replace: true });
     } catch (error) {
-      console.log('Logout error (pode ser ignorado):', error);
-    } finally {
+      console.log('Logout error:', error);
+      // Força navegação mesmo com erro
       navigate("/auth", { replace: true });
     }
   };
