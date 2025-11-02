@@ -135,6 +135,9 @@ export function UserSidebar() {
   const chatbotItems: MenuItem[] = [
     { title: "Criar Chat Online", icon: Bot, path: "/bot-builder" },
     { title: "Meus Chats Online", icon: Bot, path: "/dashboard", tab: "chatbots" },
+    { title: "Clientes", icon: Users, path: "/dashboard", tab: "chatbot-customers" },
+    { title: "Conversas", icon: MessageSquare, path: "/dashboard", tab: "chatbot-conversations" },
+    { title: "Analytics", icon: BarChart3, path: "/dashboard", tab: "chatbot-analytics" },
   ];
 
   const aiAgentItems: MenuItem[] = [

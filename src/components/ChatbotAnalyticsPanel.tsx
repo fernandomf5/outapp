@@ -1,175 +1,275 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { TrendingUp, Users, MessageSquare, DollarSign, Calendar as CalendarIcon, ShoppingCart } from "lucide-react";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { useAuth } from "@/contexts/AuthContext";
+import { BarChart3, MessageSquare, Users, Clock, TrendingUp, Calendar } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-interface AnalyticsData {
-  totalCustomers: number;
-  totalConversations: number;
-  totalOrders: number;
-  totalAppointments: number;
-  totalRevenue: number;
-  averageRating: number;
-  conversationsPerDay: any[];
-  ordersPerDay: any[];
-  topProducts: any[];
-}
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
-
-export const ChatbotAnalyticsPanel = ({ chatbotId }: { chatbotId: string }) => {
-  const [analytics, setAnalytics] = useState<AnalyticsData>({
-    totalCustomers: 0,
+export function ChatbotAnalyticsPanel() {
+  const { user } = useAuth();
+  const [chatbots, setChatbots] = useState<any[]>([]);
+  const [selectedChatbotId, setSelectedChatbotId] = useState<string>("all");
+  const [stats, setStats] = useState({
     totalConversations: 0,
-    totalOrders: 0,
-    totalAppointments: 0,
-    totalRevenue: 0,
-    averageRating: 0,
-    conversationsPerDay: [],
-    ordersPerDay: [],
-    topProducts: [],
+    totalMessages: 0,
+    uniqueVisitors: 0,
+    avgMessagesPerConversation: 0,
+    conversationsToday: 0,
+    conversationsThisWeek: 0,
+    conversationsThisMonth: 0,
+    activeConversations: 0,
   });
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
-    loadAnalytics();
-  }, [chatbotId]);
+    if (!user) return;
+    fetchChatbots();
+  }, [user]);
 
-  const loadAnalytics = async () => {
-    try {
-      const { count: customersCount } = await supabase
-        .from('chatbot_customers')
-        .select('*', { count: 'exact', head: true })
-        .eq('chatbot_id', chatbotId);
+  useEffect(() => {
+    if (!user) return;
+    fetchStats();
+  }, [user, selectedChatbotId]);
 
-      const { count: conversationsCount } = await supabase
-        .from('chatbot_conversations')
-        .select('*', { count: 'exact', head: true })
-        .eq('chatbot_id', chatbotId);
+  const fetchChatbots = async () => {
+    const { data } = await supabase
+      .from('chatbots')
+      .select('id, name')
+      .eq('user_id', user?.id)
+      .order('created_at', { ascending: false });
 
-      const { count: ordersCount } = await supabase
-        .from('chatbot_orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('chatbot_id', chatbotId);
-
-      const { count: appointmentsCount } = await supabase
-        .from('chatbot_appointments')
-        .select('*', { count: 'exact', head: true })
-        .eq('chatbot_id', chatbotId);
-
-      const { data: orders } = await supabase
-        .from('chatbot_orders')
-        .select('total')
-        .eq('chatbot_id', chatbotId)
-        .neq('status', 'cancelled');
-
-      const totalRevenue = orders?.reduce((sum, order) => sum + Number(order.total), 0) || 0;
-
-      const { data: reviews } = await supabase
-        .from('chatbot_reviews')
-        .select('rating')
-        .eq('chatbot_id', chatbotId);
-
-      const averageRating = reviews && reviews.length > 0
-        ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-        : 0;
-
-      setAnalytics({
-        totalCustomers: customersCount || 0,
-        totalConversations: conversationsCount || 0,
-        totalOrders: ordersCount || 0,
-        totalAppointments: appointmentsCount || 0,
-        totalRevenue,
-        averageRating,
-        conversationsPerDay: [],
-        ordersPerDay: [],
-        topProducts: [],
-      });
-
-      setLoading(false);
-    } catch (error) {
-      console.error('Error loading analytics:', error);
-      toast({
-        title: "Erro ao carregar analytics",
-        description: "Não foi possível carregar os dados de analytics.",
-        variant: "destructive",
-      });
-      setLoading(false);
+    if (data) {
+      setChatbots(data);
     }
   };
 
-  if (loading) {
-    return <div className="flex items-center justify-center p-12">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-    </div>;
-  }
+  const fetchStats = async () => {
+    if (!user) return;
+
+    // Get all user's chatbot IDs
+    const { data: userChatbots } = await supabase
+      .from('chatbots')
+      .select('id')
+      .eq('user_id', user.id);
+
+    if (!userChatbots || userChatbots.length === 0) return;
+
+    const chatbotIds = userChatbots.map(c => c.id);
+    
+    // Filter by selected chatbot or all
+    const filterIds = selectedChatbotId === "all" 
+      ? chatbotIds 
+      : [selectedChatbotId];
+
+    // Total conversations
+    const { count: totalConversations } = await supabase
+      .from('chatbot_conversations')
+      .select('*', { count: 'exact', head: true })
+      .in('chatbot_id', filterIds);
+
+    // Active conversations
+    const { count: activeConversations } = await supabase
+      .from('chatbot_conversations')
+      .select('*', { count: 'exact', head: true })
+      .in('chatbot_id', filterIds)
+      .eq('status', 'active');
+
+    // Total messages
+    const { data: conversations } = await supabase
+      .from('chatbot_conversations')
+      .select('id')
+      .in('chatbot_id', filterIds);
+
+    const conversationIds = conversations?.map(c => c.id) || [];
+
+    let totalMessages = 0;
+    if (conversationIds.length > 0) {
+      const { count } = await supabase
+        .from('chatbot_messages')
+        .select('*', { count: 'exact', head: true })
+        .in('conversation_id', conversationIds);
+      totalMessages = count || 0;
+    }
+
+    // Unique visitors (based on unique session_ids)
+    const { data: uniqueVisitorsData } = await supabase
+      .from('chatbot_conversations')
+      .select('session_id')
+      .in('chatbot_id', filterIds);
+
+    const uniqueVisitors = new Set(uniqueVisitorsData?.map(c => c.session_id)).size;
+
+    // Conversations today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const { count: conversationsToday } = await supabase
+      .from('chatbot_conversations')
+      .select('*', { count: 'exact', head: true })
+      .in('chatbot_id', filterIds)
+      .gte('created_at', today.toISOString());
+
+    // Conversations this week
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const { count: conversationsThisWeek } = await supabase
+      .from('chatbot_conversations')
+      .select('*', { count: 'exact', head: true })
+      .in('chatbot_id', filterIds)
+      .gte('created_at', weekAgo.toISOString());
+
+    // Conversations this month
+    const monthAgo = new Date();
+    monthAgo.setDate(monthAgo.getDate() - 30);
+    const { count: conversationsThisMonth } = await supabase
+      .from('chatbot_conversations')
+      .select('*', { count: 'exact', head: true })
+      .in('chatbot_id', filterIds)
+      .gte('created_at', monthAgo.toISOString());
+
+    const avgMessagesPerConversation = totalConversations 
+      ? (totalMessages / totalConversations).toFixed(1)
+      : 0;
+
+    setStats({
+      totalConversations: totalConversations || 0,
+      totalMessages,
+      uniqueVisitors,
+      avgMessagesPerConversation: Number(avgMessagesPerConversation),
+      conversationsToday: conversationsToday || 0,
+      conversationsThisWeek: conversationsThisWeek || 0,
+      conversationsThisMonth: conversationsThisMonth || 0,
+      activeConversations: activeConversations || 0,
+    });
+  };
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Clientes</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalCustomers}</div>
-          </CardContent>
-        </Card>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="w-5 h-5" />
+                Analytics das Conversas
+              </CardTitle>
+              <CardDescription>
+                Acompanhe as estatísticas dos seus chatbots online
+              </CardDescription>
+            </div>
+            <Select value={selectedChatbotId} onValueChange={setSelectedChatbotId}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Chatbots</SelectItem>
+                {chatbots.map((chatbot) => (
+                  <SelectItem key={chatbot.id} value={chatbot.id}>
+                    {chatbot.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="border-2">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total de Conversas</p>
+                    <p className="text-3xl font-bold">{stats.totalConversations}</p>
+                  </div>
+                  <MessageSquare className="w-8 h-8 text-primary" />
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Conversas</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalConversations}</div>
-          </CardContent>
-        </Card>
+            <Card className="border-2">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Conversas Ativas</p>
+                    <p className="text-3xl font-bold">{stats.activeConversations}</p>
+                  </div>
+                  <TrendingUp className="w-8 h-8 text-success" />
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Pedidos</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalOrders}</div>
-          </CardContent>
-        </Card>
+            <Card className="border-2">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total de Mensagens</p>
+                    <p className="text-3xl font-bold">{stats.totalMessages}</p>
+                  </div>
+                  <MessageSquare className="w-8 h-8 text-blue-500" />
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Agendamentos</CardTitle>
-            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalAppointments}</div>
-          </CardContent>
-        </Card>
+            <Card className="border-2">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Visitantes Únicos</p>
+                    <p className="text-3xl font-bold">{stats.uniqueVisitors}</p>
+                  </div>
+                  <Users className="w-8 h-8 text-purple-500" />
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">R$ {analytics.totalRevenue.toFixed(2)}</div>
-          </CardContent>
-        </Card>
+            <Card className="border-2">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Média Mensagens/Conversa</p>
+                    <p className="text-3xl font-bold">{stats.avgMessagesPerConversation}</p>
+                  </div>
+                  <BarChart3 className="w-8 h-8 text-orange-500" />
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avaliação Média</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.averageRating.toFixed(1)} ⭐</div>
-          </CardContent>
-        </Card>
-      </div>
+            <Card className="border-2">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Hoje</p>
+                    <p className="text-3xl font-bold">{stats.conversationsToday}</p>
+                  </div>
+                  <Calendar className="w-8 h-8 text-green-500" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Esta Semana</p>
+                    <p className="text-3xl font-bold">{stats.conversationsThisWeek}</p>
+                  </div>
+                  <Clock className="w-8 h-8 text-cyan-500" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Este Mês</p>
+                    <p className="text-3xl font-bold">{stats.conversationsThisMonth}</p>
+                  </div>
+                  <TrendingUp className="w-8 h-8 text-pink-500" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
-};
+}

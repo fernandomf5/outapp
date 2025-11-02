@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 
-export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId: string }) => {
+export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId?: string }) => {
   const [customers, setCustomers] = useState<any[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -25,13 +25,14 @@ export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId: string }) => {
   useEffect(() => {
     loadCustomers();
     
+    const channelName = chatbotId ? `chatbot_customers_changes_${chatbotId}` : 'chatbot_customers_changes_all';
     const subscription = supabase
-      .channel('chatbot_customers_changes')
+      .channel(channelName)
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
         table: 'chatbot_customers',
-        filter: `chatbot_id=eq.${chatbotId}`
+        ...(chatbotId ? { filter: `chatbot_id=eq.${chatbotId}` } : {})
       }, () => {
         loadCustomers();
       })
@@ -57,11 +58,16 @@ export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId: string }) => {
 
   const loadCustomers = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('chatbot_customers')
-        .select('*')
-        .eq('chatbot_id', chatbotId)
+        .select('*, chatbot:chatbots(name)')
         .order('created_at', { ascending: false });
+
+      if (chatbotId) {
+        query = query.eq('chatbot_id', chatbotId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setCustomers(data || []);

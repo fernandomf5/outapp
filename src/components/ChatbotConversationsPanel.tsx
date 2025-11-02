@@ -15,7 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 
-export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) => {
+export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId?: string }) => {
   const [conversations, setConversations] = useState<any[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -37,15 +37,22 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
 
   // Carregar nome salvo do localStorage
   useEffect(() => {
+    if (!chatbotId) return;
     const savedName = localStorage.getItem(`chatbot_sender_name_${chatbotId}`);
     if (savedName) setSenderName(savedName);
   }, [chatbotId]);
 
   useEffect(() => {
     loadConversations();
+    const channelName = chatbotId ? `chatbot-conversations-updates-${chatbotId}` : 'chatbot-conversations-updates-all';
     const channel = supabase
-      .channel('chatbot-conversations-updates')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'chatbot_conversations', filter: `chatbot_id=eq.${chatbotId}` }, () => {
+      .channel(channelName)
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'chatbot_conversations', 
+        ...(chatbotId ? { filter: `chatbot_id=eq.${chatbotId}` } : {})
+      }, () => {
         loadConversations();
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chatbot_messages' }, (payload) => {
@@ -68,11 +75,16 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
 
   const loadConversations = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('chatbot_conversations')
-        .select('*')
-        .eq('chatbot_id', chatbotId)
+        .select('*, chatbot:chatbots(name)')
         .order('last_message_at', { ascending: false });
+
+      if (chatbotId) {
+        query = query.eq('chatbot_id', chatbotId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setConversations(data || []);
@@ -88,11 +100,16 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
   };
 
   const loadUnreadCount = async () => {
-    const { data } = await supabase
+    let query = supabase
       .from('chatbot_notifications')
       .select('id')
-      .eq('chatbot_id', chatbotId)
       .eq('is_read', false);
+
+    if (chatbotId) {
+      query = query.eq('chatbot_id', chatbotId);
+    }
+
+    const { data } = await query;
     
     setUnreadCount(data?.length || 0);
   };
