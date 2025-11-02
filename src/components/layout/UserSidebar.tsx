@@ -144,7 +144,7 @@ export function UserSidebar() {
 
 
   const toolsItems: MenuItem[] = [
-    { title: t('tools_manager'), icon: Wrench, path: "/dashboard", tab: "tools" },
+    { title: "Gerador de Link para WhatsApp", icon: Wrench, path: "/dashboard", tab: "tools" },
     { title: "Botão Flutuante", icon: Zap, path: "/dashboard", tab: "floating-button" },
     { title: "Gerador QR Code", icon: QrCode, path: "/dashboard", tab: "qrcode" },
     { title: "Link na Bio", icon: ExternalLink, path: "/dashboard", tab: "linkbio" },
