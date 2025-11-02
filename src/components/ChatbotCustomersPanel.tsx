@@ -125,6 +125,13 @@ export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId: string }) => {
 
   const handleDeleteConfirm = async () => {
     try {
+      // First delete verification codes
+      await supabase
+        .from('chatbot_customer_verification_codes')
+        .delete()
+        .eq('customer_id', selectedCustomer.id);
+
+      // Then delete the customer
       const { error } = await supabase
         .from('chatbot_customers')
         .delete()
@@ -134,7 +141,7 @@ export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId: string }) => {
 
       toast({
         title: "Cliente excluído",
-        description: "O cliente foi excluído com sucesso.",
+        description: "O cliente foi excluído com sucesso e pode se cadastrar novamente.",
       });
 
       setDeleteDialogOpen(false);

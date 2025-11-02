@@ -16,7 +16,9 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { action, chatbotId, email, password, name, phone, accessType } = await req.json();
+    // Read body once and reuse
+    const requestData = await req.json();
+    const { action, chatbotId, email, password, name, phone, accessType, customerId, code } = requestData;
 
     if (action === 'register') {
       // Hash password
@@ -174,8 +176,6 @@ serve(async (req) => {
     }
 
     if (action === 'verify') {
-      const { customerId, code } = await req.json();
-
       // Find valid verification code
       const { data: verificationCode, error: codeError } = await supabase
         .from('chatbot_customer_verification_codes')
@@ -226,8 +226,6 @@ serve(async (req) => {
     }
 
     if (action === 'resend') {
-      const { customerId } = await req.json();
-
       // Get customer data
       const { data: customer, error: customerError } = await supabase
         .from('chatbot_customers')
