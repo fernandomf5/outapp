@@ -1339,6 +1339,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_start: boolean | null
+          keywords: string[] | null
           message: string
           name: string
           order_index: number | null
@@ -1350,6 +1351,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_start?: boolean | null
+          keywords?: string[] | null
           message: string
           name: string
           order_index?: number | null
@@ -1361,6 +1363,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_start?: boolean | null
+          keywords?: string[] | null
           message?: string
           name?: string
           order_index?: number | null

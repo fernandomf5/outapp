@@ -336,6 +336,13 @@ const handleSendMessage = async () => {
 
       const messageContent = input.trim() || '📷 Imagem';
 
+      // Verificar se a mensagem corresponde a alguma palavra-chave
+      const matchedFlow = flows.find(flow => 
+        flow.keywords && flow.keywords.some(keyword => 
+          messageContent.toLowerCase().includes(keyword.toLowerCase())
+        )
+      );
+
       const { error } = await supabase
         .from('chatbot_messages')
         .insert({
@@ -368,8 +375,15 @@ const handleSendMessage = async () => {
           });
       }
 
-      // Enviar mensagem automática na primeira mensagem do cliente (se habilitado)
-      if (!autoReplySent && chatbotInfo?.enable_auto_reply && chatbotInfo?.auto_reply_message?.trim()) {
+      // Se encontrou uma palavra-chave, enviar a mensagem correspondente
+      if (matchedFlow) {
+        setTimeout(() => {
+          sendFlowMessage(matchedFlow);
+        }, 800);
+      }
+
+      // Enviar mensagem automática na primeira mensagem do cliente (se habilitado e não tiver keyword match)
+      if (!autoReplySent && !matchedFlow && chatbotInfo?.enable_auto_reply && chatbotInfo?.auto_reply_message?.trim()) {
         setAutoReplySent(true);
         setTimeout(async () => {
           await supabase

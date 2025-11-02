@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, ExternalLink, ArrowRight, Star } from "lucide-react";
+import { Plus, Trash2, ExternalLink, ArrowRight, Star, X } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 
@@ -23,6 +23,7 @@ interface Flow {
   is_start: boolean;
   buttons: FlowButton[];
   order_index: number;
+  keywords: string[];
 }
 
 export function ChatbotFlowBuilder({ chatbotId }: { chatbotId: string }) {
@@ -50,7 +51,8 @@ export function ChatbotFlowBuilder({ chatbotId }: { chatbotId: string }) {
     // Cast Json to FlowButton[]
     const formattedFlows = (data || []).map(flow => ({
       ...flow,
-      buttons: (flow.buttons as any) || []
+      buttons: (flow.buttons as any) || [],
+      keywords: (flow.keywords as any) || []
     }));
 
     setFlows(formattedFlows);
@@ -62,6 +64,7 @@ export function ChatbotFlowBuilder({ chatbotId }: { chatbotId: string }) {
       message: 'Olá! Como posso ajudar você?',
       is_start: flows.length === 0,
       buttons: [],
+      keywords: [],
       order_index: flows.length,
     };
     setEditingFlow(newFlow as Flow);
@@ -81,6 +84,7 @@ export function ChatbotFlowBuilder({ chatbotId }: { chatbotId: string }) {
             message: editingFlow.message,
             is_start: editingFlow.is_start,
             buttons: editingFlow.buttons as any,
+            keywords: editingFlow.keywords,
             order_index: editingFlow.order_index,
           });
 
@@ -93,6 +97,7 @@ export function ChatbotFlowBuilder({ chatbotId }: { chatbotId: string }) {
             message: editingFlow.message,
             is_start: editingFlow.is_start,
             buttons: editingFlow.buttons as any,
+            keywords: editingFlow.keywords,
             updated_at: new Date().toISOString(),
           })
           .eq('id', editingFlow.id);
@@ -164,6 +169,28 @@ export function ChatbotFlowBuilder({ chatbotId }: { chatbotId: string }) {
     setEditingFlow({ ...editingFlow, buttons: newButtons });
   };
 
+  const [keywordInput, setKeywordInput] = useState("");
+
+  const addKeyword = () => {
+    if (!editingFlow || !keywordInput.trim()) return;
+    const newKeyword = keywordInput.trim().toLowerCase();
+    if (!editingFlow.keywords.includes(newKeyword)) {
+      setEditingFlow({
+        ...editingFlow,
+        keywords: [...editingFlow.keywords, newKeyword],
+      });
+    }
+    setKeywordInput("");
+  };
+
+  const removeKeyword = (keyword: string) => {
+    if (!editingFlow) return;
+    setEditingFlow({
+      ...editingFlow,
+      keywords: editingFlow.keywords.filter(k => k !== keyword),
+    });
+  };
+
   if (editingFlow) {
     return (
       <Card>
@@ -199,6 +226,39 @@ export function ChatbotFlowBuilder({ chatbotId }: { chatbotId: string }) {
               onCheckedChange={(checked) => setEditingFlow({ ...editingFlow, is_start: checked })}
             />
             <Label>Mensagem Inicial (primeira mensagem que o cliente verá)</Label>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <Label>Palavras-chave (o cliente digita e aciona esta mensagem)</Label>
+              <div className="flex gap-2 mt-2">
+                <Input
+                  value={keywordInput}
+                  onChange={(e) => setKeywordInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && addKeyword()}
+                  placeholder="Ex: ajuda, suporte, preços..."
+                />
+                <Button onClick={addKeyword} type="button" variant="outline">
+                  Adicionar
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-3">
+                {editingFlow.keywords.map((keyword) => (
+                  <div
+                    key={keyword}
+                    className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm flex items-center gap-2"
+                  >
+                    {keyword}
+                    <button
+                      onClick={() => removeKeyword(keyword)}
+                      className="hover:text-destructive"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="space-y-3">
@@ -348,6 +408,15 @@ export function ChatbotFlowBuilder({ chatbotId }: { chatbotId: string }) {
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground mb-3">{flow.message}</p>
+                    {flow.keywords && flow.keywords.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {flow.keywords.map((keyword, idx) => (
+                          <span key={idx} className="text-xs px-2 py-0.5 bg-secondary/50 text-secondary-foreground rounded">
+                            {keyword}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     <div className="flex flex-wrap gap-2">
                       {flow.buttons.map((button, idx) => (
                         <div
