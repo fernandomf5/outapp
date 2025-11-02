@@ -29,7 +29,6 @@ import { LandingFeaturesEditor } from "@/components/admin/LandingFeaturesEditor"
 import { MercadoPagoIntegration } from "@/components/admin/MercadoPagoIntegration";
 import { AdminSecurityPanel } from "@/components/admin/AdminSecurityPanel";
 import { BlogManager } from "@/components/admin/BlogManager";
-import { LogoAdmin } from "@/components/admin/LogoAdmin";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -511,7 +510,6 @@ const AdminDashboard = () => {
                   <Crown className="w-8 h-8 text-warning" />
                 </div>
                 <div className="flex items-center gap-4">
-                  <LogoAdmin />
                   <div>
                     <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
                       Painel Master Admin
