@@ -291,6 +291,127 @@ const BotBuilder = () => {
     }
   }, [chatbotId, toggleActive, toast]);
 
+  // Autosave (Supabase + rascunho local) e histórico para Ctrl+Z/Ctrl+Y
+  useEffect(() => {
+    const draftKey = `botbuilder_draft_${chatbotId || 'new'}`;
+
+    // Restaurar rascunho, se existir e fluxo atual estiver vazio
+    try {
+      const draft = localStorage.getItem(draftKey);
+      if (draft) {
+        const parsed = JSON.parse(draft);
+        const hasFlow = (nodes?.length || 0) + (edges?.length || 0) > 0;
+        if (!hasFlow && (parsed.nodes?.length || parsed.edges?.length)) {
+          if (confirm('Encontramos um rascunho não salvo. Deseja restaurar?')) {
+            setNodes(parsed.nodes || []);
+            setEdges(parsed.edges || []);
+          }
+        }
+      }
+    } catch {}
+
+    let saveTimer: any;
+    const scheduleSave = () => {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(async () => {
+        // Salva rascunho local
+        localStorage.setItem(draftKey, JSON.stringify({ nodes, edges }));
+
+        // Salva silenciosamente no Supabase se já existir id
+        if (chatbotId) {
+          try {
+            await supabase
+              .from('chatbots')
+              .update({
+                config: {
+                  initialMessage,
+                  initialButtons,
+                  attendantName,
+                  nodes,
+                  edges,
+                } as any
+              } as any)
+              .eq('id', chatbotId);
+          } catch (e) {
+            console.warn('Falha no autosave remoto', e);
+          }
+        }
+      }, 1000);
+    };
+
+    scheduleSave();
+
+    return () => clearTimeout(saveTimer);
+  }, [nodes, edges, chatbotId, initialMessage, initialButtons, attendantName]);
+
+  // Histórico de desfazer/refazer
+  const [history, setHistory] = useState<Array<{ nodes: Node[]; edges: Edge[] }>>([]);
+  const [redo, setRedo] = useState<Array<{ nodes: Node[]; edges: Edge[] }>>([]);
+  const [initializedHistory, setInitializedHistory] = useState(false);
+
+  useEffect(() => {
+    if (!initializedHistory) {
+      setInitializedHistory(true);
+      setHistory([{ nodes, edges }]);
+      return;
+    }
+    setHistory((h) => [...h.slice(-49), { nodes, edges }]);
+    setRedo([]);
+  }, [nodes, edges]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Delete para remover bloco selecionado
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (selectedNode) {
+          e.preventDefault();
+          deleteNode(selectedNode.id);
+          return;
+        }
+      }
+
+      // Ctrl+Z / Ctrl+Shift+Z ou Ctrl+Y
+      const ctrlOrCmd = e.ctrlKey || e.metaKey;
+      if (!ctrlOrCmd) return;
+
+      if (e.key.toLowerCase() === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        setHistory((h) => {
+          if (h.length <= 1) return h;
+          const prev = h[h.length - 2];
+          const curr = h[h.length - 1];
+          setRedo((r) => [...r, curr]);
+          setNodes(prev.nodes);
+          setEdges(prev.edges);
+          return h.slice(0, -1);
+        });
+      } else if (e.key.toLowerCase() === 'z' && e.shiftKey) {
+        e.preventDefault();
+        setRedo((r) => {
+          if (r.length === 0) return r;
+          const next = r[r.length - 1];
+          setNodes(next.nodes);
+          setEdges(next.edges);
+          setHistory((h) => [...h, next]);
+          return r.slice(0, -1);
+        });
+      } else if (e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        setRedo((r) => {
+          if (r.length === 0) return r;
+          const next = r[r.length - 1];
+          setNodes(next.nodes);
+          setEdges(next.edges);
+          setHistory((h) => [...h, next]);
+          return r.slice(0, -1);
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [selectedNode, deleteNode]);
+
   return (
     <ReactFlowProvider>
       <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-background flex flex-col">

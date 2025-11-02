@@ -270,6 +270,14 @@ export default function ChatbotCustomerChat() {
     setMessages((data || []) as Message[]);
   };
 
+  const replaceVars = (text: string) => {
+    const fullName = customer?.name || 'Visitante';
+    const firstName = String(fullName).split(' ')[0];
+    return (text || '')
+      .replace(/\{\{\s*name\s*\}\}|\{\s*name\s*\}/gi, fullName)
+      .replace(/\{\{\s*first_name\s*\}\}|\{\s*first_name\s*\}/gi, firstName);
+  };
+
   const processInitialFlowMessages = async (chatbot: any, convId: string) => {
     const nodes = chatbot?.config?.nodes || [];
     const edges = chatbot?.config?.edges || [];
@@ -281,7 +289,7 @@ export default function ChatbotCustomerChat() {
         await supabase.from('chatbot_messages').insert({
           conversation_id: convId,
           role: 'bot',
-          content: initial,
+          content: replaceVars(initial),
         });
       }
       return;
@@ -296,7 +304,7 @@ export default function ChatbotCustomerChat() {
         await supabase.from('chatbot_messages').insert({
           conversation_id: convId,
           role: 'bot',
-          content: initial,
+          content: replaceVars(initial),
         });
       }
       return;
@@ -314,41 +322,43 @@ export default function ChatbotCustomerChat() {
       let mediaUrl = '';
       let mediaType = '';
 
-      if (type === 'textnode') {
-        messageContent = targetNode.data?.text || '';
-      } else if (type === 'messagenode') {
-        messageContent = targetNode.data?.message || '';
-      } else if (type === 'imagenode') {
+      if (type === 'textnode' || type === 'text') {
+        messageContent = targetNode.data?.text || targetNode.data?.label || '';
+      } else if (type === 'messagenode' || type === 'message') {
+        messageContent = targetNode.data?.message || targetNode.data?.label || '';
+      } else if (type === 'imagenode' || type === 'image') {
         mediaUrl = targetNode.data?.imageUrl || '';
         mediaType = 'image';
         messageContent = targetNode.data?.caption || 'Imagem';
-      } else if (type === 'videonode') {
+      } else if (type === 'videonode' || type === 'video') {
         mediaUrl = targetNode.data?.videoUrl || '';
         mediaType = 'video';
         messageContent = targetNode.data?.caption || 'Vídeo';
-      } else if (type === 'audionode') {
+      } else if (type === 'audionode' || type === 'audio') {
         mediaUrl = targetNode.data?.audioUrl || '';
         mediaType = 'audio';
         messageContent = targetNode.data?.caption || 'Áudio';
-      } else if (type === 'documentnode') {
+      } else if (type === 'documentnode' || type === 'document') {
         mediaUrl = targetNode.data?.documentUrl || '';
         mediaType = 'document';
         messageContent = targetNode.data?.caption || 'Documento';
-      } else if (type === 'buttonnode') {
+      } else if (type === 'buttonnode' || type === 'button') {
         const buttons = targetNode.data?.buttons || [];
-        messageContent = targetNode.data?.message || '';
+        messageContent = targetNode.data?.message || targetNode.data?.label || '';
         if (buttons.length > 0) {
-          messageContent += '\n\nOpções:\n' + buttons.map((b: any, i: number) => `${i + 1}. ${b.text}`).join('\n');
+          messageContent += '\n\nOpções:\n' + buttons.map((b: any, i: number) => `${i + 1}. ${typeof b === 'string' ? b : (b?.text || '')}`).join('\n');
         }
-      } else if (type === 'quickreplynode') {
-        const replies = targetNode.data?.quickReplies || [];
-        messageContent = targetNode.data?.message || '';
+      } else if (type === 'quickreplynode' || type === 'quickReply') {
+        const replies = targetNode.data?.quickReplies || targetNode.data?.buttons || [];
+        messageContent = targetNode.data?.message || targetNode.data?.label || '';
         if (replies.length > 0) {
-          messageContent += '\n\n' + replies.map((r: any) => `• ${r}`).join('\n');
+          messageContent += '\n\n' + replies.map((r: any) => `• ${typeof r === 'string' ? r : (r?.text || '')}`).join('\n');
         }
-      } else if (type === 'questionnode') {
-        messageContent = targetNode.data?.question || '';
+      } else if (type === 'questionnode' || type === 'question') {
+        messageContent = targetNode.data?.question || targetNode.data?.label || '';
       }
+
+      messageContent = replaceVars(messageContent);
 
       if (messageContent || mediaUrl) {
         await supabase.from('chatbot_messages').insert({
@@ -394,7 +404,7 @@ export default function ChatbotCustomerChat() {
     if (!input.trim() || !conversationId || !customer) return;
 
     setLoading(true);
-    const userMessage = input;
+    const userMessage = input.trim();
     setInput("");
 
     try {
@@ -412,11 +422,78 @@ export default function ChatbotCustomerChat() {
         .update({ last_message_at: new Date().toISOString() })
         .eq('id', conversationId);
 
-      // Process message - chatbot usa fluxo, não IA
-      // Para chatbot, não enviar para IA, apenas salvar mensagem do usuário
-      // A resposta virá do fluxo ou manualmente pelo dono do chatbot
+      // 1) Palavras‑chave: procurar bloco correspondente
+      const nodes = chatbotInfo?.config?.nodes || [];
+      const edges = chatbotInfo?.config?.edges || [];
+      const lower = userMessage.toLowerCase();
+      const match = nodes.find((n: any) => {
+        const raw = n?.data?.keyword || '';
+        if (!raw) return false;
+        const list = String(raw)
+          .split(',')
+          .map((k: string) => k.trim().toLowerCase())
+          .filter(Boolean);
+        return list.some((k: string) => lower === k || lower.includes(k));
+      });
 
-      // Chatbot não responde automaticamente, apenas aguarda resposta manual ou pelo fluxo
+      if (match) {
+        // Montar mensagem do bloco encontrado
+        const type = (match.type || '').toLowerCase();
+        let messageContent = '';
+        let mediaUrl = '';
+        let mediaType = '';
+
+        if (type === 'textnode' || type === 'text') {
+          messageContent = match.data?.text || match.data?.label || '';
+        } else if (type === 'messagenode' || type === 'message') {
+          messageContent = match.data?.message || match.data?.label || '';
+        } else if (type === 'imagenode' || type === 'image') {
+          mediaUrl = match.data?.imageUrl || '';
+          mediaType = 'image';
+          messageContent = match.data?.caption || 'Imagem';
+        } else if (type === 'videonode' || type === 'video') {
+          mediaUrl = match.data?.videoUrl || '';
+          mediaType = 'video';
+          messageContent = match.data?.caption || 'Vídeo';
+        } else if (type === 'audionode' || type === 'audio') {
+          mediaUrl = match.data?.audioUrl || '';
+          mediaType = 'audio';
+          messageContent = match.data?.caption || 'Áudio';
+        } else if (type === 'documentnode' || type === 'document') {
+          mediaUrl = match.data?.documentUrl || '';
+          mediaType = 'document';
+          messageContent = match.data?.caption || 'Documento';
+        } else if (type === 'buttonnode' || type === 'button') {
+          const buttons = match.data?.buttons || [];
+          messageContent = match.data?.message || match.data?.label || '';
+          if (buttons.length > 0) {
+            messageContent += '\n\nOpções:\n' + buttons.map((b: any, i: number) => `${i + 1}. ${typeof b === 'string' ? b : (b?.text || '')}`).join('\n');
+          }
+        } else if (type === 'quickreplynode' || type === 'quickReply') {
+          const replies = match.data?.quickReplies || match.data?.buttons || [];
+          messageContent = match.data?.message || match.data?.label || '';
+          if (replies.length > 0) {
+            messageContent += '\n\n' + replies.map((r: any) => `• ${typeof r === 'string' ? r : (r?.text || '')}`).join('\n');
+          }
+        } else if (type === 'questionnode' || type === 'question') {
+          messageContent = match.data?.question || match.data?.label || '';
+        }
+
+        messageContent = replaceVars(messageContent);
+
+        if (messageContent || mediaUrl) {
+          await supabase.from('chatbot_messages').insert({
+            conversation_id: conversationId,
+            role: 'bot',
+            content: messageContent,
+            media_url: mediaUrl || null,
+            media_type: mediaType || null,
+            node_id: match.id,
+          });
+        }
+      }
+
+      // Observação: próximo passo do fluxo via edges pode ser implementado aqui, se necessário
     } catch (error: any) {
       toast({
         title: "Erro",

@@ -220,9 +220,10 @@ export const PropertiesPanel = ({
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               onBlur={handleUpdate}
-              placeholder="Digite o texto da mensagem..."
+              placeholder="Digite o texto da mensagem... (suporta {name} e {first_name})"
               className="mt-2 min-h-[120px]"
             />
+            <p className="text-xs text-muted-foreground mt-1">Use variáveis: {`{name}`} ou {`{first_name}`}</p>
           </div>
         )}
 

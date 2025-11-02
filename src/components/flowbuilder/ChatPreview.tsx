@@ -80,15 +80,23 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
     }
   };
 
+  const replaceVars = (text: string) => {
+    const sampleName = 'Cliente';
+    const firstName = sampleName.split(' ')[0];
+    return (text || '')
+      .replace(/\{\{\s*name\s*\}\}|\{\s*name\s*\}/gi, sampleName)
+      .replace(/\{\{\s*first_name\s*\}\}|\{\s*first_name\s*\}/gi, firstName);
+  };
+
   const processNode = (node: Node) => {
-    if (node.type === 'message' || node.type === 'question' || node.type === 'quickReply' || node.type === 'button') {
+    if (node.type === 'message' || node.type === 'question' || node.type === 'quickReply' || node.type === 'button' || node.type === 'text') {
       const newMessage: Message = {
         id: node.id,
         role: 'bot',
-        content: node.data.label || '',
+        content: replaceVars(node.data.label || node.data.message || node.data.text || ''),
         timestamp: new Date(),
         imageUrl: node.data.imageUrl,
-        buttons: node.data.buttons,
+        buttons: node.data.buttons?.map((b: any) => (typeof b === 'string' ? b : b?.text)).filter(Boolean),
         nodeId: node.id
       };
       setMessages(prev => [...prev, newMessage]);
@@ -132,8 +140,8 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
   };
 
   const handleSendMessage = (messageText?: string, originNodeId?: string) => {
-    const textToSend = messageText || inputMessage;
-    if (!textToSend.trim()) return;
+    const textToSend = (messageText || inputMessage).trim();
+    if (!textToSend) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -146,32 +154,45 @@ export const ChatPreview = ({ nodes, edges, botName }: ChatPreviewProps) => {
     setInputMessage('');
     setIsLoading(true);
 
-    // Encontrar nó de contexto do bot (origem)
-    const contextNodeId = originNodeId || ([...messages].reverse().find(m => m.role === 'bot' && m.nodeId)?.nodeId);
-    
-    if (contextNodeId) {
-      const nextNode = findNextNode(contextNodeId, textToSend);
-      
+    // 1) Prioridade: palavra‑chave
+    const lower = textToSend.toLowerCase();
+    const keywordMatch = nodes.find((n) => {
+      const raw = n.data?.keyword || '';
+      if (!raw) return false;
+      const list = String(raw)
+        .split(',')
+        .map((k: string) => k.trim().toLowerCase())
+        .filter(Boolean);
+      return list.some((k: string) => lower === k || lower.includes(k));
+    });
+
+    const proceedWithNode = (nextNode: Node | null) => {
       if (nextNode) {
-        // Calcular delay total (500ms base + delay configurado)
         const delayMs = 500 + ((nextNode.data?.delaySeconds || 0) * 1000);
-        
-        // Mostrar indicador de digitando
         setIsTyping(true);
-        
         setTimeout(() => {
           setIsTyping(false);
           processNode(nextNode);
           setIsLoading(false);
         }, delayMs);
-        return;
+        return true;
       }
+      return false;
+    };
+
+    if (keywordMatch) {
+      if (proceedWithNode(keywordMatch)) return;
     }
 
-    // Sem próximo nó - apenas finaliza sem mensagem
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
+    // 2) Fluxo baseado no contexto do último nó do bot
+    const contextNodeId = originNodeId || ([...messages].reverse().find(m => m.role === 'bot' && m.nodeId)?.nodeId);
+    if (contextNodeId) {
+      const nextNode = findNextNode(contextNodeId, textToSend);
+      if (proceedWithNode(nextNode)) return;
+    }
+
+    // 3) Sem próximo nó
+    setTimeout(() => setIsLoading(false), 500);
   };
 
   const handleReset = () => {
