@@ -40,6 +40,7 @@ export default function ChatbotCustomerChat() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAdminTyping, setIsAdminTyping] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+  const [autoReplySent, setAutoReplySent] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -341,6 +342,25 @@ const handleSendMessage = async () => {
             message: `${customer?.name || 'Visitante'}: ${messageContent.substring(0, 50)}${messageContent.length > 50 ? '...' : ''}`,
             is_read: false,
           });
+      }
+
+      // Enviar mensagem automática na primeira mensagem do cliente (se habilitado)
+      if (!autoReplySent && chatbotInfo?.enable_auto_reply && chatbotInfo?.auto_reply_message?.trim()) {
+        setAutoReplySent(true);
+        setTimeout(async () => {
+          await supabase
+            .from('chatbot_messages')
+            .insert({
+              conversation_id: conversationId,
+              role: 'admin',
+              content: chatbotInfo.auto_reply_message,
+              sender_name: chatbotInfo?.name || 'Atendente',
+            });
+          await supabase
+            .from('chatbot_conversations')
+            .update({ last_message_at: new Date().toISOString() })
+            .eq('id', conversationId);
+        }, 1000);
       }
 
       setInput("");
