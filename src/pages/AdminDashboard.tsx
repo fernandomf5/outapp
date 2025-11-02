@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { useTheme } from "next-themes";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { UsersPanel } from "@/components/admin/UsersPanel";
@@ -28,6 +29,7 @@ import { LandingFeaturesEditor } from "@/components/admin/LandingFeaturesEditor"
 import { MercadoPagoIntegration } from "@/components/admin/MercadoPagoIntegration";
 import { AdminSecurityPanel } from "@/components/admin/AdminSecurityPanel";
 import { BlogManager } from "@/components/admin/BlogManager";
+import { LogoAdmin } from "@/components/admin/LogoAdmin";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -508,11 +510,14 @@ const AdminDashboard = () => {
                 <div className="bg-gradient-to-br from-warning/20 to-warning/10 p-3 rounded-xl shadow-glow animate-pulse">
                   <Crown className="w-8 h-8 text-warning" />
                 </div>
-                <div>
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-                    Painel Master Admin
-                  </h1>
-                  <p className="text-sm text-muted-foreground">Controle total da plataforma</p>
+                <div className="flex items-center gap-4">
+                  <LogoAdmin />
+                  <div>
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                      Painel Master Admin
+                    </h1>
+                    <p className="text-sm text-muted-foreground">Controle total da plataforma</p>
+                  </div>
                 </div>
               </div>
 

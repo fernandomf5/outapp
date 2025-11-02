@@ -36,12 +36,24 @@ export const useUserFeatures = () => {
         .select('plan_id, expires_at')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .gt('expires_at', new Date().toISOString())
         .order('expires_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (!subscription) {
+        setFeatures([]);
+        setLoading(false);
+        return;
+      }
+
+      // Verificar se a assinatura expirou há mais de 3 dias (período de graça)
+      const expirationDate = new Date(subscription.expires_at);
+      const now = new Date();
+      const threeDaysAfterExpiration = new Date(expirationDate);
+      threeDaysAfterExpiration.setDate(threeDaysAfterExpiration.getDate() + 3);
+
+      // Se passou de 3 dias após o vencimento, bloquear recursos
+      if (now > threeDaysAfterExpiration) {
         setFeatures([]);
         setLoading(false);
         return;
