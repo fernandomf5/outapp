@@ -27,6 +27,7 @@ import { FAQEditor } from "@/components/admin/FAQEditor";
 import { LandingFeaturesEditor } from "@/components/admin/LandingFeaturesEditor";
 import { MercadoPagoIntegration } from "@/components/admin/MercadoPagoIntegration";
 import { AdminSecurityPanel } from "@/components/admin/AdminSecurityPanel";
+import { BlogManager } from "@/components/admin/BlogManager";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -674,6 +675,9 @@ const AdminDashboard = () => {
 
             {/* FAQ Section */}
             {currentSection === 'faq' && <FAQEditor />}
+
+            {/* Blog Section */}
+            {currentSection === 'blog' && <BlogManager />}
 
             {/* Messages Section */}
             {currentSection === 'messages' && <AdminMessagesManager />}

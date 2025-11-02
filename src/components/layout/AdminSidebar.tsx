@@ -93,6 +93,7 @@ export function AdminSidebar() {
     { title: t('landing_page'), icon: Globe, tab: "landing" },
     { title: t('features_manager'), icon: Package, tab: "features-landing" },
     { title: t('faq_manager'), icon: FileText, tab: "faq" },
+    { title: "Blog", icon: FileText, tab: "blog" },
     { title: t('tutorial_videos'), icon: Video, tab: "videos" },
   ];
 
