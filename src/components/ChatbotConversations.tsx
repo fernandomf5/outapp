@@ -143,7 +143,7 @@ export const ChatbotConversations = () => {
     const fetchMessages = async () => {
       const { data, error } = await supabase
         .from('chatbot_messages')
-        .select('*')
+        .select('id, conversation_id, role, content, media_url, media_type, created_at')
         .eq('conversation_id', selectedConversation.id)
         .order('created_at', { ascending: true });
 
