@@ -143,6 +143,8 @@ export const ChatbotConversations = () => {
         return;
       }
 
+      console.log('📨 Mensagens carregadas:', data);
+      console.log('🖼️ Mensagens com mídia:', data?.filter(m => m.media_url));
       setMessages(data || []);
     };
 
@@ -634,21 +636,35 @@ export const ChatbotConversations = () => {
                           <p className="text-xs text-muted-foreground mb-1">🤖 Bot</p>
                         )}
                         {msg.role === 'user' && (
-                          <p className="text-xs text-muted-foreground mb-1">👤 Cliente</p>
+                          <p className="text-xs text-muted-foreground mb-1">
+                            👤 Cliente
+                            {msg.media_url && ` 📎 ${msg.media_type || 'arquivo'}`}
+                          </p>
+                        )}
+                        
+                        {/* Debug: Mostrar informações de mídia */}
+                        {msg.media_url && (
+                          <div className="text-[10px] text-muted-foreground mb-1 font-mono bg-muted/50 p-1 rounded">
+                            Media: {msg.media_type} | URL: {msg.media_url?.substring(0, 50)}...
+                          </div>
                         )}
                         
                         {/* Renderizar imagem primeiro, se houver */}
                         {msg.media_url && msg.media_type === 'image' && (
-                          <div className="mb-2">
+                          <div className="mb-2 bg-muted/20 p-1 rounded">
                             <img 
                               src={msg.media_url} 
                               alt="Imagem enviada" 
                               className="rounded-lg max-w-full max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity"
                               onClick={() => window.open(msg.media_url, '_blank')}
+                              onLoad={() => console.log('✅ Imagem carregada:', msg.media_url)}
                               onError={(e) => {
-                                console.error('Erro ao carregar imagem:', msg.media_url);
-                                e.currentTarget.style.display = 'none';
-                                e.currentTarget.parentElement!.innerHTML = '<p class="text-xs text-destructive">❌ Erro ao carregar imagem</p>';
+                                console.error('❌ Erro ao carregar imagem:', msg.media_url);
+                                const target = e.currentTarget as HTMLImageElement;
+                                target.style.display = 'none';
+                                if (target.parentElement) {
+                                  target.parentElement.innerHTML = '<p class="text-xs text-destructive p-2">❌ Erro ao carregar imagem</p>';
+                                }
                               }}
                             />
                           </div>
