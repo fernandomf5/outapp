@@ -1676,6 +1676,7 @@ export type Database = {
           config: Json
           created_at: string
           description: string | null
+          enable_auto_reply: boolean | null
           enable_queue: boolean | null
           id: string
           is_active: boolean
@@ -1690,6 +1691,7 @@ export type Database = {
           config?: Json
           created_at?: string
           description?: string | null
+          enable_auto_reply?: boolean | null
           enable_queue?: boolean | null
           id?: string
           is_active?: boolean
@@ -1704,6 +1706,7 @@ export type Database = {
           config?: Json
           created_at?: string
           description?: string | null
+          enable_auto_reply?: boolean | null
           enable_queue?: boolean | null
           id?: string
           is_active?: boolean

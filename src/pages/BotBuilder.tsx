@@ -27,6 +27,7 @@ const BotBuilder = () => {
   const [isActive, setIsActive] = useState(true);
   const [accessType, setAccessType] = useState<'public' | 'anonymous'>('public');
   const [enableQueue, setEnableQueue] = useState(true);
+  const [enableAutoReply, setEnableAutoReply] = useState(true);
   const [autoReplyMessage, setAutoReplyMessage] = useState("Olá! Envie sua mensagem que responderei assim que possível. 😊");
   const [showWidgetDialog, setShowWidgetDialog] = useState(false);
 
@@ -39,6 +40,7 @@ const BotBuilder = () => {
         setIsActive(chatbot.is_active);
         setAccessType((chatbot as any).access_type || 'public');
         setEnableQueue((chatbot as any).enable_queue !== false);
+        setEnableAutoReply((chatbot as any).enable_auto_reply !== false);
         setAutoReplyMessage((chatbot as any).auto_reply_message || "Olá! Envie sua mensagem que responderei assim que possível. 😊");
       }).catch(console.error);
     }
@@ -73,6 +75,7 @@ const BotBuilder = () => {
         user_id: user.id,
         access_type: accessType,
         enable_queue: enableQueue,
+        enable_auto_reply: enableAutoReply,
         auto_reply_message: autoReplyMessage,
       };
 
@@ -273,20 +276,35 @@ const BotBuilder = () => {
           <Card className="p-6">
             <h2 className="text-xl font-semibold mb-4">Mensagem Automática</h2>
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="auto-reply">Mensagem de Ausência/Espera</Label>
-                <Textarea
-                  id="auto-reply"
-                  placeholder="Ex: Olá! Envie sua mensagem que responderei assim que possível."
-                  value={autoReplyMessage}
-                  onChange={(e) => setAutoReplyMessage(e.target.value)}
-                  className="mt-1 min-h-[100px]"
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="enable-auto-reply">Ativar Mensagem Automática</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Envia uma mensagem automática quando o cliente enviar a primeira mensagem.
+                  </p>
+                </div>
+                <Switch
+                  id="enable-auto-reply"
+                  checked={enableAutoReply}
+                  onCheckedChange={setEnableAutoReply}
                 />
-                <p className="text-sm text-muted-foreground mt-2">
-                  Esta mensagem será enviada automaticamente quando o cliente iniciar a conversa,
-                  informando que você está ocupado ou atendendo outras pessoas.
-                </p>
               </div>
+              {enableAutoReply && (
+                <div>
+                  <Label htmlFor="auto-reply">Mensagem de Ausência/Espera</Label>
+                  <Textarea
+                    id="auto-reply"
+                    placeholder="Ex: Olá! Envie sua mensagem que responderei assim que possível."
+                    value={autoReplyMessage}
+                    onChange={(e) => setAutoReplyMessage(e.target.value)}
+                    className="mt-1 min-h-[100px]"
+                  />
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Esta mensagem será enviada automaticamente quando o cliente enviar a primeira mensagem,
+                    informando que você está ocupado ou atendendo outras pessoas.
+                  </p>
+                </div>
+              )}
             </div>
           </Card>
 

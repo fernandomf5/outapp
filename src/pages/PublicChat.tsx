@@ -41,7 +41,7 @@ const PublicChat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
-  const [showAutoReply, setShowAutoReply] = useState(false);
+  const [autoReplySent, setAutoReplySent] = useState(false);
 
   useEffect(() => {
     if (!showPreChatForm) {
@@ -177,10 +177,10 @@ const PublicChat = () => {
       if (error) throw error;
       setConversationId(data.id);
       
-      // Buscar dados do chatbot para mensagem automática e fila
+      // Buscar dados do chatbot para fila
       const { data: chatbotData } = await supabase
         .from('chatbots')
-        .select('enable_queue, auto_reply_message')
+        .select('enable_queue')
         .eq('id', botId)
         .single();
       
@@ -195,20 +195,6 @@ const PublicChat = () => {
             .lt('created_at', data.created_at);
           
           setQueuePosition((count || 0) + 1);
-        }
-        
-        // Enviar mensagem automática se configurada
-        if (chatbotData.auto_reply_message && chatbotData.auto_reply_message.trim()) {
-          setTimeout(() => {
-            setMessages(prev => [...prev, {
-              id: 'auto-reply',
-              role: 'bot',
-              content: chatbotData.auto_reply_message,
-              timestamp: new Date()
-            }]);
-            saveMessage('bot', chatbotData.auto_reply_message);
-            chatSounds.playReceiveSound();
-          }, 1000);
         }
       }
     } catch (error) {
@@ -513,6 +499,29 @@ const handleSendMessage = async (messageText?: string, originNodeId?: string) =>
 
     // Salvar mensagem do usuário (com originNodeId quando vier de botão)
     await saveMessage('user', textToSend, originNodeId);
+
+    // Enviar mensagem automática na primeira mensagem do cliente
+    if (!autoReplySent && botData.type === 'chatbot' && botId) {
+      const { data: chatbotData } = await supabase
+        .from('chatbots')
+        .select('enable_auto_reply, auto_reply_message')
+        .eq('id', botId)
+        .single();
+      
+      if (chatbotData?.enable_auto_reply && chatbotData.auto_reply_message?.trim()) {
+        setAutoReplySent(true);
+        setTimeout(() => {
+          setMessages(prev => [...prev, {
+            id: 'auto-reply',
+            role: 'bot',
+            content: chatbotData.auto_reply_message,
+            timestamp: new Date()
+          }]);
+          saveMessage('bot', chatbotData.auto_reply_message);
+          chatSounds.playReceiveSound();
+        }, 1000);
+      }
+    }
 
     // Criar notificação para nova mensagem do cliente (apenas se for chatbot)
     if (botData.type === 'chatbot' && conversationId && botId) {
