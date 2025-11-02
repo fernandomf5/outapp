@@ -39,7 +39,7 @@ const Settings = () => {
     avatarUrl: null as string | null,
   });
 
-  // Load user profile
+  // Load user profile and 2FA settings
   useEffect(() => {
     const loadProfile = async () => {
       if (!user) return;
@@ -57,6 +57,29 @@ const Settings = () => {
           avatarUrl: data.avatar_url || null,
         });
       }
+
+      // Load 2FA settings
+      const { data: twoFAData } = await supabase
+        .from('user_2fa_settings')
+        .select('is_enabled')
+        .eq('user_id', user.id)
+        .single();
+
+      if (twoFAData) {
+        setIs2FAEnabled(twoFAData.is_enabled);
+      }
+
+      // Load trusted devices
+      const { data: devices } = await supabase
+        .from('user_trusted_devices')
+        .select('*')
+        .eq('user_id', user.id)
+        .gt('expires_at', new Date().toISOString())
+        .order('last_used_at', { ascending: false });
+
+      if (devices) {
+        setTrustedDevices(devices);
+      }
     };
 
     loadProfile();
@@ -72,6 +95,10 @@ const Settings = () => {
     new: false,
     confirm: false,
   });
+
+  // 2FA State
+  const [is2FAEnabled, setIs2FAEnabled] = useState(false);
+  const [trustedDevices, setTrustedDevices] = useState<any[]>([]);
 
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
@@ -195,6 +222,67 @@ const Settings = () => {
 
   const togglePasswordVisibility = (field: keyof typeof showPasswords) => {
     setShowPasswords({ ...showPasswords, [field]: !showPasswords[field] });
+  };
+
+  const handle2FAToggle = async (enabled: boolean) => {
+    if (!user) return;
+
+    try {
+      // Check if settings exist
+      const { data: existing } = await supabase
+        .from('user_2fa_settings')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (existing) {
+        await supabase
+          .from('user_2fa_settings')
+          .update({ is_enabled: enabled, updated_at: new Date().toISOString() })
+          .eq('user_id', user.id);
+      } else {
+        await supabase
+          .from('user_2fa_settings')
+          .insert({ user_id: user.id, is_enabled: enabled });
+      }
+
+      setIs2FAEnabled(enabled);
+      
+      toast({
+        title: enabled ? "2FA Ativado! 🔒" : "2FA Desativado",
+        description: enabled 
+          ? "Você receberá um código por email ao fazer login de novos dispositivos."
+          : "A verificação de duas etapas foi desativada.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoveDevice = async (deviceId: string) => {
+    try {
+      await supabase
+        .from('user_trusted_devices')
+        .delete()
+        .eq('id', deviceId);
+
+      setTrustedDevices(trustedDevices.filter(d => d.id !== deviceId));
+      
+      toast({
+        title: "Dispositivo removido",
+        description: "Este dispositivo não é mais confiável.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -359,6 +447,84 @@ const Settings = () => {
               <Lock className="w-4 h-4 mr-2" />
               Alterar Senha
             </Button>
+          </div>
+        </Card>
+
+        {/* Two-Factor Authentication */}
+        <Card className="p-4 sm:p-6 glass">
+          <div className="flex items-center gap-3 mb-4 sm:mb-6">
+            <div className="bg-primary/10 p-2 sm:p-3 rounded-xl">
+              <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold">Verificação de Duas Etapas</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
+                Adicione uma camada extra de segurança
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="flex items-center justify-between p-4 bg-primary/5 rounded-lg border border-primary/20">
+              <div className="flex-1">
+                <h4 className="font-semibold text-sm mb-1">Autenticação via Email</h4>
+                <p className="text-xs text-muted-foreground">
+                  Receba um código de verificação por email ao fazer login
+                </p>
+              </div>
+              <Switch
+                checked={is2FAEnabled}
+                onCheckedChange={handle2FAToggle}
+              />
+            </div>
+
+            {is2FAEnabled && (
+              <div className="space-y-4">
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                    <Shield className="w-4 h-4" />
+                    Como funciona
+                  </h4>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li>• Código enviado por email a cada novo login</li>
+                    <li>• Dispositivos conhecidos são confiáveis por 30 dias</li>
+                    <li>• Você pode remover dispositivos confiáveis a qualquer momento</li>
+                  </ul>
+                </div>
+
+                {trustedDevices.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-sm mb-3">Dispositivos Confiáveis</h4>
+                    <div className="space-y-2">
+                      {trustedDevices.map((device) => (
+                        <div
+                          key={device.id}
+                          className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+                        >
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">{device.device_name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Último uso: {new Date(device.last_used_at).toLocaleDateString('pt-BR')}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Expira em: {new Date(device.expires_at).toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveDevice(device.id)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            Remover
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </Card>
       </main>

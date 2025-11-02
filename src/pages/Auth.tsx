@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { EmailVerification } from "@/components/EmailVerification";
+import { TwoFactorVerification } from "@/components/TwoFactorVerification";
 
 const emailSchema = z.string().email("Por favor, insira um e-mail válido");
 const passwordSchema = z.string().min(6, "A senha deve ter pelo menos 6 caracteres");
@@ -27,6 +28,8 @@ const Auth = () => {
   const [showVerification, setShowVerification] = useState(false);
   const [verificationUserId, setVerificationUserId] = useState("");
   const [verificationEmail, setVerificationEmail] = useState("");
+  const [show2FA, setShow2FA] = useState(false);
+  const [deviceFingerprint, setDeviceFingerprint] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, isAdmin, customSignUp, customSignIn, loading } = useAuth();
@@ -122,7 +125,7 @@ const Auth = () => {
       setIsLoading(false);
     } else {
       // Sign In
-      const { error, needsVerification, userId } = await customSignIn(email, password);
+      const { error, needsVerification, userId, requires2FA, deviceFingerprint: fingerprint } = await customSignIn(email, password);
       
       if (error) {
         if (needsVerification && userId) {
@@ -145,6 +148,18 @@ const Auth = () => {
         return;
       }
 
+      if (requires2FA && userId && fingerprint) {
+        setVerificationUserId(userId);
+        setDeviceFingerprint(fingerprint);
+        setShow2FA(true);
+        setIsLoading(false);
+        toast({
+          title: "Verificação necessária 🔒",
+          description: "Um código de segurança foi enviado para seu email.",
+        });
+        return;
+      }
+
       toast({
         title: "Login realizado! ✅",
         description: "Bem-vindo de volta ao Bot Reals Zapp.",
@@ -162,6 +177,24 @@ const Auth = () => {
           navigate("/dashboard");
         }}
         onBack={() => setShowVerification(false)}
+      />
+    );
+  }
+
+  if (show2FA) {
+    return (
+      <TwoFactorVerification
+        isOpen={show2FA}
+        userId={verificationUserId}
+        deviceFingerprint={deviceFingerprint}
+        onSuccess={() => {
+          setShow2FA(false);
+          toast({
+            title: "Login realizado com sucesso! 🎉",
+            description: "Bem-vindo ao Bot Reals Zapp.",
+          });
+          navigate("/dashboard");
+        }}
       />
     );
   }

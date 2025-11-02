@@ -301,6 +301,136 @@ serve(async (req) => {
       );
     }
 
+    if (action === 'check-2fa') {
+      const { deviceFingerprint } = requestData;
+
+      // Check if user has 2FA enabled
+      const { data: twoFASettings } = await supabase
+        .from('user_2fa_settings')
+        .select('is_enabled')
+        .eq('user_id', userId)
+        .single();
+
+      if (!twoFASettings || !twoFASettings.is_enabled) {
+        return new Response(
+          JSON.stringify({ requires2FA: false }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Check if device is trusted and not expired
+      const { data: trustedDevice } = await supabase
+        .from('user_trusted_devices')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('device_fingerprint', deviceFingerprint)
+        .gt('expires_at', new Date().toISOString())
+        .single();
+
+      if (trustedDevice) {
+        // Update last used
+        await supabase
+          .from('user_trusted_devices')
+          .update({ last_used_at: new Date().toISOString() })
+          .eq('id', trustedDevice.id);
+
+        return new Response(
+          JSON.stringify({ requires2FA: false }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Generate 2FA code
+      const twoFACode = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      await supabase
+        .from('user_2fa_codes')
+        .insert({
+          user_id: userId,
+          code: twoFACode,
+          expires_at: expiresAt.toISOString(),
+        });
+
+      // Get user profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('email, full_name')
+        .eq('user_id', userId)
+        .single();
+
+      // Send 2FA code via email
+      try {
+        await supabase.functions.invoke('send-verification-email', {
+          body: {
+            email: profile?.email,
+            name: profile?.full_name,
+            code: twoFACode,
+            chatbotName: 'Bot Reals Zapp - Verificação de Duas Etapas',
+          }
+        });
+      } catch (emailError) {
+        console.error('Failed to send 2FA code:', emailError);
+      }
+
+      return new Response(
+        JSON.stringify({ requires2FA: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'verify-2fa') {
+      const { code: twoFACode, deviceFingerprint } = requestData;
+
+      // Verify code
+      const { data: codeData, error: codeError } = await supabase
+        .from('user_2fa_codes')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('code', twoFACode)
+        .eq('verified', false)
+        .single();
+
+      if (codeError || !codeData) {
+        return new Response(
+          JSON.stringify({ error: 'Código inválido' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Check if expired
+      if (new Date() > new Date(codeData.expires_at)) {
+        return new Response(
+          JSON.stringify({ error: 'Código expirado' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Mark as verified
+      await supabase
+        .from('user_2fa_codes')
+        .update({ verified: true })
+        .eq('id', codeData.id);
+
+      // Add device as trusted for 30 days
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
+
+      await supabase
+        .from('user_trusted_devices')
+        .insert({
+          user_id: userId,
+          device_fingerprint: deviceFingerprint,
+          device_name: requestData.deviceName || 'Dispositivo',
+          expires_at: expiresAt.toISOString(),
+        });
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     return new Response(
       JSON.stringify({ error: 'Ação inválida' }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
