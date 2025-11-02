@@ -447,7 +447,7 @@ const PublicChat = () => {
     setShowPreChatForm(false);
   };
 
-  const handleSendMessage = async (messageText?: string, originNodeId?: string) => {
+const handleSendMessage = async (messageText?: string, originNodeId?: string) => {
     const textToSend = messageText || inputMessage;
     if (!textToSend.trim() || !botData) return;
 
@@ -464,6 +464,19 @@ const PublicChat = () => {
 
     // Salvar mensagem do usuário (com originNodeId quando vier de botão)
     await saveMessage('user', textToSend, originNodeId);
+
+    // Criar notificação para nova mensagem do cliente (apenas se for chatbot)
+    if (botData.type === 'chatbot' && conversationId && botId) {
+      await supabase
+        .from('chatbot_notifications')
+        .insert({
+          chatbot_id: botId,
+          type: 'new_message',
+          title: 'Nova Mensagem',
+          message: `${visitorName || 'Visitante'}: ${textToSend.substring(0, 50)}${textToSend.length > 50 ? '...' : ''}`,
+          is_read: false,
+        });
+    }
 
     // Se estiver em modo atendimento humano, apenas salvar e aguardar resposta
     if (isHumanMode) {

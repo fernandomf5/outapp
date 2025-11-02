@@ -295,7 +295,7 @@ export default function ChatbotCustomerChat() {
     }
   };
 
-  const handleSendMessage = async () => {
+const handleSendMessage = async () => {
     if ((!input.trim() && !selectedImage) || !conversationId || loading) return;
 
     setLoading(true);
@@ -329,6 +329,19 @@ export default function ChatbotCustomerChat() {
         .from('chatbot_conversations')
         .update({ last_message_at: new Date().toISOString() })
         .eq('id', conversationId);
+
+      // Create notification for new message
+      if (chatbotId) {
+        await supabase
+          .from('chatbot_notifications')
+          .insert({
+            chatbot_id: chatbotId,
+            type: 'new_message',
+            title: 'Nova Mensagem',
+            message: `${customer?.name || 'Visitante'}: ${messageContent.substring(0, 50)}${messageContent.length > 50 ? '...' : ''}`,
+            is_read: false,
+          });
+      }
 
       setInput("");
       setSelectedImage(null);
