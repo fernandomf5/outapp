@@ -20,6 +20,7 @@ interface Message {
   sender_name?: string;
   media_url?: string | null;
   media_type?: string | null;
+  node_id?: string | null;
 }
 
 export default function ChatbotCustomerChat() {
@@ -42,6 +43,8 @@ export default function ChatbotCustomerChat() {
   const [isAdminTyping, setIsAdminTyping] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const [autoReplySent, setAutoReplySent] = useState(false);
+  const [flows, setFlows] = useState<any[]>([]);
+  const [currentFlowId, setCurrentFlowId] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -116,6 +119,23 @@ export default function ChatbotCustomerChat() {
         .single();
 
       setChatbotInfo(chatbot);
+
+      // Carregar fluxos
+      const { data: flowsData } = await supabase
+        .from('chatbot_flows')
+        .select('*')
+        .eq('chatbot_id', chatbotId)
+        .order('order_index');
+      
+      setFlows(flowsData || []);
+      
+      // Se tiver fluxo inicial, enviar automaticamente
+      const startFlow = flowsData?.find(f => f.is_start);
+      if (startFlow) {
+        setTimeout(() => {
+          sendFlowMessage(startFlow);
+        }, 1000);
+      }
 
       // Search for existing conversation by customer email/phone
       const { data: conversations } = await supabase
@@ -390,6 +410,44 @@ const handleSendMessage = async () => {
     }
   };
 
+  const sendFlowMessage = async (flow: any) => {
+    if (!conversationId) return;
+
+    setCurrentFlowId(flow.id);
+    
+    await supabase.from('chatbot_messages').insert({
+      conversation_id: conversationId,
+      role: 'bot',
+      content: flow.message,
+      sender_name: chatbotInfo?.name,
+      node_id: flow.id, // Usar flow_id como node_id para identificar mensagens de fluxo
+    });
+  };
+
+  const handleButtonClick = async (button: any) => {
+    if (button.action === 'link') {
+      // Abrir link em nova aba
+      window.open(button.value, '_blank');
+    } else if (button.action === 'flow') {
+      // Ir para outro fluxo
+      const targetFlow = flows.find(f => f.id === button.value);
+      if (targetFlow) {
+        // Enviar mensagem do usuário indicando escolha
+        await supabase.from('chatbot_messages').insert({
+          conversation_id: conversationId,
+          role: 'user',
+          content: `👉 ${button.text}`,
+          sender_name: customer?.name || 'Você',
+        });
+
+        // Enviar mensagem do fluxo
+        setTimeout(() => {
+          sendFlowMessage(targetFlow);
+        }, 500);
+      }
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem(`chatbot_customer_${chatbotId}`);
     navigate(`/chatbot-auth/${chatbotId}`);
@@ -469,9 +527,27 @@ const handleSendMessage = async () => {
                     alt="Imagem enviada" 
                     className="rounded-lg mb-2 max-w-full h-auto"
                   />
-                )}
-                <p className="whitespace-pre-wrap break-words">{message.content}</p>
-                <p
+                 )}
+                 <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                 
+                 {/* Renderizar botões se mensagem tiver node_id (flow) */}
+                 {message.node_id && message.role !== 'user' && (
+                   <div className="mt-3 flex flex-col gap-2">
+                     {flows.find(f => f.id === message.node_id)?.buttons?.map((button: any, idx: number) => (
+                       <Button
+                         key={idx}
+                         onClick={() => handleButtonClick(button)}
+                         variant="outline"
+                         className="w-full justify-start text-left"
+                         size="sm"
+                       >
+                         {button.text}
+                       </Button>
+                     ))}
+                   </div>
+                 )}
+                 
+                 <p
                   className={`text-xs mt-2 ${
                     message.role === 'user'
                       ? 'text-primary-foreground/70'

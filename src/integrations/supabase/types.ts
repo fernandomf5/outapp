@@ -1332,6 +1332,50 @@ export type Database = {
           },
         ]
       }
+      chatbot_flows: {
+        Row: {
+          buttons: Json | null
+          chatbot_id: string
+          created_at: string | null
+          id: string
+          is_start: boolean | null
+          message: string
+          name: string
+          order_index: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          buttons?: Json | null
+          chatbot_id: string
+          created_at?: string | null
+          id?: string
+          is_start?: boolean | null
+          message: string
+          name: string
+          order_index?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          buttons?: Json | null
+          chatbot_id?: string
+          created_at?: string | null
+          id?: string
+          is_start?: boolean | null
+          message?: string
+          name?: string
+          order_index?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_flows_chatbot_id_fkey"
+            columns: ["chatbot_id"]
+            isOneToOne: false
+            referencedRelation: "chatbots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chatbot_messages: {
         Row: {
           content: string

@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ChatWidgetGenerator } from '@/components/ChatWidgetGenerator';
+import { ChatbotFlowBuilder } from '@/components/ChatbotFlowBuilder';
 
 const BotBuilder = () => {
   const { toast } = useToast();
@@ -307,6 +308,10 @@ const BotBuilder = () => {
               )}
             </div>
           </Card>
+
+          {chatbotId && (
+            <ChatbotFlowBuilder chatbotId={chatbotId} />
+          )}
 
           <Card className="p-6 bg-muted/50">
             <h2 className="text-xl font-semibold mb-2">Como Funciona</h2>
