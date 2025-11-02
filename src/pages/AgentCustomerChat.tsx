@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import AgentAppointmentDialog from "@/components/AgentAppointmentDialog";
 import AgentOrderDialog from "@/components/AgentOrderDialog";
+import { chatSounds } from "@/utils/chatSounds";
 
 interface Message {
   id: string;
@@ -253,6 +254,10 @@ export default function AgentCustomerChat() {
             sentMessagesRef.current.delete(key);
             return;
           }
+          // Tocar som de mensagem recebida do agente
+          if (newMessage.role === 'agent') {
+            chatSounds.playReceiveSound();
+          }
           setMessages((prev) => [...prev, newMessage]);
           
           // Show toast for status updates
@@ -301,6 +306,9 @@ export default function AgentCustomerChat() {
     const dupKey = `customer:${originalInput}`;
     sentMessagesRef.current.add(dupKey);
     setMessages((prev) => [...prev, optimisticMessage]);
+
+    // Tocar som de envio
+    chatSounds.playSendSound();
 
     try {
       // Process message via edge function (handles saving + AI response)
@@ -657,7 +665,13 @@ export default function AgentCustomerChat() {
             <div className="flex gap-2">
               <Input
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => {
+                  const newValue = e.target.value;
+                  setInput(newValue);
+                  if (newValue.length > input.length) {
+                    chatSounds.playTypingSound();
+                  }
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey && !loading && input.trim()) {
                     e.preventDefault();
