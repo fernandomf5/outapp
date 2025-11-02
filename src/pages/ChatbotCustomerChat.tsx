@@ -271,68 +271,83 @@ export default function ChatbotCustomerChat() {
   };
 
   const processInitialFlowMessages = async (chatbot: any, convId: string) => {
-    if (!chatbot?.config?.nodes || !chatbot?.config?.edges) return;
+    const nodes = chatbot?.config?.nodes || [];
+    const edges = chatbot?.config?.edges || [];
 
-    // Find trigger node
-    const triggerNode = chatbot.config.nodes.find((n: any) => n.type === 'triggerNode');
-    if (!triggerNode) return;
+    // Fallback: if no flow, insert initialMessage (if provided)
+    if (!nodes.length || !edges.length) {
+      const initial = chatbot?.config?.initialMessage;
+      if (initial) {
+        await supabase.from('chatbot_messages').insert({
+          conversation_id: convId,
+          role: 'bot',
+          content: initial,
+        });
+      }
+      return;
+    }
 
-    // Find connected nodes from trigger
-    const connectedEdges = chatbot.config.edges.filter((e: any) => e.source === triggerNode.id);
-    
+    // Find trigger node (case-insensitive)
+    const triggerNode = nodes.find((n: any) => (n.type || '').toLowerCase() === 'triggernode' || (n.type || '').toLowerCase() === 'trigger');
+    if (!triggerNode) {
+      // If no trigger, fallback to initialMessage
+      const initial = chatbot?.config?.initialMessage;
+      if (initial) {
+        await supabase.from('chatbot_messages').insert({
+          conversation_id: convId,
+          role: 'bot',
+          content: initial,
+        });
+      }
+      return;
+    }
+
+    // Edges going out of trigger
+    const connectedEdges = edges.filter((e: any) => e.source === triggerNode.id);
+
     for (const edge of connectedEdges) {
-      const targetNode = chatbot.config.nodes.find((n: any) => n.id === edge.target);
+      const targetNode = nodes.find((n: any) => n.id === edge.target);
       if (!targetNode) continue;
 
-      // Process node based on type
+      const type = (targetNode.type || '').toLowerCase();
       let messageContent = '';
       let mediaUrl = '';
       let mediaType = '';
 
-      switch (targetNode.type) {
-        case 'textNode':
-          messageContent = targetNode.data?.text || '';
-          break;
-        case 'messageNode':
-          messageContent = targetNode.data?.message || '';
-          break;
-        case 'imageNode':
-          mediaUrl = targetNode.data?.imageUrl || '';
-          mediaType = 'image';
-          messageContent = targetNode.data?.caption || 'Imagem';
-          break;
-        case 'videoNode':
-          mediaUrl = targetNode.data?.videoUrl || '';
-          mediaType = 'video';
-          messageContent = targetNode.data?.caption || 'Vídeo';
-          break;
-        case 'audioNode':
-          mediaUrl = targetNode.data?.audioUrl || '';
-          mediaType = 'audio';
-          messageContent = targetNode.data?.caption || 'Áudio';
-          break;
-        case 'documentNode':
-          mediaUrl = targetNode.data?.documentUrl || '';
-          mediaType = 'document';
-          messageContent = targetNode.data?.caption || 'Documento';
-          break;
-        case 'buttonNode':
-          const buttons = targetNode.data?.buttons || [];
-          messageContent = targetNode.data?.message || '';
-          if (buttons.length > 0) {
-            messageContent += '\n\nOpções:\n' + buttons.map((b: any, i: number) => `${i + 1}. ${b.text}`).join('\n');
-          }
-          break;
-        case 'quickReplyNode':
-          const replies = targetNode.data?.quickReplies || [];
-          messageContent = targetNode.data?.message || '';
-          if (replies.length > 0) {
-            messageContent += '\n\n' + replies.map((r: any) => `• ${r}`).join('\n');
-          }
-          break;
-        case 'questionNode':
-          messageContent = targetNode.data?.question || '';
-          break;
+      if (type === 'textnode') {
+        messageContent = targetNode.data?.text || '';
+      } else if (type === 'messagenode') {
+        messageContent = targetNode.data?.message || '';
+      } else if (type === 'imagenode') {
+        mediaUrl = targetNode.data?.imageUrl || '';
+        mediaType = 'image';
+        messageContent = targetNode.data?.caption || 'Imagem';
+      } else if (type === 'videonode') {
+        mediaUrl = targetNode.data?.videoUrl || '';
+        mediaType = 'video';
+        messageContent = targetNode.data?.caption || 'Vídeo';
+      } else if (type === 'audionode') {
+        mediaUrl = targetNode.data?.audioUrl || '';
+        mediaType = 'audio';
+        messageContent = targetNode.data?.caption || 'Áudio';
+      } else if (type === 'documentnode') {
+        mediaUrl = targetNode.data?.documentUrl || '';
+        mediaType = 'document';
+        messageContent = targetNode.data?.caption || 'Documento';
+      } else if (type === 'buttonnode') {
+        const buttons = targetNode.data?.buttons || [];
+        messageContent = targetNode.data?.message || '';
+        if (buttons.length > 0) {
+          messageContent += '\n\nOpções:\n' + buttons.map((b: any, i: number) => `${i + 1}. ${b.text}`).join('\n');
+        }
+      } else if (type === 'quickreplynode') {
+        const replies = targetNode.data?.quickReplies || [];
+        messageContent = targetNode.data?.message || '';
+        if (replies.length > 0) {
+          messageContent += '\n\n' + replies.map((r: any) => `• ${r}`).join('\n');
+        }
+      } else if (type === 'questionnode') {
+        messageContent = targetNode.data?.question || '';
       }
 
       if (messageContent || mediaUrl) {
@@ -529,7 +544,7 @@ export default function ChatbotCustomerChat() {
           <ScrollArea className="flex-1 p-4">
             <div className="space-y-4">
               {/* Removed static initial message - now using flow */}
-              {chatbotInfo?.config?.initialMessage && false && (
+              {chatbotInfo?.config?.initialMessage && messages.length === 0 && (
                 <div className="flex flex-col items-start">
                   <span className="text-xs text-muted-foreground mb-1 px-1">
                     {chatbotInfo?.config?.attendantName || chatbotInfo?.name || 'Atendente'}

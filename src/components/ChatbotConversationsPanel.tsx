@@ -369,7 +369,7 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
                         className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}
                       >
                         <span className="text-xs text-muted-foreground mb-1 px-1">
-                          {message.role === 'user' ? (selectedConversation.visitor_name || 'Cliente') : (message.sender_name || 'Bot')}
+                          {message.role === 'user' ? (message.sender_name || selectedConversation.visitor_name || 'Cliente') : (message.sender_name || 'Bot')}
                         </span>
                         <div
                           className={`max-w-[70%] rounded-lg p-3 ${
