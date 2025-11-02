@@ -428,8 +428,8 @@ const handleSendMessage = async () => {
     if (button.action === 'link') {
       // Abrir link em nova aba
       window.open(button.value, '_blank');
-    } else if (button.action === 'flow') {
-      // Ir para outro fluxo
+    } else if (button.action === 'message') {
+      // Acionar próxima mensagem
       const targetFlow = flows.find(f => f.id === button.value);
       if (targetFlow) {
         // Enviar mensagem do usuário indicando escolha

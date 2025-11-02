@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 
 interface FlowButton {
   text: string;
-  action: 'link' | 'flow';
+  action: 'link' | 'message';
   value: string;
 }
 
@@ -58,7 +58,7 @@ export function ChatbotFlowBuilder({ chatbotId }: { chatbotId: string }) {
 
   const createNewFlow = () => {
     const newFlow: Partial<Flow> = {
-      name: 'Novo Menu',
+      name: 'Nova Mensagem',
       message: 'Olá! Como posso ajudar você?',
       is_start: flows.length === 0,
       buttons: [],
@@ -147,7 +147,7 @@ export function ChatbotFlowBuilder({ chatbotId }: { chatbotId: string }) {
     if (!editingFlow) return;
     setEditingFlow({
       ...editingFlow,
-      buttons: [...editingFlow.buttons, { text: '', action: 'link', value: '' }],
+      buttons: [...editingFlow.buttons, { text: '', action: 'message', value: '' }],
     });
   };
 
@@ -168,18 +168,18 @@ export function ChatbotFlowBuilder({ chatbotId }: { chatbotId: string }) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{isCreating ? 'Criar Novo Fluxo' : 'Editar Fluxo'}</CardTitle>
+          <CardTitle>{isCreating ? 'Criar Nova Mensagem' : 'Editar Mensagem'}</CardTitle>
           <CardDescription>
-            Configure a mensagem e os botões deste menu
+            Configure o texto e os botões desta mensagem
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label>Nome do Fluxo</Label>
+            <Label>Nome da Mensagem</Label>
             <Input
               value={editingFlow.name}
               onChange={(e) => setEditingFlow({ ...editingFlow, name: e.target.value })}
-              placeholder="Ex: Menu Principal"
+              placeholder="Ex: Boas-vindas, Catálogo de Produtos, etc"
             />
           </div>
 
@@ -198,7 +198,7 @@ export function ChatbotFlowBuilder({ chatbotId }: { chatbotId: string }) {
               checked={editingFlow.is_start}
               onCheckedChange={(checked) => setEditingFlow({ ...editingFlow, is_start: checked })}
             />
-            <Label>Menu Inicial (primeira mensagem que o cliente verá)</Label>
+            <Label>Mensagem Inicial (primeira mensagem que o cliente verá)</Label>
           </div>
 
           <div className="space-y-3">
@@ -238,22 +238,22 @@ export function ChatbotFlowBuilder({ chatbotId }: { chatbotId: string }) {
                     <Label className="text-xs">Ação</Label>
                     <Select
                       value={button.action}
-                      onValueChange={(value: 'link' | 'flow') => updateButton(index, 'action', value)}
+                      onValueChange={(value: 'link' | 'message') => updateButton(index, 'action', value)}
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="message">
+                          <div className="flex items-center gap-2">
+                            <ArrowRight className="w-4 h-4" />
+                            Acionar Mensagem
+                          </div>
+                        </SelectItem>
                         <SelectItem value="link">
                           <div className="flex items-center gap-2">
                             <ExternalLink className="w-4 h-4" />
                             Abrir Link
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="flow">
-                          <div className="flex items-center gap-2">
-                            <ArrowRight className="w-4 h-4" />
-                            Ir para outro Menu
                           </div>
                         </SelectItem>
                       </SelectContent>
@@ -262,7 +262,7 @@ export function ChatbotFlowBuilder({ chatbotId }: { chatbotId: string }) {
 
                   <div>
                     <Label className="text-xs">
-                      {button.action === 'link' ? 'URL' : 'Próximo Menu'}
+                      {button.action === 'link' ? 'URL' : 'Próxima Mensagem'}
                     </Label>
                     {button.action === 'link' ? (
                       <Input
@@ -276,7 +276,7 @@ export function ChatbotFlowBuilder({ chatbotId }: { chatbotId: string }) {
                         onValueChange={(value) => updateButton(index, 'value', value)}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione um menu" />
+                          <SelectValue placeholder="Selecione uma mensagem" />
                         </SelectTrigger>
                         <SelectContent>
                           {flows.filter(f => f.id !== editingFlow.id).map((flow) => (
@@ -295,7 +295,7 @@ export function ChatbotFlowBuilder({ chatbotId }: { chatbotId: string }) {
 
           <div className="flex gap-2">
             <Button onClick={saveFlow} className="flex-1">
-              Salvar Fluxo
+              Salvar Mensagem
             </Button>
             <Button
               onClick={() => {
@@ -320,20 +320,20 @@ export function ChatbotFlowBuilder({ chatbotId }: { chatbotId: string }) {
           <div>
             <CardTitle>Fluxos de Conversação</CardTitle>
             <CardDescription>
-              Crie menus com botões para guiar seus clientes
+              Crie mensagens com botões para guiar seus clientes
             </CardDescription>
           </div>
           <Button onClick={createNewFlow}>
             <Plus className="w-4 h-4 mr-2" />
-            Novo Fluxo
+            Nova Mensagem
           </Button>
         </div>
       </CardHeader>
       <CardContent>
         {flows.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
-            <p>Nenhum fluxo criado ainda.</p>
-            <p className="text-sm mt-2">Clique em "Novo Fluxo" para começar!</p>
+            <p>Nenhuma mensagem criada ainda.</p>
+            <p className="text-sm mt-2">Clique em "Nova Mensagem" para começar!</p>
           </div>
         ) : (
           <div className="space-y-3">
