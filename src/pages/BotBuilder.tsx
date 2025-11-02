@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ChatWidgetGenerator } from '@/components/ChatWidgetGenerator';
 
 const BotBuilder = () => {
   const { toast } = useToast();
@@ -24,6 +25,8 @@ const BotBuilder = () => {
   const [description, setDescription] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [accessType, setAccessType] = useState<'public' | 'anonymous'>('public');
+  const [enableQueue, setEnableQueue] = useState(true);
+  const [autoReplyMessage, setAutoReplyMessage] = useState("Olá! Envie sua mensagem que responderei assim que possível. 😊");
 
   // Carregar chatbot existente
   useEffect(() => {
@@ -33,6 +36,8 @@ const BotBuilder = () => {
         setDescription(chatbot.description || "");
         setIsActive(chatbot.is_active);
         setAccessType((chatbot as any).access_type || 'public');
+        setEnableQueue((chatbot as any).enable_queue !== false);
+        setAutoReplyMessage((chatbot as any).auto_reply_message || "Olá! Envie sua mensagem que responderei assim que possível. 😊");
       }).catch(console.error);
     }
   }, [chatbotId, user]);
@@ -65,6 +70,8 @@ const BotBuilder = () => {
         is_active: isActive,
         user_id: user.id,
         access_type: accessType,
+        enable_queue: enableQueue,
+        auto_reply_message: autoReplyMessage,
       };
 
       const result = await saveChatbot(chatbotData);
@@ -75,7 +82,7 @@ const BotBuilder = () => {
     } catch (error) {
       console.error('Save error:', error);
     }
-  }, [botName, description, isActive, accessType, user, chatbotId, saveChatbot, navigate]);
+  }, [botName, description, isActive, accessType, enableQueue, autoReplyMessage, user, chatbotId, saveChatbot, navigate]);
 
   const handleCopyLink = useCallback(() => {
     if (!chatbotId) {
@@ -214,6 +221,55 @@ const BotBuilder = () => {
               </div>
             </div>
           </Card>
+
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Sistema de Fila</h2>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="enable-queue">Ativar Sistema de Fila</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Evita que clientes fiquem sem resposta. Mostra posição na fila de atendimento.
+                  </p>
+                </div>
+                <Switch
+                  id="enable-queue"
+                  checked={enableQueue}
+                  onCheckedChange={setEnableQueue}
+                />
+              </div>
+              {enableQueue && (
+                <div className="bg-primary/5 p-4 rounded-xl border border-primary/20">
+                  <p className="text-sm text-muted-foreground">
+                    ✅ Com a fila ativa, os clientes verão sua posição e tempo estimado de espera.
+                    Isso melhora a experiência e reduz a ansiedade durante o atendimento.
+                  </p>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Mensagem Automática</h2>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="auto-reply">Mensagem de Ausência/Espera</Label>
+                <Textarea
+                  id="auto-reply"
+                  placeholder="Ex: Olá! Envie sua mensagem que responderei assim que possível."
+                  value={autoReplyMessage}
+                  onChange={(e) => setAutoReplyMessage(e.target.value)}
+                  className="mt-1 min-h-[100px]"
+                />
+                <p className="text-sm text-muted-foreground mt-2">
+                  Esta mensagem será enviada automaticamente quando o cliente iniciar a conversa,
+                  informando que você está ocupado ou atendendo outras pessoas.
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          {chatbotId && <ChatWidgetGenerator botId={chatbotId} type="chatbot" />}
 
           <Card className="p-6 bg-muted/50">
             <h2 className="text-xl font-semibold mb-2">Como Funciona</h2>

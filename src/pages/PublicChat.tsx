@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Bot, Send, Loader2, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { chatSounds } from "@/utils/chatSounds";
 
 interface Message {
   id: string;
@@ -39,6 +40,8 @@ const PublicChat = () => {
   const [visitorEmail, setVisitorEmail] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const [queuePosition, setQueuePosition] = useState<number | null>(null);
+  const [showAutoReply, setShowAutoReply] = useState(false);
 
   useEffect(() => {
     if (!showPreChatForm) {
@@ -68,6 +71,9 @@ const PublicChat = () => {
           const newMsg = payload.new as any;
           console.log('📨 Nova mensagem recebida no chat:', newMsg);
           if (newMsg.role === 'admin') {
+            // Tocar som de mensagem recebida
+            chatSounds.playReceiveSound();
+            
             setMessages(prev => [...prev, {
               id: newMsg.id,
               role: 'bot',
@@ -121,6 +127,11 @@ const PublicChat = () => {
   const handleInputChange = (value: string) => {
     setInputMessage(value);
     
+    // Tocar som de digitação
+    if (value.length > inputMessage.length) {
+      chatSounds.playTypingSound();
+    }
+    
     if (!conversationId) return;
     
     // Enviar status de "digitando"
@@ -165,6 +176,41 @@ const PublicChat = () => {
 
       if (error) throw error;
       setConversationId(data.id);
+      
+      // Buscar dados do chatbot para mensagem automática e fila
+      const { data: chatbotData } = await supabase
+        .from('chatbots')
+        .select('enable_queue, auto_reply_message')
+        .eq('id', botId)
+        .single();
+      
+      if (chatbotData) {
+        // Se fila estiver habilitada, calcular posição
+        if (chatbotData.enable_queue) {
+          const { count } = await supabase
+            .from('chatbot_conversations')
+            .select('*', { count: 'exact', head: true })
+            .eq('chatbot_id', botId)
+            .eq('status', 'active')
+            .lt('created_at', data.created_at);
+          
+          setQueuePosition((count || 0) + 1);
+        }
+        
+        // Enviar mensagem automática se configurada
+        if (chatbotData.auto_reply_message && chatbotData.auto_reply_message.trim()) {
+          setTimeout(() => {
+            setMessages(prev => [...prev, {
+              id: 'auto-reply',
+              role: 'bot',
+              content: chatbotData.auto_reply_message,
+              timestamp: new Date()
+            }]);
+            saveMessage('bot', chatbotData.auto_reply_message);
+            chatSounds.playReceiveSound();
+          }, 1000);
+        }
+      }
     } catch (error) {
       console.error('Erro ao criar conversa:', error);
     }
@@ -461,6 +507,9 @@ const handleSendMessage = async (messageText?: string, originNodeId?: string) =>
     setMessages(prev => [...prev, userMessage]);
     setInputMessage("");
     setIsLoading(true);
+    
+    // Tocar som de envio
+    chatSounds.playSendSound();
 
     // Salvar mensagem do usuário (com originNodeId quando vier de botão)
     await saveMessage('user', textToSend, originNodeId);
@@ -647,24 +696,38 @@ const handleSendMessage = async (messageText?: string, originNodeId?: string) =>
     <div className="min-h-screen bg-gradient-to-br from-primary/20 via-background to-primary/10 flex flex-col">
       {/* Header */}
       <header className="bg-card/95 backdrop-blur-md border-b border-border px-6 py-4 sticky top-0 z-50 shadow-md">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 p-3 rounded-xl">
-              <Bot className="w-6 h-6 text-primary" />
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/10 p-3 rounded-xl">
+                <Bot className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold">
+                  {botData?.config?.attendantName || botData.name || 'Atendente'}
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  {isTyping ? 'Digitando...' : 'Online'}
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-bold">
-                {botData?.config?.attendantName || botData.name || 'Atendente'}
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                {isTyping ? 'Digitando...' : 'Online'}
+            <div className="text-right">
+              <p className="text-sm font-medium">{visitorName}</p>
+              <p className="text-xs text-muted-foreground">Você</p>
+            </div>
+          </div>
+          
+          {/* Fila de atendimento */}
+          {queuePosition !== null && queuePosition > 1 && (
+            <div className="mt-3 p-3 bg-primary/10 rounded-lg text-center border border-primary/20">
+              <p className="text-sm font-medium text-primary">
+                🕐 Você está na posição <strong>#{queuePosition}</strong> da fila
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Tempo estimado: {Math.max(1, (queuePosition - 1) * 3)} minutos
               </p>
             </div>
-          </div>
-          <div className="text-right">
-            <p className="text-sm font-medium">{visitorName}</p>
-            <p className="text-xs text-muted-foreground">Você</p>
-          </div>
+          )}
         </div>
       </header>
 
