@@ -235,6 +235,9 @@ export default function ChatbotCustomerChat() {
         
         // Process flow initial message after creating conversation
         await processInitialFlowMessages(chatbot, newConv.id);
+        
+        // Load messages after processing flow
+        await loadMessages(newConv.id);
 
         // Create notification for new conversation
         await supabase

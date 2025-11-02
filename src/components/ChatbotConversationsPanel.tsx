@@ -280,7 +280,12 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
                 >
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Conversa #{conversation.id.slice(0, 8)}</span>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">
+                          {conversation.visitor_name || conversation.visitor_email?.split('@')[0] || conversation.visitor_phone || 'Visitante Anônimo'}
+                        </span>
+                        <span className="text-xs text-muted-foreground">#{conversation.id.slice(0, 8)}</span>
+                      </div>
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">
                           {formatDistanceToNow(new Date(conversation.last_message_at), { 
