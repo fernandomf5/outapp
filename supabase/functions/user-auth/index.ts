@@ -134,41 +134,7 @@ serve(async (req) => {
     }
 
     if (action === 'login') {
-      // Hash password for comparison
-      const encoder = new TextEncoder();
-      const data = encoder.encode(password);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-      // Find user
-      const { data: profile, error: findError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('email', email)
-        .eq('password_hash', passwordHash)
-        .single();
-
-      if (findError || !profile) {
-        return new Response(
-          JSON.stringify({ error: 'Email ou senha incorretos' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      // Check if email is verified
-      if (!profile.email_verified) {
-        return new Response(
-          JSON.stringify({ 
-            error: 'Email não verificado. Por favor, verifique seu e-mail primeiro.',
-            needsVerification: true,
-            userId: profile.user_id
-          }),
-          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      // Login with Supabase Auth
+      // Login with Supabase Auth first to validate credentials
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -176,8 +142,45 @@ serve(async (req) => {
 
       if (authError) {
         return new Response(
-          JSON.stringify({ error: 'Erro ao fazer login' }),
+          JSON.stringify({ error: 'Email ou senha incorretos' }),
           { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Get user profile
+      const { data: profile, error: findError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', email)
+        .single();
+
+      if (findError || !profile) {
+        return new Response(
+          JSON.stringify({ error: 'Perfil não encontrado' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Check if user is admin (master account)
+      const { data: userRoles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', profile.user_id);
+
+      const isAdmin = userRoles?.some(r => r.role === 'admin') || false;
+
+      // Skip email verification for admin users
+      if (!isAdmin && !profile.email_verified) {
+        // Logout the user since they can't proceed
+        await supabase.auth.signOut();
+        
+        return new Response(
+          JSON.stringify({ 
+            error: 'Email não verificado. Por favor, verifique seu e-mail primeiro.',
+            needsVerification: true,
+            userId: profile.user_id
+          }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -303,6 +306,21 @@ serve(async (req) => {
 
     if (action === 'check-2fa') {
       const { deviceFingerprint } = requestData;
+
+      // Check if user is admin - admins bypass 2FA
+      const { data: userRoles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId);
+
+      const isAdmin = userRoles?.some(r => r.role === 'admin') || false;
+
+      if (isAdmin) {
+        return new Response(
+          JSON.stringify({ requires2FA: false }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
 
       // Check if user has 2FA enabled
       const { data: twoFASettings } = await supabase
