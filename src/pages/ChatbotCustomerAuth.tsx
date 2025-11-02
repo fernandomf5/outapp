@@ -12,13 +12,16 @@ export default function ChatbotCustomerAuth() {
   const { chatbotId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [authMode, setAuthMode] = useState<'choice' | 'login' | 'register' | 'anonymous'>('choice');
+  const [authMode, setAuthMode] = useState<'choice' | 'login' | 'register' | 'anonymous' | 'verify'>('choice');
   const [loading, setLoading] = useState(false);
   const [checkingAccess, setCheckingAccess] = useState(true);
   const [accessType, setAccessType] = useState<string>('public');
+  const [customerId, setCustomerId] = useState<string>('');
+  const [verificationCode, setVerificationCode] = useState('');
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    emailConfirm: "",
     phone: "",
     password: "",
     confirmPassword: "",
@@ -59,20 +62,93 @@ export default function ChatbotCustomerAuth() {
     checkAccessType();
   }, [chatbotId, navigate]);
 
+  const handleVerification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('chatbot-customer-auth', {
+        body: {
+          action: 'verify',
+          customerId,
+          code: verificationCode,
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.verified) {
+        localStorage.setItem(`chatbot_customer_${chatbotId}`, JSON.stringify(data.customer));
+        toast({
+          title: "E-mail verificado!",
+          description: "Bem-vindo ao chat!",
+        });
+        navigate(`/chatbot-chat/${chatbotId}`);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Código inválido",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke('chatbot-customer-auth', {
+        body: {
+          action: 'resend',
+          customerId,
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Código reenviado!",
+        description: "Verifique seu e-mail",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Validação de senha para acesso privado
-      if (accessType === 'restricted' && formData.password !== formData.confirmPassword) {
-        toast({
-          title: "Erro",
-          description: "As senhas não coincidem",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
+      // Validações
+      if (authMode === 'register') {
+        if (formData.email !== formData.emailConfirm) {
+          toast({
+            title: "Erro",
+            description: "Os e-mails não coincidem",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+
+        if (formData.password !== formData.confirmPassword) {
+          toast({
+            title: "Erro",
+            description: "As senhas não coincidem",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
       }
 
       // Acesso direto - apenas nome
@@ -99,14 +175,22 @@ export default function ChatbotCustomerAuth() {
       if (error) throw error;
 
       if (data.customer) {
-        localStorage.setItem(`chatbot_customer_${chatbotId}`, JSON.stringify(data.customer));
-        
-        if (accessType === 'restricted') {
+        if (data.needsVerification && authMode === 'register') {
+          // Redirect to verification screen
+          setCustomerId(data.customer.id);
+          setAuthMode('verify');
+          toast({
+            title: "Código enviado!",
+            description: "Verifique seu e-mail para confirmar o cadastro",
+          });
+        } else if (accessType === 'restricted') {
+          localStorage.setItem(`chatbot_customer_${chatbotId}`, JSON.stringify(data.customer));
           toast({
             title: "Cadastro enviado!",
             description: "Aguarde a aprovação do administrador para acessar o chat.",
           });
         } else {
+          localStorage.setItem(`chatbot_customer_${chatbotId}`, JSON.stringify(data.customer));
           toast({
             title: authMode === 'login' ? "Login realizado!" : "Cadastro realizado!",
             description: authMode === 'login' 
@@ -163,6 +247,56 @@ export default function ChatbotCustomerAuth() {
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? 'Entrando...' : 'Entrar no Chat'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Verification screen
+  if (authMode === 'verify') {
+    return (
+      <div className="min-h-screen flex items-center justify-center gradient-primary p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Verificar E-mail</CardTitle>
+            <CardDescription>
+              Digite o código de 6 dígitos enviado para seu e-mail
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleVerification} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="code">Código de Verificação</Label>
+                <Input
+                  id="code"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  required
+                  placeholder="000000"
+                  maxLength={6}
+                  className="text-center text-2xl tracking-widest"
+                />
+              </div>
+
+              <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-md text-sm text-blue-900 dark:text-blue-100">
+                📧 Verifique sua caixa de entrada e spam. O código expira em 15 minutos.
+              </div>
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Verificando...' : 'Verificar Código'}
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full"
+                onClick={handleResendCode}
+                disabled={loading}
+              >
+                Reenviar Código
               </Button>
             </form>
           </CardContent>
@@ -242,7 +376,7 @@ export default function ChatbotCustomerAuth() {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    required={accessType === 'restricted'}
+                    required
                     placeholder="(00) 00000-0000"
                   />
                 </div>
@@ -261,6 +395,20 @@ export default function ChatbotCustomerAuth() {
               />
             </div>
 
+            {authMode === 'register' && (
+              <div className="space-y-2">
+                <Label htmlFor="emailConfirm">Confirmar Email</Label>
+                <Input
+                  id="emailConfirm"
+                  type="email"
+                  value={formData.emailConfirm}
+                  onChange={(e) => setFormData({...formData, emailConfirm: e.target.value})}
+                  required
+                  placeholder="Digite o e-mail novamente"
+                />
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
               <Input
@@ -274,7 +422,7 @@ export default function ChatbotCustomerAuth() {
               />
             </div>
 
-            {authMode === 'register' && accessType === 'restricted' && (
+            {authMode === 'register' && (
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirmar Senha</Label>
                 <Input

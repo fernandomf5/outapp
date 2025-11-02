@@ -41,7 +41,7 @@ serve(async (req) => {
         );
       }
 
-      // Create customer
+      // Create customer (not verified yet for public access)
       const { data: customer, error: createError } = await supabase
         .from('chatbot_customers')
         .insert({
@@ -50,11 +50,47 @@ serve(async (req) => {
           email,
           phone,
           password_hash: passwordHash,
+          email_verified: false,
         })
         .select()
         .single();
 
       if (createError) throw createError;
+
+      // Generate 6-digit verification code
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+      // Store verification code
+      const { error: codeError } = await supabase
+        .from('chatbot_customer_verification_codes')
+        .insert({
+          customer_id: customer.id,
+          code: verificationCode,
+          expires_at: expiresAt.toISOString(),
+        });
+
+      if (codeError) {
+        console.error('Error creating verification code:', codeError);
+        throw codeError;
+      }
+
+      // Send verification email
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-verification-email', {
+          body: {
+            email: customer.email,
+            name: customer.name,
+            code: verificationCode,
+          }
+        });
+
+        if (emailError) {
+          console.error('Error sending verification email:', emailError);
+        }
+      } catch (emailError) {
+        console.error('Failed to send verification email:', emailError);
+      }
 
       // If restricted access, create access request
       if (accessType === 'restricted') {
@@ -88,7 +124,7 @@ serve(async (req) => {
       }
 
       return new Response(
-        JSON.stringify({ customer }),
+        JSON.stringify({ customer, needsVerification: true }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -117,6 +153,14 @@ serve(async (req) => {
         );
       }
 
+      // Check if email is verified (only for public access)
+      if (!customer.email_verified && accessType === 'public') {
+        return new Response(
+          JSON.stringify({ error: 'Email não verificado. Por favor, verifique seu e-mail primeiro.' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       // Update last login
       await supabase
         .from('chatbot_customers')
@@ -125,6 +169,109 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({ customer }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'verify') {
+      const { customerId, code } = await req.json();
+
+      // Find valid verification code
+      const { data: verificationCode, error: codeError } = await supabase
+        .from('chatbot_customer_verification_codes')
+        .select('*')
+        .eq('customer_id', customerId)
+        .eq('code', code)
+        .eq('verified', false)
+        .single();
+
+      if (codeError || !verificationCode) {
+        return new Response(
+          JSON.stringify({ error: 'Código de verificação inválido' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Check if code is expired
+      const now = new Date();
+      const expiresAt = new Date(verificationCode.expires_at);
+      
+      if (now > expiresAt) {
+        return new Response(
+          JSON.stringify({ error: 'Código de verificação expirado. Solicite um novo código.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Mark code as verified
+      await supabase
+        .from('chatbot_customer_verification_codes')
+        .update({ verified: true })
+        .eq('id', verificationCode.id);
+
+      // Mark customer email as verified
+      const { data: customer, error: updateError } = await supabase
+        .from('chatbot_customers')
+        .update({ email_verified: true })
+        .eq('id', customerId)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+
+      return new Response(
+        JSON.stringify({ customer, verified: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'resend') {
+      const { customerId } = await req.json();
+
+      // Get customer data
+      const { data: customer, error: customerError } = await supabase
+        .from('chatbot_customers')
+        .select('*')
+        .eq('id', customerId)
+        .single();
+
+      if (customerError || !customer) {
+        return new Response(
+          JSON.stringify({ error: 'Cliente não encontrado' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Generate new verification code
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+      // Store new verification code
+      const { error: codeError } = await supabase
+        .from('chatbot_customer_verification_codes')
+        .insert({
+          customer_id: customer.id,
+          code: verificationCode,
+          expires_at: expiresAt.toISOString(),
+        });
+
+      if (codeError) throw codeError;
+
+      // Send verification email
+      try {
+        await supabase.functions.invoke('send-verification-email', {
+          body: {
+            email: customer.email,
+            name: customer.name,
+            code: verificationCode,
+          }
+        });
+      } catch (emailError) {
+        console.error('Failed to send verification email:', emailError);
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, message: 'Novo código enviado' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
