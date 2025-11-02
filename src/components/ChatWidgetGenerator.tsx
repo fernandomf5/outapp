@@ -21,8 +21,8 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
 
   const generateWidgetCode = () => {
     const chatUrl = type === 'agent' 
-      ? `${window.location.origin}/agent-auth/${botId}` 
-      : `${window.location.origin}/chatbot-auth/${botId}`;
+      ? `${window.location.origin}/agent-chat/${botId}` 
+      : `${window.location.origin}/chatbot-chat/${botId}`;
 
     const positionStyles: Record<string, string> = {
       'bottom-right': 'bottom: 20px; right: 20px;',
@@ -182,75 +182,15 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
     }
   </style>
 
-  <button id="bot-reals-zap-button" type="button" aria-label="Abrir chat">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <a id="bot-reals-zap-button" href="${chatUrl}" target="_blank" rel="noopener noreferrer" aria-label="Abrir chat online">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
     </svg>
-  </button>
+  </a>
   
   <div id="bot-reals-zap-tooltip">${buttonText}</div>
 
-  <div id="bot-reals-zap-iframe-container">
-    <button id="bot-reals-zap-close" type="button" aria-label="Fechar chat">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
-    </button>
-    <iframe id="bot-reals-zap-iframe" src="${chatUrl}" allow="microphone" title="Chat Bot"></iframe>
-  </div>
 
-  <script>
-    (function() {
-      // Previne múltiplas inicializações
-      if (window.botRealsZapInitialized) return;
-      window.botRealsZapInitialized = true;
-
-      function toggleBotChat() {
-        var container = document.getElementById('bot-reals-zap-iframe-container');
-        var button = document.getElementById('bot-reals-zap-button');
-        
-        if (!container || !button) return;
-        
-        if (container.classList.contains('open')) {
-          container.classList.remove('open');
-          button.style.display = 'flex';
-        } else {
-          container.classList.add('open');
-          button.style.display = 'none';
-        }
-      }
-
-      // Aguarda o DOM estar pronto
-      function initWidget() {
-        var button = document.getElementById('bot-reals-zap-button');
-        var closeBtn = document.getElementById('bot-reals-zap-close');
-        
-        if (button) {
-          button.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleBotChat();
-          });
-        }
-        
-        if (closeBtn) {
-          closeBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleBotChat();
-          });
-        }
-      }
-
-      // Inicializa quando o DOM estiver pronto
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initWidget);
-      } else {
-        initWidget();
-      }
-    })();
-  </script>
 </div>`;
   };
 
