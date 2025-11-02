@@ -23,7 +23,7 @@ const BotBuilder = () => {
   const [botName, setBotName] = useState("");
   const [description, setDescription] = useState("");
   const [isActive, setIsActive] = useState(true);
-  const [accessType, setAccessType] = useState<'public' | 'restricted' | 'anonymous'>('public');
+  const [accessType, setAccessType] = useState<'public' | 'anonymous'>('public');
 
   // Carregar chatbot existente
   useEffect(() => {
@@ -204,13 +204,11 @@ const BotBuilder = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="public">Público - Requer cadastro</SelectItem>
-                    <SelectItem value="restricted">Restrito - Requer aprovação</SelectItem>
                     <SelectItem value="anonymous">Anônimo - Sem cadastro</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-sm text-muted-foreground mt-2">
                   {accessType === 'public' && 'Qualquer pessoa pode criar uma conta e conversar'}
-                  {accessType === 'restricted' && 'Usuários precisam solicitar acesso e aguardar aprovação'}
                   {accessType === 'anonymous' && 'Conversas sem necessidade de identificação'}
                 </p>
               </div>
