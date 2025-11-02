@@ -738,7 +738,7 @@ export const PageCloner = () => {
               <TabsTrigger value="social">Prova Social</TabsTrigger>
               <TabsTrigger value="leads">Captura Leads</TabsTrigger>
               <TabsTrigger value="pixels">Pixels</TabsTrigger>
-              <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+              <TabsTrigger value="code">Head & Footer</TabsTrigger>
             </TabsList>
 
             <TabsContent value="checkout" className="space-y-4">
@@ -918,62 +918,6 @@ export const PageCloner = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="whatsapp" className="space-y-4">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="whatsapp-enabled"
-                    checked={editSettings.whatsapp_button.enabled}
-                    onChange={(e) => setEditSettings({
-                      ...editSettings,
-                      whatsapp_button: { ...editSettings.whatsapp_button, enabled: e.target.checked }
-                    })}
-                    className="rounded border-gray-300"
-                  />
-                  <Label htmlFor="whatsapp-enabled">Ativar Botão de WhatsApp</Label>
-                </div>
-                <div>
-                  <Label>Número do WhatsApp</Label>
-                  <Input
-                    value={editSettings.whatsapp_button.phone}
-                    onChange={(e) => setEditSettings({
-                      ...editSettings,
-                      whatsapp_button: { ...editSettings.whatsapp_button, phone: e.target.value }
-                    })}
-                    placeholder="5511999999999"
-                  />
-                </div>
-                <div>
-                  <Label>Mensagem Padrão</Label>
-                  <Textarea
-                    value={editSettings.whatsapp_button.message}
-                    onChange={(e) => setEditSettings({
-                      ...editSettings,
-                      whatsapp_button: { ...editSettings.whatsapp_button, message: e.target.value }
-                    })}
-                    placeholder="Olá, vim através do site..."
-                    rows={3}
-                  />
-                </div>
-                <div>
-                  <Label>Posição do Botão</Label>
-                  <select
-                    value={editSettings.whatsapp_button.position}
-                    onChange={(e) => setEditSettings({
-                      ...editSettings,
-                      whatsapp_button: { ...editSettings.whatsapp_button, position: e.target.value }
-                    })}
-                    className="w-full border rounded-md p-2"
-                  >
-                    <option value="bottom-right">Inferior Direito</option>
-                    <option value="bottom-left">Inferior Esquerdo</option>
-                    <option value="top-right">Superior Direito</option>
-                    <option value="top-left">Superior Esquerdo</option>
-                  </select>
-                </div>
-              </div>
-            </TabsContent>
 
             {/* Timer/Countdown Tab */}
             <TabsContent value="timer" className="space-y-4">
