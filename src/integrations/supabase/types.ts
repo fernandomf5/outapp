@@ -1006,6 +1006,60 @@ export type Database = {
           },
         ]
       }
+      blog_posts: {
+        Row: {
+          author_name: string
+          category: string | null
+          content: string
+          created_at: string
+          excerpt: string | null
+          featured_image_url: string | null
+          id: string
+          is_published: boolean
+          order_index: number
+          published_at: string | null
+          slug: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          views_count: number
+        }
+        Insert: {
+          author_name?: string
+          category?: string | null
+          content: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image_url?: string | null
+          id?: string
+          is_published?: boolean
+          order_index?: number
+          published_at?: string | null
+          slug: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          views_count?: number
+        }
+        Update: {
+          author_name?: string
+          category?: string | null
+          content?: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image_url?: string | null
+          id?: string
+          is_published?: boolean
+          order_index?: number
+          published_at?: string | null
+          slug?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          views_count?: number
+        }
+        Relationships: []
+      }
       button_link_clicks: {
         Row: {
           ai_agent_id: string | null
@@ -2710,6 +2764,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          blocked: boolean
           created_at: string
           email: string
           email_verified: boolean
@@ -2721,6 +2776,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          blocked?: boolean
           created_at?: string
           email: string
           email_verified?: boolean
@@ -2732,6 +2788,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          blocked?: boolean
           created_at?: string
           email?: string
           email_verified?: boolean
@@ -3096,6 +3153,36 @@ export type Database = {
           created_at?: string
           id?: string
           is_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_domains: {
+        Row: {
+          created_at: string
+          domain: string
+          id: string
+          is_active: boolean
+          is_verified: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          domain: string
+          id?: string
+          is_active?: boolean
+          is_verified?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          domain?: string
+          id?: string
+          is_active?: boolean
+          is_verified?: boolean
           updated_at?: string
           user_id?: string
         }
