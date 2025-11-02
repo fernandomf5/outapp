@@ -7,8 +7,8 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  customSignUp: (email: string, password: string, fullName: string) => Promise<{ error?: string; userId?: string; needsVerification?: boolean }>;
+  customSignIn: (email: string, password: string) => Promise<{ error?: string; needsVerification?: boolean; userId?: string }>;
   signOut: () => Promise<void>;
 }
 
@@ -99,63 +99,61 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string) => {
-    const redirectUrl = `${window.location.origin}/email-confirmed`;
-    
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName
+  const customSignUp = async (email: string, password: string, fullName: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('user-auth', {
+        body: {
+          action: 'register',
+          email,
+          password,
+          name: fullName,
         }
-      }
-    });
-
-    if (!error && data.user) {
-      // Create profile
-      await supabase.from('profiles').insert({
-        user_id: data.user.id,
-        email: email,
-        full_name: fullName
       });
 
-      // Assign user role
-      await supabase.from('user_roles').insert({
-        user_id: data.user.id,
-        role: 'user'
-      });
+      if (error) throw error;
 
-      // Create free trial subscription
-      const { data: freePlan } = await supabase
-        .from('plans')
-        .select('id')
-        .eq('plan_type', 'free_trial')
-        .single();
-
-      if (freePlan) {
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 3);
-
-        await supabase.from('subscriptions').insert({
-          user_id: data.user.id,
-          plan_id: freePlan.id,
-          status: 'active',
-          expires_at: expiresAt.toISOString()
-        });
+      if (data.error) {
+        return { error: data.error };
       }
+
+      return { 
+        userId: data.userId,
+        needsVerification: data.needsVerification 
+      };
+    } catch (error: any) {
+      return { error: error.message };
     }
-
-    return { error };
   };
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-    return { error };
+  const customSignIn = async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('user-auth', {
+        body: {
+          action: 'login',
+          email,
+          password,
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        return { 
+          error: data.error,
+          needsVerification: data.needsVerification,
+          userId: data.userId
+        };
+      }
+
+      // Set session
+      if (data.session) {
+        await supabase.auth.setSession(data.session);
+      }
+
+      return {};
+    } catch (error: any) {
+      return { error: error.message };
+    }
   };
 
   const signOut = async () => {
@@ -163,7 +161,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, customSignUp, customSignIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

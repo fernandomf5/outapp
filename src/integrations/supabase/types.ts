@@ -2656,8 +2656,10 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           email: string
+          email_verified: boolean
           full_name: string
           id: string
+          password_hash: string | null
           updated_at: string
           user_id: string
         }
@@ -2665,8 +2667,10 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email: string
+          email_verified?: boolean
           full_name: string
           id?: string
+          password_hash?: string | null
           updated_at?: string
           user_id: string
         }
@@ -2674,8 +2678,10 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string
+          email_verified?: boolean
           full_name?: string
           id?: string
+          password_hash?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -3006,6 +3012,33 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_verification_codes: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string
+          id: string
+          user_id: string
+          verified: boolean
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          user_id: string
+          verified?: boolean
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          user_id?: string
+          verified?: boolean
         }
         Relationships: []
       }

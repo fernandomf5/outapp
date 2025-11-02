@@ -9,6 +9,7 @@ import { Eye, EyeOff, Bot, Zap, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import { EmailVerification } from "@/components/EmailVerification";
 
 const emailSchema = z.string().email("Por favor, insira um e-mail válido");
 const passwordSchema = z.string().min(6, "A senha deve ter pelo menos 6 caracteres");
@@ -23,9 +24,12 @@ const Auth = () => {
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
+  const [showVerification, setShowVerification] = useState(false);
+  const [verificationUserId, setVerificationUserId] = useState("");
+  const [verificationEmail, setVerificationEmail] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user, isAdmin, signUp, signIn, loading } = useAuth();
+  const { user, isAdmin, customSignUp, customSignIn, loading } = useAuth();
 
   // Carregar logo do site
   useEffect(() => {
@@ -92,35 +96,51 @@ const Auth = () => {
       }
 
       // Sign Up
-      const { error } = await signUp(email, password, name);
+      const { error, userId, needsVerification } = await customSignUp(email, password, name);
       
       if (error) {
         toast({
           title: "Erro ao criar conta",
-          description: error.message,
+          description: error,
           variant: "destructive",
         });
         setIsLoading(false);
         return;
       }
 
-      toast({
-        title: "🎉 Cadastro realizado com sucesso!",
-        description: "Verifique seu e-mail para confirmar sua conta e aproveitar todos os recursos da plataforma.",
-        duration: 6000,
-      });
+      if (needsVerification && userId) {
+        setVerificationUserId(userId);
+        setVerificationEmail(email);
+        setShowVerification(true);
+        toast({
+          title: "Código enviado! 📧",
+          description: "Verifique seu email para confirmar sua conta.",
+          duration: 6000,
+        });
+      }
       
       setIsLoading(false);
     } else {
       // Sign In
-      const { error } = await signIn(email, password);
+      const { error, needsVerification, userId } = await customSignIn(email, password);
       
       if (error) {
-        toast({
-          title: "Erro ao fazer login",
-          description: error.message,
-          variant: "destructive",
-        });
+        if (needsVerification && userId) {
+          setVerificationUserId(userId);
+          setVerificationEmail(email);
+          setShowVerification(true);
+          toast({
+            title: "Email não verificado",
+            description: "Por favor, verifique seu email para continuar.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Erro ao fazer login",
+            description: error,
+            variant: "destructive",
+          });
+        }
         setIsLoading(false);
         return;
       }
@@ -131,6 +151,20 @@ const Auth = () => {
       });
     }
   };
+
+  if (showVerification) {
+    return (
+      <EmailVerification
+        userId={verificationUserId}
+        email={verificationEmail}
+        onVerified={() => {
+          setShowVerification(false);
+          navigate("/dashboard");
+        }}
+        onBack={() => setShowVerification(false)}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center gradient-primary p-3 sm:p-4 relative overflow-hidden">
