@@ -18,6 +18,9 @@ interface Message {
   content: string;
   created_at: string;
   sender_name?: string;
+  node_id?: string | null;
+  media_url?: string | null;
+  media_type?: string | null;
 }
 
 export default function ChatbotCustomerChat() {
@@ -30,15 +33,16 @@ export default function ChatbotCustomerChat() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [customer, setCustomer] = useState<any>(null);
   const [chatbotInfo, setChatbotInfo] = useState<any>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [showAppointmentDialog, setShowAppointmentDialog] = useState(false);
-  const [showOrderDialog, setShowOrderDialog] = useState(false);
-  const [hasServices, setHasServices] = useState(false);
-  const [hasProducts, setHasProducts] = useState(false);
-  const [appointments, setAppointments] = useState<any[]>([]);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [showAppointments, setShowAppointments] = useState(false);
-  const [showOrders, setShowOrders] = useState(false);
+const messagesEndRef = useRef<HTMLDivElement>(null);
+const [showAppointmentDialog, setShowAppointmentDialog] = useState(false);
+const [showOrderDialog, setShowOrderDialog] = useState(false);
+const [hasServices, setHasServices] = useState(false);
+const [hasProducts, setHasProducts] = useState(false);
+const [appointments, setAppointments] = useState<any[]>([]);
+const [orders, setOrders] = useState<any[]>([]);
+const [showAppointments, setShowAppointments] = useState(false);
+const [showOrders, setShowOrders] = useState(false);
+const [isTyping, setIsTyping] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -403,19 +407,25 @@ export default function ChatbotCustomerChat() {
     return t === 'buttonnode' || t === 'button' || t === 'quickreplynode' || t === 'quickreply' || t === 'questionnode' || t === 'question';
   };
 
-  const walkFromNode = async (startNode: any, nodes: any[], edges: any[], convId: string) => {
-    const visited = new Set<string>();
-    let current: any = startNode;
-    while (current && !visited.has(current.id)) {
-      visited.add(current.id);
-      await insertNodeAsMessage(current, convId);
-      if (isInteractiveNode(current)) break;
-      const outs = edges.filter((e: any) => e.source === current.id);
-      if (!outs.length) break;
-      const nextId = outs[0].target;
-      current = nodes.find((n: any) => n.id === nextId);
-    }
-  };
+const walkFromNode = async (startNode: any, nodes: any[], edges: any[], convId: string) => {
+  const visited = new Set<string>();
+  let current: any = startNode;
+  while (current && !visited.has(current.id)) {
+    visited.add(current.id);
+
+    const delayMs = 500 + ((current?.data?.delaySeconds || 0) * 1000);
+    setIsTyping(true);
+    await new Promise((res) => setTimeout(res, delayMs));
+    setIsTyping(false);
+
+    await insertNodeAsMessage(current, convId);
+    if (isInteractiveNode(current)) break;
+    const outs = edges.filter((e: any) => e.source === current.id);
+    if (!outs.length) break;
+    const nextId = outs[0].target;
+    current = nodes.find((n: any) => n.id === nextId);
+  }
+};
 
   const processInitialFlow = async (chatbot: any) => {
     // This function is called before conversation is created
@@ -443,98 +453,105 @@ export default function ChatbotCustomerChat() {
     };
   };
 
-  const handleSendMessage = async () => {
-    if (!input.trim() || !conversationId || !customer) return;
+const handleSendMessage = async (messageText?: string, originNodeId?: string) => {
+  const textToSend = (messageText ?? input).trim();
+  if (!textToSend || !conversationId || !customer) return;
 
-    setLoading(true);
-    const userMessage = input.trim();
-    setInput("");
+  setLoading(true);
+  if (!messageText) setInput("");
 
-    try {
-      // Save user message with customer name
-      await supabase.from('chatbot_messages').insert({
-        conversation_id: conversationId,
-        role: 'user',
-        content: userMessage,
-        sender_name: customer?.name || 'Visitante',
-      });
+  try {
+    // Save user message with customer name
+    await supabase.from('chatbot_messages').insert({
+      conversation_id: conversationId,
+      role: 'user',
+      content: textToSend,
+      sender_name: customer?.name || 'Visitante',
+    });
 
-      // Update conversation last_message_at
-      await supabase
-        .from('chatbot_conversations')
-        .update({ last_message_at: new Date().toISOString() })
-        .eq('id', conversationId);
+    // Update conversation last_message_at
+    await supabase
+      .from('chatbot_conversations')
+      .update({ last_message_at: new Date().toISOString() })
+      .eq('id', conversationId);
 
-      // 1) Verificar contexto do fluxo (qual node estamos esperando resposta)
-      const nodes = chatbotInfo?.config?.nodes || [];
-      const edges = chatbotInfo?.config?.edges || [];
-      
-      // Buscar última mensagem do bot para saber qual node foi enviado
-      const lastBotMsg = messages.filter(m => m.role === 'bot').pop();
-      const lastNodeId = (lastBotMsg as any)?.node_id;
-      
-      let nextNode = null;
-      
-      // Se há um node ativo, procurar o próximo no fluxo
-      if (lastNodeId) {
-        const connectedEdges = edges.filter((e: any) => e.source === lastNodeId);
-        
-        // Para button/quickReply nodes, verificar qual botão foi clicado
-        const lastNode = nodes.find((n: any) => n.id === lastNodeId);
-        const nodeType = (lastNode?.type || '').toLowerCase();
-        
-        if ((nodeType === 'buttonnode' || nodeType === 'button' || 
-             nodeType === 'quickreplynode' || nodeType === 'quickreply') && connectedEdges.length > 0) {
-          // Buscar edge que corresponde à resposta do usuário
-          const buttons = lastNode?.data?.buttons || lastNode?.data?.quickReplies || [];
-          const buttonIndex = buttons.findIndex((b: any) => {
-            const btnText = (typeof b === 'string' ? b : b?.text || '').toLowerCase();
-            return userMessage.toLowerCase().includes(btnText);
-          });
-          
-          if (buttonIndex >= 0 && connectedEdges[buttonIndex]) {
-            // Usar edge específica do botão
+    // 1) Verificar contexto do fluxo (qual node estamos esperando resposta)
+    const nodes = chatbotInfo?.config?.nodes || [];
+    const edges = chatbotInfo?.config?.edges || [];
+
+    // Buscar última mensagem do bot para saber qual node foi enviado
+    const lastBotMsg = messages.filter(m => m.role === 'bot').pop();
+    let contextNodeId = originNodeId || (lastBotMsg as any)?.node_id;
+
+    let nextNode: any = null;
+
+    // Se há um node ativo, procurar o próximo no fluxo
+    if (contextNodeId) {
+      const connectedEdges = edges.filter((e: any) => e.source === contextNodeId);
+
+      // Para button/quickReply nodes, verificar qual botão foi clicado
+      const lastNode = nodes.find((n: any) => n.id === contextNodeId);
+      const nodeType = (lastNode?.type || '').toLowerCase();
+
+      if ((nodeType === 'buttonnode' || nodeType === 'button' || 
+           nodeType === 'quickreplynode' || nodeType === 'quickreply') && connectedEdges.length > 0) {
+        const buttons = lastNode?.data?.buttons || lastNode?.data?.quickReplies || [];
+        const buttonIndex = buttons.findIndex((b: any) => {
+          const btnText = (typeof b === 'string' ? b : b?.text || '').toLowerCase();
+          const u = textToSend.toLowerCase();
+          return u === btnText || u.includes(btnText);
+        });
+
+        if (buttonIndex >= 0) {
+          // Priorizar aresta por handle específico do botão
+          const edgeByHandle = edges.find((e: any) => e.source === contextNodeId && e.sourceHandle === `btn-${buttonIndex}`);
+          if (edgeByHandle) {
+            nextNode = nodes.find((n: any) => n.id === edgeByHandle.target);
+          } else if (connectedEdges[buttonIndex]) {
             nextNode = nodes.find((n: any) => n.id === connectedEdges[buttonIndex].target);
           } else if (connectedEdges.length > 0) {
-            // Fallback: usar primeira edge
             nextNode = nodes.find((n: any) => n.id === connectedEdges[0].target);
           }
         } else if (connectedEdges.length > 0) {
-          // Para outros tipos de node, seguir primeira edge
+          // Fallback: usar primeira edge
           nextNode = nodes.find((n: any) => n.id === connectedEdges[0].target);
         }
+      } else if (connectedEdges.length > 0) {
+        // Para outros tipos de node, seguir primeira edge
+        nextNode = nodes.find((n: any) => n.id === connectedEdges[0].target);
       }
-      
-      // 2) Palavras‑chave: procurar bloco correspondente (fallback)
-      if (!nextNode) {
-        const lower = userMessage.toLowerCase();
-        nextNode = nodes.find((n: any) => {
-          const raw = n?.data?.keyword || '';
-          if (!raw) return false;
-          const list = String(raw)
-            .split(',')
-            .map((k: string) => k.trim().toLowerCase())
-            .filter(Boolean);
-          return list.some((k: string) => lower === k || lower.includes(k));
-        });
-      }
-
-      if (nextNode) {
-        // Seguir o fluxo a partir do próximo nó, emitindo mensagens em sequência até um nó interativo
-        await walkFromNode(nextNode, nodes, edges, conversationId);
-      }
-
-      // Observação: próximo passo do fluxo via edges pode ser implementado aqui, se necessário
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
     }
-  };
+
+    // 2) Palavras‑chave: procurar bloco correspondente (fallback)
+    if (!nextNode) {
+      const lower = textToSend.toLowerCase();
+      nextNode = nodes.find((n: any) => {
+        const raw = n?.data?.keyword || '';
+        if (!raw) return false;
+        const list = String(raw)
+          .split(',')
+          .map((k: string) => k.trim().toLowerCase())
+          .filter(Boolean);
+        return list.some((k: string) => lower === k || lower.includes(k));
+      });
+    }
+
+    if (nextNode) {
+      // Seguir o fluxo a partir do próximo nó, emitindo mensagens em sequência até um nó interativo
+      await walkFromNode(nextNode, nodes, edges, conversationId);
+    }
+
+    // Observação: próximo passo do fluxo via edges pode ser implementado aqui, se necessário
+  } catch (error: any) {
+    toast({
+      title: "Erro",
+      description: error.message,
+      variant: "destructive",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleLogout = () => {
     localStorage.removeItem(`chatbot_customer_${chatbotId}`);
@@ -663,29 +680,79 @@ export default function ChatbotCustomerChat() {
                 </div>
               )}
               
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}
-                >
-                  <span className="text-xs text-muted-foreground mb-1 px-1">
-                    {message.role === 'user' ? customer?.name : (message.role === 'assistant' ? (message.sender_name || 'Atendente') : chatbotInfo?.name)}
-                  </span>
-                  <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
-                      message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
-                    }`}
-                  >
-                    <p className="whitespace-pre-wrap">{message.content}</p>
-                    <span className="text-xs opacity-70 mt-1 block">
-                      {new Date(message.created_at).toLocaleTimeString()}
-                    </span>
-                  </div>
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
+{messages.map((message) => {
+  const nodeId = (message as any)?.node_id as string | undefined;
+  const node = chatbotInfo?.config?.nodes?.find((n: any) => n.id === nodeId);
+  const buttons = (node?.data?.buttons || node?.data?.quickReplies || []) as any[];
+  const mediaUrl = (message as any)?.media_url as string | undefined;
+  const mediaType = (message as any)?.media_type as string | undefined;
+
+  return (
+    <div
+      key={message.id}
+      className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}
+    >
+      <span className="text-xs text-muted-foreground mb-1 px-1">
+        {message.role === 'user' ? customer?.name : (message.role === 'assistant' ? (message.sender_name || 'Atendente') : chatbotInfo?.name)}
+      </span>
+      <div
+        className={`max-w-[80%] rounded-lg p-3 ${
+          message.role === 'user'
+            ? 'bg-primary text-primary-foreground'
+            : 'bg-muted'
+        }`}
+      >
+        {mediaUrl && mediaType === 'image' && (
+          <img src={mediaUrl} alt="Imagem" className="w-full rounded-md mb-2 max-h-60 object-cover" />
+        )}
+        {mediaUrl && mediaType === 'video' && (
+          <video controls className="w-full rounded-md mb-2 max-h-60">
+            <source src={mediaUrl} />
+          </video>
+        )}
+        {mediaUrl && mediaType === 'audio' && (
+          <audio controls className="w-full mb-2">
+            <source src={mediaUrl} />
+          </audio>
+        )}
+        {mediaUrl && mediaType === 'document' && (
+          <a href={mediaUrl} target="_blank" rel="noopener noreferrer" className="underline text-sm">Ver documento</a>
+        )}
+
+        <p className="whitespace-pre-wrap">{message.content}</p>
+        <span className="text-xs opacity-70 mt-1 block">
+          {new Date(message.created_at).toLocaleTimeString()}
+        </span>
+      </div>
+
+      {message.role !== 'user' && buttons && buttons.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-2 ml-1">
+          {buttons.map((b: any, idx: number) => {
+            const label = typeof b === 'string' ? b : (b?.text || '');
+            if (!label) return null;
+            return (
+              <Button key={idx} size="sm" onClick={() => handleSendMessage(label, nodeId)} className="rounded-full text-xs h-7">
+                {label}
+              </Button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+})}
+{isTyping && (
+  <div className="flex justify-start">
+    <div className="bg-muted rounded-xl px-3 py-2">
+      <div className="flex gap-1">
+        <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+        <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+        <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+      </div>
+    </div>
+  </div>
+)}
+<div ref={messagesEndRef} />
             </div>
           </ScrollArea>
 
@@ -703,9 +770,9 @@ export default function ChatbotCustomerChat() {
                 placeholder="Digite sua mensagem..."
                 disabled={loading}
               />
-              <Button onClick={handleSendMessage} disabled={loading || !input.trim()}>
-                <Send className="w-5 h-5" />
-              </Button>
+<Button onClick={() => handleSendMessage()} disabled={loading || !input.trim()}>
+  <Send className="w-5 h-5" />
+</Button>
             </div>
           </div>
         </Card>
