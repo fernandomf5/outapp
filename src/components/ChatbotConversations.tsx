@@ -637,34 +637,32 @@ export const ChatbotConversations = () => {
                           <p className="text-xs text-muted-foreground mb-1">👤 Cliente</p>
                         )}
                         
-                        {/* Renderizar imagem se houver */}
-                        {msg.media_url && msg.media_type === 'image' && (
+                        {/* Renderizar mídia (com detecção por tipo ou extensão) */}
+                        {msg.media_url && (msg.media_type?.toLowerCase().startsWith('image') || /\.(png|jpe?g|webp|gif)$/i.test(msg.media_url)) && (
                           <div className="mb-2">
                             <img 
-                              src={msg.media_url} 
-                              alt="Imagem enviada pelo cliente" 
-                              className="rounded-lg max-w-full max-h-80 w-auto cursor-pointer hover:opacity-90 transition-opacity border border-border"
-                              onClick={() => window.open(msg.media_url, '_blank')}
+                              src={msg.media_url}
+                              alt="Imagem enviada pelo cliente"
+                              className="rounded-lg max-w-full max-h-80 w-auto cursor-pointer hover:opacity-90 transition-opacity border border-border object-contain"
                               loading="lazy"
+                              onClick={() => window.open(msg.media_url!, '_blank')}
                             />
                           </div>
                         )}
-                        
-                        {/* Renderizar vídeo se houver */}
-                        {msg.media_url && msg.media_type === 'video' && (
+
+                        {msg.media_url && (msg.media_type?.toLowerCase().startsWith('video') || /\.(mp4|webm|ogg)$/i.test(msg.media_url)) && (
                           <div className="mb-2">
                             <video controls className="rounded-lg max-w-full max-h-80">
-                              <source src={msg.media_url} type="video/mp4" />
+                              <source src={msg.media_url} />
                               Seu navegador não suporta vídeos.
                             </video>
                           </div>
                         )}
-                        
-                        {/* Renderizar áudio se houver */}
-                        {msg.media_url && msg.media_type === 'audio' && (
+
+                        {msg.media_url && (msg.media_type?.toLowerCase().startsWith('audio') || /\.(mp3|wav|ogg|m4a)$/i.test(msg.media_url)) && (
                           <div className="mb-2">
                             <audio controls className="w-full">
-                              <source src={msg.media_url} type="audio/mpeg" />
+                              <source src={msg.media_url} />
                               Seu navegador não suporta áudio.
                             </audio>
                           </div>
