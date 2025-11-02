@@ -312,7 +312,7 @@ export default function ChatbotCustomerChat() {
         const targetNode = nodes.find((n: any) => n.id === edge.target);
         if (!targetNode) continue;
 
-        await insertNodeAsMessage(targetNode, convId);
+        await walkFromNode(targetNode, nodes, edges, convId);
       }
       return;
     }
@@ -323,7 +323,7 @@ export default function ChatbotCustomerChat() {
 
     if (startNodes.length) {
       for (const n of startNodes) {
-        await insertNodeAsMessage(n, convId);
+        await walkFromNode(n, nodes, edges, convId);
       }
       return;
     }
@@ -397,11 +397,30 @@ export default function ChatbotCustomerChat() {
     }
   };
 
+  // Helpers de fluxo
+  const isInteractiveNode = (node: any) => {
+    const t = (node?.type || '').toLowerCase();
+    return t === 'buttonnode' || t === 'button' || t === 'quickreplynode' || t === 'quickreply' || t === 'questionnode' || t === 'question';
+  };
+
+  const walkFromNode = async (startNode: any, nodes: any[], edges: any[], convId: string) => {
+    const visited = new Set<string>();
+    let current: any = startNode;
+    while (current && !visited.has(current.id)) {
+      visited.add(current.id);
+      await insertNodeAsMessage(current, convId);
+      if (isInteractiveNode(current)) break;
+      const outs = edges.filter((e: any) => e.source === current.id);
+      if (!outs.length) break;
+      const nextId = outs[0].target;
+      current = nodes.find((n: any) => n.id === nextId);
+    }
+  };
+
   const processInitialFlow = async (chatbot: any) => {
     // This function is called before conversation is created
     // Just marks that flow should be processed
   };
-
   const setupRealtimeSubscription = () => {
     const channel = supabase
       .channel('chatbot-messages')
@@ -501,60 +520,8 @@ export default function ChatbotCustomerChat() {
       }
 
       if (nextNode) {
-        // Montar mensagem do bloco encontrado
-        const type = (nextNode.type || '').toLowerCase();
-        let messageContent = '';
-        let mediaUrl = '';
-        let mediaType = '';
-
-        if (type === 'textnode' || type === 'text') {
-          messageContent = nextNode.data?.text || nextNode.data?.label || '';
-        } else if (type === 'messagenode' || type === 'message') {
-          messageContent = nextNode.data?.message || nextNode.data?.label || '';
-        } else if (type === 'imagenode' || type === 'image') {
-          mediaUrl = nextNode.data?.imageUrl || '';
-          mediaType = 'image';
-          messageContent = nextNode.data?.caption || 'Imagem';
-        } else if (type === 'videonode' || type === 'video') {
-          mediaUrl = nextNode.data?.videoUrl || '';
-          mediaType = 'video';
-          messageContent = nextNode.data?.caption || 'Vídeo';
-        } else if (type === 'audionode' || type === 'audio') {
-          mediaUrl = nextNode.data?.audioUrl || '';
-          mediaType = 'audio';
-          messageContent = nextNode.data?.caption || 'Áudio';
-        } else if (type === 'documentnode' || type === 'document') {
-          mediaUrl = nextNode.data?.documentUrl || '';
-          mediaType = 'document';
-          messageContent = nextNode.data?.caption || 'Documento';
-        } else if (type === 'buttonnode' || type === 'button') {
-          const buttons = nextNode.data?.buttons || [];
-          messageContent = nextNode.data?.message || nextNode.data?.label || '';
-          if (buttons.length > 0) {
-            messageContent += '\n\nOpções:\n' + buttons.map((b: any, i: number) => `${i + 1}. ${typeof b === 'string' ? b : (b?.text || '')}`).join('\n');
-          }
-        } else if (type === 'quickreplynode' || type === 'quickReply') {
-          const replies = nextNode.data?.quickReplies || nextNode.data?.buttons || [];
-          messageContent = nextNode.data?.message || nextNode.data?.label || '';
-          if (replies.length > 0) {
-            messageContent += '\n\n' + replies.map((r: any) => `• ${typeof r === 'string' ? r : (r?.text || '')}`).join('\n');
-          }
-        } else if (type === 'questionnode' || type === 'question') {
-          messageContent = nextNode.data?.question || nextNode.data?.label || '';
-        }
-
-        messageContent = replaceVars(messageContent);
-
-        if (messageContent || mediaUrl) {
-          await supabase.from('chatbot_messages').insert({
-            conversation_id: conversationId,
-            role: 'bot',
-            content: messageContent,
-            media_url: mediaUrl || null,
-            media_type: mediaType || null,
-            node_id: nextNode.id,
-          });
-        }
+        // Seguir o fluxo a partir do próximo nó, emitindo mensagens em sequência até um nó interativo
+        await walkFromNode(nextNode, nodes, edges, conversationId);
       }
 
       // Observação: próximo passo do fluxo via edges pode ser implementado aqui, se necessário
