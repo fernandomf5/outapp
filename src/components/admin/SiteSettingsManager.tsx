@@ -26,6 +26,8 @@ export const SiteSettingsManager = () => {
   const [loading, setLoading] = useState(false);
   const [siteTitle, setSiteTitle] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [logoLightUrl, setLogoLightUrl] = useState("");
+  const [logoDarkUrl, setLogoDarkUrl] = useState("");
   const [faviconUrl, setFaviconUrl] = useState("");
   const [footerText, setFooterText] = useState("");
   const [footerMenus, setFooterMenus] = useState<FooterMenu[]>([
@@ -49,6 +51,8 @@ export const SiteSettingsManager = () => {
       'landing_video_url',
       'site_title',
       'site_logo_url',
+      'site_logo_light_url',
+      'site_logo_dark_url',
       'site_favicon_url',
       'footer_text',
       'footer_menus',
@@ -77,6 +81,12 @@ export const SiteSettingsManager = () => {
             break;
           case 'site_logo_url':
             setLogoUrl(item.value || "");
+            break;
+          case 'site_logo_light_url':
+            setLogoLightUrl(item.value || "");
+            break;
+          case 'site_logo_dark_url':
+            setLogoDarkUrl(item.value || "");
             break;
           case 'site_favicon_url':
             setFaviconUrl(item.value || "");
@@ -151,6 +161,8 @@ export const SiteSettingsManager = () => {
       saveSetting('landing_video_url', videoUrl),
       saveSetting('site_title', siteTitle),
       saveSetting('site_logo_url', logoUrl),
+      saveSetting('site_logo_light_url', logoLightUrl),
+      saveSetting('site_logo_dark_url', logoDarkUrl),
       saveSetting('site_favicon_url', faviconUrl),
       saveSetting('footer_text', footerText),
       saveSetting('footer_menus', JSON.stringify(footerMenus)),
@@ -347,6 +359,80 @@ export const SiteSettingsManager = () => {
               />
               <p className="text-xs text-muted-foreground">
                 Aparece no topo da página. Tamanho recomendado: 200x50px
+              </p>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-3">
+              <Label>Logo Modo Claro</Label>
+              <div className="flex items-center gap-4">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `logo-light-${Date.now()}.${fileExt}`;
+                    const { error } = await supabase.storage.from('avatars').upload(fileName, file);
+                    if (error) {
+                      toast({ title: "Erro ao fazer upload", variant: "destructive" });
+                      return;
+                    }
+                    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName);
+                    setLogoLightUrl(urlData.publicUrl);
+                  }}
+                  className="flex-1"
+                />
+                {logoLightUrl && (
+                  <img src={logoLightUrl} alt="Logo Claro" className="h-12 w-auto object-contain bg-white p-2 rounded border" />
+                )}
+              </div>
+              <Input
+                value={logoLightUrl}
+                onChange={(e) => setLogoLightUrl(e.target.value)}
+                placeholder="Ou cole a URL da logo clara"
+              />
+              <p className="text-xs text-muted-foreground">
+                Logo que aparece no tema claro (fundo branco). Use logo escura.
+              </p>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-3">
+              <Label>Logo Modo Escuro</Label>
+              <div className="flex items-center gap-4">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `logo-dark-${Date.now()}.${fileExt}`;
+                    const { error } = await supabase.storage.from('avatars').upload(fileName, file);
+                    if (error) {
+                      toast({ title: "Erro ao fazer upload", variant: "destructive" });
+                      return;
+                    }
+                    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName);
+                    setLogoDarkUrl(urlData.publicUrl);
+                  }}
+                  className="flex-1"
+                />
+                {logoDarkUrl && (
+                  <img src={logoDarkUrl} alt="Logo Escuro" className="h-12 w-auto object-contain bg-slate-900 p-2 rounded border" />
+                )}
+              </div>
+              <Input
+                value={logoDarkUrl}
+                onChange={(e) => setLogoDarkUrl(e.target.value)}
+                placeholder="Ou cole a URL da logo escura"
+              />
+              <p className="text-xs text-muted-foreground">
+                Logo que aparece no tema escuro (fundo escuro). Use logo clara/branca.
               </p>
             </div>
 

@@ -14,6 +14,7 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { CookieNotice } from "@/components/CookieNotice";
 import { SocialLinks } from "@/components/SocialLinks";
+import { useTheme } from "next-themes";
 
 interface Plan {
   id: string;
@@ -37,6 +38,7 @@ interface CustomPage {
 const Index = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { theme } = useTheme();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [customPages, setCustomPages] = useState<CustomPage[]>([]);
   const [videoUrl, setVideoUrl] = useState<string>("");
@@ -45,6 +47,8 @@ const Index = () => {
   const [features, setFeatures] = useState<any[]>([]);
   const [siteTitle, setSiteTitle] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [logoLightUrl, setLogoLightUrl] = useState("");
+  const [logoDarkUrl, setLogoDarkUrl] = useState("");
   const [faviconUrl, setFaviconUrl] = useState("");
   const [footerText, setFooterText] = useState("");
   const [footerMenus, setFooterMenus] = useState<any[]>([]);
@@ -92,7 +96,7 @@ const Index = () => {
           event: '*',
           schema: 'public',
           table: 'site_settings',
-          filter: 'key=in.(site_title,site_logo_url,site_favicon_url)'
+          filter: 'key=in.(site_title,site_logo_url,site_logo_light_url,site_logo_dark_url,site_favicon_url)'
         },
         () => {
           fetchSiteSettings();
@@ -181,7 +185,7 @@ const Index = () => {
   };
 
   const fetchSiteSettings = async () => {
-    const keys = ['site_title', 'site_logo_url', 'site_favicon_url', 'footer_text', 'footer_menus', 'footer_images', 'social_links'];
+    const keys = ['site_title', 'site_logo_url', 'site_logo_light_url', 'site_logo_dark_url', 'site_favicon_url', 'footer_text', 'footer_menus', 'footer_images', 'social_links'];
     const { data } = await supabase
       .from('site_settings')
       .select('key, value')
@@ -195,6 +199,12 @@ const Index = () => {
             break;
           case 'site_logo_url':
             setLogoUrl(item.value || "");
+            break;
+          case 'site_logo_light_url':
+            setLogoLightUrl(item.value || "");
+            break;
+          case 'site_logo_dark_url':
+            setLogoDarkUrl(item.value || "");
             break;
           case 'site_favicon_url':
             setFaviconUrl(item.value || "");
@@ -388,7 +398,13 @@ const Index = () => {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center gap-2">
-              {logoUrl ? (
+              {(logoLightUrl || logoDarkUrl) ? (
+                <img 
+                  src={theme === 'dark' ? (logoDarkUrl || logoUrl) : (logoLightUrl || logoUrl)} 
+                  alt={siteTitle || "Logo"} 
+                  className="h-8 sm:h-10 w-auto object-contain"
+                />
+              ) : logoUrl ? (
                 <img 
                   src={logoUrl} 
                   alt={siteTitle || "Logo"} 
