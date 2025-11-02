@@ -203,6 +203,86 @@ serve(async (req) => {
         );
       }
 
+      // Check if user has 2FA enabled
+      const { data: twoFASettings } = await supabase
+        .from('user_2fa_settings')
+        .select('is_enabled')
+        .eq('user_id', profile.user_id)
+        .maybeSingle();
+
+      if (twoFASettings?.is_enabled) {
+        console.log('2FA is enabled, checking device...');
+        
+        // Generate device fingerprint
+        const deviceFingerprint = await crypto.subtle.digest(
+          'SHA-256',
+          new TextEncoder().encode(requestData.userAgent || 'unknown')
+        ).then(buffer => 
+          Array.from(new Uint8Array(buffer))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('')
+        );
+
+        // Check if device is trusted and not expired
+        const { data: trustedDevice } = await supabase
+          .from('user_trusted_devices')
+          .select('*')
+          .eq('user_id', profile.user_id)
+          .eq('device_fingerprint', deviceFingerprint)
+          .gt('expires_at', new Date().toISOString())
+          .maybeSingle();
+
+        if (!trustedDevice) {
+          console.log('Device not trusted, sending 2FA code...');
+          
+          // Generate 2FA code
+          const twoFACode = Math.floor(100000 + Math.random() * 900000).toString();
+          const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+          await supabase
+            .from('user_2fa_codes')
+            .insert({
+              user_id: profile.user_id,
+              code: twoFACode,
+              expires_at: expiresAt.toISOString(),
+            });
+
+          // Send 2FA code via email
+          try {
+            await supabase.functions.invoke('send-verification-email', {
+              body: {
+                email: profile.email,
+                name: profile.full_name,
+                code: twoFACode,
+                chatbotName: 'Bot Reals Zapp - Verificação de Duas Etapas',
+              }
+            });
+          } catch (emailError) {
+            console.error('Failed to send 2FA code:', emailError);
+          }
+
+          // Don't set session yet, return that 2FA is required
+          await supabase.auth.signOut();
+          
+          return new Response(
+            JSON.stringify({ 
+              requires2FA: true,
+              userId: profile.user_id,
+              deviceFingerprint,
+              sessionData: authData.session
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        } else {
+          console.log('Device is trusted, updating last used...');
+          // Update last used
+          await supabase
+            .from('user_trusted_devices')
+            .update({ last_used_at: new Date().toISOString() })
+            .eq('id', trustedDevice.id);
+        }
+      }
+
       console.log('Login successful for:', email);
 
       return new Response(

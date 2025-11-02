@@ -132,6 +132,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           action: 'login',
           email,
           password,
+          userAgent: navigator.userAgent,
         }
       });
 
@@ -145,28 +146,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         };
       }
 
-      // Check if 2FA is required BEFORE setting session
-      if (data.user) {
-        const deviceFingerprint = `${navigator.userAgent}-${screen.width}x${screen.height}`;
-        
-        const { data: twoFACheck, error: twoFAError } = await supabase.functions.invoke('user-auth', {
-          body: {
-            action: 'check-2fa',
-            userId: data.user.user_id,
-            deviceFingerprint,
-          }
-        });
-
-        if (!twoFAError && twoFACheck?.requires2FA) {
-          // Do NOT set session yet - user needs to verify 2FA first
-          // Store session data to use after 2FA verification
-          return { 
-            requires2FA: true,
-            userId: data.user.user_id,
-            deviceFingerprint,
-            sessionData: data.session // Pass session to be set after 2FA
-          };
-        }
+      // Check if 2FA is required (returned directly from edge function now)
+      if (data.requires2FA) {
+        return { 
+          requires2FA: true,
+          userId: data.userId,
+          deviceFingerprint: data.deviceFingerprint,
+          sessionData: data.sessionData
+        };
       }
 
       // Only set session if 2FA is not required
