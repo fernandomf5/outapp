@@ -26,6 +26,7 @@ import { LandingPageEditor } from "@/components/admin/LandingPageEditor";
 import { FAQEditor } from "@/components/admin/FAQEditor";
 import { LandingFeaturesEditor } from "@/components/admin/LandingFeaturesEditor";
 import { MercadoPagoIntegration } from "@/components/admin/MercadoPagoIntegration";
+import { AdminSecurityPanel } from "@/components/admin/AdminSecurityPanel";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -691,6 +692,9 @@ const AdminDashboard = () => {
 
             {/* Settings Section */}
             {currentSection === 'settings' && <SiteSettingsManager />}
+
+            {/* Security Section */}
+            {currentSection === 'security' && <AdminSecurityPanel />}
 
             {/* Videos Section */}
             {currentSection === 'videos' && (
