@@ -110,7 +110,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        return { error: 'Erro ao criar conta. Verifique seus dados e tente novamente.' };
+      }
 
       if (data.error) {
         return { error: data.error };
@@ -121,7 +123,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         needsVerification: data.needsVerification 
       };
     } catch (error: any) {
-      return { error: error.message };
+      return { error: 'Erro ao criar conta. Verifique seus dados e tente novamente.' };
     }
   };
 
@@ -136,7 +138,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        return { error: 'Email ou senha inválidos. Verifique seus dados e tente novamente.' };
+      }
 
       if (data.error) {
         return { 
@@ -163,7 +167,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       return {};
     } catch (error: any) {
-      return { error: error.message };
+      return { error: 'Email ou senha inválidos. Verifique seus dados e tente novamente.' };
     }
   };
 
