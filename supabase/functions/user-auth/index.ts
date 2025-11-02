@@ -535,6 +535,53 @@ serve(async (req) => {
       );
     }
 
+    if (action === 'resend-2fa') {
+      // Get user profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('email, full_name')
+        .eq('user_id', userId)
+        .single();
+
+      if (!profile) {
+        return new Response(
+          JSON.stringify({ error: 'Usuário não encontrado' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Generate new 2FA code
+      const twoFACode = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      await supabase
+        .from('user_2fa_codes')
+        .insert({
+          user_id: userId,
+          code: twoFACode,
+          expires_at: expiresAt.toISOString(),
+        });
+
+      // Send 2FA code via email
+      try {
+        await supabase.functions.invoke('send-verification-email', {
+          body: {
+            email: profile.email,
+            name: profile.full_name,
+            code: twoFACode,
+            chatbotName: 'Bot Reals Zapp - Verificação de Duas Etapas',
+          }
+        });
+      } catch (emailError) {
+        console.error('Failed to send 2FA code:', emailError);
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, message: 'Código reenviado com sucesso' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     return new Response(
       JSON.stringify({ error: 'Ação inválida' }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,22 @@ export const TwoFactorVerification = ({
 }: TwoFactorVerificationProps) => {
   const [code, setCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendTimer, setResendTimer] = useState(30);
+  const [canResend, setCanResend] = useState(false);
   const { toast } = useToast();
+
+  // Timer para habilitar botão de reenviar
+  useEffect(() => {
+    if (resendTimer > 0) {
+      const timer = setTimeout(() => {
+        setResendTimer(resendTimer - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else {
+      setCanResend(true);
+    }
+  }, [resendTimer]);
 
   const handleVerify = async () => {
     if (code.length !== 6) {
@@ -81,6 +96,48 @@ export const TwoFactorVerification = ({
     }
   };
 
+  const handleResendCode = async () => {
+    setIsResending(true);
+    setCode("");
+
+    try {
+      const { data, error } = await supabase.functions.invoke('user-auth', {
+        body: {
+          action: 'resend-2fa',
+          userId,
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        toast({
+          title: "Erro ao reenviar",
+          description: data.error,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Código reenviado! 📧",
+        description: "Verifique seu email novamente.",
+      });
+
+      // Reset timer
+      setResendTimer(30);
+      setCanResend(false);
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center gradient-primary p-4 relative overflow-hidden">
       {/* Animated Background Elements */}
@@ -132,6 +189,20 @@ export const TwoFactorVerification = ({
             className="w-full text-lg py-6 gradient-primary shadow-glow hover-scale font-semibold active:scale-95 transition-transform"
           >
             {isVerifying ? "Verificando..." : "Verificar Código"}
+          </Button>
+
+          <Button
+            onClick={handleResendCode}
+            disabled={!canResend || isResending}
+            variant="outline"
+            className="w-full"
+          >
+            {isResending 
+              ? "Reenviando..." 
+              : canResend 
+                ? "Reenviar Código" 
+                : `Reenviar em ${resendTimer}s`
+            }
           </Button>
 
           <div className="glass p-4 rounded-xl text-center">
