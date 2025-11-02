@@ -161,8 +161,16 @@ serve(async (req) => {
         );
       }
 
-      // Check email verification (for all users, including admins)
-      if (!profile.email_verified) {
+      // Check if user is admin
+      const { data: userRoles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', profile.user_id);
+
+      const isAdmin = userRoles?.some(r => r.role === 'admin') || false;
+
+      // Skip email verification for admin users
+      if (!isAdmin && !profile.email_verified) {
         // Logout the user since they can't proceed
         await supabase.auth.signOut();
         
