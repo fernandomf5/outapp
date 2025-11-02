@@ -10,6 +10,7 @@ import { Send, LogOut, Smile, ImagePlus, X } from "lucide-react";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { chatSounds } from "@/utils/chatSounds";
 
 interface Message {
   id: string;
@@ -196,6 +197,9 @@ export default function ChatbotCustomerChat() {
           const newMessage = payload.new as Message;
           setMessages((prev) => {
             const exists = prev.some(m => m.id === newMessage.id);
+            if (!exists && (newMessage.role === 'assistant' || newMessage.role === 'bot')) {
+              chatSounds.playReceiveSound();
+            }
             return exists ? prev : [...prev, newMessage];
           });
         }
@@ -362,6 +366,9 @@ const handleSendMessage = async () => {
             .eq('id', conversationId);
         }, 1000);
       }
+
+      // Tocar som de envio
+      chatSounds.playSendSound();
 
       setInput("");
       setSelectedImage(null);
@@ -544,7 +551,12 @@ const handleSendMessage = async () => {
             <Input
               ref={inputRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                setInput(e.target.value);
+                if (e.target.value.length > input.length) {
+                  chatSounds.playTypingSound();
+                }
+              }}
               onKeyPress={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
