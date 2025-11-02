@@ -422,61 +422,101 @@ export default function ChatbotCustomerChat() {
         .update({ last_message_at: new Date().toISOString() })
         .eq('id', conversationId);
 
-      // 1) Palavras‑chave: procurar bloco correspondente
+      // 1) Verificar contexto do fluxo (qual node estamos esperando resposta)
       const nodes = chatbotInfo?.config?.nodes || [];
       const edges = chatbotInfo?.config?.edges || [];
-      const lower = userMessage.toLowerCase();
-      const match = nodes.find((n: any) => {
-        const raw = n?.data?.keyword || '';
-        if (!raw) return false;
-        const list = String(raw)
-          .split(',')
-          .map((k: string) => k.trim().toLowerCase())
-          .filter(Boolean);
-        return list.some((k: string) => lower === k || lower.includes(k));
-      });
+      
+      // Buscar última mensagem do bot para saber qual node foi enviado
+      const lastBotMsg = messages.filter(m => m.role === 'bot').pop();
+      const lastNodeId = (lastBotMsg as any)?.node_id;
+      
+      let nextNode = null;
+      
+      // Se há um node ativo, procurar o próximo no fluxo
+      if (lastNodeId) {
+        const connectedEdges = edges.filter((e: any) => e.source === lastNodeId);
+        
+        // Para button/quickReply nodes, verificar qual botão foi clicado
+        const lastNode = nodes.find((n: any) => n.id === lastNodeId);
+        const nodeType = (lastNode?.type || '').toLowerCase();
+        
+        if ((nodeType === 'buttonnode' || nodeType === 'button' || 
+             nodeType === 'quickreplynode' || nodeType === 'quickreply') && connectedEdges.length > 0) {
+          // Buscar edge que corresponde à resposta do usuário
+          const buttons = lastNode?.data?.buttons || lastNode?.data?.quickReplies || [];
+          const buttonIndex = buttons.findIndex((b: any) => {
+            const btnText = (typeof b === 'string' ? b : b?.text || '').toLowerCase();
+            return userMessage.toLowerCase().includes(btnText);
+          });
+          
+          if (buttonIndex >= 0 && connectedEdges[buttonIndex]) {
+            // Usar edge específica do botão
+            nextNode = nodes.find((n: any) => n.id === connectedEdges[buttonIndex].target);
+          } else if (connectedEdges.length > 0) {
+            // Fallback: usar primeira edge
+            nextNode = nodes.find((n: any) => n.id === connectedEdges[0].target);
+          }
+        } else if (connectedEdges.length > 0) {
+          // Para outros tipos de node, seguir primeira edge
+          nextNode = nodes.find((n: any) => n.id === connectedEdges[0].target);
+        }
+      }
+      
+      // 2) Palavras‑chave: procurar bloco correspondente (fallback)
+      if (!nextNode) {
+        const lower = userMessage.toLowerCase();
+        nextNode = nodes.find((n: any) => {
+          const raw = n?.data?.keyword || '';
+          if (!raw) return false;
+          const list = String(raw)
+            .split(',')
+            .map((k: string) => k.trim().toLowerCase())
+            .filter(Boolean);
+          return list.some((k: string) => lower === k || lower.includes(k));
+        });
+      }
 
-      if (match) {
+      if (nextNode) {
         // Montar mensagem do bloco encontrado
-        const type = (match.type || '').toLowerCase();
+        const type = (nextNode.type || '').toLowerCase();
         let messageContent = '';
         let mediaUrl = '';
         let mediaType = '';
 
         if (type === 'textnode' || type === 'text') {
-          messageContent = match.data?.text || match.data?.label || '';
+          messageContent = nextNode.data?.text || nextNode.data?.label || '';
         } else if (type === 'messagenode' || type === 'message') {
-          messageContent = match.data?.message || match.data?.label || '';
+          messageContent = nextNode.data?.message || nextNode.data?.label || '';
         } else if (type === 'imagenode' || type === 'image') {
-          mediaUrl = match.data?.imageUrl || '';
+          mediaUrl = nextNode.data?.imageUrl || '';
           mediaType = 'image';
-          messageContent = match.data?.caption || 'Imagem';
+          messageContent = nextNode.data?.caption || 'Imagem';
         } else if (type === 'videonode' || type === 'video') {
-          mediaUrl = match.data?.videoUrl || '';
+          mediaUrl = nextNode.data?.videoUrl || '';
           mediaType = 'video';
-          messageContent = match.data?.caption || 'Vídeo';
+          messageContent = nextNode.data?.caption || 'Vídeo';
         } else if (type === 'audionode' || type === 'audio') {
-          mediaUrl = match.data?.audioUrl || '';
+          mediaUrl = nextNode.data?.audioUrl || '';
           mediaType = 'audio';
-          messageContent = match.data?.caption || 'Áudio';
+          messageContent = nextNode.data?.caption || 'Áudio';
         } else if (type === 'documentnode' || type === 'document') {
-          mediaUrl = match.data?.documentUrl || '';
+          mediaUrl = nextNode.data?.documentUrl || '';
           mediaType = 'document';
-          messageContent = match.data?.caption || 'Documento';
+          messageContent = nextNode.data?.caption || 'Documento';
         } else if (type === 'buttonnode' || type === 'button') {
-          const buttons = match.data?.buttons || [];
-          messageContent = match.data?.message || match.data?.label || '';
+          const buttons = nextNode.data?.buttons || [];
+          messageContent = nextNode.data?.message || nextNode.data?.label || '';
           if (buttons.length > 0) {
             messageContent += '\n\nOpções:\n' + buttons.map((b: any, i: number) => `${i + 1}. ${typeof b === 'string' ? b : (b?.text || '')}`).join('\n');
           }
         } else if (type === 'quickreplynode' || type === 'quickReply') {
-          const replies = match.data?.quickReplies || match.data?.buttons || [];
-          messageContent = match.data?.message || match.data?.label || '';
+          const replies = nextNode.data?.quickReplies || nextNode.data?.buttons || [];
+          messageContent = nextNode.data?.message || nextNode.data?.label || '';
           if (replies.length > 0) {
             messageContent += '\n\n' + replies.map((r: any) => `• ${typeof r === 'string' ? r : (r?.text || '')}`).join('\n');
           }
         } else if (type === 'questionnode' || type === 'question') {
-          messageContent = match.data?.question || match.data?.label || '';
+          messageContent = nextNode.data?.question || nextNode.data?.label || '';
         }
 
         messageContent = replaceVars(messageContent);
@@ -488,7 +528,7 @@ export default function ChatbotCustomerChat() {
             content: messageContent,
             media_url: mediaUrl || null,
             media_type: mediaType || null,
-            node_id: match.id,
+            node_id: nextNode.id,
           });
         }
       }
