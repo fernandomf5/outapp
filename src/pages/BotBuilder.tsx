@@ -5,12 +5,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Save, Link2, Copy, Power } from "lucide-react";
+import { ArrowLeft, Save, Link2, MessageCircle } from "lucide-react";
 import { useChatbot } from '@/hooks/useChatbot';
 import { useAuth } from '@/contexts/AuthContext';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ChatWidgetGenerator } from '@/components/ChatWidgetGenerator';
 
 const BotBuilder = () => {
@@ -27,6 +28,7 @@ const BotBuilder = () => {
   const [accessType, setAccessType] = useState<'public' | 'anonymous'>('public');
   const [enableQueue, setEnableQueue] = useState(true);
   const [autoReplyMessage, setAutoReplyMessage] = useState("Olá! Envie sua mensagem que responderei assim que possível. 😊");
+  const [showWidgetDialog, setShowWidgetDialog] = useState(false);
 
   // Carregar chatbot existente
   useEffect(() => {
@@ -162,6 +164,25 @@ const BotBuilder = () => {
                 <Link2 className="w-4 h-4 mr-2" />
                 Copiar Link
               </Button>
+              
+              <Dialog open={showWidgetDialog} onOpenChange={setShowWidgetDialog}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    disabled={!chatbotId}
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Gerar Botão Flutuante
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Gerar Botão Flutuante para o Site</DialogTitle>
+                  </DialogHeader>
+                  {chatbotId && <ChatWidgetGenerator botId={chatbotId} type="chatbot" />}
+                </DialogContent>
+              </Dialog>
+
               <Button onClick={handleSave} disabled={isSaving}>
                 <Save className="w-4 h-4 mr-2" />
                 {isSaving ? 'Salvando...' : 'Salvar'}
@@ -268,8 +289,6 @@ const BotBuilder = () => {
               </div>
             </div>
           </Card>
-
-          {chatbotId && <ChatWidgetGenerator botId={chatbotId} type="chatbot" />}
 
           <Card className="p-6 bg-muted/50">
             <h2 className="text-xl font-semibold mb-2">Como Funciona</h2>
