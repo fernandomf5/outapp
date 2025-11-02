@@ -69,60 +69,6 @@ const BotBuilder = () => {
     }
   }, [chatbotId, user]);
 
-  // Sincronização em tempo real (silenciosa)
-  useEffect(() => {
-    if (!chatbotId) return;
-
-    console.log('🔄 Iniciando sincronização em tempo real para chatbot:', chatbotId);
-
-    const channel = supabase
-      .channel(`chatbot-changes-${chatbotId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'chatbots',
-          filter: `id=eq.${chatbotId}`
-        },
-        (payload) => {
-          console.log('📡 Atualização em tempo real recebida:', payload);
-          const chatbot = payload.new as any;
-          
-          setBotName(chatbot.name);
-          setIsActive(chatbot.is_active);
-          
-          const config = chatbot.config as any;
-          if (config?.initialMessage) {
-            setInitialMessage(config.initialMessage);
-          }
-          if (config?.initialButtons) {
-            setInitialButtons(config.initialButtons);
-          }
-          if (config?.attendantName) {
-            setAttendantName(config.attendantName);
-          }
-          if (config?.nodes) {
-            setNodes(config.nodes);
-          }
-          if (config?.edges) {
-            setEdges(config.edges);
-          }
-
-          toast({
-            title: "Fluxo atualizado! 🔄",
-            description: "O chatbot foi atualizado em tempo real.",
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      console.log('🔌 Desconectando sincronização em tempo real');
-      supabase.removeChannel(channel);
-    };
-  }, [chatbotId, toast]);
-
   const addNode = useCallback((type: string) => {
     const defaultLabels: Record<string, string> = {
       'text': 'Digite seu texto...',
