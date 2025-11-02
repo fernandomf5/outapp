@@ -34,35 +34,39 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
     return `<!-- Bot Reals Zap - Widget de Chat Online -->
 <div id="bot-reals-zap-widget">
   <style>
-    * {
+    #bot-reals-zap-widget * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
     #bot-reals-zap-button {
-      position: fixed;
+      position: fixed !important;
       ${positionStyles[position]}
-      width: 60px;
-      height: 60px;
-      min-width: 60px;
-      min-height: 60px;
-      border-radius: 50%;
-      background: ${buttonColor};
-      color: white;
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      z-index: 9998;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-      flex-shrink: 0;
+      width: 60px !important;
+      height: 60px !important;
+      min-width: 60px !important;
+      min-height: 60px !important;
+      border-radius: 50% !important;
+      background: ${buttonColor} !important;
+      color: white !important;
+      border: none !important;
+      cursor: pointer !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+      z-index: 999998 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      transition: all 0.3s ease !important;
+      flex-shrink: 0 !important;
+      font-family: inherit !important;
+      outline: none !important;
     }
     @media (max-width: 768px) {
       #bot-reals-zap-button {
-        width: 56px;
-        height: 56px;
-        min-width: 56px;
-        min-height: 56px;
+        width: 56px !important;
+        height: 56px !important;
+        min-width: 56px !important;
+        min-height: 56px !important;
         bottom: ${position.includes('bottom') ? '16px' : 'auto'} !important;
         top: ${position.includes('top') ? '16px' : 'auto'} !important;
         right: ${position.includes('right') ? '16px' : 'auto'} !important;
@@ -70,57 +74,59 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
       }
     }
     #bot-reals-zap-button:hover {
-      transform: scale(1.1);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+      transform: scale(1.1) !important;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2) !important;
     }
     #bot-reals-zap-button svg {
-      width: 30px;
-      height: 30px;
+      width: 30px !important;
+      height: 30px !important;
+      pointer-events: none !important;
     }
     #bot-reals-zap-tooltip {
-      position: fixed;
+      position: fixed !important;
       ${positionStyles[position]}
-      ${position.includes('right') ? 'right: 90px;' : 'left: 90px;'}
-      background: white;
-      padding: 8px 12px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      font-size: 14px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      white-space: nowrap;
-      z-index: 9997;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-      max-width: calc(100vw - 120px);
+      ${position.includes('right') ? 'right: 90px !important;' : 'left: 90px !important;'}
+      background: white !important;
+      color: #333 !important;
+      padding: 8px 12px !important;
+      border-radius: 8px !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+      font-size: 14px !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      white-space: nowrap !important;
+      z-index: 999997 !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: opacity 0.3s ease !important;
+      max-width: calc(100vw - 120px) !important;
     }
     #bot-reals-zap-button:hover + #bot-reals-zap-tooltip {
-      opacity: 1;
+      opacity: 1 !important;
     }
     @media (max-width: 768px) {
       #bot-reals-zap-tooltip {
-        display: none;
+        display: none !important;
       }
     }
     #bot-reals-zap-iframe-container {
-      display: none;
-      position: fixed;
+      display: none !important;
+      position: fixed !important;
       ${positionStyles[position]}
-      width: 400px;
-      height: 600px;
-      max-width: calc(100vw - 40px);
-      max-height: calc(100vh - 40px);
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-      z-index: 9999;
-      overflow: hidden;
-      background: white;
+      width: 400px !important;
+      height: 600px !important;
+      max-width: calc(100vw - 40px) !important;
+      max-height: calc(100vh - 40px) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
+      z-index: 999999 !important;
+      overflow: hidden !important;
+      background: white !important;
     }
     #bot-reals-zap-iframe-container.open {
-      display: block;
-      animation: slideUp 0.3s ease;
+      display: block !important;
+      animation: botRealsZapSlideUp 0.3s ease !important;
     }
-    @keyframes slideUp {
+    @keyframes botRealsZapSlideUp {
       from {
         opacity: 0;
         transform: translateY(20px);
@@ -131,29 +137,35 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
       }
     }
     #bot-reals-zap-iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
+      width: 100% !important;
+      height: 100% !important;
+      border: none !important;
+      display: block !important;
     }
     #bot-reals-zap-close {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: rgba(0,0,0,0.5);
-      color: white;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10000;
-      transition: background 0.2s ease;
+      position: absolute !important;
+      top: 10px !important;
+      right: 10px !important;
+      width: 32px !important;
+      height: 32px !important;
+      border-radius: 50% !important;
+      background: rgba(0,0,0,0.5) !important;
+      color: white !important;
+      border: none !important;
+      cursor: pointer !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      z-index: 1000000 !important;
+      transition: background 0.2s ease !important;
+      font-family: inherit !important;
+      outline: none !important;
     }
     #bot-reals-zap-close:hover {
-      background: rgba(0,0,0,0.7);
+      background: rgba(0,0,0,0.7) !important;
+    }
+    #bot-reals-zap-close svg {
+      pointer-events: none !important;
     }
     @media (max-width: 768px) {
       #bot-reals-zap-iframe-container {
@@ -170,7 +182,7 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
     }
   </style>
 
-  <button id="bot-reals-zap-button" onclick="toggleBotChat()" aria-label="Abrir chat">
+  <button id="bot-reals-zap-button" type="button" aria-label="Abrir chat">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
     </svg>
@@ -179,28 +191,65 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
   <div id="bot-reals-zap-tooltip">${buttonText}</div>
 
   <div id="bot-reals-zap-iframe-container">
-    <button id="bot-reals-zap-close" onclick="toggleBotChat()" aria-label="Fechar chat">
+    <button id="bot-reals-zap-close" type="button" aria-label="Fechar chat">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="18" y1="6" x2="6" y2="18"></line>
         <line x1="6" y1="6" x2="18" y2="18"></line>
       </svg>
     </button>
-    <iframe id="bot-reals-zap-iframe" src="${chatUrl}" allow="microphone"></iframe>
+    <iframe id="bot-reals-zap-iframe" src="${chatUrl}" allow="microphone" title="Chat Bot"></iframe>
   </div>
 
   <script>
-    function toggleBotChat() {
-      const container = document.getElementById('bot-reals-zap-iframe-container');
-      const button = document.getElementById('bot-reals-zap-button');
-      
-      if (container.classList.contains('open')) {
-        container.classList.remove('open');
-        button.style.display = 'flex';
-      } else {
-        container.classList.add('open');
-        button.style.display = 'none';
+    (function() {
+      // Previne múltiplas inicializações
+      if (window.botRealsZapInitialized) return;
+      window.botRealsZapInitialized = true;
+
+      function toggleBotChat() {
+        var container = document.getElementById('bot-reals-zap-iframe-container');
+        var button = document.getElementById('bot-reals-zap-button');
+        
+        if (!container || !button) return;
+        
+        if (container.classList.contains('open')) {
+          container.classList.remove('open');
+          button.style.display = 'flex';
+        } else {
+          container.classList.add('open');
+          button.style.display = 'none';
+        }
       }
-    }
+
+      // Aguarda o DOM estar pronto
+      function initWidget() {
+        var button = document.getElementById('bot-reals-zap-button');
+        var closeBtn = document.getElementById('bot-reals-zap-close');
+        
+        if (button) {
+          button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleBotChat();
+          });
+        }
+        
+        if (closeBtn) {
+          closeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleBotChat();
+          });
+        }
+      }
+
+      // Inicializa quando o DOM estiver pronto
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initWidget);
+      } else {
+        initWidget();
+      }
+    })();
   </script>
 </div>`;
   };
