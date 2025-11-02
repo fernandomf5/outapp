@@ -161,16 +161,8 @@ serve(async (req) => {
         );
       }
 
-      // Check if user is admin (master account)
-      const { data: userRoles } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', profile.user_id);
-
-      const isAdmin = userRoles?.some(r => r.role === 'admin') || false;
-
-      // Skip email verification for admin users
-      if (!isAdmin && !profile.email_verified) {
+      // Check email verification (for all users, including admins)
+      if (!profile.email_verified) {
         // Logout the user since they can't proceed
         await supabase.auth.signOut();
         
@@ -306,21 +298,6 @@ serve(async (req) => {
 
     if (action === 'check-2fa') {
       const { deviceFingerprint } = requestData;
-
-      // Check if user is admin - admins bypass 2FA
-      const { data: userRoles } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId);
-
-      const isAdmin = userRoles?.some(r => r.role === 'admin') || false;
-
-      if (isAdmin) {
-        return new Response(
-          JSON.stringify({ requires2FA: false }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
 
       // Check if user has 2FA enabled
       const { data: twoFASettings } = await supabase

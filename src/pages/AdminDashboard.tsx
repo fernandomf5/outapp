@@ -12,6 +12,7 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { UsersPanel } from "@/components/admin/UsersPanel";
+import { AdminsPanel } from "@/components/admin/AdminsPanel";
 import { SubscriptionsPanel } from "@/components/admin/SubscriptionsPanel";
 import { RevenuePanel } from "@/components/admin/RevenuePanel";
 import { GrowthChart } from "@/components/admin/GrowthChart";
@@ -36,6 +37,7 @@ import {
   Edit,
   Trash2,
   Crown,
+  Shield,
   ArrowLeft,
   MessageSquare,
   Send,
@@ -633,6 +635,18 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                   </Card>
+
+                  <Card className="p-6 hover:shadow-xl hover-scale transition-smooth bg-gradient-to-br from-card to-destructive/5 border-destructive/20 group cursor-pointer" onClick={() => navigate('/admin?section=admins')}>
+                    <div className="flex items-center gap-4">
+                      <div className="bg-gradient-to-br from-destructive/20 to-destructive/10 p-3 rounded-xl shadow-glow group-hover:scale-110 transition-transform">
+                        <Shield className="w-6 h-6 text-destructive" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg">Administradores</h3>
+                        <p className="text-sm text-muted-foreground">Gerenciar acessos admin</p>
+                      </div>
+                    </div>
+                  </Card>
                 </div>
 
                 <GrowthChart />
@@ -641,6 +655,9 @@ const AdminDashboard = () => {
 
             {/* Users Section */}
             {currentSection === 'users' && <UsersPanel />}
+
+            {/* Admins Section */}
+            {currentSection === 'admins' && <AdminsPanel />}
 
             {/* Subscriptions Section */}
             {currentSection === 'subscriptions' && <SubscriptionsPanel />}

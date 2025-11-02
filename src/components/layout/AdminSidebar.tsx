@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Users, DollarSign, TrendingUp, Settings, Video, FileText, Package, Crown, MessageSquare, LifeBuoy, Globe } from "lucide-react";
+import { Users, DollarSign, TrendingUp, Settings, Video, FileText, Package, Crown, MessageSquare, LifeBuoy, Globe, Shield } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -98,6 +98,7 @@ export function AdminSidebar() {
 
   const systemItems = [
     { title: t('plans_manager'), icon: Crown, tab: "plans" },
+    { title: "Administradores", icon: Shield, tab: "admins" },
     { title: t('messages'), icon: MessageSquare, tab: "messages" },
     { title: t('tickets'), icon: LifeBuoy, tab: "tickets" },
     { title: t('vouchers'), icon: Package, tab: "vouchers" },
