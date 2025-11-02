@@ -210,6 +210,15 @@ export default function ChatbotCustomerChat() {
 
       if (activeConv) {
         setConversationId(activeConv.id);
+        // Verificar se já existem mensagens do fluxo; caso contrário, processar agora
+        const { data: existingMsgs } = await supabase
+          .from('chatbot_messages')
+          .select('id, role, node_id')
+          .eq('conversation_id', activeConv.id);
+        const hasFlowMsgs = (existingMsgs || []).some((m: any) => m.role === 'bot' && m.node_id);
+        if (!hasFlowMsgs) {
+          await processInitialFlowMessages(chatbot, activeConv.id);
+        }
         await loadMessages(activeConv.id);
       } else {
         // Process flow initial message
