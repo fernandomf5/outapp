@@ -311,7 +311,24 @@ const [isTyping, setIsTyping] = useState(false);
 // Tentar iniciar pelo nó "trigger" se existir
 const triggerNode = nodes.find((n: any) => (n.type || '').toLowerCase() === 'trigger' || (n.type || '').toLowerCase() === 'triggernode');
 if (triggerNode) {
-  const firstEdge = edges.find((e: any) => e.source === triggerNode.id);
+  const candidateEdges = edges.filter((e: any) => e.source === triggerNode.id);
+  const byPosition = (list: any[]) => list.sort((a: any, b: any) => {
+    const ta = nodes.find((n: any) => n.id === a.target);
+    const tb = nodes.find((n: any) => n.id === b.target);
+    const ya = ta?.position?.y ?? 0;
+    const yb = tb?.position?.y ?? 0;
+    if (ya !== yb) return ya - yb;
+    const xa = ta?.position?.x ?? 0;
+    const xb = tb?.position?.x ?? 0;
+    return xa - xb;
+  });
+  const isInteractiveType = (t: string) => {
+    const tt = (t || '').toLowerCase();
+    return tt === 'buttonnode' || tt === 'button' || tt === 'quickreplynode' || tt === 'quickreply' || tt === 'questionnode' || tt === 'question';
+  };
+  const interactive = candidateEdges.filter((e: any) => isInteractiveType((nodes.find((n: any) => n.id === e.target)?.type)));
+  const sorted = byPosition(interactive.length ? interactive : candidateEdges);
+  const firstEdge = sorted[0];
   if (firstEdge) {
     const targetNode = nodes.find((n: any) => n.id === firstEdge.target);
     if (targetNode) {
@@ -434,7 +451,17 @@ const walkFromNode = async (startNode: any, nodes: any[], edges: any[], convId: 
     if (isInteractiveNode(current)) break;
     const outs = edges.filter((e: any) => e.source === current.id);
     if (!outs.length) break;
-    const nextId = outs[0].target;
+    const sortedOuts = outs.sort((a: any, b: any) => {
+      const ta = nodes.find((n: any) => n.id === a.target);
+      const tb = nodes.find((n: any) => n.id === b.target);
+      const ya = ta?.position?.y ?? 0;
+      const yb = tb?.position?.y ?? 0;
+      if (ya !== yb) return ya - yb;
+      const xa = ta?.position?.x ?? 0;
+      const xb = tb?.position?.x ?? 0;
+      return xa - xb;
+    });
+    const nextId = sortedOuts[0].target;
     current = nodes.find((n: any) => n.id === nextId);
   }
 };
@@ -455,7 +482,10 @@ const walkFromNode = async (startNode: any, nodes: any[], edges: any[], convId: 
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
-          setMessages((prev) => [...prev, payload.new as Message]);
+          setMessages((prev) => {
+            const exists = prev.some((m) => m.id === (payload.new as any).id);
+            return exists ? prev : [...prev, payload.new as Message];
+          });
         }
       )
       .subscribe();
@@ -500,13 +530,23 @@ const handleSendMessage = async (messageText?: string, originNodeId?: string) =>
     // Se há um node ativo, procurar o próximo no fluxo
     if (contextNodeId) {
       const connectedEdges = edges.filter((e: any) => e.source === contextNodeId);
+      const sortedConnected = connectedEdges.sort((a: any, b: any) => {
+        const ta = nodes.find((n: any) => n.id === a.target);
+        const tb = nodes.find((n: any) => n.id === b.target);
+        const ya = ta?.position?.y ?? 0;
+        const yb = tb?.position?.y ?? 0;
+        if (ya !== yb) return ya - yb;
+        const xa = ta?.position?.x ?? 0;
+        const xb = tb?.position?.x ?? 0;
+        return xa - xb;
+      });
 
       // Para button/quickReply nodes, verificar qual botão foi clicado
       const lastNode = nodes.find((n: any) => n.id === contextNodeId);
       const nodeType = (lastNode?.type || '').toLowerCase();
 
       if ((nodeType === 'buttonnode' || nodeType === 'button' || 
-           nodeType === 'quickreplynode' || nodeType === 'quickreply') && connectedEdges.length > 0) {
+           nodeType === 'quickreplynode' || nodeType === 'quickreply') && sortedConnected.length > 0) {
         const buttons = lastNode?.data?.buttons || lastNode?.data?.quickReplies || [];
         const buttonIndex = buttons.findIndex((b: any) => {
           const btnText = (typeof b === 'string' ? b : b?.text || '').toLowerCase();
@@ -519,18 +559,15 @@ const handleSendMessage = async (messageText?: string, originNodeId?: string) =>
           const edgeByHandle = edges.find((e: any) => e.source === contextNodeId && e.sourceHandle === `btn-${buttonIndex}`);
           if (edgeByHandle) {
             nextNode = nodes.find((n: any) => n.id === edgeByHandle.target);
-          } else if (connectedEdges[buttonIndex]) {
-            nextNode = nodes.find((n: any) => n.id === connectedEdges[buttonIndex].target);
-          } else if (connectedEdges.length > 0) {
-            nextNode = nodes.find((n: any) => n.id === connectedEdges[0].target);
+          } else if (sortedConnected[buttonIndex]) {
+            nextNode = nodes.find((n: any) => n.id === sortedConnected[buttonIndex].target);
+          } else if (sortedConnected.length > 0) {
+            nextNode = nodes.find((n: any) => n.id === sortedConnected[0].target);
           }
-        } else if (connectedEdges.length > 0) {
-          // Fallback: usar primeira edge
-          nextNode = nodes.find((n: any) => n.id === connectedEdges[0].target);
         }
-      } else if (connectedEdges.length > 0) {
-        // Para outros tipos de node, seguir primeira edge
-        nextNode = nodes.find((n: any) => n.id === connectedEdges[0].target);
+      } else if (sortedConnected.length > 0) {
+        // Para outros tipos de node, seguir primeira edge (ordenada pela posição)
+        nextNode = nodes.find((n: any) => n.id === sortedConnected[0].target);
       }
     }
 
