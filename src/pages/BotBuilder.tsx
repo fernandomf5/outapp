@@ -307,8 +307,14 @@ const BotBuilder = () => {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      // Delete para remover bloco selecionado
-      if (e.key === 'Delete' || e.key === 'Backspace') {
+      // Verificar se estamos em um campo de input/textarea
+      const target = e.target as HTMLElement;
+      const isInInput = target?.tagName === 'INPUT' || 
+                        target?.tagName === 'TEXTAREA' || 
+                        target?.isContentEditable;
+
+      // Delete para remover bloco selecionado (apenas Delete, não Backspace)
+      if (e.key === 'Delete' && !isInInput) {
         if (selectedNode) {
           e.preventDefault();
           deleteNode(selectedNode.id);
