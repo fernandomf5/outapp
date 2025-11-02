@@ -244,28 +244,28 @@ const Auth = () => {
             </div>
             <div>
               <h1 className="text-4xl md:text-5xl font-bold">Bot Reals Zapp</h1>
-              <p className="text-lg md:text-xl text-white/90">Automação Inteligente</p>
+              <p className="text-lg md:text-xl text-white/90">Marketing Inteligente</p>
             </div>
           </div>
           
           <div className="space-y-4">
             <div className="flex items-start gap-3 glass p-5 rounded-xl hover-scale transition-smooth animate-fade-in bg-white/90">
               <div className="bg-primary/20 p-2 rounded-lg">
-                <Zap className="w-6 h-6 flex-shrink-0 text-primary" />
+                <Bot className="w-6 h-6 flex-shrink-0 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-1 text-gray-900">Conexão Instantânea</h3>
-                <p className="text-gray-800 text-sm">Conecte seu WhatsApp em segundos via QR Code</p>
+                <h3 className="font-semibold text-lg mb-1 text-gray-900">Chatbots e Agentes IA</h3>
+                <p className="text-gray-800 text-sm">Crie assistentes virtuais inteligentes e automatizados</p>
               </div>
             </div>
             
             <div className="flex items-start gap-3 glass p-5 rounded-xl hover-scale transition-smooth animate-fade-in bg-white/90" style={{ animationDelay: '0.1s' }}>
               <div className="bg-primary/20 p-2 rounded-lg">
-                <Bot className="w-6 h-6 flex-shrink-0 text-primary" />
+                <Zap className="w-6 h-6 flex-shrink-0 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-1 text-gray-900">Chatbots Inteligentes</h3>
-                <p className="text-gray-800 text-sm">Crie automações e agentes IA sem programar</p>
+                <h3 className="font-semibold text-lg mb-1 text-gray-900">CRM e Automação Completa</h3>
+                <p className="text-gray-800 text-sm">Gerencie leads, afiliados, pixels e muito mais</p>
               </div>
             </div>
             

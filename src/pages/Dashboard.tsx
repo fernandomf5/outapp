@@ -33,6 +33,8 @@ import { QRCodeGenerator } from "@/components/QRCodeGenerator";
 import { GeneralCRMPanel } from "@/components/GeneralCRMPanel";
 import { ChatbotManagementPanel } from "@/components/ChatbotManagementPanel";
 import AgentManagementPanel from "@/components/AgentManagementPanel";
+import { MyDomainsPanel } from "@/components/MyDomainsPanel";
+import { FloatingButtonGenerator } from "@/components/FloatingButtonGenerator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -279,7 +281,7 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <h1 className="text-xl sm:text-2xl font-bold">
-                    {t('hello')}, {user?.email?.split('@')[0] || 'Usuário'}! 👋
+                    {t('hello')}, {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário'}! 👋
                   </h1>
                   <p className="text-xs sm:text-sm text-muted-foreground">{t('welcome_back')}</p>
                 </div>
@@ -659,6 +661,14 @@ const Dashboard = () => {
 
           <TabsContent value="crm-geral">
             <GeneralCRMPanel />
+          </TabsContent>
+
+          <TabsContent value="dominios">
+            <MyDomainsPanel />
+          </TabsContent>
+
+          <TabsContent value="floating-button">
+            <FloatingButtonGenerator />
           </TabsContent>
 
 

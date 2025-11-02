@@ -1,5 +1,6 @@
-import { Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MessageCircle } from "lucide-react";
+import { Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MessageCircle, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface SocialLink {
   platform: string;
@@ -9,6 +10,7 @@ interface SocialLink {
 interface SocialLinksProps {
   links: SocialLink[];
   variant?: "default" | "footer";
+  vertical?: boolean;
 }
 
 const platformIcons: Record<string, any> = {
@@ -33,39 +35,52 @@ const platformColors: Record<string, string> = {
   whatsapp: "hover:text-[#25D366]",
 };
 
-export const SocialLinks = ({ links, variant = "default" }: SocialLinksProps) => {
+export const SocialLinks = ({ links, variant = "default", vertical = false }: SocialLinksProps) => {
   if (!links || links.length === 0) return null;
 
   const size = variant === "footer" ? 20 : 18;
-  const buttonSize = variant === "footer" ? "default" : "sm";
+
+  const socialButtons = links.map((link, index) => {
+    const Icon = platformIcons[link.platform.toLowerCase()];
+    const colorClass = platformColors[link.platform.toLowerCase()];
+    
+    if (!Icon) return null;
+
+    return (
+      <Button
+        key={index}
+        variant="ghost"
+        size="icon"
+        className={`transition-colors ${colorClass}`}
+        asChild
+      >
+        <a
+          href={link.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={link.platform}
+        >
+          <Icon size={size} />
+        </a>
+      </Button>
+    );
+  });
+
+  if (vertical) {
+    return <div className="flex flex-col gap-2">{socialButtons}</div>;
+  }
 
   return (
-    <div className="flex items-center gap-2">
-      {links.map((link, index) => {
-        const Icon = platformIcons[link.platform.toLowerCase()];
-        const colorClass = platformColors[link.platform.toLowerCase()];
-        
-        if (!Icon) return null;
-
-        return (
-          <Button
-            key={index}
-            variant="ghost"
-            size="icon"
-            className={`transition-colors ${colorClass}`}
-            asChild
-          >
-            <a
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={link.platform}
-            >
-              <Icon size={size} />
-            </a>
-          </Button>
-        );
-      })}
-    </div>
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="sm" className="gap-2">
+          <Share2 className="w-4 h-4" />
+          <span className="hidden xl:inline">Redes</span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-2">
+        <div className="flex flex-col gap-1">{socialButtons}</div>
+      </PopoverContent>
+    </Popover>
   );
 };

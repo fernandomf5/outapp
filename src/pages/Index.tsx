@@ -345,6 +345,9 @@ const Index = () => {
           <a href="#planos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
             {t('pricing')}
           </a>
+          <a href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
+            Blog
+          </a>
           <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
             {t('faq')}
           </a>
@@ -357,6 +360,9 @@ const Index = () => {
               {page.title}
             </button>
           ))}
+          <div className="mt-4 pt-4 border-t border-border">
+            <SocialLinks links={socialLinks} vertical />
+          </div>
           <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-border">
             <Button variant="ghost" onClick={() => navigate("/auth")} className="w-full justify-start">
               {t('login')}
@@ -410,6 +416,9 @@ const Index = () => {
               </a>
               <a href="#planos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
                 {t('pricing')}
+              </a>
+              <a href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
+                Blog
               </a>
               <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
                 {t('faq')}

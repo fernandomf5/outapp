@@ -27,6 +27,7 @@ import AgentCustomerAuth from "./pages/AgentCustomerAuth";
 import AgentCustomerChat from "./pages/AgentCustomerChat";
 import ChatbotCustomerAuth from "./pages/ChatbotCustomerAuth";
 import ChatbotCustomerChat from "./pages/ChatbotCustomerChat";
+import Blog from "./pages/Blog";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +65,8 @@ const App = () => (
               <Route path="/agent-chat/:agentId" element={<AgentCustomerChat />} />
               <Route path="/chatbot-auth/:chatbotId" element={<ChatbotCustomerAuth />} />
               <Route path="/chatbot-chat/:chatbotId" element={<ChatbotCustomerChat />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<Blog />} />
               <Route path="/bot-builder" element={
                 <ProtectedRoute>
                   <BotBuilder />
