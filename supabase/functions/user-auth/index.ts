@@ -134,6 +134,8 @@ serve(async (req) => {
     }
 
     if (action === 'login') {
+      console.log('Login attempt for:', email);
+      
       // Login with Supabase Auth first to validate credentials
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
@@ -141,25 +143,39 @@ serve(async (req) => {
       });
 
       if (authError) {
+        console.error('Auth error:', authError);
         return new Response(
           JSON.stringify({ error: 'Email ou senha incorretos' }),
           { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
+      console.log('Auth successful, fetching profile...');
+
       // Get user profile
       const { data: profile, error: findError } = await supabase
         .from('profiles')
         .select('*')
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
-      if (findError || !profile) {
+      if (findError) {
+        console.error('Profile fetch error:', findError);
+        return new Response(
+          JSON.stringify({ error: 'Erro ao buscar perfil' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (!profile) {
+        console.error('Profile not found for:', email);
         return new Response(
           JSON.stringify({ error: 'Perfil não encontrado' }),
           { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+
+      console.log('Profile found, checking admin status...');
 
       // Check if user is admin
       const { data: userRoles } = await supabase
@@ -169,8 +185,11 @@ serve(async (req) => {
 
       const isAdmin = userRoles?.some(r => r.role === 'admin') || false;
 
+      console.log('Is admin:', isAdmin, 'Email verified:', profile.email_verified);
+
       // Skip email verification for admin users
       if (!isAdmin && !profile.email_verified) {
+        console.log('Email not verified, logging out...');
         // Logout the user since they can't proceed
         await supabase.auth.signOut();
         
@@ -183,6 +202,8 @@ serve(async (req) => {
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+
+      console.log('Login successful for:', email);
 
       return new Response(
         JSON.stringify({ 
