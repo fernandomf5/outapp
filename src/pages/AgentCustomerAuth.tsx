@@ -44,11 +44,6 @@ export default function AgentCustomerAuth() {
           setAuthMode('register');
         }
 
-        // Limpa qualquer autenticação antiga ao montar o componente
-        const existingAuth = localStorage.getItem(`agent_customer_${agentId}`);
-        if (existingAuth) {
-          localStorage.removeItem(`agent_customer_${agentId}`);
-        }
       } catch (error) {
         console.error('Error checking access type:', error);
       } finally {

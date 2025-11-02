@@ -71,13 +71,16 @@ export default function ChatbotCustomerChat() {
 
         // Se não tem dados no localStorage
         if (chatbot?.access_type === 'anonymous') {
-          // Acesso anônimo - criar sessão temporária
+          // Acesso anônimo - criar sessão temporária e persistir
           const tempCustomer = {
             id: crypto.randomUUID(),
             name: 'Visitante',
             email: `anon_${Date.now()}@temp.com`,
           };
           setCustomer(tempCustomer);
+          try {
+            localStorage.setItem(`chatbot_customer_${chatbotId}`, JSON.stringify(tempCustomer));
+          } catch (_) {}
           loadChatbotAndConversation(tempCustomer.id, tempCustomer);
           return;
         }
@@ -317,38 +320,19 @@ const handleSendMessage = async () => {
 
       const messageContent = input.trim() || '📷 Imagem';
 
-      // Inserir mensagem do usuário
-      const { error } = await supabase
-        .from('chatbot_messages')
-        .insert({
-          conversation_id: conversationId,
-          role: 'user',
+      // Enviar mensagem via Edge Function (bypass RLS)
+      const { error } = await supabase.functions.invoke('chatbot-customer-message', {
+        body: {
+          chatbotId,
+          conversationId,
           content: messageContent,
-          sender_name: customer?.name || 'Você',
-          media_url: mediaUrl,
-          media_type: mediaUrl ? 'image' : null,
-        });
+          senderName: customer?.name || 'Você',
+          mediaUrl,
+          mediaType: mediaUrl ? 'image' : null,
+        }
+      });
 
       if (error) throw error;
-
-      // Update conversation last_message_at
-      await supabase
-        .from('chatbot_conversations')
-        .update({ last_message_at: new Date().toISOString() })
-        .eq('id', conversationId);
-
-      // Create notification for new message
-      if (chatbotId) {
-        await supabase
-          .from('chatbot_notifications')
-          .insert({
-            chatbot_id: chatbotId,
-            type: 'new_message',
-            title: 'Nova Mensagem',
-            message: `${customer?.name || 'Visitante'}: ${messageContent.substring(0, 50)}${messageContent.length > 50 ? '...' : ''}`,
-            is_read: false,
-          });
-      }
 
       // Enviar mensagem automática na primeira mensagem do cliente
       if (!autoReplySent && chatbotInfo?.enable_auto_reply && chatbotInfo?.auto_reply_message?.trim()) {

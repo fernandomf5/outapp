@@ -47,11 +47,6 @@ export default function ChatbotCustomerAuth() {
           setAuthMode('register');
         }
 
-        // Limpa qualquer autenticação antiga ao montar o componente
-        const existingAuth = localStorage.getItem(`chatbot_customer_${chatbotId}`);
-        if (existingAuth) {
-          localStorage.removeItem(`chatbot_customer_${chatbotId}`);
-        }
       } catch (error) {
         console.error('Error checking access type:', error);
       } finally {
