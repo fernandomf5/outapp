@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, Search, Send, Trash2, ImagePlus, Smile } from "lucide-react";
+import { MessageSquare, Search, Send, Trash2, ImagePlus, Smile, CheckSquare, Square } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -29,6 +29,8 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId: string }) 
   const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedConversations, setSelectedConversations] = useState<Set<string>>(new Set());
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -319,6 +321,69 @@ const handleSendMessage = async () => {
     }
   };
 
+  const handleToggleConversation = (conversationId: string) => {
+    setSelectedConversations(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(conversationId)) {
+        newSet.delete(conversationId);
+      } else {
+        newSet.add(conversationId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleToggleAll = () => {
+    if (selectedConversations.size === conversations.length) {
+      setSelectedConversations(new Set());
+    } else {
+      setSelectedConversations(new Set(conversations.map(c => c.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedConversations.size === 0) return;
+
+    try {
+      // Deletar mensagens de todas as conversas selecionadas
+      for (const conversationId of selectedConversations) {
+        await supabase
+          .from('chatbot_messages')
+          .delete()
+          .eq('conversation_id', conversationId);
+      }
+
+      // Deletar conversas selecionadas
+      const { error } = await supabase
+        .from('chatbot_conversations')
+        .delete()
+        .in('id', Array.from(selectedConversations));
+
+      if (error) throw error;
+
+      // Se a conversa selecionada foi deletada, limpar seleção
+      if (selectedConversation && selectedConversations.has(selectedConversation.id)) {
+        setSelectedConversation(null);
+      }
+
+      setSelectedConversations(new Set());
+      loadConversations();
+      setBulkDeleteDialogOpen(false);
+      
+      toast({
+        title: "Conversas excluídas",
+        description: `${selectedConversations.size} conversa(s) excluída(s) com sucesso.`,
+      });
+    } catch (error) {
+      console.error('Error deleting conversations:', error);
+      toast({
+        title: "Erro ao excluir conversas",
+        description: "Não foi possível excluir as conversas.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center p-12">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -335,12 +400,45 @@ const handleSendMessage = async () => {
                 <MessageSquare className="h-5 w-5" />
                 Conversas
               </div>
-              {unreadCount > 0 && (
-                <Badge variant="destructive" className="rounded-full">
-                  {unreadCount}
-                </Badge>
-              )}
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <Badge variant="destructive" className="rounded-full">
+                    {unreadCount}
+                  </Badge>
+                )}
+              </div>
             </CardTitle>
+            {conversations.length > 0 && (
+              <div className="flex items-center gap-2 mt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleToggleAll}
+                >
+                  {selectedConversations.size === conversations.length ? (
+                    <>
+                      <CheckSquare className="h-4 w-4 mr-2" />
+                      Desmarcar todas
+                    </>
+                  ) : (
+                    <>
+                      <Square className="h-4 w-4 mr-2" />
+                      Selecionar todas
+                    </>
+                  )}
+                </Button>
+                {selectedConversations.size > 0 && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setBulkDeleteDialogOpen(true)}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir ({selectedConversations.size})
+                  </Button>
+                )}
+              </div>
+            )}
           </CardHeader>
         <CardContent>
           <ScrollArea className="h-[500px]">
@@ -364,11 +462,28 @@ const handleSendMessage = async () => {
                 >
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">
-                          {conversation.visitor_name || conversation.visitor_email?.split('@')[0] || conversation.visitor_phone || 'Visitante Anônimo'}
-                        </span>
-                        <span className="text-xs text-muted-foreground">#{conversation.id.slice(0, 8)}</span>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-5 w-5 p-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleConversation(conversation.id);
+                          }}
+                        >
+                          {selectedConversations.has(conversation.id) ? (
+                            <CheckSquare className="h-4 w-4 text-primary" />
+                          ) : (
+                            <Square className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">
+                            {conversation.visitor_name || conversation.visitor_email?.split('@')[0] || conversation.visitor_phone || 'Visitante Anônimo'}
+                          </span>
+                          <span className="text-xs text-muted-foreground">#{conversation.id.slice(0, 8)}</span>
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">
@@ -507,8 +622,8 @@ const handleSendMessage = async () => {
                             </a>
                           )}
 
-                          {/* Conteúdo textual (esconde o placeholder de imagem) */}
-                          {!message.media_url && message.content && message.content.trim() !== '' && message.content.trim() !== '📷 Imagem' && (
+                          {/* Conteúdo textual - exibe sempre que houver texto real */}
+                          {message.content && message.content.trim() !== '' && message.content.trim() !== '📷 Imagem' && (
                             <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                           )}
                           
@@ -619,6 +734,23 @@ const handleSendMessage = async () => {
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
           <AlertDialogAction onClick={handleDeleteConversation} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
             Excluir
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Excluir {selectedConversations.size} conversa(s)?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Esta ação não pode ser desfeita. Todas as mensagens das conversas selecionadas serão excluídas permanentemente.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            Excluir Todas
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
