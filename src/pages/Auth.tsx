@@ -11,6 +11,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { EmailVerification } from "@/components/EmailVerification";
 import { TwoFactorVerification } from "@/components/TwoFactorVerification";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const emailSchema = z.string().email("Por favor, insira um e-mail válido");
 const passwordSchema = z.string().min(6, "A senha deve ter pelo menos 6 caracteres");
@@ -31,9 +40,24 @@ const Auth = () => {
   const [show2FA, setShow2FA] = useState(false);
   const [deviceFingerprint, setDeviceFingerprint] = useState("");
   const [sessionData, setSessionData] = useState<any>(null);
+  const [messageDialog, setMessageDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    type: 'success' | 'error';
+  }>({
+    open: false,
+    title: '',
+    description: '',
+    type: 'success'
+  });
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, isAdmin, customSignUp, customSignIn, loading } = useAuth();
+
+  const showMessage = (title: string, description: string, type: 'success' | 'error') => {
+    setMessageDialog({ open: true, title, description, type });
+  };
 
   // Carregar logo do site
   useEffect(() => {
@@ -67,22 +91,14 @@ const Auth = () => {
     // Validação de email com zod
     const emailValidation = emailSchema.safeParse(email);
     if (!emailValidation.success) {
-      toast({
-        title: "Email inválido",
-        description: emailValidation.error.issues[0].message,
-        variant: "destructive",
-      });
+      showMessage("Email inválido", emailValidation.error.issues[0].message, "error");
       setIsLoading(false);
       return;
     }
 
     if (!isLogin) {
       if (password !== confirmPassword) {
-        toast({
-          title: "Senhas não coincidem",
-          description: "As senhas digitadas não são iguais.",
-          variant: "destructive",
-        });
+        showMessage("Senhas não coincidem", "As senhas digitadas não são iguais.", "error");
         setIsLoading(false);
         return;
       }
@@ -90,11 +106,7 @@ const Auth = () => {
       // Validação de senha com zod
       const passwordValidation = passwordSchema.safeParse(password);
       if (!passwordValidation.success) {
-        toast({
-          title: "Senha inválida",
-          description: passwordValidation.error.issues[0].message,
-          variant: "destructive",
-        });
+        showMessage("Senha inválida", passwordValidation.error.issues[0].message, "error");
         setIsLoading(false);
         return;
       }
@@ -103,11 +115,7 @@ const Auth = () => {
       const { error, userId, needsVerification } = await customSignUp(email, password, name);
       
       if (error) {
-        toast({
-          title: "Erro ao criar conta",
-          description: error,
-          variant: "destructive",
-        });
+        showMessage("Erro ao criar conta", error, "error");
         setIsLoading(false);
         return;
       }
@@ -116,11 +124,7 @@ const Auth = () => {
         setVerificationUserId(userId);
         setVerificationEmail(email);
         setShowVerification(true);
-        toast({
-          title: "Código enviado! 📧",
-          description: "Verifique seu email para confirmar sua conta.",
-          duration: 6000,
-        });
+        showMessage("Conta criada com sucesso! 📧", "Um código de verificação foi enviado para seu email.", "success");
       }
       
       setIsLoading(false);
@@ -133,17 +137,9 @@ const Auth = () => {
           setVerificationUserId(userId);
           setVerificationEmail(email);
           setShowVerification(true);
-          toast({
-            title: "Email não verificado",
-            description: "Por favor, verifique seu email para continuar.",
-            variant: "destructive",
-          });
+          showMessage("Email não verificado", "Por favor, verifique seu email para continuar.", "error");
         } else {
-          toast({
-            title: "Erro ao fazer login",
-            description: error,
-            variant: "destructive",
-          });
+          showMessage("Erro ao fazer login", error, "error");
         }
         setIsLoading(false);
         return;
@@ -155,17 +151,11 @@ const Auth = () => {
         setSessionData(sessData); // Store session to set after 2FA
         setShow2FA(true);
         setIsLoading(false);
-        toast({
-          title: "Verificação necessária 🔒",
-          description: "Um código de segurança foi enviado para seu email.",
-        });
+        showMessage("Verificação necessária 🔒", "Um código de segurança foi enviado para seu email.", "success");
         return;
       }
 
-      toast({
-        title: "Login realizado! ✅",
-        description: "Bem-vindo de volta ao Bot Reals Zapp.",
-      });
+      showMessage("Login realizado! ✅", "Bem-vindo de volta ao Bot Reals Zapp.", "success");
     }
   };
 
@@ -203,7 +193,27 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center gradient-primary p-3 sm:p-4 relative overflow-hidden">
+    <>
+      {/* Message Dialog */}
+      <AlertDialog open={messageDialog.open} onOpenChange={(open) => setMessageDialog({ ...messageDialog, open })}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className={messageDialog.type === 'success' ? 'text-success' : 'text-destructive'}>
+              {messageDialog.title}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-base">
+              {messageDialog.description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setMessageDialog({ ...messageDialog, open: false })}>
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div className="min-h-screen flex items-center justify-center gradient-primary p-3 sm:p-4 relative overflow-hidden">
       {/* Botão Voltar */}
       <Button
         variant="ghost"
@@ -412,7 +422,8 @@ const Auth = () => {
           )}
         </Card>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 
