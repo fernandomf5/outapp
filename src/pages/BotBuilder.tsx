@@ -173,6 +173,10 @@ const BotBuilder = () => {
 
       const result = await saveChatbot(chatbotData);
       
+      // Limpar rascunho após salvar
+      const draftKey = `botbuilder_draft_${chatbotId || 'new'}`;
+      localStorage.removeItem(draftKey);
+      
       if (!chatbotId && result) {
         navigate(`/bot-builder?id=${result.id}`);
       }
@@ -241,20 +245,24 @@ const BotBuilder = () => {
   useEffect(() => {
     const draftKey = `botbuilder_draft_${chatbotId || 'new'}`;
 
-    // Restaurar rascunho, se existir e fluxo atual estiver vazio
-    try {
-      const draft = localStorage.getItem(draftKey);
-      if (draft) {
-        const parsed = JSON.parse(draft);
-        const hasFlow = (nodes?.length || 0) + (edges?.length || 0) > 0;
-        if (!hasFlow && (parsed.nodes?.length || parsed.edges?.length)) {
-          if (confirm('Encontramos um rascunho não salvo. Deseja restaurar?')) {
-            setNodes(parsed.nodes || []);
-            setEdges(parsed.edges || []);
+    // Restaurar rascunho apenas se for um chatbot novo (sem ID)
+    if (!chatbotId) {
+      try {
+        const draft = localStorage.getItem(draftKey);
+        if (draft) {
+          const parsed = JSON.parse(draft);
+          const hasFlow = (nodes?.length || 0) + (edges?.length || 0) > 0;
+          if (!hasFlow && (parsed.nodes?.length || parsed.edges?.length)) {
+            if (confirm('Encontramos um rascunho não salvo. Deseja restaurar?')) {
+              setNodes(parsed.nodes || []);
+              setEdges(parsed.edges || []);
+            } else {
+              localStorage.removeItem(draftKey);
+            }
           }
         }
-      }
-    } catch {}
+      } catch {}
+    }
 
     let saveTimer: any;
     const scheduleSave = () => {
