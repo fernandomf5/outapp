@@ -30,6 +30,7 @@ const Auth = () => {
   const [verificationEmail, setVerificationEmail] = useState("");
   const [show2FA, setShow2FA] = useState(false);
   const [deviceFingerprint, setDeviceFingerprint] = useState("");
+  const [sessionData, setSessionData] = useState<any>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, isAdmin, customSignUp, customSignIn, loading } = useAuth();
@@ -125,7 +126,7 @@ const Auth = () => {
       setIsLoading(false);
     } else {
       // Sign In
-      const { error, needsVerification, userId, requires2FA, deviceFingerprint: fingerprint } = await customSignIn(email, password);
+      const { error, needsVerification, userId, requires2FA, deviceFingerprint: fingerprint, sessionData: sessData } = await customSignIn(email, password);
       
       if (error) {
         if (needsVerification && userId) {
@@ -151,6 +152,7 @@ const Auth = () => {
       if (requires2FA && userId && fingerprint) {
         setVerificationUserId(userId);
         setDeviceFingerprint(fingerprint);
+        setSessionData(sessData); // Store session to set after 2FA
         setShow2FA(true);
         setIsLoading(false);
         toast({
@@ -187,6 +189,7 @@ const Auth = () => {
         isOpen={show2FA}
         userId={verificationUserId}
         deviceFingerprint={deviceFingerprint}
+        sessionData={sessionData}
         onSuccess={() => {
           setShow2FA(false);
           toast({

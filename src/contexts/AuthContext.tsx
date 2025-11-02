@@ -8,7 +8,7 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   customSignUp: (email: string, password: string, fullName: string) => Promise<{ error?: string; userId?: string; needsVerification?: boolean }>;
-  customSignIn: (email: string, password: string) => Promise<{ error?: string; needsVerification?: boolean; userId?: string; requires2FA?: boolean; deviceFingerprint?: string }>;
+  customSignIn: (email: string, password: string) => Promise<{ error?: string; needsVerification?: boolean; userId?: string; requires2FA?: boolean; deviceFingerprint?: string; sessionData?: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -145,12 +145,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         };
       }
 
-      // Set session
-      if (data.session) {
-        await supabase.auth.setSession(data.session);
-      }
-
-      // Check if 2FA is required
+      // Check if 2FA is required BEFORE setting session
       if (data.user) {
         const deviceFingerprint = `${navigator.userAgent}-${screen.width}x${screen.height}`;
         
@@ -163,12 +158,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         });
 
         if (!twoFAError && twoFACheck?.requires2FA) {
+          // Do NOT set session yet - user needs to verify 2FA first
+          // Store session data to use after 2FA verification
           return { 
             requires2FA: true,
             userId: data.user.user_id,
-            deviceFingerprint 
+            deviceFingerprint,
+            sessionData: data.session // Pass session to be set after 2FA
           };
         }
+      }
+
+      // Only set session if 2FA is not required
+      if (data.session) {
+        await supabase.auth.setSession(data.session);
       }
 
       return {};

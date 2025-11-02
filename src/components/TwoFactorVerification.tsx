@@ -11,6 +11,7 @@ interface TwoFactorVerificationProps {
   onSuccess: () => void;
   userId: string;
   deviceFingerprint: string;
+  sessionData?: any;
 }
 
 export const TwoFactorVerification = ({
@@ -18,6 +19,7 @@ export const TwoFactorVerification = ({
   onSuccess,
   userId,
   deviceFingerprint,
+  sessionData,
 }: TwoFactorVerificationProps) => {
   const [code, setCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
@@ -55,6 +57,11 @@ export const TwoFactorVerification = ({
           variant: "destructive",
         });
         return;
+      }
+
+      // Set session after successful 2FA verification
+      if (sessionData) {
+        await supabase.auth.setSession(sessionData);
       }
 
       toast({
