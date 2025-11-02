@@ -77,6 +77,13 @@ serve(async (req) => {
         throw codeError;
       }
 
+      // Get chatbot name for email
+      const { data: chatbot } = await supabase
+        .from('chatbots')
+        .select('name')
+        .eq('id', chatbotId)
+        .single();
+
       // Send verification email
       try {
         const { error: emailError } = await supabase.functions.invoke('send-verification-email', {
@@ -84,6 +91,7 @@ serve(async (req) => {
             email: customer.email,
             name: customer.name,
             code: verificationCode,
+            chatbotName: chatbot?.name || 'Chat Online',
           }
         });
 
@@ -255,6 +263,13 @@ serve(async (req) => {
 
       if (codeError) throw codeError;
 
+      // Get chatbot name for email
+      const { data: chatbot } = await supabase
+        .from('chatbots')
+        .select('name')
+        .eq('chatbot_id', customer.chatbot_id)
+        .single();
+
       // Send verification email
       try {
         await supabase.functions.invoke('send-verification-email', {
@@ -262,6 +277,7 @@ serve(async (req) => {
             email: customer.email,
             name: customer.name,
             code: verificationCode,
+            chatbotName: chatbot?.name || 'Chat Online',
           }
         });
       } catch (emailError) {

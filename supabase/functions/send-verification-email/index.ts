@@ -13,6 +13,7 @@ interface VerificationEmailRequest {
   email: string;
   name: string;
   code: string;
+  chatbotName: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -21,14 +22,14 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { email, name, code }: VerificationEmailRequest = await req.json();
+    const { email, name, code, chatbotName }: VerificationEmailRequest = await req.json();
 
     console.log("Sending verification email to:", email);
 
     const emailResponse = await resend.emails.send({
       from: "Chat Online <noreply@botrealszapp.com.br>",
       to: [email],
-      subject: "Verifique seu e-mail - Chat Online",
+      subject: `Verifique seu e-mail - ${chatbotName}`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -90,7 +91,7 @@ const handler = async (req: Request): Promise<Response> => {
           <div class="container">
             <h1>🔐 Verificação de E-mail</h1>
             <p>Olá, <strong>${name}</strong>!</p>
-            <p>Obrigado por se cadastrar no nosso Chat Online. Para concluir seu cadastro, use o código de verificação abaixo:</p>
+            <p>Obrigado por se cadastrar no <strong>${chatbotName}</strong>. Para concluir seu cadastro, use o código de verificação abaixo:</p>
             
             <div class="code-box">
               <div class="code">${code}</div>
@@ -104,7 +105,7 @@ const handler = async (req: Request): Promise<Response> => {
 
             <div class="footer">
               <p>Este é um e-mail automático, por favor não responda.</p>
-              <p>© ${new Date().getFullYear()} Chat Online - Todos os direitos reservados.</p>
+              <p>© ${new Date().getFullYear()} ${chatbotName} - Todos os direitos reservados.</p>
             </div>
           </div>
         </body>
