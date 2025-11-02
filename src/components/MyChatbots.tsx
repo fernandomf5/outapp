@@ -181,14 +181,6 @@ export const MyChatbots = ({ onManage }: MyChatbotsProps = {}) => {
           
           return (
           <Card key={bot.id} className="p-6 hover:shadow-lg transition-all relative">
-            {unreadCount > 0 && (
-              <Badge 
-                variant="destructive" 
-                className="absolute -top-2 -right-2 h-6 min-w-6 flex items-center justify-center rounded-full text-xs font-bold"
-              >
-                {unreadCount}
-              </Badge>
-            )}
             <div className="flex items-start justify-between mb-4">
               <div className="bg-primary/10 p-3 rounded-xl">
                 <Bot className="w-6 h-6 text-primary" />
