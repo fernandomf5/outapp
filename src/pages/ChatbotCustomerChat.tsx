@@ -11,6 +11,8 @@ import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { chatSounds } from "@/utils/chatSounds";
+import { FlowExecutor, FlowExecutionResult } from "@/utils/flowExecutor";
+import { Node } from 'reactflow';
 
 interface Message {
   id: string;
@@ -45,6 +47,43 @@ export default function ChatbotCustomerChat() {
   const [autoReplySent, setAutoReplySent] = useState(false);
   const [flows, setFlows] = useState<any[]>([]);
   const [currentFlowId, setCurrentFlowId] = useState<string | null>(null);
+  const [flowExecutor, setFlowExecutor] = useState<FlowExecutor | null>(null);
+  const [useVisualFlow, setUseVisualFlow] = useState(false);
+
+  // Executar node do fluxo visual
+  const executeVisualFlowNode = async (node: Node, executor: FlowExecutor, userName?: string) => {
+    if (!conversationId) return;
+
+    const result = executor.executeNode(node, userName);
+    
+    // Simular "digitando" se tiver delay
+    if (result.delaySeconds && result.delaySeconds > 0) {
+      setIsAdminTyping(true);
+      await new Promise(resolve => setTimeout(resolve, result.delaySeconds * 1000));
+      setIsAdminTyping(false);
+    }
+
+    // Enviar mensagem
+    if (result.message || result.imageUrl || result.videoUrl || result.audioUrl || result.documentUrl) {
+      await supabase.from('chatbot_messages').insert({
+        conversation_id: conversationId,
+        role: 'bot',
+        content: result.message || '',
+        sender_name: chatbotInfo?.name,
+        node_id: node.id,
+        media_url: result.imageUrl || result.videoUrl || result.audioUrl || result.documentUrl,
+        media_type: result.imageUrl ? 'image' : result.videoUrl ? 'video' : result.audioUrl ? 'audio' : result.documentUrl ? 'document' : null,
+      });
+    }
+
+    // Se tiver transferência para humano, desabilitar AI
+    if (result.transferToHuman) {
+      await supabase
+        .from('chatbot_conversations')
+        .update({ ai_enabled: false })
+        .eq('id', conversationId);
+    }
+  };
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -120,21 +159,47 @@ export default function ChatbotCustomerChat() {
 
       setChatbotInfo(chatbot);
 
-      // Carregar fluxos
-      const { data: flowsData } = await supabase
-        .from('chatbot_flows')
-        .select('*')
-        .eq('chatbot_id', chatbotId)
-        .order('order_index');
-      
-      setFlows(flowsData || []);
-      
-      // Se tiver fluxo inicial, enviar automaticamente
-      const startFlow = flowsData?.find(f => f.is_start);
-      if (startFlow) {
-        setTimeout(() => {
-          sendFlowMessage(startFlow);
-        }, 1000);
+      // Verificar se tem fluxo visual configurado
+      const config = chatbot?.config as any;
+      const hasVisualFlow = config && 
+        typeof config === 'object' && 
+        'nodes' in config && 
+        Array.isArray(config.nodes) && 
+        config.nodes.length > 0;
+
+      if (hasVisualFlow) {
+        // Usar sistema de fluxo visual
+        setUseVisualFlow(true);
+        const executor = new FlowExecutor(config.nodes, config.edges || []);
+        setFlowExecutor(executor);
+
+        // Enviar mensagem inicial do fluxo visual
+        const initialNode = executor.findInitialNode();
+        if (initialNode) {
+          setTimeout(() => {
+            executeVisualFlowNode(initialNode, executor, customerData?.name);
+          }, 1000);
+        }
+      } else {
+        // Usar sistema de fluxos simples
+        setUseVisualFlow(false);
+        
+        // Carregar fluxos simples
+        const { data: flowsData } = await supabase
+          .from('chatbot_flows')
+          .select('*')
+          .eq('chatbot_id', chatbotId)
+          .order('order_index');
+        
+        setFlows(flowsData || []);
+        
+        // Se tiver fluxo inicial, enviar automaticamente
+        const startFlow = flowsData?.find(f => f.is_start);
+        if (startFlow) {
+          setTimeout(() => {
+            sendFlowMessage(startFlow);
+          }, 1000);
+        }
       }
 
       // Search for existing conversation by customer email/phone
@@ -336,13 +401,7 @@ const handleSendMessage = async () => {
 
       const messageContent = input.trim() || '📷 Imagem';
 
-      // Verificar se a mensagem corresponde a alguma palavra-chave
-      const matchedFlow = flows.find(flow => 
-        flow.keywords && flow.keywords.some(keyword => 
-          messageContent.toLowerCase().includes(keyword.toLowerCase())
-        )
-      );
-
+      // Inserir mensagem do usuário
       const { error } = await supabase
         .from('chatbot_messages')
         .insert({
@@ -375,30 +434,50 @@ const handleSendMessage = async () => {
           });
       }
 
-      // Se encontrou uma palavra-chave, enviar a mensagem correspondente
-      if (matchedFlow) {
-        setTimeout(() => {
-          sendFlowMessage(matchedFlow);
-        }, 800);
-      }
+      // SISTEMA DE FLUXO VISUAL
+      if (useVisualFlow && flowExecutor) {
+        // Verificar palavra-chave no fluxo visual
+        const matchedNode = flowExecutor.findNodeByKeyword(messageContent);
+        if (matchedNode) {
+          setTimeout(() => {
+            executeVisualFlowNode(matchedNode, flowExecutor, customer?.name);
+          }, 800);
+        }
+      } 
+      // SISTEMA DE FLUXOS SIMPLES
+      else {
+        // Verificar se a mensagem corresponde a alguma palavra-chave
+        const matchedFlow = flows.find(flow => 
+          flow.keywords && flow.keywords.some(keyword => 
+            messageContent.toLowerCase().includes(keyword.toLowerCase())
+          )
+        );
 
-      // Enviar mensagem automática na primeira mensagem do cliente (se habilitado e não tiver keyword match)
-      if (!autoReplySent && !matchedFlow && chatbotInfo?.enable_auto_reply && chatbotInfo?.auto_reply_message?.trim()) {
-        setAutoReplySent(true);
-        setTimeout(async () => {
-          await supabase
-            .from('chatbot_messages')
-            .insert({
-              conversation_id: conversationId,
-              role: 'admin',
-              content: chatbotInfo.auto_reply_message,
-              sender_name: chatbotInfo?.name || 'Atendente',
-            });
-          await supabase
-            .from('chatbot_conversations')
-            .update({ last_message_at: new Date().toISOString() })
-            .eq('id', conversationId);
-        }, 1000);
+        // Se encontrou uma palavra-chave, enviar a mensagem correspondente
+        if (matchedFlow) {
+          setTimeout(() => {
+            sendFlowMessage(matchedFlow);
+          }, 800);
+        }
+
+        // Enviar mensagem automática na primeira mensagem do cliente (se habilitado e não tiver keyword match)
+        if (!autoReplySent && !matchedFlow && chatbotInfo?.enable_auto_reply && chatbotInfo?.auto_reply_message?.trim()) {
+          setAutoReplySent(true);
+          setTimeout(async () => {
+            await supabase
+              .from('chatbot_messages')
+              .insert({
+                conversation_id: conversationId,
+                role: 'admin',
+                content: chatbotInfo.auto_reply_message,
+                sender_name: chatbotInfo?.name || 'Atendente',
+              });
+            await supabase
+              .from('chatbot_conversations')
+              .update({ last_message_at: new Date().toISOString() })
+              .eq('id', conversationId);
+          }, 1000);
+        }
       }
 
       // Tocar som de envio

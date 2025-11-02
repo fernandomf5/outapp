@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ChatWidgetGenerator } from '@/components/ChatWidgetGenerator';
 import { ChatbotFlowBuilder } from '@/components/ChatbotFlowBuilder';
+import { ChatbotVisualFlowBuilder } from '@/components/ChatbotVisualFlowBuilder';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const BotBuilder = () => {
   const { toast } = useToast();
@@ -310,7 +312,22 @@ const BotBuilder = () => {
           </Card>
 
           {chatbotId && (
-            <ChatbotFlowBuilder chatbotId={chatbotId} />
+            <Card className="p-6">
+              <Tabs defaultValue="visual" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="visual">Editor Visual (Recomendado)</TabsTrigger>
+                  <TabsTrigger value="simple">Editor Simples</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="visual">
+                  <ChatbotVisualFlowBuilder chatbotId={chatbotId} />
+                </TabsContent>
+                
+                <TabsContent value="simple">
+                  <ChatbotFlowBuilder chatbotId={chatbotId} />
+                </TabsContent>
+              </Tabs>
+            </Card>
           )}
 
           <Card className="p-6 bg-muted/50">
