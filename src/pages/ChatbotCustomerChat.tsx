@@ -388,7 +388,17 @@ if (startCandidates.length > 0) {
 
     messageContent = replaceVars(messageContent);
 
-    if (messageContent || mediaUrl) {
+  if (messageContent || mediaUrl) {
+    // Evitar duplicar mensagem do mesmo nó na mesma conversa
+    const { data: existing } = await supabase
+      .from('chatbot_messages')
+      .select('id')
+      .eq('conversation_id', convId)
+      .eq('node_id', node.id)
+      .eq('role', 'bot')
+      .limit(1);
+
+    if (!existing || existing.length === 0) {
       await supabase.from('chatbot_messages').insert({
         conversation_id: convId,
         role: 'bot',
@@ -398,6 +408,7 @@ if (startCandidates.length > 0) {
         node_id: node.id,
       });
     }
+  }
   };
 
   // Helpers de fluxo
@@ -412,10 +423,12 @@ const walkFromNode = async (startNode: any, nodes: any[], edges: any[], convId: 
   while (current && !visited.has(current.id)) {
     visited.add(current.id);
 
-    const delayMs = 500 + ((current?.data?.delaySeconds || 0) * 1000);
-    setIsTyping(true);
-    await new Promise((res) => setTimeout(res, delayMs));
-    setIsTyping(false);
+    const delayMs = (current?.data?.delaySeconds || 0) * 1000;
+    if (delayMs > 0) {
+      setIsTyping(true);
+      await new Promise((res) => setTimeout(res, delayMs));
+      setIsTyping(false);
+    }
 
     await insertNodeAsMessage(current, convId);
     if (isInteractiveNode(current)) break;
