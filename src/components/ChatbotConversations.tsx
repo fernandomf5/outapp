@@ -485,11 +485,18 @@ export const ChatbotConversations = () => {
                             </div>
                             <div>
                               <p className="font-medium text-sm">
-                                {conv.visitor_name || 'Visitante Anônimo'}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {conv.chatbot?.name}
-                              </p>
+                         {conv.visitor_name || 'Visitante Anônimo'}
+                               </p>
+                               <div className="flex items-center gap-2">
+                                 <p className="text-xs text-muted-foreground">
+                                   {conv.chatbot?.name}
+                                 </p>
+                                 {selectedConversation?.id === conv.id && isVisitorOnline && (
+                                   <Badge variant="default" className="text-[10px] px-1.5 py-0">
+                                     Online
+                                   </Badge>
+                                 )}
+                               </div>
                             </div>
                           </div>
                           <Badge variant={conv.status === 'active' ? 'default' : 'secondary'}>

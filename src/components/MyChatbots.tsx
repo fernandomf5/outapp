@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ChatNotificationsDialog } from "@/components/ChatNotificationsDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,6 +33,8 @@ export const MyChatbots = ({ onManage }: MyChatbotsProps = {}) => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<Record<string, number>>({});
+  const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
+  const [selectedChatbot, setSelectedChatbot] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     fetchChatbots();
@@ -133,6 +136,11 @@ export const MyChatbots = ({ onManage }: MyChatbotsProps = {}) => {
     window.open(`/chatbot-auth/${botId}`, '_blank');
   };
 
+  const handleOpenNotifications = (chatbot: { id: string; name: string }) => {
+    setSelectedChatbot(chatbot);
+    setNotificationDialogOpen(true);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -206,7 +214,7 @@ export const MyChatbots = ({ onManage }: MyChatbotsProps = {}) => {
                   variant="ghost"
                   size="icon"
                   className="relative"
-                  onClick={() => onManage && onManage({ id: bot.id, name: bot.name })}
+                  onClick={() => handleOpenNotifications({ id: bot.id, name: bot.name })}
                   title="Notificações"
                 >
                   <Bell className="w-4 h-4" />
@@ -288,6 +296,15 @@ export const MyChatbots = ({ onManage }: MyChatbotsProps = {}) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {selectedChatbot && (
+        <ChatNotificationsDialog
+          open={notificationDialogOpen}
+          onOpenChange={setNotificationDialogOpen}
+          chatbotId={selectedChatbot.id}
+          chatbotName={selectedChatbot.name}
+        />
+      )}
     </div>
   );
 };

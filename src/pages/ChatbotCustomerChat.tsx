@@ -32,11 +32,14 @@ export default function ChatbotCustomerChat() {
   const [customer, setCustomer] = useState<any>(null);
   const [chatbotInfo, setChatbotInfo] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isAdminTyping, setIsAdminTyping] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -89,7 +92,11 @@ export default function ChatbotCustomerChat() {
   useEffect(() => {
     if (conversationId) {
       const cleanup = setupRealtimeSubscription();
-      return cleanup;
+      const presenceCleanup = setupPresenceTracking();
+      return () => {
+        cleanup();
+        presenceCleanup();
+      };
     }
   }, [conversationId]);
 
@@ -192,10 +199,45 @@ export default function ChatbotCustomerChat() {
           });
         }
       )
+      .on('broadcast', { event: 'admin-typing' }, (payload) => {
+        if (payload.payload.conversationId === conversationId) {
+          setIsAdminTyping(payload.payload.isTyping);
+        }
+      })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
+    };
+  };
+
+  const setupPresenceTracking = () => {
+    const presenceChannel = supabase
+      .channel(`presence-${conversationId}`)
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState();
+        console.log('👥 Estado de presença:', state);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({
+            user: 'visitor',
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    // Enviar status de online ao sair da página
+    const handleBeforeUnload = async () => {
+      await presenceChannel.untrack();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      presenceChannel.untrack();
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      supabase.removeChannel(presenceChannel);
     };
   };
 
@@ -291,6 +333,11 @@ export default function ChatbotCustomerChat() {
       setInput("");
       setSelectedImage(null);
       setImagePreview(null);
+      
+      // Foco de volta no input após enviar
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -332,6 +379,11 @@ export default function ChatbotCustomerChat() {
               <p className="text-sm text-muted-foreground">
                 Olá, {customer?.name || 'Visitante'}!
               </p>
+              {isAdminTyping && (
+                <p className="text-xs text-primary animate-pulse">
+                  Atendente está digitando...
+                </p>
+              )}
             </div>
             <Button variant="ghost" size="sm" onClick={handleLogout}>
               <LogOut className="w-4 h-4 mr-2" />
@@ -457,6 +509,7 @@ export default function ChatbotCustomerChat() {
             </Popover>
 
             <Input
+              ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => {
