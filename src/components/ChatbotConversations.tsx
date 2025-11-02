@@ -636,24 +636,49 @@ export const ChatbotConversations = () => {
                         {msg.role === 'user' && (
                           <p className="text-xs text-muted-foreground mb-1">👤 Cliente</p>
                         )}
-                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                        {msg.media_url && (
-                          <div className="mt-2">
-                            {msg.media_type === 'image' && (
-                              <img src={msg.media_url} alt="Imagem" className="rounded-md max-w-full" />
-                            )}
-                            {msg.media_type === 'video' && (
-                              <video controls className="rounded-md max-w-full">
-                                <source src={msg.media_url} />
-                              </video>
-                            )}
-                            {msg.media_type === 'audio' && (
-                              <audio controls className="w-full">
-                                <source src={msg.media_url} />
-                              </audio>
-                            )}
+                        
+                        {/* Renderizar imagem primeiro, se houver */}
+                        {msg.media_url && msg.media_type === 'image' && (
+                          <div className="mb-2">
+                            <img 
+                              src={msg.media_url} 
+                              alt="Imagem enviada" 
+                              className="rounded-lg max-w-full max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => window.open(msg.media_url, '_blank')}
+                              onError={(e) => {
+                                console.error('Erro ao carregar imagem:', msg.media_url);
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.parentElement!.innerHTML = '<p class="text-xs text-destructive">❌ Erro ao carregar imagem</p>';
+                              }}
+                            />
                           </div>
                         )}
+                        
+                        {/* Renderizar vídeo, se houver */}
+                        {msg.media_url && msg.media_type === 'video' && (
+                          <div className="mb-2">
+                            <video controls className="rounded-lg max-w-full max-h-96">
+                              <source src={msg.media_url} />
+                              Seu navegador não suporta vídeos.
+                            </video>
+                          </div>
+                        )}
+                        
+                        {/* Renderizar áudio, se houver */}
+                        {msg.media_url && msg.media_type === 'audio' && (
+                          <div className="mb-2">
+                            <audio controls className="w-full">
+                              <source src={msg.media_url} />
+                              Seu navegador não suporta áudio.
+                            </audio>
+                          </div>
+                        )}
+                        
+                        {/* Conteúdo da mensagem */}
+                        {msg.content && msg.content !== '📷 Imagem' && (
+                          <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                        )}
+                        
                         <p className="text-xs opacity-70 mt-1">
                           {new Date(msg.created_at).toLocaleTimeString('pt-BR', {
                             hour: '2-digit',
