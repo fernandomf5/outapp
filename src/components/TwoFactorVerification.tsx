@@ -1,25 +1,25 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Shield } from "lucide-react";
+import { Shield, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TwoFactorVerificationProps {
-  isOpen: boolean;
   onSuccess: () => void;
   userId: string;
   deviceFingerprint: string;
   sessionData?: any;
+  onBack: () => void;
 }
 
 export const TwoFactorVerification = ({
-  isOpen,
   onSuccess,
   userId,
   deviceFingerprint,
   sessionData,
+  onBack,
 }: TwoFactorVerificationProps) => {
   const [code, setCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
@@ -82,50 +82,65 @@ export const TwoFactorVerification = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="bg-primary/10 p-3 rounded-xl">
-              <Shield className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <DialogTitle>Verificação de Duas Etapas</DialogTitle>
-            </div>
-          </div>
-          <DialogDescription>
-            Um código de verificação foi enviado para seu email. Digite-o abaixo para continuar.
-          </DialogDescription>
-        </DialogHeader>
+    <div className="min-h-screen flex items-center justify-center gradient-primary p-4 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-64 h-64 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+      </div>
 
-        <div className="space-y-4 py-4">
+      {/* Botão Voltar */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onBack}
+        className="absolute top-4 left-4 text-white hover:bg-white/10 active:scale-95 transition-transform z-20"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Voltar
+      </Button>
+
+      <Card className="w-full max-w-md p-8 shadow-2xl backdrop-blur-sm bg-card/95 border-white/10 animate-scale-in relative z-10">
+        <div className="flex flex-col items-center mb-6">
+          <div className="bg-primary/10 p-4 rounded-2xl mb-4 shadow-glow">
+            <Shield className="w-12 h-12 text-primary" />
+          </div>
+          <h2 className="text-3xl font-bold text-center mb-2">Verificação de Duas Etapas</h2>
+          <p className="text-muted-foreground text-center">
+            Um código de verificação foi enviado para seu email. Digite-o abaixo para continuar.
+          </p>
+        </div>
+
+        <div className="space-y-6">
           <div>
             <Input
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
               placeholder="000000"
               maxLength={6}
-              className="text-center text-2xl tracking-widest"
+              className="text-center text-3xl tracking-widest font-bold h-16"
               autoFocus
             />
-            <p className="text-xs text-muted-foreground mt-2 text-center">
-              O código expira em 10 minutos
+            <p className="text-sm text-muted-foreground mt-3 text-center">
+              ⏱️ O código expira em 10 minutos
             </p>
           </div>
 
           <Button
             onClick={handleVerify}
             disabled={code.length !== 6 || isVerifying}
-            className="w-full gradient-primary shadow-glow"
+            className="w-full text-lg py-6 gradient-primary shadow-glow hover-scale font-semibold active:scale-95 transition-transform"
           >
-            {isVerifying ? "Verificando..." : "Verificar"}
+            {isVerifying ? "Verificando..." : "Verificar Código"}
           </Button>
 
-          <p className="text-xs text-center text-muted-foreground">
-            Este dispositivo será marcado como confiável por 30 dias após a verificação
-          </p>
+          <div className="glass p-4 rounded-xl text-center">
+            <p className="text-sm text-muted-foreground">
+              🔒 Este dispositivo será marcado como confiável por 30 dias após a verificação
+            </p>
+          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </Card>
+    </div>
   );
 };

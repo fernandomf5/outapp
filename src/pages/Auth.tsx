@@ -186,7 +186,6 @@ const Auth = () => {
   if (show2FA) {
     return (
       <TwoFactorVerification
-        isOpen={show2FA}
         userId={verificationUserId}
         deviceFingerprint={deviceFingerprint}
         sessionData={sessionData}
@@ -198,6 +197,7 @@ const Auth = () => {
           });
           navigate("/dashboard");
         }}
+        onBack={() => setShow2FA(false)}
       />
     );
   }
