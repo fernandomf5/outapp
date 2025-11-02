@@ -387,14 +387,16 @@ export const UsersPanel = () => {
                   >
                     <Key className="w-4 h-4" />
                   </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => openDeleteDialog(user)}
-                    className="flex-1 sm:flex-none"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  {user.email !== 'fernandomoraisgarcia2011@gmail.com' && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => openDeleteDialog(user)}
+                      className="flex-1 sm:flex-none"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
