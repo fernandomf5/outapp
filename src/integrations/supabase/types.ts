@@ -1672,9 +1672,11 @@ export type Database = {
       chatbots: {
         Row: {
           access_type: string
+          auto_reply_message: string | null
           config: Json
           created_at: string
           description: string | null
+          enable_queue: boolean | null
           id: string
           is_active: boolean
           name: string
@@ -1684,9 +1686,11 @@ export type Database = {
         }
         Insert: {
           access_type?: string
+          auto_reply_message?: string | null
           config?: Json
           created_at?: string
           description?: string | null
+          enable_queue?: boolean | null
           id?: string
           is_active?: boolean
           name: string
@@ -1696,9 +1700,11 @@ export type Database = {
         }
         Update: {
           access_type?: string
+          auto_reply_message?: string | null
           config?: Json
           created_at?: string
           description?: string | null
+          enable_queue?: boolean | null
           id?: string
           is_active?: boolean
           name?: string
