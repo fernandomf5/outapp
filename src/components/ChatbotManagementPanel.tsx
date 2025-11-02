@@ -85,12 +85,15 @@ export const ChatbotManagementPanel = ({ chatbot }: ChatbotManagementPanelProps)
       </div>
 
       <Tabs defaultValue="customers" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 gap-2">
+        <TabsList className="grid w-full grid-cols-3 gap-2">
           <TabsTrigger value="customers">
             Clientes
           </TabsTrigger>
           <TabsTrigger value="conversations">
             Conversas
+          </TabsTrigger>
+          <TabsTrigger value="analytics">
+            Analytics
           </TabsTrigger>
         </TabsList>
 
@@ -100,6 +103,10 @@ export const ChatbotManagementPanel = ({ chatbot }: ChatbotManagementPanelProps)
 
         <TabsContent value="conversations">
           <ChatbotConversationsPanel chatbotId={chatbot.id} />
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <ChatbotAnalyticsPanel chatbotId={chatbot.id} />
         </TabsContent>
       </Tabs>
     </div>

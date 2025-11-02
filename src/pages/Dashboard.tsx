@@ -33,10 +33,6 @@ import { QRCodeGenerator } from "@/components/QRCodeGenerator";
 import { GeneralCRMPanel } from "@/components/GeneralCRMPanel";
 import { ChatbotManagementPanel } from "@/components/ChatbotManagementPanel";
 import AgentManagementPanel from "@/components/AgentManagementPanel";
-import { ChatbotConversations } from "@/components/ChatbotConversations";
-import { ChatbotAnalyticsPanel } from "@/components/ChatbotAnalyticsPanel";
-import { ChatbotCustomersPanel } from "@/components/ChatbotCustomersPanel";
-import { ChatbotConversationsPanel } from "@/components/ChatbotConversationsPanel";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -845,18 +841,6 @@ const Dashboard = () => {
                 onManage={(chatbot) => setSelectedChatbotForManagement(chatbot)}
               />
             )}
-          </TabsContent>
-
-          <TabsContent value="chatbot-customers">
-            <ChatbotCustomersPanel />
-          </TabsContent>
-
-          <TabsContent value="chatbot-conversations">
-            <ChatbotConversationsPanel />
-          </TabsContent>
-
-          <TabsContent value="chatbot-analytics">
-            <ChatbotAnalyticsPanel />
           </TabsContent>
 
           <TabsContent value="ai-agents">

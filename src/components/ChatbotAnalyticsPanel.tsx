@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { BarChart3, MessageSquare, Users, Clock, TrendingUp, Calendar } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-export function ChatbotAnalyticsPanel() {
+export function ChatbotAnalyticsPanel({ chatbotId }: { chatbotId?: string }) {
   const { user } = useAuth();
   const [chatbots, setChatbots] = useState<any[]>([]);
   const [selectedChatbotId, setSelectedChatbotId] = useState<string>("all");
@@ -19,6 +19,13 @@ export function ChatbotAnalyticsPanel() {
     conversationsThisMonth: 0,
     activeConversations: 0,
   });
+
+  // Se chatbotId for passado, use-o como padrão
+  useEffect(() => {
+    if (chatbotId) {
+      setSelectedChatbotId(chatbotId);
+    }
+  }, [chatbotId]);
 
   useEffect(() => {
     if (!user) return;
@@ -155,19 +162,21 @@ export function ChatbotAnalyticsPanel() {
                 Acompanhe as estatísticas dos seus chatbots online
               </CardDescription>
             </div>
-            <Select value={selectedChatbotId} onValueChange={setSelectedChatbotId}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Chatbots</SelectItem>
-                {chatbots.map((chatbot) => (
-                  <SelectItem key={chatbot.id} value={chatbot.id}>
-                    {chatbot.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {!chatbotId && (
+              <Select value={selectedChatbotId} onValueChange={setSelectedChatbotId}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Chatbots</SelectItem>
+                  {chatbots.map((chatbot) => (
+                    <SelectItem key={chatbot.id} value={chatbot.id}>
+                      {chatbot.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </CardHeader>
         <CardContent>
