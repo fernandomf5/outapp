@@ -143,8 +143,6 @@ export const ChatbotConversations = () => {
         return;
       }
 
-      console.log('📨 Mensagens carregadas:', data);
-      console.log('🖼️ Mensagens com mídia:', data?.filter(m => m.media_url));
       setMessages(data || []);
     };
 
@@ -636,55 +634,37 @@ export const ChatbotConversations = () => {
                           <p className="text-xs text-muted-foreground mb-1">🤖 Bot</p>
                         )}
                         {msg.role === 'user' && (
-                          <p className="text-xs text-muted-foreground mb-1">
-                            👤 Cliente
-                            {msg.media_url && ` 📎 ${msg.media_type || 'arquivo'}`}
-                          </p>
+                          <p className="text-xs text-muted-foreground mb-1">👤 Cliente</p>
                         )}
                         
-                        {/* Debug: Mostrar informações de mídia */}
-                        {msg.media_url && (
-                          <div className="text-[10px] text-muted-foreground mb-1 font-mono bg-muted/50 p-1 rounded">
-                            Media: {msg.media_type} | URL: {msg.media_url?.substring(0, 50)}...
-                          </div>
-                        )}
-                        
-                        {/* Renderizar imagem primeiro, se houver */}
+                        {/* Renderizar imagem se houver */}
                         {msg.media_url && msg.media_type === 'image' && (
-                          <div className="mb-2 bg-muted/20 p-1 rounded">
+                          <div className="mb-2">
                             <img 
                               src={msg.media_url} 
-                              alt="Imagem enviada" 
-                              className="rounded-lg max-w-full max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                              alt="Imagem enviada pelo cliente" 
+                              className="rounded-lg max-w-full max-h-80 w-auto cursor-pointer hover:opacity-90 transition-opacity border border-border"
                               onClick={() => window.open(msg.media_url, '_blank')}
-                              onLoad={() => console.log('✅ Imagem carregada:', msg.media_url)}
-                              onError={(e) => {
-                                console.error('❌ Erro ao carregar imagem:', msg.media_url);
-                                const target = e.currentTarget as HTMLImageElement;
-                                target.style.display = 'none';
-                                if (target.parentElement) {
-                                  target.parentElement.innerHTML = '<p class="text-xs text-destructive p-2">❌ Erro ao carregar imagem</p>';
-                                }
-                              }}
+                              loading="lazy"
                             />
                           </div>
                         )}
                         
-                        {/* Renderizar vídeo, se houver */}
+                        {/* Renderizar vídeo se houver */}
                         {msg.media_url && msg.media_type === 'video' && (
                           <div className="mb-2">
-                            <video controls className="rounded-lg max-w-full max-h-96">
-                              <source src={msg.media_url} />
+                            <video controls className="rounded-lg max-w-full max-h-80">
+                              <source src={msg.media_url} type="video/mp4" />
                               Seu navegador não suporta vídeos.
                             </video>
                           </div>
                         )}
                         
-                        {/* Renderizar áudio, se houver */}
+                        {/* Renderizar áudio se houver */}
                         {msg.media_url && msg.media_type === 'audio' && (
                           <div className="mb-2">
                             <audio controls className="w-full">
-                              <source src={msg.media_url} />
+                              <source src={msg.media_url} type="audio/mpeg" />
                               Seu navegador não suporta áudio.
                             </audio>
                           </div>
