@@ -769,7 +769,7 @@ export const ChatbotConversations = () => {
                         )}
                         
                         {/* Conteúdo da mensagem */}
-                        {msg.content && msg.content !== '📷 Imagem' && (
+                        {!msg.media_url && msg.content && msg.content.trim() !== '' && msg.content.trim() !== '📷 Imagem' && (
                           <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                         )}
                         
