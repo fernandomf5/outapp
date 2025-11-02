@@ -308,29 +308,28 @@ const [isTyping, setIsTyping] = useState(false);
       return;
     }
 
-    // Tentar iniciar pelo nó "trigger" se existir
-    const triggerNode = nodes.find((n: any) => (n.type || '').toLowerCase() === 'trigger' || (n.type || '').toLowerCase() === 'triggernode');
-    if (triggerNode) {
-      const connectedEdges = edges.filter((e: any) => e.source === triggerNode.id);
-      for (const edge of connectedEdges) {
-        const targetNode = nodes.find((n: any) => n.id === edge.target);
-        if (!targetNode) continue;
-
-        await walkFromNode(targetNode, nodes, edges, convId);
-      }
+// Tentar iniciar pelo nó "trigger" se existir
+const triggerNode = nodes.find((n: any) => (n.type || '').toLowerCase() === 'trigger' || (n.type || '').toLowerCase() === 'triggernode');
+if (triggerNode) {
+  const firstEdge = edges.find((e: any) => e.source === triggerNode.id);
+  if (firstEdge) {
+    const targetNode = nodes.find((n: any) => n.id === firstEdge.target);
+    if (targetNode) {
+      await walkFromNode(targetNode, nodes, edges, convId);
       return;
     }
+  }
+}
 
-    // Sem trigger: procurar nó inicial marcado ou sem arestas de entrada
-    const hasIncoming = (nodeId: string) => edges.some((e: any) => e.target === nodeId);
-    const startNodes = nodes.filter((n: any) => n?.data?.isInitial || !hasIncoming(n.id));
+// Sem trigger: procurar nó inicial (sem entradas) e usar o primeiro por posição Y
+const incomingTargets = new Set(edges.map((e: any) => e.target));
+const startCandidates = nodes.filter((n: any) => (n.type || '').toLowerCase() !== 'trigger' && !incomingTargets.has(n.id));
 
-    if (startNodes.length) {
-      for (const n of startNodes) {
-        await walkFromNode(n, nodes, edges, convId);
-      }
-      return;
-    }
+if (startCandidates.length > 0) {
+  const firstStart = [...startCandidates].sort((a, b) => (a.position?.y || 0) - (b.position?.y || 0))[0];
+  await walkFromNode(firstStart, nodes, edges, convId);
+  return;
+}
 
     // Último fallback: mensagem inicial
     const initial = chatbot?.config?.initialMessage;
