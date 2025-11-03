@@ -76,6 +76,19 @@ export const DraggableCalculator = ({ isOpen, onClose }: DraggableCalculatorProp
     });
   };
 
+  const handleHeaderTouchStart = (e: React.TouchEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('.calc-button')) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    if (!touch) return;
+    setIsDragging(true);
+    setDragOffset({
+      x: touch.clientX - position.x,
+      y: touch.clientY - position.y,
+    });
+  };
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging) {
@@ -90,14 +103,34 @@ export const DraggableCalculator = ({ isOpen, onClose }: DraggableCalculatorProp
       setIsDragging(false);
     };
 
+    const handleTouchMove = (e: TouchEvent) => {
+      if (isDragging) {
+        const touch = e.touches[0];
+        if (!touch) return;
+        e.preventDefault();
+        setPosition({
+          x: touch.clientX - dragOffset.x,
+          y: touch.clientY - dragOffset.y,
+        });
+      }
+    };
+
+    const handleTouchEnd = () => {
+      setIsDragging(false);
+    };
+
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+      document.addEventListener('touchend', handleTouchEnd);
     }
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
     };
   }, [isDragging, dragOffset]);
 
@@ -236,8 +269,10 @@ export const DraggableCalculator = ({ isOpen, onClose }: DraggableCalculatorProp
           left: `${position.x}px`,
           top: `${position.y}px`,
           cursor: isDragging ? 'grabbing' : 'grab',
+          touchAction: 'none',
         }}
         onMouseDown={handleHeaderMouseDown}
+        onTouchStart={handleHeaderTouchStart}
       >
         <Card className="w-80 bg-card/95 backdrop-blur-sm border-2">
           <div className="p-4">
