@@ -133,10 +133,22 @@ export const ConversationNotificationBell = () => {
               .select('content, role, created_at')
               .eq('conversation_id', conv.id)
               .order('created_at', { ascending: false })
-              .limit(10);
+              .limit(20);
 
-            // Count unread messages (customer messages after last bot/agent message)
-            const unreadCount = messages?.filter(m => m.role === 'customer').length || 0;
+            // Count unread messages (customer messages after last agent message)
+            let unreadCount = 0;
+            if (messages && messages.length > 0) {
+              // Find the index of the last agent message
+              const lastAgentIndex = messages.findIndex(m => m.role === 'agent');
+              
+              if (lastAgentIndex === -1) {
+                // No agent message yet, count all customer messages
+                unreadCount = messages.filter(m => m.role === 'customer').length;
+              } else {
+                // Count customer messages that came after the last agent message (before it in the array since it's DESC)
+                unreadCount = messages.slice(0, lastAgentIndex).filter(m => m.role === 'customer').length;
+              }
+            }
             
             if (unreadCount > 0) {
               notifications.push({
@@ -179,10 +191,22 @@ export const ConversationNotificationBell = () => {
               .select('content, role, created_at')
               .eq('conversation_id', conv.id)
               .order('created_at', { ascending: false })
-              .limit(10);
+              .limit(20);
 
-            // Count unread messages (user messages after last bot message)
-            const unreadCount = messages?.filter(m => m.role === 'user').length || 0;
+            // Count unread messages (user messages after last admin/bot message)
+            let unreadCount = 0;
+            if (messages && messages.length > 0) {
+              // Find the index of the last admin or bot message
+              const lastResponseIndex = messages.findIndex(m => m.role === 'admin' || m.role === 'bot');
+              
+              if (lastResponseIndex === -1) {
+                // No admin/bot message yet, count all user messages
+                unreadCount = messages.filter(m => m.role === 'user').length;
+              } else {
+                // Count user messages that came after the last admin/bot message (before it in the array since it's DESC)
+                unreadCount = messages.slice(0, lastResponseIndex).filter(m => m.role === 'user').length;
+              }
+            }
             
             if (unreadCount > 0) {
               notifications.push({
