@@ -70,7 +70,8 @@ const AIAgentBuilder = () => {
         setKnowledge(agent.training_data?.knowledge || "");
         setWelcomeMessage(agent.config?.welcomeMessage || welcomeMessage);
         setIsActive(agent.is_active);
-        setAccessType((agent as any).access_type || 'public');
+        const at = (agent as any).access_type || 'public';
+        setAccessType(at === 'restricted' ? 'private' : at);
       }).catch(console.error);
     }
   }, [agentId, user]);
