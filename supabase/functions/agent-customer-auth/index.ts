@@ -37,27 +37,69 @@ serve(async (req) => {
         .eq('email', email)
         .single();
 
+      let customer;
+
       if (existing) {
-        return new Response(
-          JSON.stringify({ error: 'Email já cadastrado para este agente' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        // Se é acesso privado, verificar se já existe uma solicitação ativa
+        if (accessType === 'private') {
+          const { data: activeRequest } = await supabase
+            .from('agent_access_requests')
+            .select('id, status')
+            .eq('agent_id', agentId)
+            .eq('customer_id', existing.id)
+            .in('status', ['pending', 'approved'])
+            .single();
+
+          if (activeRequest) {
+            const statusMessage = activeRequest.status === 'pending' 
+              ? 'Você já possui uma solicitação de acesso pendente'
+              : 'Você já possui acesso aprovado a este agente';
+            
+            return new Response(
+              JSON.stringify({ error: statusMessage }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+        } else {
+          // Para acesso público, não permitir email duplicado
+          return new Response(
+            JSON.stringify({ error: 'Email já cadastrado para este agente' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Se chegou aqui, o customer existe mas não tem solicitação ativa
+        // Atualizar os dados do customer
+        const { data: updatedCustomer, error: updateError } = await supabase
+          .from('agent_customers')
+          .update({
+            name,
+            phone,
+            password_hash: passwordHash,
+          })
+          .eq('id', existing.id)
+          .select()
+          .single();
+
+        if (updateError) throw updateError;
+        customer = updatedCustomer;
+      } else {
+        // Create new customer
+        const { data: newCustomer, error: createError } = await supabase
+          .from('agent_customers')
+          .insert({
+            agent_id: agentId,
+            name,
+            email,
+            phone,
+            password_hash: passwordHash,
+          })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        customer = newCustomer;
       }
-
-      // Create customer
-      const { data: customer, error: createError } = await supabase
-        .from('agent_customers')
-        .insert({
-          agent_id: agentId,
-          name,
-          email,
-          phone,
-          password_hash: passwordHash,
-        })
-        .select()
-        .single();
-
-      if (createError) throw createError;
 
       // If private access, create access request
       if (accessType === 'private') {
