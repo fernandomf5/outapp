@@ -98,7 +98,33 @@ export const MyPlanSection = () => {
       searchParams.delete('upgrade');
       setSearchParams(searchParams, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+
+    // Verificar status de pagamento
+    const paymentStatus = searchParams.get('payment');
+    if (paymentStatus) {
+      if (paymentStatus === 'success') {
+        toast({
+          title: "Pagamento aprovado!",
+          description: "Sua assinatura foi ativada com sucesso.",
+        });
+      } else if (paymentStatus === 'failure') {
+        toast({
+          title: "Pagamento não concluído",
+          description: "Houve um problema com o pagamento. Tente novamente.",
+          variant: "destructive",
+        });
+      } else if (paymentStatus === 'pending') {
+        toast({
+          title: "Pagamento pendente",
+          description: "Seu pagamento está sendo processado. Você será notificado quando for aprovado.",
+        });
+      }
+      
+      // Remove the payment param from URL
+      searchParams.delete('payment');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams, toast]);
 
   const handleUpgrade = async (planId: string) => {
     if (!user) return;

@@ -73,30 +73,39 @@ export const MercadoPagoCheckout = ({ plan, onClose }: MercadoPagoCheckoutProps)
     setLoading(true);
 
     try {
-      // Aqui você integraria com a API do Mercado Pago
-      // Por enquanto, vamos simular o processo
-      
       toast({
         title: "Processando pagamento",
-        description: "Redirecionando para o Mercado Pago...",
+        description: "Criando preferência de pagamento...",
       });
 
-      // Simular criação de preferência de pagamento
-      setTimeout(() => {
-        toast({
-          title: "Pagamento em processamento",
-          description: "Você será redirecionado para completar o pagamento.",
-        });
-      }, 2000);
+      // Chamar edge function para criar preferência no Mercado Pago
+      const { data, error } = await supabase.functions.invoke('create-mercadopago-preference', {
+        body: { planId: plan.id }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data?.init_point) {
+        throw new Error('Erro ao criar preferência de pagamento');
+      }
+
+      toast({
+        title: "Redirecionando",
+        description: "Você será redirecionado para o Mercado Pago...",
+      });
+
+      // Redirecionar para o checkout do Mercado Pago
+      window.location.href = data.init_point;
 
     } catch (error) {
       console.error('Erro no checkout:', error);
       toast({
         title: "Erro no pagamento",
-        description: "Ocorreu um erro ao processar o pagamento. Tente novamente.",
+        description: error.message || "Ocorreu um erro ao processar o pagamento. Tente novamente.",
         variant: "destructive",
       });
-    } finally {
       setLoading(false);
     }
   };
