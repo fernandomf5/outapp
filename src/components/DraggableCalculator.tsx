@@ -245,7 +245,6 @@ export const DraggableCalculator = ({ isOpen, onClose }: DraggableCalculatorProp
               <div className="flex items-center gap-2">
                 <Calculator className="w-5 h-5 text-primary" />
                 <h3 className="font-semibold">Calculadora</h3>
-                <span className="text-xs text-muted-foreground ml-2">(arraste aqui)</span>
               </div>
               <div className="flex gap-1">
                 <Button
