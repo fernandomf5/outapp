@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,10 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, Search, User, Send, Trash2 } from "lucide-react";
+import { MessageSquare, Search, User, Send, Trash2, Smile, ImagePlus, FileText, X } from "lucide-react";
+import data from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { linkifyText } from "@/utils/linkify";
@@ -37,6 +40,13 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   // Carregar nome salvo do localStorage
@@ -152,8 +162,66 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     };
   };
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Arquivo muito grande",
+          description: "A imagem deve ter no máximo 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "Arquivo muito grande",
+          description: "O documento deve ter no máximo 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      setSelectedDocument(file);
+    }
+  };
+
+  const uploadFile = async (file: File, type: 'image' | 'document'): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
+    const filePath = `${type}s/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('chat-media')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('chat-media')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
+  const onEmojiSelect = (emoji: any) => {
+    setNewMessage(newMessage + emoji.native);
+    setShowEmojiPicker(false);
+  };
+
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedConversation) return;
+    if ((!newMessage.trim() && !selectedImage && !selectedDocument) || !selectedConversation) return;
     if (!senderName.trim()) {
       toast({
         title: "Nome obrigatório",
@@ -164,11 +232,24 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     }
 
     try {
+      setUploadingMedia(true);
       // Salvar nome no localStorage
       localStorage.setItem(`agent_sender_name_${agentId}`, senderName);
 
       // Verificar se AI está habilitada
       const needsDisableAI = selectedConversation.ai_enabled;
+
+      let mediaUrl = null;
+      let mediaType = null;
+
+      // Upload image or document if selected
+      if (selectedImage) {
+        mediaUrl = await uploadFile(selectedImage, 'image');
+        mediaType = 'image';
+      } else if (selectedDocument) {
+        mediaUrl = await uploadFile(selectedDocument, 'document');
+        mediaType = 'document';
+      }
 
       // Inserir mensagem do atendente humano
       const { error: msgError } = await supabase
@@ -176,8 +257,10 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         .insert({
           conversation_id: selectedConversation.id,
           role: 'agent',
-          content: newMessage,
+          content: newMessage || (mediaType === 'image' ? '📷 Imagem' : '📄 Documento'),
           sender_name: senderName,
+          media_url: mediaUrl,
+          media_type: mediaType,
         });
 
       if (msgError) throw msgError;
@@ -205,6 +288,9 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
       }
 
       setNewMessage("");
+      setSelectedImage(null);
+      setSelectedDocument(null);
+      setImagePreview(null);
       toast({
         title: "Mensagem enviada",
         description: needsDisableAI ? "Você assumiu o atendimento desta conversa. A IA foi desabilitada." : "Mensagem enviada com sucesso.",
@@ -215,6 +301,8 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setUploadingMedia(false);
     }
   };
 
@@ -477,6 +565,24 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                               : 'bg-primary text-primary-foreground'
                           }`}
                         >
+                          {msg.media_url && msg.media_type === 'image' && (
+                            <img 
+                              src={msg.media_url} 
+                              alt="Imagem enviada" 
+                              className="max-w-full rounded mb-2 max-h-64 object-contain"
+                            />
+                          )}
+                          {msg.media_url && msg.media_type === 'document' && (
+                            <a 
+                              href={msg.media_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-sm underline mb-2"
+                            >
+                              <FileText className="w-4 h-4" />
+                              Ver documento
+                            </a>
+                          )}
                           <p className="whitespace-pre-wrap">{linkifyText(msg.content)}</p>
                           <span className="text-xs opacity-70 mt-1 block">
                             {format(new Date(msg.created_at), "HH:mm", { locale: ptBR })}
@@ -489,13 +595,99 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
               </ScrollArea>
 
               <div className="p-4 border-t">
-                <div className="flex gap-2">
+                {/* Preview de imagem selecionada */}
+                {imagePreview && (
+                  <div className="relative inline-block mb-2">
+                    <img src={imagePreview} alt="Preview" className="max-h-32 rounded" />
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                      onClick={() => {
+                        setSelectedImage(null);
+                        setImagePreview(null);
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+
+                {/* Preview de documento selecionado */}
+                {selectedDocument && (
+                  <div className="flex items-center gap-2 bg-muted p-2 rounded mb-2">
+                    <FileText className="w-4 h-4" />
+                    <span className="text-sm flex-1">{selectedDocument.name}</span>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-6 w-6"
+                      onClick={() => setSelectedDocument(null)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+
+                <div className="flex gap-2 mb-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageSelect}
+                  />
+                  <input
+                    ref={docInputRef}
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt"
+                    className="hidden"
+                    onChange={handleDocumentSelect}
+                  />
+                  
                   <Input
                     placeholder="Seu nome"
                     value={senderName}
                     onChange={(e) => setSenderName(e.target.value)}
                     className="w-[200px]"
                   />
+                </div>
+                
+                <div className="flex gap-2">
+                  <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" size="icon" type="button">
+                        <Smile className="w-5 h-5" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0" align="start">
+                      <Picker 
+                        data={data} 
+                        onEmojiSelect={onEmojiSelect}
+                        theme="light"
+                        locale="pt"
+                      />
+                    </PopoverContent>
+                  </Popover>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingMedia || !!selectedDocument}
+                  >
+                    <ImagePlus className="w-5 h-5" />
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => docInputRef.current?.click()}
+                    disabled={uploadingMedia || !!selectedImage}
+                  >
+                    <FileText className="w-5 h-5" />
+                  </Button>
+
                   <Input
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
@@ -507,8 +699,12 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                     }}
                     placeholder="Digite sua mensagem..."
                     className="flex-1"
+                    disabled={uploadingMedia}
                   />
-                  <Button onClick={handleSendMessage} disabled={!newMessage.trim()}>
+                  <Button 
+                    onClick={handleSendMessage} 
+                    disabled={uploadingMedia || (!newMessage.trim() && !selectedImage && !selectedDocument)}
+                  >
                     <Send className="w-5 h-5" />
                   </Button>
                 </div>

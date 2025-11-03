@@ -6,7 +6,10 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp, X, Clock } from "lucide-react";
+import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp, X, Clock, Smile, ImagePlus, FileText } from "lucide-react";
+import data from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -24,6 +27,8 @@ interface Message {
   content: string;
   created_at: string;
   sender_name?: string;
+  media_url?: string | null;
+  media_type?: string | null;
 }
 
 export default function AgentCustomerChat() {
@@ -56,6 +61,13 @@ export default function AgentCustomerChat() {
     daysRemaining: number;
     expiresAt: string;
   } | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -317,62 +329,127 @@ export default function AgentCustomerChat() {
     };
   };
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Arquivo muito grande",
+          description: "A imagem deve ter no máximo 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "Arquivo muito grande",
+          description: "O documento deve ter no máximo 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      setSelectedDocument(file);
+    }
+  };
+
+  const uploadFile = async (file: File, type: 'image' | 'document'): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
+    const filePath = `${type}s/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('chat-media')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('chat-media')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
   const handleSendMessage = async () => {
-    if (!input.trim() || !conversationId || !customer) return;
+    if ((!input.trim() && !selectedImage && !selectedDocument) || !conversationId || !customer) return;
 
     setLoading(true);
+    setUploadingMedia(true);
     const originalInput = input;
+    const imageFile = selectedImage;
+    const docFile = selectedDocument;
     setInput("");
-
-    // Optimistic UI: show the customer's message immediately
-    const tempId = `temp-${Date.now()}`;
-    const optimisticMessage: Message = {
-      id: tempId,
-      role: 'customer',
-      content: originalInput,
-      created_at: new Date().toISOString(),
-      sender_name: customer?.name,
-    };
-    const dupKey = `customer:${originalInput}`;
-    sentMessagesRef.current.add(dupKey);
-    setMessages((prev) => [...prev, optimisticMessage]);
-
-    // Tocar som de envio
-    chatSounds.playSendSound();
+    setSelectedImage(null);
+    setSelectedDocument(null);
+    setImagePreview(null);
 
     try {
-      // Process message via edge function (handles saving + AI response)
-      const { data, error } = await supabase.functions.invoke('process-agent-customer-message', {
-        body: {
-          agentId,
-          customerId: customer.id,
-          conversationId,
-          message: originalInput,
-        }
+      let mediaUrl = null;
+      let mediaType = null;
+
+      // Upload image or document if selected
+      if (imageFile) {
+        mediaUrl = await uploadFile(imageFile, 'image');
+        mediaType = 'image';
+      } else if (docFile) {
+        mediaUrl = await uploadFile(docFile, 'document');
+        mediaType = 'document';
+      }
+
+      // Save customer message with media
+      await supabase.from('agent_messages').insert({
+        conversation_id: conversationId,
+        role: 'customer',
+        content: originalInput || (mediaType === 'image' ? '📷 Imagem' : '📄 Documento'),
+        sender_name: customer.name,
+        media_url: mediaUrl,
+        media_type: mediaType,
       });
 
-      if (error) throw error;
+      // Tocar som de envio
+      chatSounds.playSendSound();
 
-      // Show notifications for appointments/orders
-      if (data?.appointment) {
-        toast({
-          title: "Agendamento criado! 📅",
-          description: `${data.appointment.service_name} - ${new Date(data.appointment.scheduled_date).toLocaleString()}`,
+      // Process message via edge function (handles AI response) if there's text
+      if (originalInput.trim()) {
+        const { data, error } = await supabase.functions.invoke('process-agent-customer-message', {
+          body: {
+            agentId,
+            customerId: customer.id,
+            conversationId,
+            message: originalInput,
+          }
         });
-      }
 
-      if (data?.order) {
-        toast({
-          title: "Pedido criado! 🛍️",
-          description: `Pedido #${data.order.order_number} - R$ ${data.order.total_amount}`,
-        });
-      }
+        if (error) throw error;
 
-      // AI response will arrive via realtime subscription - no need to add manually
+        // Show notifications for appointments/orders
+        if (data?.appointment) {
+          toast({
+            title: "Agendamento criado! 📅",
+            description: `${data.appointment.service_name} - ${new Date(data.appointment.scheduled_date).toLocaleString()}`,
+          });
+        }
+
+        if (data?.order) {
+          toast({
+            title: "Pedido criado! 🛍️",
+            description: `Pedido #${data.order.order_number} - R$ ${data.order.total_amount}`,
+          });
+        }
+      }
     } catch (error: any) {
-      // Revert optimistic message on error
-      setMessages((prev) => prev.filter((m) => m.id !== tempId));
-      sentMessagesRef.current.delete(dupKey);
       toast({
         title: "Erro",
         description: error.message || "Não foi possível enviar sua mensagem",
@@ -380,7 +457,13 @@ export default function AgentCustomerChat() {
       });
     } finally {
       setLoading(false);
+      setUploadingMedia(false);
     }
+  };
+
+  const onEmojiSelect = (emoji: any) => {
+    setInput(input + emoji.native);
+    setShowEmojiPicker(false);
   };
 
   const handleLogout = () => {
@@ -498,22 +581,29 @@ export default function AgentCustomerChat() {
               <p className="text-sm text-muted-foreground">Olá, {customer?.name}!</p>
               
               {/* Informação de acesso privado */}
-              {agentInfo?.access_type === 'private' && accessInfo && (
-                <div className="mt-2">
-                  <Alert className={`py-2 ${accessInfo.daysRemaining <= 3 ? 'border-destructive' : 'border-primary'}`}>
-                    <Clock className="h-4 w-4" />
-                    <AlertDescription className="ml-2">
-                      {accessInfo.daysRemaining > 0 ? (
-                        <>
-                          <span className="font-semibold">{accessInfo.daysRemaining}</span> dia{accessInfo.daysRemaining !== 1 ? 's' : ''} de acesso restante{accessInfo.daysRemaining !== 1 ? 's' : ''}
-                        </>
-                      ) : (
-                        <span className="text-destructive font-semibold">Acesso expira hoje!</span>
-                      )}
-                    </AlertDescription>
-                  </Alert>
-                </div>
-              )}
+            </div>
+            
+            {/* Informação de acesso privado - movido para cima do nome */}
+            {agentInfo?.access_type === 'private' && accessInfo && (
+              <Alert className={`mt-2 py-2 ${accessInfo.daysRemaining <= 3 ? 'border-destructive' : 'border-primary'}`}>
+                <Clock className="h-4 w-4" />
+                <AlertDescription className="ml-2">
+                  {accessInfo.daysRemaining > 0 ? (
+                    <>
+                      Acesso válido por <span className="font-semibold">{accessInfo.daysRemaining}</span> dia{accessInfo.daysRemaining !== 1 ? 's' : ''}
+                    </>
+                  ) : (
+                    <span className="text-destructive font-semibold">Acesso expira hoje!</span>
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            <div className="flex items-center justify-between mt-2">
+              <div>
+                <h2 className="text-xl font-bold">{agentInfo?.name || 'Atendimento'}</h2>
+                <p className="text-sm text-muted-foreground">Olá, {customer?.name}!</p>
+              </div>
             </div>
             <Button variant="ghost" size="icon" onClick={handleLogout}>
               <LogOut className="w-5 h-5" />
@@ -549,6 +639,24 @@ export default function AgentCustomerChat() {
                         : 'bg-muted'
                     }`}
                   >
+                    {message.media_url && message.media_type === 'image' && (
+                      <img 
+                        src={message.media_url} 
+                        alt="Imagem enviada" 
+                        className="max-w-full rounded mb-2 max-h-64 object-contain"
+                      />
+                    )}
+                    {message.media_url && message.media_type === 'document' && (
+                      <a 
+                        href={message.media_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm underline mb-2"
+                      >
+                        <FileText className="w-4 h-4" />
+                        Ver documento
+                      </a>
+                    )}
                     <p className="whitespace-pre-wrap">{linkifyText(message.content)}</p>
                     <span className="text-xs opacity-70 mt-1 block">
                       {new Date(message.created_at).toLocaleTimeString()}
@@ -710,7 +818,90 @@ export default function AgentCustomerChat() {
               </Collapsible>
             )}
 
+            {/* Preview de imagem selecionada */}
+            {imagePreview && (
+              <div className="relative inline-block mb-2">
+                <img src={imagePreview} alt="Preview" className="max-h-32 rounded" />
+                <Button
+                  size="icon"
+                  variant="destructive"
+                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                  onClick={() => {
+                    setSelectedImage(null);
+                    setImagePreview(null);
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
+            {/* Preview de documento selecionado */}
+            {selectedDocument && (
+              <div className="flex items-center gap-2 bg-muted p-2 rounded mb-2">
+                <FileText className="w-4 h-4" />
+                <span className="text-sm flex-1">{selectedDocument.name}</span>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6"
+                  onClick={() => setSelectedDocument(null)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
             <div className="flex gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageSelect}
+              />
+              <input
+                ref={docInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx,.txt"
+                className="hidden"
+                onChange={handleDocumentSelect}
+              />
+              
+              <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" type="button">
+                    <Smile className="w-5 h-5" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Picker 
+                    data={data} 
+                    onEmojiSelect={onEmojiSelect}
+                    theme="light"
+                    locale="pt"
+                  />
+                </PopoverContent>
+              </Popover>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingMedia || !!selectedDocument}
+              >
+                <ImagePlus className="w-5 h-5" />
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => docInputRef.current?.click()}
+                disabled={uploadingMedia || !!selectedImage}
+              >
+                <FileText className="w-5 h-5" />
+              </Button>
+
               <Input
                 value={input}
                 onChange={(e) => {
@@ -721,15 +912,19 @@ export default function AgentCustomerChat() {
                   }
                 }}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey && !loading && input.trim()) {
+                  if (e.key === 'Enter' && !e.shiftKey && !loading) {
                     e.preventDefault();
                     handleSendMessage();
                   }
                 }}
                 placeholder="Digite sua mensagem..."
-                disabled={loading}
+                disabled={loading || uploadingMedia}
+                className="flex-1"
               />
-              <Button onClick={handleSendMessage} disabled={loading || !input.trim()}>
+              <Button 
+                onClick={handleSendMessage} 
+                disabled={loading || uploadingMedia || (!input.trim() && !selectedImage && !selectedDocument)}
+              >
                 <Send className="w-5 h-5" />
               </Button>
             </div>
