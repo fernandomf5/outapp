@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, LogOut, Smile, ImagePlus, X } from "lucide-react";
+import { Send, LogOut, Smile, ImagePlus, X, FileText } from "lucide-react";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -39,8 +39,10 @@ export default function ChatbotCustomerChat() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
   const [isAdminTyping, setIsAdminTyping] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const [autoReplySent, setAutoReplySent] = useState(false);
@@ -272,54 +274,57 @@ export default function ChatbotCustomerChat() {
     }
   };
 
-  const uploadImage = async (): Promise<string | null> => {
-    if (!selectedImage) return null;
-
-    setUploadingImage(true);
-    try {
-      const fileExt = selectedImage.name.split('.').pop();
-      const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
-      const filePath = `chatbot-images/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('chatbot-media')
-        .upload(filePath, selectedImage);
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage
-        .from('chatbot-media')
-        .getPublicUrl(filePath);
-
-      return data.publicUrl;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast({
-        title: "Erro ao enviar imagem",
-        description: "Tente novamente",
-        variant: "destructive",
-      });
-      return null;
-    } finally {
-      setUploadingImage(false);
+  const handleDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "Arquivo muito grande",
+          description: "O documento deve ter no máximo 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      setSelectedDocument(file);
     }
   };
 
+  const uploadFile = async (file: File, type: 'image' | 'document'): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
+    const filePath = `${type}s/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('chatbot-media')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('chatbot-media')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
 const handleSendMessage = async () => {
-    if ((!input.trim() && !selectedImage) || !conversationId || loading) return;
+    if ((!input.trim() && !selectedImage && !selectedDocument) || !conversationId || loading) return;
 
     setLoading(true);
     try {
+      setUploadingImage(true);
       let mediaUrl = null;
+      let mediaType = null;
+
       if (selectedImage) {
-        mediaUrl = await uploadImage();
-        if (!mediaUrl) {
-          setLoading(false);
-          return;
-        }
+        mediaUrl = await uploadFile(selectedImage, 'image');
+        mediaType = 'image';
+      } else if (selectedDocument) {
+        mediaUrl = await uploadFile(selectedDocument, 'document');
+        mediaType = 'document';
       }
 
-      const messageContent = input.trim() || '📷 Imagem';
+      const messageContent = input.trim() || (mediaType === 'image' ? '📷 Imagem' : '📄 Documento');
 
       // Enviar mensagem via Edge Function (bypass RLS)
       const { error } = await supabase.functions.invoke('chatbot-customer-message', {
@@ -329,7 +334,7 @@ const handleSendMessage = async () => {
           content: messageContent,
           senderName: customer?.name || 'Você',
           mediaUrl,
-          mediaType: mediaUrl ? 'image' : null,
+          mediaType,
         }
       });
 
@@ -359,6 +364,7 @@ const handleSendMessage = async () => {
 
       setInput("");
       setSelectedImage(null);
+      setSelectedDocument(null);
       setImagePreview(null);
       
       // Foco de volta no input após enviar
@@ -374,6 +380,7 @@ const handleSendMessage = async () => {
       });
     } finally {
       setLoading(false);
+      setUploadingImage(false);
     }
   };
 
@@ -457,6 +464,19 @@ const handleSendMessage = async () => {
                      className="rounded-lg mb-2 max-w-full h-auto"
                    />
                  )}
+                 {message.media_url && message.media_type === 'document' && (
+                   <div className="mb-2 p-2 bg-muted rounded border">
+                     <a
+                       href={message.media_url}
+                       target="_blank"
+                       rel="noreferrer"
+                       className="flex items-center gap-2 text-sm hover:underline"
+                     >
+                       <FileText className="w-4 h-4" />
+                       <span>Abrir documento</span>
+                     </a>
+                   </div>
+                 )}
                  <p className="whitespace-pre-wrap break-words">{linkifyText(message.content)}</p>
                  <p
                    className={`text-xs mt-2 ${
@@ -500,6 +520,23 @@ const handleSendMessage = async () => {
               </Button>
             </div>
           )}
+
+          {selectedDocument && (
+            <div className="mb-2 p-2 bg-muted rounded-lg border flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                <span className="text-sm">{selectedDocument.name}</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => setSelectedDocument(null)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
           
           <div className="flex gap-2">
             <input
@@ -509,14 +546,32 @@ const handleSendMessage = async () => {
               className="hidden"
               onChange={handleImageSelect}
             />
+            <input
+              ref={docInputRef}
+              type="file"
+              accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx"
+              className="hidden"
+              onChange={handleDocumentSelect}
+            />
             
             <Button
               variant="outline"
               size="icon"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadingImage}
+              title="Enviar imagem"
             >
               <ImagePlus className="w-4 h-4" />
+            </Button>
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => docInputRef.current?.click()}
+              disabled={uploadingImage}
+              title="Enviar documento"
+            >
+              <FileText className="w-4 h-4" />
             </Button>
 
             <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
@@ -556,7 +611,7 @@ const handleSendMessage = async () => {
             />
             <Button 
               onClick={handleSendMessage} 
-              disabled={loading || uploadingImage || (!input.trim() && !selectedImage)}
+              disabled={loading || uploadingImage || (!input.trim() && !selectedImage && !selectedDocument)}
             >
               <Send className="w-4 h-4" />
             </Button>

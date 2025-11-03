@@ -151,7 +151,8 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         },
         (payload) => {
           if (selectedConversation && payload.new.conversation_id === selectedConversation.id) {
-            setMessages(prev => [...prev, payload.new]);
+            // Recarregar todas as mensagens para garantir que aparecem em tempo real
+            loadMessages(selectedConversation.id);
           }
         }
       )

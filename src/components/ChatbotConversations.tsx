@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
-import { MessageSquare, Search, Send, User, Clock, X, Trash2, CheckCircle2, XCircle, ImagePlus, Smile } from "lucide-react";
+import { MessageSquare, Search, Send, User, Clock, X, Trash2, CheckCircle2, XCircle, ImagePlus, Smile, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -77,8 +77,10 @@ export const ChatbotConversations = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Carregar conversas
@@ -260,54 +262,57 @@ export const ChatbotConversations = () => {
     }
   };
 
-  const uploadImage = async (): Promise<string | null> => {
-    if (!selectedImage) return null;
-
-    setUploadingImage(true);
-    try {
-      const fileExt = selectedImage.name.split('.').pop();
-      const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
-      const filePath = `chatbot-images/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('chatbot-media')
-        .upload(filePath, selectedImage);
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage
-        .from('chatbot-media')
-        .getPublicUrl(filePath);
-
-      return data.publicUrl;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast({
-        title: "Erro ao enviar imagem",
-        description: "Tente novamente",
-        variant: "destructive",
-      });
-      return null;
-    } finally {
-      setUploadingImage(false);
+  const handleDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "Arquivo muito grande",
+          description: "O documento deve ter no máximo 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      setSelectedDocument(file);
     }
   };
 
+  const uploadFile = async (file: File, type: 'image' | 'document'): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
+    const filePath = `${type}s/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('chatbot-media')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('chatbot-media')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
   const handleSendMessage = async () => {
-    if ((!newMessage.trim() && !selectedImage) || !selectedConversation || isLoading) return;
+    if ((!newMessage.trim() && !selectedImage && !selectedDocument) || !selectedConversation || isLoading) return;
 
     setIsLoading(true);
     try {
+      setUploadingImage(true);
       let mediaUrl = null;
+      let mediaType = null;
+
       if (selectedImage) {
-        mediaUrl = await uploadImage();
-        if (!mediaUrl) {
-          setIsLoading(false);
-          return;
-        }
+        mediaUrl = await uploadFile(selectedImage, 'image');
+        mediaType = 'image';
+      } else if (selectedDocument) {
+        mediaUrl = await uploadFile(selectedDocument, 'document');
+        mediaType = 'document';
       }
 
-      const messageContent = newMessage.trim() || '📷 Imagem';
+      const messageContent = newMessage.trim() || (mediaType === 'image' ? '📷 Imagem' : '📄 Documento');
 
       const { error } = await supabase
         .from('chatbot_messages')
@@ -317,13 +322,14 @@ export const ChatbotConversations = () => {
           content: messageContent,
           sender_name: 'Atendente',
           media_url: mediaUrl,
-          media_type: mediaUrl ? 'image' : null,
+          media_type: mediaType,
         });
 
       if (error) throw error;
 
       setNewMessage("");
       setSelectedImage(null);
+      setSelectedDocument(null);
       setImagePreview(null);
       
       // Foco de volta no input após enviar
@@ -343,6 +349,7 @@ export const ChatbotConversations = () => {
       });
     } finally {
       setIsLoading(false);
+      setUploadingImage(false);
     }
   };
 
@@ -739,6 +746,21 @@ export const ChatbotConversations = () => {
                           </div>
                         )}
 
+                        {/* Mídia - documento */}
+                        {msg.media_url && msg.media_type === 'document' && (
+                          <div className="mb-2 p-2 bg-muted/50 rounded border">
+                            <a
+                              href={msg.media_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex items-center gap-2 text-sm hover:underline"
+                            >
+                              <FileText className="w-4 h-4" />
+                              <span>Abrir documento</span>
+                            </a>
+                          </div>
+                        )}
+
                         {msg.media_url && (msg.media_type?.toLowerCase().startsWith('video') || /\.(mp4|webm|ogg)$/i.test(msg.media_url)) && (
                           <div className="mb-2">
                             <video controls className="rounded-lg max-w-full max-h-80">
@@ -815,13 +837,37 @@ export const ChatbotConversations = () => {
                     </div>
                   )}
 
-                  <div className="flex gap-2 items-center">
+                  {selectedDocument && (
+                    <div className="mb-2 p-2 bg-muted rounded-lg border flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        <span className="text-sm">{selectedDocument.name}</span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => setSelectedDocument(null)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+
+                    <div className="flex gap-2 items-center">
                     <input
                       ref={fileInputRef}
                       type="file"
                       accept="image/*"
                       className="hidden"
                       onChange={handleImageSelect}
+                    />
+                    <input
+                      ref={docInputRef}
+                      type="file"
+                      accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx"
+                      className="hidden"
+                      onChange={handleDocumentSelect}
                     />
 
                     <Button
@@ -832,6 +878,16 @@ export const ChatbotConversations = () => {
                       title="Enviar imagem"
                     >
                       <ImagePlus className="w-4 h-4" />
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => docInputRef.current?.click()}
+                      disabled={uploadingImage}
+                      title="Enviar documento"
+                    >
+                      <FileText className="w-4 h-4" />
                     </Button>
 
                     <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
@@ -860,7 +916,7 @@ export const ChatbotConversations = () => {
                     />
                     <Button
                       onClick={handleSendMessage}
-                      disabled={isLoading || (!newMessage.trim() && !selectedImage)}
+                      disabled={isLoading || (!newMessage.trim() && !selectedImage && !selectedDocument)}
                       className="bg-primary"
                     >
                       <Send className="w-4 h-4" />

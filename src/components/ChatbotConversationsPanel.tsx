@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, Search, Send, Trash2, ImagePlus, Smile, CheckSquare, Square } from "lucide-react";
+import { MessageSquare, Search, Send, Trash2, ImagePlus, Smile, CheckSquare, Square, FileText, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -28,10 +28,12 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId?: string })
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedConversations, setSelectedConversations] = useState<Set<string>>(new Set());
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -149,36 +151,37 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId?: string })
     }
   };
 
-  const uploadImage = async (): Promise<string | null> => {
-    if (!selectedImage) return null;
-    setUploadingImage(true);
-    try {
-      const fileExt = selectedImage.name.split('.').pop();
-      const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
-      const filePath = `chatbot-images/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('chatbot-media')
-        .upload(filePath, selectedImage);
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage
-        .from('chatbot-media')
-        .getPublicUrl(filePath);
-
-      return data.publicUrl;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast({
-        title: "Erro ao enviar imagem",
-        description: "Tente novamente",
-        variant: "destructive",
-      });
-      return null;
-    } finally {
-      setUploadingImage(false);
+  const handleDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "Arquivo muito grande",
+          description: "O documento deve ter no máximo 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      setSelectedDocument(file);
     }
+  };
+
+  const uploadFile = async (file: File, type: 'image' | 'document'): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
+    const filePath = `${type}s/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('chatbot-media')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('chatbot-media')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
   };
 
   const onEmojiSelect = (emoji: any) => {
@@ -187,7 +190,7 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId?: string })
   };
 
 const handleSendMessage = async () => {
-    if ((!newMessage.trim() && !selectedImage) || !selectedConversation) return;
+    if ((!newMessage.trim() && !selectedImage && !selectedDocument) || !selectedConversation) return;
     if (!senderName.trim()) {
       toast({
         title: "Nome obrigatório",
@@ -198,17 +201,23 @@ const handleSendMessage = async () => {
     }
 
     try {
+      setUploadingImage(true);
       // Salvar nome no localStorage
       localStorage.setItem(`chatbot_sender_name_${chatbotId}`, senderName);
 
-      // Upload da imagem se existir
       let mediaUrl: string | null = null;
+      let mediaType: string | null = null;
+
+      // Upload de imagem ou documento se existir
       if (selectedImage) {
-        mediaUrl = await uploadImage();
-        if (!mediaUrl) return; // erro já tratado em uploadImage
+        mediaUrl = await uploadFile(selectedImage, 'image');
+        mediaType = 'image';
+      } else if (selectedDocument) {
+        mediaUrl = await uploadFile(selectedDocument, 'document');
+        mediaType = 'document';
       }
 
-      const messageContent = newMessage.trim() || '📷 Imagem';
+      const messageContent = newMessage.trim() || (mediaType === 'image' ? '📷 Imagem' : '📄 Documento');
 
       // Verificar se AI está habilitada
       const needsDisableAI = selectedConversation.ai_enabled;
@@ -222,7 +231,7 @@ const handleSendMessage = async () => {
           content: messageContent,
           sender_name: senderName,
           media_url: mediaUrl,
-          media_type: mediaUrl ? 'image' : null,
+          media_type: mediaType,
         });
 
       if (msgError) throw msgError;
@@ -251,6 +260,7 @@ const handleSendMessage = async () => {
 
       setNewMessage("");
       setSelectedImage(null);
+      setSelectedDocument(null);
       setImagePreview(null);
       toast({
         title: "Mensagem enviada",
@@ -268,6 +278,8 @@ const handleSendMessage = async () => {
         description: "Não foi possível enviar a mensagem.",
         variant: "destructive",
       });
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -594,18 +606,33 @@ const handleSendMessage = async () => {
                               : 'bg-muted'
                           }`}
                         >
-                          {/* Mídia - imagem */}
-                          {message.media_url && (message.media_type?.toLowerCase()?.startsWith('image') || /(png|jpe?g|webp|gif)$/i.test(message.media_url)) && (
-                            <div className="mb-2">
-                              <img 
-                                src={message.media_url}
-                                alt="Imagem enviada"
-                                className="rounded-lg max-w-full max-h-80 w-auto cursor-pointer hover:opacity-90 transition-opacity border border-border object-contain"
-                                loading="lazy"
-                                onClick={() => window.open(message.media_url!, '_blank')}
-                              />
-                            </div>
-                          )}
+                           {/* Mídia - imagem */}
+                           {message.media_url && (message.media_type?.toLowerCase()?.startsWith('image') || /(png|jpe?g|webp|gif)$/i.test(message.media_url)) && (
+                             <div className="mb-2">
+                               <img 
+                                 src={message.media_url}
+                                 alt="Imagem enviada"
+                                 className="rounded-lg max-w-full max-h-80 w-auto cursor-pointer hover:opacity-90 transition-opacity border border-border object-contain"
+                                 loading="lazy"
+                                 onClick={() => window.open(message.media_url!, '_blank')}
+                               />
+                             </div>
+                           )}
+
+                           {/* Mídia - documento */}
+                           {message.media_url && message.media_type === 'document' && (
+                             <div className="mb-2 p-3 bg-muted rounded-lg border">
+                               <a
+                                 href={message.media_url}
+                                 target="_blank"
+                                 rel="noreferrer"
+                                 className="flex items-center gap-2 hover:underline"
+                               >
+                                 <FileText className="w-4 h-4" />
+                                 <span className="text-sm">Abrir documento</span>
+                               </a>
+                             </div>
+                           )}
 
                           {/* Mídia - vídeo */}
                           {message.media_url && (message.media_type?.toLowerCase()?.startsWith('video') || /(mp4|webm|ogg)$/i.test(message.media_url)) && (
@@ -675,6 +702,23 @@ const handleSendMessage = async () => {
                   </div>
                 )}
 
+                {selectedDocument && (
+                  <div className="mb-2 p-2 bg-muted rounded-lg border flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4" />
+                      <span className="text-sm">{selectedDocument.name}</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => setSelectedDocument(null)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+
                 <div className="flex gap-2 items-center">
                   <input
                     ref={fileInputRef}
@@ -682,6 +726,13 @@ const handleSendMessage = async () => {
                     accept="image/*"
                     className="hidden"
                     onChange={handleImageSelect}
+                  />
+                  <input
+                    ref={docInputRef}
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx"
+                    className="hidden"
+                    onChange={handleDocumentSelect}
                   />
 
                   <Button
@@ -692,6 +743,16 @@ const handleSendMessage = async () => {
                     title="Enviar imagem"
                   >
                     <ImagePlus className="w-4 h-4" />
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => docInputRef.current?.click()}
+                    disabled={uploadingImage}
+                    title="Enviar documento"
+                  >
+                    <FileText className="w-4 h-4" />
                   </Button>
 
                   <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
@@ -724,7 +785,7 @@ const handleSendMessage = async () => {
                     }}
                     className="flex-1"
                   />
-                  <Button onClick={handleSendMessage} disabled={uploadingImage || (!newMessage.trim() && !selectedImage)}>
+                  <Button onClick={handleSendMessage} disabled={uploadingImage || (!newMessage.trim() && !selectedImage && !selectedDocument)}>
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>
