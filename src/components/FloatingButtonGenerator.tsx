@@ -74,24 +74,20 @@ export function FloatingButtonGenerator() {
   };
 
   const generateCode = () => {
-    return `<!-- Botão Flutuante - Adicione antes do </body> -->
+    return `<!-- Botão Flutuante - Otimizado para Mobile -->
 <a 
   href="${buttonLink}"
   target="_blank"
   rel="noopener noreferrer"
-  style="position: fixed; ${getPositionStyles()} z-index: 9999; background: ${backgroundColor}; color: ${textColor}; padding: 15px 20px; border-radius: 50px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight: 500; transition: all 0.3s ease; animation: pulse 2s ease infinite;"
-  onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(0, 0, 0, 0.4)';"
-  onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.3)';"
+  style="position: fixed; ${getPositionStyles()} z-index: 9999; background: ${backgroundColor}; color: ${textColor}; padding: 15px 20px; border-radius: 50px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); display: flex !important; align-items: center; gap: 10px; text-decoration: none; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight: 500; transition: transform 0.2s ease; will-change: transform; opacity: 1 !important; visibility: visible !important;"
+  onmouseover="this.style.transform='scale(1.05)'"
+  onmouseout="this.style.transform='scale(1)'"
+  ontouchstart="this.style.transform='scale(0.95)'"
+  ontouchend="this.style.transform='scale(1)'"
 >
   ${getIconSvg()}
   <span style="font-size: 14px;">${buttonText}</span>
-</a>
-<style>
-  @keyframes pulse {
-    0%, 100% { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); }
-    50% { box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5); }
-  }
-</style>`;
+</a>`;
   };
 
   const copyCode = () => {
