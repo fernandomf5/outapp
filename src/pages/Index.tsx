@@ -400,25 +400,47 @@ const Index = () => {
 
   // Inject custom head and footer codes
   useEffect(() => {
+    const injectedElements: HTMLElement[] = [];
+    
     // Inject head code
     if (headCode) {
       const headDiv = document.createElement('div');
       headDiv.innerHTML = headCode;
       const scripts = headDiv.querySelectorAll('script');
       const styles = headDiv.querySelectorAll('style, link');
+      const metas = headDiv.querySelectorAll('meta');
       
+      // Inject meta tags
+      metas.forEach(meta => {
+        const newMeta = meta.cloneNode(true) as HTMLElement;
+        document.head.appendChild(newMeta);
+        injectedElements.push(newMeta);
+      });
+      
+      // Inject styles
+      styles.forEach(style => {
+        const newStyle = style.cloneNode(true) as HTMLElement;
+        document.head.appendChild(newStyle);
+        injectedElements.push(newStyle);
+      });
+      
+      // Inject scripts with proper execution
       scripts.forEach(script => {
         const newScript = document.createElement('script');
+        
+        // Copy all attributes
+        Array.from(script.attributes).forEach(attr => {
+          newScript.setAttribute(attr.name, attr.value);
+        });
+        
         if (script.src) {
           newScript.src = script.src;
         } else {
           newScript.textContent = script.textContent;
         }
+        
         document.head.appendChild(newScript);
-      });
-      
-      styles.forEach(style => {
-        document.head.appendChild(style.cloneNode(true));
+        injectedElements.push(newScript);
       });
     }
 
@@ -426,18 +448,40 @@ const Index = () => {
     if (footerCode) {
       const footerDiv = document.createElement('div');
       footerDiv.innerHTML = footerCode;
-      const scripts = footerDiv.querySelectorAll('script');
+      const elements = footerDiv.children;
       
-      scripts.forEach(script => {
-        const newScript = document.createElement('script');
-        if (script.src) {
-          newScript.src = script.src;
+      Array.from(elements).forEach(element => {
+        if (element.tagName === 'SCRIPT') {
+          const script = element as HTMLScriptElement;
+          const newScript = document.createElement('script');
+          
+          // Copy all attributes
+          Array.from(script.attributes).forEach(attr => {
+            newScript.setAttribute(attr.name, attr.value);
+          });
+          
+          if (script.src) {
+            newScript.src = script.src;
+          } else {
+            newScript.textContent = script.textContent;
+          }
+          
+          document.body.appendChild(newScript);
+          injectedElements.push(newScript);
         } else {
-          newScript.textContent = script.textContent;
+          const newElement = element.cloneNode(true) as HTMLElement;
+          document.body.appendChild(newElement);
+          injectedElements.push(newElement);
         }
-        document.body.appendChild(newScript);
       });
     }
+
+    // Cleanup function to remove injected elements
+    return () => {
+      injectedElements.forEach(element => {
+        element.remove();
+      });
+    };
   }, [headCode, footerCode]);
 
   return (
