@@ -852,7 +852,15 @@ export default function AgentCustomerChat() {
               </div>
             )}
 
-            <div className="flex gap-2">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!loading && !uploadingMedia && (input.trim() || selectedImage || selectedDocument)) {
+                  handleSendMessage();
+                }
+              }}
+              className="flex gap-2"
+            >
               <input
                 ref={fileInputRef}
                 type="file"
@@ -887,6 +895,7 @@ export default function AgentCustomerChat() {
               <Button
                 variant="ghost"
                 size="icon"
+                type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadingMedia || !!selectedDocument}
               >
@@ -896,6 +905,7 @@ export default function AgentCustomerChat() {
               <Button
                 variant="ghost"
                 size="icon"
+                type="button"
                 onClick={() => docInputRef.current?.click()}
                 disabled={uploadingMedia || !!selectedImage}
               >
@@ -912,9 +922,11 @@ export default function AgentCustomerChat() {
                   }
                 }}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey && !loading) {
+                  if ((e.key === 'Enter' || e.key === 'NumpadEnter') && !e.shiftKey && !loading) {
                     e.preventDefault();
-                    handleSendMessage();
+                    if (!uploadingMedia && (input.trim() || selectedImage || selectedDocument)) {
+                      handleSendMessage();
+                    }
                   }
                 }}
                 placeholder="Digite sua mensagem..."
@@ -922,12 +934,12 @@ export default function AgentCustomerChat() {
                 className="flex-1"
               />
               <Button 
-                onClick={handleSendMessage} 
+                type="submit"
                 disabled={loading || uploadingMedia || (!input.trim() && !selectedImage && !selectedDocument)}
               >
                 <Send className="w-5 h-5" />
               </Button>
-            </div>
+            </form>
           </div>
         </Card>
 

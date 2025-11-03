@@ -538,84 +538,96 @@ const handleSendMessage = async () => {
             </div>
           )}
           
-          <div className="flex gap-2">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleImageSelect}
-            />
-            <input
-              ref={docInputRef}
-              type="file"
-              accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx"
-              className="hidden"
-              onChange={handleDocumentSelect}
-            />
-            
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploadingImage}
-              title="Enviar imagem"
-            >
-              <ImagePlus className="w-4 h-4" />
-            </Button>
-
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => docInputRef.current?.click()}
-              disabled={uploadingImage}
-              title="Enviar documento"
-            >
-              <FileText className="w-4 h-4" />
-            </Button>
-
-            <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Smile className="w-4 h-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0 border-0" align="start">
-                <Picker
-                  data={data}
-                  onEmojiSelect={onEmojiSelect}
-                  theme="light"
-                  locale="pt"
-                />
-              </PopoverContent>
-            </Popover>
-
-            <Input
-              ref={inputRef}
-              value={input}
-              onChange={(e) => {
-                setInput(e.target.value);
-                if (e.target.value.length > input.length) {
-                  chatSounds.playTypingSound();
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!loading && !uploadingImage && (input.trim() || selectedImage || selectedDocument)) {
                   handleSendMessage();
                 }
               }}
-              placeholder="Digite sua mensagem..."
-              disabled={loading || uploadingImage}
-              className="flex-1"
-            />
-            <Button 
-              onClick={handleSendMessage} 
-              disabled={loading || uploadingImage || (!input.trim() && !selectedImage && !selectedDocument)}
+              className="flex gap-2"
             >
-              <Send className="w-4 h-4" />
-            </Button>
-          </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageSelect}
+              />
+              <input
+                ref={docInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx"
+                className="hidden"
+                onChange={handleDocumentSelect}
+              />
+              
+              <Button
+                variant="outline"
+                size="icon"
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingImage}
+                title="Enviar imagem"
+              >
+                <ImagePlus className="w-4 h-4" />
+              </Button>
+
+              <Button
+                variant="outline"
+                size="icon"
+                type="button"
+                onClick={() => docInputRef.current?.click()}
+                disabled={uploadingImage}
+                title="Enviar documento"
+              >
+                <FileText className="w-4 h-4" />
+              </Button>
+
+              <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Smile className="w-4 h-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0 border-0" align="start">
+                  <Picker
+                    data={data}
+                    onEmojiSelect={onEmojiSelect}
+                    theme="light"
+                    locale="pt"
+                  />
+                </PopoverContent>
+              </Popover>
+
+              <Input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  if (e.target.value.length > input.length) {
+                    chatSounds.playTypingSound();
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if ((e.key === 'Enter' || e.key === 'NumpadEnter') && !e.shiftKey) {
+                    e.preventDefault();
+                    if (!loading && !uploadingImage && (input.trim() || selectedImage || selectedDocument)) {
+                      handleSendMessage();
+                    }
+                  }
+                }}
+                placeholder="Digite sua mensagem..."
+                disabled={loading || uploadingImage}
+                className="flex-1"
+              />
+              <Button 
+                type="submit"
+                disabled={loading || uploadingImage || (!input.trim() && !selectedImage && !selectedDocument)}
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </form>
         </div>
       </div>
     </div>

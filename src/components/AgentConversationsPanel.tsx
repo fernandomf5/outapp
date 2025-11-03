@@ -706,7 +706,15 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                   />
                 </div>
                 
-                <div className="flex gap-2">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!uploadingMedia && (newMessage.trim() || selectedImage || selectedDocument)) {
+                      handleSendMessage();
+                    }
+                  }}
+                  className="flex gap-2"
+                >
                   <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
                     <PopoverTrigger asChild>
                       <Button variant="ghost" size="icon" type="button">
@@ -726,6 +734,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                   <Button
                     variant="ghost"
                     size="icon"
+                    type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploadingMedia || !!selectedDocument}
                   >
@@ -735,6 +744,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                   <Button
                     variant="ghost"
                     size="icon"
+                    type="button"
                     onClick={() => docInputRef.current?.click()}
                     disabled={uploadingMedia || !!selectedImage}
                   >
@@ -745,9 +755,11 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
+                      if ((e.key === 'Enter' || e.key === 'NumpadEnter') && !e.shiftKey) {
                         e.preventDefault();
-                        handleSendMessage();
+                        if (!uploadingMedia && (newMessage.trim() || selectedImage || selectedDocument)) {
+                          handleSendMessage();
+                        }
                       }
                     }}
                     placeholder="Digite sua mensagem..."
@@ -755,12 +767,12 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                     disabled={uploadingMedia}
                   />
                   <Button 
-                    onClick={handleSendMessage} 
+                    type="submit"
                     disabled={uploadingMedia || (!newMessage.trim() && !selectedImage && !selectedDocument)}
                   >
                     <Send className="w-5 h-5" />
                   </Button>
-                </div>
+                </form>
               </div>
             </Card>
           ) : (

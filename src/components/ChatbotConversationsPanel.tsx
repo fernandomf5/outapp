@@ -719,7 +719,15 @@ const handleSendMessage = async () => {
                   </div>
                 )}
 
-                <div className="flex gap-2 items-center">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!uploadingImage && (newMessage.trim() || selectedImage || selectedDocument)) {
+                      handleSendMessage();
+                    }
+                  }}
+                  className="flex gap-2 items-center"
+                >
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -738,6 +746,7 @@ const handleSendMessage = async () => {
                   <Button
                     variant="outline"
                     size="icon"
+                    type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploadingImage}
                     title="Enviar imagem"
@@ -748,6 +757,7 @@ const handleSendMessage = async () => {
                   <Button
                     variant="outline"
                     size="icon"
+                    type="button"
                     onClick={() => docInputRef.current?.click()}
                     disabled={uploadingImage}
                     title="Enviar documento"
@@ -757,7 +767,7 @@ const handleSendMessage = async () => {
 
                   <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" size="icon" title="Inserir emoji">
+                      <Button variant="outline" size="icon" title="Inserir emoji" type="button">
                         <Smile className="w-4 h-4" />
                       </Button>
                     </PopoverTrigger>
@@ -778,17 +788,19 @@ const handleSendMessage = async () => {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
+                      if ((e.key === 'Enter' || e.key === 'NumpadEnter') && !e.shiftKey) {
                         e.preventDefault();
-                        handleSendMessage();
+                        if (!uploadingImage && (newMessage.trim() || selectedImage || selectedDocument)) {
+                          handleSendMessage();
+                        }
                       }
                     }}
                     className="flex-1"
                   />
-                  <Button onClick={handleSendMessage} disabled={uploadingImage || (!newMessage.trim() && !selectedImage && !selectedDocument)}>
+                  <Button type="submit" disabled={uploadingImage || (!newMessage.trim() && !selectedImage && !selectedDocument)}>
                     <Send className="h-4 w-4" />
                   </Button>
-                </div>
+                </form>
               </div>
             </div>
           ) : (

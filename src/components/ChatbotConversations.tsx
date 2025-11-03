@@ -854,74 +854,86 @@ export const ChatbotConversations = () => {
                     </div>
                   )}
 
-                    <div className="flex gap-2 items-center">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageSelect}
-                    />
-                    <input
-                      ref={docInputRef}
-                      type="file"
-                      accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx"
-                      className="hidden"
-                      onChange={handleDocumentSelect}
-                    />
-
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploadingImage}
-                      title="Enviar imagem"
-                    >
-                      <ImagePlus className="w-4 h-4" />
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => docInputRef.current?.click()}
-                      disabled={uploadingImage}
-                      title="Enviar documento"
-                    >
-                      <FileText className="w-4 h-4" />
-                    </Button>
-
-                    <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" size="icon" title="Inserir emoji">
-                          <Smile className="w-4 h-4" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-full p-0 border-0" align="start">
-                        <Picker data={data} onEmojiSelect={onEmojiSelect} theme="light" locale="pt" />
-                      </PopoverContent>
-                    </Popover>
-
-                    <Input
-                      ref={inputRef}
-                      value={newMessage}
-                      onChange={(e) => handleAdminTyping(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (!isLoading && (newMessage.trim() || selectedImage || selectedDocument)) {
                           handleSendMessage();
                         }
                       }}
-                      placeholder="Digite sua mensagem..."
-                      className="flex-1"
-                    />
-                    <Button
-                      onClick={handleSendMessage}
-                      disabled={isLoading || (!newMessage.trim() && !selectedImage && !selectedDocument)}
-                      className="bg-primary"
+                      className="flex gap-2 items-center"
                     >
-                      <Send className="w-4 h-4" />
-                    </Button>
-                  </div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageSelect}
+                      />
+                      <input
+                        ref={docInputRef}
+                        type="file"
+                        accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx"
+                        className="hidden"
+                        onChange={handleDocumentSelect}
+                      />
+
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingImage}
+                        title="Enviar imagem"
+                      >
+                        <ImagePlus className="w-4 h-4" />
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        type="button"
+                        onClick={() => docInputRef.current?.click()}
+                        disabled={uploadingImage}
+                        title="Enviar documento"
+                      >
+                        <FileText className="w-4 h-4" />
+                      </Button>
+
+                      <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="icon" title="Inserir emoji" type="button">
+                            <Smile className="w-4 h-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0 border-0" align="start">
+                          <Picker data={data} onEmojiSelect={onEmojiSelect} theme="light" locale="pt" />
+                        </PopoverContent>
+                      </Popover>
+
+                      <Input
+                        ref={inputRef}
+                        value={newMessage}
+                        onChange={(e) => handleAdminTyping(e.target.value)}
+                        onKeyDown={(e) => {
+                          if ((e.key === 'Enter' || e.key === 'NumpadEnter') && !e.shiftKey) {
+                            e.preventDefault();
+                            if (!isLoading && (newMessage.trim() || selectedImage || selectedDocument)) {
+                              handleSendMessage();
+                            }
+                          }
+                        }}
+                        placeholder="Digite sua mensagem..."
+                        className="flex-1"
+                      />
+                      <Button
+                        type="submit"
+                        disabled={isLoading || (!newMessage.trim() && !selectedImage && !selectedDocument)}
+                        className="bg-primary"
+                      >
+                        <Send className="w-4 h-4" />
+                      </Button>
+                    </form>
                 </div>
               </div>
             </div>
