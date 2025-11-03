@@ -599,7 +599,7 @@ const handleSendMessage = async () => {
                   chatSounds.playTypingSound();
                 }
               }}
-              onKeyPress={(e) => {
+              onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   handleSendMessage();

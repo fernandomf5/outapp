@@ -47,6 +47,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   // Carregar nome salvo do localStorage
@@ -74,6 +75,10 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
       };
     }
   }, [selectedConversation]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const loadConversations = async () => {
     const { data, error } = await supabase
@@ -328,6 +333,11 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
 
       // Recarregar mensagens após insert para obter IDs corretos
       await loadMessages(selectedConversation.id);
+
+      // Scroll automático após enviar
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
 
       toast({
         title: "Mensagem enviada",
@@ -633,6 +643,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                       </div>
                     );
                   })}
+                  <div ref={messagesEndRef} />
                 </div>
               </ScrollArea>
 
