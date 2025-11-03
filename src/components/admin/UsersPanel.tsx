@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Search, Mail, Calendar, Edit, Trash2, Key, LogIn } from "lucide-react";
+import { Users, Search, Mail, Calendar, Edit, Trash2, Key, LogIn, Ban } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -32,6 +32,7 @@ interface UserProfile {
   full_name: string;
   email: string;
   created_at: string;
+  is_banned?: boolean;
 }
 
 export const UsersPanel = () => {
@@ -45,6 +46,7 @@ export const UsersPanel = () => {
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [editForm, setEditForm] = useState({ full_name: "", email: "" });
   const [newPassword, setNewPassword] = useState("");
+  const [banDialogOpen, setBanDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -106,6 +108,40 @@ export const UsersPanel = () => {
   const openDeleteDialog = (user: UserProfile) => {
     setSelectedUser(user);
     setDeleteDialogOpen(true);
+  };
+
+  const openBanDialog = (user: UserProfile) => {
+    setSelectedUser(user);
+    setBanDialogOpen(true);
+  };
+
+  const handleBanUser = async () => {
+    if (!selectedUser) return;
+
+    try {
+      const newBannedStatus = !selectedUser.is_banned;
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_banned: newBannedStatus })
+        .eq('user_id', selectedUser.user_id);
+
+      if (error) throw error;
+
+      toast({
+        title: newBannedStatus ? "Usuário banido" : "Ban removido",
+        description: newBannedStatus 
+          ? "O usuário não poderá mais fazer login."
+          : "O usuário pode fazer login novamente.",
+      });
+      setBanDialogOpen(false);
+      fetchUsers();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao atualizar status",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleEditUser = async () => {
@@ -388,14 +424,25 @@ export const UsersPanel = () => {
                     <Key className="w-4 h-4" />
                   </Button>
                   {user.email !== 'fernandomoraisgarcia2011@gmail.com' && (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => openDeleteDialog(user)}
-                      className="flex-1 sm:flex-none"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <>
+                      <Button
+                        variant={user.is_banned ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => openBanDialog(user)}
+                        className="flex-1 sm:flex-none"
+                        title={user.is_banned ? "Remover ban" : "Banir usuário"}
+                      >
+                        <Ban className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => openDeleteDialog(user)}
+                        className="flex-1 sm:flex-none"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
@@ -493,6 +540,38 @@ export const UsersPanel = () => {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteUser} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Ban User Dialog */}
+      <AlertDialog open={banDialogOpen} onOpenChange={setBanDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {selectedUser?.is_banned ? "Remover Banimento" : "Banir Usuário"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {selectedUser?.is_banned ? (
+                <>
+                  O usuário <strong>{selectedUser?.full_name}</strong> poderá fazer login novamente.
+                </>
+              ) : (
+                <>
+                  O usuário <strong>{selectedUser?.full_name}</strong> não poderá mais fazer login no sistema. 
+                  Ao tentar fazer login, receberá a mensagem "Você foi banido do sistema".
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleBanUser} 
+              className={selectedUser?.is_banned ? "" : "bg-destructive text-destructive-foreground hover:bg-destructive/90"}
+            >
+              {selectedUser?.is_banned ? "Remover Ban" : "Banir"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

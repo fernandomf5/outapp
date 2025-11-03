@@ -2752,6 +2752,133 @@ export type Database = {
         }
         Relationships: []
       }
+      members_areas: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          name: string
+          primary_color: string | null
+          requires_approval: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name: string
+          primary_color?: string | null
+          requires_approval?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name?: string
+          primary_color?: string | null
+          requires_approval?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      members_contents: {
+        Row: {
+          content_text: string | null
+          content_type: string
+          content_url: string | null
+          created_at: string | null
+          id: string
+          is_free: boolean | null
+          module_id: string
+          order_index: number
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          content_text?: string | null
+          content_type: string
+          content_url?: string | null
+          created_at?: string | null
+          id?: string
+          is_free?: boolean | null
+          module_id: string
+          order_index?: number
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          content_text?: string | null
+          content_type?: string
+          content_url?: string | null
+          created_at?: string | null
+          id?: string
+          is_free?: boolean | null
+          module_id?: string
+          order_index?: number
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_contents_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "members_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      members_modules: {
+        Row: {
+          area_id: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_published: boolean | null
+          order_index: number
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          area_id: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean | null
+          order_index?: number
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          area_id?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean | null
+          order_index?: number
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_modules_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "members_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_integrations: {
         Row: {
           api_key: string | null

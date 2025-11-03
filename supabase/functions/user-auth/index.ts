@@ -175,6 +175,16 @@ serve(async (req) => {
         );
       }
 
+      // Check if user is banned
+      if (profile.is_banned) {
+        console.log('User is banned:', email);
+        await supabase.auth.signOut();
+        return new Response(
+          JSON.stringify({ error: 'Você foi banido do sistema' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       console.log('Profile found, checking admin status...');
 
       // Check if user is admin

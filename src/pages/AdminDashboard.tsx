@@ -28,6 +28,7 @@ import { FAQEditor } from "@/components/admin/FAQEditor";
 import { LandingFeaturesEditor } from "@/components/admin/LandingFeaturesEditor";
 import { MercadoPagoIntegration } from "@/components/admin/MercadoPagoIntegration";
 import { AdminSecurityPanel } from "@/components/admin/AdminSecurityPanel";
+import { PlanFeaturesManager } from "@/components/admin/PlanFeaturesManager";
 import { BlogManager } from "@/components/admin/BlogManager";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -702,6 +703,9 @@ const AdminDashboard = () => {
 
             {/* Security Section */}
             {currentSection === 'security' && <AdminSecurityPanel />}
+
+            {/* Plan Features Section */}
+            {currentSection === 'plan-features' && <PlanFeaturesManager />}
 
             {/* Videos Section */}
             {currentSection === 'videos' && (
