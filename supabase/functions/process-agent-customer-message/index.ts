@@ -60,19 +60,12 @@ serve(async (req) => {
       phone: null
     };
 
-    // Get conversation history (after ensuring user message will be appended)
+    // Get conversation history (user message already saved by frontend)
     const { data: prevMessages } = await supabase
       .from('agent_messages')
       .select('*')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: true });
-
-    // Save user message (server-side)
-    const { data: savedUserMessage } = await supabase
-      .from('agent_messages')
-      .insert({ conversation_id: conversationId, role: 'customer', content: message })
-      .select()
-      .single();
 
     await supabase
       .from('agent_conversations')
@@ -84,7 +77,6 @@ serve(async (req) => {
       role: m.role === 'customer' ? 'user' : 'assistant',
       content: m.content
     }));
-    conversationHistory.push({ role: 'user', content: message });
 
     // Enhanced system prompt
     const systemPrompt = `Você é um assistente virtual especializado em ${agent.niche}.
