@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_campaigns: {
+        Row: {
+          budget: number
+          clicks: number
+          conversions: number
+          created_at: string
+          end_date: string | null
+          id: string
+          impressions: number
+          name: string
+          platform: string
+          spent: number
+          start_date: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          budget: number
+          clicks?: number
+          conversions?: number
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          impressions?: number
+          name: string
+          platform: string
+          spent?: number
+          start_date: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          budget?: number
+          clicks?: number
+          conversions?: number
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          impressions?: number
+          name?: string
+          platform?: string
+          spent?: number
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_message_reads: {
         Row: {
           created_at: string
@@ -2372,6 +2423,45 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_transactions: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          date: string
+          description: string
+          id: string
+          payment_method: string
+          status: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          date: string
+          description: string
+          id?: string
+          payment_method: string
+          status?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          payment_method?: string
+          status?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       funnels: {
         Row: {
           config: Json | null
@@ -2924,6 +3014,90 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tasks: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      team_members: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          department: string
+          email: string
+          id: string
+          joined_date: string
+          name: string
+          phone: string | null
+          role: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          department: string
+          email: string
+          id?: string
+          joined_date?: string
+          name: string
+          phone?: string | null
+          role: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          department?: string
+          email?: string
+          id?: string
+          joined_date?: string
+          name?: string
+          phone?: string | null
+          role?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       ticket_messages: {
         Row: {
