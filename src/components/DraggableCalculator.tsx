@@ -264,21 +264,26 @@ export const DraggableCalculator = ({ isOpen, onClose }: DraggableCalculatorProp
     <>
       <div
         ref={calculatorRef}
-        className="fixed z-[9999] shadow-2xl"
-        onMouseDown={handleHeaderMouseDown}
-        onTouchStart={handleHeaderTouchStart}
+        className="fixed z-[9999] shadow-2xl select-none"
         style={{
           left: `${position.x}px`,
           top: `${position.y}px`,
-          cursor: isDragging ? 'grabbing' : 'grab',
           touchAction: 'none',
+          userSelect: 'none',
         }}
       >
         <Card className="w-80 bg-card/95 backdrop-blur-sm border-2">
           <div className="p-4">
             {/* Header - Área de arrastar */}
             <div 
-              className="flex items-center justify-between mb-4 cursor-grab active:cursor-grabbing select-none bg-accent/20 -mx-4 -mt-4 px-4 py-3 rounded-t-lg"
+              className="flex items-center justify-between mb-4 select-none bg-accent/20 -mx-4 -mt-4 px-4 py-3 rounded-t-lg"
+              style={{ 
+                cursor: isDragging ? 'grabbing' : 'grab',
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                MozUserSelect: 'none',
+                msUserSelect: 'none',
+              }}
               onMouseDown={handleHeaderMouseDown}
               onTouchStart={handleHeaderTouchStart}
             >

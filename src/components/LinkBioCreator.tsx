@@ -63,6 +63,8 @@ interface LinkBio {
   custom_domain: string;
   music_url: string;
   music_autoplay: boolean;
+  background_overlay_color: string;
+  background_overlay_opacity: number;
 }
 
 interface BioLink {
@@ -128,6 +130,8 @@ export function LinkBioCreator() {
   const [gradientColor2, setGradientColor2] = useState("#764ba2");
   const [musicUrl, setMusicUrl] = useState("");
   const [musicAutoplay, setMusicAutoplay] = useState(false);
+  const [backgroundOverlayColor, setBackgroundOverlayColor] = useState("#000000");
+  const [backgroundOverlayOpacity, setBackgroundOverlayOpacity] = useState(0);
   
   // New link states
   const [newLinkTitle, setNewLinkTitle] = useState("");
@@ -167,6 +171,8 @@ export function LinkBioCreator() {
       setGradientColor2(selectedBio.gradient_color2 || '#764ba2');
       setMusicUrl(selectedBio.music_url || '');
       setMusicAutoplay(selectedBio.music_autoplay || false);
+      setBackgroundOverlayColor(selectedBio.background_overlay_color || '#000000');
+      setBackgroundOverlayOpacity(selectedBio.background_overlay_opacity || 0);
       fetchLinks(selectedBio.id);
     }
   }, [selectedBio]);
@@ -223,6 +229,8 @@ export function LinkBioCreator() {
     setGradientColor2("#764ba2");
     setMusicUrl("");
     setMusicAutoplay(false);
+    setBackgroundOverlayColor("#000000");
+    setBackgroundOverlayOpacity(0);
     setLinks([]);
   };
 
@@ -282,6 +290,8 @@ export function LinkBioCreator() {
       gradient_color2: gradientColor2,
       music_url: musicUrl,
       music_autoplay: musicAutoplay,
+      background_overlay_color: backgroundOverlayColor,
+      background_overlay_opacity: backgroundOverlayOpacity,
       is_active: true,
     };
 
@@ -1156,6 +1166,65 @@ export function LinkBioCreator() {
                 <p className="text-xs text-muted-foreground mt-1">
                   A imagem de fundo sobrepõe a cor de fundo
                 </p>
+              </div>
+
+              <div className="space-y-4 p-4 border rounded-lg bg-accent/20">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <Palette className="w-5 h-5" />
+                  Sobreposição de Fundo
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Adicione uma camada de cor sobre a imagem ou cor de fundo
+                </p>
+                
+                <div>
+                  <Label htmlFor="overlayColor">Cor da Sobreposição</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <div className="flex items-center gap-2 w-full">
+                          <Pipette className="w-4 h-4" />
+                          <div
+                            className="h-6 w-6 rounded border"
+                            style={{ backgroundColor: backgroundOverlayColor }}
+                          />
+                          <span className="flex-1">{backgroundOverlayColor}</span>
+                        </div>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-3">
+                      <HexColorPicker color={backgroundOverlayColor} onChange={setBackgroundOverlayColor} />
+                      <Input
+                        value={backgroundOverlayColor}
+                        onChange={(e) => setBackgroundOverlayColor(e.target.value)}
+                        className="mt-2"
+                        placeholder="#000000"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="overlayOpacity">Opacidade da Sobreposição (%)</Label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="range"
+                      id="overlayOpacity"
+                      min="0"
+                      max="100"
+                      value={backgroundOverlayOpacity}
+                      onChange={(e) => setBackgroundOverlayOpacity(Number(e.target.value))}
+                      className="flex-1"
+                    />
+                    <span className="text-sm text-muted-foreground w-12">{backgroundOverlayOpacity}%</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    0% = transparente, 100% = opaco
+                  </p>
+                </div>
               </div>
 
               <div className="space-y-4 p-4 border rounded-lg bg-accent/20">

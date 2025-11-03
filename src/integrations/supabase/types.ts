@@ -2655,6 +2655,8 @@ export type Database = {
           avatar_url: string | null
           background_color: string | null
           background_image: string | null
+          background_overlay_color: string | null
+          background_overlay_opacity: number | null
           bio: string | null
           border_animation: string | null
           border_color: string | null
@@ -2686,6 +2688,8 @@ export type Database = {
           avatar_url?: string | null
           background_color?: string | null
           background_image?: string | null
+          background_overlay_color?: string | null
+          background_overlay_opacity?: number | null
           bio?: string | null
           border_animation?: string | null
           border_color?: string | null
@@ -2717,6 +2721,8 @@ export type Database = {
           avatar_url?: string | null
           background_color?: string | null
           background_image?: string | null
+          background_overlay_color?: string | null
+          background_overlay_opacity?: number | null
           bio?: string | null
           border_animation?: string | null
           border_color?: string | null
@@ -2935,6 +2941,7 @@ export type Database = {
           created_at: string
           delay_seconds: number | null
           id: string
+          image_url: string | null
           is_active: boolean
           name: string
           position: string
@@ -2943,6 +2950,7 @@ export type Database = {
           trigger_type: string
           updated_at: string
           user_id: string
+          video_url: string | null
           views: number
         }
         Insert: {
@@ -2953,6 +2961,7 @@ export type Database = {
           created_at?: string
           delay_seconds?: number | null
           id?: string
+          image_url?: string | null
           is_active?: boolean
           name: string
           position?: string
@@ -2961,6 +2970,7 @@ export type Database = {
           trigger_type: string
           updated_at?: string
           user_id: string
+          video_url?: string | null
           views?: number
         }
         Update: {
@@ -2971,6 +2981,7 @@ export type Database = {
           created_at?: string
           delay_seconds?: number | null
           id?: string
+          image_url?: string | null
           is_active?: boolean
           name?: string
           position?: string
@@ -2979,6 +2990,7 @@ export type Database = {
           trigger_type?: string
           updated_at?: string
           user_id?: string
+          video_url?: string | null
           views?: number
         }
         Relationships: []

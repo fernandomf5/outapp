@@ -29,6 +29,8 @@ interface LinkBio {
   gradient_color2: string;
   music_url?: string;
   music_autoplay?: boolean;
+  background_overlay_color: string;
+  background_overlay_opacity: number;
 }
 
 interface BioLink {
@@ -175,23 +177,44 @@ export default function LinkBioPage() {
 
   const isGradient = bio.theme === 'gradient';
   const hasBackgroundImage = bio.background_image && bio.background_image.trim() !== '';
+  
+  const getBackgroundStyle = () => {
+    if (hasBackgroundImage) {
+      return {
+        backgroundImage: `url(${bio.background_image})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      };
+    } else if (isGradient) {
+      return { background: `linear-gradient(135deg, ${bio.gradient_color1 || '#667eea'} 0%, ${bio.gradient_color2 || '#764ba2'} 100%)` };
+    } else {
+      return { backgroundColor: bio.background_color };
+    }
+  };
 
   return (
     <div 
-      className="min-h-screen py-8 sm:py-12 px-4"
-      style={
-        hasBackgroundImage
-          ? {
-              backgroundImage: `url(${bio.background_image})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat'
-            }
-          : isGradient 
-            ? { background: `linear-gradient(135deg, ${bio.gradient_color1 || '#667eea'} 0%, ${bio.gradient_color2 || '#764ba2'} 100%)` }
-            : { backgroundColor: bio.background_color }
-      }
+      className="min-h-screen py-8 sm:py-12 px-4 relative"
+      style={getBackgroundStyle()}
     >
+      {/* Background overlay */}
+      {bio.background_overlay_opacity > 0 && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: bio.background_overlay_color,
+            opacity: bio.background_overlay_opacity / 100,
+            pointerEvents: 'none',
+            zIndex: 0,
+          }}
+        />
+      )}
+      
       {bio.music_url && (
         <audio 
           src={bio.music_url} 
@@ -203,7 +226,7 @@ export default function LinkBioPage() {
         />
       )}
 
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto relative z-10">
         <div className="flex flex-col items-center mb-6 sm:mb-8">
           {bio.avatar_url && (
             <img 

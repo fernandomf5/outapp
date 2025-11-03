@@ -38,6 +38,8 @@ interface Popup {
   views: number;
   clicks: number;
   created_at: string;
+  image_url?: string;
+  video_url?: string;
 }
 
 export const PopupCreatorPanel = () => {
@@ -56,7 +58,11 @@ export const PopupCreatorPanel = () => {
     delay_seconds: 5,
     scroll_percentage: 50,
     position: 'center' as 'center' | 'bottom_right' | 'bottom_left' | 'top_right' | 'top_left',
+    image_url: '',
+    video_url: '',
   });
+  
+  const [uploadingMedia, setUploadingMedia] = useState(false);
 
   useEffect(() => {
     loadPopups();
@@ -112,10 +118,45 @@ export const PopupCreatorPanel = () => {
         trigger_type: 'time_delay',
         delay_seconds: 5,
         scroll_percentage: 50,
-        position: 'center'
+        position: 'center',
+        image_url: '',
+        video_url: '',
       });
     } catch (error: any) {
       toast.error("Erro ao criar pop-up");
+    }
+  };
+
+  const uploadMedia = async (file: File, type: 'image' | 'video') => {
+    setUploadingMedia(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/popup-${type}-${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('chatbot-media')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('chatbot-media')
+        .getPublicUrl(fileName);
+
+      if (type === 'image') {
+        setFormData({...formData, image_url: publicUrl});
+      } else {
+        setFormData({...formData, video_url: publicUrl});
+      }
+      
+      toast.success(`${type === 'image' ? 'Imagem' : 'Vídeo'} enviado com sucesso!`);
+    } catch (error: any) {
+      toast.error(`Erro ao enviar ${type === 'image' ? 'imagem' : 'vídeo'}`);
+    } finally {
+      setUploadingMedia(false);
     }
   };
 
@@ -298,6 +339,78 @@ export const PopupCreatorPanel = () => {
                     <SelectItem value="top_left">Superior Esquerdo</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Imagem do Pop-up (opcional)</Label>
+                <div className="space-y-2">
+                  <Input 
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) uploadMedia(file, 'image');
+                    }}
+                    disabled={uploadingMedia}
+                  />
+                  {formData.image_url && (
+                    <div className="relative w-full h-32 border rounded overflow-hidden">
+                      <img 
+                        src={formData.image_url} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={() => setFormData({...formData, image_url: ''})}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    {uploadingMedia ? "Enviando..." : "A imagem aparecerá no pop-up"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Vídeo do Pop-up (opcional)</Label>
+                <div className="space-y-2">
+                  <Input 
+                    type="file"
+                    accept="video/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) uploadMedia(file, 'video');
+                    }}
+                    disabled={uploadingMedia}
+                  />
+                  {formData.video_url && (
+                    <div className="relative w-full h-32 border rounded overflow-hidden">
+                      <video 
+                        src={formData.video_url} 
+                        className="w-full h-full object-cover"
+                        controls
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={() => setFormData({...formData, video_url: ''})}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    {uploadingMedia ? "Enviando..." : "O vídeo aparecerá no pop-up"}
+                  </p>
+                </div>
               </div>
             </div>
             <DialogFooter>
