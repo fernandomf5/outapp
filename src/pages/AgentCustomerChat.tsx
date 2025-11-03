@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp, X } from "lucide-react";
+import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp, X, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,6 +16,7 @@ import AgentAppointmentDialog from "@/components/AgentAppointmentDialog";
 import AgentOrderDialog from "@/components/AgentOrderDialog";
 import { chatSounds } from "@/utils/chatSounds";
 import { linkifyText } from "@/utils/linkify";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Message {
   id: string;
@@ -51,6 +52,10 @@ export default function AgentCustomerChat() {
     id: ''
   });
   const [cancelReason, setCancelReason] = useState("");
+  const [accessInfo, setAccessInfo] = useState<{
+    daysRemaining: number;
+    expiresAt: string;
+  } | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -223,6 +228,30 @@ export default function AgentCustomerChat() {
       setAgentInfo(data.agent);
       setConversationId(data.conversationId);
       setMessages(data.messages || []);
+
+      // Para acesso privado, buscar informações de expiração
+      if (data.agent?.access_type === 'private') {
+        const { data: accessRequest } = await supabase
+          .from('agent_access_requests')
+          .select('expires_at, access_duration_days')
+          .eq('agent_id', agentId)
+          .eq('customer_id', customerId)
+          .eq('status', 'approved')
+          .eq('is_active', true)
+          .single();
+
+        if (accessRequest?.expires_at) {
+          const expiresAt = new Date(accessRequest.expires_at);
+          const now = new Date();
+          const diffTime = expiresAt.getTime() - now.getTime();
+          const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+          setAccessInfo({
+            daysRemaining,
+            expiresAt: accessRequest.expires_at
+          });
+        }
+      }
     } catch (error) {
       console.error('Error loading agent:', error);
       toast({
@@ -464,9 +493,27 @@ export default function AgentCustomerChat() {
       <div className="container mx-auto max-w-4xl h-screen flex flex-col p-4">
         <Card className="flex-1 flex flex-col">
           <div className="p-4 border-b flex items-center justify-between">
-            <div>
+            <div className="flex-1">
               <h2 className="text-xl font-bold">{agentInfo?.name || 'Atendimento'}</h2>
               <p className="text-sm text-muted-foreground">Olá, {customer?.name}!</p>
+              
+              {/* Informação de acesso privado */}
+              {agentInfo?.access_type === 'private' && accessInfo && (
+                <div className="mt-2">
+                  <Alert className={`py-2 ${accessInfo.daysRemaining <= 3 ? 'border-destructive' : 'border-primary'}`}>
+                    <Clock className="h-4 w-4" />
+                    <AlertDescription className="ml-2">
+                      {accessInfo.daysRemaining > 0 ? (
+                        <>
+                          <span className="font-semibold">{accessInfo.daysRemaining}</span> dia{accessInfo.daysRemaining !== 1 ? 's' : ''} de acesso restante{accessInfo.daysRemaining !== 1 ? 's' : ''}
+                        </>
+                      ) : (
+                        <span className="text-destructive font-semibold">Acesso expira hoje!</span>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                </div>
+              )}
             </div>
             <Button variant="ghost" size="icon" onClick={handleLogout}>
               <LogOut className="w-5 h-5" />
