@@ -25,6 +25,8 @@ export type Database = {
           impressions: number
           name: string
           platform: string
+          product_cost: number | null
+          revenue: number | null
           spent: number
           start_date: string
           status: string
@@ -41,6 +43,8 @@ export type Database = {
           impressions?: number
           name: string
           platform: string
+          product_cost?: number | null
+          revenue?: number | null
           spent?: number
           start_date: string
           status?: string
@@ -57,6 +61,8 @@ export type Database = {
           impressions?: number
           name?: string
           platform?: string
+          product_cost?: number | null
+          revenue?: number | null
           spent?: number
           start_date?: string
           status?: string

@@ -32,6 +32,8 @@ interface AdCampaign {
   impressions: number;
   clicks: number;
   conversions: number;
+  product_cost: number;
+  revenue: number;
   created_at: string;
 }
 
@@ -50,6 +52,8 @@ export const AdsManagementPanel = () => {
     impressions: '',
     clicks: '',
     conversions: '',
+    product_cost: '',
+    revenue: '',
     start_date: new Date().toISOString().split('T')[0]
   });
 
@@ -98,6 +102,8 @@ export const AdsManagementPanel = () => {
           impressions: parseInt(formData.impressions) || 0,
           clicks: parseInt(formData.clicks) || 0,
           conversions: parseInt(formData.conversions) || 0,
+          product_cost: parseFloat(formData.product_cost) || 0,
+          revenue: parseFloat(formData.revenue) || 0,
           status: 'active',
           start_date: formData.start_date
         }]);
@@ -116,6 +122,8 @@ export const AdsManagementPanel = () => {
         impressions: '',
         clicks: '',
         conversions: '',
+        product_cost: '',
+        revenue: '',
         start_date: new Date().toISOString().split('T')[0]
       });
     } catch (error: any) {
@@ -145,12 +153,17 @@ export const AdsManagementPanel = () => {
   const totalImpressions = campaigns.reduce((sum, c) => sum + c.impressions, 0);
   const totalClicks = campaigns.reduce((sum, c) => sum + c.clicks, 0);
   const totalConversions = campaigns.reduce((sum, c) => sum + c.conversions, 0);
+  const totalProductCost = campaigns.reduce((sum, c) => sum + (c.product_cost || 0), 0);
+  const totalRevenue = campaigns.reduce((sum, c) => sum + (c.revenue || 0), 0);
   
   const avgCPC = totalClicks > 0 ? totalSpent / totalClicks : 0;
   const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
   const conversionRate = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
   const costPerConversion = totalConversions > 0 ? totalSpent / totalConversions : 0;
-  const roi = totalSpent > 0 ? ((totalBudget - totalSpent) / totalSpent) * 100 : 0;
+  const totalCost = totalSpent + totalProductCost;
+  const netProfit = totalRevenue - totalCost;
+  const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+  const roi = totalCost > 0 ? ((totalRevenue - totalCost) / totalCost) * 100 : 0;
 
   // Dados para gráficos
   const campaignPerformanceData = campaigns.map(c => ({
@@ -241,13 +254,35 @@ export const AdsManagementPanel = () => {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label>Gasto (R$) *</Label>
+                  <Label>Quanto Gastei (R$) *</Label>
                   <Input 
                     type="number"
                     step="0.01"
                     value={formData.spent}
                     onChange={(e) => setFormData({...formData, spent: e.target.value})}
                     placeholder="850.00"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Custo do Produto (R$)</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={formData.product_cost}
+                    onChange={(e) => setFormData({...formData, product_cost: e.target.value})}
+                    placeholder="150.00"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Quanto Lucrei (R$)</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={formData.revenue}
+                    onChange={(e) => setFormData({...formData, revenue: e.target.value})}
+                    placeholder="1500.00"
                   />
                 </div>
               </div>
@@ -371,7 +406,35 @@ export const AdsManagementPanel = () => {
           </div>
 
           {/* Métricas Calculadas */}
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-4">
+            <Card className="glass hover:shadow-glow transition-smooth">
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Lucro Líquido</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className={`text-2xl font-bold ${netProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                  R$ {netProfit.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Receita - Custos totais
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="glass hover:shadow-glow transition-smooth">
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Margem de Lucro</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className={`text-2xl font-bold ${profitMargin >= 0 ? 'text-success' : 'text-destructive'}`}>
+                  {profitMargin.toFixed(1)}%
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Percentual de lucro sobre receita
+                </p>
+              </CardContent>
+            </Card>
+
             <Card className="glass hover:shadow-glow transition-smooth">
               <CardHeader>
                 <CardTitle className="text-sm font-medium">Custo por Conversão</CardTitle>
@@ -518,6 +581,9 @@ export const AdsManagementPanel = () => {
                     <TableHead>Plataforma</TableHead>
                     <TableHead className="text-right">Orçamento</TableHead>
                     <TableHead className="text-right">Gasto</TableHead>
+                    <TableHead className="text-right">Custo Produto</TableHead>
+                    <TableHead className="text-right">Receita</TableHead>
+                    <TableHead className="text-right">Lucro</TableHead>
                     <TableHead className="text-right">Impressões</TableHead>
                     <TableHead className="text-right">Cliques</TableHead>
                     <TableHead className="text-right">Conversões</TableHead>
@@ -530,6 +596,7 @@ export const AdsManagementPanel = () => {
                   {campaigns.map((campaign) => {
                     const ctr = campaign.impressions > 0 ? (campaign.clicks / campaign.impressions) * 100 : 0;
                     const cpc = campaign.clicks > 0 ? campaign.spent / campaign.clicks : 0;
+                    const campaignProfit = (campaign.revenue || 0) - (campaign.spent + (campaign.product_cost || 0));
                     
                     return (
                       <TableRow key={campaign.id}>
@@ -542,6 +609,11 @@ export const AdsManagementPanel = () => {
                         </TableCell>
                         <TableCell className="text-right">R$ {campaign.budget.toFixed(2)}</TableCell>
                         <TableCell className="text-right text-warning">R$ {campaign.spent.toFixed(2)}</TableCell>
+                        <TableCell className="text-right">R$ {(campaign.product_cost || 0).toFixed(2)}</TableCell>
+                        <TableCell className="text-right text-primary">R$ {(campaign.revenue || 0).toFixed(2)}</TableCell>
+                        <TableCell className={`text-right font-semibold ${campaignProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                          R$ {campaignProfit.toFixed(2)}
+                        </TableCell>
                         <TableCell className="text-right">{campaign.impressions.toLocaleString('pt-BR')}</TableCell>
                         <TableCell className="text-right">{campaign.clicks.toLocaleString('pt-BR')}</TableCell>
                         <TableCell className="text-right text-success">{campaign.conversions}</TableCell>
