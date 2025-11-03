@@ -249,9 +249,12 @@ export type Database = {
       }
       agent_access_requests: {
         Row: {
+          access_duration_days: number | null
           agent_id: string
           customer_id: string
+          expires_at: string | null
           id: string
+          is_active: boolean | null
           notes: string | null
           requested_at: string
           reviewed_at: string | null
@@ -259,9 +262,12 @@ export type Database = {
           status: string
         }
         Insert: {
+          access_duration_days?: number | null
           agent_id: string
           customer_id: string
+          expires_at?: string | null
           id?: string
+          is_active?: boolean | null
           notes?: string | null
           requested_at?: string
           reviewed_at?: string | null
@@ -269,9 +275,12 @@ export type Database = {
           status?: string
         }
         Update: {
+          access_duration_days?: number | null
           agent_id?: string
           customer_id?: string
+          expires_at?: string | null
           id?: string
+          is_active?: boolean | null
           notes?: string | null
           requested_at?: string
           reviewed_at?: string | null

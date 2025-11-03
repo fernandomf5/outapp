@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle, XCircle, Clock, User, Mail, Phone } from "lucide-react";
+import { CheckCircle, XCircle, Clock, User, Mail, Phone, Ban, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 interface AccessRequest {
   id: string;
@@ -16,6 +17,9 @@ interface AccessRequest {
   requested_at: string;
   reviewed_at: string | null;
   notes: string | null;
+  access_duration_days: number | null;
+  expires_at: string | null;
+  is_active: boolean | null;
   agent_customers: {
     name: string;
     email: string;
@@ -28,6 +32,7 @@ export function AgentAccessRequestsPanel({ agentId }: { agentId: string }) {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [accessDays, setAccessDays] = useState<Record<string, number>>({});
   const { toast } = useToast();
 
   useEffect(() => {
@@ -88,12 +93,19 @@ export function AgentAccessRequestsPanel({ agentId }: { agentId: string }) {
   const handleApprove = async (requestId: string) => {
     setProcessing(requestId);
     try {
+      const days = accessDays[requestId] || 30; // Default 30 dias
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + days);
+
       const { error } = await supabase
         .from('agent_access_requests')
         .update({
           status: 'approved',
           reviewed_at: new Date().toISOString(),
           notes: notes[requestId] || null,
+          access_duration_days: days,
+          expires_at: expiresAt.toISOString(),
+          is_active: true,
         })
         .eq('id', requestId);
 
@@ -101,7 +113,7 @@ export function AgentAccessRequestsPanel({ agentId }: { agentId: string }) {
 
       toast({
         title: "✅ Aprovado!",
-        description: "O acesso foi aprovado com sucesso.",
+        description: `Acesso liberado por ${days} dias.`,
       });
 
       loadRequests();
@@ -147,15 +159,74 @@ export function AgentAccessRequestsPanel({ agentId }: { agentId: string }) {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return <Badge className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Aprovado</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Recusado</Badge>;
-      default:
-        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Pendente</Badge>;
+  const handleDisable = async (requestId: string) => {
+    setProcessing(requestId);
+    try {
+      const { error } = await supabase
+        .from('agent_access_requests')
+        .update({ is_active: false })
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Acesso Desabilitado",
+        description: "O acesso foi desabilitado com sucesso.",
+      });
+
+      loadRequests();
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setProcessing(null);
     }
+  };
+
+  const handleDelete = async (requestId: string) => {
+    setProcessing(requestId);
+    try {
+      const { error } = await supabase
+        .from('agent_access_requests')
+        .delete()
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Acesso Excluído",
+        description: "A solicitação foi excluída com sucesso.",
+      });
+
+      loadRequests();
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const getStatusBadge = (request: AccessRequest) => {
+    if (request.status === 'approved') {
+      if (request.is_active === false) {
+        return <Badge variant="secondary"><Ban className="w-3 h-3 mr-1" />Desabilitado</Badge>;
+      }
+      if (request.expires_at && new Date(request.expires_at) < new Date()) {
+        return <Badge variant="destructive"><Clock className="w-3 h-3 mr-1" />Expirado</Badge>;
+      }
+      return <Badge className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Aprovado</Badge>;
+    }
+    if (request.status === 'rejected') {
+      return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Recusado</Badge>;
+    }
+    return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Pendente</Badge>;
   };
 
   if (loading) {
@@ -180,7 +251,7 @@ export function AgentAccessRequestsPanel({ agentId }: { agentId: string }) {
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-muted-foreground" />
                 <span className="font-semibold">{request.agent_customers.name}</span>
-                {getStatusBadge(request.status)}
+                {getStatusBadge(request)}
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Mail className="w-4 h-4" />
@@ -198,6 +269,16 @@ export function AgentAccessRequestsPanel({ agentId }: { agentId: string }) {
               {request.reviewed_at && (
                 <p className="text-xs text-muted-foreground">
                   Revisado em: {new Date(request.reviewed_at).toLocaleString('pt-BR')}
+                </p>
+              )}
+              {request.status === 'approved' && request.access_duration_days && (
+                <p className="text-xs text-muted-foreground">
+                  Acesso liberado por: {request.access_duration_days} dias
+                </p>
+              )}
+              {request.expires_at && (
+                <p className="text-xs text-muted-foreground">
+                  Expira em: {new Date(request.expires_at).toLocaleString('pt-BR')}
                 </p>
               )}
               {request.notes && (
@@ -230,18 +311,69 @@ export function AgentAccessRequestsPanel({ agentId }: { agentId: string }) {
                 </Button>
               </div>
             )}
+
+            {request.status === 'approved' && request.is_active && (
+              <div className="space-x-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleDisable(request.id)}
+                  disabled={processing === request.id}
+                >
+                  <Ban className="w-4 h-4 mr-1" />
+                  Desabilitar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => handleDelete(request.id)}
+                  disabled={processing === request.id}
+                >
+                  <Trash2 className="w-4 h-4 mr-1" />
+                  Excluir
+                </Button>
+              </div>
+            )}
+
+            {request.status === 'approved' && request.is_active === false && (
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => handleDelete(request.id)}
+                disabled={processing === request.id}
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                Excluir
+              </Button>
+            )}
           </div>
 
           {request.status === 'pending' && (
-            <div className="space-y-2">
-              <Label htmlFor={`notes-${request.id}`}>Observações (opcional)</Label>
-              <Textarea
-                id={`notes-${request.id}`}
-                value={notes[request.id] || ''}
-                onChange={(e) => setNotes({ ...notes, [request.id]: e.target.value })}
-                placeholder="Adicione observações sobre esta solicitação..."
-                rows={2}
-              />
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor={`days-${request.id}`}>Dias de acesso</Label>
+                <Input
+                  id={`days-${request.id}`}
+                  type="number"
+                  min="1"
+                  value={accessDays[request.id] || 30}
+                  onChange={(e) => setAccessDays({ ...accessDays, [request.id]: parseInt(e.target.value) || 30 })}
+                  placeholder="Número de dias"
+                />
+                <p className="text-xs text-muted-foreground">
+                  O acesso será válido por {accessDays[request.id] || 30} dias após a aprovação
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={`notes-${request.id}`}>Observações (opcional)</Label>
+                <Textarea
+                  id={`notes-${request.id}`}
+                  value={notes[request.id] || ''}
+                  onChange={(e) => setNotes({ ...notes, [request.id]: e.target.value })}
+                  placeholder="Adicione observações sobre esta solicitação..."
+                  rows={2}
+                />
+              </div>
             </div>
           )}
         </Card>

@@ -98,7 +98,7 @@ serve(async (req) => {
     }
 
     if (action === 'login') {
-      // Para acesso privado, apenas verifica email
+      // Para acesso privado, verifica email e status de acesso
       if (accessType === 'private') {
         const { data: customer, error: findError } = await supabase
           .from('agent_customers')
@@ -110,6 +110,31 @@ serve(async (req) => {
         if (findError || !customer) {
           return new Response(
             JSON.stringify({ error: 'Email não encontrado' }),
+            { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Verificar se o acesso está aprovado e ativo
+        const { data: accessRequest, error: accessError } = await supabase
+          .from('agent_access_requests')
+          .select('*')
+          .eq('agent_id', agentId)
+          .eq('customer_id', customer.id)
+          .eq('status', 'approved')
+          .eq('is_active', true)
+          .single();
+
+        if (accessError || !accessRequest) {
+          return new Response(
+            JSON.stringify({ error: 'Acesso não autorizado ou desabilitado' }),
+            { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Verificar se o acesso expirou
+        if (accessRequest.expires_at && new Date(accessRequest.expires_at) < new Date()) {
+          return new Response(
+            JSON.stringify({ error: 'Acesso expirado. Solicite novo acesso.' }),
             { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
