@@ -3156,8 +3156,39 @@ export type Database = {
           },
         ]
       }
+      task_blocks: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          order_index: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          order_index?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          order_index?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
+          block_id: string | null
           category: string | null
           created_at: string
           description: string | null
@@ -3170,6 +3201,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          block_id?: string | null
           category?: string | null
           created_at?: string
           description?: string | null
@@ -3182,6 +3214,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          block_id?: string | null
           category?: string | null
           created_at?: string
           description?: string | null
@@ -3193,7 +3226,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tasks_block_id_fkey"
+            columns: ["block_id"]
+            isOneToOne: false
+            referencedRelation: "task_blocks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       team_members: {
         Row: {
