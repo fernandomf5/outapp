@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { MessageSquare, Search, User, Send, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { linkifyText } from "@/utils/linkify";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
@@ -454,7 +455,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                             <div className="flex items-center gap-2 mb-1">
                               <Badge variant="outline" className="text-xs">Sistema</Badge>
                             </div>
-                            <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
+                            <p className="whitespace-pre-wrap text-sm">{linkifyText(msg.content)}</p>
                             <span className="text-xs opacity-70 mt-1 block">
                               {format(new Date(msg.created_at), "HH:mm", { locale: ptBR })}
                             </span>
@@ -476,7 +477,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                               : 'bg-primary text-primary-foreground'
                           }`}
                         >
-                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                          <p className="whitespace-pre-wrap">{linkifyText(msg.content)}</p>
                           <span className="text-xs opacity-70 mt-1 block">
                             {format(new Date(msg.created_at), "HH:mm", { locale: ptBR })}
                           </span>

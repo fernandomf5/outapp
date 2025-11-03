@@ -7,6 +7,7 @@ import { Bot, Send, Loader2, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { chatSounds } from "@/utils/chatSounds";
+import { linkifyText } from "@/utils/linkify";
 
 interface Message {
   id: string;
@@ -783,7 +784,7 @@ const handleSendMessage = async (messageText?: string, originNodeId?: string) =>
                       <span className="text-xs">{message.documentName || 'Documento'}</span>
                     </a>
                   )}
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <p className="text-sm whitespace-pre-wrap">{linkifyText(message.content)}</p>
                   <span className="text-xs opacity-70 mt-1 block">
                     {message.timestamp.toLocaleTimeString('pt-BR', { 
                       hour: '2-digit', 

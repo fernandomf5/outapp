@@ -11,6 +11,7 @@ import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { chatSounds } from "@/utils/chatSounds";
+import { linkifyText } from "@/utils/linkify";
 
 interface Message {
   id: string;
@@ -456,7 +457,7 @@ const handleSendMessage = async () => {
                      className="rounded-lg mb-2 max-w-full h-auto"
                    />
                  )}
-                 <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                 <p className="whitespace-pre-wrap break-words">{linkifyText(message.content)}</p>
                  <p
                    className={`text-xs mt-2 ${
                      message.role === 'user'

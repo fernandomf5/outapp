@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import AgentAppointmentDialog from "@/components/AgentAppointmentDialog";
 import AgentOrderDialog from "@/components/AgentOrderDialog";
 import { chatSounds } from "@/utils/chatSounds";
+import { linkifyText } from "@/utils/linkify";
 
 interface Message {
   id: string;
@@ -501,7 +502,7 @@ export default function AgentCustomerChat() {
                         : 'bg-muted'
                     }`}
                   >
-                    <p className="whitespace-pre-wrap">{message.content}</p>
+                    <p className="whitespace-pre-wrap">{linkifyText(message.content)}</p>
                     <span className="text-xs opacity-70 mt-1 block">
                       {new Date(message.created_at).toLocaleTimeString()}
                     </span>

@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, MessageSquare, Clock, CheckCircle2, AlertCircle, Send, Image as ImageIcon, Paperclip, Edit, Trash2 } from "lucide-react";
 import { useLocation } from "react-router-dom";
+import { linkifyText } from "@/utils/linkify";
 
 interface Ticket {
   id: string;
@@ -572,7 +573,7 @@ export const TicketSystem = () => {
                       <p className="text-xs font-semibold mb-1 opacity-70">
                         {msg.is_admin ? (msg.agent_name || 'Atendente') : (selectedTicket?.user_name || 'Você')}
                       </p>
-                      <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                      <p className="text-sm whitespace-pre-wrap">{linkifyText(msg.message)}</p>
                       {msg.attachments && msg.attachments.length > 0 && (
                         <div className="mt-2 space-y-2">
                           {msg.attachments.map((att, idx) => (
