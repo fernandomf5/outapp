@@ -941,7 +941,7 @@ export function LinkBioCreator() {
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <Label htmlFor="gradientColor1">Cor do Gradiente 1</Label>
-                    <Popover>
+                    <Popover modal={true}>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
@@ -957,9 +957,11 @@ export function LinkBioCreator() {
                           </div>
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-3 z-[100]">
-                        <div className="space-y-3">
-                          <HexColorPicker color={gradientColor1} onChange={setGradientColor1} />
+                      <PopoverContent className="w-auto p-4" style={{ zIndex: 9999 }}>
+                        <div className="space-y-3" style={{ pointerEvents: 'auto' }}>
+                          <div style={{ touchAction: 'none' }}>
+                            <HexColorPicker color={gradientColor1} onChange={setGradientColor1} />
+                          </div>
                           <Input
                             value={gradientColor1}
                             onChange={(e) => setGradientColor1(e.target.value)}
@@ -971,7 +973,7 @@ export function LinkBioCreator() {
                   </div>
                   <div>
                     <Label htmlFor="gradientColor2">Cor do Gradiente 2</Label>
-                    <Popover>
+                    <Popover modal={true}>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
@@ -987,9 +989,11 @@ export function LinkBioCreator() {
                           </div>
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-3 z-[100]">
-                        <div className="space-y-3">
-                          <HexColorPicker color={gradientColor2} onChange={setGradientColor2} />
+                      <PopoverContent className="w-auto p-4" style={{ zIndex: 9999 }}>
+                        <div className="space-y-3" style={{ pointerEvents: 'auto' }}>
+                          <div style={{ touchAction: 'none' }}>
+                            <HexColorPicker color={gradientColor2} onChange={setGradientColor2} />
+                          </div>
                           <Input
                             value={gradientColor2}
                             onChange={(e) => setGradientColor2(e.target.value)}
@@ -1005,7 +1009,7 @@ export function LinkBioCreator() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="bgColor">Cor de Fundo</Label>
-                  <Popover>
+                  <Popover modal={true}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
@@ -1021,9 +1025,11 @@ export function LinkBioCreator() {
                         </div>
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-3 z-[100]">
-                      <div className="space-y-3">
-                        <HexColorPicker color={backgroundColor} onChange={setBackgroundColor} />
+                    <PopoverContent className="w-auto p-4" style={{ zIndex: 9999 }}>
+                      <div className="space-y-3" style={{ pointerEvents: 'auto' }}>
+                        <div style={{ touchAction: 'none' }}>
+                          <HexColorPicker color={backgroundColor} onChange={setBackgroundColor} />
+                        </div>
                         <Input
                           value={backgroundColor}
                           onChange={(e) => setBackgroundColor(e.target.value)}
@@ -1035,7 +1041,7 @@ export function LinkBioCreator() {
                 </div>
                 <div>
                   <Label htmlFor="textColor">Cor do Texto</Label>
-                  <Popover>
+                  <Popover modal={true}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
@@ -1051,9 +1057,11 @@ export function LinkBioCreator() {
                         </div>
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-3 z-[100]">
-                      <div className="space-y-3">
-                        <HexColorPicker color={textColor} onChange={setTextColor} />
+                    <PopoverContent className="w-auto p-4" style={{ zIndex: 9999 }}>
+                      <div className="space-y-3" style={{ pointerEvents: 'auto' }}>
+                        <div style={{ touchAction: 'none' }}>
+                          <HexColorPicker color={textColor} onChange={setTextColor} />
+                        </div>
                         <Input
                           value={textColor}
                           onChange={(e) => setTextColor(e.target.value)}
@@ -1065,7 +1073,7 @@ export function LinkBioCreator() {
                 </div>
                 <div>
                   <Label htmlFor="buttonColor">Cor dos Botões</Label>
-                  <Popover>
+                  <Popover modal={true}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
@@ -1081,9 +1089,11 @@ export function LinkBioCreator() {
                         </div>
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-3 z-[100]">
-                      <div className="space-y-3">
-                        <HexColorPicker color={buttonColor} onChange={setButtonColor} />
+                    <PopoverContent className="w-auto p-4" style={{ zIndex: 9999 }}>
+                      <div className="space-y-3" style={{ pointerEvents: 'auto' }}>
+                        <div style={{ touchAction: 'none' }}>
+                          <HexColorPicker color={buttonColor} onChange={setButtonColor} />
+                        </div>
                         <Input
                           value={buttonColor}
                           onChange={(e) => setButtonColor(e.target.value)}
@@ -1095,7 +1105,7 @@ export function LinkBioCreator() {
                 </div>
                 <div>
                   <Label htmlFor="buttonTextColor">Texto dos Botões</Label>
-                  <Popover>
+                  <Popover modal={true}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
@@ -1111,9 +1121,11 @@ export function LinkBioCreator() {
                         </div>
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-3 z-[100]">
-                      <div className="space-y-3">
-                        <HexColorPicker color={buttonTextColor} onChange={setButtonTextColor} />
+                    <PopoverContent className="w-auto p-4" style={{ zIndex: 9999 }}>
+                      <div className="space-y-3" style={{ pointerEvents: 'auto' }}>
+                        <div style={{ touchAction: 'none' }}>
+                          <HexColorPicker color={buttonTextColor} onChange={setButtonTextColor} />
+                        </div>
                         <Input
                           value={buttonTextColor}
                           onChange={(e) => setButtonTextColor(e.target.value)}
@@ -1185,7 +1197,7 @@ export function LinkBioCreator() {
                 
                 <div>
                   <Label htmlFor="overlayColor">Cor da Sobreposição</Label>
-                  <Popover>
+                  <Popover modal={true}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
@@ -1201,9 +1213,11 @@ export function LinkBioCreator() {
                         </div>
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-3 z-[100]">
-                      <div className="space-y-3">
-                        <HexColorPicker color={backgroundOverlayColor} onChange={setBackgroundOverlayColor} />
+                    <PopoverContent className="w-auto p-4" style={{ zIndex: 9999 }}>
+                      <div className="space-y-3" style={{ pointerEvents: 'auto' }}>
+                        <div style={{ touchAction: 'none' }}>
+                          <HexColorPicker color={backgroundOverlayColor} onChange={setBackgroundOverlayColor} />
+                        </div>
                         <Input
                           value={backgroundOverlayColor}
                           onChange={(e) => setBackgroundOverlayColor(e.target.value)}
@@ -1275,7 +1289,7 @@ export function LinkBioCreator() {
 
                 <div>
                   <Label htmlFor="borderColor">Cor da Borda</Label>
-                  <Popover>
+                  <Popover modal={true}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
@@ -1291,9 +1305,11 @@ export function LinkBioCreator() {
                         </div>
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-3 z-[100]">
-                      <div className="space-y-3">
-                        <HexColorPicker color={borderColor} onChange={setBorderColor} />
+                    <PopoverContent className="w-auto p-4" style={{ zIndex: 9999 }}>
+                      <div className="space-y-3" style={{ pointerEvents: 'auto' }}>
+                        <div style={{ touchAction: 'none' }}>
+                          <HexColorPicker color={borderColor} onChange={setBorderColor} />
+                        </div>
                         <Input
                           value={borderColor}
                           onChange={(e) => setBorderColor(e.target.value)}
