@@ -56,8 +56,8 @@ serve(async (req) => {
 
       if (createError) throw createError;
 
-      // If restricted access, create access request
-      if (accessType === 'restricted') {
+      // If restricted or private access, create access request
+      if (accessType === 'restricted' || accessType === 'private') {
         const { error: requestError } = await supabase
           .from('agent_access_requests')
           .insert({
