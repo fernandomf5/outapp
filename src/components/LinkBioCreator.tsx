@@ -1015,7 +1015,7 @@ export function LinkBioCreator() {
                             className="h-6 w-6 rounded border"
                             style={{ backgroundColor }}
                           />
-                          <span className="flex-1">{backgroundColor}</span>
+                          <span className="flex-1 truncate">{backgroundColor}</span>
                         </div>
                       </Button>
                     </PopoverTrigger>
@@ -1404,7 +1404,7 @@ export function LinkBioCreator() {
                       }}
                     >
                       <div 
-                        className="p-6 min-h-[400px]"
+                        className="p-6 min-h-[400px] relative"
                         style={
                           backgroundImage && backgroundImage.trim() !== ''
                             ? {
@@ -1418,7 +1418,18 @@ export function LinkBioCreator() {
                               : { backgroundColor }
                         }
                       >
-                        <div className="flex flex-col items-center">
+                        {/* Overlay de cor sobre o fundo */}
+                        {backgroundOverlayOpacity > 0 && (
+                          <div 
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                              backgroundColor: backgroundOverlayColor,
+                              opacity: backgroundOverlayOpacity / 100
+                            }}
+                          />
+                        )}
+                        
+                        <div className="flex flex-col items-center relative z-10">
                           {avatarUrl && (
                             <img 
                               src={avatarUrl} 

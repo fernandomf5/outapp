@@ -570,20 +570,28 @@ export const PopupCreatorPanel = () => {
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>{previewPopup.title}</DialogTitle>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-4 top-4"
-                onClick={() => setPreviewPopup(null)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
             </DialogHeader>
-            <div className="py-4">
-              <p className="text-muted-foreground mb-4">{previewPopup.content}</p>
-              <Button className="w-full gradient-primary">
-                {previewPopup.button_text}
-              </Button>
+            <div className="py-4 space-y-4">
+              {previewPopup.image_url && (
+                <img 
+                  src={previewPopup.image_url} 
+                  alt={previewPopup.title} 
+                  className="w-full rounded-lg object-cover max-h-64"
+                />
+              )}
+              {previewPopup.video_url && (
+                <video 
+                  src={previewPopup.video_url} 
+                  controls 
+                  className="w-full rounded-lg max-h-64"
+                />
+              )}
+              <p className="text-muted-foreground">{previewPopup.content}</p>
+              {previewPopup.button_text && (
+                <Button className="w-full gradient-primary">
+                  {previewPopup.button_text}
+                </Button>
+              )}
             </div>
           </DialogContent>
         </Dialog>
