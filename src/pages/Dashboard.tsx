@@ -919,19 +919,19 @@ const Dashboard = () => {
             <MyPlanSection />
           </TabsContent>
 
-          <TabsContent value="financial">
+          <TabsContent value="financeiro">
             <FinancialManagementPanel />
           </TabsContent>
 
-          <TabsContent value="team">
+          <TabsContent value="equipe">
             <TeamManagementPanel />
           </TabsContent>
 
-          <TabsContent value="ads">
+          <TabsContent value="anuncios">
             <AdsManagementPanel />
           </TabsContent>
 
-          <TabsContent value="tasks">
+          <TabsContent value="tarefas">
             <TaskOrganizerPanel />
           </TabsContent>
 
@@ -939,15 +939,15 @@ const Dashboard = () => {
             <PopupCreatorPanel />
           </TabsContent>
 
-          <TabsContent value="adspy">
+          <TabsContent value="espionar">
             <AdSpyPanel />
           </TabsContent>
 
-          <TabsContent value="quiz">
+          <TabsContent value="criador-quizz">
             <QuizCreatorPanel />
           </TabsContent>
 
-          <TabsContent value="digital-products">
+          <TabsContent value="produto-digital">
             <DigitalProductCreatorPanel />
           </TabsContent>
         </Tabs>
