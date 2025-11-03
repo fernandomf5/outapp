@@ -440,18 +440,9 @@ const handleSendMessage = async () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="md:col-span-1">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 justify-between">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5" />
-                Conversas
-              </div>
-              <div className="flex items-center gap-2">
-                {unreadCount > 0 && (
-                  <Badge variant="destructive" className="rounded-full">
-                    {unreadCount}
-                  </Badge>
-                )}
-              </div>
+            <CardTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5" />
+              Conversas
             </CardTitle>
             {conversations.length > 0 && (
               <div className="flex items-center gap-2 mt-2">
