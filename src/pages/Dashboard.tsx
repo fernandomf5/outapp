@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText, QrCode, Calendar, ShoppingBag, ArrowLeft } from "lucide-react";
+import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText, QrCode, Calendar, ShoppingBag, ArrowLeft, Calculator } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +18,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { TutorialVideos } from "@/components/TutorialVideos";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { MyPlanSection } from "@/components/MyPlanSection";
+import { DraggableCalculator } from "@/components/DraggableCalculator";
 import { MercadoPagoCheckout } from "@/components/MercadoPagoCheckout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TicketSystem } from "@/components/TicketSystem";
@@ -73,6 +74,7 @@ const Dashboard = () => {
   const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null);
   const [selectedAgentForManagement, setSelectedAgentForManagement] = useState<any>(null);
   const [selectedChatbotForManagement, setSelectedChatbotForManagement] = useState<any>(null);
+  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const activeTab = searchParams.get('tab') || 'overview';
   const section = searchParams.get('section');
   const chatbotId = searchParams.get('chatbotId');
@@ -286,6 +288,7 @@ const Dashboard = () => {
 
   return (
     <>
+      <DraggableCalculator isOpen={isCalculatorOpen} onClose={() => setIsCalculatorOpen(false)} />
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-background">
         <UserSidebar />
@@ -308,6 +311,14 @@ const Dashboard = () => {
               </div>
               
               <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsCalculatorOpen(true)}
+                  title="Calculadora"
+                >
+                  <Calculator className="w-5 h-5" />
+                </Button>
                 <ConversationNotificationBell />
                 <NotificationBell />
                 <TicketNotificationBell />
