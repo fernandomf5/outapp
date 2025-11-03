@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAIAgent } from "@/hooks/useAIAgent";
+import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft,
   Sparkles,
@@ -25,8 +26,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { nicheConfigs } from "@/data/nicheConfigs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Switch } from "@/components/ui/switch";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const AIAgentBuilder = () => {
   const { toast } = useToast();
@@ -52,6 +54,9 @@ const AIAgentBuilder = () => {
   const [isActive, setIsActive] = useState(true);
   const [nicheSearch, setNicheSearch] = useState("");
   const [accessType, setAccessType] = useState<'public' | 'private' | 'anonymous'>('public');
+  const [originalAccessType, setOriginalAccessType] = useState<'public' | 'private' | 'anonymous'>('public');
+  const [showAccessChangeDialog, setShowAccessChangeDialog] = useState(false);
+  const [pendingAccessType, setPendingAccessType] = useState<'public' | 'private' | 'anonymous' | null>(null);
 
   const currentNiche = nicheConfigs.find(n => n.id === selectedNiche);
   const filteredNiches = nicheSearch
@@ -71,13 +76,64 @@ const AIAgentBuilder = () => {
         setWelcomeMessage(agent.config?.welcomeMessage || welcomeMessage);
         setIsActive(agent.is_active);
         const at = (agent as any).access_type || 'public';
-        setAccessType(at === 'restricted' ? 'private' : at);
+        const normalizedAt = at === 'restricted' ? 'private' : at;
+        setAccessType(normalizedAt);
+        setOriginalAccessType(normalizedAt);
       }).catch(console.error);
     }
   }, [agentId, user]);
 
   const handleNicheDataChange = (field: string, value: string) => {
     setNicheData({ ...nicheData, [field]: value });
+  };
+
+  const handleAccessTypeChange = (value: 'public' | 'private' | 'anonymous') => {
+    if (agentId && value !== originalAccessType) {
+      setPendingAccessType(value);
+      setShowAccessChangeDialog(true);
+    } else {
+      setAccessType(value);
+    }
+  };
+
+  const handleConfirmAccessTypeChange = async () => {
+    if (!pendingAccessType || !agentId) return;
+
+    try {
+      // Excluir todos os customers
+      await supabase
+        .from('agent_customers')
+        .delete()
+        .eq('agent_id', agentId);
+
+      // Excluir todos os access requests
+      await supabase
+        .from('agent_access_requests')
+        .delete()
+        .eq('agent_id', agentId);
+
+      setAccessType(pendingAccessType);
+      setOriginalAccessType(pendingAccessType);
+      setShowAccessChangeDialog(false);
+      setPendingAccessType(null);
+
+      toast({
+        title: "Tipo de acesso alterado",
+        description: "Todos os usuários foram excluídos e podem se cadastrar novamente.",
+      });
+    } catch (error) {
+      console.error('Error changing access type:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível alterar o tipo de acesso.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelAccessTypeChange = () => {
+    setShowAccessChangeDialog(false);
+    setPendingAccessType(null);
   };
 
   const handleSave = async () => {
@@ -231,7 +287,7 @@ const AIAgentBuilder = () => {
           <Card className="p-4 sm:p-6 border-primary/20">
             <div className="max-w-2xl">
               <Label className="text-base sm:text-lg font-semibold mb-3 block">Tipo de Acesso</Label>
-              <Select value={accessType} onValueChange={(value: 'public' | 'private' | 'anonymous') => setAccessType(value)}>
+              <Select value={accessType} onValueChange={handleAccessTypeChange}>
                 <SelectTrigger className="w-full h-10 sm:h-12">
                   <SelectValue />
                 </SelectTrigger>
@@ -548,6 +604,24 @@ const AIAgentBuilder = () => {
           )}
         </div>
       </div>
+
+      {/* Dialog de confirmação de mudança de tipo de acesso */}
+      <AlertDialog open={showAccessChangeDialog} onOpenChange={setShowAccessChangeDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>⚠️ Alterar tipo de acesso</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ao alterar o tipo de acesso, <strong>todos os usuários cadastrados serão excluídos</strong>. Eles poderão se cadastrar novamente seguindo as novas regras de acesso.
+              <br/><br/>
+              Tem certeza que deseja continuar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelAccessTypeChange}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmAccessTypeChange}>Confirmar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

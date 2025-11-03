@@ -11,6 +11,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { supabase } from "@/integrations/supabase/client";
 
 const BotBuilder = () => {
   const { toast } = useToast();
@@ -24,6 +26,9 @@ const BotBuilder = () => {
   const [description, setDescription] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [accessType, setAccessType] = useState<'public' | 'anonymous'>('public');
+  const [originalAccessType, setOriginalAccessType] = useState<'public' | 'anonymous'>('public');
+  const [showAccessChangeDialog, setShowAccessChangeDialog] = useState(false);
+  const [pendingAccessType, setPendingAccessType] = useState<'public' | 'anonymous' | null>(null);
   const [enableQueue, setEnableQueue] = useState(true);
   const [enableAutoReply, setEnableAutoReply] = useState(true);
   const [autoReplyMessage, setAutoReplyMessage] = useState("Olá! Envie sua mensagem que responderei assim que possível. 😊");
@@ -35,13 +40,64 @@ const BotBuilder = () => {
         setBotName(chatbot.name);
         setDescription(chatbot.description || "");
         setIsActive(chatbot.is_active);
-        setAccessType((chatbot as any).access_type || 'public');
+        const at = (chatbot as any).access_type || 'public';
+        setAccessType(at);
+        setOriginalAccessType(at);
         setEnableQueue((chatbot as any).enable_queue !== false);
         setEnableAutoReply((chatbot as any).enable_auto_reply !== false);
         setAutoReplyMessage((chatbot as any).auto_reply_message || "Olá! Envie sua mensagem que responderei assim que possível. 😊");
       }).catch(console.error);
     }
   }, [chatbotId, user]);
+
+  const handleAccessTypeChange = (value: 'public' | 'anonymous') => {
+    if (chatbotId && value !== originalAccessType) {
+      setPendingAccessType(value);
+      setShowAccessChangeDialog(true);
+    } else {
+      setAccessType(value);
+    }
+  };
+
+  const handleConfirmAccessTypeChange = async () => {
+    if (!pendingAccessType || !chatbotId) return;
+
+    try {
+      // Excluir todos os customers
+      await supabase
+        .from('chatbot_customers')
+        .delete()
+        .eq('chatbot_id', chatbotId);
+
+      // Excluir todos os access requests
+      await supabase
+        .from('chatbot_access_requests')
+        .delete()
+        .eq('chatbot_id', chatbotId);
+
+      setAccessType(pendingAccessType);
+      setOriginalAccessType(pendingAccessType);
+      setShowAccessChangeDialog(false);
+      setPendingAccessType(null);
+
+      toast({
+        title: "Tipo de acesso alterado",
+        description: "Todos os usuários foram excluídos e podem se cadastrar novamente.",
+      });
+    } catch (error) {
+      console.error('Error changing access type:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível alterar o tipo de acesso.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelAccessTypeChange = () => {
+    setShowAccessChangeDialog(false);
+    setPendingAccessType(null);
+  };
 
   const handleSave = useCallback(async () => {
     if (!botName.trim()) {
@@ -208,7 +264,7 @@ const BotBuilder = () => {
             <div className="space-y-4">
               <div>
                 <Label htmlFor="access-type">Tipo de Acesso</Label>
-                <Select value={accessType} onValueChange={(value: any) => setAccessType(value)}>
+                <Select value={accessType} onValueChange={handleAccessTypeChange}>
                   <SelectTrigger id="access-type" className="mt-1">
                     <SelectValue />
                   </SelectTrigger>
@@ -311,6 +367,24 @@ const BotBuilder = () => {
           </Card>
         </div>
       </div>
+
+      {/* Dialog de confirmação de mudança de tipo de acesso */}
+      <AlertDialog open={showAccessChangeDialog} onOpenChange={setShowAccessChangeDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>⚠️ Alterar tipo de acesso</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ao alterar o tipo de acesso, <strong>todos os usuários cadastrados serão excluídos</strong>. Eles poderão se cadastrar novamente seguindo as novas regras de acesso.
+              <br/><br/>
+              Tem certeza que deseja continuar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelAccessTypeChange}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmAccessTypeChange}>Confirmar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
