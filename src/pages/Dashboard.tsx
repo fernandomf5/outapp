@@ -36,6 +36,14 @@ import { ChatbotManagementPanel } from "@/components/ChatbotManagementPanel";
 import AgentManagementPanel from "@/components/AgentManagementPanel";
 import { MyDomainsPanel } from "@/components/MyDomainsPanel";
 import { FloatingButtonGenerator } from "@/components/FloatingButtonGenerator";
+import { FinancialManagementPanel } from "@/components/FinancialManagementPanel";
+import { TeamManagementPanel } from "@/components/TeamManagementPanel";
+import { AdsManagementPanel } from "@/components/AdsManagementPanel";
+import { TaskOrganizerPanel } from "@/components/TaskOrganizerPanel";
+import { PopupCreatorPanel } from "@/components/PopupCreatorPanel";
+import { AdSpyPanel } from "@/components/AdSpyPanel";
+import { QuizCreatorPanel } from "@/components/QuizCreatorPanel";
+import { DigitalProductCreatorPanel } from "@/components/DigitalProductCreatorPanel";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -909,6 +917,38 @@ const Dashboard = () => {
 
           <TabsContent value="plan">
             <MyPlanSection />
+          </TabsContent>
+
+          <TabsContent value="financial">
+            <FinancialManagementPanel />
+          </TabsContent>
+
+          <TabsContent value="team">
+            <TeamManagementPanel />
+          </TabsContent>
+
+          <TabsContent value="ads">
+            <AdsManagementPanel />
+          </TabsContent>
+
+          <TabsContent value="tasks">
+            <TaskOrganizerPanel />
+          </TabsContent>
+
+          <TabsContent value="popups">
+            <PopupCreatorPanel />
+          </TabsContent>
+
+          <TabsContent value="adspy">
+            <AdSpyPanel />
+          </TabsContent>
+
+          <TabsContent value="quiz">
+            <QuizCreatorPanel />
+          </TabsContent>
+
+          <TabsContent value="digital-products">
+            <DigitalProductCreatorPanel />
           </TabsContent>
         </Tabs>
       </main>
