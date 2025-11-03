@@ -239,9 +239,11 @@ export const ConversationNotificationBell = () => {
     setIsOpen(false);
     
     if (notification.type === 'agent') {
-      navigate(`/dashboard?tab=agents&agentId=${notification.agent_id}&view=manage`);
+      // Navigate to agent management and trigger opening the conversation
+      navigate(`/dashboard?tab=agents&agentId=${notification.agent_id}&view=manage&conversationId=${notification.id}`);
     } else {
-      navigate(`/dashboard?tab=chatbots&chatbotId=${notification.chatbot_id}&view=manage`);
+      // Navigate to chatbot management and trigger opening the conversation
+      navigate(`/dashboard?tab=chatbots&chatbotId=${notification.chatbot_id}&view=manage&conversationId=${notification.id}`);
     }
   };
 
