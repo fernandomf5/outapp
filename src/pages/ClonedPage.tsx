@@ -571,7 +571,7 @@ export default function ClonedPage() {
       id="page-frame"
       title="Cloned Page"
       srcDoc={renderHtml}
-      sandbox="allow-scripts allow-forms allow-popups allow-modals allow-same-origin"
+      sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-modals allow-same-origin"
       loading="eager"
       style={{
         width: '100%',
