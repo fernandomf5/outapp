@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle, XCircle, Clock, User, Mail, Phone, Ban, Trash2 } from "lucide-react";
+import { CheckCircle, XCircle, Clock, User, Mail, Phone, Ban, Trash2, RefreshCw } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -186,6 +186,33 @@ export function AgentAccessRequestsPanel({ agentId }: { agentId: string }) {
     }
   };
 
+  const handleEnable = async (requestId: string) => {
+    setProcessing(requestId);
+    try {
+      const { error } = await supabase
+        .from('agent_access_requests')
+        .update({ is_active: true })
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Acesso Habilitado",
+        description: "O acesso foi habilitado com sucesso.",
+      });
+
+      loadRequests();
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setProcessing(null);
+    }
+  };
+
   const handleDelete = async (requestId: string) => {
     setProcessing(requestId);
     try {
@@ -336,15 +363,27 @@ export function AgentAccessRequestsPanel({ agentId }: { agentId: string }) {
             )}
 
             {request.status === 'approved' && request.is_active === false && (
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={() => handleDelete(request.id)}
-                disabled={processing === request.id}
-              >
-                <Trash2 className="w-4 h-4 mr-1" />
-                Excluir
-              </Button>
+              <div className="space-x-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="bg-green-500 hover:bg-green-600 text-white"
+                  onClick={() => handleEnable(request.id)}
+                  disabled={processing === request.id}
+                >
+                  <RefreshCw className="w-4 h-4 mr-1" />
+                  Habilitar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => handleDelete(request.id)}
+                  disabled={processing === request.id}
+                >
+                  <Trash2 className="w-4 h-4 mr-1" />
+                  Excluir
+                </Button>
+              </div>
             )}
           </div>
 
