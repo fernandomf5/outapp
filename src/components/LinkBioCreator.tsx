@@ -950,21 +950,22 @@ export function LinkBioCreator() {
                           <div className="flex items-center gap-2 w-full">
                             <Pipette className="w-4 h-4" />
                             <div
-                              className="h-6 w-6 rounded border"
+                              className="h-6 w-6 rounded border flex-shrink-0"
                               style={{ backgroundColor: gradientColor1 }}
                             />
-                            <span className="flex-1">{gradientColor1}</span>
+                            <span className="flex-1 truncate text-xs">{gradientColor1}</span>
                           </div>
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-3">
-                        <HexColorPicker color={gradientColor1} onChange={setGradientColor1} />
-                        <Input
-                          value={gradientColor1}
-                          onChange={(e) => setGradientColor1(e.target.value)}
-                          className="mt-2"
-                          placeholder="#667eea"
-                        />
+                      <PopoverContent className="w-auto p-3 z-[100]">
+                        <div className="space-y-3">
+                          <HexColorPicker color={gradientColor1} onChange={setGradientColor1} />
+                          <Input
+                            value={gradientColor1}
+                            onChange={(e) => setGradientColor1(e.target.value)}
+                            placeholder="#667eea"
+                          />
+                        </div>
                       </PopoverContent>
                     </Popover>
                   </div>
@@ -979,21 +980,22 @@ export function LinkBioCreator() {
                           <div className="flex items-center gap-2 w-full">
                             <Pipette className="w-4 h-4" />
                             <div
-                              className="h-6 w-6 rounded border"
+                              className="h-6 w-6 rounded border flex-shrink-0"
                               style={{ backgroundColor: gradientColor2 }}
                             />
-                            <span className="flex-1">{gradientColor2}</span>
+                            <span className="flex-1 truncate text-xs">{gradientColor2}</span>
                           </div>
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-3">
-                        <HexColorPicker color={gradientColor2} onChange={setGradientColor2} />
-                        <Input
-                          value={gradientColor2}
-                          onChange={(e) => setGradientColor2(e.target.value)}
-                          className="mt-2"
-                          placeholder="#764ba2"
-                        />
+                      <PopoverContent className="w-auto p-3 z-[100]">
+                        <div className="space-y-3">
+                          <HexColorPicker color={gradientColor2} onChange={setGradientColor2} />
+                          <Input
+                            value={gradientColor2}
+                            onChange={(e) => setGradientColor2(e.target.value)}
+                            placeholder="#764ba2"
+                          />
+                        </div>
                       </PopoverContent>
                     </Popover>
                   </div>
@@ -1012,21 +1014,22 @@ export function LinkBioCreator() {
                         <div className="flex items-center gap-2 w-full">
                           <Pipette className="w-4 h-4" />
                           <div
-                            className="h-6 w-6 rounded border"
+                            className="h-6 w-6 rounded border flex-shrink-0"
                             style={{ backgroundColor }}
                           />
-                          <span className="flex-1 truncate">{backgroundColor}</span>
+                          <span className="flex-1 truncate text-xs">{backgroundColor}</span>
                         </div>
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-3">
-                      <HexColorPicker color={backgroundColor} onChange={setBackgroundColor} />
-                      <Input
-                        value={backgroundColor}
-                        onChange={(e) => setBackgroundColor(e.target.value)}
-                        className="mt-2"
-                        placeholder="#ffffff"
-                      />
+                    <PopoverContent className="w-auto p-3 z-[100]">
+                      <div className="space-y-3">
+                        <HexColorPicker color={backgroundColor} onChange={setBackgroundColor} />
+                        <Input
+                          value={backgroundColor}
+                          onChange={(e) => setBackgroundColor(e.target.value)}
+                          placeholder="#ffffff"
+                        />
+                      </div>
                     </PopoverContent>
                   </Popover>
                 </div>
@@ -1041,21 +1044,22 @@ export function LinkBioCreator() {
                         <div className="flex items-center gap-2 w-full">
                           <Pipette className="w-4 h-4" />
                           <div
-                            className="h-6 w-6 rounded border"
+                            className="h-6 w-6 rounded border flex-shrink-0"
                             style={{ backgroundColor: textColor }}
                           />
-                          <span className="flex-1">{textColor}</span>
+                          <span className="flex-1 truncate text-xs">{textColor}</span>
                         </div>
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-3">
-                      <HexColorPicker color={textColor} onChange={setTextColor} />
-                      <Input
-                        value={textColor}
-                        onChange={(e) => setTextColor(e.target.value)}
-                        className="mt-2"
-                        placeholder="#000000"
-                      />
+                    <PopoverContent className="w-auto p-3 z-[100]">
+                      <div className="space-y-3">
+                        <HexColorPicker color={textColor} onChange={setTextColor} />
+                        <Input
+                          value={textColor}
+                          onChange={(e) => setTextColor(e.target.value)}
+                          placeholder="#000000"
+                        />
+                      </div>
                     </PopoverContent>
                   </Popover>
                 </div>
@@ -1070,21 +1074,22 @@ export function LinkBioCreator() {
                         <div className="flex items-center gap-2 w-full">
                           <Pipette className="w-4 h-4" />
                           <div
-                            className="h-6 w-6 rounded border"
+                            className="h-6 w-6 rounded border flex-shrink-0"
                             style={{ backgroundColor: buttonColor }}
                           />
-                          <span className="flex-1">{buttonColor}</span>
+                          <span className="flex-1 truncate text-xs">{buttonColor}</span>
                         </div>
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-3">
-                      <HexColorPicker color={buttonColor} onChange={setButtonColor} />
-                      <Input
-                        value={buttonColor}
-                        onChange={(e) => setButtonColor(e.target.value)}
-                        className="mt-2"
-                        placeholder="#000000"
-                      />
+                    <PopoverContent className="w-auto p-3 z-[100]">
+                      <div className="space-y-3">
+                        <HexColorPicker color={buttonColor} onChange={setButtonColor} />
+                        <Input
+                          value={buttonColor}
+                          onChange={(e) => setButtonColor(e.target.value)}
+                          placeholder="#000000"
+                        />
+                      </div>
                     </PopoverContent>
                   </Popover>
                 </div>
@@ -1099,21 +1104,22 @@ export function LinkBioCreator() {
                         <div className="flex items-center gap-2 w-full">
                           <Pipette className="w-4 h-4" />
                           <div
-                            className="h-6 w-6 rounded border"
+                            className="h-6 w-6 rounded border flex-shrink-0"
                             style={{ backgroundColor: buttonTextColor }}
                           />
-                          <span className="flex-1">{buttonTextColor}</span>
+                          <span className="flex-1 truncate text-xs">{buttonTextColor}</span>
                         </div>
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-3">
-                      <HexColorPicker color={buttonTextColor} onChange={setButtonTextColor} />
-                      <Input
-                        value={buttonTextColor}
-                        onChange={(e) => setButtonTextColor(e.target.value)}
-                        className="mt-2"
-                        placeholder="#ffffff"
-                      />
+                    <PopoverContent className="w-auto p-3 z-[100]">
+                      <div className="space-y-3">
+                        <HexColorPicker color={buttonTextColor} onChange={setButtonTextColor} />
+                        <Input
+                          value={buttonTextColor}
+                          onChange={(e) => setButtonTextColor(e.target.value)}
+                          placeholder="#ffffff"
+                        />
+                      </div>
                     </PopoverContent>
                   </Popover>
                 </div>
@@ -1188,21 +1194,22 @@ export function LinkBioCreator() {
                         <div className="flex items-center gap-2 w-full">
                           <Pipette className="w-4 h-4" />
                           <div
-                            className="h-6 w-6 rounded border"
+                            className="h-6 w-6 rounded border flex-shrink-0"
                             style={{ backgroundColor: backgroundOverlayColor }}
                           />
-                          <span className="flex-1">{backgroundOverlayColor}</span>
+                          <span className="flex-1 truncate text-xs">{backgroundOverlayColor}</span>
                         </div>
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-3">
-                      <HexColorPicker color={backgroundOverlayColor} onChange={setBackgroundOverlayColor} />
-                      <Input
-                        value={backgroundOverlayColor}
-                        onChange={(e) => setBackgroundOverlayColor(e.target.value)}
-                        className="mt-2"
-                        placeholder="#000000"
-                      />
+                    <PopoverContent className="w-auto p-3 z-[100]">
+                      <div className="space-y-3">
+                        <HexColorPicker color={backgroundOverlayColor} onChange={setBackgroundOverlayColor} />
+                        <Input
+                          value={backgroundOverlayColor}
+                          onChange={(e) => setBackgroundOverlayColor(e.target.value)}
+                          placeholder="#000000"
+                        />
+                      </div>
                     </PopoverContent>
                   </Popover>
                 </div>
@@ -1277,21 +1284,22 @@ export function LinkBioCreator() {
                         <div className="flex items-center gap-2 w-full">
                           <Pipette className="w-4 h-4" />
                           <div
-                            className="h-6 w-6 rounded border"
+                            className="h-6 w-6 rounded border flex-shrink-0"
                             style={{ backgroundColor: borderColor }}
                           />
-                          <span className="flex-1">{borderColor}</span>
+                          <span className="flex-1 truncate text-xs">{borderColor}</span>
                         </div>
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-3">
-                      <HexColorPicker color={borderColor} onChange={setBorderColor} />
-                      <Input
-                        value={borderColor}
-                        onChange={(e) => setBorderColor(e.target.value)}
-                        className="mt-2"
-                        placeholder="#000000"
-                      />
+                    <PopoverContent className="w-auto p-3 z-[100]">
+                      <div className="space-y-3">
+                        <HexColorPicker color={borderColor} onChange={setBorderColor} />
+                        <Input
+                          value={borderColor}
+                          onChange={(e) => setBorderColor(e.target.value)}
+                          placeholder="#000000"
+                        />
+                      </div>
                     </PopoverContent>
                   </Popover>
                 </div>
