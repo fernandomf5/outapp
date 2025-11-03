@@ -54,6 +54,8 @@ const Index = () => {
   const [footerMenus, setFooterMenus] = useState<any[]>([]);
   const [footerImages, setFooterImages] = useState<string[]>([]);
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
+  const [headCode, setHeadCode] = useState("");
+  const [footerCode, setFooterCode] = useState("");
   const [landingSettings, setLandingSettings] = useState({
     hero_title: "Plataforma Completa de Automação<br />e Marketing Digital com IA",
     hero_subtitle: "Construtor visual de automações, CRM, sistema de afiliados, pixels de conversão, agentes IA e muito mais. Tudo em uma plataforma. Teste grátis por 3 dias.",
@@ -185,7 +187,7 @@ const Index = () => {
   };
 
   const fetchSiteSettings = async () => {
-    const keys = ['site_title', 'site_logo_url', 'site_logo_light_url', 'site_logo_dark_url', 'site_favicon_url', 'footer_text', 'footer_menus', 'footer_images', 'social_links'];
+    const keys = ['site_title', 'site_logo_url', 'site_logo_light_url', 'site_logo_dark_url', 'site_favicon_url', 'footer_text', 'footer_menus', 'footer_images', 'social_links', 'head_code', 'footer_code'];
     const { data } = await supabase
       .from('site_settings')
       .select('key, value')
@@ -226,6 +228,12 @@ const Index = () => {
             try {
               setSocialLinks(JSON.parse(item.value || '[]'));
             } catch (e) {}
+            break;
+          case 'head_code':
+            setHeadCode(item.value || "");
+            break;
+          case 'footer_code':
+            setFooterCode(item.value || "");
             break;
         }
       });
@@ -389,6 +397,48 @@ const Index = () => {
       </SheetContent>
     </Sheet>
   );
+
+  // Inject custom head and footer codes
+  useEffect(() => {
+    // Inject head code
+    if (headCode) {
+      const headDiv = document.createElement('div');
+      headDiv.innerHTML = headCode;
+      const scripts = headDiv.querySelectorAll('script');
+      const styles = headDiv.querySelectorAll('style, link');
+      
+      scripts.forEach(script => {
+        const newScript = document.createElement('script');
+        if (script.src) {
+          newScript.src = script.src;
+        } else {
+          newScript.textContent = script.textContent;
+        }
+        document.head.appendChild(newScript);
+      });
+      
+      styles.forEach(style => {
+        document.head.appendChild(style.cloneNode(true));
+      });
+    }
+
+    // Inject footer code
+    if (footerCode) {
+      const footerDiv = document.createElement('div');
+      footerDiv.innerHTML = footerCode;
+      const scripts = footerDiv.querySelectorAll('script');
+      
+      scripts.forEach(script => {
+        const newScript = document.createElement('script');
+        if (script.src) {
+          newScript.src = script.src;
+        } else {
+          newScript.textContent = script.textContent;
+        }
+        document.body.appendChild(newScript);
+      });
+    }
+  }, [headCode, footerCode]);
 
   return (
     <div className="min-h-screen bg-background">

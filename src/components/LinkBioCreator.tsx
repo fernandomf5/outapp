@@ -710,15 +710,53 @@ export function LinkBioCreator() {
 
               <div>
                 <Label htmlFor="musicUrl">Música de Fundo (opcional)</Label>
-                <Input
-                  id="musicUrl"
-                  value={musicUrl}
-                  onChange={(e) => setMusicUrl(e.target.value)}
-                  placeholder="https://exemplo.com/musica.mp3"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Cole o URL direto de um arquivo de áudio (.mp3, .wav, etc)
-                </p>
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      type="file"
+                      accept="audio/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file && user) {
+                          const fileExt = file.name.split('.').pop();
+                          const fileName = `${user.id}/bio-music-${Date.now()}.${fileExt}`;
+                          
+                          const { error: uploadError } = await supabase.storage
+                            .from('chatbot-media')
+                            .upload(fileName, file);
+
+                          if (uploadError) {
+                            toast({
+                              title: "Erro ao enviar música",
+                              description: uploadError.message,
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+
+                          const { data: { publicUrl } } = supabase.storage
+                            .from('chatbot-media')
+                            .getPublicUrl(fileName);
+
+                          setMusicUrl(publicUrl);
+                          toast({
+                            title: "Música enviada!",
+                          });
+                        }
+                      }}
+                      className="flex-1"
+                    />
+                  </div>
+                  <Input
+                    id="musicUrl"
+                    value={musicUrl}
+                    onChange={(e) => setMusicUrl(e.target.value)}
+                    placeholder="Ou cole o URL de um arquivo de áudio"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Faça upload ou cole o URL de um arquivo de áudio (.mp3, .wav, etc)
+                  </p>
+                </div>
               </div>
 
               {musicUrl && (

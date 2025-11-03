@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { MessageSquare, Clock, CheckCircle2, Send, Filter } from "lucide-react";
+import { MessageSquare, Clock, CheckCircle2, Send, Filter, Trash2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -262,6 +262,31 @@ export const TicketsManager = () => {
     }
   };
 
+  const handleDeleteTicket = async (ticketId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este ticket? Esta ação não pode ser desfeita.')) return;
+
+    const { error } = await supabase
+      .from('tickets')
+      .delete()
+      .eq('id', ticketId);
+
+    if (!error) {
+      toast({
+        title: "Ticket excluído com sucesso"
+      });
+      if (selectedTicket?.id === ticketId) {
+        setSelectedTicket(null);
+      }
+      fetchTickets();
+    } else {
+      toast({
+        title: "Erro ao excluir ticket",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'open': return 'bg-blue-500/20 text-blue-500';
@@ -377,20 +402,30 @@ export const TicketsManager = () => {
                       <p>Email: <span className="font-medium">{selectedTicket.user_email || 'Não informado'}</span></p>
                     </div>
                   </div>
-                  <Select
-                    value={selectedTicket.status}
-                    onValueChange={(v) => handleUpdateStatus(selectedTicket.id, v)}
-                  >
-                    <SelectTrigger className="w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="open">Aberto</SelectItem>
-                      <SelectItem value="in_progress">Em Andamento</SelectItem>
-                      <SelectItem value="resolved">Resolvido</SelectItem>
-                      <SelectItem value="closed">Fechado</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={selectedTicket.status}
+                      onValueChange={(v) => handleUpdateStatus(selectedTicket.id, v)}
+                    >
+                      <SelectTrigger className="w-40">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="open">Aberto</SelectItem>
+                        <SelectItem value="in_progress">Em Andamento</SelectItem>
+                        <SelectItem value="resolved">Resolvido</SelectItem>
+                        <SelectItem value="closed">Fechado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      onClick={() => handleDeleteTicket(selectedTicket.id)}
+                      title="Excluir ticket"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
                 <p className="text-sm text-muted-foreground mb-2">{selectedTicket.description}</p>
                 <div className="flex gap-2">

@@ -4,9 +4,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Download, Phone, Mail } from "lucide-react";
+import { Download, Phone, Mail, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Lead {
   id: string;
@@ -16,12 +19,16 @@ interface Lead {
   source: string;
   sourceName: string;
   createdAt: string;
+  originalId?: string;
+  originalSource?: string;
 }
 
 export function GeneralCRMPanel() {
   const { user } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -46,7 +53,7 @@ export function GeneralCRMPanel() {
         
         const { data: chatbotConversations } = await supabase
           .from('chatbot_conversations')
-          .select('visitor_name, visitor_email, visitor_phone, chatbot_id, created_at')
+          .select('id, visitor_name, visitor_email, visitor_phone, chatbot_id, created_at')
           .in('chatbot_id', chatbotIds)
           .not('visitor_name', 'is', null);
 
@@ -55,7 +62,9 @@ export function GeneralCRMPanel() {
             const chatbot = chatbots.find(c => c.id === conv.chatbot_id);
             if (conv.visitor_name || conv.visitor_email || conv.visitor_phone) {
               allLeads.push({
-                id: `chatbot-${conv.chatbot_id}-${conv.created_at}`,
+                id: `chatbot-${conv.id}`,
+                originalId: conv.id,
+                originalSource: 'chatbot_conversations',
                 name: conv.visitor_name || 'N/A',
                 email: conv.visitor_email || 'N/A',
                 phone: conv.visitor_phone || 'N/A',
@@ -87,6 +96,8 @@ export function GeneralCRMPanel() {
             const agent = agents.find(a => a.id === customer.agent_id);
             allLeads.push({
               id: `agent-${customer.id}`,
+              originalId: customer.id,
+              originalSource: 'agent_customers',
               name: customer.name || 'N/A',
               email: customer.email || 'N/A',
               phone: customer.phone || 'N/A',
@@ -116,6 +127,8 @@ export function GeneralCRMPanel() {
           pageLeads.forEach(lead => {
             allLeads.push({
               id: `page-${lead.id}`,
+              originalId: lead.id,
+              originalSource: 'cloned_page_leads',
               name: lead.name || 'N/A',
               email: lead.email || 'N/A',
               phone: lead.phone || 'N/A',
@@ -169,6 +182,66 @@ export function GeneralCRMPanel() {
     a.click();
     window.URL.revokeObjectURL(url);
     toast.success('E-mails baixados com sucesso!');
+  };
+
+  const deleteLead = async (lead: Lead) => {
+    if (!confirm(`Tem certeza que deseja excluir o lead de ${lead.name}?`)) return;
+
+    if (!lead.originalSource || !lead.originalId) {
+      toast.error('Não foi possível identificar a origem do lead');
+      return;
+    }
+
+    const { error } = await supabase
+      .from(lead.originalSource as any)
+      .delete()
+      .eq('id', lead.originalId);
+
+    if (error) {
+      toast.error('Erro ao excluir lead: ' + error.message);
+    } else {
+      toast.success('Lead excluído com sucesso');
+      fetchAllLeads();
+    }
+  };
+
+  const openEditDialog = (lead: Lead) => {
+    setEditingLead(lead);
+    setEditDialogOpen(true);
+  };
+
+  const updateLead = async () => {
+    if (!editingLead || !editingLead.originalSource || !editingLead.originalId) return;
+
+    let updateData: any = {};
+    
+    // Mapear campos de acordo com a tabela de origem
+    if (editingLead.originalSource === 'chatbot_conversations') {
+      updateData = {
+        visitor_name: editingLead.name,
+        visitor_email: editingLead.email,
+        visitor_phone: editingLead.phone,
+      };
+    } else {
+      updateData = {
+        name: editingLead.name,
+        email: editingLead.email,
+        phone: editingLead.phone,
+      };
+    }
+
+    const { error } = await supabase
+      .from(editingLead.originalSource as any)
+      .update(updateData)
+      .eq('id', editingLead.originalId);
+
+    if (error) {
+      toast.error('Erro ao atualizar lead: ' + error.message);
+    } else {
+      toast.success('Lead atualizado com sucesso');
+      setEditDialogOpen(false);
+      fetchAllLeads();
+    }
   };
 
   const downloadAllLeads = () => {
@@ -233,6 +306,7 @@ export function GeneralCRMPanel() {
                     <TableHead>Origem</TableHead>
                     <TableHead>Fonte</TableHead>
                     <TableHead>Data</TableHead>
+                    <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -250,6 +324,24 @@ export function GeneralCRMPanel() {
                       <TableCell className="text-muted-foreground">
                         {new Date(lead.createdAt).toLocaleDateString('pt-BR')}
                       </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openEditDialog(lead)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteLead(lead)}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -262,6 +354,42 @@ export function GeneralCRMPanel() {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Lead</DialogTitle>
+          </DialogHeader>
+          {editingLead && (
+            <div className="space-y-4">
+              <div>
+                <Label>Nome</Label>
+                <Input
+                  value={editingLead.name}
+                  onChange={(e) => setEditingLead({ ...editingLead, name: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input
+                  value={editingLead.email || ''}
+                  onChange={(e) => setEditingLead({ ...editingLead, email: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Telefone</Label>
+                <Input
+                  value={editingLead.phone || ''}
+                  onChange={(e) => setEditingLead({ ...editingLead, phone: e.target.value })}
+                />
+              </div>
+              <Button onClick={updateLead} className="w-full">
+                Salvar Alterações
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
