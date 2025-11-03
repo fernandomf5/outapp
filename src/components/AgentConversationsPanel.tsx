@@ -270,13 +270,33 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         mediaType = 'document';
       }
 
+      // Adicionar mensagem otimisticamente à UI
+      const tempMessage = {
+        id: `temp-${Date.now()}`,
+        conversation_id: selectedConversation.id,
+        role: 'agent',
+        content: newMessage || (mediaType === 'image' ? '📷 Imagem' : '📄 Documento'),
+        sender_name: senderName,
+        media_url: mediaUrl,
+        media_type: mediaType,
+        created_at: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, tempMessage]);
+
+      // Limpar campos imediatamente após adicionar à UI
+      const messageToSend = newMessage;
+      setNewMessage("");
+      setSelectedImage(null);
+      setSelectedDocument(null);
+      setImagePreview(null);
+
       // Inserir mensagem do atendente humano
       const { error: msgError } = await supabase
         .from('agent_messages')
         .insert({
           conversation_id: selectedConversation.id,
           role: 'agent',
-          content: newMessage || (mediaType === 'image' ? '📷 Imagem' : '📄 Documento'),
+          content: messageToSend || (mediaType === 'image' ? '📷 Imagem' : '📄 Documento'),
           sender_name: senderName,
           media_url: mediaUrl,
           media_type: mediaType,
@@ -306,15 +326,18 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         setSelectedConversation({ ...selectedConversation, ai_enabled: false });
       }
 
-      setNewMessage("");
-      setSelectedImage(null);
-      setSelectedDocument(null);
-      setImagePreview(null);
+      // Recarregar mensagens após insert para obter IDs corretos
+      await loadMessages(selectedConversation.id);
+
       toast({
         title: "Mensagem enviada",
         description: needsDisableAI ? "Você assumiu o atendimento desta conversa. A IA foi desabilitada." : "Mensagem enviada com sucesso.",
       });
     } catch (error: any) {
+      // Em caso de erro, recarregar mensagens para remover a temporária
+      if (selectedConversation) {
+        loadMessages(selectedConversation.id);
+      }
       toast({
         title: "Erro ao enviar mensagem",
         description: error.message,
