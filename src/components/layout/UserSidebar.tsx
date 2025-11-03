@@ -123,9 +123,9 @@ export function UserSidebar() {
   ];
 
   const managementItems: MenuItem[] = [
-    { title: "Gestão Financeira", icon: DollarSign, path: "/dashboard", tab: "financeiro", inDevelopment: true },
-    { title: "Gestão de Equipe", icon: UserCog, path: "/dashboard", tab: "equipe", inDevelopment: true },
-    { title: "Gestão de Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios", inDevelopment: true },
+    { title: "Gestão Financeira", icon: DollarSign, path: "/dashboard", tab: "financeiro" },
+    { title: "Gestão de Equipe", icon: UserCog, path: "/dashboard", tab: "equipe" },
+    { title: "Gestão de Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios" },
   ];
 
   const crmItems: MenuItem[] = [
@@ -150,12 +150,13 @@ export function UserSidebar() {
     { title: "Link na Bio", icon: ExternalLink, path: "/dashboard", tab: "linkbio" },
     { title: t('link_shortener_title'), icon: Link2, path: "/dashboard", tab: "shortlinks", feature: "link_shortener" },
     { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner" },
-    { title: "Organizador de Tarefas", icon: Target, path: "/dashboard", tab: "tarefas", inDevelopment: true },
-    { title: "Criador de Pop-ups", icon: Megaphone, path: "/dashboard", tab: "popups", inDevelopment: true },
-    { title: "Gerenciador de Domínios", icon: Globe, path: "/dashboard", tab: "dominios", inDevelopment: true },
-    { title: "Espionar Anúncios", icon: Target, path: "/dashboard", tab: "espionar", inDevelopment: true },
-    { title: "Criador de Quizz", icon: HelpCircle, path: "/dashboard", tab: "criador-quizz", inDevelopment: true },
-    { title: "Criador de Produtos", icon: Package, path: "/dashboard", tab: "produto-digital", inDevelopment: true },
+    { title: "Organizador de Tarefas", icon: Target, path: "/dashboard", tab: "tarefas" },
+    { title: "Criador de Pop-ups", icon: Megaphone, path: "/dashboard", tab: "popups" },
+    { title: "Gerenciador de Domínios", icon: Globe, path: "/dashboard", tab: "dominios" },
+    { title: "Espionar Anúncios", icon: Target, path: "/dashboard", tab: "espionar" },
+    { title: "Criador de Quizz", icon: HelpCircle, path: "/dashboard", tab: "criador-quizz" },
+    { title: "Criador de Produtos", icon: Package, path: "/dashboard", tab: "produto-digital" },
+    { title: "Área de Membros", icon: UserCog, path: "/dashboard", tab: "area-membros" },
   ];
 
   const supportItems: MenuItem[] = [
@@ -173,20 +174,13 @@ export function UserSidebar() {
             <SidebarMenu>
               {mainItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    onClick={() => handleNavigation(item.path, item.tab)}
-                    className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {!collapsed && (
-                      <div className="flex flex-col gap-0.5 flex-1">
-                        <span>{item.title}</span>
-                        {item.inDevelopment && (
-                          <span className="text-[9px] text-red-500">em desenvolvimento</span>
-                        )}
-                      </div>
-                    )}
-                  </SidebarMenuButton>
+                    <SidebarMenuButton
+                      onClick={() => handleNavigation(item.path, item.tab)}
+                      className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
 
@@ -258,14 +252,7 @@ export function UserSidebar() {
                     className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
                   >
                     <item.icon className="h-4 w-4" />
-                    {!collapsed && (
-                      <div className="flex flex-col gap-0.5 flex-1">
-                        <span>{item.title}</span>
-                        {item.inDevelopment && (
-                          <span className="text-[9px] text-red-500">em desenvolvimento</span>
-                        )}
-                      </div>
-                    )}
+                    {!collapsed && <span>{item.title}</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -305,14 +292,7 @@ export function UserSidebar() {
                       className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
                     >
                       <item.icon className="h-4 w-4" />
-                      {!collapsed && (
-                        <div className="flex flex-col gap-0.5 flex-1">
-                          <span>{item.title}</span>
-                          {item.inDevelopment && (
-                            <span className="text-[9px] text-red-500">em desenvolvimento</span>
-                          )}
-                        </div>
-                      )}
+                      {!collapsed && <span>{item.title}</span>}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );

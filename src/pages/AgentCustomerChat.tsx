@@ -226,7 +226,22 @@ export default function AgentCustomerChat() {
         body: { agentId, customerId, customerName }
       });
 
-      if (error) throw error;
+      if (error) {
+        let errorMessage = "Não foi possível conectar ao agente";
+        if (error.message) {
+          errorMessage = error.message.includes("non-2xx") 
+            ? "Serviço temporariamente indisponível. Tente novamente em alguns instantes."
+            : error.message;
+        }
+        toast({
+          title: "Erro de conexão",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        navigate(`/agent-auth/${agentId}`, { replace: true });
+        return;
+      }
+      
       if (!data || data.error) {
         toast({
           title: "Agente indisponível",
@@ -432,7 +447,15 @@ export default function AgentCustomerChat() {
           }
         });
 
-        if (error) throw error;
+        if (error) {
+          let errorMessage = "Não foi possível processar sua mensagem";
+          if (error.message) {
+            errorMessage = error.message.includes("non-2xx") 
+              ? "Serviço temporariamente indisponível. Tente novamente em alguns instantes."
+              : error.message;
+          }
+          throw new Error(errorMessage);
+        }
 
         // Show notifications for appointments/orders
         if (data?.appointment) {
@@ -581,30 +604,22 @@ export default function AgentCustomerChat() {
               <p className="text-sm text-muted-foreground">Olá, {customer?.name}!</p>
               
               {/* Informação de acesso privado */}
+              {agentInfo?.access_type === 'private' && accessInfo && (
+                <Alert className={`mt-2 py-2 ${accessInfo.daysRemaining <= 3 ? 'border-destructive' : 'border-primary'}`}>
+                  <Clock className="h-4 w-4" />
+                  <AlertDescription className="ml-2">
+                    {accessInfo.daysRemaining > 0 ? (
+                      <>
+                        Acesso válido por <span className="font-semibold">{accessInfo.daysRemaining}</span> dia{accessInfo.daysRemaining !== 1 ? 's' : ''}
+                      </>
+                    ) : (
+                      <span className="text-destructive font-semibold">Acesso expira hoje!</span>
+                    )}
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
             
-            {/* Informação de acesso privado - movido para cima do nome */}
-            {agentInfo?.access_type === 'private' && accessInfo && (
-              <Alert className={`mt-2 py-2 ${accessInfo.daysRemaining <= 3 ? 'border-destructive' : 'border-primary'}`}>
-                <Clock className="h-4 w-4" />
-                <AlertDescription className="ml-2">
-                  {accessInfo.daysRemaining > 0 ? (
-                    <>
-                      Acesso válido por <span className="font-semibold">{accessInfo.daysRemaining}</span> dia{accessInfo.daysRemaining !== 1 ? 's' : ''}
-                    </>
-                  ) : (
-                    <span className="text-destructive font-semibold">Acesso expira hoje!</span>
-                  )}
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            <div className="flex items-center justify-between mt-2">
-              <div>
-                <h2 className="text-xl font-bold">{agentInfo?.name || 'Atendimento'}</h2>
-                <p className="text-sm text-muted-foreground">Olá, {customer?.name}!</p>
-              </div>
-            </div>
             <Button variant="ghost" size="icon" onClick={handleLogout}>
               <LogOut className="w-5 h-5" />
             </Button>

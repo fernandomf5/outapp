@@ -3004,6 +3004,7 @@ export type Database = {
           email_verified: boolean
           full_name: string
           id: string
+          is_banned: boolean | null
           password_hash: string | null
           updated_at: string
           user_id: string
@@ -3016,6 +3017,7 @@ export type Database = {
           email_verified?: boolean
           full_name: string
           id?: string
+          is_banned?: boolean | null
           password_hash?: string | null
           updated_at?: string
           user_id: string
@@ -3028,6 +3030,7 @@ export type Database = {
           email_verified?: boolean
           full_name?: string
           id?: string
+          is_banned?: boolean | null
           password_hash?: string | null
           updated_at?: string
           user_id?: string
