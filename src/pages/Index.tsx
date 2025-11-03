@@ -49,7 +49,6 @@ const Index = () => {
   const [logoUrl, setLogoUrl] = useState("");
   const [logoLightUrl, setLogoLightUrl] = useState("");
   const [logoDarkUrl, setLogoDarkUrl] = useState("");
-  const [faviconUrl, setFaviconUrl] = useState("");
   const [footerText, setFooterText] = useState("");
   const [footerMenus, setFooterMenus] = useState<any[]>([]);
   const [footerImages, setFooterImages] = useState<string[]>([]);
@@ -84,10 +83,6 @@ const Index = () => {
     updatePageTitle();
   }, [siteTitle]);
 
-  useEffect(() => {
-    updateFavicon();
-  }, [faviconUrl]);
-
   // Realtime subscription para atualizar configurações do site
   useEffect(() => {
     const channel = supabase
@@ -98,7 +93,7 @@ const Index = () => {
           event: '*',
           schema: 'public',
           table: 'site_settings',
-          filter: 'key=in.(site_title,site_logo_url,site_logo_light_url,site_logo_dark_url,site_favicon_url)'
+          filter: 'key=in.(site_title,site_logo_url,site_logo_light_url,site_logo_dark_url)'
         },
         () => {
           fetchSiteSettings();
@@ -187,7 +182,7 @@ const Index = () => {
   };
 
   const fetchSiteSettings = async () => {
-    const keys = ['site_title', 'site_logo_url', 'site_logo_light_url', 'site_logo_dark_url', 'site_favicon_url', 'footer_text', 'footer_menus', 'footer_images', 'social_links', 'head_code', 'footer_code'];
+    const keys = ['site_title', 'site_logo_url', 'site_logo_light_url', 'site_logo_dark_url', 'footer_text', 'footer_menus', 'footer_images', 'social_links', 'head_code', 'footer_code'];
     const { data } = await supabase
       .from('site_settings')
       .select('key, value')
@@ -207,9 +202,6 @@ const Index = () => {
             break;
           case 'site_logo_dark_url':
             setLogoDarkUrl(item.value || "");
-            break;
-          case 'site_favicon_url':
-            setFaviconUrl(item.value || "");
             break;
           case 'footer_text':
             setFooterText(item.value || "");
@@ -243,18 +235,6 @@ const Index = () => {
   const updatePageTitle = () => {
     if (siteTitle) {
       document.title = siteTitle;
-    }
-  };
-
-  const updateFavicon = () => {
-    if (faviconUrl) {
-      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'icon';
-        document.head.appendChild(link);
-      }
-      link.href = faviconUrl;
     }
   };
 
