@@ -219,8 +219,7 @@ export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
     }
   };
 
-  const toggleSelectCustomer = (customerId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const toggleSelectCustomer = (customerId: string) => {
     setSelectedCustomerIds(prev => 
       prev.includes(customerId) 
         ? prev.filter(id => id !== customerId)
@@ -305,7 +304,7 @@ export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
                 <div className="flex items-start gap-3">
                   <Checkbox
                     checked={selectedCustomerIds.includes(customer.id)}
-                    onCheckedChange={(e) => toggleSelectCustomer(customer.id, e as any)}
+                    onCheckedChange={() => toggleSelectCustomer(customer.id)}
                     onClick={(e) => e.stopPropagation()}
                     className="mt-1"
                   />
