@@ -197,7 +197,7 @@ export const ConversationNotificationBell = () => {
             let unreadCount = 0;
             if (messages && messages.length > 0) {
               // Find the index of the last admin or bot message
-              const lastResponseIndex = messages.findIndex(m => m.role === 'admin' || m.role === 'bot');
+              const lastResponseIndex = messages.findIndex(m => m.role === 'admin' || m.role === 'bot' || m.role === 'assistant');
               
               if (lastResponseIndex === -1) {
                 // No admin/bot message yet, count all user messages

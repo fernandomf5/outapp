@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useUserFeatures } from "@/hooks/useUserFeatures";
 import { NotificationBell } from "@/components/NotificationBell";
+import { ConversationNotificationBell } from "@/components/ConversationNotificationBell";
 import { TicketNotificationBell } from "@/components/TicketNotificationBell";
 import { UserSidebar } from "@/components/layout/UserSidebar";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
@@ -288,6 +289,7 @@ const Dashboard = () => {
               </div>
               
               <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                <ConversationNotificationBell />
                 <NotificationBell />
                 <TicketNotificationBell />
                 <LanguageSelector />
