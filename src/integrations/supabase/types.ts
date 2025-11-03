@@ -3058,6 +3058,33 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_calculations: {
+        Row: {
+          created_at: string
+          expression: string
+          id: string
+          name: string
+          result: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expression: string
+          id?: string
+          name: string
+          result: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expression?: string
+          id?: string
+          name?: string
+          result?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       short_links: {
         Row: {
           clicks: number

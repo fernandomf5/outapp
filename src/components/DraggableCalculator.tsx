@@ -55,13 +55,13 @@ export const DraggableCalculator = ({ isOpen, onClose }: DraggableCalculatorProp
     if (!user) return;
     
     const { data, error } = await supabase
-      .from('saved_calculations')
+      .from('saved_calculations' as any)
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (!error && data) {
-      setSavedCalculations(data);
+      setSavedCalculations(data as unknown as SavedCalculation[]);
     }
   };
 
@@ -173,7 +173,7 @@ export const DraggableCalculator = ({ isOpen, onClose }: DraggableCalculatorProp
     const expression = currentValue && operator ? `${currentValue} ${operator} ${display}` : display;
 
     const { error } = await supabase
-      .from('saved_calculations')
+      .from('saved_calculations' as any)
       .insert({
         user_id: user.id,
         name: calculationName,
@@ -200,7 +200,7 @@ export const DraggableCalculator = ({ isOpen, onClose }: DraggableCalculatorProp
 
   const handleDeleteCalculation = async (id: string) => {
     const { error } = await supabase
-      .from('saved_calculations')
+      .from('saved_calculations' as any)
       .delete()
       .eq('id', id);
 
