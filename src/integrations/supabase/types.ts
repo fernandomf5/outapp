@@ -473,7 +473,7 @@ export type Database = {
           id: string
           last_login_at: string | null
           name: string
-          password_hash: string
+          password_hash: string | null
           phone: string | null
           updated_at: string
           verification_token: string | null
@@ -487,7 +487,7 @@ export type Database = {
           id?: string
           last_login_at?: string | null
           name: string
-          password_hash: string
+          password_hash?: string | null
           phone?: string | null
           updated_at?: string
           verification_token?: string | null
@@ -501,7 +501,7 @@ export type Database = {
           id?: string
           last_login_at?: string | null
           name?: string
-          password_hash?: string
+          password_hash?: string | null
           phone?: string | null
           updated_at?: string
           verification_token?: string | null
