@@ -59,8 +59,8 @@ export default function AgentCustomerAuth() {
     setLoading(true);
 
     try {
-      // Validação de senha para acesso privado
-      if (accessType === 'private' && authMode === 'register' && formData.password !== formData.confirmPassword) {
+      // Validação de senha para acesso público
+      if (accessType === 'public' && authMode === 'register' && formData.password !== formData.confirmPassword) {
         toast({
           title: "Erro",
           description: "As senhas não coincidem",
@@ -267,29 +267,30 @@ export default function AgentCustomerAuth() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {authMode === 'register' && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nome</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    required
-                    placeholder="Seu nome completo"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    required={accessType === 'private'}
-                    placeholder="(00) 00000-0000"
-                  />
-                </div>
-              </>
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  required
+                  placeholder="Seu nome completo"
+                />
+              </div>
+            )}
+            
+            {/* Telefone apenas para acesso público */}
+            {authMode === 'register' && accessType !== 'private' && (
+              <div className="space-y-2">
+                <Label htmlFor="phone">Telefone</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  placeholder="(00) 00000-0000"
+                />
+              </div>
             )}
             
             <div className="space-y-2">
@@ -304,32 +305,37 @@ export default function AgentCustomerAuth() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
-                required
-                placeholder="Mínimo 6 caracteres"
-                minLength={6}
-              />
-            </div>
+            {/* Senha apenas para acesso público */}
+            {accessType !== 'private' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Senha</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    required
+                    placeholder="Mínimo 6 caracteres"
+                    minLength={6}
+                  />
+                </div>
 
-            {authMode === 'register' && accessType === 'private' && (
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar Senha</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                  required
-                  placeholder="Digite a senha novamente"
-                  minLength={6}
-                />
-              </div>
+                {authMode === 'register' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={formData.confirmPassword}
+                      onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                      required
+                      placeholder="Digite a senha novamente"
+                      minLength={6}
+                    />
+                  </div>
+                )}
+              </>
             )}
 
             {authMode === 'register' && accessType === 'private' && (

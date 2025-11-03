@@ -19,12 +19,15 @@ serve(async (req) => {
     const { action, agentId, email, password, name, phone, accessType } = await req.json();
 
     if (action === 'register') {
-      // Hash password
-      const encoder = new TextEncoder();
-      const data = encoder.encode(password);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      // Hash password (apenas para acesso não privado)
+      let passwordHash = null;
+      if (accessType !== 'private' && password) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      }
 
       // Check if customer already exists
       const { data: existing } = await supabase
@@ -95,7 +98,35 @@ serve(async (req) => {
     }
 
     if (action === 'login') {
-      // Hash password for comparison
+      // Para acesso privado, apenas verifica email
+      if (accessType === 'private') {
+        const { data: customer, error: findError } = await supabase
+          .from('agent_customers')
+          .select('*')
+          .eq('agent_id', agentId)
+          .eq('email', email)
+          .single();
+
+        if (findError || !customer) {
+          return new Response(
+            JSON.stringify({ error: 'Email não encontrado' }),
+            { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Update last login
+        await supabase
+          .from('agent_customers')
+          .update({ last_login_at: new Date().toISOString() })
+          .eq('id', customer.id);
+
+        return new Response(
+          JSON.stringify({ customer }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Para acesso público, verifica email e senha
       const encoder = new TextEncoder();
       const data = encoder.encode(password);
       const hashBuffer = await crypto.subtle.digest('SHA-256', data);
