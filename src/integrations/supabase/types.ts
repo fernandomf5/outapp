@@ -2390,6 +2390,54 @@ export type Database = {
         }
         Relationships: []
       }
+      digital_products: {
+        Row: {
+          category: string
+          cover_image_url: string | null
+          created_at: string
+          description: string
+          id: string
+          is_published: boolean
+          name: string
+          pdf_url: string | null
+          price: number
+          sales_count: number
+          updated_at: string
+          user_id: string
+          views_count: number
+        }
+        Insert: {
+          category: string
+          cover_image_url?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          is_published?: boolean
+          name: string
+          pdf_url?: string | null
+          price: number
+          sales_count?: number
+          updated_at?: string
+          user_id: string
+          views_count?: number
+        }
+        Update: {
+          category?: string
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          is_published?: boolean
+          name?: string
+          pdf_url?: string | null
+          price?: number
+          sales_count?: number
+          updated_at?: string
+          user_id?: string
+          views_count?: number
+        }
+        Relationships: []
+      }
       features: {
         Row: {
           category: string | null
@@ -2963,6 +3011,42 @@ export type Database = {
           full_name?: string
           id?: string
           password_hash?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      quizzes: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          questions: Json
+          responses_count: number
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          questions?: Json
+          responses_count?: number
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          questions?: Json
+          responses_count?: number
+          title?: string
           updated_at?: string
           user_id?: string
         }
