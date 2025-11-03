@@ -433,6 +433,7 @@ export type Database = {
           customer_id: string
           id: string
           last_message_at: string
+          last_read_by_owner_at: string | null
           status: string
           updated_at: string
         }
@@ -443,6 +444,7 @@ export type Database = {
           customer_id: string
           id?: string
           last_message_at?: string
+          last_read_by_owner_at?: string | null
           status?: string
           updated_at?: string
         }
@@ -453,6 +455,7 @@ export type Database = {
           customer_id?: string
           id?: string
           last_message_at?: string
+          last_read_by_owner_at?: string | null
           status?: string
           updated_at?: string
         }
@@ -1270,6 +1273,7 @@ export type Database = {
           created_at: string
           id: string
           last_message_at: string
+          last_read_by_owner_at: string | null
           session_id: string
           started_at: string
           status: string
@@ -1283,6 +1287,7 @@ export type Database = {
           created_at?: string
           id?: string
           last_message_at?: string
+          last_read_by_owner_at?: string | null
           session_id: string
           started_at?: string
           status?: string
@@ -1296,6 +1301,7 @@ export type Database = {
           created_at?: string
           id?: string
           last_message_at?: string
+          last_read_by_owner_at?: string | null
           session_id?: string
           started_at?: string
           status?: string

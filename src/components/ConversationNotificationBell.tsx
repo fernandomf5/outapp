@@ -120,6 +120,7 @@ export const ConversationNotificationBell = () => {
           .select(`
             id,
             last_message_at,
+            last_read_by_owner_at,
             agent_customers (name)
           `)
           .eq('agent_id', agent.id)
@@ -128,7 +129,9 @@ export const ConversationNotificationBell = () => {
 
         if (conversations) {
           for (const conv of conversations) {
-            // Get last message
+            // Get messages after last read time
+            const lastReadAt = conv.last_read_by_owner_at;
+            
             const { data: messages } = await supabase
               .from('agent_messages')
               .select('content, role, created_at')
@@ -136,18 +139,23 @@ export const ConversationNotificationBell = () => {
               .order('created_at', { ascending: false })
               .limit(20);
 
-            // Count unread messages (customer messages after last agent message)
+            // Count unread customer messages (after last_read_by_owner_at)
             let unreadCount = 0;
             if (messages && messages.length > 0) {
-              // Find the index of the last agent message
-              const lastAgentIndex = messages.findIndex(m => m.role === 'agent');
-              
-              if (lastAgentIndex === -1) {
-                // No agent message yet, count all customer messages
-                unreadCount = messages.filter(m => m.role === 'customer').length;
+              if (lastReadAt) {
+                // Count customer messages created after last read time
+                unreadCount = messages.filter(m => 
+                  m.role === 'customer' && 
+                  new Date(m.created_at) > new Date(lastReadAt)
+                ).length;
               } else {
-                // Count customer messages that came after the last agent message (before it in the array since it's DESC)
-                unreadCount = messages.slice(0, lastAgentIndex).filter(m => m.role === 'customer').length;
+                // No read timestamp, use old logic
+                const lastAgentIndex = messages.findIndex(m => m.role === 'agent');
+                if (lastAgentIndex === -1) {
+                  unreadCount = messages.filter(m => m.role === 'customer').length;
+                } else {
+                  unreadCount = messages.slice(0, lastAgentIndex).filter(m => m.role === 'customer').length;
+                }
               }
             }
             
@@ -179,14 +187,15 @@ export const ConversationNotificationBell = () => {
       for (const chatbot of chatbots) {
         const { data: conversations } = await supabase
           .from('chatbot_conversations')
-          .select('id, visitor_name, last_message_at')
+          .select('id, visitor_name, last_message_at, last_read_by_owner_at')
           .eq('chatbot_id', chatbot.id)
           .eq('status', 'active')
           .order('last_message_at', { ascending: false });
 
         if (conversations) {
           for (const conv of conversations) {
-            // Get last message
+            const lastReadAt = conv.last_read_by_owner_at;
+            
             const { data: messages } = await supabase
               .from('chatbot_messages')
               .select('content, role, created_at')
@@ -194,18 +203,23 @@ export const ConversationNotificationBell = () => {
               .order('created_at', { ascending: false })
               .limit(20);
 
-            // Count unread messages (user messages after last admin/bot message)
+            // Count unread user messages (after last_read_by_owner_at)
             let unreadCount = 0;
             if (messages && messages.length > 0) {
-              // Find the index of the last admin or bot message
-              const lastResponseIndex = messages.findIndex(m => m.role === 'admin' || m.role === 'bot' || m.role === 'assistant');
-              
-              if (lastResponseIndex === -1) {
-                // No admin/bot message yet, count all user messages
-                unreadCount = messages.filter(m => m.role === 'user').length;
+              if (lastReadAt) {
+                // Count user messages created after last read time
+                unreadCount = messages.filter(m => 
+                  m.role === 'user' && 
+                  new Date(m.created_at) > new Date(lastReadAt)
+                ).length;
               } else {
-                // Count user messages that came after the last admin/bot message (before it in the array since it's DESC)
-                unreadCount = messages.slice(0, lastResponseIndex).filter(m => m.role === 'user').length;
+                // No read timestamp, use old logic
+                const lastResponseIndex = messages.findIndex(m => m.role === 'admin' || m.role === 'bot' || m.role === 'assistant');
+                if (lastResponseIndex === -1) {
+                  unreadCount = messages.filter(m => m.role === 'user').length;
+                } else {
+                  unreadCount = messages.slice(0, lastResponseIndex).filter(m => m.role === 'user').length;
+                }
               }
             }
             
@@ -236,13 +250,31 @@ export const ConversationNotificationBell = () => {
     setTotalUnread(totalUnreadCount);
   };
 
-  const handleNotificationClick = (notification: ConversationNotification) => {
+  const handleNotificationClick = async (notification: ConversationNotification) => {
     setIsOpen(false);
     
-    if (notification.type === 'agent') {
-      navigate(`/dashboard?tab=agents&agentId=${notification.agent_id}&view=conversations&conversationId=${notification.id}`);
-    } else {
-      navigate(`/dashboard?tab=chatbots&chatbotId=${notification.chatbot_id}&view=conversations&conversationId=${notification.id}`);
+    // Mark conversation as read
+    try {
+      if (notification.type === 'agent') {
+        await supabase
+          .from('agent_conversations')
+          .update({ last_read_by_owner_at: new Date().toISOString() })
+          .eq('id', notification.id);
+        
+        navigate(`/dashboard?tab=agents&agentId=${notification.agent_id}&view=conversations&conversationId=${notification.id}`);
+      } else {
+        await supabase
+          .from('chatbot_conversations')
+          .update({ last_read_by_owner_at: new Date().toISOString() })
+          .eq('id', notification.id);
+        
+        navigate(`/dashboard?tab=chatbots&chatbotId=${notification.chatbot_id}&view=conversations&conversationId=${notification.id}`);
+      }
+      
+      // Update notifications immediately
+      fetchNotifications();
+    } catch (error) {
+      console.error('Error marking conversation as read:', error);
     }
   };
 
