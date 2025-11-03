@@ -10,6 +10,7 @@ import { ptBR } from "date-fns/locale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId?: string }) => {
   const [customers, setCustomers] = useState<any[]>([]);
@@ -18,7 +19,9 @@ export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId?: string }) => 
   const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]);
   const [editForm, setEditForm] = useState({ name: "", email: "", phone: "" });
   const { toast } = useToast();
 
@@ -162,6 +165,56 @@ export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId?: string }) => 
     }
   };
 
+  const handleBulkDelete = async () => {
+    try {
+      // First delete verification codes for all selected customers
+      await supabase
+        .from('chatbot_customer_verification_codes')
+        .delete()
+        .in('customer_id', selectedCustomerIds);
+
+      // Then delete the customers
+      const { error } = await supabase
+        .from('chatbot_customers')
+        .delete()
+        .in('id', selectedCustomerIds);
+
+      if (error) throw error;
+
+      toast({
+        title: "Clientes excluídos",
+        description: `${selectedCustomerIds.length} cliente(s) foram excluídos com sucesso.`,
+      });
+
+      setBulkDeleteDialogOpen(false);
+      setSelectedCustomerIds([]);
+      loadCustomers();
+    } catch (error) {
+      console.error('Error deleting customers:', error);
+      toast({
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir os clientes selecionados.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedCustomerIds.length === filteredCustomers.length) {
+      setSelectedCustomerIds([]);
+    } else {
+      setSelectedCustomerIds(filteredCustomers.map(c => c.id));
+    }
+  };
+
+  const toggleSelectCustomer = (customerId: string) => {
+    setSelectedCustomerIds(prev => 
+      prev.includes(customerId) 
+        ? prev.filter(id => id !== customerId)
+        : [...prev, customerId]
+    );
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center p-12">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -172,9 +225,21 @@ export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId?: string }) => 
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Dados de Clientes
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Dados de Clientes
+            </div>
+            {selectedCustomerIds.length > 0 && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setBulkDeleteDialogOpen(true)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Excluir Selecionados ({selectedCustomerIds.length})
+              </Button>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -187,6 +252,18 @@ export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId?: string }) => 
             />
           </div>
 
+          {filteredCustomers.length > 0 && (
+            <div className="flex items-center gap-2 pb-2 border-b">
+              <Checkbox
+                checked={selectedCustomerIds.length === filteredCustomers.length}
+                onCheckedChange={toggleSelectAll}
+              />
+              <span className="text-sm text-muted-foreground">
+                Selecionar todos
+              </span>
+            </div>
+          )}
+
           <div className="space-y-2">
             {filteredCustomers.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">
@@ -195,7 +272,12 @@ export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId?: string }) => 
             ) : (
               filteredCustomers.map((customer) => (
                 <Card key={customer.id} className="p-4">
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-4">
+                    <Checkbox
+                      checked={selectedCustomerIds.includes(customer.id)}
+                      onCheckedChange={() => toggleSelectCustomer(customer.id)}
+                      className="mt-1"
+                    />
                     <div className="space-y-1 flex-1">
                       <h4 className="font-medium">{customer.name}</h4>
                       {customer.email && (
@@ -293,6 +375,21 @@ export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId?: string }) => 
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteConfirm}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão em massa</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir {selectedCustomerIds.length} cliente(s)? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkDelete}>Excluir</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

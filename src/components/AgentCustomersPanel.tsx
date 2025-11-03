@@ -5,9 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { User, Mail, Phone, Calendar, MessageSquare, Search } from "lucide-react";
+import { User, Mail, Phone, Calendar, MessageSquare, Search, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Customer {
   id: string;
@@ -29,6 +33,13 @@ export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null);
+  const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
+  const [editForm, setEditForm] = useState({ name: "", email: "", phone: "" });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -100,6 +111,123 @@ export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
     }
   };
 
+  const handleEditClick = (customer: Customer, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCustomerToEdit(customer);
+    setEditForm({
+      name: customer.name || "",
+      email: customer.email || "",
+      phone: customer.phone || "",
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = (customer: Customer, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCustomerToDelete(customer);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleEditSave = async () => {
+    try {
+      const { error } = await supabase
+        .from('agent_customers')
+        .update({
+          name: editForm.name,
+          email: editForm.email,
+          phone: editForm.phone,
+        })
+        .eq('id', customerToEdit!.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Cliente atualizado",
+        description: "Os dados do cliente foram atualizados com sucesso.",
+      });
+
+      setEditDialogOpen(false);
+      loadCustomers();
+    } catch (error) {
+      console.error('Error updating customer:', error);
+      toast({
+        title: "Erro ao atualizar",
+        description: "Não foi possível atualizar os dados do cliente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      const { error } = await supabase
+        .from('agent_customers')
+        .delete()
+        .eq('id', customerToDelete!.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Cliente excluído",
+        description: "O cliente foi excluído com sucesso.",
+      });
+
+      setDeleteDialogOpen(false);
+      loadCustomers();
+    } catch (error) {
+      console.error('Error deleting customer:', error);
+      toast({
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir o cliente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      const { error } = await supabase
+        .from('agent_customers')
+        .delete()
+        .in('id', selectedCustomerIds);
+
+      if (error) throw error;
+
+      toast({
+        title: "Clientes excluídos",
+        description: `${selectedCustomerIds.length} cliente(s) foram excluídos com sucesso.`,
+      });
+
+      setBulkDeleteDialogOpen(false);
+      setSelectedCustomerIds([]);
+      loadCustomers();
+    } catch (error) {
+      console.error('Error deleting customers:', error);
+      toast({
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir os clientes selecionados.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedCustomerIds.length === filteredCustomers.length) {
+      setSelectedCustomerIds([]);
+    } else {
+      setSelectedCustomerIds(filteredCustomers.map(c => c.id));
+    }
+  };
+
+  const toggleSelectCustomer = (customerId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedCustomerIds(prev => 
+      prev.includes(customerId) 
+        ? prev.filter(id => id !== customerId)
+        : [...prev, customerId]
+    );
+  };
+
   if (loading) {
     return <div>Carregando clientes...</div>;
   }
@@ -119,7 +247,19 @@ export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-2xl font-bold">Dados de Clientes</h3>
-        <Badge variant="outline">{customers.length} total</Badge>
+        <div className="flex items-center gap-2">
+          {selectedCustomerIds.length > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setBulkDeleteDialogOpen(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Excluir Selecionados ({selectedCustomerIds.length})
+            </Button>
+          )}
+          <Badge variant="outline">{customers.length} total</Badge>
+        </div>
       </div>
 
       <div className="relative">
@@ -131,6 +271,18 @@ export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
           className="pl-10"
         />
       </div>
+
+      {filteredCustomers.length > 0 && (
+        <div className="flex items-center gap-2 pb-2 border-b">
+          <Checkbox
+            checked={selectedCustomerIds.length === filteredCustomers.length}
+            onCheckedChange={toggleSelectAll}
+          />
+          <span className="text-sm text-muted-foreground">
+            Selecionar todos
+          </span>
+        </div>
+      )}
 
       {filteredCustomers.length === 0 ? (
         <Card>
@@ -150,8 +302,14 @@ export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
               onClick={() => setSelectedCustomer(customer)}
             >
               <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div>
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    checked={selectedCustomerIds.includes(customer.id)}
+                    onCheckedChange={(e) => toggleSelectCustomer(customer.id, e as any)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="mt-1"
+                  />
+                  <div className="flex-1">
                     <CardTitle className="text-lg">{customer.name}</CardTitle>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                       <Mail className="w-4 h-4" />
@@ -164,9 +322,27 @@ export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
                       </div>
                     )}
                   </div>
-                  <Badge>
-                    {customer._count?.conversations || 0} conversas
-                  </Badge>
+                  <div className="flex flex-col items-end gap-2">
+                    <Badge>
+                      {customer._count?.conversations || 0} conversas
+                    </Badge>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={(e) => handleEditClick(customer, e)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={(e) => handleDeleteClick(customer, e)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -188,6 +364,77 @@ export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
           ))}
         </div>
       )}
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Cliente</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="name">Nome</Label>
+              <Input
+                id="name"
+                value={editForm.name}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={editForm.email}
+                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="phone">Telefone</Label>
+              <Input
+                id="phone"
+                value={editForm.phone}
+                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleEditSave}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o cliente {customerToDelete?.name}? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão em massa</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir {selectedCustomerIds.length} cliente(s)? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkDelete}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
