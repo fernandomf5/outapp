@@ -65,9 +65,8 @@ export const DraggableCalculator = ({ isOpen, onClose }: DraggableCalculatorProp
     }
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('.calc-button')) return;
-    
+  const handleHeaderMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
     setIsDragging(true);
     setDragOffset({
       x: e.clientX - position.x,
@@ -234,17 +233,19 @@ export const DraggableCalculator = ({ isOpen, onClose }: DraggableCalculatorProp
         style={{
           left: `${position.x}px`,
           top: `${position.y}px`,
-          cursor: isDragging ? 'grabbing' : 'grab',
         }}
-        onMouseDown={handleMouseDown}
       >
         <Card className="w-80 bg-card/95 backdrop-blur-sm border-2">
           <div className="p-4">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
+            {/* Header - Área de arrastar */}
+            <div 
+              className="flex items-center justify-between mb-4 cursor-grab active:cursor-grabbing select-none bg-accent/20 -mx-4 -mt-4 px-4 py-3 rounded-t-lg"
+              onMouseDown={handleHeaderMouseDown}
+            >
               <div className="flex items-center gap-2">
                 <Calculator className="w-5 h-5 text-primary" />
                 <h3 className="font-semibold">Calculadora</h3>
+                <span className="text-xs text-muted-foreground ml-2">(arraste aqui)</span>
               </div>
               <div className="flex gap-1">
                 <Button
