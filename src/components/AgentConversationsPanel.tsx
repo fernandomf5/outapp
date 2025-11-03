@@ -57,24 +57,21 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
 
   useEffect(() => {
     loadConversations();
-    setupRealtimeSubscription();
+    const channel = setupConversationsSubscription();
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [agentId]);
-
-  useEffect(() => {
-    if (searchTerm) {
-      const filtered = conversations.filter(conv =>
-        conv.agent_customers.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        conv.agent_customers.email.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredConversations(filtered);
-    } else {
-      setFilteredConversations(conversations);
-    }
-  }, [searchTerm, conversations]);
 
   useEffect(() => {
     if (selectedConversation) {
       loadMessages(selectedConversation.id);
+      const messagesChannel = setupMessagesSubscription();
+      return () => {
+        if (messagesChannel) {
+          supabase.removeChannel(messagesChannel);
+        }
+      };
     }
   }, [selectedConversation]);
 
@@ -127,7 +124,19 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     setMessages(data || []);
   };
 
-  const setupRealtimeSubscription = () => {
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = conversations.filter(conv =>
+        conv.agent_customers.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        conv.agent_customers.email.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredConversations(filtered);
+    } else {
+      setFilteredConversations(conversations);
+    }
+  }, [searchTerm, conversations]);
+
+  const setupConversationsSubscription = () => {
     const channel = supabase
       .channel('agent-conversations-panel')
       .on(
@@ -142,25 +151,34 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
           loadConversations();
         }
       )
+      .subscribe();
+
+    return channel;
+  };
+
+  const setupMessagesSubscription = () => {
+    if (!selectedConversation) return null;
+
+    const conversationId = selectedConversation.id;
+    
+    const channel = supabase
+      .channel(`agent-messages-${conversationId}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'agent_messages',
+          filter: `conversation_id=eq.${conversationId}`,
         },
-        (payload) => {
-          if (selectedConversation && payload.new.conversation_id === selectedConversation.id) {
-            // Recarregar todas as mensagens para garantir que aparecem em tempo real
-            loadMessages(selectedConversation.id);
-          }
+        () => {
+          // Recarregar todas as mensagens quando houver inserção
+          loadMessages(conversationId);
         }
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return channel;
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
