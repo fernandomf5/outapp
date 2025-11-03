@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell } from "lucide-react";
+import { Bell, CheckCircle, Circle, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 export const ChatbotNotificationsPanel = ({ chatbotId }: { chatbotId: string }) => {
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -30,15 +32,41 @@ export const ChatbotNotificationsPanel = ({ chatbotId }: { chatbotId: string }) 
     }
   };
 
-  const handleMarkAsRead = async (notificationId: string) => {
-    await supabase
-      .from('chatbot_notifications')
-      .update({ is_read: true })
-      .eq('id', notificationId);
+  const toggleReadStatus = async (e: React.MouseEvent, notificationId: string, currentStatus: boolean) => {
+    e.stopPropagation();
     
-    setNotifications(notifications.map(n => 
-      n.id === notificationId ? { ...n, is_read: true } : n
-    ));
+    try {
+      await supabase
+        .from('chatbot_notifications')
+        .update({ is_read: !currentStatus })
+        .eq('id', notificationId);
+      
+      setNotifications(notifications.map(n => 
+        n.id === notificationId ? { ...n, is_read: !currentStatus } : n
+      ));
+      
+      toast.success(`Notificação marcada como ${!currentStatus ? 'lida' : 'não lida'}`);
+    } catch (error) {
+      console.error('Error toggling read status:', error);
+      toast.error('Erro ao alterar status');
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent, notificationId: string) => {
+    e.stopPropagation();
+    
+    try {
+      await supabase
+        .from('chatbot_notifications')
+        .delete()
+        .eq('id', notificationId);
+      
+      setNotifications(notifications.filter(n => n.id !== notificationId));
+      toast.success('Notificação removida');
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      toast.error('Erro ao remover notificação');
+    }
   };
 
   if (loading) {
@@ -57,8 +85,7 @@ export const ChatbotNotificationsPanel = ({ chatbotId }: { chatbotId: string }) 
         {notifications.map((notification) => (
           <Card 
             key={notification.id} 
-            className={`p-4 cursor-pointer transition-all ${!notification.is_read ? 'border-primary' : ''}`}
-            onClick={() => !notification.is_read && handleMarkAsRead(notification.id)}
+            className={`p-4 transition-all group ${!notification.is_read ? 'border-primary border-l-4' : ''}`}
           >
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -68,12 +95,35 @@ export const ChatbotNotificationsPanel = ({ chatbotId }: { chatbotId: string }) 
                     <span className="inline-block w-2 h-2 bg-primary rounded-full"></span>
                   )}
                 </h4>
-                <span className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(notification.created_at), { 
-                    addSuffix: true,
-                    locale: ptBR 
-                  })}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">
+                    {formatDistanceToNow(new Date(notification.created_at), { 
+                      addSuffix: true,
+                      locale: ptBR 
+                    })}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => toggleReadStatus(e, notification.id, notification.is_read)}
+                    title={notification.is_read ? "Marcar como não lida" : "Marcar como lida"}
+                  >
+                    {notification.is_read ? (
+                      <Circle className="h-4 w-4" />
+                    ) : (
+                      <CheckCircle className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => handleDelete(e, notification.id)}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
               </div>
               <p className="text-sm text-muted-foreground">{notification.message}</p>
             </div>

@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { MessageCircle, X } from "lucide-react";
+import { MessageCircle, CheckCircle, Circle, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import {
   Popover,
   PopoverContent,
@@ -239,11 +240,33 @@ export const ConversationNotificationBell = () => {
     setIsOpen(false);
     
     if (notification.type === 'agent') {
-      // Navigate to agent management and trigger opening the conversation
-      navigate(`/dashboard?tab=agents&agentId=${notification.agent_id}&view=manage&conversationId=${notification.id}`);
+      navigate(`/dashboard?tab=agents&agentId=${notification.agent_id}&view=conversations&conversationId=${notification.id}`);
     } else {
-      // Navigate to chatbot management and trigger opening the conversation
-      navigate(`/dashboard?tab=chatbots&chatbotId=${notification.chatbot_id}&view=manage&conversationId=${notification.id}`);
+      navigate(`/dashboard?tab=chatbots&chatbotId=${notification.chatbot_id}&view=conversations&conversationId=${notification.id}`);
+    }
+  };
+
+  const handleDeleteConversation = async (e: React.MouseEvent, notification: ConversationNotification) => {
+    e.stopPropagation();
+    
+    try {
+      if (notification.type === 'agent') {
+        await supabase
+          .from('agent_conversations')
+          .delete()
+          .eq('id', notification.id);
+      } else {
+        await supabase
+          .from('chatbot_conversations')
+          .delete()
+          .eq('id', notification.id);
+      }
+      
+      toast.success('Conversa removida');
+      fetchNotifications();
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      toast.error('Erro ao remover conversa');
     }
   };
 
@@ -284,11 +307,13 @@ export const ConversationNotificationBell = () => {
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className="p-4 hover:bg-accent transition-colors cursor-pointer bg-primary/5"
-                  onClick={() => handleNotificationClick(notification)}
+                  className="p-4 hover:bg-accent transition-colors group bg-primary/5"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
+                    <div 
+                      className="flex-1 cursor-pointer"
+                      onClick={() => handleNotificationClick(notification)}
+                    >
                       <div className="flex items-center gap-2 mb-1">
                         <div className="w-2 h-2 rounded-full bg-primary" />
                         <p className="font-medium text-sm">
@@ -308,6 +333,14 @@ export const ConversationNotificationBell = () => {
                         {new Date(notification.last_message_at).toLocaleString('pt-BR')}
                       </p>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => handleDeleteConversation(e, notification)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
                   </div>
                 </div>
               ))}

@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, CheckCheck, Trash2 } from "lucide-react";
+import { Bell, CheckCheck, Circle, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -86,23 +86,26 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
     }
   };
 
-  const markAsRead = async (notificationId: string) => {
+  const toggleReadStatus = async (notificationId: string, currentStatus: boolean) => {
     try {
       const { error } = await supabase
         .from('agent_notifications')
-        .update({ is_read: true })
+        .update({ is_read: !currentStatus })
         .eq('id', notificationId);
 
       if (error) throw error;
       fetchNotifications();
+      toast.success(`Notificação marcada como ${!currentStatus ? 'lida' : 'não lida'}`);
     } catch (error) {
-      console.error('Error marking as read:', error);
-      toast.error('Erro ao marcar como lida');
+      console.error('Error toggling read status:', error);
+      toast.error('Erro ao alterar status');
     }
   };
 
   const handleNotificationClick = (notification: Notification) => {
-    markAsRead(notification.id);
+    if (!notification.is_read) {
+      toggleReadStatus(notification.id, notification.is_read);
+    }
     
     if (onNavigate) {
       const tabMap: Record<string, string> = {
@@ -208,12 +211,14 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
               filteredNotifications.map((notification) => (
                 <Card
                   key={notification.id}
-                  className={`cursor-pointer transition-colors ${!notification.is_read ? "border-l-4 border-l-primary hover:bg-accent" : "hover:bg-accent/50"}`}
-                  onClick={() => handleNotificationClick(notification)}
+                  className={`transition-colors group ${!notification.is_read ? "border-l-4 border-l-primary" : ""}`}
                 >
                   <CardContent className="pt-4">
                     <div className="flex items-start justify-between">
-                      <div className="flex-1">
+                      <div 
+                        className="flex-1 cursor-pointer"
+                        onClick={() => handleNotificationClick(notification)}
+                      >
                         <div className="flex items-center gap-2 mb-2">
                           <Badge className={notificationTypeColors[notification.notification_type] || "bg-gray-500"}>
                             {notificationTypeLabels[notification.notification_type] || notification.notification_type}
@@ -231,6 +236,21 @@ export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNo
                         </p>
                       </div>
                       <div className="flex items-center gap-2 ml-4">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleReadStatus(notification.id, notification.is_read);
+                          }}
+                          title={notification.is_read ? "Marcar como não lida" : "Marcar como lida"}
+                        >
+                          {notification.is_read ? (
+                            <Circle className="h-4 w-4" />
+                          ) : (
+                            <CheckCheck className="h-4 w-4" />
+                          )}
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"
