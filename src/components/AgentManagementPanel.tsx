@@ -19,7 +19,7 @@ interface AgentManagementPanelProps {
 }
 
 export default function AgentManagementPanel({ agentId, agentName }: AgentManagementPanelProps) {
-  const [activeTab, setActiveTab] = useState("analytics");
+  const [activeTab, setActiveTab] = useState("conversations");
   const [pendingAppointments, setPendingAppointments] = useState(0);
   const [pendingOrders, setPendingOrders] = useState(0);
   const [pendingAccessRequests, setPendingAccessRequests] = useState(0);
@@ -97,9 +97,9 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-9 gap-2">
-          <TabsTrigger value="analytics">
-            <BarChart3 className="w-4 h-4 mr-2" />
-            Analytics
+          <TabsTrigger value="conversations">
+            <MessageSquare className="w-4 h-4 mr-2" />
+            Conversas
           </TabsTrigger>
           <TabsTrigger value="services">
             <Wrench className="w-4 h-4 mr-2" />
@@ -144,14 +144,14 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
             <Users className="w-4 h-4 mr-2" />
             Clientes
           </TabsTrigger>
-          <TabsTrigger value="conversations">
-            <MessageSquare className="w-4 h-4 mr-2" />
-            Conversas
+          <TabsTrigger value="analytics">
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Analytics
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="analytics">
-          <AgentAnalyticsPanel agentId={agentId} />
+        <TabsContent value="conversations">
+          <AgentConversationsPanel agentId={agentId} />
         </TabsContent>
 
         <TabsContent value="services">
@@ -182,8 +182,8 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
           <AgentCustomersPanel agentId={agentId} />
         </TabsContent>
 
-        <TabsContent value="conversations">
-          <AgentConversationsPanel agentId={agentId} />
+        <TabsContent value="analytics">
+          <AgentAnalyticsPanel agentId={agentId} />
         </TabsContent>
       </Tabs>
     </div>
