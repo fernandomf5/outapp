@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { LogIn, MessageSquare } from "lucide-react";
@@ -26,6 +27,13 @@ export default function ChatbotCustomerAuth() {
     password: "",
     confirmPassword: "",
   });
+
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [errorDialog, setErrorDialog] = useState<{ title: string; message: string }>({ title: "", message: "" });
+  const showError = (title: string, message: string) => {
+    setErrorDialog({ title, message });
+    setErrorDialogOpen(true);
+  };
 
   // Verifica o tipo de acesso do chatbot
   useEffect(() => {
@@ -81,11 +89,7 @@ export default function ChatbotCustomerAuth() {
         navigate(`/chatbot-chat/${chatbotId}`);
       }
     } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message || "Código inválido",
-        variant: "destructive",
-      });
+      showError("Erro", error.message || "Código inválido");
     } finally {
       setLoading(false);
     }
@@ -108,11 +112,7 @@ export default function ChatbotCustomerAuth() {
         description: "Verifique seu e-mail",
       });
     } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError("Erro", error.message || "Falha ao reenviar código");
     } finally {
       setLoading(false);
     }
@@ -126,21 +126,13 @@ export default function ChatbotCustomerAuth() {
       // Validações
       if (authMode === 'register') {
         if (formData.email !== formData.emailConfirm) {
-          toast({
-            title: "Erro",
-            description: "Os e-mails não coincidem",
-            variant: "destructive",
-          });
+          showError("Erro", "Os e-mails não coincidem");
           setLoading(false);
           return;
         }
 
         if (formData.password !== formData.confirmPassword) {
-          toast({
-            title: "Erro",
-            description: "As senhas não coincidem",
-            variant: "destructive",
-          });
+          showError("Erro", "As senhas não coincidem");
           setLoading(false);
           return;
         }
@@ -196,11 +188,11 @@ export default function ChatbotCustomerAuth() {
         }
       }
     } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
+      if (authMode === 'login') {
+        showError("Erro no login", "Você errou o e-mail ou a senha.");
+      } else {
+        showError("Erro", error.message || "Ocorreu um erro.");
+      }
     } finally {
       setLoading(false);
     }

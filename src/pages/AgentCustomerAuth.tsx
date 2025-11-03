@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { LogIn, MessageSquare } from "lucide-react";
@@ -23,6 +24,13 @@ export default function AgentCustomerAuth() {
     password: "",
     confirmPassword: "",
   });
+
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [errorDialog, setErrorDialog] = useState<{ title: string; message: string }>({ title: "", message: "" });
+  const showError = (title: string, message: string) => {
+    setErrorDialog({ title, message });
+    setErrorDialogOpen(true);
+  };
 
   // Verifica o tipo de acesso do agent
   useEffect(() => {
@@ -61,11 +69,7 @@ export default function AgentCustomerAuth() {
     try {
       // Validação de senha para acesso público
       if (accessType === 'public' && authMode === 'register' && formData.password !== formData.confirmPassword) {
-        toast({
-          title: "Erro",
-          description: "As senhas não coincidem",
-          variant: "destructive",
-        });
+        showError("Erro", "As senhas não coincidem");
         setLoading(false);
         return;
       }
@@ -113,11 +117,7 @@ export default function AgentCustomerAuth() {
           } else {
             // Login existente - verificar status
             if (!accessRequest) {
-              toast({
-                title: "Acesso não encontrado",
-                description: "Você ainda não solicitou acesso a este agente.",
-                variant: "destructive",
-              });
+              showError("Acesso não encontrado", "Você ainda não solicitou acesso a este agente.");
               return;
             }
 
@@ -130,11 +130,7 @@ export default function AgentCustomerAuth() {
             }
 
             if (accessRequest.status === 'rejected') {
-              toast({
-                title: "Acesso negado",
-                description: "Sua solicitação de acesso foi rejeitada.",
-                variant: "destructive",
-              });
+              showError("Acesso negado", "Sua solicitação de acesso foi rejeitada.");
               return;
             }
 
@@ -160,11 +156,7 @@ export default function AgentCustomerAuth() {
         }
       }
     } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
+      showError("Erro", error.message || "Ocorreu um erro.");
     } finally {
       setLoading(false);
     }
@@ -365,6 +357,17 @@ export default function AgentCustomerAuth() {
           </form>
         </CardContent>
       </Card>
+      <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{errorDialog.title || "Aviso"}</DialogTitle>
+            <DialogDescription>{errorDialog.message}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setErrorDialogOpen(false)}>OK</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

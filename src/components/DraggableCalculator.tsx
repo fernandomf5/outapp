@@ -264,7 +264,9 @@ export const DraggableCalculator = ({ isOpen, onClose }: DraggableCalculatorProp
     <>
       <div
         ref={calculatorRef}
-        className="fixed z-50 shadow-2xl"
+        className="fixed z-[9999] shadow-2xl"
+        onMouseDown={handleHeaderMouseDown}
+        onTouchStart={handleHeaderTouchStart}
         style={{
           left: `${position.x}px`,
           top: `${position.y}px`,
