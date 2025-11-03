@@ -39,8 +39,8 @@ export default function AgentCustomerAuth() {
         if (agent?.access_type === 'anonymous') {
           // Acesso direto - mostra apenas campo de nome
           setAuthMode('anonymous');
-        } else if (agent?.access_type === 'restricted' || agent?.access_type === 'private') {
-          // Acesso privado/restrito - mostra escolha entre login e cadastro
+        } else if (agent?.access_type === 'private') {
+          // Acesso privado - mostra escolha entre login e cadastro
           setAuthMode('choice');
         }
 
@@ -59,8 +59,8 @@ export default function AgentCustomerAuth() {
     setLoading(true);
 
     try {
-      // Validação de senha para acesso privado/restrito
-      if ((accessType === 'restricted' || accessType === 'private') && authMode === 'register' && formData.password !== formData.confirmPassword) {
+      // Validação de senha para acesso privado
+      if (accessType === 'private' && authMode === 'register' && formData.password !== formData.confirmPassword) {
         toast({
           title: "Erro",
           description: "As senhas não coincidem",
@@ -94,8 +94,8 @@ export default function AgentCustomerAuth() {
       if (error) throw error;
 
       if (data.customer) {
-        // Para acesso restrito ou privado, verificar status de aprovação
-        if (accessType === 'restricted' || accessType === 'private') {
+        // Para acesso privado, verificar status de aprovação
+        if (accessType === 'private') {
           const { data: accessRequest } = await supabase
             .from('agent_access_requests')
             .select('status')
@@ -256,11 +256,11 @@ export default function AgentCustomerAuth() {
         <CardHeader>
           <CardTitle>
             {authMode === 'login' ? 'Entrar no Chat' : 
-             (accessType === 'restricted' || accessType === 'private') ? 'Solicitar Acesso' : 'Iniciar Novo Chat'}
+             accessType === 'private' ? 'Solicitar Acesso' : 'Iniciar Novo Chat'}
           </CardTitle>
           <CardDescription>
             {authMode === 'login' ? 'Entre com seu e-mail autorizado' : 
-             (accessType === 'restricted' || accessType === 'private') ? 'Preencha seus dados para solicitar acesso' :
+             accessType === 'private' ? 'Preencha seus dados para solicitar acesso' :
              'Preencha seus dados para iniciar'}
           </CardDescription>
         </CardHeader>
@@ -285,7 +285,7 @@ export default function AgentCustomerAuth() {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    required={accessType === 'restricted' || accessType === 'private'}
+                    required={accessType === 'private'}
                     placeholder="(00) 00000-0000"
                   />
                 </div>
@@ -317,7 +317,7 @@ export default function AgentCustomerAuth() {
               />
             </div>
 
-            {authMode === 'register' && (accessType === 'restricted' || accessType === 'private') && (
+            {authMode === 'register' && accessType === 'private' && (
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirmar Senha</Label>
                 <Input
@@ -332,7 +332,7 @@ export default function AgentCustomerAuth() {
               </div>
             )}
 
-            {authMode === 'register' && (accessType === 'restricted' || accessType === 'private') && (
+            {authMode === 'register' && accessType === 'private' && (
               <div className="bg-yellow-50 dark:bg-yellow-950 p-3 rounded-md text-sm text-yellow-900 dark:text-yellow-100">
                 ⚠️ Após o cadastro, você precisará aguardar a aprovação do administrador para acessar o chat.
               </div>
@@ -341,7 +341,7 @@ export default function AgentCustomerAuth() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Processando...' : (
                 authMode === 'login' ? 'Entrar' : 
-                (accessType === 'restricted' || accessType === 'private') ? 'Solicitar Acesso' : 
+                accessType === 'private' ? 'Solicitar Acesso' : 
                 'Cadastrar e Iniciar Chat'
               )}
             </Button>

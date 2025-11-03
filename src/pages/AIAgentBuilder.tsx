@@ -51,7 +51,7 @@ const AIAgentBuilder = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [nicheSearch, setNicheSearch] = useState("");
-  const [accessType, setAccessType] = useState<'public' | 'restricted' | 'anonymous'>('public');
+  const [accessType, setAccessType] = useState<'public' | 'private' | 'anonymous'>('public');
 
   const currentNiche = nicheConfigs.find(n => n.id === selectedNiche);
   const filteredNiches = nicheSearch
@@ -230,7 +230,7 @@ const AIAgentBuilder = () => {
           <Card className="p-4 sm:p-6 border-primary/20">
             <div className="max-w-2xl">
               <Label className="text-base sm:text-lg font-semibold mb-3 block">Tipo de Acesso</Label>
-              <Select value={accessType} onValueChange={(value: 'public' | 'restricted' | 'anonymous') => setAccessType(value)}>
+              <Select value={accessType} onValueChange={(value: 'public' | 'private' | 'anonymous') => setAccessType(value)}>
                 <SelectTrigger className="w-full h-10 sm:h-12">
                   <SelectValue />
                 </SelectTrigger>
@@ -247,7 +247,7 @@ const AIAgentBuilder = () => {
                       <span className="text-xs text-muted-foreground">Qualquer pessoa pode se cadastrar e usar</span>
                     </div>
                   </SelectItem>
-                  <SelectItem value="restricted">
+                  <SelectItem value="private">
                     <div className="flex flex-col items-start">
                       <span className="font-semibold text-sm">🔒 Acesso Privado (Com Aprovação)</span>
                       <span className="text-xs text-muted-foreground">Requer aprovação para acessar</span>
