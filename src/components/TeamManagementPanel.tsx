@@ -71,7 +71,7 @@ export const TeamManagementPanel = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setMembers(data || []);
+      setMembers(data as any || []);
     } catch (error: any) {
       toast.error("Erro ao carregar equipe");
     } finally {

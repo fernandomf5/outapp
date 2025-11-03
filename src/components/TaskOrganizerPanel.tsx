@@ -64,7 +64,7 @@ export const TaskOrganizerPanel = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setTasks(data || []);
+      setTasks(data as any || []);
     } catch (error: any) {
       toast.error("Erro ao carregar tarefas");
     } finally {

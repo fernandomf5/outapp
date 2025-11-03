@@ -73,7 +73,7 @@ export const FinancialManagementPanel = () => {
         .order('date', { ascending: false });
 
       if (error) throw error;
-      setTransactions(data || []);
+      setTransactions(data as any || []);
     } catch (error: any) {
       toast.error("Erro ao carregar transações");
     } finally {

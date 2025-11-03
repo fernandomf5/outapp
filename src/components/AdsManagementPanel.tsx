@@ -69,7 +69,7 @@ export const AdsManagementPanel = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setCampaigns(data || []);
+      setCampaigns(data as any || []);
     } catch (error: any) {
       toast.error("Erro ao carregar campanhas");
     } finally {

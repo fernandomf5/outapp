@@ -2872,6 +2872,63 @@ export type Database = {
         }
         Relationships: []
       }
+      popups: {
+        Row: {
+          button_link: string | null
+          button_text: string
+          clicks: number
+          content: string
+          created_at: string
+          delay_seconds: number | null
+          id: string
+          is_active: boolean
+          name: string
+          position: string
+          scroll_percentage: number | null
+          title: string
+          trigger_type: string
+          updated_at: string
+          user_id: string
+          views: number
+        }
+        Insert: {
+          button_link?: string | null
+          button_text: string
+          clicks?: number
+          content: string
+          created_at?: string
+          delay_seconds?: number | null
+          id?: string
+          is_active?: boolean
+          name: string
+          position?: string
+          scroll_percentage?: number | null
+          title: string
+          trigger_type: string
+          updated_at?: string
+          user_id: string
+          views?: number
+        }
+        Update: {
+          button_link?: string | null
+          button_text?: string
+          clicks?: number
+          content?: string
+          created_at?: string
+          delay_seconds?: number | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          position?: string
+          scroll_percentage?: number | null
+          title?: string
+          trigger_type?: string
+          updated_at?: string
+          user_id?: string
+          views?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
