@@ -261,7 +261,7 @@ export const ConversationNotificationBell = () => {
           .update({ last_read_by_owner_at: new Date().toISOString() })
           .eq('id', notification.id);
         
-        navigate(`/dashboard?tab=agents&agentId=${notification.agent_id}&agentView=conversations&conversationId=${notification.id}`);
+        navigate(`/dashboard?tab=ai-agents&agentId=${notification.agent_id}&agentView=conversations&conversationId=${notification.id}`);
       } else {
         await supabase
           .from('chatbot_conversations')

@@ -68,6 +68,7 @@ const Dashboard = () => {
   const activeTab = searchParams.get('tab') || 'overview';
   const section = searchParams.get('section');
   const chatbotId = searchParams.get('chatbotId');
+  const agentId = searchParams.get('agentId');
 
   // Se tiver chatbotId na URL, abrir painel de gerenciamento
   useEffect(() => {
@@ -78,6 +79,16 @@ const Dashboard = () => {
       }
     }
   }, [chatbotId, chatbots, activeTab]);
+
+  // Se tiver agentId na URL, abrir painel de gerenciamento
+  useEffect(() => {
+    if (agentId && activeTab === 'ai-agents') {
+      const agent = aiAgents.find((a) => a.id === agentId);
+      if (agent) {
+        setSelectedAgentForManagement(agent);
+      }
+    }
+  }, [agentId, aiAgents, activeTab]);
 
 
   useEffect(() => {
