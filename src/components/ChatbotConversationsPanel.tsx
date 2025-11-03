@@ -102,18 +102,34 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId?: string })
   };
 
   const loadUnreadCount = async () => {
-    let query = supabase
-      .from('chatbot_notifications')
-      .select('id')
-      .eq('is_read', false);
+    let totalUnread = 0;
 
-    if (chatbotId) {
-      query = query.eq('chatbot_id', chatbotId);
+    // Para cada conversa ativa, contar mensagens não lidas
+    for (const conv of conversations) {
+      if (conv.status !== 'active') continue;
+
+      const { data: messages } = await supabase
+        .from('chatbot_messages')
+        .select('role')
+        .eq('conversation_id', conv.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (messages && messages.length > 0) {
+        const lastResponseIndex = messages.findIndex(m => m.role === 'admin' || m.role === 'bot' || m.role === 'assistant');
+        
+        let unreadForConv = 0;
+        if (lastResponseIndex === -1) {
+          unreadForConv = messages.filter(m => m.role === 'user').length;
+        } else {
+          unreadForConv = messages.slice(0, lastResponseIndex).filter(m => m.role === 'user').length;
+        }
+        
+        totalUnread += unreadForConv;
+      }
     }
-
-    const { data } = await query;
     
-    setUnreadCount(data?.length || 0);
+    setUnreadCount(totalUnread);
   };
 
   const loadMessages = async (conversationId: string) => {
@@ -480,13 +496,7 @@ const handleSendMessage = async () => {
                   }`}
                   onClick={async () => {
                     setSelectedConversation(conversation);
-                    // Marcar notificações relacionadas como lidas
-                    await supabase
-                      .from('chatbot_notifications')
-                      .update({ is_read: true })
-                      .eq('chatbot_id', chatbotId)
-                      .eq('is_read', false);
-                    loadUnreadCount();
+                    await loadUnreadCount();
                   }}
                 >
                   <div className="space-y-1">

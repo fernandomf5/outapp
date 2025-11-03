@@ -110,13 +110,34 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   };
 
   const loadUnreadCount = async () => {
-    const { data } = await supabase
-      .from('agent_notifications')
-      .select('id')
-      .eq('agent_id', agentId)
-      .eq('is_read', false);
+    let totalUnread = 0;
+
+    // Para cada conversa ativa, contar mensagens não lidas
+    for (const conv of conversations) {
+      if (conv.status !== 'active') continue;
+
+      const { data: messages } = await supabase
+        .from('agent_messages')
+        .select('role')
+        .eq('conversation_id', conv.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (messages && messages.length > 0) {
+        const lastAgentIndex = messages.findIndex(m => m.role === 'agent');
+        
+        let unreadForConv = 0;
+        if (lastAgentIndex === -1) {
+          unreadForConv = messages.filter(m => m.role === 'customer').length;
+        } else {
+          unreadForConv = messages.slice(0, lastAgentIndex).filter(m => m.role === 'customer').length;
+        }
+        
+        totalUnread += unreadForConv;
+      }
+    }
     
-    setUnreadCount(data?.length || 0);
+    setUnreadCount(totalUnread);
   };
 
   const loadMessages = async (conversationId: string) => {
@@ -506,13 +527,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                   }`}
                   onClick={async () => {
                     setSelectedConversation(conv);
-                    // Marcar notificações relacionadas como lidas
-                    await supabase
-                      .from('agent_notifications')
-                      .update({ is_read: true })
-                      .eq('agent_id', agentId)
-                      .eq('is_read', false);
-                    loadUnreadCount();
+                    await loadUnreadCount();
                   }}
                 >
                   <CardContent className="p-4">
