@@ -18,6 +18,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import AgentNotificationsPanel from "@/components/AgentNotificationsPanel";
 
 interface MyAIAgentsProps {
   onManage?: (agent: { id: string; name: string; niche: string }) => void;
@@ -32,6 +39,7 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<Record<string, { appointments: number; orders: number; messages: number }>>({});
+  const [selectedAgentForNotifications, setSelectedAgentForNotifications] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAgents();
@@ -209,15 +217,7 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
           const totalNotifications = (notifications[agent.id]?.appointments || 0) + (notifications[agent.id]?.orders || 0) + (notifications[agent.id]?.messages || 0);
           
           return (
-          <Card key={agent.id} className="p-6 hover:shadow-lg transition-all relative">
-            {totalNotifications > 0 && (
-              <Badge 
-                variant="destructive" 
-                className="absolute -top-2 -right-2 h-6 min-w-6 flex items-center justify-center rounded-full text-xs font-bold"
-              >
-                {totalNotifications}
-              </Badge>
-            )}
+          <Card key={agent.id} className="p-6 hover:shadow-lg transition-all">
             <div className="flex items-start justify-between mb-4">
               <div className="bg-success/10 p-3 rounded-xl">
                 <Sparkles className="w-6 h-6 text-success" />
@@ -243,7 +243,7 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
                   variant="ghost"
                   size="icon"
                   className="relative"
-                  onClick={() => onManage && onManage({ id: agent.id, name: agent.name, niche: agent.niche })}
+                  onClick={() => setSelectedAgentForNotifications(agent.id)}
                   title="Notificações"
                 >
                   <Bell className="w-4 h-4" />
@@ -331,6 +331,17 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={!!selectedAgentForNotifications} onOpenChange={() => setSelectedAgentForNotifications(null)}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Notificações do Agente</DialogTitle>
+          </DialogHeader>
+          {selectedAgentForNotifications && (
+            <AgentNotificationsPanel agentId={selectedAgentForNotifications} />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

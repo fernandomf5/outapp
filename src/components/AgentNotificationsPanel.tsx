@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Check, CheckCheck, Trash2 } from "lucide-react";
+import { Bell, CheckCheck, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -40,7 +40,7 @@ const notificationTypeColors: Record<string, string> = {
   appointment_reminder: "bg-orange-500"
 };
 
-export default function AgentNotificationsPanel({ agentId }: AgentNotificationsPanelProps) {
+export default function AgentNotificationsPanel({ agentId, onNavigate }: AgentNotificationsPanelProps & { onNavigate?: (tab: string, referenceId?: string) => void }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "unread">("unread");
@@ -98,6 +98,25 @@ export default function AgentNotificationsPanel({ agentId }: AgentNotificationsP
     } catch (error) {
       console.error('Error marking as read:', error);
       toast.error('Erro ao marcar como lida');
+    }
+  };
+
+  const handleNotificationClick = (notification: Notification) => {
+    markAsRead(notification.id);
+    
+    if (onNavigate) {
+      const tabMap: Record<string, string> = {
+        new_order: 'orders',
+        new_appointment: 'appointments',
+        new_message: 'conversations',
+        new_review: 'reviews',
+        payment_received: 'financial',
+      };
+      
+      const tab = tabMap[notification.notification_type];
+      if (tab) {
+        onNavigate(tab, notification.reference_id || undefined);
+      }
     }
   };
 
@@ -189,7 +208,8 @@ export default function AgentNotificationsPanel({ agentId }: AgentNotificationsP
               filteredNotifications.map((notification) => (
                 <Card
                   key={notification.id}
-                  className={!notification.is_read ? "border-l-4 border-l-primary" : ""}
+                  className={`cursor-pointer transition-colors ${!notification.is_read ? "border-l-4 border-l-primary hover:bg-accent" : "hover:bg-accent/50"}`}
+                  onClick={() => handleNotificationClick(notification)}
                 >
                   <CardContent className="pt-4">
                     <div className="flex items-start justify-between">
@@ -211,19 +231,13 @@ export default function AgentNotificationsPanel({ agentId }: AgentNotificationsP
                         </p>
                       </div>
                       <div className="flex items-center gap-2 ml-4">
-                        {!notification.is_read && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => markAsRead(notification.id)}
-                          >
-                            <Check className="h-4 w-4" />
-                          </Button>
-                        )}
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => deleteNotification(notification.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteNotification(notification.id);
+                          }}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>

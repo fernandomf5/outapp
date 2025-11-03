@@ -216,6 +216,13 @@ export function AgentAccessRequestsPanel({ agentId }: { agentId: string }) {
   const handleDelete = async (requestId: string) => {
     setProcessing(requestId);
     try {
+      // Buscar o customer_id da solicitação antes de excluir
+      const { data: requestData } = await supabase
+        .from('agent_access_requests')
+        .select('customer_id')
+        .eq('id', requestId)
+        .single();
+
       const { error } = await supabase
         .from('agent_access_requests')
         .delete()
@@ -223,9 +230,17 @@ export function AgentAccessRequestsPanel({ agentId }: { agentId: string }) {
 
       if (error) throw error;
 
+      // Se houver customer_id, excluir o customer também para permitir novo cadastro
+      if (requestData?.customer_id) {
+        await supabase
+          .from('agent_customers')
+          .delete()
+          .eq('id', requestData.customer_id);
+      }
+
       toast({
         title: "Acesso Excluído",
-        description: "A solicitação foi excluída com sucesso.",
+        description: "A solicitação foi excluída e o usuário poderá se cadastrar novamente.",
       });
 
       loadRequests();
@@ -387,32 +402,40 @@ export function AgentAccessRequestsPanel({ agentId }: { agentId: string }) {
             )}
           </div>
 
-          {request.status === 'pending' && (
-            <div className="space-y-3">
+          {(request.status === 'pending' || request.status === 'approved') && (
+            <div className="space-y-3 mt-4 pt-4 border-t">
               <div className="space-y-2">
-                <Label htmlFor={`days-${request.id}`}>Dias de acesso</Label>
+                <Label htmlFor={`days-${request.id}`}>
+                  {request.status === 'pending' ? 'Dias de acesso' : 'Duração do acesso (dias)'}
+                </Label>
                 <Input
                   id={`days-${request.id}`}
                   type="number"
                   min="1"
-                  value={accessDays[request.id] || 30}
+                  value={accessDays[request.id] || request.access_duration_days || 30}
                   onChange={(e) => setAccessDays({ ...accessDays, [request.id]: parseInt(e.target.value) || 30 })}
                   placeholder="Número de dias"
+                  disabled={request.status === 'approved'}
                 />
                 <p className="text-xs text-muted-foreground">
-                  O acesso será válido por {accessDays[request.id] || 30} dias após a aprovação
+                  {request.status === 'pending' 
+                    ? `O acesso será válido por ${accessDays[request.id] || 30} dias após a aprovação`
+                    : `Acesso válido por ${request.access_duration_days || 30} dias`
+                  }
                 </p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor={`notes-${request.id}`}>Observações (opcional)</Label>
-                <Textarea
-                  id={`notes-${request.id}`}
-                  value={notes[request.id] || ''}
-                  onChange={(e) => setNotes({ ...notes, [request.id]: e.target.value })}
-                  placeholder="Adicione observações sobre esta solicitação..."
-                  rows={2}
-                />
-              </div>
+              {request.status === 'pending' && (
+                <div className="space-y-2">
+                  <Label htmlFor={`notes-${request.id}`}>Observações (opcional)</Label>
+                  <Textarea
+                    id={`notes-${request.id}`}
+                    value={notes[request.id] || ''}
+                    onChange={(e) => setNotes({ ...notes, [request.id]: e.target.value })}
+                    placeholder="Adicione observações sobre esta solicitação..."
+                    rows={2}
+                  />
+                </div>
+              )}
             </div>
           )}
         </Card>
