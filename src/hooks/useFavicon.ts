@@ -43,13 +43,16 @@ export const useFavicon = () => {
 
   useEffect(() => {
     if (faviconUrl) {
-      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'icon';
-        document.head.appendChild(link);
-      }
+      // Remove todos os links de favicon existentes
+      const existingLinks = document.querySelectorAll("link[rel~='icon']");
+      existingLinks.forEach(link => link.remove());
+      
+      // Cria um novo link de favicon
+      const link = document.createElement('link');
+      link.rel = 'icon';
+      link.type = 'image/png';
       link.href = faviconUrl;
+      document.head.appendChild(link);
     }
   }, [faviconUrl]);
 
