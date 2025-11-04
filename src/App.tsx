@@ -31,6 +31,7 @@ import ChatbotCustomerChat from "./pages/ChatbotCustomerChat";
 import Blog from "./pages/Blog";
 import CalculatorPage from "./pages/CalculatorPage";
 import QuizPage from "./pages/QuizPage";
+import BriefingPublicPage from "./pages/BriefingPublicPage";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const AppContent = () => {
               <Route path="/blog/:slug" element={<Blog />} />
               <Route path="/calculadora" element={<CalculatorPage />} />
               <Route path="/quiz/:quizId" element={<QuizPage />} />
+              <Route path="/briefing/:briefingId" element={<BriefingPublicPage />} />
               <Route path="/bot-builder" element={
                 <ProtectedRoute>
                   <BotBuilder />

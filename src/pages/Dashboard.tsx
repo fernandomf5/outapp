@@ -47,6 +47,8 @@ import { QuizCreatorPanel } from "@/components/QuizCreatorPanel";
 import { DigitalProductCreatorPanel } from "@/components/DigitalProductCreatorPanel";
 import { MembersAreaCreator } from "@/components/MembersAreaCreator";
 import { BriefingCreatorPanel } from "@/components/BriefingCreatorPanel";
+import { QuickNotesPanel } from "@/components/QuickNotesPanel";
+import { TextToSpeechPanel } from "@/components/TextToSpeechPanel";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -356,6 +358,9 @@ const Dashboard = () => {
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
 
           <TabsContent value="overview" className="space-y-6 sm:space-y-8">
+        {/* Quick Notes Panel */}
+        <QuickNotesPanel />
+        
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Card className="p-4 sm:p-6 hover:shadow-lg transition-smooth">
@@ -970,6 +975,10 @@ const Dashboard = () => {
 
           <TabsContent value="area-membros">
             <MembersAreaCreator />
+          </TabsContent>
+
+          <TabsContent value="text-to-speech">
+            <TextToSpeechPanel />
           </TabsContent>
         </Tabs>
       </main>

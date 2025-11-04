@@ -40,13 +40,13 @@ export const QuickNotesPanel = () => {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from('quick_notes')
+        .from('quick_notes' as any)
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setNotes(data as any || []);
+      setNotes((data as any) || []);
     } catch (error) {
       console.error("Erro ao carregar notas:", error);
     }
@@ -58,14 +58,14 @@ export const QuickNotesPanel = () => {
       if (!user) return;
 
       const { error } = await supabase
-        .from('quick_notes')
+        .from('quick_notes' as any)
         .insert([{
           user_id: user.id,
           title: formData.title,
           content: formData.content,
           reminder_date: formData.reminder_date || null,
           is_completed: false
-        }]);
+        }] as any);
 
       if (error) throw error;
 
@@ -81,8 +81,8 @@ export const QuickNotesPanel = () => {
   const handleToggleComplete = async (id: string, currentStatus: boolean) => {
     try {
       const { error } = await supabase
-        .from('quick_notes')
-        .update({ is_completed: !currentStatus })
+        .from('quick_notes' as any)
+        .update({ is_completed: !currentStatus } as any)
         .eq('id', id);
 
       if (error) throw error;
@@ -95,7 +95,7 @@ export const QuickNotesPanel = () => {
   const handleDeleteNote = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('quick_notes')
+        .from('quick_notes' as any)
         .delete()
         .eq('id', id);
 

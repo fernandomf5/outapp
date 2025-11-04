@@ -3253,6 +3253,39 @@ export type Database = {
         }
         Relationships: []
       }
+      quick_notes: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_completed: boolean
+          reminder_date: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          reminder_date?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          reminder_date?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       quizzes: {
         Row: {
           created_at: string

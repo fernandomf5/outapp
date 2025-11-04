@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Bot, Sparkles, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ChevronDown, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, Database, Target, Globe, HelpCircle, Package, Lightbulb, UserCog, Megaphone } from "lucide-react";
+import { Bot, Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ChevronDown, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, Database, Target, Globe, HelpCircle, Package, Lightbulb, UserCog, Megaphone } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,6 +18,7 @@ import {
   SidebarMenuSubButton,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useUserFeatures } from "@/hooks/useUserFeatures";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -158,6 +159,7 @@ export function UserSidebar() {
     { title: "Criador de Briefing", icon: FileText, path: "/dashboard", tab: "briefing" },
     { title: "Criador de Produtos", icon: Package, path: "/dashboard", tab: "produto-digital" },
     { title: "Área de Membros", icon: UserCog, path: "/dashboard", tab: "area-membros" },
+    { title: "Narração de Texto (TTS)", icon: Volume2, path: "/dashboard", tab: "text-to-speech" },
   ];
 
   const supportItems: MenuItem[] = [
@@ -284,20 +286,31 @@ export function UserSidebar() {
           <SidebarGroupLabel>{t('tools')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {toolsItems.map((item) => {
-                if (item.feature && !hasFeature(item.feature)) return null;
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      onClick={() => handleNavigation(item.path, item.tab)}
-                      className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
+              <TooltipProvider delayDuration={300}>
+                {toolsItems.map((item) => {
+                  if (item.feature && !hasFeature(item.feature)) return null;
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarMenuButton
+                            onClick={() => handleNavigation(item.path, item.tab)}
+                            className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                          >
+                            <item.icon className="h-4 w-4" />
+                            {!collapsed && <span>{item.title}</span>}
+                          </SidebarMenuButton>
+                        </TooltipTrigger>
+                        {collapsed && (
+                          <TooltipContent side="right">
+                            <p>{item.title}</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </TooltipProvider>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
