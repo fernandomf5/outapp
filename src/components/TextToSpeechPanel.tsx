@@ -44,6 +44,23 @@ export const TextToSpeechPanel = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    const loadVoices = () => {
+      const v = window.speechSynthesis.getVoices();
+      setAvailableVoices(v);
+    };
+    loadVoices();
+    // Some browsers load voices async
+    // @ts-ignore
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    return () => {
+      // @ts-ignore - cleanup handler
+      window.speechSynthesis.onvoiceschanged = null;
+    };
+  }, []);
 
   const selectedVoiceData = neuralVoices.find(v => v.id === selectedVoice);
 
@@ -56,38 +73,41 @@ export const TextToSpeechPanel = () => {
     setIsGenerating(true);
 
     try {
-      // Usar Web Speech API como demonstração
-      // Em produção, você pode usar Azure TTS, Google TTS, ElevenLabs, etc.
-      
       if ('speechSynthesis' in window) {
+        // Parar qualquer fala em andamento antes de iniciar outra
+        window.speechSynthesis.cancel();
+
         const utterance = new SpeechSynthesisUtterance(text);
-        
-        // Tentar encontrar uma voz em português
-        const voices = window.speechSynthesis.getVoices();
-        const ptVoice = voices.find(voice => voice.lang.startsWith('pt'));
-        
-        if (ptVoice) {
-          utterance.voice = ptVoice;
+
+        // Escolher voz baseada na seleção do usuário
+        let chosen: SpeechSynthesisVoice | undefined;
+        const ptVoices = availableVoices.filter(v => v.lang?.toLowerCase().startsWith('pt'));
+        if (ptVoices.length > 0) {
+          const idx = Math.max(0, neuralVoices.findIndex(v => v.id === selectedVoice));
+          chosen = ptVoices[idx % ptVoices.length];
+        } else if (availableVoices.length > 0) {
+          chosen = availableVoices[0];
         }
-        
+        if (chosen) utterance.voice = chosen;
+
         utterance.rate = speed[0];
         utterance.pitch = pitch[0];
-        
+
         utterance.onstart = () => {
           setIsPlaying(true);
           setIsGenerating(false);
         };
-        
+
         utterance.onend = () => {
           setIsPlaying(false);
         };
-        
+
         utterance.onerror = () => {
           setIsPlaying(false);
           setIsGenerating(false);
           toast.error("Erro ao gerar narração");
         };
-        
+
         window.speechSynthesis.speak(utterance);
         toast.success("Narração iniciada!");
       } else {

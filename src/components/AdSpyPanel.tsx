@@ -17,6 +17,7 @@ import {
   Share2
 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Ad {
   id: string;
@@ -41,6 +42,7 @@ export const AdSpyPanel = () => {
   const [loading, setLoading] = useState(false);
   const [savedAds, setSavedAds] = useState<string[]>([]);
   const [showConfigHelp, setShowConfigHelp] = useState(false);
+  const [results, setResults] = useState<Ad[]>([]);
 
   // Dados de exemplo (em produção, viria de uma API)
   const exampleAds: Ad[] = [
@@ -88,13 +90,24 @@ export const AdSpyPanel = () => {
     }
   ];
 
-  const handleSearch = () => {
-    setLoading(true);
-    // Simulação de busca
-    setTimeout(() => {
-      setLoading(false);
+  const handleSearch = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.functions.invoke('ad-spy-search', {
+        body: { query: searchQuery, platform, industry },
+      });
+      if (error) throw error;
+      if (data?.ads) {
+        setResults(data.ads as Ad[]);
+      } else {
+        setResults([]);
+      }
       toast.success("Busca concluída!");
-    }, 1500);
+    } catch (e: any) {
+      toast.error(e.message || 'Erro ao buscar anúncios');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSaveAd = (adId: string) => {
@@ -270,7 +283,7 @@ export const AdSpyPanel = () => {
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{exampleAds.length}</div>
+            <div className="text-2xl font-bold">{(results.length || exampleAds.length)}</div>
             <p className="text-xs text-muted-foreground">nesta busca</p>
           </CardContent>
         </Card>
@@ -333,7 +346,7 @@ export const AdSpyPanel = () => {
             </Card>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {exampleAds.map((ad) => (
+              {(results.length ? results : exampleAds).map((ad) => (
                 <Card key={ad.id} className="glass hover:shadow-lg transition-smooth overflow-hidden">
                   {ad.image_url && (
                     <div className="relative aspect-video bg-muted">

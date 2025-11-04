@@ -194,24 +194,36 @@ export function BriefingCreatorPanel() {
       toast.error("Preencha o nome do campo");
       return;
     }
-    
-    const newField = {
-      ...fieldData,
-      id: `field-${Date.now()}-${Math.random()}`
-    };
-    setFormData(prev => ({
-      ...prev,
-      fields: [...prev.fields, newField]
-    }));
-    setFieldData({
-      id: '',
-      type: 'text',
-      label: '',
-      placeholder: '',
-      required: false
+
+    setFormData(prev => {
+      // Editar existente
+      if (fieldData.id) {
+        const idx = prev.fields.findIndex(f => f.id === fieldData.id);
+        if (idx !== -1) {
+          const updated = [...prev.fields];
+          updated[idx] = { ...fieldData };
+          toast.success("Campo atualizado!");
+          return { ...prev, fields: updated };
+        }
+      }
+
+      // Evitar duplicatas por label+type
+      const exists = prev.fields.some(f => f.label.trim().toLowerCase() === fieldData.label.trim().toLowerCase() && f.type === fieldData.type);
+      if (exists) {
+        toast.error("Já existe um campo com esse nome e tipo");
+        return prev;
+      }
+
+      const newField = {
+        ...fieldData,
+        id: `field-${Date.now()}-${Math.random()}`,
+      };
+      toast.success("Campo adicionado!");
+      return { ...prev, fields: [...prev.fields, newField] };
     });
+
+    setFieldData({ id: '', type: 'text', label: '', placeholder: '', required: false });
     setIsFieldDialogOpen(false);
-    toast.success("Campo adicionado!");
   };
 
   const handleRemoveField = (fieldId: string) => {

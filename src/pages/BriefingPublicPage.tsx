@@ -62,6 +62,13 @@ export default function BriefingPublicPage() {
       if (error) throw error;
 
       toast.success("Briefing enviado com sucesso!");
+      // Incrementar contador de respostas
+      if (briefingId) {
+        await supabase
+          .from('briefings')
+          .update({ responses_count: (briefing?.responses_count || 0) + 1 })
+          .eq('id', briefingId);
+      }
       setResponses({});
       setVisitorInfo({ name: '', email: '', phone: '' });
     } catch (error) {

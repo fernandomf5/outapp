@@ -47,6 +47,7 @@ export const QuizCreatorPanel = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [customDomains, setCustomDomains] = useState<Array<{id: string; domain: string; is_verified: boolean}>>([]);
   const [selectedCustomDomain, setSelectedCustomDomain] = useState("");
+  const [host, setHost] = useState("");
   
   const [formData, setFormData] = useState({
     title: '',
@@ -65,6 +66,9 @@ export const QuizCreatorPanel = () => {
   useEffect(() => {
     loadQuizzes();
     fetchCustomDomains();
+    if (typeof window !== 'undefined') {
+      setHost(window.location.host);
+    }
   }, []);
 
   const fetchCustomDomains = async () => {
@@ -263,7 +267,7 @@ export const QuizCreatorPanel = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">
-                      {window.location.host} (padrão)
+                      {(host || 'domínio padrão')} (padrão)
                     </SelectItem>
                     {customDomains.filter(d => d.is_verified).map((domain) => (
                       <SelectItem key={domain.id} value={domain.domain}>

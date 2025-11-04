@@ -71,7 +71,7 @@ export function MembersAreaCreator() {
       if (error) throw error;
       setMembersAreas((data || []) as unknown as MembersArea[]);
     } catch (error: any) {
-      toast.error("Erro ao carregar áreas de membros");
+      toast.error(`Erro ao carregar áreas de membros: ${error?.message || ''}`);
     } finally {
       setLoading(false);
     }
@@ -121,7 +121,7 @@ export function MembersAreaCreator() {
       setFormData({ title: '', description: '', banner_url: '', logo_url: '' });
       loadMembersAreas();
     } catch (error: any) {
-      toast.error("Erro ao criar área de membros");
+      toast.error(`Erro ao criar área de membros: ${error?.message || ''}`);
     }
   };
 
