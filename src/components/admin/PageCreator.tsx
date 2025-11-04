@@ -13,8 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
+// Removed ReactQuill due to hook issues in this environment
 
 interface CustomPage {
   id: string;
@@ -186,14 +185,14 @@ export const PageCreator = () => {
             </div>
 
             <div>
-              <Label>Conteúdo</Label>
-              <ReactQuill
-                theme="snow"
+              <Label>Conteúdo (HTML ou texto)</Label>
+              <textarea
+                className="min-h-[220px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={content}
-                onChange={setContent}
-                className="bg-background"
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Digite texto ou HTML (p.ex. <p>Olá</p>)"
               />
-              <p className="text-xs text-muted-foreground mt-2">O conteúdo será exibido entre o cabeçalho e o rodapé do site.</p>
+              <p className="text-xs text-muted-foreground mt-2">Suporta texto simples e HTML básico (será sanitizado na exibição pública).</p>
             </div>
 
             <div className="flex items-center gap-2">
@@ -202,7 +201,7 @@ export const PageCreator = () => {
               </Button>
               {createdSlug && (
                 <Button asChild variant="outline">
-                  <Link to={`/${createdSlug}`} target="_blank" rel="noopener noreferrer">
+                  <Link to={`/${createdSlug}`}>
                     Ver página
                   </Link>
                 </Button>
@@ -232,7 +231,7 @@ export const PageCreator = () => {
                   </div>
                   <div className="flex gap-2">
                     <Button variant="ghost" size="sm" asChild>
-                      <Link to={`/${page.slug}`} target="_blank" rel="noopener noreferrer">
+                      <Link to={`/${page.slug}`}>
                         <Eye className="w-4 h-4" />
                       </Link>
                     </Button>
@@ -281,12 +280,12 @@ export const PageCreator = () => {
               </div>
 
               <div>
-                <Label>Conteúdo</Label>
-                <ReactQuill
-                  theme="snow"
+                <Label>Conteúdo (HTML ou texto)</Label>
+                <textarea
+                  className="min-h-[300px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   value={editingPage.content}
-                  onChange={(val) => setEditingPage({ ...editingPage, content: val })}
-                  className="bg-background"
+                  onChange={(e) => setEditingPage({ ...editingPage, content: e.target.value })}
+                  placeholder="Digite texto ou HTML (p.ex. <h2>Título</h2>)"
                 />
               </div>
 
