@@ -72,13 +72,17 @@ const CustomPage = () => {
 
       <LandingHeader />
 
-      <main className="pt-20 sm:pt-24 md:pt-32 flex-1 container mx-auto px-4 py-12">
-        <article className="max-w-4xl mx-auto">
-          <h1 className="text-3xl sm:text-4xl font-bold mb-8">{page.title}</h1>
-          <div className="prose prose-lg dark:prose-invert max-w-none">
-            <p className="whitespace-pre-wrap">{page.content}</p>
-          </div>
-        </article>
+      <main className="pt-20 sm:pt-24 md:pt-32 pb-12 flex-1">
+        <div className="container mx-auto px-4 py-12">
+          <article className="max-w-4xl mx-auto">
+            <h1 className="text-4xl md:text-5xl font-bold mb-8 text-foreground">{page.title}</h1>
+            <div className="prose prose-lg dark:prose-invert max-w-none text-foreground">
+              <div className="whitespace-pre-wrap text-base leading-relaxed">
+                {page.content}
+              </div>
+            </div>
+          </article>
+        </div>
       </main>
 
       <LandingFooter />
