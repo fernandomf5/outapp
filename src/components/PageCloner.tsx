@@ -499,7 +499,7 @@ export const PageCloner = () => {
                   </p>
                 </div>
                 <div>
-                  <Label>Selecione a Página *</Label>
+                  <Label>Selecione o Domínio *</Label>
                   <Select
                     value={cloneData.selected_page_path}
                     onValueChange={(value) => setCloneData({ ...cloneData, selected_page_path: value })}
