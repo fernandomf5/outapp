@@ -34,12 +34,15 @@ export default function SitePage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const { data, error } = await supabase
+        const preview = new URLSearchParams(window.location.search).get('preview') === '1';
+        let query = supabase
           .from('websites')
           .select('*')
-          .eq('slug', slug)
-          .eq('is_published', true)
-          .single();
+          .eq('slug', slug);
+        if (!preview) {
+          query = query.eq('is_published', true) as any;
+        }
+        const { data, error } = await query.single();
         if (error) throw error;
         const w = data as any;
         setWebsite({

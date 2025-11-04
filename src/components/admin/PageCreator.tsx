@@ -95,6 +95,8 @@ export const PageCreator = () => {
 
       setCreatedSlug(data.slug);
       toast({ title: "Página criada!", description: `/${data.slug}` });
+      // Abrir automaticamente a nova página criada
+      window.open(`/${data.slug}`, '_blank');
       setTitle("");
       setSlug("");
       setContent("");

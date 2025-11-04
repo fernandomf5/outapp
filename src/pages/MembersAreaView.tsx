@@ -42,7 +42,7 @@ export default function MembersAreaView() {
           .from('members_area_modules' as any)
           .select('*')
           .eq('members_area_id', areaId)
-          .eq('is_published', true)
+          .eq('is_active', true)
           .order('order_index', { ascending: true });
         setModules((modulesData as any) || []);
       } catch (e) {

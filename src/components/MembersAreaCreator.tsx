@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { Users, Lock, Video, Book, DollarSign, Play, Settings, Plus, Edit, Trash2 } from "lucide-react";
+import { Users, Lock, Video, Book, DollarSign, Play, Settings, Plus, Edit, Trash2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
 interface MembersArea {
@@ -27,6 +28,7 @@ interface MembersArea {
   logo_url?: string;
   is_active: boolean;
   created_at: string;
+  custom_domain?: string;
 }
 
 interface Module {
@@ -50,9 +52,12 @@ export function MembersAreaCreator() {
     title: '',
     description: ''
   });
+  const [customDomains, setCustomDomains] = useState<Array<{id: string; domain: string; is_verified: boolean}>>([]);
+  const [selectedDomain, setSelectedDomain] = useState<string>("");
 
   useEffect(() => {
     loadMembersAreas();
+    fetchCustomDomains();
   }, []);
 
   const loadMembersAreas = async () => {
@@ -72,6 +77,20 @@ export function MembersAreaCreator() {
       toast.error(`Erro ao carregar áreas de membros: ${error?.message || ''}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCustomDomains = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase
+      .from('user_domains')
+      .select('id, domain, is_verified')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+    if (data) {
+      setCustomDomains(data as any);
     }
   };
 
@@ -240,6 +259,18 @@ export function MembersAreaCreator() {
                     >
                       <Settings className="h-3 w-3 mr-1" />
                       Gerenciar
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        const link = `${window.location.origin}/members/${area.id}`;
+                        navigator.clipboard.writeText(link);
+                        toast.success("Link copiado!");
+                      }}
+                    >
+                      <Copy className="h-3 w-3 mr-1" />
+                      Copiar Link
                     </Button>
                     <Button 
                       variant="outline" 

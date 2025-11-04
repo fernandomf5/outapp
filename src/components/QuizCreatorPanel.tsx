@@ -156,7 +156,7 @@ export const QuizCreatorPanel = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('quizzes')
         .insert([{
           user_id: user.id,
@@ -166,12 +166,18 @@ export const QuizCreatorPanel = () => {
           questions: formData.questions,
           is_active: true,
           responses_count: 0
-        }]);
+        }])
+        .select('*')
+        .single();
 
       if (error) throw error;
 
       toast.success("Quiz criado com sucesso!");
       setIsAddDialogOpen(false);
+      // Abrir o quiz recém-criado para visualização
+      if (data?.id) {
+        navigate(`/quiz/${data.id}`);
+      }
       loadQuizzes();
       
       setFormData({

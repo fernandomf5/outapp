@@ -459,7 +459,7 @@ export function WebsiteBuilder() {
                       <Button 
                         variant="outline" 
                         size="icon"
-                        onClick={() => window.open(`/site/${website.slug}`, '_blank')}
+                        onClick={() => window.open(website.is_published ? `/site/${website.slug}` : `/site/${website.slug}?preview=1`, '_blank')}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
