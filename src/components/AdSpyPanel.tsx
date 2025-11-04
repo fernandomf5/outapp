@@ -41,7 +41,6 @@ export const AdSpyPanel = () => {
   const [industry, setIndustry] = useState('all');
   const [loading, setLoading] = useState(false);
   const [savedAds, setSavedAds] = useState<string[]>([]);
-  const [showConfigHelp, setShowConfigHelp] = useState(false);
   const [results, setResults] = useState<Ad[]>([]);
 
   // Dados de exemplo (em produção, viria de uma API)
@@ -140,67 +139,10 @@ export const AdSpyPanel = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Espionar Anúncios</h2>
-          <p className="text-muted-foreground">Descubra os anúncios dos seus concorrentes em Meta, Google e TikTok</p>
-        </div>
-        <Button variant="outline" onClick={() => setShowConfigHelp(!showConfigHelp)}>
-          {showConfigHelp ? 'Ocultar' : 'Configurar APIs'}
-        </Button>
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Espionar Anúncios</h2>
+        <p className="text-muted-foreground">Descubra os anúncios dos seus concorrentes em Meta, Google e TikTok</p>
       </div>
-
-      {showConfigHelp && (
-        <Card className="glass border-primary/20">
-          <CardHeader>
-            <CardTitle>📡 Configuração de APIs</CardTitle>
-            <CardDescription>Configure as APIs para buscar anúncios reais</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <h4 className="font-semibold">1. Meta Ads Library API</h4>
-              <p className="text-sm text-muted-foreground">
-                • Acesse: <a href="https://developers.facebook.com/docs/marketing-api/ad-library-api" target="_blank" className="text-primary hover:underline">Facebook Developers</a>
-              </p>
-              <p className="text-sm text-muted-foreground">
-                • Crie um app no Facebook Business
-              </p>
-              <p className="text-sm text-muted-foreground">
-                • Obtenha seu Access Token
-              </p>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-semibold">2. Google Ads API</h4>
-              <p className="text-sm text-muted-foreground">
-                • Acesse: <a href="https://developers.google.com/google-ads/api/docs/start" target="_blank" className="text-primary hover:underline">Google Ads API</a>
-              </p>
-              <p className="text-sm text-muted-foreground">
-                • Configure OAuth 2.0
-              </p>
-              <p className="text-sm text-muted-foreground">
-                • Use a Transparency Center para anúncios públicos
-              </p>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-semibold">3. TikTok Creative Center API</h4>
-              <p className="text-sm text-muted-foreground">
-                • Acesse: <a href="https://ads.tiktok.com/marketing_api/homepage" target="_blank" className="text-primary hover:underline">TikTok Marketing API</a>
-              </p>
-              <p className="text-sm text-muted-foreground">
-                • Crie uma conta Business
-              </p>
-              <p className="text-sm text-muted-foreground">
-                • Use o Creative Center para inspiração
-              </p>
-            </div>
-            <div className="bg-primary/10 p-4 rounded-lg">
-              <p className="text-sm font-medium">
-                💡 Dica: Para produção, integre essas APIs criando edge functions no Supabase
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Barra de Busca */}
       <Card className="glass">
