@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-// Removed ReactQuill due to hook issues in this environment
+import { RichTextEditor } from "./RichTextEditor";
 
 interface CustomPage {
   id: string;
@@ -185,14 +185,8 @@ export const PageCreator = () => {
             </div>
 
             <div>
-              <Label>Conteúdo (HTML ou texto)</Label>
-              <textarea
-                className="min-h-[220px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Digite texto ou HTML (p.ex. <p>Olá</p>)"
-              />
-              <p className="text-xs text-muted-foreground mt-2">Suporta texto simples e HTML básico (será sanitizado na exibição pública).</p>
+              <Label>Conteúdo</Label>
+              <RichTextEditor value={content} onChange={setContent} />
             </div>
 
             <div className="flex items-center gap-2">
@@ -280,12 +274,10 @@ export const PageCreator = () => {
               </div>
 
               <div>
-                <Label>Conteúdo (HTML ou texto)</Label>
-                <textarea
-                  className="min-h-[300px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                <Label>Conteúdo</Label>
+                <RichTextEditor
                   value={editingPage.content}
-                  onChange={(e) => setEditingPage({ ...editingPage, content: e.target.value })}
-                  placeholder="Digite texto ou HTML (p.ex. <h2>Título</h2>)"
+                  onChange={(val) => setEditingPage({ ...editingPage, content: val })}
                 />
               </div>
 
