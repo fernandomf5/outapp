@@ -44,10 +44,8 @@ import { TaskOrganizerPanel } from "@/components/TaskOrganizerPanel";
 import { PopupCreatorPanel } from "@/components/PopupCreatorPanel";
 import { AdSpyPanel } from "@/components/AdSpyPanel";
 import { QuizCreatorPanel } from "@/components/QuizCreatorPanel";
-import { MembersAreaCreator } from "@/components/MembersAreaCreator";
-import { BriefingCreatorPanel } from "@/components/BriefingCreatorPanel";
-import { QuickNotesPanel } from "@/components/QuickNotesPanel";
-import { TextToSpeechPanel } from "@/components/TextToSpeechPanel";
+import { WebsiteBuilder } from "@/components/WebsiteBuilder";
+import { BriefingResponsesPanel } from "@/components/BriefingResponsesPanel";
 import { BriefingResponsesPanel } from "@/components/BriefingResponsesPanel";
 import {
   AlertDialog,

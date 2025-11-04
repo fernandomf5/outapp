@@ -4117,6 +4117,51 @@ export type Database = {
           },
         ]
       }
+      websites: {
+        Row: {
+          created_at: string
+          custom_domain: string | null
+          description: string | null
+          id: string
+          is_published: boolean
+          sections: Json | null
+          settings: Json | null
+          slug: string
+          template: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_domain?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          sections?: Json | null
+          settings?: Json | null
+          slug: string
+          template?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custom_domain?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          sections?: Json | null
+          settings?: Json | null
+          slug?: string
+          template?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       whatsapp_connections: {
         Row: {
           connected_at: string | null

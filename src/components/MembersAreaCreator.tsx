@@ -101,13 +101,11 @@ export function MembersAreaCreator() {
       }
 
       const { error } = await supabase
-        .from('members_areas' as any)
+        .from('members_areas')
         .insert([{
           user_id: user.id,
           title: formData.title,
           description: formData.description,
-          banner_url: formData.banner_url,
-          logo_url: formData.logo_url,
           is_active: true,
           settings: {}
         }]);
@@ -116,7 +114,7 @@ export function MembersAreaCreator() {
 
       toast.success("Área de membros criada!");
       setIsCreateDialogOpen(false);
-      setFormData({ title: '', description: '', banner_url: '', logo_url: '' });
+      setFormData({ title: '', description: '' });
       loadMembersAreas();
     } catch (error: any) {
       toast.error(`Erro ao criar área de membros: ${error?.message || ''}`);
@@ -181,16 +179,6 @@ export function MembersAreaCreator() {
                     rows={3}
                   />
                 </div>
-                <ImageUpload 
-                  label="Banner (opcional)"
-                  onImageSelect={(url) => setFormData({...formData, banner_url: url})}
-                  currentImage={formData.banner_url}
-                />
-                <ImageUpload 
-                  label="Logo (opcional)"
-                  onImageSelect={(url) => setFormData({...formData, logo_url: url})}
-                  currentImage={formData.logo_url}
-                />
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
