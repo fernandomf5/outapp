@@ -104,10 +104,9 @@ export function MembersAreaCreator() {
         .from('members_areas')
         .insert([{
           user_id: user.id,
-          title: formData.title,
+          name: formData.title,
           description: formData.description,
-          is_active: true,
-          settings: {}
+          is_active: true
         }]);
 
       if (error) throw error;
@@ -219,7 +218,7 @@ export function MembersAreaCreator() {
                 <div className="p-4 space-y-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h3 className="font-bold text-lg mb-1">{area.title}</h3>
+                      <h3 className="font-bold text-lg mb-1">{(area as any).name || area.title}</h3>
                       <p className="text-sm text-muted-foreground line-clamp-2">
                         {area.description}
                       </p>
@@ -261,7 +260,7 @@ export function MembersAreaCreator() {
       {selectedArea && (
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold">{selectedArea.title}</h3>
+            <h3 className="text-xl font-bold">{(selectedArea as any).name || selectedArea.title}</h3>
             <Button variant="outline" onClick={() => setSelectedArea(null)}>
               Voltar
             </Button>
@@ -353,7 +352,7 @@ export function MembersAreaCreator() {
               <div className="space-y-4">
                 <div className="grid gap-2">
                   <Label>Título</Label>
-                  <Input value={selectedArea.title} disabled />
+                  <Input value={(selectedArea as any).name || selectedArea.title} disabled />
                 </div>
                 <div className="grid gap-2">
                   <Label>Descrição</Label>

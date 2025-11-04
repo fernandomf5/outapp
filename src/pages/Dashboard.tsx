@@ -46,7 +46,9 @@ import { AdSpyPanel } from "@/components/AdSpyPanel";
 import { QuizCreatorPanel } from "@/components/QuizCreatorPanel";
 import { WebsiteBuilder } from "@/components/WebsiteBuilder";
 import { BriefingResponsesPanel } from "@/components/BriefingResponsesPanel";
-import { BriefingResponsesPanel } from "@/components/BriefingResponsesPanel";
+import { BriefingCreatorPanel } from "@/components/BriefingCreatorPanel";
+import { MembersAreaCreator } from "@/components/MembersAreaCreator";
+import { QuickNotesPanel } from "@/components/QuickNotesPanel";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -966,10 +968,6 @@ const Dashboard = () => {
           <TabsContent value="area-membros">
             <MembersAreaCreator />
           </TabsContent>
-
-              <TabsContent value="text-to-speech">
-                <TextToSpeechPanel />
-              </TabsContent>
               
               <TabsContent value="briefing-responses">
                 <BriefingResponsesPanel />

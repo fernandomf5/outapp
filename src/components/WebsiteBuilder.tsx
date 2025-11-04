@@ -96,7 +96,11 @@ export function WebsiteBuilder() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setWebsites(data || []);
+      setWebsites((data || []).map(w => ({
+        ...w,
+        settings: (typeof w.settings === 'object' && w.settings !== null && !Array.isArray(w.settings) ? w.settings : {}) as Website['settings'],
+        sections: (Array.isArray(w.sections) ? w.sections : []) as any[]
+      })));
     } catch (error: any) {
       toast.error("Erro ao carregar sites");
     } finally {
