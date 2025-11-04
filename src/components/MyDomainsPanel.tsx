@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Globe, Trash2, Check, AlertCircle, Plus, Lock, Link2, HelpCircle, Users } from "lucide-react";
+import { Globe, Trash2, Check, AlertCircle, Plus, Lock, Link2, HelpCircle, Users, RefreshCw } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +34,7 @@ export function MyDomainsPanel() {
   const [newDomain, setNewDomain] = useState("");
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [verifyingId, setVerifyingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -100,6 +101,48 @@ export function MyDomainsPanel() {
     }
 
     setLoading(false);
+  };
+
+  const handleVerifyDomain = async (domainId: string) => {
+    setVerifyingId(domainId);
+
+    try {
+      const response = await fetch(
+        `https://mlocikcfxbleddsvxciv.supabase.co/functions/v1/verify-domain`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          },
+          body: JSON.stringify({ domain_id: domainId }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.verified) {
+        toast({
+          title: "✅ Domínio Verificado!",
+          description: "Seu domínio está configurado corretamente e pronto para uso.",
+        });
+        fetchDomains();
+      } else {
+        toast({
+          title: "⏳ Propagação em Andamento",
+          description: result.message || "O DNS ainda não propagou. Aguarde alguns minutos e tente novamente.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro na verificação",
+        description: "Não foi possível verificar o domínio. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+
+    setVerifyingId(null);
   };
 
   const handleDeleteDomain = async () => {
@@ -239,12 +282,21 @@ export function MyDomainsPanel() {
                       <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold">3</span>
                       Aguarde a Propagação DNS
                     </h4>
-                    <p className="text-sm text-muted-foreground pl-9">
-                      A propagação pode levar de alguns minutos até 72 horas. Você pode verificar o status em{" "}
-                      <a href="https://dnschecker.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
-                        DNSChecker.org ↗
-                      </a>
+                    <p className="text-sm text-muted-foreground pl-9 mb-3">
+                      A propagação pode levar de alguns minutos até 72 horas. Use o botão "Verificar Agora" ao lado do domínio para testar se já propagou.
                     </p>
+                    <div className="pl-9 p-3 bg-primary/10 border border-primary/20 rounded-md">
+                      <p className="text-xs font-semibold text-primary mb-1">💡 Dica:</p>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Você pode verificar o status da propagação em:{" "}
+                        <a href="https://dnschecker.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
+                          DNSChecker.org ↗
+                        </a>
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        <strong>Após verificado:</strong> Seu domínio ficará ativo automaticamente e aparecerá nas listas suspensas das ferramentas.
+                      </p>
+                    </div>
                   </div>
                   
                   <div className="space-y-3">
@@ -310,10 +362,26 @@ export function MyDomainsPanel() {
                           Verificado
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="text-yellow-500 border-yellow-500">
-                          <AlertCircle className="w-3 h-3 mr-1" />
-                          Pendente
-                        </Badge>
+                        <>
+                          <Badge variant="outline" className="text-yellow-500 border-yellow-500">
+                            <AlertCircle className="w-3 h-3 mr-1" />
+                            Pendente
+                          </Badge>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleVerifyDomain(domain.id)}
+                            disabled={verifyingId === domain.id}
+                            className="border-primary/30 hover:bg-primary/10"
+                          >
+                            {verifyingId === domain.id ? (
+                              <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
+                            ) : (
+                              <RefreshCw className="w-4 h-4 mr-1" />
+                            )}
+                            Verificar Agora
+                          </Button>
+                        </>
                       )}
                       <Button
                         variant="ghost"
