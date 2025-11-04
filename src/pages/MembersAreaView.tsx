@@ -3,6 +3,8 @@ import { useParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Helmet } from "react-helmet-async";
+import { Play } from "lucide-react";
+import { ContentPlayer } from "@/components/members-area/ContentPlayer";
 
 interface MembersArea {
   id: string;
@@ -18,9 +20,13 @@ interface Module {
   title: string;
   description?: string;
   thumbnail_url?: string;
+  video_url?: string;
+  content_type: string;
+  content_data?: string;
+  category?: string;
   is_free: boolean;
   price?: number;
-  is_published: boolean;
+  is_active: boolean;
 }
 
 export default function MembersAreaView() {
@@ -28,6 +34,8 @@ export default function MembersAreaView() {
   const [area, setArea] = useState<MembersArea | null>(null);
   const [modules, setModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedModule, setSelectedModule] = useState<Module | null>(null);
+  const [isPlayerOpen, setIsPlayerOpen] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -104,33 +112,72 @@ export default function MembersAreaView() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        <section>
-          <h2 className="text-xl font-semibold mb-4">Conteúdos</h2>
-          {modules.length === 0 ? (
-            <div className="text-muted-foreground">Nenhum módulo publicado ainda.</div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {modules.map((m) => (
-                <div key={m.id} className="group">
-                  <div className="relative aspect-[16/9] rounded-lg overflow-hidden">
-                    {m.thumbnail_url ? (
-                      <img src={m.thumbnail_url} alt={m.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
-                    ) : (
-                      <div className="w-full h-full bg-muted flex items-center justify-center text-sm">{m.title}</div>
-                    )}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        {modules.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Nenhum módulo publicado ainda.</p>
+          </div>
+        ) : (
+          <>
+            {/* Group by category */}
+            {Array.from(new Set(modules.map(m => m.category || 'Sem Categoria'))).map(category => {
+              const categoryModules = modules.filter(m => (m.category || 'Sem Categoria') === category);
+              return (
+                <section key={category} className="mb-10">
+                  <h2 className="text-2xl font-bold mb-4">{category}</h2>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    {categoryModules.map((m) => (
+                      <div 
+                        key={m.id} 
+                        className="group cursor-pointer"
+                        onClick={() => {
+                          setSelectedModule(m);
+                          setIsPlayerOpen(true);
+                        }}
+                      >
+                        <div className="relative aspect-[16/9] rounded-lg overflow-hidden bg-muted">
+                          {m.thumbnail_url ? (
+                            <img 
+                              src={m.thumbnail_url} 
+                              alt={m.title} 
+                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" 
+                              loading="lazy" 
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                              <Play className="w-10 h-10 text-primary" />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                            <Play className="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                          {m.is_free && (
+                            <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
+                              Grátis
+                            </div>
+                          )}
+                        </div>
+                        <div className="mt-2">
+                          <p className="font-medium line-clamp-2 text-sm">{m.title}</p>
+                          {m.description && (
+                            <p className="text-xs text-muted-foreground line-clamp-1 mt-1">{m.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="mt-2">
-                    <p className="font-medium line-clamp-1">{m.title}</p>
-                    <p className="text-xs text-muted-foreground line-clamp-2">{m.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+                </section>
+              );
+            })}
+          </>
+        )}
       </main>
+
+      <ContentPlayer
+        open={isPlayerOpen}
+        onOpenChange={setIsPlayerOpen}
+        module={selectedModule}
+      />
     </div>
   );
 }

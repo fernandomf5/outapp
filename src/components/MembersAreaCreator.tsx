@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { ModuleEditor } from "@/components/members-area/ModuleEditor";
 
 interface MembersArea {
   id: string;
@@ -54,6 +55,8 @@ export function MembersAreaCreator() {
   });
   const [customDomains, setCustomDomains] = useState<Array<{id: string; domain: string; is_verified: boolean}>>([]);
   const [selectedDomain, setSelectedDomain] = useState<string>("");
+  const [isModuleEditorOpen, setIsModuleEditorOpen] = useState(false);
+  const [editingModule, setEditingModule] = useState<Module | null>(null);
 
   useEffect(() => {
     loadMembersAreas();
@@ -327,7 +330,14 @@ export function MembersAreaCreator() {
             <TabsContent value="modules" className="space-y-4 pt-6">
               <div className="flex justify-between items-center">
                 <h4 className="font-semibold">Módulos e Cursos</h4>
-                <Button className="gradient-primary" size="sm">
+                <Button 
+                  className="gradient-primary" 
+                  size="sm"
+                  onClick={() => {
+                    setEditingModule(null);
+                    setIsModuleEditorOpen(true);
+                  }}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Adicionar Módulo
                 </Button>
@@ -350,12 +360,12 @@ export function MembersAreaCreator() {
                             <Play className="w-8 h-8 text-primary" />
                           </div>
                         )}
-                        <div className="flex-1">
+                         <div className="flex-1">
                           <h5 className="font-semibold mb-1">{module.title}</h5>
                           <p className="text-sm text-muted-foreground line-clamp-2">
                             {module.description}
                           </p>
-                          <div className="flex gap-2 mt-2">
+                          <div className="flex gap-2 mt-2 flex-wrap">
                             {module.is_free && <Badge variant="secondary">Grátis</Badge>}
                             {module.price && (
                               <Badge variant="outline">R$ {module.price.toFixed(2)}</Badge>
@@ -363,6 +373,35 @@ export function MembersAreaCreator() {
                             <Badge variant={module.is_published ? 'default' : 'secondary'}>
                               {module.is_published ? 'Publicado' : 'Rascunho'}
                             </Badge>
+                          </div>
+                          <div className="flex gap-2 mt-3">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                setEditingModule(module);
+                                setIsModuleEditorOpen(true);
+                              }}
+                            >
+                              <Edit className="h-3 w-3 mr-1" />
+                              Editar
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={async () => {
+                                const { error } = await supabase
+                                  .from('members_area_modules')
+                                  .delete()
+                                  .eq('id', module.id);
+                                if (!error) {
+                                  toast.success('Módulo excluído');
+                                  loadModules(selectedArea.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-3 w-3 text-destructive" />
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -387,23 +426,112 @@ export function MembersAreaCreator() {
             </TabsContent>
 
             <TabsContent value="settings" className="pt-6">
-              <div className="space-y-4">
-                <div className="grid gap-2">
-                  <Label>Título</Label>
-                  <Input value={(selectedArea as any).name || selectedArea.title} disabled />
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <h4 className="font-semibold">Informações Básicas</h4>
+                  <div className="grid gap-2">
+                    <Label>Título</Label>
+                    <Input value={(selectedArea as any).name || selectedArea.title} disabled />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Descrição</Label>
+                    <Textarea value={selectedArea.description} disabled rows={3} />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Banner</Label>
+                    <ImageUpload
+                      value={selectedArea.banner_url || ''}
+                      onUpload={async (url) => {
+                        const { error } = await supabase
+                          .from('members_areas')
+                          .update({ banner_url: url })
+                          .eq('id', selectedArea.id);
+                        if (!error) {
+                          toast.success('Banner atualizado!');
+                          loadMembersAreas();
+                        }
+                      }}
+                      bucket="members-content"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Logo</Label>
+                    <ImageUpload
+                      value={selectedArea.logo_url || ''}
+                      onUpload={async (url) => {
+                        const { error } = await supabase
+                          .from('members_areas')
+                          .update({ logo_url: url })
+                          .eq('id', selectedArea.id);
+                        if (!error) {
+                          toast.success('Logo atualizado!');
+                          loadMembersAreas();
+                        }
+                      }}
+                      bucket="members-content"
+                    />
+                  </div>
                 </div>
-                <div className="grid gap-2">
-                  <Label>Descrição</Label>
-                  <Textarea value={selectedArea.description} disabled rows={3} />
+
+                <div className="space-y-4">
+                  <h4 className="font-semibold">Domínio Customizado</h4>
+                  <div className="grid gap-2">
+                    <Label>Selecione um domínio</Label>
+                    <Select 
+                      value={selectedArea.custom_domain || ''}
+                      onValueChange={async (value) => {
+                        const { error } = await supabase
+                          .from('members_areas')
+                          .update({ custom_domain: value })
+                          .eq('id', selectedArea.id);
+                        if (!error) {
+                          toast.success('Domínio atualizado!');
+                          loadMembersAreas();
+                          setSelectedArea({...selectedArea, custom_domain: value});
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Nenhum domínio selecionado" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Nenhum</SelectItem>
+                        {customDomains.filter(d => d.is_verified).map(domain => (
+                          <SelectItem key={domain.id} value={domain.domain}>
+                            {domain.domain}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {customDomains.filter(d => d.is_verified).length === 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        Nenhum domínio verificado. Adicione um domínio em "Meus Domínios".
+                      </p>
+                    )}
+                    {selectedArea.custom_domain && (
+                      <p className="text-sm text-primary">
+                        Área acessível em: https://{selectedArea.custom_domain}/members/{selectedArea.id}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Mais configurações em breve...
-                </p>
               </div>
             </TabsContent>
           </Tabs>
         </Card>
       )}
+
+      <ModuleEditor
+        open={isModuleEditorOpen}
+        onOpenChange={setIsModuleEditorOpen}
+        areaId={selectedArea?.id || ''}
+        module={editingModule}
+        onSave={() => {
+          if (selectedArea) {
+            loadModules(selectedArea.id);
+          }
+        }}
+      />
     </div>
   );
 }
