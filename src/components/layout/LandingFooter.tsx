@@ -1,0 +1,106 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Bot } from "lucide-react";
+import { SocialLinks } from "@/components/SocialLinks";
+
+export const LandingFooter = () => {
+  const [siteTitle, setSiteTitle] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
+  const [footerText, setFooterText] = useState("");
+  const [footerMenus, setFooterMenus] = useState<any[]>([]);
+  const [footerImages, setFooterImages] = useState<string[]>([]);
+  const [socialLinks, setSocialLinks] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      const { data } = await supabase
+        .from('site_settings')
+        .select('key, value')
+        .in('key', ['site_title', 'site_logo_url', 'footer_text', 'footer_menus', 'footer_images', 'social_links']);
+
+      if (data) {
+        data.forEach(item => {
+          switch(item.key) {
+            case 'site_title':
+              setSiteTitle(item.value || 'Automação');
+              break;
+            case 'site_logo_url':
+              setLogoUrl(item.value || '');
+              break;
+            case 'footer_text':
+              setFooterText(item.value || '');
+              break;
+            case 'footer_menus':
+              try { setFooterMenus(JSON.parse(item.value || '[]')); } catch {}
+              break;
+            case 'footer_images':
+              try { setFooterImages(JSON.parse(item.value || '[]')); } catch {}
+              break;
+            case 'social_links':
+              try { setSocialLinks(JSON.parse(item.value || '[]')); } catch {}
+              break;
+          }
+        });
+      }
+    };
+
+    fetchSettings();
+  }, []);
+
+  return (
+    <footer className="bg-muted/50 border-t">
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          <div className="space-y-4">
+            {logoUrl ? (
+              <img src={logoUrl} alt={siteTitle} className="h-12 w-auto mb-4" />
+            ) : (
+              <div className="flex items-center gap-2 mb-4">
+                <Bot className="h-8 w-8 text-primary" />
+                <span className="font-bold text-xl">{siteTitle || "Automação"}</span>
+              </div>
+            )}
+            {footerText && (
+              <p className="text-sm text-muted-foreground">{footerText}</p>
+            )}
+            <SocialLinks links={socialLinks} variant="footer" />
+          </div>
+          {footerMenus.map((menu: any, index: number) => (
+            <div key={index}>
+              <h4 className="font-semibold mb-4">{menu.title}</h4>
+              <ul className="space-y-2">
+                {menu.links?.map((link: any, linkIndex: number) => (
+                  <li key={linkIndex}>
+                    <a 
+                      href={link.url} 
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {link.text}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        {footerImages.length > 0 && (
+          <div className="flex items-center justify-center gap-8 py-6 border-t">
+            {footerImages.map((img, index) => (
+              <img 
+                key={index} 
+                src={img} 
+                alt={`Partner ${index + 1}`}
+                className="h-12 w-auto opacity-70 hover:opacity-100 transition-opacity"
+              />
+            ))}
+          </div>
+        )}
+        <div className="pt-8 border-t text-center">
+          <p className="text-sm text-muted-foreground">
+            {footerText || `© ${new Date().getFullYear()} ${siteTitle || 'Automação'}. Todos os direitos reservados.`}
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+};
