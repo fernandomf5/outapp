@@ -132,7 +132,7 @@ export function WebsiteBuilder() {
 
       const slug = formData.slug || generateSlug(formData.title);
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('websites')
         .insert([{
           user_id: user.id,
@@ -148,14 +148,25 @@ export function WebsiteBuilder() {
           },
           sections: [],
           is_published: false
-        }]);
+        }])
+        .select('*')
+        .single();
 
       if (error) throw error;
 
       toast.success("Site criado com sucesso!");
       setIsCreateDialogOpen(false);
       setFormData({ title: '', slug: '', description: '', template: 'landing', custom_domain: '' });
-      loadWebsites();
+      if (data) {
+        // Abra o editor imediatamente após criar
+        setEditingWebsite({
+          ...(data as any),
+          settings: (typeof (data as any).settings === 'object' && (data as any).settings !== null ? (data as any).settings : {}),
+          sections: (Array.isArray((data as any).sections) ? (data as any).sections : [])
+        } as Website);
+      } else {
+        loadWebsites();
+      }
     } catch (error: any) {
       if (error.code === '23505') {
         toast.error("Já existe um site com esse slug");

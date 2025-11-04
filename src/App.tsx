@@ -33,6 +33,8 @@ import CalculatorPage from "./pages/CalculatorPage";
 import QuizPage from "./pages/QuizPage";
 import BriefingPublicPage from "./pages/BriefingPublicPage";
 import CustomPage from "./pages/CustomPage";
+import SitePage from "./pages/SitePage";
+import MembersAreaView from "./pages/MembersAreaView";
 
 const queryClient = new QueryClient();
 
@@ -70,9 +72,11 @@ const AppContent = () => {
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:slug" element={<Blog />} />
               <Route path="/calculadora" element={<CalculatorPage />} />
-              <Route path="/quiz/:quizId" element={<QuizPage />} />
-              <Route path="/briefing/:briefingId" element={<BriefingPublicPage />} />
-              <Route path="/:slug" element={<CustomPage />} />
+               <Route path="/quiz/:quizId" element={<QuizPage />} />
+               <Route path="/site/:slug" element={<SitePage />} />
+               <Route path="/members/:areaId" element={<MembersAreaView />} />
+               <Route path="/briefing/:briefingId" element={<BriefingPublicPage />} />
+               <Route path="/:slug" element={<CustomPage />} />
               <Route path="/bot-builder" element={
                 <ProtectedRoute>
                   <BotBuilder />

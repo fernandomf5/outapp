@@ -244,6 +244,13 @@ export function MembersAreaCreator() {
                     <Button 
                       variant="outline" 
                       size="sm"
+                      onClick={() => window.open(`/members/${area.id}`, '_blank')}
+                    >
+                      Visualizar
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
                       onClick={() => handleDeleteArea(area.id)}
                     >
                       <Trash2 className="h-3 w-3 text-destructive" />
