@@ -6,6 +6,7 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useTheme } from "next-themes";
+import { Helmet } from "react-helmet-async";
 
 interface CustomPage {
   id: string;
@@ -103,6 +104,11 @@ const CustomPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <Helmet>
+        <title>{page.title} | {siteTitle || 'Site'}</title>
+        <meta name="description" content={(page.content || '').replace(/\s+/g,' ').slice(0, 155)} />
+        <link rel="canonical" href={`${window.location.origin}/custom/${page.slug}`} />
+      </Helmet>
       {/* Header */}
       <header className="border-b bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/50 sticky top-0 z-50">
         <div className="container mx-auto px-4">

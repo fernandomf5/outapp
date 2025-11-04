@@ -142,12 +142,22 @@ export const CustomPagesManager = () => {
               <div className="flex-1">
                 <h4 className="font-semibold">{page.title}</h4>
                 <p className="text-sm text-muted-foreground">
-                  {page.location === 'header' ? 'Cabeçalho' : 'Rodapé'} • 
-                  {page.open_as_popup ? ' Popup' : ' Página'} •
+                  {page.location === 'header' ? 'Cabeçalho' : 'Rodapé'} • Página •
                   {page.is_active ? ' Ativo' : ' Inativo'}
                 </p>
+                <p className="text-xs text-muted-foreground">Link: /custom/{page.slug}</p>
               </div>
               <div className="flex gap-2">
+                <Button variant="ghost" size="sm" asChild>
+                  <a
+                    href={`/custom/${page.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Ver página"
+                  >
+                    <FileText className="w-4 h-4" />
+                  </a>
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"

@@ -6,7 +6,7 @@ import {
   Bot, Zap, MessageSquare, Clock, CheckCircle2, Shield, TrendingUp, Sparkles, Menu,
   Users, Ticket, Link2, Gift, BarChart3, Workflow, Brain, Video, UserPlus, DollarSign
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { FAQSection } from "@/components/FAQSection";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
@@ -350,13 +350,13 @@ const Index = () => {
             {t('faq')}
           </a>
           {headerPages.map((page) => (
-            <button
+            <Link
               key={page.id}
-              onClick={() => page.open_as_popup && onPageClick(page)}
-              className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2 text-left"
+              to={`/custom/${page.slug}`}
+              className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2"
             >
               {page.title}
-            </button>
+            </Link>
           ))}
           <div className="mt-4 pt-4 border-t border-border">
             <SocialLinks links={socialLinks} vertical />
@@ -514,13 +514,13 @@ const Index = () => {
                 {t('faq')}
               </a>
               {headerPages.map((page) => (
-                <button
+                <Link
                   key={page.id}
-                  onClick={() => page.open_as_popup && openPageDialog(page)}
+                  to={`/custom/${page.slug}`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-smooth"
                 >
                   {page.title}
-                </button>
+                </Link>
               ))}
               <SocialLinks links={socialLinks} />
               <ThemeToggle />
