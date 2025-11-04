@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ImageUpload } from "@/components/ImageUpload";
 import {
   Dialog,
   DialogContent,
@@ -182,22 +183,16 @@ export function MembersAreaCreator() {
                     rows={3}
                   />
                 </div>
-                <div className="grid gap-2">
-                  <Label>URL do Banner (opcional)</Label>
-                  <Input 
-                    value={formData.banner_url}
-                    onChange={(e) => setFormData({...formData, banner_url: e.target.value})}
-                    placeholder="https://..."
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label>URL do Logo (opcional)</Label>
-                  <Input 
-                    value={formData.logo_url}
-                    onChange={(e) => setFormData({...formData, logo_url: e.target.value})}
-                    placeholder="https://..."
-                  />
-                </div>
+                <ImageUpload 
+                  label="Banner (opcional)"
+                  onImageSelect={(url) => setFormData({...formData, banner_url: url})}
+                  currentImage={formData.banner_url}
+                />
+                <ImageUpload 
+                  label="Logo (opcional)"
+                  onImageSelect={(url) => setFormData({...formData, logo_url: url})}
+                  currentImage={formData.logo_url}
+                />
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>

@@ -38,14 +38,15 @@ export const DigitalProductCreatorPanel = () => {
   const [products, setProducts] = useState<DigitalProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isGeneratingWithAI, setIsGeneratingWithAI] = useState(false);
+  const [generatedContent, setGeneratedContent] = useState('');
   
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     category: '',
     price: '',
-    cover_image_url: '',
-    pdf_url: ''
+    productIdea: ''
   });
 
   useEffect(() => {
@@ -72,16 +73,55 @@ export const DigitalProductCreatorPanel = () => {
     }
   };
 
+  const handleGenerateWithAI = async () => {
+    if (!formData.productIdea.trim()) {
+      toast.error("Descreva o produto que você quer criar");
+      return;
+    }
+
+    setIsGeneratingWithAI(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-digital-product', {
+        body: { 
+          productIdea: formData.productIdea,
+          category: formData.category
+        }
+      });
+
+      if (error) throw error;
+
+      setGeneratedContent(data.content);
+      setFormData(prev => ({
+        ...prev,
+        description: data.content.substring(0, 500) + '...'
+      }));
+      
+      toast.success(`Produto gerado com sucesso! ${data.wordCount} palavras criadas.`);
+    } catch (error: any) {
+      console.error('Error generating product:', error);
+      toast.error(error.message || "Erro ao gerar produto com IA");
+    } finally {
+      setIsGeneratingWithAI(false);
+    }
+  };
+
   const handleAddProduct = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      if (!formData.name || !formData.price) {
+        toast.error("Preencha o nome e o preço do produto");
+        return;
+      }
+
       const { error } = await supabase
         .from('digital_products')
         .insert([{
           user_id: user.id,
-          ...formData,
+          name: formData.name,
+          description: formData.description,
+          category: formData.category,
           price: parseFloat(formData.price),
           is_published: true,
           sales_count: 0,
@@ -90,7 +130,7 @@ export const DigitalProductCreatorPanel = () => {
 
       if (error) throw error;
 
-      toast.success("Produto criado com sucesso!");
+      toast.success("Produto criado! Agora você pode convertê-lo em PDF.");
       setIsAddDialogOpen(false);
       loadProducts();
       
@@ -99,9 +139,9 @@ export const DigitalProductCreatorPanel = () => {
         description: '',
         category: '',
         price: '',
-        cover_image_url: '',
-        pdf_url: ''
+        productIdea: ''
       });
+      setGeneratedContent('');
     } catch (error: any) {
       toast.error("Erro ao criar produto");
     }
@@ -148,6 +188,28 @@ export const DigitalProductCreatorPanel = () => {
               <DialogDescription>Configure seu produto digital em PDF</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
+              <div className="grid gap-2 bg-primary/5 p-4 rounded-lg border-2 border-dashed border-primary/20">
+                <Label className="font-semibold">✨ Gerar com IA</Label>
+                <Textarea 
+                  value={formData.productIdea}
+                  onChange={(e) => setFormData({...formData, productIdea: e.target.value})}
+                  placeholder="Descreva o produto que você quer criar. Ex: Um e-book completo sobre Marketing Digital para Iniciantes, com estratégias práticas e exemplos reais..."
+                  rows={3}
+                />
+                <Button 
+                  onClick={handleGenerateWithAI}
+                  disabled={isGeneratingWithAI || !formData.productIdea.trim()}
+                  className="gradient-primary"
+                >
+                  {isGeneratingWithAI ? 'Gerando conteúdo...' : '🤖 Gerar Conteúdo Completo com IA'}
+                </Button>
+                {generatedContent && (
+                  <p className="text-xs text-success">
+                    ✓ Conteúdo gerado com sucesso! {generatedContent.split(' ').length} palavras criadas.
+                  </p>
+                )}
+              </div>
+
               <div className="grid gap-2">
                 <Label>Nome do Produto</Label>
                 <Input 
@@ -156,15 +218,7 @@ export const DigitalProductCreatorPanel = () => {
                   placeholder="Ex: E-book Marketing Digital 2024"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label>Descrição</Label>
-                <Textarea 
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  placeholder="Descreva seu produto..."
-                  rows={4}
-                />
-              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label>Categoria</Label>
@@ -194,25 +248,15 @@ export const DigitalProductCreatorPanel = () => {
                   />
                 </div>
               </div>
-              <div className="grid gap-2">
-                <Label>URL da Imagem de Capa</Label>
-                <Input 
-                  value={formData.cover_image_url}
-                  onChange={(e) => setFormData({...formData, cover_image_url: e.target.value})}
-                  placeholder="https://..."
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>URL do PDF</Label>
-                <Input 
-                  value={formData.pdf_url}
-                  onChange={(e) => setFormData({...formData, pdf_url: e.target.value})}
-                  placeholder="https://..."
-                />
-                <p className="text-xs text-muted-foreground">
-                  Faça upload do PDF no Supabase Storage ou outro serviço
-                </p>
-              </div>
+
+              {generatedContent && (
+                <div className="grid gap-2">
+                  <Label>Prévia do Conteúdo</Label>
+                  <div className="bg-muted p-4 rounded-lg max-h-48 overflow-y-auto text-sm">
+                    {generatedContent.substring(0, 500)}...
+                  </div>
+                </div>
+              )}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>

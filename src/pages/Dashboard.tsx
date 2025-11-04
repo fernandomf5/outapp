@@ -49,6 +49,7 @@ import { MembersAreaCreator } from "@/components/MembersAreaCreator";
 import { BriefingCreatorPanel } from "@/components/BriefingCreatorPanel";
 import { QuickNotesPanel } from "@/components/QuickNotesPanel";
 import { TextToSpeechPanel } from "@/components/TextToSpeechPanel";
+import { BriefingResponsesPanel } from "@/components/BriefingResponsesPanel";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -977,9 +978,13 @@ const Dashboard = () => {
             <MembersAreaCreator />
           </TabsContent>
 
-          <TabsContent value="text-to-speech">
-            <TextToSpeechPanel />
-          </TabsContent>
+              <TabsContent value="text-to-speech">
+                <TextToSpeechPanel />
+              </TabsContent>
+              
+              <TabsContent value="briefing-responses">
+                <BriefingResponsesPanel />
+              </TabsContent>
         </Tabs>
       </main>
 

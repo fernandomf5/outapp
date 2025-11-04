@@ -190,9 +190,14 @@ export function BriefingCreatorPanel() {
   };
 
   const handleAddField = () => {
+    if (!fieldData.label.trim()) {
+      toast.error("Preencha o nome do campo");
+      return;
+    }
+    
     const newField = {
       ...fieldData,
-      id: `field-${Date.now()}`
+      id: `field-${Date.now()}-${Math.random()}`
     };
     setFormData(prev => ({
       ...prev,

@@ -71,6 +71,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ad_spy_config: {
+        Row: {
+          created_at: string
+          google_api_key: string | null
+          id: string
+          is_active: boolean | null
+          meta_access_token: string | null
+          tiktok_api_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          google_api_key?: string | null
+          id?: string
+          is_active?: boolean | null
+          meta_access_token?: string | null
+          tiktok_api_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          google_api_key?: string | null
+          id?: string
+          is_active?: boolean | null
+          meta_access_token?: string | null
+          tiktok_api_key?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       admin_message_reads: {
         Row: {
           created_at: string
