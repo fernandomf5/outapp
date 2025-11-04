@@ -158,7 +158,6 @@ export function UserSidebar() {
     { title: "Criador de Briefing", icon: FileText, path: "/dashboard", tab: "briefing" },
     { title: "Respostas de Briefing", icon: FileCheck, path: "/dashboard", tab: "briefing-responses" },
     { title: "Área de Membros", icon: UserCog, path: "/dashboard", tab: "area-membros" },
-    { title: "Narração de Texto (TTS)", icon: Volume2, path: "/dashboard", tab: "text-to-speech" },
   ];
 
   const supportItems: MenuItem[] = [
