@@ -109,7 +109,7 @@ export const CustomPagesManager = () => {
       slug: '',
       content: '',
       location: 'footer',
-      open_as_popup: true,
+      open_as_popup: false,
       is_active: true,
       order_index: pages.length,
       custom_header_code: '',
@@ -223,16 +223,6 @@ export const CustomPagesManager = () => {
                   </RadioGroup>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="popup">Abrir como popup</Label>
-                  <Switch
-                    id="popup"
-                    checked={editingPage.open_as_popup}
-                    onCheckedChange={(checked) =>
-                      setEditingPage({ ...editingPage, open_as_popup: checked })
-                    }
-                  />
-                </div>
 
                 <div className="flex items-center justify-between">
                   <Label htmlFor="active">Página ativa</Label>
