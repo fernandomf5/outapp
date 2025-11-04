@@ -194,11 +194,11 @@ export const PageCreator = () => {
                 {creating ? 'Criando...' : 'Criar página'}
               </Button>
               {createdSlug && (
-                <Button asChild variant="outline">
-                  <Link to={`/${createdSlug}`}>
-                    Ver página
-                  </Link>
-                </Button>
+              <Button asChild variant="outline">
+                <a href={`/${createdSlug}`} target="_blank" rel="noopener noreferrer">
+                  Ver página
+                </a>
+              </Button>
               )}
             </div>
           </div>
@@ -225,9 +225,9 @@ export const PageCreator = () => {
                   </div>
                   <div className="flex gap-2">
                     <Button variant="ghost" size="sm" asChild>
-                      <Link to={`/${page.slug}`}>
+                      <a href={`/${page.slug}`} target="_blank" rel="noopener noreferrer">
                         <Eye className="w-4 h-4" />
-                      </Link>
+                      </a>
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(page)}>
                       <Edit className="w-4 h-4" />

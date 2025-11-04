@@ -2850,6 +2850,47 @@ export type Database = {
         }
         Relationships: []
       }
+      members_area_modules: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          members_area_id: string
+          order_index: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          members_area_id: string
+          order_index?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          members_area_id?: string
+          order_index?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_area_modules_members_area_id_fkey"
+            columns: ["members_area_id"]
+            isOneToOne: false
+            referencedRelation: "members_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       members_areas: {
         Row: {
           created_at: string | null
