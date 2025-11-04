@@ -184,14 +184,14 @@ export default function CalculatorPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center gradient-primary p-4">
-      <Card className="w-full max-w-md glass shadow-glow">
-        <div className="p-6">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4">
+      <Card className="w-full max-w-md shadow-2xl bg-gray-950 border-gray-800">
+        <div className="p-6 bg-gray-950">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <Calculator className="w-6 h-6 text-primary" />
-              <h1 className="text-2xl font-bold">Calculadora</h1>
+              <Calculator className="w-6 h-6 text-blue-400" />
+              <h1 className="text-2xl font-bold text-white">Calculadora</h1>
             </div>
             <Button
               variant="ghost"
@@ -200,47 +200,48 @@ export default function CalculatorPage() {
                 fetchSavedCalculations();
                 setShowHistoryDialog(true);
               }}
+              className="hover:bg-gray-800"
             >
-              <Save className="w-5 h-5" />
+              <Save className="w-5 h-5 text-gray-300" />
             </Button>
           </div>
 
           {/* Display */}
-          <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-6 mb-6 text-right border-2 border-primary/20">
-            <div className="text-4xl font-bold break-all text-primary">{display}</div>
+          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg p-6 mb-6 text-right border border-gray-700 shadow-inner">
+            <div className="text-4xl font-bold break-all text-white">{display}</div>
           </div>
 
           {/* Buttons */}
           <div className="grid grid-cols-4 gap-3">
             <Button 
-              className="h-14 text-lg font-semibold bg-destructive hover:bg-destructive/90 text-destructive-foreground" 
+              className="h-14 text-lg font-semibold bg-gradient-to-br from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white border-red-500" 
               onClick={clear}
             >
               C
             </Button>
-            <Button className="h-14 text-lg hover:bg-primary/10 transition-smooth" variant="outline" onClick={() => performOperation("÷")}>÷</Button>
-            <Button className="h-14 text-lg hover:bg-primary/10 transition-smooth" variant="outline" onClick={() => performOperation("×")}>×</Button>
-            <Button className="h-14 hover:bg-primary/10 transition-smooth" variant="outline" onClick={() => setShowSaveDialog(true)}>
+            <Button className="h-14 text-lg bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white border-blue-500" onClick={() => performOperation("÷")}>÷</Button>
+            <Button className="h-14 text-lg bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white border-blue-500" onClick={() => performOperation("×")}>×</Button>
+            <Button className="h-14 bg-gradient-to-br from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white border-gray-700" onClick={() => setShowSaveDialog(true)}>
               <Save className="w-5 h-5" />
             </Button>
 
-            <Button className="h-14 text-lg hover:bg-accent transition-smooth" variant="outline" onClick={() => inputDigit("7")}>7</Button>
-            <Button className="h-14 text-lg hover:bg-accent transition-smooth" variant="outline" onClick={() => inputDigit("8")}>8</Button>
-            <Button className="h-14 text-lg hover:bg-accent transition-smooth" variant="outline" onClick={() => inputDigit("9")}>9</Button>
-            <Button className="h-14 text-lg hover:bg-primary/10 transition-smooth" variant="outline" onClick={() => performOperation("-")}>-</Button>
+            <Button className="h-14 text-lg bg-gradient-to-br from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white border-gray-700" onClick={() => inputDigit("7")}>7</Button>
+            <Button className="h-14 text-lg bg-gradient-to-br from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white border-gray-700" onClick={() => inputDigit("8")}>8</Button>
+            <Button className="h-14 text-lg bg-gradient-to-br from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white border-gray-700" onClick={() => inputDigit("9")}>9</Button>
+            <Button className="h-14 text-lg bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white border-blue-500" onClick={() => performOperation("-")}>-</Button>
 
-            <Button className="h-14 text-lg hover:bg-accent transition-smooth" variant="outline" onClick={() => inputDigit("4")}>4</Button>
-            <Button className="h-14 text-lg hover:bg-accent transition-smooth" variant="outline" onClick={() => inputDigit("5")}>5</Button>
-            <Button className="h-14 text-lg hover:bg-accent transition-smooth" variant="outline" onClick={() => inputDigit("6")}>6</Button>
-            <Button className="h-14 text-lg hover:bg-primary/10 transition-smooth" variant="outline" onClick={() => performOperation("+")}>+</Button>
+            <Button className="h-14 text-lg bg-gradient-to-br from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white border-gray-700" onClick={() => inputDigit("4")}>4</Button>
+            <Button className="h-14 text-lg bg-gradient-to-br from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white border-gray-700" onClick={() => inputDigit("5")}>5</Button>
+            <Button className="h-14 text-lg bg-gradient-to-br from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white border-gray-700" onClick={() => inputDigit("6")}>6</Button>
+            <Button className="h-14 text-lg bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white border-blue-500" onClick={() => performOperation("+")}>+</Button>
 
-            <Button className="h-14 text-lg hover:bg-accent transition-smooth" variant="outline" onClick={() => inputDigit("1")}>1</Button>
-            <Button className="h-14 text-lg hover:bg-accent transition-smooth" variant="outline" onClick={() => inputDigit("2")}>2</Button>
-            <Button className="h-14 text-lg hover:bg-accent transition-smooth" variant="outline" onClick={() => inputDigit("3")}>3</Button>
-            <Button className="gradient-primary row-span-2 h-auto text-2xl font-bold shadow-glow" onClick={() => performOperation("=")}>=</Button>
+            <Button className="h-14 text-lg bg-gradient-to-br from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white border-gray-700" onClick={() => inputDigit("1")}>1</Button>
+            <Button className="h-14 text-lg bg-gradient-to-br from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white border-gray-700" onClick={() => inputDigit("2")}>2</Button>
+            <Button className="h-14 text-lg bg-gradient-to-br from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white border-gray-700" onClick={() => inputDigit("3")}>3</Button>
+            <Button className="bg-gradient-to-br from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white row-span-2 h-auto text-2xl font-bold shadow-lg shadow-green-500/30" onClick={() => performOperation("=")}>=</Button>
 
-            <Button className="h-14 text-lg hover:bg-accent transition-smooth col-span-2" variant="outline" onClick={() => inputDigit("0")}>0</Button>
-            <Button className="h-14 text-lg hover:bg-accent transition-smooth" variant="outline" onClick={inputDecimal}>.</Button>
+            <Button className="h-14 text-lg bg-gradient-to-br from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white border-gray-700 col-span-2" onClick={() => inputDigit("0")}>0</Button>
+            <Button className="h-14 text-lg bg-gradient-to-br from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white border-gray-700" onClick={inputDecimal}>.</Button>
           </div>
         </div>
       </Card>

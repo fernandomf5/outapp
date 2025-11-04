@@ -160,13 +160,13 @@ export function BriefingCreatorPanel() {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from('briefings')
+        .from('briefings' as any)
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setBriefings(data as any || []);
+      setBriefings((data || []) as unknown as Briefing[]);
     } catch (error: any) {
       toast.error("Erro ao carregar briefings");
     } finally {
@@ -228,7 +228,7 @@ export function BriefingCreatorPanel() {
 
       if (editingBriefing) {
         const { error } = await supabase
-          .from('briefings')
+          .from('briefings' as any)
           .update({
             title: formData.title,
             description: formData.description,
@@ -240,7 +240,7 @@ export function BriefingCreatorPanel() {
         toast.success("Briefing atualizado!");
       } else {
         const { error } = await supabase
-          .from('briefings')
+          .from('briefings' as any)
           .insert([{
             user_id: user.id,
             title: formData.title,
@@ -276,7 +276,7 @@ export function BriefingCreatorPanel() {
   const handleDeleteBriefing = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('briefings')
+        .from('briefings' as any)
         .delete()
         .eq('id', id);
 

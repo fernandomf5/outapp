@@ -21,6 +21,7 @@ interface Quiz {
   title: string;
   description?: string;
   questions: QuizQuestion[];
+  responses_count?: number;
 }
 
 export default function QuizPage() {

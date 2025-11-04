@@ -46,6 +46,7 @@ import { AdSpyPanel } from "@/components/AdSpyPanel";
 import { QuizCreatorPanel } from "@/components/QuizCreatorPanel";
 import { DigitalProductCreatorPanel } from "@/components/DigitalProductCreatorPanel";
 import { MembersAreaCreator } from "@/components/MembersAreaCreator";
+import { BriefingCreatorPanel } from "@/components/BriefingCreatorPanel";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -957,6 +958,10 @@ const Dashboard = () => {
 
           <TabsContent value="criador-quizz">
             <QuizCreatorPanel />
+          </TabsContent>
+
+          <TabsContent value="briefing">
+            <BriefingCreatorPanel />
           </TabsContent>
 
           <TabsContent value="produto-digital">

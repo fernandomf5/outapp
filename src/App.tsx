@@ -30,6 +30,7 @@ import ChatbotCustomerAuth from "./pages/ChatbotCustomerAuth";
 import ChatbotCustomerChat from "./pages/ChatbotCustomerChat";
 import Blog from "./pages/Blog";
 import CalculatorPage from "./pages/CalculatorPage";
+import QuizPage from "./pages/QuizPage";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,7 @@ const AppContent = () => {
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:slug" element={<Blog />} />
               <Route path="/calculadora" element={<CalculatorPage />} />
+              <Route path="/quiz/:quizId" element={<QuizPage />} />
               <Route path="/bot-builder" element={
                 <ProtectedRoute>
                   <BotBuilder />
