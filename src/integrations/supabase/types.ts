@@ -3061,6 +3061,10 @@ export type Database = {
       }
       popups: {
         Row: {
+          background_color: string | null
+          background_image: string | null
+          background_video: string | null
+          button_color: string | null
           button_link: string | null
           button_text: string
           clicks: number
@@ -3073,6 +3077,7 @@ export type Database = {
           name: string
           position: string
           scroll_percentage: number | null
+          text_color: string | null
           title: string
           trigger_type: string
           updated_at: string
@@ -3081,6 +3086,10 @@ export type Database = {
           views: number
         }
         Insert: {
+          background_color?: string | null
+          background_image?: string | null
+          background_video?: string | null
+          button_color?: string | null
           button_link?: string | null
           button_text: string
           clicks?: number
@@ -3093,6 +3102,7 @@ export type Database = {
           name: string
           position?: string
           scroll_percentage?: number | null
+          text_color?: string | null
           title: string
           trigger_type: string
           updated_at?: string
@@ -3101,6 +3111,10 @@ export type Database = {
           views?: number
         }
         Update: {
+          background_color?: string | null
+          background_image?: string | null
+          background_video?: string | null
+          button_color?: string | null
           button_link?: string | null
           button_text?: string
           clicks?: number
@@ -3113,6 +3127,7 @@ export type Database = {
           name?: string
           position?: string
           scroll_percentage?: number | null
+          text_color?: string | null
           title?: string
           trigger_type?: string
           updated_at?: string
