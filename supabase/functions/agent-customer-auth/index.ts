@@ -200,7 +200,22 @@ serve(async (req) => {
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-      // Find customer
+      // First, check if email exists
+      const { data: emailCheck } = await supabase
+        .from('agent_customers')
+        .select('id')
+        .eq('agent_id', agentId)
+        .eq('email', email)
+        .single();
+
+      if (!emailCheck) {
+        return new Response(
+          JSON.stringify({ error: 'Email incorreto' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Then verify password
       const { data: customer, error: findError } = await supabase
         .from('agent_customers')
         .select('*')
@@ -211,7 +226,7 @@ serve(async (req) => {
 
       if (findError || !customer) {
         return new Response(
-          JSON.stringify({ error: 'Email ou senha incorretos' }),
+          JSON.stringify({ error: 'Senha incorreta' }),
           { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }

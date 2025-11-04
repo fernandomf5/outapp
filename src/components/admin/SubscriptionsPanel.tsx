@@ -72,43 +72,55 @@ export const SubscriptionsPanel = () => {
     setInactiveDisplayCount(prev => Math.min(prev + 5, inactiveSubscriptions.length));
   };
 
-  const renderSubscriptionCard = (sub: Subscription) => (
-    <div
-      key={sub.id}
-      className="p-4 rounded-lg border border-border bg-card hover:bg-accent/5 transition-colors"
-    >
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <Crown className="w-5 h-5 text-primary" />
-            <h3 className="font-semibold text-lg">{sub.plan?.name || 'Plano não encontrado'}</h3>
-            <Badge variant={sub.status === 'active' ? 'default' : 'secondary'}>
-              {sub.status === 'active' ? 'Ativa' : 'Inativa'}
-            </Badge>
-          </div>
-          
-          <div className="space-y-2 text-sm text-muted-foreground mt-3">
-            <div className="flex items-center gap-2">
-              <User className="w-4 h-4" />
-              <span>{sub.profile?.full_name || 'Nome não disponível'}</span>
+  const renderSubscriptionCard = (sub: Subscription) => {
+    const isExpired = new Date(sub.expires_at) <= new Date();
+    const daysUntilExpiry = Math.ceil((new Date(sub.expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+    
+    return (
+      <div
+        key={sub.id}
+        className="p-4 rounded-lg border border-border bg-card hover:bg-accent/5 transition-colors"
+      >
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <Crown className="w-5 h-5 text-primary" />
+              <h3 className="font-semibold text-lg">{sub.plan?.name || 'Plano não encontrado'}</h3>
+              <Badge variant={sub.status === 'active' && !isExpired ? 'default' : 'secondary'}>
+                {sub.status === 'active' && !isExpired ? 'Ativa' : isExpired ? 'Expirada' : 'Inativa'}
+              </Badge>
             </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span>
-                Expira em: {format(new Date(sub.expires_at), 'dd/MM/yyyy')}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <DollarSign className="w-4 h-4" />
-              <span className="text-success">
-                R$ {sub.plan?.price?.toFixed(2) || '0.00'}/mês
-              </span>
+            
+            <div className="space-y-2 text-sm text-muted-foreground mt-3">
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4" />
+                <div className="flex flex-col">
+                  <span className="font-medium text-foreground">{sub.profile?.full_name || 'Nome não disponível'}</span>
+                  <span className="text-xs">{sub.profile?.email}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                <div className="flex flex-col">
+                  <span>Iniciou em: {format(new Date(sub.started_at), 'dd/MM/yyyy')}</span>
+                  <span className={isExpired ? 'text-destructive font-medium' : daysUntilExpiry <= 7 ? 'text-yellow-600 dark:text-yellow-500 font-medium' : ''}>
+                    {isExpired ? 'Expirou' : 'Expira'} em: {format(new Date(sub.expires_at), 'dd/MM/yyyy')}
+                    {!isExpired && daysUntilExpiry <= 7 && ` (${daysUntilExpiry} dias)`}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-4 h-4" />
+                <span className="text-success font-semibold">
+                  R$ {sub.plan?.price?.toFixed(2) || '0.00'}/mês
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <Card className="p-6 glass">

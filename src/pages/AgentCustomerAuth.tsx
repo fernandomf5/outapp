@@ -156,7 +156,12 @@ export default function AgentCustomerAuth() {
         }
       }
     } catch (error: any) {
-      showError("Erro", error.message || "Ocorreu um erro.");
+      const errorMessage = error.message || "Ocorreu um erro.";
+      if (authMode === 'login') {
+        showError("Erro no login", errorMessage);
+      } else {
+        showError("Erro", errorMessage);
+      }
     } finally {
       setLoading(false);
     }

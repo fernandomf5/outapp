@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { chatSounds } from "@/utils/chatSounds";
 import {
   Dialog,
   DialogContent,
@@ -51,6 +52,7 @@ export default function CalculatorPage() {
   };
 
   const inputDigit = (digit: string) => {
+    chatSounds.playTypingSound();
     if (waitingForOperand) {
       setDisplay(digit);
       setWaitingForOperand(false);
@@ -60,6 +62,7 @@ export default function CalculatorPage() {
   };
 
   const inputDecimal = () => {
+    chatSounds.playTypingSound();
     if (waitingForOperand) {
       setDisplay("0.");
       setWaitingForOperand(false);
@@ -76,6 +79,12 @@ export default function CalculatorPage() {
   };
 
   const performOperation = (nextOperator: string) => {
+    if (nextOperator === "=") {
+      chatSounds.playSendSound();
+    } else {
+      chatSounds.playTypingSound();
+    }
+    
     const inputValue = parseFloat(display);
 
     if (currentValue === "") {
@@ -175,8 +184,8 @@ export default function CalculatorPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-primary/5 to-background p-4">
-      <Card className="w-full max-w-md bg-card shadow-2xl">
+    <div className="min-h-screen flex items-center justify-center gradient-primary p-4">
+      <Card className="w-full max-w-md glass shadow-glow">
         <div className="p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
@@ -197,36 +206,41 @@ export default function CalculatorPage() {
           </div>
 
           {/* Display */}
-          <div className="bg-muted/50 rounded-lg p-6 mb-6 text-right">
-            <div className="text-4xl font-bold break-all">{display}</div>
+          <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-6 mb-6 text-right border-2 border-primary/20">
+            <div className="text-4xl font-bold break-all text-primary">{display}</div>
           </div>
 
           {/* Buttons */}
           <div className="grid grid-cols-4 gap-3">
-            <Button variant="outline" onClick={clear}>C</Button>
-            <Button variant="outline" onClick={() => performOperation("÷")}>÷</Button>
-            <Button variant="outline" onClick={() => performOperation("×")}>×</Button>
-            <Button variant="outline" onClick={() => setShowSaveDialog(true)}>
-              <Save className="w-4 h-4" />
+            <Button 
+              className="h-14 text-lg font-semibold bg-destructive hover:bg-destructive/90 text-destructive-foreground" 
+              onClick={clear}
+            >
+              C
+            </Button>
+            <Button className="h-14 text-lg hover:bg-primary/10 transition-smooth" variant="outline" onClick={() => performOperation("÷")}>÷</Button>
+            <Button className="h-14 text-lg hover:bg-primary/10 transition-smooth" variant="outline" onClick={() => performOperation("×")}>×</Button>
+            <Button className="h-14 hover:bg-primary/10 transition-smooth" variant="outline" onClick={() => setShowSaveDialog(true)}>
+              <Save className="w-5 h-5" />
             </Button>
 
-            <Button variant="outline" onClick={() => inputDigit("7")}>7</Button>
-            <Button variant="outline" onClick={() => inputDigit("8")}>8</Button>
-            <Button variant="outline" onClick={() => inputDigit("9")}>9</Button>
-            <Button variant="outline" onClick={() => performOperation("-")}>-</Button>
+            <Button className="h-14 text-lg hover:bg-accent transition-smooth" variant="outline" onClick={() => inputDigit("7")}>7</Button>
+            <Button className="h-14 text-lg hover:bg-accent transition-smooth" variant="outline" onClick={() => inputDigit("8")}>8</Button>
+            <Button className="h-14 text-lg hover:bg-accent transition-smooth" variant="outline" onClick={() => inputDigit("9")}>9</Button>
+            <Button className="h-14 text-lg hover:bg-primary/10 transition-smooth" variant="outline" onClick={() => performOperation("-")}>-</Button>
 
-            <Button variant="outline" onClick={() => inputDigit("4")}>4</Button>
-            <Button variant="outline" onClick={() => inputDigit("5")}>5</Button>
-            <Button variant="outline" onClick={() => inputDigit("6")}>6</Button>
-            <Button variant="outline" onClick={() => performOperation("+")}>+</Button>
+            <Button className="h-14 text-lg hover:bg-accent transition-smooth" variant="outline" onClick={() => inputDigit("4")}>4</Button>
+            <Button className="h-14 text-lg hover:bg-accent transition-smooth" variant="outline" onClick={() => inputDigit("5")}>5</Button>
+            <Button className="h-14 text-lg hover:bg-accent transition-smooth" variant="outline" onClick={() => inputDigit("6")}>6</Button>
+            <Button className="h-14 text-lg hover:bg-primary/10 transition-smooth" variant="outline" onClick={() => performOperation("+")}>+</Button>
 
-            <Button variant="outline" onClick={() => inputDigit("1")}>1</Button>
-            <Button variant="outline" onClick={() => inputDigit("2")}>2</Button>
-            <Button variant="outline" onClick={() => inputDigit("3")}>3</Button>
-            <Button variant="default" className="row-span-2" onClick={() => performOperation("=")}>=</Button>
+            <Button className="h-14 text-lg hover:bg-accent transition-smooth" variant="outline" onClick={() => inputDigit("1")}>1</Button>
+            <Button className="h-14 text-lg hover:bg-accent transition-smooth" variant="outline" onClick={() => inputDigit("2")}>2</Button>
+            <Button className="h-14 text-lg hover:bg-accent transition-smooth" variant="outline" onClick={() => inputDigit("3")}>3</Button>
+            <Button className="gradient-primary row-span-2 h-auto text-2xl font-bold shadow-glow" onClick={() => performOperation("=")}>=</Button>
 
-            <Button variant="outline" className="col-span-2" onClick={() => inputDigit("0")}>0</Button>
-            <Button variant="outline" onClick={inputDecimal}>.</Button>
+            <Button className="h-14 text-lg hover:bg-accent transition-smooth col-span-2" variant="outline" onClick={() => inputDigit("0")}>0</Button>
+            <Button className="h-14 text-lg hover:bg-accent transition-smooth" variant="outline" onClick={inputDecimal}>.</Button>
           </div>
         </div>
       </Card>

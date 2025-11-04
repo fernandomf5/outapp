@@ -188,10 +188,11 @@ export default function ChatbotCustomerAuth() {
         }
       }
     } catch (error: any) {
+      const errorMessage = error.message || "Ocorreu um erro.";
       if (authMode === 'login') {
-        showError("Erro no login", "Você errou o e-mail ou a senha.");
+        showError("Erro no login", errorMessage);
       } else {
-        showError("Erro", error.message || "Ocorreu um erro.");
+        showError("Erro", errorMessage);
       }
     } finally {
       setLoading(false);
