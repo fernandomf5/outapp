@@ -44,7 +44,6 @@ import { TaskOrganizerPanel } from "@/components/TaskOrganizerPanel";
 import { PopupCreatorPanel } from "@/components/PopupCreatorPanel";
 import { AdSpyPanel } from "@/components/AdSpyPanel";
 import { QuizCreatorPanel } from "@/components/QuizCreatorPanel";
-import { DigitalProductCreatorPanel } from "@/components/DigitalProductCreatorPanel";
 import { MembersAreaCreator } from "@/components/MembersAreaCreator";
 import { BriefingCreatorPanel } from "@/components/BriefingCreatorPanel";
 import { QuickNotesPanel } from "@/components/QuickNotesPanel";
@@ -968,10 +967,6 @@ const Dashboard = () => {
 
           <TabsContent value="briefing">
             <BriefingCreatorPanel />
-          </TabsContent>
-
-          <TabsContent value="produto-digital">
-            <DigitalProductCreatorPanel />
           </TabsContent>
 
           <TabsContent value="area-membros">

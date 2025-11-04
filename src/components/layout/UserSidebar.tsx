@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Bot, Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ChevronDown, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, Database, Target, Globe, HelpCircle, Package, Lightbulb, UserCog, Megaphone } from "lucide-react";
+import { Bot, Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ChevronDown, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -157,7 +157,6 @@ export function UserSidebar() {
     { title: "Espionar Anúncios", icon: Target, path: "/dashboard", tab: "espionar" },
     { title: "Criador de Quiz", icon: HelpCircle, path: "/dashboard", tab: "criador-quizz" },
     { title: "Criador de Briefing", icon: FileText, path: "/dashboard", tab: "briefing" },
-    { title: "Criador de Produtos", icon: Package, path: "/dashboard", tab: "produto-digital" },
     { title: "Área de Membros", icon: UserCog, path: "/dashboard", tab: "area-membros" },
     { title: "Narração de Texto (TTS)", icon: Volume2, path: "/dashboard", tab: "text-to-speech" },
   ];
