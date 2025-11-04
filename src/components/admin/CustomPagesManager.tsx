@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Edit, Trash2, FileText } from "lucide-react";
@@ -21,12 +21,8 @@ interface CustomPage {
   title: string;
   slug: string;
   content: string;
-  location: 'header' | 'footer' | 'both';
-  open_as_popup: boolean;
   is_active: boolean;
   order_index: number;
-  custom_header_code?: string;
-  custom_footer_code?: string;
 }
 
 export const CustomPagesManager = () => {
@@ -53,12 +49,21 @@ export const CustomPagesManager = () => {
   const handleSave = async () => {
     if (!editingPage) return;
 
+    if (!editingPage.title || !editingPage.slug) {
+      toast({ 
+        title: "Erro", 
+        description: "Título e slug são obrigatórios",
+        variant: "destructive" 
+      });
+      return;
+    }
+
     const pageData = {
       title: editingPage.title,
-      slug: editingPage.slug,
+      slug: editingPage.slug.toLowerCase().replace(/\s+/g, '-'),
       content: editingPage.content,
-      location: editingPage.location,
-      open_as_popup: editingPage.open_as_popup,
+      location: 'header' as const,
+      open_as_popup: false,
       is_active: editingPage.is_active,
       order_index: editingPage.order_index,
     };
@@ -70,8 +75,17 @@ export const CustomPagesManager = () => {
         .select()
         .single();
 
-      if (!error && data) {
-        setPages([...pages, data as CustomPage]);
+      if (error) {
+        toast({ 
+          title: "Erro ao criar página", 
+          description: error.message,
+          variant: "destructive" 
+        });
+        return;
+      }
+
+      if (data) {
+        await fetchPages();
         toast({ title: "Página criada com sucesso!" });
       }
     } else {
@@ -80,10 +94,17 @@ export const CustomPagesManager = () => {
         .update(pageData)
         .eq('id', editingPage.id);
 
-      if (!error) {
-        setPages(pages.map(p => p.id === editingPage.id ? { ...p, ...pageData } : p));
-        toast({ title: "Página atualizada com sucesso!" });
+      if (error) {
+        toast({ 
+          title: "Erro ao atualizar página", 
+          description: error.message,
+          variant: "destructive" 
+        });
+        return;
       }
+
+      await fetchPages();
+      toast({ title: "Página atualizada com sucesso!" });
     }
 
     setDialogOpen(false);
@@ -108,12 +129,8 @@ export const CustomPagesManager = () => {
       title: '',
       slug: '',
       content: '',
-      location: 'footer',
-      open_as_popup: false,
       is_active: true,
       order_index: pages.length,
-      custom_header_code: '',
-      custom_footer_code: '',
     });
     setDialogOpen(true);
   };
@@ -142,10 +159,11 @@ export const CustomPagesManager = () => {
               <div className="flex-1">
                 <h4 className="font-semibold">{page.title}</h4>
                 <p className="text-sm text-muted-foreground">
-                  {page.location === 'header' ? 'Cabeçalho' : page.location === 'footer' ? 'Rodapé' : 'Ambos'} • Página •
-                  {page.is_active ? ' Ativo' : ' Inativo'}
+                  {page.is_active ? 'Ativo' : 'Inativo'}
                 </p>
-                <p className="text-xs text-muted-foreground">Link: /custom/{page.slug}</p>
+                <p className="text-xs text-muted-foreground">
+                  Link: <a href={`/custom/${page.slug}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">/custom/{page.slug}</a>
+                </p>
               </div>
               <div className="flex gap-2">
                 <Button variant="ghost" size="sm" asChild>
@@ -213,31 +231,6 @@ export const CustomPagesManager = () => {
                   </div>
                 </div>
 
-                <div>
-                  <Label>Localização</Label>
-                  <RadioGroup
-                    value={editingPage.location}
-                    onValueChange={(value: 'header' | 'footer' | 'both') =>
-                      setEditingPage({ ...editingPage, location: value })
-                    }
-                    className="space-y-3 mt-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="header" id="header" />
-                      <Label htmlFor="header" className="font-normal">Cabeçalho (Menu Principal)</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="footer" id="footer" />
-                      <Label htmlFor="footer" className="font-normal">Rodapé</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="both" id="both" />
-                      <Label htmlFor="both" className="font-normal">Ambos (Topo e Rodapé)</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-
                 <div className="flex items-center justify-between">
                   <Label htmlFor="active">Página ativa</Label>
                   <Switch
@@ -261,36 +254,6 @@ export const CustomPagesManager = () => {
                   />
                   <p className="text-xs text-muted-foreground mt-2">
                     O texto será exibido exatamente como você escrever, preservando quebras de linha
-                  </p>
-                </div>
-
-                <div>
-                  <Label>Código Header Personalizado (opcional)</Label>
-                  <Textarea
-                    value={editingPage.custom_header_code || ''}
-                    onChange={(e) =>
-                      setEditingPage({ ...editingPage, custom_header_code: e.target.value })
-                    }
-                    placeholder="<script>...</script> ou <style>...</style>"
-                    className="min-h-[100px] font-mono text-xs"
-                  />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Será inserido no &lt;head&gt; do site clonado
-                  </p>
-                </div>
-
-                <div>
-                  <Label>Código Footer Personalizado (opcional)</Label>
-                  <Textarea
-                    value={editingPage.custom_footer_code || ''}
-                    onChange={(e) =>
-                      setEditingPage({ ...editingPage, custom_footer_code: e.target.value })
-                    }
-                    placeholder="<script>...</script>"
-                    className="min-h-[100px] font-mono text-xs"
-                  />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Será inserido antes do &lt;/body&gt; do site clonado
                   </p>
                 </div>
 
