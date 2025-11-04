@@ -31,7 +31,7 @@ const CustomPage = () => {
       .select('*')
       .eq('slug', slug)
       .eq('is_active', true)
-      .single();
+      .maybeSingle();
 
     if (error || !data) {
       navigate('/404');
