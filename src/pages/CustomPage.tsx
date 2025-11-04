@@ -67,7 +67,7 @@ const CustomPage = () => {
       <Helmet>
         <title>{page.title} | {siteTitle || 'Site'}</title>
         <meta name="description" content={(page.content || '').replace(/\s+/g,' ').slice(0, 155)} />
-        <link rel="canonical" href={`${window.location.origin}/custom/${page.slug}`} />
+        <link rel="canonical" href={`${window.location.origin}/${page.slug}`} />
       </Helmet>
 
       <LandingHeader />

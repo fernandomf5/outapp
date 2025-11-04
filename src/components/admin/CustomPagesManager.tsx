@@ -61,10 +61,8 @@ export const CustomPagesManager = () => {
 
     const pageData = {
       title: editingPage.title,
-      slug: editingPage.slug.toLowerCase().replace(/\s+/g, '-'),
+      slug: editingPage.slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
       content: editingPage.content,
-      location: 'header' as const,
-      open_as_popup: false,
       is_active: editingPage.is_active,
       order_index: editingPage.order_index,
     };
@@ -163,13 +161,13 @@ export const CustomPagesManager = () => {
                   {page.is_active ? 'Ativo' : 'Inativo'}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Link: <Link to={`/custom/${page.slug}`} className="text-primary hover:underline">/custom/{page.slug}</Link>
+                  Link: <Link to={`/${page.slug}`} className="text-primary hover:underline">/{page.slug}</Link>
                 </p>
               </div>
               <div className="flex gap-2">
                 <Button variant="ghost" size="sm" asChild>
                   <Link
-                    to={`/custom/${page.slug}`}
+                    to={`/${page.slug}`}
                     aria-label="Ver página"
                   >
                     <FileText className="w-4 h-4" />
@@ -248,11 +246,11 @@ export const CustomPagesManager = () => {
                     onChange={(e) =>
                       setEditingPage({ ...editingPage, content: e.target.value })
                     }
-                    placeholder="Digite o conteúdo da página aqui... (pressione Enter para pular linha)"
-                    className="min-h-[300px]"
+                    placeholder="Digite o conteúdo da página aqui... Você pode usar parágrafos, listas, etc."
+                    className="min-h-[400px] font-mono text-sm"
                   />
                   <p className="text-xs text-muted-foreground mt-2">
-                    O texto será exibido exatamente como você escrever, preservando quebras de linha
+                    O conteúdo será exibido formatado na página
                   </p>
                 </div>
 

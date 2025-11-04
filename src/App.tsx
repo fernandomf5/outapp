@@ -72,7 +72,7 @@ const AppContent = () => {
               <Route path="/calculadora" element={<CalculatorPage />} />
               <Route path="/quiz/:quizId" element={<QuizPage />} />
               <Route path="/briefing/:briefingId" element={<BriefingPublicPage />} />
-              <Route path="/custom/:slug" element={<CustomPage />} />
+              <Route path="/:slug" element={<CustomPage />} />
               <Route path="/bot-builder" element={
                 <ProtectedRoute>
                   <BotBuilder />

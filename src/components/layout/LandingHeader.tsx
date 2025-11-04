@@ -14,7 +14,6 @@ interface CustomPageItem {
   id: string;
   title: string;
   slug: string;
-  location: string;
   is_active: boolean;
 }
 
@@ -34,9 +33,8 @@ export const LandingHeader = () => {
       const [pagesRes, settingsRes] = await Promise.all([
         supabase
           .from('custom_pages')
-          .select('id, title, slug, location, is_active')
+          .select('id, title, slug, is_active')
           .eq('is_active', true)
-          .in('location', ['header', 'both'])
           .order('order_index', { ascending: true }),
         supabase
           .from('site_settings')
@@ -107,10 +105,10 @@ export const LandingHeader = () => {
           <a href="/#faq" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
             {t('faq')}
           </a>
-          {headerPages.map((page) => (
+           {headerPages.map((page) => (
             <Link
               key={page.id}
-              to={`/custom/${page.slug}`}
+              to={`/${page.slug}`}
               className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2"
             >
               {page.title}
@@ -179,7 +177,7 @@ export const LandingHeader = () => {
             {headerPages.map((page) => (
               <Link
                 key={page.id}
-                to={`/custom/${page.slug}`}
+                to={`/${page.slug}`}
                 className="text-sm text-muted-foreground hover:text-foreground transition-smooth"
               >
                 {page.title}
