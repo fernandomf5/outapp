@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +41,7 @@ interface QuizQuestion {
 }
 
 export const QuizCreatorPanel = () => {
+  const navigate = useNavigate();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -482,6 +484,7 @@ export const QuizCreatorPanel = () => {
                       <Button 
                         variant="outline" 
                         size="icon"
+                        onClick={() => navigate(`/quiz/${quiz.id}`)}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
