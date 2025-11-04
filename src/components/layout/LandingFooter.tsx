@@ -3,6 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Bot } from "lucide-react";
 import { SocialLinks } from "@/components/SocialLinks";
 
+
+interface CustomPageItem {
+  id: string;
+  title: string;
+  slug: string;
+  location: string;
+  is_active: boolean;
+}
+
 export const LandingFooter = () => {
   const [siteTitle, setSiteTitle] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
@@ -10,16 +19,27 @@ export const LandingFooter = () => {
   const [footerMenus, setFooterMenus] = useState<any[]>([]);
   const [footerImages, setFooterImages] = useState<string[]>([]);
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
+  const [footerPages, setFooterPages] = useState<CustomPageItem[]>([]);
 
   useEffect(() => {
-    const fetchSettings = async () => {
-      const { data } = await supabase
-        .from('site_settings')
-        .select('key, value')
-        .in('key', ['site_title', 'site_logo_url', 'footer_text', 'footer_menus', 'footer_images', 'social_links']);
+    const fetchData = async () => {
+      const [pagesRes, settingsRes] = await Promise.all([
+        supabase
+          .from('custom_pages')
+          .select('id, title, slug, location, is_active')
+          .eq('is_active', true)
+          .in('location', ['footer', 'both'])
+          .order('order_index', { ascending: true }),
+        supabase
+          .from('site_settings')
+          .select('key, value')
+          .in('key', ['site_title', 'site_logo_url', 'footer_text', 'footer_menus', 'footer_images', 'social_links'])
+      ]);
 
-      if (data) {
-        data.forEach(item => {
+      if (pagesRes.data) setFooterPages(pagesRes.data as CustomPageItem[]);
+
+      if (settingsRes.data) {
+        settingsRes.data.forEach(item => {
           switch(item.key) {
             case 'site_title':
               setSiteTitle(item.value || 'Automação');
@@ -44,7 +64,7 @@ export const LandingFooter = () => {
       }
     };
 
-    fetchSettings();
+    fetchData();
   }, []);
 
   return (
@@ -65,6 +85,23 @@ export const LandingFooter = () => {
             )}
             <SocialLinks links={socialLinks} variant="footer" />
           </div>
+          {footerPages.length > 0 && (
+            <div>
+              <h4 className="font-semibold mb-4">Páginas</h4>
+              <ul className="space-y-2">
+                {footerPages.map((page) => (
+                  <li key={page.id}>
+                    <a 
+                      href={`/custom/${page.slug}`} 
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {page.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {footerMenus.map((menu: any, index: number) => (
             <div key={index}>
               <h4 className="font-semibold mb-4">{menu.title}</h4>

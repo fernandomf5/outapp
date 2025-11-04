@@ -21,7 +21,7 @@ interface CustomPage {
   title: string;
   slug: string;
   content: string;
-  location: 'header' | 'footer';
+  location: 'header' | 'footer' | 'both';
   open_as_popup: boolean;
   is_active: boolean;
   order_index: number;
@@ -142,7 +142,7 @@ export const CustomPagesManager = () => {
               <div className="flex-1">
                 <h4 className="font-semibold">{page.title}</h4>
                 <p className="text-sm text-muted-foreground">
-                  {page.location === 'header' ? 'Cabeçalho' : 'Rodapé'} • Página •
+                  {page.location === 'header' ? 'Cabeçalho' : page.location === 'footer' ? 'Rodapé' : 'Ambos'} • Página •
                   {page.is_active ? ' Ativo' : ' Inativo'}
                 </p>
                 <p className="text-xs text-muted-foreground">Link: /custom/{page.slug}</p>
@@ -217,7 +217,7 @@ export const CustomPagesManager = () => {
                   <Label>Localização</Label>
                   <RadioGroup
                     value={editingPage.location}
-                    onValueChange={(value: 'header' | 'footer') =>
+                    onValueChange={(value: 'header' | 'footer' | 'both') =>
                       setEditingPage({ ...editingPage, location: value })
                     }
                     className="space-y-3 mt-2"
@@ -229,6 +229,10 @@ export const CustomPagesManager = () => {
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="footer" id="footer" />
                       <Label htmlFor="footer" className="font-normal">Rodapé</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="both" id="both" />
+                      <Label htmlFor="both" className="font-normal">Ambos (Topo e Rodapé)</Label>
                     </div>
                   </RadioGroup>
                 </div>

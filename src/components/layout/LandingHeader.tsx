@@ -36,7 +36,7 @@ export const LandingHeader = () => {
           .from('custom_pages')
           .select('id, title, slug, location, is_active')
           .eq('is_active', true)
-          .eq('location', 'header')
+          .in('location', ['header', 'both'])
           .order('order_index', { ascending: true }),
         supabase
           .from('site_settings')
