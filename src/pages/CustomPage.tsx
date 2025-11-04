@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Helmet } from "react-helmet-async";
 import { LandingHeader } from "@/components/layout/LandingHeader";
 import { LandingFooter } from "@/components/layout/LandingFooter";
+import DOMPurify from "dompurify";
+import NotFound from "@/pages/NotFound";
 
 interface CustomPageData {
   id: string;
@@ -14,9 +16,9 @@ interface CustomPageData {
 
 const CustomPage = () => {
   const { slug } = useParams();
-  const navigate = useNavigate();
   const [page, setPage] = useState<CustomPageData | null>(null);
   const [siteTitle, setSiteTitle] = useState("");
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     if (slug) {
@@ -34,7 +36,7 @@ const CustomPage = () => {
       .maybeSingle();
 
     if (error || !data) {
-      navigate('/404');
+      setNotFound(true);
       return;
     }
 
@@ -54,6 +56,10 @@ const CustomPage = () => {
     }
   };
 
+  if (notFound) {
+    return <NotFound />;
+  }
+
   if (!page) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -66,7 +72,7 @@ const CustomPage = () => {
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>{page.title} | {siteTitle || 'Site'}</title>
-        <meta name="description" content={(page.content || '').replace(/\s+/g,' ').slice(0, 155)} />
+        <meta name="description" content={(page.content || '').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').slice(0, 155)} />
         <link rel="canonical" href={`${window.location.origin}/${page.slug}`} />
       </Helmet>
 
@@ -77,9 +83,10 @@ const CustomPage = () => {
           <article className="max-w-4xl mx-auto">
             <h1 className="text-4xl md:text-5xl font-bold mb-8 text-foreground">{page.title}</h1>
             <div className="prose prose-lg dark:prose-invert max-w-none text-foreground">
-              <div className="whitespace-pre-wrap text-base leading-relaxed">
-                {page.content}
-              </div>
+              <div
+                className="text-base leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(page.content || '') }}
+              />
             </div>
           </article>
         </div>

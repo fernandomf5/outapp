@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -14,6 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 interface CustomPage {
   id: string;
@@ -186,11 +187,11 @@ export const PageCreator = () => {
 
             <div>
               <Label>Conteúdo</Label>
-              <Textarea
-                className="min-h-[200px] font-mono text-sm"
+              <ReactQuill
+                theme="snow"
                 value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Digite o conteúdo da página aqui..."
+                onChange={setContent}
+                className="bg-background"
               />
               <p className="text-xs text-muted-foreground mt-2">O conteúdo será exibido entre o cabeçalho e o rodapé do site.</p>
             </div>
@@ -281,13 +282,11 @@ export const PageCreator = () => {
 
               <div>
                 <Label>Conteúdo</Label>
-                <Textarea
+                <ReactQuill
+                  theme="snow"
                   value={editingPage.content}
-                  onChange={(e) =>
-                    setEditingPage({ ...editingPage, content: e.target.value })
-                  }
-                  placeholder="Conteúdo da página"
-                  className="min-h-[300px] font-mono text-sm"
+                  onChange={(val) => setEditingPage({ ...editingPage, content: val })}
+                  className="bg-background"
                 />
               </div>
 
