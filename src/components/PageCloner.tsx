@@ -134,7 +134,7 @@ export const PageCloner = () => {
 
   const fetchCustomDomains = async () => {
     const { data, error } = await supabase
-      .from('custom_domains')
+      .from('user_domains')
       .select('*')
       .eq('user_id', user!.id)
       .eq('is_active', true)
@@ -167,7 +167,7 @@ export const PageCloner = () => {
     }
 
     const { error } = await supabase
-      .from("custom_domains")
+      .from("user_domains")
       .insert({
         user_id: user!.id,
         domain: newDomain.trim().toLowerCase(),
@@ -195,7 +195,7 @@ export const PageCloner = () => {
 
   const handleDeleteDomain = async (domainId: string) => {
     const { error } = await supabase
-      .from("custom_domains")
+      .from("user_domains")
       .delete()
       .eq("id", domainId);
 
