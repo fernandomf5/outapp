@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Bot, Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ChevronDown, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone } from "lucide-react";
+import { Bot, Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ChevronDown, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -154,9 +154,9 @@ export function UserSidebar() {
     { title: "Organizador de Tarefas", icon: Target, path: "/dashboard", tab: "tarefas" },
     { title: "Criador de Pop-ups", icon: Megaphone, path: "/dashboard", tab: "popups" },
     { title: "Gerenciador de Domínios", icon: Globe, path: "/dashboard", tab: "dominios" },
-    { title: "Espionar Anúncios", icon: Target, path: "/dashboard", tab: "espionar" },
     { title: "Criador de Quiz", icon: HelpCircle, path: "/dashboard", tab: "criador-quizz" },
     { title: "Criador de Briefing", icon: FileText, path: "/dashboard", tab: "briefing" },
+    { title: "Respostas de Briefing", icon: FileCheck, path: "/dashboard", tab: "briefing-responses" },
     { title: "Área de Membros", icon: UserCog, path: "/dashboard", tab: "area-membros" },
     { title: "Narração de Texto (TTS)", icon: Volume2, path: "/dashboard", tab: "text-to-speech" },
   ];

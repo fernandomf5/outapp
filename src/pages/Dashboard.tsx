@@ -957,10 +957,6 @@ const Dashboard = () => {
             <PopupCreatorPanel />
           </TabsContent>
 
-          <TabsContent value="espionar">
-            <AdSpyPanel />
-          </TabsContent>
-
           <TabsContent value="criador-quizz">
             <QuizCreatorPanel />
           </TabsContent>

@@ -61,7 +61,9 @@ export default function BriefingPublicPage() {
 
       if (error) throw error;
 
-      toast.success("Briefing enviado com sucesso!");
+      toast.success("Briefing enviado com sucesso! ✅");
+      toast.info("Obrigado por responder o formulário!");
+      
       // Incrementar contador de respostas
       if (briefingId) {
         await supabase

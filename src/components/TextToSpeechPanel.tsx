@@ -17,22 +17,25 @@ interface Voice {
 }
 
 const neuralVoices: Voice[] = [
-  { id: "pt-BR-FranciscaNeural", name: "Francisca", language: "pt-BR", gender: "Feminino", style: "Jovem e Natural" },
-  { id: "pt-BR-AntonioNeural", name: "Antonio", language: "pt-BR", gender: "Masculino", style: "Profissional" },
-  { id: "pt-BR-BrendaNeural", name: "Brenda", language: "pt-BR", gender: "Feminino", style: "Elegante" },
-  { id: "pt-BR-DonatoNeural", name: "Donato", language: "pt-BR", gender: "Masculino", style: "Sério e Formal" },
-  { id: "pt-BR-ElzaNeural", name: "Elza", language: "pt-BR", gender: "Feminino", style: "Madura e Confiante" },
-  { id: "pt-BR-FabioNeural", name: "Fábio", language: "pt-BR", gender: "Masculino", style: "Amigável" },
-  { id: "pt-BR-GiovannaNeural", name: "Giovanna", language: "pt-BR", gender: "Feminino", style: "Jovem e Energética" },
-  { id: "pt-BR-HumbertoNeural", name: "Humberto", language: "pt-BR", gender: "Masculino", style: "Maduro e Sério" },
-  { id: "pt-BR-JulioNeural", name: "Júlio", language: "pt-BR", gender: "Masculino", style: "Casual" },
-  { id: "pt-BR-LeilaNeural", name: "Leila", language: "pt-BR", gender: "Feminino", style: "Suave" },
-  { id: "pt-BR-LeticiaNeural", name: "Letícia", language: "pt-BR", gender: "Feminino", style: "Empresarial" },
-  { id: "pt-BR-ManuelaNeural", name: "Manuela", language: "pt-BR", gender: "Feminino", style: "Clara e Natural" },
-  { id: "pt-BR-NicolauNeural", name: "Nicolau", language: "pt-BR", gender: "Masculino", style: "Warm e Friendly" },
-  { id: "pt-BR-ThalitaNeural", name: "Thalita", language: "pt-BR", gender: "Feminino", style: "Versátil" },
-  { id: "pt-BR-ValerioNeural", name: "Valério", language: "pt-BR", gender: "Masculino", style: "Corporativo" },
-  { id: "pt-BR-YaraNeural", name: "Yara", language: "pt-BR", gender: "Feminino", style: "Moderna" },
+  // Vozes Femininas
+  { id: "pt-BR-FranciscaNeural", name: "Francisca (Feminino)", language: "pt-BR", gender: "Feminino", style: "Jovem e Natural" },
+  { id: "pt-BR-BrendaNeural", name: "Brenda (Feminino)", language: "pt-BR", gender: "Feminino", style: "Elegante" },
+  { id: "pt-BR-ElzaNeural", name: "Elza (Feminino)", language: "pt-BR", gender: "Feminino", style: "Madura e Confiante" },
+  { id: "pt-BR-GiovannaNeural", name: "Giovanna (Feminino)", language: "pt-BR", gender: "Feminino", style: "Jovem e Energética" },
+  { id: "pt-BR-LeilaNeural", name: "Leila (Feminino)", language: "pt-BR", gender: "Feminino", style: "Suave" },
+  { id: "pt-BR-LeticiaNeural", name: "Letícia (Feminino)", language: "pt-BR", gender: "Feminino", style: "Empresarial" },
+  { id: "pt-BR-ManuelaNeural", name: "Manuela (Feminino)", language: "pt-BR", gender: "Feminino", style: "Clara e Natural" },
+  { id: "pt-BR-ThalitaNeural", name: "Thalita (Feminino)", language: "pt-BR", gender: "Feminino", style: "Versátil" },
+  { id: "pt-BR-YaraNeural", name: "Yara (Feminino)", language: "pt-BR", gender: "Feminino", style: "Moderna" },
+  
+  // Vozes Masculinas
+  { id: "pt-BR-AntonioNeural", name: "Antonio (Masculino)", language: "pt-BR", gender: "Masculino", style: "Profissional" },
+  { id: "pt-BR-DonatoNeural", name: "Donato (Masculino)", language: "pt-BR", gender: "Masculino", style: "Sério e Formal" },
+  { id: "pt-BR-FabioNeural", name: "Fábio (Masculino)", language: "pt-BR", gender: "Masculino", style: "Amigável" },
+  { id: "pt-BR-HumbertoNeural", name: "Humberto (Masculino)", language: "pt-BR", gender: "Masculino", style: "Maduro e Sério" },
+  { id: "pt-BR-JulioNeural", name: "Júlio (Masculino)", language: "pt-BR", gender: "Masculino", style: "Casual" },
+  { id: "pt-BR-NicolauNeural", name: "Nicolau (Masculino)", language: "pt-BR", gender: "Masculino", style: "Warm e Friendly" },
+  { id: "pt-BR-ValerioNeural", name: "Valério (Masculino)", language: "pt-BR", gender: "Masculino", style: "Corporativo" },
 ];
 
 export const TextToSpeechPanel = () => {
