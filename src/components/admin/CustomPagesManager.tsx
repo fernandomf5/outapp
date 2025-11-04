@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Edit, Trash2, FileText } from "lucide-react";
@@ -162,19 +163,17 @@ export const CustomPagesManager = () => {
                   {page.is_active ? 'Ativo' : 'Inativo'}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Link: <a href={`/custom/${page.slug}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">/custom/{page.slug}</a>
+                  Link: <Link to={`/custom/${page.slug}`} className="text-primary hover:underline">/custom/{page.slug}</Link>
                 </p>
               </div>
               <div className="flex gap-2">
                 <Button variant="ghost" size="sm" asChild>
-                  <a
-                    href={`/custom/${page.slug}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    to={`/custom/${page.slug}`}
                     aria-label="Ver página"
                   >
                     <FileText className="w-4 h-4" />
-                  </a>
+                  </Link>
                 </Button>
                 <Button
                   variant="ghost"
