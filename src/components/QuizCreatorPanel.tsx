@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   HelpCircle, 
   Plus,
@@ -42,10 +43,13 @@ export const QuizCreatorPanel = () => {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [customDomains, setCustomDomains] = useState<Array<{id: string; domain: string; is_verified: boolean}>>([]);
+  const [selectedCustomDomain, setSelectedCustomDomain] = useState("");
   
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    custom_domain: '',
     questions: [
       {
         question: '',
@@ -58,7 +62,24 @@ export const QuizCreatorPanel = () => {
 
   useEffect(() => {
     loadQuizzes();
+    fetchCustomDomains();
   }, []);
+
+  const fetchCustomDomains = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    
+    const { data } = await supabase
+      .from('user_domains')
+      .select('id, domain, is_verified')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    if (data) {
+      setCustomDomains(data);
+    }
+  };
 
   const loadQuizzes = async () => {
     try {
@@ -135,6 +156,7 @@ export const QuizCreatorPanel = () => {
           user_id: user.id,
           title: formData.title,
           description: formData.description,
+          custom_domain: selectedCustomDomain,
           questions: formData.questions,
           is_active: true,
           responses_count: 0
@@ -149,6 +171,7 @@ export const QuizCreatorPanel = () => {
       setFormData({
         title: '',
         description: '',
+        custom_domain: '',
         questions: [
           {
             question: '',
@@ -158,6 +181,7 @@ export const QuizCreatorPanel = () => {
           }
         ]
       });
+      setSelectedCustomDomain('');
     } catch (error: any) {
       toast.error("Erro ao criar quiz");
     }
@@ -224,6 +248,33 @@ export const QuizCreatorPanel = () => {
                   placeholder="Descrição do quiz..."
                   rows={2}
                 />
+              </div>
+
+              <div>
+                <Label>Domínio Customizado (Opcional)</Label>
+                <Select
+                  value={selectedCustomDomain}
+                  onValueChange={setSelectedCustomDomain}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Usar domínio padrão" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">
+                      {window.location.host} (padrão)
+                    </SelectItem>
+                    {customDomains.filter(d => d.is_verified).map((domain) => (
+                      <SelectItem key={domain.id} value={domain.domain}>
+                        ✓ {domain.domain}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {customDomains.filter(d => d.is_verified).length === 0 
+                    ? "Adicione e verifique um domínio em 'Gerenciador de Domínios'" 
+                    : "Selecione um domínio verificado para usar"}
+                </p>
               </div>
 
               <div className="space-y-4 mt-4">

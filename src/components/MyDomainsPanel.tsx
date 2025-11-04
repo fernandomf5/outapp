@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Globe, Trash2, Check, AlertCircle, Plus } from "lucide-react";
+import { Globe, Trash2, Check, AlertCircle, Plus, Lock, Link2, HelpCircle, Users } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -159,23 +159,126 @@ export function MyDomainsPanel() {
               </Button>
             </div>
 
-            {/* Instruções DNS */}
-            <div className="p-4 bg-muted rounded-lg">
-              <h4 className="font-semibold mb-2 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-primary" />
-                Configuração DNS
-              </h4>
-              <p className="text-sm text-muted-foreground mb-2">
-                Após adicionar um domínio, configure os seguintes registros DNS:
-              </p>
-              <div className="space-y-1 text-sm font-mono bg-background p-3 rounded">
-                <div><strong>Tipo:</strong> A</div>
-                <div><strong>Nome:</strong> @ (ou www)</div>
-                <div><strong>Valor:</strong> 185.158.133.1</div>
+            {/* Instruções DNS Detalhadas */}
+            <div className="space-y-6">
+              <div className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg border border-primary/20">
+                <div className="flex items-center justify-center mb-4">
+                  <Lock className="w-12 h-12 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold text-center mb-6">Como Configurar Seu Domínio Customizado</h3>
+                
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-base flex items-center gap-2">
+                      <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold">1</span>
+                      Adicione Seu Domínio
+                    </h4>
+                    <p className="text-sm text-muted-foreground pl-9">
+                      No campo acima, digite o domínio que você possui (exemplo: <code className="bg-background px-2 py-0.5 rounded text-xs font-mono">seudominio.com.br</code>) e clique em "Adicionar"
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-base flex items-center gap-2">
+                      <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold">2</span>
+                      Configure os Registros DNS
+                    </h4>
+                    <p className="text-sm text-muted-foreground pl-9 mb-3">
+                      Acesse o painel do seu provedor de domínio (Registro.br, GoDaddy, Hostgator, etc.) e adicione estes registros DNS:
+                    </p>
+                    
+                    <div className="pl-9 space-y-3">
+                      <div className="bg-background p-4 rounded-md border border-border">
+                        <p className="text-xs font-semibold mb-3 text-primary">📍 Registro A (Domínio Raiz)</p>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-muted-foreground w-16">Tipo:</span>
+                            <code className="bg-muted px-3 py-1 rounded text-sm font-mono">A</code>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-muted-foreground w-16">Nome:</span>
+                            <code className="bg-muted px-3 py-1 rounded text-sm font-mono">@</code>
+                            <span className="text-xs text-muted-foreground">(ou deixe em branco)</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-muted-foreground w-16">Valor:</span>
+                            <code className="bg-primary/10 px-3 py-1 rounded text-sm font-mono font-bold text-primary">185.158.133.1</code>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-background p-4 rounded-md border border-border">
+                        <p className="text-xs font-semibold mb-3 text-primary">🌐 Registro A (Subdomínio WWW)</p>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-muted-foreground w-16">Tipo:</span>
+                            <code className="bg-muted px-3 py-1 rounded text-sm font-mono">A</code>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-muted-foreground w-16">Nome:</span>
+                            <code className="bg-muted px-3 py-1 rounded text-sm font-mono">www</code>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-muted-foreground w-16">Valor:</span>
+                            <code className="bg-primary/10 px-3 py-1 rounded text-sm font-mono font-bold text-primary">185.158.133.1</code>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pl-9 mt-3 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                      <p className="text-xs font-semibold text-destructive mb-1">⚠️ Atenção:</p>
+                      <p className="text-xs text-muted-foreground">
+                        Remova quaisquer outros registros A ou CNAME conflitantes para o mesmo domínio/subdomínio antes de adicionar os novos.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-base flex items-center gap-2">
+                      <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold">3</span>
+                      Aguarde a Propagação DNS
+                    </h4>
+                    <p className="text-sm text-muted-foreground pl-9">
+                      A propagação pode levar de alguns minutos até 72 horas. Você pode verificar o status em{" "}
+                      <a href="https://dnschecker.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
+                        DNSChecker.org ↗
+                      </a>
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-base flex items-center gap-2">
+                      <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold">4</span>
+                      Use o Domínio nas Suas Ferramentas
+                    </h4>
+                    <p className="text-sm text-muted-foreground pl-9 mb-2">
+                      Após a verificação ✓, seu domínio aparecerá automaticamente nas listas suspensas das seguintes ferramentas:
+                    </p>
+                    <div className="pl-9 grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div className="flex items-center gap-2 text-sm bg-background p-2 rounded border">
+                        <Globe className="w-4 h-4 text-primary" />
+                        <span>Clonador de Página</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm bg-background p-2 rounded border">
+                        <Link2 className="w-4 h-4 text-primary" />
+                        <span>Link na Bio</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm bg-background p-2 rounded border">
+                        <HelpCircle className="w-4 h-4 text-primary" />
+                        <span>Criador de Quiz</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm bg-background p-2 rounded border">
+                        <Users className="w-4 h-4 text-primary" />
+                        <span>Área de Membros</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground pl-9 mt-2">
+                      Exemplo: <code className="bg-background px-2 py-0.5 rounded font-mono">seudominio.com.br/meu-slug</code>
+                    </p>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                A propagação DNS pode levar até 72 horas
-              </p>
             </div>
 
             {/* Lista de domínios */}

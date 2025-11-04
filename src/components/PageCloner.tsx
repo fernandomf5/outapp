@@ -246,8 +246,8 @@ export const PageCloner = () => {
         : `clone-${Math.random().toString(36).substring(2, 10)}`;
 
       // Usar page path selecionado ou page1 como padrão
-      const selectedPagePath = cloneData.selected_page_path || "page1";
-      const clonedUrl = `${window.location.origin}/${selectedPagePath}/${slug}`;
+      const selectedDomain = cloneData.selected_page_path || window.location.host;
+      const clonedUrl = `${selectedDomain}/${slug}`;
 
       // Detect checkout links
       const detectedLinks = detectCheckoutLinks(cloneResult.content);
@@ -260,7 +260,7 @@ export const PageCloner = () => {
           original_url: cloneData.original_url,
           cloned_url: clonedUrl,
           slug: slug,
-          custom_domain: selectedPagePath,
+          custom_domain: selectedDomain,
           page_content: cloneResult.content,
           custom_settings: { detected_checkout_links: detectedLinks },
           is_active: true,
