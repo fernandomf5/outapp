@@ -54,6 +54,7 @@ export const PageCloner = () => {
   const [isCloneDialogOpen, setIsCloneDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDomainDialogOpen, setIsDomainDialogOpen] = useState(false);
+  const [isDomainTutorialOpen, setIsDomainTutorialOpen] = useState(false);
   const [isAnalyticsDialogOpen, setIsAnalyticsDialogOpen] = useState(false);
   const [isLeadsDialogOpen, setIsLeadsDialogOpen] = useState(false);
   const [selectedPage, setSelectedPage] = useState<ClonedPage | null>(null);
@@ -508,6 +509,13 @@ export const PageCloner = () => {
                       <SelectValue placeholder="Escolha uma página" />
                     </SelectTrigger>
                     <SelectContent>
+                      {customDomains
+                        .filter(d => d.is_verified && d.is_active)
+                        .map((domain) => (
+                          <SelectItem key={domain.id} value={domain.domain}>
+                            🌐 {domain.domain} (Domínio Próprio)
+                          </SelectItem>
+                        ))}
                       {AVAILABLE_PAGE_PATHS.map((pagePath) => (
                         <SelectItem key={pagePath} value={pagePath}>
                           {window.location.host}/{pagePath}/sua-slug
@@ -516,11 +524,25 @@ export const PageCloner = () => {
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Selecione qual página usar para clonar (page1, page2, etc.)
+                    {customDomains.filter(d => d.is_verified && d.is_active).length > 0 
+                      ? "Seus domínios próprios aparecem primeiro na lista"
+                      : "Selecione qual página usar para clonar"}
                   </p>
                 </div>
                 <div>
-                  <Label>Slug Personalizada (Opcional)</Label>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label>Slug Personalizada (Opcional)</Label>
+                    <Button
+                      type="button"
+                      variant="link"
+                      size="sm"
+                      className="h-auto p-0 text-xs"
+                      onClick={() => setIsDomainTutorialOpen(true)}
+                    >
+                      <Globe className="h-3 w-3 mr-1" />
+                      Como usar domínio próprio?
+                    </Button>
+                  </div>
                   <Input
                     value={cloneData.custom_slug}
                     onChange={(e) => setCloneData({ ...cloneData, custom_slug: e.target.value })}
@@ -549,7 +571,7 @@ export const PageCloner = () => {
             </DialogContent>
           </Dialog>
           
-          <Button variant="outline" onClick={() => setIsDomainDialogOpen(true)}>
+          <Button variant="outline" onClick={() => setIsDomainTutorialOpen(true)}>
             <Settings className="w-4 h-4 mr-2" />
             Configurar Domínio Próprio
           </Button>
@@ -1403,6 +1425,102 @@ export const PageCloner = () => {
                 <li>Domínios só podem estar conectados a um projeto por vez</li>
               </ul>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Domain Tutorial Dialog */}
+      <Dialog open={isDomainTutorialOpen} onOpenChange={setIsDomainTutorialOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5" />
+              Como Configurar Domínio Próprio
+            </DialogTitle>
+            <DialogDescription>
+              Siga os passos abaixo para usar seu próprio domínio
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
+                1
+              </div>
+              <div>
+                <h4 className="font-semibold mb-1">Acesse o Gerenciador de Domínios</h4>
+                <p className="text-sm text-muted-foreground">
+                  Vá para a aba <strong>"Meus Domínios"</strong> no menu lateral
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
+                2
+              </div>
+              <div>
+                <h4 className="font-semibold mb-1">Adicione seu Domínio</h4>
+                <p className="text-sm text-muted-foreground">
+                  Clique em "Adicionar Domínio" e insira seu domínio (ex: meusite.com.br)
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
+                3
+              </div>
+              <div>
+                <h4 className="font-semibold mb-1">Configure os Registros DNS</h4>
+                <p className="text-sm text-muted-foreground">
+                  No painel do seu provedor de domínio, adicione o registro A apontando para: <strong>185.158.133.1</strong>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
+                4
+              </div>
+              <div>
+                <h4 className="font-semibold mb-1">Aguarde a Verificação</h4>
+                <p className="text-sm text-muted-foreground">
+                  Após a propagação DNS (pode levar até 48h), clique em "Verificar Agora" no gerenciador
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
+                5
+              </div>
+              <div>
+                <h4 className="font-semibold mb-1">Use no Clonador</h4>
+                <p className="text-sm text-muted-foreground">
+                  Quando o domínio estiver ativo, ele aparecerá automaticamente na lista de seleção acima
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => {
+                setIsDomainTutorialOpen(false);
+                window.location.href = '/dashboard?tab=dominios';
+              }}
+            >
+              Ir para Gerenciador de Domínios
+            </Button>
+            <Button 
+              className="flex-1"
+              onClick={() => setIsDomainTutorialOpen(false)}
+            >
+              Entendi
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
