@@ -17,7 +17,7 @@ import { AdminsPanel } from "@/components/admin/AdminsPanel";
 import { SubscriptionsPanel } from "@/components/admin/SubscriptionsPanel";
 import { RevenuePanel } from "@/components/admin/RevenuePanel";
 import { GrowthChart } from "@/components/admin/GrowthChart";
-import { CustomPagesManager } from "@/components/admin/CustomPagesManager";
+import { PageCreator } from "@/components/admin/PageCreator";
 import { SiteSettingsManager } from "@/components/admin/SiteSettingsManager";
 import { AdminMessagesManager } from "@/components/admin/AdminMessagesManager";
 import { VouchersManager } from "@/components/admin/VouchersManager";
@@ -692,8 +692,8 @@ const AdminDashboard = () => {
             {/* Vouchers Section */}
             {currentSection === 'vouchers' && <VouchersManager />}
 
-            {/* Custom Pages Section */}
-            {currentSection === 'custom-pages' && <CustomPagesManager />}
+            {/* Criador de Páginas */}
+            {currentSection === 'page-creator' && <PageCreator />}
 
             {/* Integrations Section */}
             {currentSection === 'integrations' && <MercadoPagoIntegration />}

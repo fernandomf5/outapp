@@ -105,7 +105,7 @@ export function AdminSidebar() {
     { title: t('messages'), icon: MessageSquare, tab: "messages" },
     { title: t('tickets'), icon: LifeBuoy, tab: "tickets" },
     { title: t('vouchers'), icon: Package, tab: "vouchers" },
-    { title: t('custom_pages'), icon: FileText, tab: "custom-pages" },
+    { title: "Criador de páginas", icon: FileText, tab: "page-creator" },
     { title: t('integrations'), icon: Settings, tab: "integrations" },
     { title: "Config da Landing Page", icon: Settings, tab: "settings" },
   ];
