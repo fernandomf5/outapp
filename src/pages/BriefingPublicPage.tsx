@@ -16,11 +16,6 @@ export default function BriefingPublicPage() {
   const [submitting, setSubmitting] = useState(false);
   const [briefing, setBriefing] = useState<any>(null);
   const [responses, setResponses] = useState<Record<string, any>>({});
-  const [visitorInfo, setVisitorInfo] = useState({
-    name: '',
-    email: '',
-    phone: ''
-  });
 
   useEffect(() => {
     loadBriefing();
@@ -53,10 +48,7 @@ export default function BriefingPublicPage() {
         .from('briefing_responses')
         .insert([{
           briefing_id: briefingId,
-          responses: responses,
-          visitor_name: visitorInfo.name,
-          visitor_email: visitorInfo.email,
-          visitor_phone: visitorInfo.phone
+          responses: responses
         }]);
 
       if (error) throw error;
@@ -72,7 +64,6 @@ export default function BriefingPublicPage() {
           .eq('id', briefingId);
       }
       setResponses({});
-      setVisitorInfo({ name: '', email: '', phone: '' });
     } catch (error) {
       toast.error("Erro ao enviar briefing");
     } finally {
@@ -176,38 +167,6 @@ export default function BriefingPublicPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Informações do visitante */}
-            <div className="space-y-4 pb-6 border-b">
-              <h3 className="font-semibold">Suas Informações</h3>
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label>Nome *</Label>
-                  <Input
-                    value={visitorInfo.name}
-                    onChange={(e) => setVisitorInfo({ ...visitorInfo, name: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Email *</Label>
-                  <Input
-                    type="email"
-                    value={visitorInfo.email}
-                    onChange={(e) => setVisitorInfo({ ...visitorInfo, email: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Telefone</Label>
-                  <Input
-                    type="tel"
-                    value={visitorInfo.phone}
-                    onChange={(e) => setVisitorInfo({ ...visitorInfo, phone: e.target.value })}
-                  />
-                </div>
-              </div>
-            </div>
-
             {/* Campos do briefing */}
             <div className="space-y-4">
               {briefing.fields.map((field: any) => (

@@ -48,9 +48,7 @@ export function MembersAreaCreator() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
-    description: '',
-    banner_url: '',
-    logo_url: ''
+    description: ''
   });
 
   useEffect(() => {
