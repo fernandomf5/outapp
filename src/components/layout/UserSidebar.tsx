@@ -155,6 +155,7 @@ export function UserSidebar() {
     { title: "Criador de Pop-ups", icon: Megaphone, path: "/dashboard", tab: "popups" },
     { title: "Gerenciador de Domínios", icon: Globe, path: "/dashboard", tab: "dominios" },
     { title: "Criador de Quiz", icon: HelpCircle, path: "/dashboard", tab: "criador-quizz" },
+    { title: "Criador de Sites", icon: Globe, path: "/dashboard", tab: "criador-sites" },
     { title: "Criador de Briefing", icon: FileText, path: "/dashboard", tab: "briefing" },
     { title: "Respostas de Briefing", icon: FileCheck, path: "/dashboard", tab: "briefing-responses" },
     { title: "Área de Membros", icon: UserCog, path: "/dashboard", tab: "area-membros" },

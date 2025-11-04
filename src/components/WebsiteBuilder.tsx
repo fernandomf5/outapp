@@ -15,13 +15,15 @@ import {
   Edit,
   Copy,
   ExternalLink,
-  Settings,
+  Settings as SettingsIcon,
   Palette,
   Layout,
-  Code
+  Code,
+  Monitor
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { WebsiteEditor } from "./website-builder/WebsiteEditor";
 
 interface Website {
   id: string;
@@ -43,10 +45,10 @@ interface Website {
 }
 
 const templates = [
+  { id: 'blank', name: 'Começar do Zero', description: 'Crie seu site do zero' },
   { id: 'landing', name: 'Landing Page', description: 'Página única para captura de leads' },
   { id: 'business', name: 'Site Empresarial', description: 'Site completo para empresas' },
   { id: 'portfolio', name: 'Portfólio', description: 'Mostre seus trabalhos' },
-  { id: 'ecommerce', name: 'Loja Online', description: 'Venda seus produtos' },
 ];
 
 export function WebsiteBuilder() {
@@ -54,12 +56,13 @@ export function WebsiteBuilder() {
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [customDomains, setCustomDomains] = useState<Array<{id: string; domain: string; is_verified: boolean}>>([]);
+  const [editingWebsite, setEditingWebsite] = useState<Website | null>(null);
   
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
     description: '',
-    template: 'landing',
+    template: 'blank',
     custom_domain: ''
   });
 
@@ -185,6 +188,19 @@ export function WebsiteBuilder() {
     navigator.clipboard.writeText(link);
     toast.success("Link copiado!");
   };
+
+  if (editingWebsite) {
+    return (
+      <WebsiteEditor
+        website={editingWebsite}
+        onClose={() => setEditingWebsite(null)}
+        onUpdate={() => {
+          loadWebsites();
+          setEditingWebsite(null);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -417,7 +433,7 @@ export function WebsiteBuilder() {
                         variant="outline" 
                         size="sm" 
                         className="flex-1"
-                        onClick={() => toast.info("Editor em breve!")}
+                        onClick={() => setEditingWebsite(website)}
                       >
                         <Edit className="mr-2 h-4 w-4" />
                         Editar
@@ -432,12 +448,7 @@ export function WebsiteBuilder() {
                       <Button 
                         variant="outline" 
                         size="icon"
-                        onClick={() => {
-                          const link = website.custom_domain 
-                            ? `https://${website.custom_domain}`
-                            : `${window.location.origin}/site/${website.slug}`;
-                          window.open(link, '_blank');
-                        }}
+                        onClick={() => window.open(`/site/${website.slug}`, '_blank')}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>

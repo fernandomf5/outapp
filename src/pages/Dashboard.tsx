@@ -968,10 +968,14 @@ const Dashboard = () => {
           <TabsContent value="area-membros">
             <MembersAreaCreator />
           </TabsContent>
+
+          <TabsContent value="criador-sites">
+            <WebsiteBuilder />
+          </TabsContent>
               
-              <TabsContent value="briefing-responses">
-                <BriefingResponsesPanel />
-              </TabsContent>
+          <TabsContent value="briefing-responses">
+            <BriefingResponsesPanel />
+          </TabsContent>
         </Tabs>
       </main>
 
