@@ -70,7 +70,7 @@ export const CustomPagesManager = () => {
     if (editingPage.id === 'new') {
       const { data, error } = await supabase
         .from('custom_pages')
-        .insert([pageData])
+        .insert([pageData as any])
         .select()
         .single();
 
@@ -90,7 +90,7 @@ export const CustomPagesManager = () => {
     } else {
       const { error } = await supabase
         .from('custom_pages')
-        .update(pageData)
+        .update(pageData as any)
         .eq('id', editingPage.id);
 
       if (error) {

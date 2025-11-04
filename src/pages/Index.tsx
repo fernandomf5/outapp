@@ -31,8 +31,6 @@ interface CustomPage {
   title: string;
   content: string;
   slug: string;
-  location: string;
-  open_as_popup: boolean;
 }
 
 const Index = () => {
@@ -316,8 +314,7 @@ const Index = () => {
     return IconComponent;
   };
 
-  const headerPages = customPages.filter(p => p.location === 'header');
-  const footerPages = customPages.filter(p => p.location === 'footer');
+  const headerPages = customPages;
 
   const MobileMenu = ({ headerPages, onPageClick }: { headerPages: CustomPage[], onPageClick: (page: CustomPage) => void }) => (
     <Sheet>

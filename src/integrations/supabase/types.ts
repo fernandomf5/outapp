@@ -2467,8 +2467,6 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
-          location: string
-          open_as_popup: boolean
           order_index: number
           slug: string
           title: string
@@ -2479,8 +2477,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
-          location: string
-          open_as_popup?: boolean
           order_index?: number
           slug: string
           title: string
@@ -2491,8 +2487,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
-          location?: string
-          open_as_popup?: boolean
           order_index?: number
           slug?: string
           title?: string

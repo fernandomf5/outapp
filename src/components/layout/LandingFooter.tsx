@@ -8,7 +8,6 @@ interface CustomPageItem {
   id: string;
   title: string;
   slug: string;
-  location: string;
   is_active: boolean;
 }
 
@@ -26,9 +25,8 @@ export const LandingFooter = () => {
       const [pagesRes, settingsRes] = await Promise.all([
         supabase
           .from('custom_pages')
-          .select('id, title, slug, location, is_active')
+          .select('id, title, slug, is_active')
           .eq('is_active', true)
-          .in('location', ['footer', 'both'])
           .order('order_index', { ascending: true }),
         supabase
           .from('site_settings')
@@ -92,7 +90,7 @@ export const LandingFooter = () => {
                 {footerPages.map((page) => (
                   <li key={page.id}>
                     <a 
-                      href={`/custom/${page.slug}`} 
+                      href={`/${page.slug}`} 
                       className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {page.title}
