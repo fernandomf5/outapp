@@ -127,14 +127,14 @@ export function ModuleEditor({ open, onOpenChange, areaId, module, onSave }: Mod
       if (module?.id) {
         const { error } = await supabase
           .from('members_area_modules')
-          .update(formData)
+          .update(formData as any)
           .eq('id', module.id);
         if (error) throw error;
         toast.success('Módulo atualizado!');
       } else {
         const { error } = await supabase
           .from('members_area_modules')
-          .insert([formData]);
+          .insert([formData as any]);
         if (error) throw error;
         toast.success('Módulo criado!');
       }
@@ -216,9 +216,10 @@ export function ModuleEditor({ open, onOpenChange, areaId, module, onSave }: Mod
           <div className="grid gap-2">
             <Label>Thumbnail</Label>
             <ImageUpload
-              value={formData.thumbnail_url || ''}
-              onUpload={(url) => setFormData({...formData, thumbnail_url: url})}
-              bucket="members-content"
+              currentImage={formData.thumbnail_url || ''}
+              onImageSelect={(url) => setFormData({...formData, thumbnail_url: url})}
+              bucketName="members-content"
+              label="Thumbnail"
             />
           </div>
 

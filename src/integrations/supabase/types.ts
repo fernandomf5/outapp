@@ -2852,6 +2852,9 @@ export type Database = {
       }
       members_area_modules: {
         Row: {
+          category: string | null
+          content_data: string | null
+          content_type: string | null
           created_at: string
           description: string | null
           id: string
@@ -2860,8 +2863,12 @@ export type Database = {
           order_index: number
           title: string
           updated_at: string
+          video_url: string | null
         }
         Insert: {
+          category?: string | null
+          content_data?: string | null
+          content_type?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -2870,8 +2877,12 @@ export type Database = {
           order_index?: number
           title: string
           updated_at?: string
+          video_url?: string | null
         }
         Update: {
+          category?: string | null
+          content_data?: string | null
+          content_type?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -2880,6 +2891,7 @@ export type Database = {
           order_index?: number
           title?: string
           updated_at?: string
+          video_url?: string | null
         }
         Relationships: [
           {
@@ -2893,7 +2905,9 @@ export type Database = {
       }
       members_areas: {
         Row: {
+          banner_url: string | null
           created_at: string | null
+          custom_domain: string | null
           description: string | null
           id: string
           is_active: boolean | null
@@ -2905,7 +2919,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          banner_url?: string | null
           created_at?: string | null
+          custom_domain?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
@@ -2917,7 +2933,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          banner_url?: string | null
           created_at?: string | null
+          custom_domain?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null

@@ -38,9 +38,14 @@ interface Module {
   title: string;
   description?: string;
   thumbnail_url?: string;
+  video_url?: string;
+  content_type?: string;
+  content_data?: string;
+  category?: string;
   is_free: boolean;
   price?: number;
-  is_published: boolean;
+  is_active: boolean;
+  order_index?: number;
 }
 
 export function MembersAreaCreator() {
@@ -370,8 +375,8 @@ export function MembersAreaCreator() {
                             {module.price && (
                               <Badge variant="outline">R$ {module.price.toFixed(2)}</Badge>
                             )}
-                            <Badge variant={module.is_published ? 'default' : 'secondary'}>
-                              {module.is_published ? 'Publicado' : 'Rascunho'}
+                            <Badge variant={module.is_active ? 'default' : 'secondary'}>
+                              {module.is_active ? 'Publicado' : 'Rascunho'}
                             </Badge>
                           </div>
                           <div className="flex gap-2 mt-3">
@@ -440,35 +445,37 @@ export function MembersAreaCreator() {
                   <div className="grid gap-2">
                     <Label>Banner</Label>
                     <ImageUpload
-                      value={selectedArea.banner_url || ''}
-                      onUpload={async (url) => {
+                      currentImage={selectedArea.banner_url || ''}
+                      onImageSelect={async (url) => {
                         const { error } = await supabase
                           .from('members_areas')
-                          .update({ banner_url: url })
+                          .update({ banner_url: url } as any)
                           .eq('id', selectedArea.id);
                         if (!error) {
                           toast.success('Banner atualizado!');
                           loadMembersAreas();
                         }
                       }}
-                      bucket="members-content"
+                      bucketName="members-content"
+                      label="Banner"
                     />
                   </div>
                   <div className="grid gap-2">
                     <Label>Logo</Label>
                     <ImageUpload
-                      value={selectedArea.logo_url || ''}
-                      onUpload={async (url) => {
+                      currentImage={selectedArea.logo_url || ''}
+                      onImageSelect={async (url) => {
                         const { error } = await supabase
                           .from('members_areas')
-                          .update({ logo_url: url })
+                          .update({ logo_url: url } as any)
                           .eq('id', selectedArea.id);
                         if (!error) {
                           toast.success('Logo atualizado!');
                           loadMembersAreas();
                         }
                       }}
-                      bucket="members-content"
+                      bucketName="members-content"
+                      label="Logo"
                     />
                   </div>
                 </div>
@@ -482,7 +489,7 @@ export function MembersAreaCreator() {
                       onValueChange={async (value) => {
                         const { error } = await supabase
                           .from('members_areas')
-                          .update({ custom_domain: value })
+                          .update({ custom_domain: value } as any)
                           .eq('id', selectedArea.id);
                         if (!error) {
                           toast.success('Domínio atualizado!');
@@ -525,7 +532,7 @@ export function MembersAreaCreator() {
         open={isModuleEditorOpen}
         onOpenChange={setIsModuleEditorOpen}
         areaId={selectedArea?.id || ''}
-        module={editingModule}
+        module={editingModule as any}
         onSave={() => {
           if (selectedArea) {
             loadModules(selectedArea.id);

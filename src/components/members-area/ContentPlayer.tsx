@@ -1,9 +1,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Play, FileText } from "lucide-react";
-import ReactPlayer from 'react-player';
 
-interface Module {
+interface ModuleData {
   id: string;
   title: string;
   description?: string;
@@ -17,7 +16,7 @@ interface Module {
 interface ContentPlayerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  module: Module | null;
+  module: ModuleData | null;
 }
 
 export function ContentPlayer({ open, onOpenChange, module }: ContentPlayerProps) {
@@ -42,12 +41,11 @@ export function ContentPlayer({ open, onOpenChange, module }: ContentPlayerProps
         <div className="space-y-4">
           {module.content_type === 'video' && module.video_url && (
             <div className="aspect-video bg-black rounded-lg overflow-hidden">
-              <ReactPlayer 
-                url={module.video_url}
-                width="100%"
-                height="100%"
-                controls
-                playing
+              <iframe
+                src={module.video_url}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
               />
             </div>
           )}

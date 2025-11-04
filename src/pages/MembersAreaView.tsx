@@ -176,7 +176,7 @@ export default function MembersAreaView() {
       <ContentPlayer
         open={isPlayerOpen}
         onOpenChange={setIsPlayerOpen}
-        module={selectedModule}
+        module={selectedModule as any}
       />
     </div>
   );
