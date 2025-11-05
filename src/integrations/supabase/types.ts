@@ -2905,6 +2905,7 @@ export type Database = {
       }
       members_areas: {
         Row: {
+          area_type: string
           banner_url: string | null
           created_at: string | null
           custom_domain: string | null
@@ -2915,10 +2916,13 @@ export type Database = {
           name: string
           primary_color: string | null
           requires_approval: boolean | null
+          settings: Json | null
+          slug: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          area_type?: string
           banner_url?: string | null
           created_at?: string | null
           custom_domain?: string | null
@@ -2929,10 +2933,13 @@ export type Database = {
           name: string
           primary_color?: string | null
           requires_approval?: boolean | null
+          settings?: Json | null
+          slug?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          area_type?: string
           banner_url?: string | null
           created_at?: string | null
           custom_domain?: string | null
@@ -2943,6 +2950,8 @@ export type Database = {
           name?: string
           primary_color?: string | null
           requires_approval?: boolean | null
+          settings?: Json | null
+          slug?: string | null
           updated_at?: string | null
           user_id?: string
         }
