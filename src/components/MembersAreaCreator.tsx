@@ -56,7 +56,8 @@ export function MembersAreaCreator() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
-    description: ''
+    description: '',
+    area_type: 'course'
   });
   const [customDomains, setCustomDomains] = useState<Array<{id: string; domain: string; is_verified: boolean}>>([]);
   const [selectedDomain, setSelectedDomain] = useState<string>("");
@@ -133,6 +134,7 @@ export function MembersAreaCreator() {
           user_id: user.id,
           name: formData.title,
           description: formData.description,
+          area_type: (formData as any).area_type,
           is_active: true
         }]);
 
@@ -140,7 +142,7 @@ export function MembersAreaCreator() {
 
       toast.success("Área de membros criada!");
       setIsCreateDialogOpen(false);
-      setFormData({ title: '', description: '' });
+      setFormData({ title: '', description: '', area_type: 'course' });
       loadMembersAreas();
     } catch (error: any) {
       toast.error(`Erro ao criar área de membros: ${error?.message || ''}`);
@@ -195,6 +197,23 @@ export function MembersAreaCreator() {
                     onChange={(e) => setFormData({...formData, title: e.target.value})}
                     placeholder="Ex: Meu Curso Online"
                   />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Tipo da Área</Label>
+                  <Select
+                    value={(formData as any).area_type}
+                    onValueChange={(v) => setFormData({ ...formData, area_type: v as any })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="course">Curso</SelectItem>
+                      <SelectItem value="clients">Clientes</SelectItem>
+                      <SelectItem value="community">Comunidade</SelectItem>
+                      <SelectItem value="membership">Assinatura</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid gap-2">
                   <Label>Descrição</Label>

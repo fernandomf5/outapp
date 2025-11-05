@@ -222,7 +222,7 @@ export function WebsiteBuilder() {
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="gradient-primary shadow-glow">
+            <Button className="gradient-primary shadow-glow" onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Criar Site
             </Button>

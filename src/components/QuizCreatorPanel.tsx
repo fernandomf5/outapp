@@ -233,7 +233,7 @@ export const QuizCreatorPanel = () => {
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="gradient-primary shadow-glow">
+            <Button className="gradient-primary shadow-glow" onClick={() => setIsAddDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Criar Quiz
             </Button>

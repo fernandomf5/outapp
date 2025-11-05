@@ -64,6 +64,9 @@ export default function LinkBioPage() {
   useEffect(() => {
     if (username || slug) {
       fetchBioPage();
+    } else {
+      // Caso a rota esteja sem parâmetros, evitamos loading infinito
+      setLoading(false);
     }
   }, [username, slug]);
 
