@@ -160,7 +160,9 @@ export const AdsManagementPanel = () => {
   const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
   const conversionRate = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
   const costPerConversion = totalConversions > 0 ? totalSpent / totalConversions : 0;
-  const totalCost = totalSpent + totalProductCost;
+  
+  // ATENÇÃO: custo do produto é apenas informativo e NÃO entra no cálculo de lucro/ROI
+  const totalCost = totalSpent; // apenas gasto em anúncios
   const netProfit = totalRevenue - totalCost;
   const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
   const roi = totalCost > 0 ? ((totalRevenue - totalCost) / totalCost) * 100 : 0;
@@ -416,7 +418,7 @@ export const AdsManagementPanel = () => {
                   R$ {netProfit.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Receita - Custos totais
+                  Receita - Gasto com anúncios
                 </p>
               </CardContent>
             </Card>

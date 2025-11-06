@@ -10,6 +10,7 @@ import { useUserFeatures } from "@/hooks/useUserFeatures";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ConversationNotificationBell } from "@/components/ConversationNotificationBell";
 import { TicketNotificationBell } from "@/components/TicketNotificationBell";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { UserSidebar } from "@/components/layout/UserSidebar";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { LanguageSelector } from "@/components/LanguageSelector";
@@ -799,7 +800,9 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="linkbio">
-            <LinkBioCreator />
+            <ErrorBoundary>
+              <LinkBioCreator />
+            </ErrorBoundary>
           </TabsContent>
 
           <TabsContent value="cloner">
@@ -958,7 +961,9 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="criador-quizz">
-            <QuizCreatorPanel />
+            <ErrorBoundary>
+              <QuizCreatorPanel />
+            </ErrorBoundary>
           </TabsContent>
 
           <TabsContent value="briefing">
@@ -966,11 +971,15 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="area-membros">
-            <MembersAreaCreator />
+            <ErrorBoundary>
+              <MembersAreaCreator />
+            </ErrorBoundary>
           </TabsContent>
 
           <TabsContent value="criador-sites">
-            <WebsiteBuilder />
+            <ErrorBoundary>
+              <WebsiteBuilder />
+            </ErrorBoundary>
           </TabsContent>
               
           <TabsContent value="briefing-responses">
