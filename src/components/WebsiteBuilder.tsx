@@ -140,7 +140,7 @@ export function WebsiteBuilder() {
           slug: slug,
           description: formData.description,
           template: formData.template,
-          custom_domain: formData.custom_domain,
+          custom_domain: formData.custom_domain === 'default' ? '' : formData.custom_domain,
           settings: {
             primaryColor: '#8B5CF6',
             secondaryColor: '#EC4899',
@@ -304,7 +304,7 @@ export function WebsiteBuilder() {
                     <SelectValue placeholder="Usar domínio padrão" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Domínio padrão</SelectItem>
+                    <SelectItem value="default">Domínio padrão</SelectItem>
                     {customDomains.filter(d => d.is_verified).map((domain) => (
                       <SelectItem key={domain.id} value={domain.domain}>
                         ✓ {domain.domain}

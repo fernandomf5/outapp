@@ -521,7 +521,7 @@ export function MembersAreaCreator() {
                         <SelectValue placeholder="Nenhum domínio selecionado" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Nenhum</SelectItem>
+                        <SelectItem value="none">Nenhum</SelectItem>
                         {customDomains.filter(d => d.is_verified).map(domain => (
                           <SelectItem key={domain.id} value={domain.domain}>
                             {domain.domain}

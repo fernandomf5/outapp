@@ -162,7 +162,7 @@ export const QuizCreatorPanel = () => {
           user_id: user.id,
           title: formData.title,
           description: formData.description,
-          custom_domain: selectedCustomDomain,
+          custom_domain: selectedCustomDomain === 'default' ? '' : selectedCustomDomain,
           questions: formData.questions,
           is_active: true,
           responses_count: 0
@@ -272,7 +272,7 @@ export const QuizCreatorPanel = () => {
                     <SelectValue placeholder="Usar domínio padrão" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">
+                    <SelectItem value="default">
                       {(host || 'domínio padrão')} (padrão)
                     </SelectItem>
                     {customDomains.filter(d => d.is_verified).map((domain) => (

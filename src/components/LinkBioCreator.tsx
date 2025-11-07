@@ -806,7 +806,7 @@ export function LinkBioCreator() {
                     <SelectValue placeholder="Usar domínio padrão" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">
+                    <SelectItem value="default">
                       {window.location.host} (padrão)
                     </SelectItem>
                     {customDomains.filter(d => d.is_verified).map((domain) => (
