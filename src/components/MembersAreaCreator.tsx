@@ -504,16 +504,16 @@ export function MembersAreaCreator() {
                   <div className="grid gap-2">
                     <Label>Selecione um domínio</Label>
                     <Select 
-                      value={selectedArea.custom_domain || ''}
+                      value={selectedArea.custom_domain || 'none'}
                       onValueChange={async (value) => {
                         const { error } = await supabase
                           .from('members_areas')
-                          .update({ custom_domain: value } as any)
+                          .update({ custom_domain: value === 'none' ? null : value } as any)
                           .eq('id', selectedArea.id);
                         if (!error) {
                           toast.success('Domínio atualizado!');
                           loadMembersAreas();
-                          setSelectedArea({...selectedArea, custom_domain: value});
+                          setSelectedArea({...selectedArea, custom_domain: value === 'none' ? null : value});
                         }
                       }}
                     >

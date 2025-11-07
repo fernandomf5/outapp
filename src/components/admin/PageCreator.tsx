@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { RichTextEditor } from "./RichTextEditor";
+import { Switch } from "@/components/ui/switch";
 
 interface CustomPage {
   id: string;
@@ -22,6 +23,7 @@ interface CustomPage {
   content: string;
   is_active: boolean;
   order_index: number;
+  show_in_menu: boolean;
 }
 
 export const PageCreator = () => {
@@ -29,6 +31,7 @@ export const PageCreator = () => {
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [content, setContent] = useState("");
+  const [showInMenu, setShowInMenu] = useState(true);
   const [creating, setCreating] = useState(false);
   const [createdSlug, setCreatedSlug] = useState<string | null>(null);
   const [pages, setPages] = useState<CustomPage[]>([]);
@@ -86,6 +89,7 @@ export const PageCreator = () => {
             content,
             is_active: true,
             order_index: orderIndex,
+            show_in_menu: showInMenu,
           } as any,
         ])
         .select()
@@ -100,6 +104,7 @@ export const PageCreator = () => {
       setTitle("");
       setSlug("");
       setContent("");
+      setShowInMenu(true);
       await fetchPages();
     } catch (e: any) {
       toast({ title: "Erro ao criar página", description: e?.message || "Tente novamente.", variant: "destructive" });
@@ -123,6 +128,7 @@ export const PageCreator = () => {
           title: editingPage.title,
           slug: slugify(editingPage.slug),
           content: editingPage.content,
+          show_in_menu: editingPage.show_in_menu,
         } as any)
         .eq('id', editingPage.id);
 
@@ -191,6 +197,17 @@ export const PageCreator = () => {
               <RichTextEditor value={content} onChange={setContent} />
             </div>
 
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="show-menu"
+                checked={showInMenu}
+                onCheckedChange={setShowInMenu}
+              />
+              <Label htmlFor="show-menu" className="cursor-pointer">
+                Mostrar no menu do site
+              </Label>
+            </div>
+
             <div className="flex items-center gap-2">
               <Button onClick={handleCreate} disabled={creating}>
                 {creating ? 'Criando...' : 'Criar página'}
@@ -223,7 +240,10 @@ export const PageCreator = () => {
                 >
                   <div className="flex-1">
                     <h4 className="font-semibold">{page.title}</h4>
-                    <p className="text-sm text-muted-foreground">/{page.slug}</p>
+                    <p className="text-sm text-muted-foreground">
+                      /{page.slug}
+                      {page.show_in_menu && <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Menu</span>}
+                    </p>
                   </div>
                   <div className="flex gap-2">
                     <Button variant="ghost" size="sm" asChild>
@@ -281,6 +301,17 @@ export const PageCreator = () => {
                   value={editingPage.content}
                   onChange={(val) => setEditingPage({ ...editingPage, content: val })}
                 />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="edit-show-menu"
+                  checked={editingPage.show_in_menu}
+                  onCheckedChange={(checked) => setEditingPage({ ...editingPage, show_in_menu: checked })}
+                />
+                <Label htmlFor="edit-show-menu" className="cursor-pointer">
+                  Mostrar no menu do site
+                </Label>
               </div>
 
               <div className="flex justify-end gap-2">

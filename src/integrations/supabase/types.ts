@@ -2468,6 +2468,7 @@ export type Database = {
           id: string
           is_active: boolean
           order_index: number
+          show_in_menu: boolean | null
           slug: string
           title: string
           updated_at: string
@@ -2478,6 +2479,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           order_index?: number
+          show_in_menu?: boolean | null
           slug: string
           title: string
           updated_at?: string
@@ -2488,6 +2490,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           order_index?: number
+          show_in_menu?: boolean | null
           slug?: string
           title?: string
           updated_at?: string

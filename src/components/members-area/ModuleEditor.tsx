@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ImageUpload } from "@/components/ImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, Video, FileText } from "lucide-react";
+import { Upload, Video, FileText, File } from "lucide-react";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 
 interface Module {
   id?: string;
@@ -20,11 +21,13 @@ interface Module {
   video_url?: string;
   content_type: 'video' | 'document' | 'text';
   content_data?: string;
+  document_url?: string;
   category?: string;
   is_free: boolean;
   price?: number;
   is_active: boolean;
   order_index: number;
+  duration?: string;
 }
 
 interface ModuleEditorProps {
@@ -112,6 +115,43 @@ export function ModuleEditor({ open, onOpenChange, areaId, module, onSave }: Mod
       toast.success('Vídeo enviado com sucesso!');
     } catch (error: any) {
       toast.error('Erro ao enviar vídeo: ' + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Por favor, selecione um PDF ou documento Word');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${areaId}/docs/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('members-content')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('members-content')
+        .getPublicUrl(fileName);
+
+      setFormData(prev => ({ ...prev, document_url: publicUrl }));
+      toast.success('Documento enviado com sucesso!');
+    } catch (error: any) {
+      toast.error('Erro ao enviar documento: ' + error.message);
     } finally {
       setUploading(false);
     }
@@ -255,17 +295,65 @@ export function ModuleEditor({ open, onOpenChange, areaId, module, onSave }: Mod
                   </div>
                 )}
               </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Ou cole a URL do vídeo (YouTube, Vimeo, etc.)
+              </p>
+              <Input
+                value={formData.video_url || ''}
+                onChange={(e) => setFormData({...formData, video_url: e.target.value})}
+                placeholder="https://youtube.com/watch?v=..."
+              />
+            </div>
+          )}
+
+          {formData.content_type === 'document' && (
+            <div className="grid gap-2">
+              <Label>Documento (PDF, Word)</Label>
+              <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                {formData.document_url ? (
+                  <div className="space-y-2">
+                    <File className="w-12 h-12 mx-auto text-primary" />
+                    <p className="text-sm text-muted-foreground">Documento enviado</p>
+                    <div className="flex gap-2 justify-center">
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={formData.document_url} target="_blank" rel="noopener noreferrer">
+                          Ver Documento
+                        </a>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setFormData({...formData, document_url: undefined})}
+                      >
+                        Substituir
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Upload className="w-12 h-12 mx-auto text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      {uploading ? 'Enviando...' : 'Clique para enviar documento'}
+                    </p>
+                    <Input 
+                      type="file" 
+                      accept=".pdf,.doc,.docx"
+                      onChange={handleDocumentUpload}
+                      disabled={uploading}
+                      className="max-w-xs mx-auto"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
           {formData.content_type === 'text' && (
             <div className="grid gap-2">
-              <Label>Conteúdo (Markdown)</Label>
-              <Textarea 
+              <Label>Conteúdo</Label>
+              <RichTextEditor 
                 value={formData.content_data || ''}
-                onChange={(e) => setFormData({...formData, content_data: e.target.value})}
-                placeholder="Digite o conteúdo em markdown..."
-                rows={8}
+                onChange={(value) => setFormData({...formData, content_data: value})}
               />
             </div>
           )}

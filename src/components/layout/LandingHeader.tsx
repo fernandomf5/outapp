@@ -15,6 +15,7 @@ interface CustomPageItem {
   title: string;
   slug: string;
   is_active: boolean;
+  show_in_menu: boolean;
 }
 
 export const LandingHeader = () => {
@@ -33,8 +34,9 @@ export const LandingHeader = () => {
       const [pagesRes, settingsRes] = await Promise.all([
         supabase
           .from('custom_pages')
-          .select('id, title, slug, is_active')
+          .select('id, title, slug, is_active, show_in_menu')
           .eq('is_active', true)
+          .eq('show_in_menu', true)
           .order('order_index', { ascending: true }),
         supabase
           .from('site_settings')
