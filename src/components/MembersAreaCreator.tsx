@@ -325,7 +325,12 @@ export function MembersAreaCreator() {
       {selectedArea && (
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold">{(selectedArea as any).name || selectedArea.title}</h3>
+            <div>
+              <h3 className="text-xl font-bold">{(selectedArea as any).name || selectedArea.title}</h3>
+              <p className="text-sm text-muted-foreground">
+                Gerencie módulos, alunos e configurações da sua área de membros
+              </p>
+            </div>
             <Button variant="outline" onClick={() => setSelectedArea(null)}>
               Voltar
             </Button>

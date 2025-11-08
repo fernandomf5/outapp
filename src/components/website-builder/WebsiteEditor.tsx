@@ -22,6 +22,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PreviewSection } from "./PreviewSection";
 
 interface Section {
   id: string;
@@ -206,10 +207,12 @@ export function WebsiteEditor({ website, onClose, onUpdate }: WebsiteEditorProps
 
   const selectedSectionData = sections.find(s => s.id === selectedSection);
 
+  const [showPreview, setShowPreview] = useState(true);
+
   return (
-    <div className="fixed inset-0 bg-background z-50 overflow-auto">
-      <div className="sticky top-0 bg-background border-b z-10 p-4">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
+    <div className="fixed inset-0 bg-background z-50 overflow-hidden flex flex-col">
+      <div className="bg-background border-b z-10 p-4 flex-shrink-0">
+        <div className="flex items-center justify-between max-w-full mx-auto">
           <div className="flex items-center gap-4">
             <Button variant="ghost" onClick={onClose}>← Voltar</Button>
             <div>
@@ -218,9 +221,16 @@ export function WebsiteEditor({ website, onClose, onUpdate }: WebsiteEditorProps
             </div>
           </div>
           <div className="flex gap-2">
+            <Button 
+              variant={showPreview ? "default" : "outline"} 
+              onClick={() => setShowPreview(!showPreview)}
+            >
+              <Eye className="mr-2 h-4 w-4" />
+              {showPreview ? "Ocultar" : "Mostrar"} Preview
+            </Button>
             <Button variant="outline" onClick={() => window.open(`/site/${website.slug}`, '_blank')}>
               <Eye className="mr-2 h-4 w-4" />
-              Preview
+              Abrir em nova aba
             </Button>
             <Button variant="outline" onClick={handleSave} disabled={saving}>
               <Save className="mr-2 h-4 w-4" />
@@ -233,8 +243,10 @@ export function WebsiteEditor({ website, onClose, onUpdate }: WebsiteEditorProps
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className={`flex-1 overflow-hidden ${showPreview ? 'grid grid-cols-2' : 'flex'} gap-1`}>
+        {/* Editor Panel */}
+        <div className="overflow-auto p-6 bg-muted/30">
+          <div className="max-w-3xl mx-auto space-y-4">
           {/* Configurações e Seções */}
           <div className="lg:col-span-1 space-y-4">
             <Tabs defaultValue="sections">
@@ -392,8 +404,6 @@ export function WebsiteEditor({ website, onClose, onUpdate }: WebsiteEditorProps
             </Tabs>
           </div>
 
-          {/* Editor de Conteúdo */}
-          <div className="lg:col-span-2">
             {selectedSectionData ? (
               <SectionEditor
                 section={selectedSectionData}
@@ -411,6 +421,39 @@ export function WebsiteEditor({ website, onClose, onUpdate }: WebsiteEditorProps
             )}
           </div>
         </div>
+
+        {/* Live Preview Panel */}
+        {showPreview && (
+          <div className="overflow-auto bg-background border-l">
+            <div className="sticky top-0 bg-muted/50 px-4 py-2 border-b text-sm font-medium text-muted-foreground">
+              Preview em tempo real
+            </div>
+            <div className="p-6">
+              <div 
+                className="bg-white rounded-lg shadow-lg overflow-hidden"
+                style={{
+                  fontFamily: settings.fontFamily || 'Inter',
+                  '--primary-color': settings.primaryColor || '#8B5CF6',
+                  '--secondary-color': settings.secondaryColor || '#EC4899'
+                } as React.CSSProperties}
+              >
+                {sections.map((section) => (
+                  <PreviewSection 
+                    key={section.id} 
+                    section={section} 
+                    settings={settings}
+                  />
+                ))}
+                {sections.length === 0 && (
+                  <div className="text-center py-20 text-muted-foreground">
+                    <Layout className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p>Adicione seções para ver o preview</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

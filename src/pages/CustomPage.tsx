@@ -84,8 +84,11 @@ const CustomPage = () => {
             <h1 className="text-4xl md:text-5xl font-bold mb-8 text-foreground">{page.title}</h1>
             <div className="prose prose-lg dark:prose-invert max-w-none text-foreground">
               <div
-                className="text-base leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(page.content || '') }}
+                className="text-base leading-relaxed whitespace-pre-wrap"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(page.content || '', { 
+                  ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'img', 'blockquote', 'code', 'pre', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'div', 'span'],
+                  ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'id', 'style', 'target', 'rel']
+                }) }}
               />
             </div>
           </article>
