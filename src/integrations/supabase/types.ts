@@ -2906,6 +2906,101 @@ export type Database = {
           },
         ]
       }
+      members_area_progress: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          last_accessed_at: string | null
+          module_id: string
+          progress_percentage: number | null
+          subscription_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          last_accessed_at?: string | null
+          module_id: string
+          progress_percentage?: number | null
+          subscription_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          last_accessed_at?: string | null
+          module_id?: string
+          progress_percentage?: number | null
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_area_progress_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "members_area_modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "members_area_progress_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "members_area_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      members_area_subscriptions: {
+        Row: {
+          created_at: string | null
+          enrolled_at: string | null
+          expires_at: string | null
+          id: string
+          members_area_id: string
+          payment_status: string | null
+          status: string
+          updated_at: string | null
+          user_email: string
+          user_name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          enrolled_at?: string | null
+          expires_at?: string | null
+          id?: string
+          members_area_id: string
+          payment_status?: string | null
+          status?: string
+          updated_at?: string | null
+          user_email: string
+          user_name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          enrolled_at?: string | null
+          expires_at?: string | null
+          id?: string
+          members_area_id?: string
+          payment_status?: string | null
+          status?: string
+          updated_at?: string | null
+          user_email?: string
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_area_subscriptions_members_area_id_fkey"
+            columns: ["members_area_id"]
+            isOneToOne: false
+            referencedRelation: "members_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       members_areas: {
         Row: {
           area_type: string
@@ -2918,11 +3013,15 @@ export type Database = {
           logo_url: string | null
           name: string
           primary_color: string | null
+          require_approval: boolean | null
           requires_approval: boolean | null
+          secondary_color: string | null
           settings: Json | null
           slug: string | null
+          theme_mode: string | null
           updated_at: string | null
           user_id: string
+          welcome_message: string | null
         }
         Insert: {
           area_type?: string
@@ -2935,11 +3034,15 @@ export type Database = {
           logo_url?: string | null
           name: string
           primary_color?: string | null
+          require_approval?: boolean | null
           requires_approval?: boolean | null
+          secondary_color?: string | null
           settings?: Json | null
           slug?: string | null
+          theme_mode?: string | null
           updated_at?: string | null
           user_id: string
+          welcome_message?: string | null
         }
         Update: {
           area_type?: string
@@ -2952,11 +3055,15 @@ export type Database = {
           logo_url?: string | null
           name?: string
           primary_color?: string | null
+          require_approval?: boolean | null
           requires_approval?: boolean | null
+          secondary_color?: string | null
           settings?: Json | null
           slug?: string | null
+          theme_mode?: string | null
           updated_at?: string | null
           user_id?: string
+          welcome_message?: string | null
         }
         Relationships: []
       }
