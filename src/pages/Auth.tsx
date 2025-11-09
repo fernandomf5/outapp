@@ -98,6 +98,14 @@ const Auth = () => {
     }
 
     if (!isLogin) {
+      // Validação de nome completo
+      const nameValidation = nameSchema.safeParse(name);
+      if (!nameValidation.success) {
+        showMessage("Nome inválido", nameValidation.error.issues[0].message, "error");
+        setIsLoading(false);
+        return;
+      }
+
       if (password !== confirmPassword) {
         showMessage("Senhas não coincidem", "As senhas digitadas não são iguais.", "error");
         setIsLoading(false);
@@ -116,7 +124,22 @@ const Auth = () => {
       const { error, userId, needsVerification } = await customSignUp(email, password, name);
       
       if (error) {
-        showMessage("Erro ao criar conta", error, "error");
+        // Mensagens específicas baseadas no erro retornado
+        if (error.includes("bloqueado") || error.includes("blocked")) {
+          showMessage(
+            "E-mail bloqueado 🚫", 
+            "Este e-mail está bloqueado no sistema. Entre em contato com o suporte se achar que isso é um erro.",
+            "error"
+          );
+        } else if (error.includes("já cadastrado") || error.includes("already")) {
+          showMessage(
+            "E-mail já cadastrado", 
+            "Este e-mail já possui uma conta. Tente fazer login ou recupere sua senha.",
+            "error"
+          );
+        } else {
+          showMessage("Erro ao criar conta", error, "error");
+        }
         setIsLoading(false);
         return;
       }
@@ -125,7 +148,7 @@ const Auth = () => {
         setVerificationUserId(userId);
         setVerificationEmail(email);
         setShowVerification(true);
-        showMessage("Conta criada com sucesso! 📧", "Um código de verificação foi enviado para seu email.", "success");
+        showMessage("Conta criada com sucesso! 📧", "Um código de verificação foi enviado para seu email. Verifique sua caixa de entrada e spam.", "success");
       }
       
       setIsLoading(false);
@@ -138,7 +161,9 @@ const Auth = () => {
           setVerificationUserId(userId);
           setVerificationEmail(email);
           setShowVerification(true);
-          showMessage("Email não verificado", "Por favor, verifique seu email para continuar.", "error");
+          showMessage("Email não verificado ✉️", "Por favor, verifique seu email para continuar. Confira sua caixa de entrada e spam.", "error");
+        } else if (error.includes("banido") || error.includes("banned")) {
+          showMessage("Acesso negado 🚫", "Sua conta foi suspensa. Entre em contato com o suporte para mais informações.", "error");
         } else {
           showMessage("Erro ao fazer login", error, "error");
         }
@@ -149,7 +174,7 @@ const Auth = () => {
       if (requires2FA && userId && fingerprint) {
         setVerificationUserId(userId);
         setDeviceFingerprint(fingerprint);
-        setSessionData(sessData); // Store session to set after 2FA
+        setSessionData(sessData);
         setShow2FA(true);
         setIsLoading(false);
         showMessage("Verificação necessária 🔒", "Um código de segurança foi enviado para seu email.", "success");
