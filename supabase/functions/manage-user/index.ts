@@ -54,6 +54,10 @@ serve(async (req) => {
           'whatsapp_connections',
           'subscriptions',
           'user_roles',
+          'user_verification_codes',
+          'user_2fa_codes',
+          'user_2fa_settings',
+          'user_trusted_devices',
           'profiles'
         ];
         for (const table of tables) {

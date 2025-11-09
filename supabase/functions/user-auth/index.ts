@@ -27,14 +27,20 @@ serve(async (req) => {
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-      // Check if user already exists
-      const { data: existing } = await supabase
+      // Check if user already exists and if banned
+      const { data: existingProfile } = await supabase
         .from('profiles')
-        .select('id')
+        .select('id, is_banned')
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
-      if (existing) {
+      if (existingProfile) {
+        if (existingProfile.is_banned) {
+          return new Response(
+            JSON.stringify({ error: 'Este e-mail está bloqueado. Entre em contato com o suporte.' }),
+            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
         return new Response(
           JSON.stringify({ error: 'Email já cadastrado' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

@@ -119,8 +119,9 @@ const Index = () => {
   const fetchCustomPages = async () => {
     const { data, error } = await supabase
       .from('custom_pages')
-      .select('*')
+      .select('id, title, content, slug, show_in_menu, is_active, order_index')
       .eq('is_active', true)
+      .eq('show_in_menu', true)
       .order('order_index', { ascending: true });
     
     if (!error && data) {
@@ -349,7 +350,7 @@ const Index = () => {
           {headerPages.map((page) => (
             <Link
               key={page.id}
-              to={`/custom/${page.slug}`}
+              to={`/${page.slug}`}
               className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2"
             >
               {page.title}
@@ -513,7 +514,7 @@ const Index = () => {
               {headerPages.map((page) => (
                 <Link
                   key={page.id}
-                  to={`/custom/${page.slug}`}
+                  to={`/${page.slug}`}
                   className="text-sm text-muted-foreground hover:text-foreground transition-smooth"
                 >
                   {page.title}

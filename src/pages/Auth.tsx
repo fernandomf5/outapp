@@ -23,6 +23,7 @@ import {
 
 const emailSchema = z.string().email("Por favor, insira um e-mail válido");
 const passwordSchema = z.string().min(6, "A senha deve ter pelo menos 6 caracteres");
+const nameSchema = z.string().trim().min(2, "Informe seu nome completo");
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
