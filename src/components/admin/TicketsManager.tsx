@@ -270,21 +270,24 @@ export const TicketsManager = () => {
       .delete()
       .eq('id', ticketId);
 
-    if (!error) {
+    if (error) {
       toast({
-        title: "Ticket excluído com sucesso"
-      });
-      if (selectedTicket?.id === ticketId) {
-        setSelectedTicket(null);
-      }
-      fetchTickets();
-    } else {
-      toast({
-        title: "Erro ao excluir ticket",
+        title: "Erro ao excluir",
         description: error.message,
-        variant: "destructive"
+        variant: "destructive",
       });
+      return;
     }
+
+    toast({
+      title: "Ticket excluído com sucesso"
+    });
+    
+    // Atualizar lista e limpar seleção
+    if (selectedTicket?.id === ticketId) {
+      setSelectedTicket(null);
+    }
+    fetchTickets();
   };
 
   const getStatusColor = (status: string) => {

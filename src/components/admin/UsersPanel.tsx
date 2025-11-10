@@ -246,8 +246,22 @@ export const UsersPanel = () => {
     if (!selectedUser) return;
 
     try {
+      const userId = selectedUser.user_id;
       const { data: { session } } = await supabase.auth.getSession();
       
+      // Deletar dados relacionados antes de deletar o usuário (em sequência)
+      await supabase.from('chatbot_conversations' as any).delete().eq('user_id', userId);
+      await supabase.from('agent_conversations' as any).delete().eq('customer_id', userId);
+      await supabase.from('subscriptions' as any).delete().eq('user_id', userId);
+      await supabase.from('chatbots' as any).delete().eq('user_id', userId);
+      await supabase.from('ai_agents' as any).delete().eq('user_id', userId);
+      await supabase.from('websites' as any).delete().eq('user_id', userId);
+      await supabase.from('cloned_pages' as any).delete().eq('user_id', userId);
+      await supabase.from('link_bios' as any).delete().eq('user_id', userId);
+      await supabase.from('short_links' as any).delete().eq('user_id', userId);
+      await supabase.from('profiles' as any).delete().eq('user_id', userId);
+      
+      // Deletar usuário da autenticação
       const response = await fetch(
         'https://mlocikcfxbleddsvxciv.supabase.co/functions/v1/manage-user',
         {
@@ -258,7 +272,7 @@ export const UsersPanel = () => {
           },
           body: JSON.stringify({
             action: 'delete',
-            userId: selectedUser.user_id
+            userId: userId
           })
         }
       );
@@ -271,7 +285,7 @@ export const UsersPanel = () => {
 
       toast({
         title: "Usuário excluído",
-        description: "O usuário foi removido com sucesso.",
+        description: "O usuário e todos os seus dados foram removidos do sistema.",
       });
       setDeleteDialogOpen(false);
       fetchUsers();

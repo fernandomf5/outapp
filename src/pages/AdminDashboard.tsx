@@ -15,7 +15,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { UsersPanel } from "@/components/admin/UsersPanel";
 import { AdminsPanel } from "@/components/admin/AdminsPanel";
 import { SubscriptionsPanel } from "@/components/admin/SubscriptionsPanel";
-import { RevenuePanel } from "@/components/admin/RevenuePanel";
+import { RevenueChartPanel } from "@/components/admin/RevenueChartPanel";
 import { GrowthChart } from "@/components/admin/GrowthChart";
 import { PageCreator } from "@/components/admin/PageCreator";
 import { SiteSettingsManager } from "@/components/admin/SiteSettingsManager";
@@ -77,6 +77,9 @@ interface Plan {
   order_index?: number;
   plan_type: 'free' | 'monthly' | 'annual' | 'lifetime';
   duration_days: number | null;
+  countdown_enabled?: boolean;
+  countdown_ends_at?: string | null;
+  limited_offer_banner?: string | null;
 }
 
 interface Tutorial {
@@ -219,7 +222,10 @@ const AdminDashboard = () => {
             duration_days: editingPlan.duration_days,
             features: editingPlan.features,
             order_index: editingPlan.order_index ?? plans.length,
-            is_active: true
+            is_active: true,
+            countdown_enabled: editingPlan.countdown_enabled,
+            countdown_ends_at: editingPlan.countdown_ends_at,
+            limited_offer_banner: editingPlan.limited_offer_banner
           }])
           .select()
           .single();
@@ -250,7 +256,10 @@ const AdminDashboard = () => {
             features: editingPlan.features,
             order_index: editingPlan.order_index,
             plan_type: editingPlan.plan_type,
-            duration_days: editingPlan.duration_days
+            duration_days: editingPlan.duration_days,
+            countdown_enabled: editingPlan.countdown_enabled,
+            countdown_ends_at: editingPlan.countdown_ends_at,
+            limited_offer_banner: editingPlan.limited_offer_banner
           })
           .eq('id', editingPlan.id);
 
@@ -291,7 +300,10 @@ const AdminDashboard = () => {
       features: [],
       order_index: plans.length,
       plan_type: 'monthly',
-      duration_days: 30
+      duration_days: 30,
+      countdown_enabled: false,
+      countdown_ends_at: null,
+      limited_offer_banner: null
     });
     setIsDialogOpen(true);
   };
@@ -672,7 +684,11 @@ const AdminDashboard = () => {
             {currentSection === 'subscriptions' && <SubscriptionsPanel />}
 
             {/* Revenue Section */}
-            {currentSection === 'revenue' && <RevenuePanel />}
+            {currentSection === 'revenue' && (
+              <ErrorBoundary>
+                <RevenueChartPanel />
+              </ErrorBoundary>
+            )}
 
             {/* Landing Page Section */}
             {currentSection === 'landing' && <LandingPageEditor />}
@@ -1330,6 +1346,54 @@ const AdminDashboard = () => {
                 <p className="text-xs text-muted-foreground mt-2">
                   Digite um recurso por linha. Eles aparecerão organizados na landing page com ícones de check.
                 </p>
+              </div>
+
+              <div className="border-t pt-4 space-y-4">
+                <h3 className="font-semibold">Oferta por Tempo Limitado</h3>
+                
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="countdown-enabled"
+                    checked={editingPlan.countdown_enabled || false}
+                    onChange={(e) =>
+                      setEditingPlan({ ...editingPlan, countdown_enabled: e.target.checked })
+                    }
+                    className="w-4 h-4 rounded border-gray-300"
+                  />
+                  <Label htmlFor="countdown-enabled">Ativar contagem regressiva</Label>
+                </div>
+
+                {editingPlan.countdown_enabled && (
+                  <>
+                    <div>
+                      <Label htmlFor="countdown-ends">Data e hora de término</Label>
+                      <Input
+                        id="countdown-ends"
+                        type="datetime-local"
+                        value={editingPlan.countdown_ends_at?.slice(0, 16) || ''}
+                        onChange={(e) =>
+                          setEditingPlan({ ...editingPlan, countdown_ends_at: e.target.value ? new Date(e.target.value).toISOString() : null })
+                        }
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="offer-banner">Texto do banner de oferta</Label>
+                      <Input
+                        id="offer-banner"
+                        value={editingPlan.limited_offer_banner || ''}
+                        onChange={(e) =>
+                          setEditingPlan({ ...editingPlan, limited_offer_banner: e.target.value })
+                        }
+                        placeholder="🔥 OFERTA POR TEMPO LIMITADO!"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Este texto aparecerá no topo do card do plano
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="flex gap-3 justify-end">
