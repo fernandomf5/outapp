@@ -772,12 +772,12 @@ export const TaskOrganizerPanel = () => {
                 </div>
                 <div>
                   <Label htmlFor="client">Cliente</Label>
-                  <Select value={taskForm.client_id} onValueChange={(value) => setTaskForm({ ...taskForm, client_id: value })}>
+                  <Select value={taskForm.client_id || "__none__"} onValueChange={(value) => setTaskForm({ ...taskForm, client_id: value === "__none__" ? null : value })}>
                     <SelectTrigger id="client">
                       <SelectValue placeholder="Selecione um cliente (opcional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
+                      <SelectItem value="__none__">Nenhum</SelectItem>
                       {clients.map(client => (
                         <SelectItem key={client.id} value={client.id}>
                           {client.name}
