@@ -229,85 +229,92 @@ export const FeatureOverridesManager = () => {
               <Plus className="w-4 h-4 mr-2" />
               Novo Bloqueio
             </Button>
-          
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingOverride ? 'Editar Bloqueio' : 'Criar Novo Bloqueio'}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 mt-4">
-              <div>
-                <Label>Recurso *</Label>
-                <Select
-                  value={formData.feature_key}
-                  onValueChange={(value) => setFormData({ ...formData, feature_key: value })}
-                  disabled={!!editingOverride}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um recurso" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {features.map((feature) => (
-                      <SelectItem key={feature.id} value={feature.key}>
-                        {feature.name} ({feature.key})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          {isDialogOpen && (
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingOverride ? 'Editar Bloqueio' : 'Criar Novo Bloqueio'}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 mt-4">
+                <div>
+                  <Label>Recurso *</Label>
+                  <Select
+                    value={formData.feature_key}
+                    onValueChange={(value) => setFormData({ ...formData, feature_key: value })}
+                    disabled={!!editingOverride}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um recurso" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {features.length === 0 ? (
+                        <div className="p-4 text-center text-muted-foreground">
+                          Nenhum recurso disponível
+                        </div>
+                      ) : (
+                        features.map((feature) => (
+                          <SelectItem key={feature.id} value={feature.key}>
+                            {feature.name} ({feature.key})
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div>
-                <Label>Aplicar para (deixe vazio para global)</Label>
-                <Select
-                  value={formData.user_id}
-                  onValueChange={(value) => setFormData({ ...formData, user_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todos os usuários (global)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Todos os usuários (global)</SelectItem>
-                    {users.map((user) => (
-                      <SelectItem key={user.user_id} value={user.user_id}>
-                        {user.full_name} ({user.email})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                <div>
+                  <Label>Aplicar para (deixe vazio para global)</Label>
+                  <Select
+                    value={formData.user_id}
+                    onValueChange={(value) => setFormData({ ...formData, user_id: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos os usuários (global)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todos os usuários (global)</SelectItem>
+                      {users.map((user) => (
+                        <SelectItem key={user.user_id} value={user.user_id}>
+                          {user.full_name} ({user.email})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div>
-                <Label>Status</Label>
-                <Select
-                  value={formData.is_blocked ? "blocked" : "allowed"}
-                  onValueChange={(value) => setFormData({ ...formData, is_blocked: value === "blocked" })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="blocked">🚫 Bloqueado</SelectItem>
-                    <SelectItem value="allowed">✅ Liberado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <div>
+                  <Label>Status</Label>
+                  <Select
+                    value={formData.is_blocked ? "blocked" : "allowed"}
+                    onValueChange={(value) => setFormData({ ...formData, is_blocked: value === "blocked" })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="blocked">🚫 Bloqueado</SelectItem>
+                      <SelectItem value="allowed">✅ Liberado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div>
-                <Label>Mensagem personalizada</Label>
-                <Textarea
-                  value={formData.message}
-                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  placeholder="Ex: Recurso em manutenção. Previsão: 2 horas"
-                  rows={3}
-                />
-              </div>
+                <div>
+                  <Label>Mensagem personalizada</Label>
+                  <Textarea
+                    value={formData.message}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    placeholder="Ex: Recurso em manutenção. Previsão: 2 horas"
+                    rows={3}
+                  />
+                </div>
 
-              <Button type="button" onClick={handleSubmit} className="w-full gradient-primary">
-                {editingOverride ? 'Atualizar' : 'Criar'} Bloqueio
-              </Button>
-            </div>
-          </DialogContent>
+                <Button type="button" onClick={handleSubmit} className="w-full gradient-primary">
+                  {editingOverride ? 'Atualizar' : 'Criar'} Bloqueio
+                </Button>
+              </div>
+            </DialogContent>
+          )}
         </Dialog>
       </div>
 
