@@ -229,7 +229,7 @@ export const FeatureOverridesManager = () => {
         </Button>
       </div>
 
-<Dialog open={isDialogOpen} onOpenChange={(open) => open ? setIsDialogOpen(true) : handleCloseDialog()}>
+<Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) handleCloseDialog(); }}>
   <DialogContent className="max-w-2xl">
     <DialogHeader>
       <DialogTitle>{editingOverride ? 'Editar Bloqueio' : 'Criar Novo Bloqueio'}</DialogTitle>

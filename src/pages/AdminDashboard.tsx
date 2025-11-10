@@ -32,6 +32,7 @@ import { PlanFeaturesManager } from "@/components/admin/PlanFeaturesManager";
 import { BlogManager } from "@/components/admin/BlogManager";
 import { FeaturesManager } from "@/components/admin/FeaturesManager";
 import { FeatureOverridesManager } from "@/components/admin/FeatureOverridesManager";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -713,7 +714,11 @@ const AdminDashboard = () => {
             {currentSection === 'features-manager' && <FeaturesManager />}
 
             {/* Feature Overrides Section */}
-            {currentSection === 'feature-access' && <FeatureOverridesManager />}
+{currentSection === 'feature-access' && (
+  <ErrorBoundary>
+    <FeatureOverridesManager />
+  </ErrorBoundary>
+)}
 
             {/* Videos Section */}
             {currentSection === 'videos' && (
