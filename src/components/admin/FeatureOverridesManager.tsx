@@ -43,6 +43,8 @@ export const FeatureOverridesManager = () => {
     is_blocked: true,
     message: ""
   });
+  const [debugError, setDebugError] = useState<string | null>(null);
+  const [showDebug, setShowDebug] = useState(false);
 
   useEffect(() => {
     fetchFeatures();
@@ -206,7 +208,36 @@ export const FeatureOverridesManager = () => {
     console.log('[FeatureOverrides] onOpenChange ->', open);
     setIsDialogOpen(open);
     if (open) {
-      Promise.all([fetchFeatures(), fetchUsers()]).catch(() => {});
+      (async () => {
+        try {
+          await Promise.allSettled([fetchFeatures(), fetchUsers()]);
+          // Verifica se o Dialog realmente ficou visível
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              const node = document.querySelector('[role="dialog"][data-state="open"]');
+              if (!node) {
+                const details = buildDebugReport('Dialog não visível após abertura');
+                setDebugError(details);
+                setShowDebug(false);
+                toast({
+                  title: "Falha ao abrir 'Novo Bloqueio'",
+                  description: "Clique em Detalhes abaixo e me envie o conteúdo.",
+                  variant: "destructive",
+                } as any);
+              }
+            }, 100);
+          });
+        } catch (err) {
+          const details = buildDebugReport('Erro ao abrir dialog', err);
+          setDebugError(details);
+          setShowDebug(false);
+          toast({
+            title: "Erro ao abrir 'Novo Bloqueio'",
+            description: "Clique em Detalhes abaixo e me envie o conteúdo.",
+            variant: "destructive",
+          } as any);
+        }
+      })();
     } else {
       setEditingOverride(null);
       setFormData({ feature_key: "", user_id: "", is_blocked: true, message: "" });
@@ -218,6 +249,29 @@ export const FeatureOverridesManager = () => {
     setIsDialogOpen(true);
   };
 
+  const buildDebugReport = (reason: string, err?: unknown) => {
+    const errorStr = err instanceof Error
+      ? `${err.name}: ${err.message}\n${err.stack}`
+      : err
+      ? (() => { try { return JSON.stringify(err); } catch { return String(err); } })()
+      : '';
+
+    const dialogStates = Array.from(document.querySelectorAll('[role="dialog"]'))
+      .map((n) => (n as HTMLElement).getAttribute('data-state') || 'unknown');
+
+    return [
+      '# FeatureOverrides Debug',
+      `timestamp: ${new Date().toISOString()}`,
+      `reason: ${reason}`,
+      `route: ${window.location.pathname}`,
+      `isDialogOpen: ${isDialogOpen}`,
+      `features_count: ${features.length}`,
+      `users_count: ${users.length}`,
+      `overrides_count: ${overrides.length}`,
+      `dom_dialog_states: ${JSON.stringify(dialogStates)}`,
+      errorStr ? `error: ${errorStr}` : ''
+    ].filter(Boolean).join('\n');
+  };
   const getFeatureName = (key: string) => {
     const feature = features.find(f => f.key === key);
     return feature?.name || key;
@@ -328,6 +382,30 @@ export const FeatureOverridesManager = () => {
             </DialogContent>
           </Dialog>
       </div>
+
+      {debugError && (
+        <Card className="mb-4 p-4 border-destructive/40 bg-destructive/5">
+          <div className="flex items-center justify-between">
+            <p className="text-sm">Não foi possível abrir o modal. Clique em Detalhes e me envie o conteúdo.</p>
+            <Button variant="destructive" size="sm" onClick={() => setShowDebug((v) => !v)}>
+              {showDebug ? 'Ocultar detalhes' : 'Detalhes'}
+            </Button>
+          </div>
+          {showDebug && (
+            <div className="mt-3 space-y-2">
+              <Textarea readOnly rows={8} value={debugError || ''} />
+              <div className="flex gap-2">
+                <Button size="sm" onClick={() => { if (debugError) { navigator.clipboard.writeText(debugError); toast({ title: 'Detalhes copiados' }); } }}>
+                  Copiar
+                </Button>
+                <Button size="sm" variant="secondary" onClick={() => setDebugError(null)}>
+                  Limpar
+                </Button>
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
 
       <div className="space-y-3">
         {overrides.map((override) => (
