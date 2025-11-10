@@ -3322,12 +3322,15 @@ export type Database = {
       }
       plans: {
         Row: {
+          countdown_enabled: boolean | null
+          countdown_ends_at: string | null
           created_at: string
           description: string | null
           duration_days: number
           features: Json | null
           id: string
           is_active: boolean
+          limited_offer_banner: string | null
           name: string
           order_index: number
           plan_type: Database["public"]["Enums"]["plan_type"]
@@ -3335,12 +3338,15 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          countdown_enabled?: boolean | null
+          countdown_ends_at?: string | null
           created_at?: string
           description?: string | null
           duration_days: number
           features?: Json | null
           id?: string
           is_active?: boolean
+          limited_offer_banner?: string | null
           name: string
           order_index?: number
           plan_type: Database["public"]["Enums"]["plan_type"]
@@ -3348,12 +3354,15 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          countdown_enabled?: boolean | null
+          countdown_ends_at?: string | null
           created_at?: string
           description?: string | null
           duration_days?: number
           features?: Json | null
           id?: string
           is_active?: boolean
+          limited_offer_banner?: string | null
           name?: string
           order_index?: number
           plan_type?: Database["public"]["Enums"]["plan_type"]

@@ -190,7 +190,10 @@ const AdminDashboard = () => {
           features: Array.isArray(p.features) ? p.features as string[] : [],
           order_index: p.order_index || 0,
           plan_type: (p.plan_type as 'free' | 'monthly' | 'annual' | 'lifetime') || 'monthly',
-          duration_days: p.duration_days || 30
+          duration_days: p.duration_days || 30,
+          countdown_enabled: p.countdown_enabled || false,
+          countdown_ends_at: p.countdown_ends_at || null,
+          limited_offer_banner: p.limited_offer_banner || null
         })));
       }
 
@@ -239,7 +242,10 @@ const AdminDashboard = () => {
             features: Array.isArray(data.features) ? data.features as string[] : [],
             order_index: data.order_index || 0,
             plan_type: (data.plan_type as 'free' | 'monthly' | 'annual' | 'lifetime') || 'monthly',
-            duration_days: data.duration_days || 30
+            duration_days: data.duration_days || 30,
+            countdown_enabled: data.countdown_enabled || false,
+            countdown_ends_at: data.countdown_ends_at || null,
+            limited_offer_banner: data.limited_offer_banner || null
           }]);
           toast({
             title: "Plano criado! ✅",
@@ -264,7 +270,13 @@ const AdminDashboard = () => {
           .eq('id', editingPlan.id);
 
         if (!error) {
-          setPlans(plans.map(p => p.id === editingPlan.id ? editingPlan : p));
+          setPlans(plans.map(p => p.id === editingPlan.id ? {
+            ...editingPlan,
+            price: Number(editingPlan.price),
+            countdown_enabled: editingPlan.countdown_enabled || false,
+            countdown_ends_at: editingPlan.countdown_ends_at || null,
+            limited_offer_banner: editingPlan.limited_offer_banner || null
+          } : p));
           toast({
             title: "Plano atualizado! ✅",
             description: "As alterações foram salvas.",
