@@ -107,6 +107,13 @@ export const MyPlanSection = () => {
     }
   };
 
+  // Refresh plans when the upgrade dialog opens
+  useEffect(() => {
+    if (upgradeDialogOpen) {
+      fetchPlans();
+    }
+  }, [upgradeDialogOpen]);
+
   // Check if should open upgrade dialog from URL
   useEffect(() => {
     if (searchParams.get('upgrade') === 'true') {
@@ -271,7 +278,8 @@ export const MyPlanSection = () => {
 
           <div className="grid sm:grid-cols-2 gap-6 mt-4">
             {allPlans.map((plan) => {
-              const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Date(plan.countdown_ends_at) > new Date();
+              const hasFutureEnd = plan.countdown_ends_at ? new Date(plan.countdown_ends_at) > new Date() : false;
+              const isOfferActive = hasFutureEnd;
               
               return (
                 <Card

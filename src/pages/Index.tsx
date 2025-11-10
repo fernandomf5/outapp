@@ -108,6 +108,24 @@ const Index = () => {
     };
   }, []);
 
+  // Realtime subscription for plans updates
+  useEffect(() => {
+    const plansChannel = supabase
+      .channel('plans_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'plans' },
+        () => {
+          fetchPlans();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(plansChannel);
+    };
+  }, []);
+
   const fetchPlans = async () => {
     const { data, error } = await supabase
       .from('plans')
@@ -672,7 +690,8 @@ const Index = () => {
             {plans.map((plan) => {
               const isPopular = plan.plan_type === 'monthly' && plan.price > 50 && plan.price < 150;
               const features = Array.isArray(plan.features) ? plan.features : [];
-              const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Date(plan.countdown_ends_at) > new Date();
+const hasFutureEnd = plan.countdown_ends_at ? new Date(plan.countdown_ends_at) > new Date() : false;
+const isOfferActive = hasFutureEnd;
               
               return (
                 <div
