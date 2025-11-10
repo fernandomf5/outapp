@@ -223,7 +223,7 @@ export const TaskOrganizerPanel = () => {
   const [editingBlock, setEditingBlock] = useState<TaskBlock | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
-  
+  const [viewMode, setViewMode] = useState<'blocks' | 'clients'>('blocks');
   const [taskForm, setTaskForm] = useState({
     title: "",
     description: "",
@@ -480,15 +480,52 @@ export const TaskOrganizerPanel = () => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
+    const isClientMode = viewMode === 'clients';
+
+    // Determine target column
+    let targetId: string | null = null;
+
+    if (isClientMode) {
+      // Over a client column?
+      if (typeof over.id === 'string' && over.id.startsWith('client:')) {
+        targetId = over.id as string; // e.g., client:<uuid> or client:__none__
+      } else {
+        // Over another task -> infer its client column
+        const overTask = tasks.find(t => t.id === (over.id as string));
+        const cid = (overTask as any)?.client_id ?? null;
+        targetId = `client:${cid ?? '__none__'}`;
+      }
+
+      const currentClientId = (task as any)?.client_id ?? null;
+      const targetClientRaw = targetId?.replace('client:', '') ?? null;
+      const targetClientId = targetClientRaw === '__none__' ? null : targetClientRaw;
+
+      if (targetClientId !== currentClientId) {
+        try {
+          const { error } = await supabase
+            .from('tasks')
+            .update({ client_id: targetClientId as any })
+            .eq('id', taskId);
+          if (error) throw error;
+
+          setTasks(prev => prev.map(t =>
+            t.id === taskId ? ({ ...t, client_id: targetClientId } as any) : t
+          ));
+          toast.success('Tarefa movida para o cliente com sucesso!');
+        } catch (error: any) {
+          toast.error('Erro ao mover tarefa: ' + error.message);
+        }
+      }
+      return;
+    }
+
+    // Blocks mode (original behavior)
     // Find the target block - could be the over.id itself or a parent block
     let targetBlockId: string | null = null;
-    
-    // Check if over is a block
     const overBlock = blocks.find(b => b.id === over.id);
     if (overBlock) {
       targetBlockId = overBlock.id;
     } else {
-      // If over is a task, find its block
       const overTask = tasks.find(t => t.id === over.id);
       if (overTask && overTask.block_id) {
         targetBlockId = overTask.block_id;
@@ -498,20 +535,19 @@ export const TaskOrganizerPanel = () => {
     if (targetBlockId && task.block_id !== targetBlockId) {
       try {
         const { error } = await supabase
-          .from("tasks")
+          .from('tasks')
           .update({ block_id: targetBlockId })
-          .eq("id", taskId);
+          .eq('id', taskId);
 
         if (error) throw error;
-        
-        // Update local state
-        setTasks(prev => prev.map(t => 
-          t.id === taskId ? { ...t, block_id: targetBlockId } : t
+
+        setTasks(prev => prev.map(t =>
+          t.id === taskId ? { ...t, block_id: targetBlockId! } : t
         ));
-        
-        toast.success("Tarefa movida com sucesso!");
+
+        toast.success('Tarefa movida com sucesso!');
       } catch (error: any) {
-        toast.error("Erro ao mover tarefa: " + error.message);
+        toast.error('Erro ao mover tarefa: ' + error.message);
       }
     }
   };
@@ -563,7 +599,14 @@ export const TaskOrganizerPanel = () => {
     );
   }
 
-  const allBlockIds = blocks.map(b => b.id);
+  const isClientMode = viewMode === 'clients';
+  const displayBlocks: TaskBlock[] = isClientMode
+    ? [
+        { id: 'client:__none__', name: 'Sem Cliente', color: '#9CA3AF', order_index: -1, created_at: '', updated_at: '' },
+        ...clients.map((c, idx) => ({ id: `client:${c.id}`, name: c.name, color: '#6366f1', order_index: idx, created_at: '', updated_at: '' }))
+      ]
+    : blocks;
+  const allBlockIds = displayBlocks.map(b => b.id);
 
   return (
     <div className="space-y-6">
@@ -573,7 +616,18 @@ export const TaskOrganizerPanel = () => {
           <h2 className="text-3xl font-bold">Organizador de Tarefas</h2>
           <p className="text-muted-foreground">Organize suas tarefas com drag-and-drop</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="w-[200px]">
+            <Select value={viewMode} onValueChange={(v) => setViewMode(v as any)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Modo de visualização" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="blocks">Por Bloco</SelectItem>
+                <SelectItem value="clients">Por Cliente</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" onClick={() => {
@@ -803,17 +857,31 @@ export const TaskOrganizerPanel = () => {
       >
         <div className="flex gap-4 overflow-x-auto pb-4">
           <SortableContext items={allBlockIds} strategy={verticalListSortingStrategy}>
-            {blocks.map((block) => (
-              <DroppableBlock
-                key={block.id}
-                block={block}
-                tasks={tasks.filter(t => t.block_id === block.id)}
-                onEdit={openEditTask}
-                onDelete={handleDeleteTask}
-                onEditBlock={openEditBlock}
-                onDeleteBlock={handleDeleteBlock}
-              />
-            ))}
+            {displayBlocks.map((block) => {
+              let columnTasks: Task[] = [];
+              if (viewMode === 'clients') {
+                const clientKey = (block.id as string).replace('client:', '');
+                if (clientKey === '__none__') {
+                  columnTasks = tasks.filter(t => !(t as any).client_id);
+                } else {
+                  columnTasks = tasks.filter(t => (t as any).client_id === clientKey);
+                }
+              } else {
+                columnTasks = tasks.filter(t => t.block_id === block.id);
+              }
+
+              return (
+                <DroppableBlock
+                  key={block.id}
+                  block={block}
+                  tasks={columnTasks}
+                  onEdit={openEditTask}
+                  onDelete={handleDeleteTask}
+                  onEditBlock={openEditBlock}
+                  onDeleteBlock={handleDeleteBlock}
+                />
+              );
+            })}
           </SortableContext>
           
           {blocks.length === 0 && (
