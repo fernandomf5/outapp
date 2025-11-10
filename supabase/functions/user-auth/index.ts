@@ -20,147 +20,171 @@ serve(async (req) => {
     const { action, email, password, name, code, userId } = requestData;
 
     if (action === 'register') {
-      console.log('[REGISTER] Starting registration for:', email);
-      
-      // Hash password
-      const encoder = new TextEncoder();
-      const data = encoder.encode(password);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-      // Check if user already exists and if banned
-      const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('id, is_banned')
-        .eq('email', email)
-        .maybeSingle();
-
-      if (existingProfile) {
-        console.log('[REGISTER] Email exists, is_banned:', existingProfile.is_banned);
+      try {
+        console.log('[REGISTER] Starting registration for:', email);
         
-        if (existingProfile.is_banned) {
+        // Basic validation to avoid admin.createUser errors
+        if (!email || !password || !name) {
           return new Response(
-            JSON.stringify({ error: 'Este e-mail está bloqueado. Entre em contato com o suporte.' }),
-            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            JSON.stringify({ error: 'Dados inválidos. Preencha nome, e-mail e senha.' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
+        if (typeof password !== 'string' || password.length < 6) {
+          return new Response(
+            JSON.stringify({ error: 'A senha deve ter pelo menos 6 caracteres.' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        // Hash password (stored only to help 2FA flows; auth owns the real hash)
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+        // Check if user already exists and if banned
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id, is_banned')
+          .eq('email', email)
+          .maybeSingle();
+
+        if (existingProfile) {
+          console.log('[REGISTER] Email exists, is_banned:', existingProfile.is_banned);
+          if (existingProfile.is_banned) {
+            return new Response(
+              JSON.stringify({ error: 'Este e-mail está bloqueado. Entre em contato com o suporte.' }),
+              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+          return new Response(
+            JSON.stringify({ error: 'Email já cadastrado' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        console.log('[REGISTER] Creating auth user...');
+
+        // Create user in Supabase Auth
+        const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: false, // We'll verify manually
+          user_metadata: { full_name: name }
+        });
+
+        if (authError || !authUser?.user?.id) {
+          const msg = authError?.message || 'Não foi possível criar o usuário de autenticação.';
+          console.error('[REGISTER] Auth error:', authError);
+          return new Response(
+            JSON.stringify({ error: msg }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        console.log('[REGISTER] Auth user created, creating profile...');
+
+        // Create profile
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: authUser.user.id,
+            email,
+            full_name: name,
+            password_hash: passwordHash,
+            email_verified: false,
+          })
+          .select()
+          .single();
+
+        if (profileError) {
+          console.error('[REGISTER] Profile error:', profileError);
+          return new Response(
+            JSON.stringify({ error: 'Erro ao criar perfil do usuário.' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        console.log('[REGISTER] Profile created, generating verification code...');
+
+        // Generate 6-digit verification code
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+        // Store verification code
+        const { error: codeError } = await supabase
+          .from('user_verification_codes')
+          .insert({
+            user_id: authUser.user.id,
+            code: verificationCode,
+            expires_at: expiresAt.toISOString(),
+          });
+
+        if (codeError) {
+          console.error('[REGISTER] Code error:', codeError);
+          return new Response(
+            JSON.stringify({ error: 'Erro ao gerar código de verificação.' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        console.log('[REGISTER] Verification code created, sending email...');
+
+        // Send verification email (best-effort)
+        try {
+          const { error: emailError } = await supabase.functions.invoke('send-verification-email', {
+            body: {
+              email: profile.email,
+              name: profile.full_name,
+              code: verificationCode,
+              chatbotName: 'Bot Reals Zapp',
+            }
+          });
+          if (emailError) console.error('[REGISTER] Email error:', emailError);
+        } catch (emailError) {
+          console.error('[REGISTER] Failed to send verification email:', emailError);
+        }
+
+        console.log('[REGISTER] Assigning user role...');
+        await supabase.from('user_roles').insert({
+          user_id: authUser.user.id,
+          role: 'user'
+        });
+
+        console.log('[REGISTER] Creating free trial subscription...');
+        const { data: freePlan } = await supabase
+          .from('plans')
+          .select('id')
+          .eq('plan_type', 'free_trial')
+          .maybeSingle();
+        if (freePlan?.id) {
+          const expiresAtSub = new Date();
+          expiresAtSub.setDate(expiresAtSub.getDate() + 3);
+          await supabase.from('subscriptions').insert({
+            user_id: authUser.user.id,
+            plan_id: freePlan.id,
+            status: 'active',
+            expires_at: expiresAtSub.toISOString()
+          });
+        }
+
+        console.log('[REGISTER] Registration successful for:', email);
         return new Response(
-          JSON.stringify({ error: 'Email já cadastrado' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ user: profile, userId: authUser.user.id, needsVerification: true }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } catch (e) {
+        console.error('[REGISTER] Unexpected error:', e);
+        const message = e && typeof e === 'object' && 'message' in (e as any)
+          ? (e as any).message
+          : 'Erro ao criar conta. Tente novamente.';
+        return new Response(
+          JSON.stringify({ error: message }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-
-      console.log('[REGISTER] Creating auth user...');
-      
-      // Create user in Supabase Auth
-      const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: false, // We'll verify manually
-        user_metadata: { full_name: name }
-      });
-
-      if (authError) {
-        console.error('[REGISTER] Auth error:', authError);
-        throw authError;
-      }
-
-      console.log('[REGISTER] Auth user created, creating profile...');
-
-      // Create profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          user_id: authUser.user.id,
-          email,
-          full_name: name,
-          password_hash: passwordHash,
-          email_verified: false,
-        })
-        .select()
-        .single();
-
-      if (profileError) {
-        console.error('[REGISTER] Profile error:', profileError);
-        throw profileError;
-      }
-
-      console.log('[REGISTER] Profile created, generating verification code...');
-
-      // Generate 6-digit verification code
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-
-      // Store verification code
-      const { error: codeError } = await supabase
-        .from('user_verification_codes')
-        .insert({
-          user_id: authUser.user.id,
-          code: verificationCode,
-          expires_at: expiresAt.toISOString(),
-        });
-
-      if (codeError) {
-        console.error('[REGISTER] Code error:', codeError);
-        throw codeError;
-      }
-
-      console.log('[REGISTER] Verification code created, sending email...');
-
-      // Send verification email
-      try {
-        const { error: emailError } = await supabase.functions.invoke('send-verification-email', {
-          body: {
-            email: profile.email,
-            name: profile.full_name,
-            code: verificationCode,
-            chatbotName: 'Bot Reals Zapp',
-          }
-        });
-
-        if (emailError) {
-          console.error('[REGISTER] Email error:', emailError);
-        }
-      } catch (emailError) {
-        console.error('[REGISTER] Failed to send verification email:', emailError);
-      }
-
-      console.log('[REGISTER] Assigning user role...');
-
-      // Assign user role
-      await supabase.from('user_roles').insert({
-        user_id: authUser.user.id,
-        role: 'user'
-      });
-
-      console.log('[REGISTER] Creating free trial subscription...');
-
-      // Create free trial subscription
-      const { data: freePlan } = await supabase
-        .from('plans')
-        .select('id')
-        .eq('plan_type', 'free_trial')
-        .single();
-
-      if (freePlan) {
-        const expiresAtSub = new Date();
-        expiresAtSub.setDate(expiresAtSub.getDate() + 3);
-
-        await supabase.from('subscriptions').insert({
-          user_id: authUser.user.id,
-          plan_id: freePlan.id,
-          status: 'active',
-          expires_at: expiresAtSub.toISOString()
-        });
-      }
-
-      console.log('[REGISTER] Registration successful for:', email);
-
-      return new Response(
-        JSON.stringify({ user: profile, userId: authUser.user.id, needsVerification: true }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
     }
 
     if (action === 'login') {

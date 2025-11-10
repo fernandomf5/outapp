@@ -793,7 +793,9 @@ const Dashboard = () => {
 
           <TabsContent value="linkbio">
             <ErrorBoundary>
-              <LinkBioCreator />
+              <FeatureGate featureKey="link_bio">
+                <LinkBioCreator />
+              </FeatureGate>
             </ErrorBoundary>
           </TabsContent>
 
