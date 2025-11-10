@@ -265,29 +265,35 @@ export const TicketsManager = () => {
   const handleDeleteTicket = async (ticketId: string) => {
     if (!confirm('Tem certeza que deseja excluir este ticket? Esta ação não pode ser desfeita.')) return;
 
-    const { error } = await supabase
-      .from('tickets')
-      .delete()
-      .eq('id', ticketId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Sessão inválida');
 
-    if (error) {
-      toast({
-        title: "Erro ao excluir",
-        description: error.message,
-        variant: "destructive",
-      });
-      return;
-    }
+      const response = await fetch(
+        'https://mlocikcfxbleddsvxciv.supabase.co/functions/v1/admin-delete-ticket',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ ticketId })
+        }
+      );
 
-    toast({
-      title: "Ticket excluído com sucesso"
-    });
-    
-    // Atualizar lista e limpar seleção
-    if (selectedTicket?.id === ticketId) {
-      setSelectedTicket(null);
+      const result = await response.json();
+      if (!response.ok) throw new Error(result?.error || 'Falha ao excluir');
+
+      // Remover imediatamente da UI para melhor UX
+      setTickets(prev => prev.filter(t => t.id !== ticketId));
+      if (selectedTicket?.id === ticketId) setSelectedTicket(null);
+
+      toast({ title: 'Ticket excluído com sucesso' });
+      // Atualiza a lista para garantir consistência
+      fetchTickets();
+    } catch (error: any) {
+      toast({ title: 'Erro ao excluir', description: error.message, variant: 'destructive' });
     }
-    fetchTickets();
   };
 
   const getStatusColor = (status: string) => {
