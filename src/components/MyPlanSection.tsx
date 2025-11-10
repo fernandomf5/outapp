@@ -8,6 +8,7 @@ import { Check, Crown, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSearchParams } from "react-router-dom";
 import { MercadoPagoCheckout } from "@/components/MercadoPagoCheckout";
+import { CountdownTimer } from "@/components/CountdownTimer";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +33,9 @@ interface Plan {
   duration_days: number;
   plan_type: string;
   features: any;
+  countdown_enabled?: boolean;
+  countdown_ends_at?: string;
+  limited_offer_banner?: string;
 }
 
 export const MyPlanSection = () => {
@@ -89,6 +93,19 @@ export const MyPlanSection = () => {
 
     fetchData();
   }, [user]);
+
+  const fetchPlans = async () => {
+    const { data: plansData } = await supabase
+      .from('plans')
+      .select('*')
+      .eq('is_active', true)
+      .neq('plan_type', 'free_trial')
+      .order('order_index', { ascending: true });
+
+    if (plansData) {
+      setAllPlans(plansData);
+    }
+  };
 
   // Check if should open upgrade dialog from URL
   useEffect(() => {
@@ -253,61 +270,85 @@ export const MyPlanSection = () => {
           </DialogHeader>
 
           <div className="grid sm:grid-cols-2 gap-6 mt-4">
-            {allPlans.map((plan) => (
-              <Card
-                key={plan.id}
-                className={
-                  plan.plan_type === 'professional'
-                    ? "border-primary shadow-glow"
-                    : ""
-                }
-              >
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    {plan.name}
-                    {plan.plan_type === 'professional' && (
-                      <Badge>Mais Popular</Badge>
+            {allPlans.map((plan) => {
+              const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Date(plan.countdown_ends_at) > new Date();
+              
+              return (
+                <Card
+                  key={plan.id}
+                  className={
+                    plan.plan_type === 'professional'
+                      ? "border-primary shadow-glow"
+                      : ""
+                  }
+                >
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      {plan.name}
+                      {plan.plan_type === 'professional' && (
+                        <Badge>Mais Popular</Badge>
+                      )}
+                    </CardTitle>
+                    <CardDescription>{plan.description}</CardDescription>
+                    
+                    {isOfferActive && plan.limited_offer_banner && (
+                      <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                        <p className="text-sm font-semibold text-destructive mb-2 text-center">
+                          {plan.limited_offer_banner}
+                        </p>
+                        <CountdownTimer 
+                          endDate={plan.countdown_ends_at!}
+                          className="text-destructive justify-center"
+                          onExpire={() => {
+                            toast({
+                              title: "Oferta expirada",
+                              description: "A oferta especial deste plano expirou.",
+                            });
+                            fetchPlans();
+                          }}
+                        />
+                      </div>
                     )}
-                  </CardTitle>
-                  <CardDescription>{plan.description}</CardDescription>
-                  <div className="mt-4">
-                    <span className="text-3xl font-bold">
-                      {plan.price === 0 ? 'Grátis' : `R$ ${plan.price}`}
-                    </span>
-                    {plan.price > 0 && (
-                      <span className="text-muted-foreground">
-                        /{plan.plan_type === 'monthly' ? 'mês' : plan.plan_type === 'annual' ? 'ano' : plan.plan_type === 'lifetime' ? 'vitalício' : 'mês'}
+                    
+                    <div className="mt-4">
+                      <span className="text-3xl font-bold">
+                        {plan.price === 0 ? 'Grátis' : `R$ ${plan.price}`}
                       </span>
+                      {plan.price > 0 && (
+                        <span className="text-muted-foreground">
+                          /{plan.plan_type === 'monthly' ? 'mês' : plan.plan_type === 'annual' ? 'ano' : plan.plan_type === 'lifetime' ? 'vitalício' : 'mês'}
+                        </span>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {plan.features && Array.isArray(plan.features) && plan.features.length > 0 && (
+                      <ul className="space-y-2 mb-6">
+                        {plan.features.map((feature: string, index: number) => (
+                          <li key={index} className="flex items-start gap-2 text-sm">
+                            <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
                     )}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {plan.features && Array.isArray(plan.features) && plan.features.length > 0 && (
-                    <ul className="space-y-2 mb-6">
-                      {plan.features.map((feature: string, index: number) => (
-                        <li key={index} className="flex items-start gap-2 text-sm">
-                          <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  <Button
-                    onClick={() => handleUpgrade(plan.id)}
-                    className={
-                      plan.plan_type === 'professional'
-                        ? "w-full gradient-primary shadow-glow"
-                        : "w-full"
-                    }
-                    variant={
-                      plan.plan_type === 'professional' ? "default" : "outline"
-                    }
-                  >
-                    Assinar Agora
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                    <Button
+                      onClick={() => handleUpgrade(plan.id)}
+                      className={
+                        plan.plan_type === 'professional'
+                          ? "w-full gradient-primary shadow-glow"
+                          : "w-full"
+                      }
+                      variant={
+                        plan.plan_type === 'professional' ? "default" : "outline"
+                      }
+                    >
+                      Assinar Agora
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </DialogContent>
       </Dialog>

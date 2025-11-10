@@ -15,6 +15,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { CookieNotice } from "@/components/CookieNotice";
 import { SocialLinks } from "@/components/SocialLinks";
 import { useTheme } from "next-themes";
+import { CountdownTimer } from "@/components/CountdownTimer";
 
 interface Plan {
   id: string;
@@ -24,6 +25,9 @@ interface Plan {
   features: any;
   plan_type: string;
   duration_days: number;
+  countdown_enabled?: boolean;
+  countdown_ends_at?: string;
+  limited_offer_banner?: string;
 }
 
 interface CustomPage {
@@ -668,6 +672,7 @@ const Index = () => {
             {plans.map((plan) => {
               const isPopular = plan.plan_type === 'monthly' && plan.price > 50 && plan.price < 150;
               const features = Array.isArray(plan.features) ? plan.features : [];
+              const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Date(plan.countdown_ends_at) > new Date();
               
               return (
                 <div
@@ -681,6 +686,23 @@ const Index = () => {
                   {isPopular && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white px-3 py-1 rounded-full text-xs font-semibold">
                       Mais Popular
+                    </div>
+                  )}
+                  
+                  {isOfferActive && plan.limited_offer_banner && (
+                    <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-center">
+                      <p className="text-sm font-semibold text-destructive mb-2">{plan.limited_offer_banner}</p>
+                      <CountdownTimer 
+                        endDate={plan.countdown_ends_at!} 
+                        className="text-destructive"
+                        onExpire={() => {
+                          setPlans(prev => prev.map(p => 
+                            p.id === plan.id 
+                              ? { ...p, countdown_enabled: false } 
+                              : p
+                          ));
+                        }}
+                      />
                     </div>
                   )}
                   
