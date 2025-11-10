@@ -46,17 +46,35 @@ export const useUserFeatures = () => {
         return;
       }
 
-      // Verificar se a assinatura expirou há mais de 3 dias (período de graça)
+      // Verificar se a assinatura já expirou
       const expirationDate = new Date(subscription.expires_at);
       const now = new Date();
-      const threeDaysAfterExpiration = new Date(expirationDate);
-      threeDaysAfterExpiration.setDate(threeDaysAfterExpiration.getDate() + 3);
 
-      // Se passou de 3 dias após o vencimento, bloquear recursos
-      if (now > threeDaysAfterExpiration) {
-        setFeatures([]);
-        setLoading(false);
-        return;
+      // Para free trial, bloquear imediatamente após expiração
+      // Para planos pagos, dar 3 dias de graça
+      const { data: planData } = await supabase
+        .from('plans')
+        .select('plan_type')
+        .eq('id', subscription.plan_id)
+        .single();
+
+      if (now > expirationDate) {
+        // Se for free trial, bloquear imediatamente
+        if (planData?.plan_type === 'free_trial') {
+          setFeatures([]);
+          setLoading(false);
+          return;
+        }
+        
+        // Se for plano pago, dar 3 dias de graça
+        const threeDaysAfterExpiration = new Date(expirationDate);
+        threeDaysAfterExpiration.setDate(threeDaysAfterExpiration.getDate() + 3);
+        
+        if (now > threeDaysAfterExpiration) {
+          setFeatures([]);
+          setLoading(false);
+          return;
+        }
       }
 
       // Buscar features do plano

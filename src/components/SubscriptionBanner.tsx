@@ -55,8 +55,11 @@ export const SubscriptionBanner = () => {
 
   if (!subscription || !plan || dismissed) return null;
 
+  // Não mostrar para planos pagos
+  if (plan.plan_type !== 'free_trial') return null;
+
   // Se o plano expirou
-  if (daysLeft <= 0 && plan.plan_type === 'free_trial') {
+  if (daysLeft <= 0) {
     return (
       <Alert className="bg-destructive/10 border-destructive mb-6 relative">
         <AlertTriangle className="h-5 w-5 text-destructive" />
@@ -89,7 +92,7 @@ export const SubscriptionBanner = () => {
   }
 
   // Se o plano está para expirar (menos de 3 dias)
-  if (daysLeft <= 3 && daysLeft > 0 && plan.plan_type === 'free_trial') {
+  if (daysLeft <= 3 && daysLeft > 0) {
     return (
       <Alert className="bg-warning/10 border-warning mb-6 relative">
         <Clock className="h-5 w-5 text-warning" />
@@ -124,5 +127,37 @@ export const SubscriptionBanner = () => {
     );
   }
 
-  return null;
+  // Banner informativo para período de teste (mais de 3 dias restantes)
+  return (
+    <Alert className="bg-primary/10 border-primary mb-6 relative">
+      <Clock className="h-5 w-5 text-primary" />
+      <AlertDescription className="ml-8 pr-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <p className="font-semibold text-primary">
+              Você tem {daysLeft} {daysLeft === 1 ? 'dia' : 'dias'} de teste gratuito!
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Aproveite para testar todos os recursos da plataforma. Após o período de teste, escolha um plano para continuar.
+            </p>
+          </div>
+          <Button
+            onClick={() => navigate("/dashboard?tab=plan")}
+            variant="outline"
+            className="border-primary text-primary hover:bg-primary/10 whitespace-nowrap"
+          >
+            Ver Planos
+          </Button>
+        </div>
+      </AlertDescription>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute top-2 right-2 h-6 w-6"
+        onClick={() => setDismissed(true)}
+      >
+        <X className="h-4 w-4" />
+      </Button>
+    </Alert>
+  );
 };
