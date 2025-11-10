@@ -86,25 +86,48 @@ serve(async (req) => {
 
         console.log('[REGISTER] Auth user created, creating profile...');
 
-        // Create profile
-        const { data: profile, error: profileError } = await supabase
+        // Create or fetch profile (idempotent to avoid duplicates if a DB trigger already created it)
+        let profile;
+        const { data: existingByUser } = await supabase
           .from('profiles')
-          .insert({
-            user_id: authUser.user.id,
-            email,
-            full_name: name,
-            password_hash: passwordHash,
-            email_verified: false,
-          })
-          .select()
-          .single();
+          .select('*')
+          .eq('user_id', authUser.user.id)
+          .maybeSingle();
 
-        if (profileError) {
-          console.error('[REGISTER] Profile error:', profileError);
-          return new Response(
-            JSON.stringify({ error: 'Erro ao criar perfil do usuário.' }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+        if (existingByUser) {
+          profile = existingByUser;
+        } else {
+          const { data: insertedProfile, error: profileError } = await supabase
+            .from('profiles')
+            .upsert({
+              user_id: authUser.user.id,
+              email,
+              full_name: name,
+              password_hash: passwordHash,
+              email_verified: false,
+            }, { onConflict: 'user_id' })
+            .select()
+            .single();
+
+          if (profileError && profileError.code !== '23505') {
+            console.error('[REGISTER] Profile error:', profileError);
+            return new Response(
+              JSON.stringify({ error: 'Erro ao criar perfil do usuário.' }),
+              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+
+          if (!insertedProfile) {
+            // If upsert returned nothing due to conflict, fetch the existing row
+            const { data: fetched } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('user_id', authUser.user.id)
+              .single();
+            profile = fetched;
+          } else {
+            profile = insertedProfile;
+          }
         }
 
         console.log('[REGISTER] Profile created, generating verification code...');
@@ -198,6 +221,24 @@ serve(async (req) => {
 
       if (authError) {
         console.error('Auth error:', authError);
+        // Detect unconfirmed email to trigger verification flow instead of generic invalid credentials
+        // @ts-ignore - edge runtime error object
+        const code = (authError && (authError.code || authError.status || authError.name)) || '';
+        if (code === 'email_not_confirmed' || code === 400 || String(code).toLowerCase().includes('email')) {
+          const { data: pendingProfile } = await supabase
+            .from('profiles')
+            .select('user_id')
+            .eq('email', email)
+            .maybeSingle();
+          return new Response(
+            JSON.stringify({
+              error: 'Email não verificado. Por favor, verifique seu e-mail primeiro.',
+              needsVerification: true,
+              userId: pendingProfile?.user_id || null
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
         return new Response(
           JSON.stringify({ error: 'Email ou senha incorretos' }),
           { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -392,7 +433,7 @@ serve(async (req) => {
         .update({ verified: true })
         .eq('id', verificationCode.id);
 
-      // Mark user email as verified
+      // Mark user email as verified in our profiles table
       const { data: profile, error: updateError } = await supabase
         .from('profiles')
         .update({ email_verified: true })
@@ -401,6 +442,13 @@ serve(async (req) => {
         .single();
 
       if (updateError) throw updateError;
+
+      // Also confirm email in Supabase Auth so the user can sign in
+      try {
+        await supabase.auth.admin.updateUserById(userId, { email_confirm: true });
+      } catch (confirmErr) {
+        console.error('Failed to confirm email in Auth:', confirmErr);
+      }
 
       // Get user credentials for auto-login
       const { data: userProfile } = await supabase
