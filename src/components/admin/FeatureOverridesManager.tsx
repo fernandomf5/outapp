@@ -39,7 +39,7 @@ export const FeatureOverridesManager = () => {
   const [editingOverride, setEditingOverride] = useState<FeatureOverride | null>(null);
   const [formData, setFormData] = useState({
     feature_key: "",
-    user_id: "",
+    user_id: "GLOBAL",
     is_blocked: true,
     message: ""
   });
@@ -126,7 +126,7 @@ export const FeatureOverridesManager = () => {
 
     const data = {
       feature_key: formData.feature_key,
-      user_id: formData.user_id || null,
+      user_id: formData.user_id === "GLOBAL" ? null : formData.user_id || null,
       is_blocked: formData.is_blocked,
       message: formData.message || null
     };
@@ -171,7 +171,7 @@ export const FeatureOverridesManager = () => {
     setEditingOverride(override);
     setFormData({
       feature_key: override.feature_key,
-      user_id: override.user_id || "",
+      user_id: override.user_id || "GLOBAL",
       is_blocked: override.is_blocked,
       message: override.message || ""
     });
@@ -199,7 +199,7 @@ export const FeatureOverridesManager = () => {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setEditingOverride(null);
-    setFormData({ feature_key: "", user_id: "", is_blocked: true, message: "" });
+    setFormData({ feature_key: "", user_id: "GLOBAL", is_blocked: true, message: "" });
   };
 
   const handleOpenDialog = () => {
@@ -262,21 +262,21 @@ export const FeatureOverridesManager = () => {
 
       <div>
         <Label>Aplicar para (deixe vazio para global)</Label>
-        <Select
-          value={formData.user_id}
-          onValueChange={(value) => setFormData({ ...formData, user_id: value })}
-        >
+          <Select
+            value={formData.user_id}
+            onValueChange={(value) => setFormData({ ...formData, user_id: value })}
+          >
           <SelectTrigger>
             <SelectValue placeholder="Todos os usuários (global)" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">Todos os usuários (global)</SelectItem>
-            {users.map((user) => (
-              <SelectItem key={user.user_id} value={user.user_id}>
-                {user.full_name} ({user.email})
-              </SelectItem>
-            ))}
-          </SelectContent>
+            <SelectContent>
+              <SelectItem value="GLOBAL">Todos os usuários (global)</SelectItem>
+              {users.map((user) => (
+                <SelectItem key={user.user_id} value={user.user_id}>
+                  {user.full_name} ({user.email})
+                </SelectItem>
+              ))}
+            </SelectContent>
         </Select>
       </div>
 
