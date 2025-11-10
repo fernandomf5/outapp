@@ -77,7 +77,7 @@ const AppContent = () => {
                <Route path="/site/:slug" element={<SitePage />} />
                <Route path="/members/:areaId" element={<MembersAreaView />} />
                <Route path="/briefing/:briefingId" element={<BriefingPublicPage />} />
-               <Route path="/:slug" element={<CustomPage />} />
+               
               <Route path="/bot-builder" element={
                 <ProtectedRoute>
                   <BotBuilder />
@@ -103,8 +103,9 @@ const AppContent = () => {
                   <Settings />
                 </ProtectedRoute>
               } />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
+               <Route path="/:slug" element={<CustomPage />} />
+               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
   );
