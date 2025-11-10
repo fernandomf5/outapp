@@ -689,9 +689,13 @@ const Index = () => {
                     </div>
                   )}
                   
-                  {isOfferActive && plan.limited_offer_banner && (
+                  {isOfferActive && (
                     <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-center">
-                      <p className="text-sm font-semibold text-destructive mb-2">{plan.limited_offer_banner}</p>
+                      {plan.limited_offer_banner && (
+                        <p className="text-sm font-semibold text-destructive mb-2">
+                          {plan.limited_offer_banner}
+                        </p>
+                      )}
                       <CountdownTimer 
                         endDate={plan.countdown_ends_at!} 
                         className="text-destructive"
