@@ -38,7 +38,7 @@ import { GeneralCRMPanel } from "@/components/GeneralCRMPanel";
 import { ChatbotManagementPanel } from "@/components/ChatbotManagementPanel";
 import AgentManagementPanel from "@/components/AgentManagementPanel";
 import { MyDomainsPanel } from "@/components/MyDomainsPanel";
-import { FloatingButtonGenerator } from "@/components/FloatingButtonGenerator";
+import { FloatingMultiButtonGenerator } from "@/components/FloatingMultiButtonGenerator";
 import { FinancialManagementPanel } from "@/components/FinancialManagementPanel";
 import { TeamManagementPanel } from "@/components/TeamManagementPanel";
 import { AdsManagementPanel } from "@/components/AdsManagementPanel";
@@ -715,7 +715,7 @@ const Dashboard = () => {
 
           <TabsContent value="floating-button">
             <FeatureGate featureKey="whatsapp_link">
-              <FloatingButtonGenerator />
+              <FloatingMultiButtonGenerator />
             </FeatureGate>
           </TabsContent>
 

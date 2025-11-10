@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           budget: number
           clicks: number
+          client_name: string | null
           conversions: number
           created_at: string
           end_date: string | null
@@ -36,6 +37,7 @@ export type Database = {
         Insert: {
           budget: number
           clicks?: number
+          client_name?: string | null
           conversions?: number
           created_at?: string
           end_date?: string | null
@@ -54,6 +56,7 @@ export type Database = {
         Update: {
           budget?: number
           clicks?: number
+          client_name?: string | null
           conversions?: number
           created_at?: string
           end_date?: string | null
