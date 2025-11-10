@@ -3797,6 +3797,7 @@ export type Database = {
         Row: {
           block_id: string | null
           category: string | null
+          client_id: string | null
           created_at: string
           description: string | null
           due_date: string | null
@@ -3810,6 +3811,7 @@ export type Database = {
         Insert: {
           block_id?: string | null
           category?: string | null
+          client_id?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -3823,6 +3825,7 @@ export type Database = {
         Update: {
           block_id?: string | null
           category?: string | null
+          client_id?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -3839,6 +3842,13 @@ export type Database = {
             columns: ["block_id"]
             isOneToOne: false
             referencedRelation: "task_blocks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
             referencedColumns: ["id"]
           },
         ]

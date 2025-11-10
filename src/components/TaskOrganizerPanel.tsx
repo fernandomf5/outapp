@@ -252,6 +252,25 @@ export const TaskOrganizerPanel = () => {
     loadClients();
   }, []);
 
+  const loadClients = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("customers")
+        .select("id, name")
+        .eq("user_id", user.id)
+        .order("name", { ascending: true });
+
+      if (error) throw error;
+      setClients(data || []);
+    } catch (error: any) {
+      console.error("Erro ao carregar clientes:", error?.message || error);
+      setClients([]);
+    }
+  };
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -714,8 +733,6 @@ export const TaskOrganizerPanel = () => {
                   </Select>
                 </div>
                 <Button onClick={handleAddTask} className="w-full">
-                  {editingTask ? "Atualizar Tarefa" : "Criar Tarefa"}
-                </Button>
                   {editingTask ? "Atualizar Tarefa" : "Criar Tarefa"}
                 </Button>
               </div>
