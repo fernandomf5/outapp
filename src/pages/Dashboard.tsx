@@ -35,6 +35,7 @@ import { MyChatbots } from "@/components/MyChatbots";
 import { MyAIAgents } from "@/components/MyAIAgents";
 import { QRCodeGenerator } from "@/components/QRCodeGenerator";
 import { GeneralCRMPanel } from "@/components/GeneralCRMPanel";
+import { ClientsManagementPanel } from "@/components/ClientsManagementPanel";
 import { ChatbotManagementPanel } from "@/components/ChatbotManagementPanel";
 import AgentManagementPanel from "@/components/AgentManagementPanel";
 import { MyDomainsPanel } from "@/components/MyDomainsPanel";
@@ -705,6 +706,10 @@ const Dashboard = () => {
             <FeatureGate featureKey="crm_contacts">
               <GeneralCRMPanel />
             </FeatureGate>
+          </TabsContent>
+
+          <TabsContent value="clientes">
+            <ClientsManagementPanel />
           </TabsContent>
 
           <TabsContent value="dominios">

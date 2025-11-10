@@ -130,6 +130,7 @@ export function UserSidebar() {
   ];
 
   const crmItems: MenuItem[] = [
+    { title: "Gestão de Clientes", icon: Users, path: "/dashboard", tab: "clientes" },
     { title: "CRM Geral", icon: Database, path: "/dashboard", tab: "crm-geral" },
   ];
 

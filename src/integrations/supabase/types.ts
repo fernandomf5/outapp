@@ -2500,6 +2500,72 @@ export type Database = {
         }
         Relationships: []
       }
+      customers: {
+        Row: {
+          address: string | null
+          city: string | null
+          company: string | null
+          country: string | null
+          created_at: string
+          email: string | null
+          id: string
+          last_contact_at: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          position: string | null
+          postal_code: string | null
+          state: string | null
+          status: string
+          tags: string[] | null
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          company?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          last_contact_at?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          position?: string | null
+          postal_code?: string | null
+          state?: string | null
+          status?: string
+          tags?: string[] | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          company?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          last_contact_at?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          position?: string | null
+          postal_code?: string | null
+          state?: string | null
+          status?: string
+          tags?: string[] | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       digital_products: {
         Row: {
           category: string
