@@ -24,6 +24,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ShortLinkRedirect from "./pages/ShortLinkRedirect";
 import ClonedPage from "./pages/ClonedPage";
+import ClonedOrCustomPage from "./pages/ClonedOrCustomPage";
 import LinkBioPage from "./pages/LinkBioPage";
 import AgentCustomerAuth from "./pages/AgentCustomerAuth";
 import AgentCustomerChat from "./pages/AgentCustomerChat";
@@ -103,7 +104,7 @@ const AppContent = () => {
                   <Settings />
                 </ProtectedRoute>
               } />
-               <Route path="/:slug" element={<CustomPage />} />
+               <Route path="/:slug" element={<ClonedOrCustomPage />} />
                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                <Route path="*" element={<NotFound />} />
             </Routes>

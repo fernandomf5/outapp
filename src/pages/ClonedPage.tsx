@@ -5,7 +5,6 @@ import { Loader2 } from "lucide-react";
 
 export default function ClonedPage() {
   const { slug } = useParams<{ slug: string }>();
-  const currentPath = window.location.pathname.split('/')[1]; // page1, page2, etc.
   const [pageData, setPageData] = useState<any>(null);
   const [renderHtml, setRenderHtml] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -23,12 +22,32 @@ export default function ClonedPage() {
       console.log('Loading cloned page with slug:', slug);
 
       try {
-        // Fetch page data - buscar por slug E custom_domain (que agora é o page path)
+        // Determinar o domínio/path correto para busca
+        // Se for domínio personalizado, usa o hostname
+        // Se for path do sistema (page1, page2, etc), usa o primeiro segmento do path
+        const hostname = window.location.hostname;
+        const pathSegment = window.location.pathname.split('/')[1];
+        
+        // Verifica se é um domínio personalizado (não localhost e não o domínio principal)
+        const isCustomDomain = !hostname.includes('localhost') && 
+                               !hostname.includes('127.0.0.1') &&
+                               hostname !== window.location.host.split(':')[0] &&
+                               pathSegment !== 'page1' && 
+                               pathSegment !== 'page2' && 
+                               pathSegment !== 'page3' && 
+                               pathSegment !== 'page4' && 
+                               pathSegment !== 'page5';
+        
+        const searchDomain = isCustomDomain ? hostname : pathSegment;
+        
+        console.log('Search params:', { slug, searchDomain, hostname, pathSegment, isCustomDomain });
+
+        // Fetch page data - buscar por slug E custom_domain
         const { data: page, error: pageError } = await supabase
           .from('cloned_pages')
           .select('*')
           .eq('slug', slug)
-          .eq('custom_domain', currentPath)
+          .eq('custom_domain', searchDomain)
           .eq('is_active', true)
           .maybeSingle();
 

@@ -248,7 +248,13 @@ export const PageCloner = () => {
 
       // Usar page path selecionado ou page1 como padrão
       const selectedDomain = cloneData.selected_page_path || window.location.host;
-      const clonedUrl = `${selectedDomain}/${slug}`;
+      
+      // Se for domínio personalizado (contém ponto), adiciona https://
+      // Se for page path (page1, page2, etc), usa o domínio atual
+      const isCustomDomain = selectedDomain.includes('.');
+      const clonedUrl = isCustomDomain 
+        ? `https://${selectedDomain}/${slug}`
+        : `${window.location.origin}/${selectedDomain}/${slug}`;
 
       // Detect checkout links
       const detectedLinks = detectCheckoutLinks(cloneResult.content);
@@ -341,7 +347,12 @@ export const PageCloner = () => {
   const handleDuplicatePage = async (page: ClonedPage) => {
     try {
       const slug = `${page.slug}-copia-${Math.random().toString(36).substring(2, 6)}`;
-      const clonedUrl = `${window.location.origin}/${page.custom_domain}/${slug}`;
+      
+      // Se for domínio personalizado, adiciona https://
+      const isCustomDomain = page.custom_domain?.includes('.');
+      const clonedUrl = isCustomDomain 
+        ? `https://${page.custom_domain}/${slug}`
+        : `${window.location.origin}/${page.custom_domain}/${slug}`;
 
       const { data, error } = await supabase
         .from('cloned_pages')
@@ -549,8 +560,12 @@ export const PageCloner = () => {
                     placeholder="minha-pagina"
                     disabled={isCloning}
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    URL final: {window.location.host}/{cloneData.selected_page_path || 'page1'}/{cloneData.custom_slug || 'sua-slug'}
+                   <p className="text-xs text-muted-foreground mt-1">
+                    URL final: {
+                      cloneData.selected_page_path?.includes('.') 
+                        ? `https://${cloneData.selected_page_path}/${cloneData.custom_slug || 'sua-slug'}`
+                        : `${window.location.host}/${cloneData.selected_page_path || 'page1'}/${cloneData.custom_slug || 'sua-slug'}`
+                    }
                   </p>
                 </div>
                 <Button 
