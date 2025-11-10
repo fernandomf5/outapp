@@ -203,9 +203,9 @@ export const FeatureOverridesManager = () => {
   };
 
   const handleDialogOpenChange = (open: boolean) => {
+    console.log('[FeatureOverrides] onOpenChange ->', open);
     setIsDialogOpen(open);
     if (open) {
-      // Atualiza listas quando o modal abrir
       Promise.all([fetchFeatures(), fetchUsers()]).catch(() => {});
     } else {
       setEditingOverride(null);
@@ -235,6 +235,7 @@ export const FeatureOverridesManager = () => {
             <Button 
               type="button"
               className="gradient-primary"
+              onClick={() => console.log('[FeatureOverrides] Click: Novo Bloqueio')}
             >
               <Plus className="w-4 h-4 mr-2" />
               Novo Bloqueio
@@ -259,17 +260,17 @@ export const FeatureOverridesManager = () => {
                     <SelectValue placeholder="Selecione um recurso" />
                   </SelectTrigger>
                   <SelectContent>
-                    {features.length === 0 ? (
-                      <div className="p-4 text-center text-muted-foreground">
-                        Nenhum recurso disponível
-                      </div>
-                    ) : (
-                      features.map((feature) => (
-                        <SelectItem key={feature.id} value={feature.key}>
-                          {feature.name} ({feature.key})
-                        </SelectItem>
-                      ))
-                    )}
+                  {features.length === 0 ? (
+                    <SelectItem disabled value="no-features">
+                      Nenhum recurso disponível
+                    </SelectItem>
+                  ) : (
+                    features.map((feature) => (
+                      <SelectItem key={feature.id} value={feature.key}>
+                        {feature.name} ({feature.key})
+                      </SelectItem>
+                    ))
+                  )}
                   </SelectContent>
                 </Select>
               </div>
