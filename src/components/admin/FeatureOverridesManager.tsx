@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -229,29 +228,31 @@ export const FeatureOverridesManager = () => {
         </Button>
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingOverride ? 'Editar Bloqueio' : 'Criar Novo Bloqueio'}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 mt-4">
-            <div>
-              <Label>Recurso *</Label>
-              <Select
-                value={formData.feature_key}
-                onValueChange={(value) => setFormData({ ...formData, feature_key: value })}
-                disabled={!!editingOverride}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um recurso" />
-                </SelectTrigger>
-                <SelectContent>
+{isDialogOpen && (
+  <div className="fixed inset-0 z-[1000] bg-background/80 backdrop-blur-sm">
+    <div className="fixed left-1/2 top-1/2 w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 px-4">
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold">{editingOverride ? 'Editar Bloqueio' : 'Criar Novo Bloqueio'}</h3>
+          <Button variant="ghost" size="icon" onClick={handleCloseDialog} aria-label="Fechar">
+            {/* X icon will be added in imports */}
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </Button>
+        </div>
+        <div className="space-y-4 mt-2">
+          <div>
+            <Label>Recurso *</Label>
+            <Select
+              value={formData.feature_key}
+              onValueChange={(value) => setFormData({ ...formData, feature_key: value })}
+              disabled={!!editingOverride}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um recurso" />
+              </SelectTrigger>
+              <SelectContent>
                 {features.length === 0 ? (
-                  <SelectItem disabled value="no-features">
-                    Nenhum recurso disponível
-                  </SelectItem>
+                  <SelectItem disabled value="no-features">Nenhum recurso disponível</SelectItem>
                 ) : (
                   features.map((feature) => (
                     <SelectItem key={feature.id} value={feature.key}>
@@ -259,62 +260,69 @@ export const FeatureOverridesManager = () => {
                     </SelectItem>
                   ))
                 )}
-                </SelectContent>
-              </Select>
-            </div>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div>
-              <Label>Aplicar para (deixe vazio para global)</Label>
-              <Select
-                value={formData.user_id}
-                onValueChange={(value) => setFormData({ ...formData, user_id: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos os usuários (global)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todos os usuários (global)</SelectItem>
-                  {users.map((user) => (
-                    <SelectItem key={user.user_id} value={user.user_id}>
-                      {user.full_name} ({user.email})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div>
+            <Label>Aplicar para (deixe vazio para global)</Label>
+            <Select
+              value={formData.user_id}
+              onValueChange={(value) => setFormData({ ...formData, user_id: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Todos os usuários (global)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todos os usuários (global)</SelectItem>
+                {users.map((user) => (
+                  <SelectItem key={user.user_id} value={user.user_id}>
+                    {user.full_name} ({user.email})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div>
-              <Label>Status</Label>
-              <Select
-                value={formData.is_blocked ? "blocked" : "allowed"}
-                onValueChange={(value) => setFormData({ ...formData, is_blocked: value === "blocked" })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="blocked">🚫 Bloqueado</SelectItem>
-                  <SelectItem value="allowed">✅ Liberado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div>
+            <Label>Status</Label>
+            <Select
+              value={formData.is_blocked ? "blocked" : "allowed"}
+              onValueChange={(value) => setFormData({ ...formData, is_blocked: value === "blocked" })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="blocked">🚫 Bloqueado</SelectItem>
+                <SelectItem value="allowed">✅ Liberado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div>
-              <Label>Mensagem personalizada</Label>
-              <Textarea
-                value={formData.message}
-                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                placeholder="Ex: Recurso em manutenção. Previsão: 2 horas"
-                rows={3}
-              />
-            </div>
+          <div>
+            <Label>Mensagem personalizada</Label>
+            <Textarea
+              value={formData.message}
+              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+              placeholder="Ex: Recurso em manutenção. Previsão: 2 horas"
+              rows={3}
+            />
+          </div>
 
-            <Button onClick={handleSubmit} className="w-full gradient-primary">
+          <div className="flex gap-2">
+            <Button onClick={handleSubmit} className="gradient-primary flex-1">
               {editingOverride ? 'Atualizar' : 'Criar'} Bloqueio
             </Button>
+            <Button variant="secondary" onClick={handleCloseDialog} className="flex-1">
+              Cancelar
+            </Button>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </Card>
+    </div>
+  </div>
+)}
 
       <div className="space-y-3">
         {overrides.map((override) => (
