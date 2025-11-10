@@ -167,6 +167,10 @@ export function UserSidebar() {
     { title: t('my_plan'), icon: CreditCard, path: "/dashboard", tab: "plan" },
   ];
 
+  const resourceItems: MenuItem[] = [
+    { title: "Blog", icon: FileText, path: "/blog" },
+  ];
+
   return (
     <Sidebar className={collapsed ? "w-14" : "w-60"} collapsible="icon">
       <SidebarContent>
@@ -332,6 +336,25 @@ export function UserSidebar() {
                   </SidebarMenuItem>
                 );
               })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Recursos</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {resourceItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    onClick={() => handleNavigation(item.path, item.tab)}
+                    className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {!collapsed && <span>{item.title}</span>}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

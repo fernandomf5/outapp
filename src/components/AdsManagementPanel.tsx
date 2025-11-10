@@ -35,6 +35,7 @@ interface AdCampaign {
   product_cost: number;
   revenue: number;
   created_at: string;
+  client_name?: string;
 }
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--success))'];
@@ -43,6 +44,10 @@ export const AdsManagementPanel = () => {
   const [campaigns, setCampaigns] = useState<AdCampaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingCampaign, setEditingCampaign] = useState<AdCampaign | null>(null);
+  const [selectedClient, setSelectedClient] = useState<string>('all');
+  const [clients, setClients] = useState<string[]>([]);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -54,12 +59,19 @@ export const AdsManagementPanel = () => {
     conversions: '',
     product_cost: '',
     revenue: '',
-    start_date: new Date().toISOString().split('T')[0]
+    start_date: new Date().toISOString().split('T')[0],
+    client_name: ''
   });
 
   useEffect(() => {
     loadCampaigns();
   }, []);
+
+  useEffect(() => {
+    // Extrair lista única de clientes
+    const uniqueClients = Array.from(new Set(campaigns.map(c => c.client_name).filter(Boolean))) as string[];
+    setClients(uniqueClients);
+  }, [campaigns]);
 
   const loadCampaigns = async () => {
     try {
@@ -105,7 +117,8 @@ export const AdsManagementPanel = () => {
           product_cost: parseFloat(formData.product_cost) || 0,
           revenue: parseFloat(formData.revenue) || 0,
           status: 'active',
-          start_date: formData.start_date
+          start_date: formData.start_date,
+          client_name: formData.client_name || null
         }]);
 
       if (error) throw error;
@@ -124,7 +137,8 @@ export const AdsManagementPanel = () => {
         conversions: '',
         product_cost: '',
         revenue: '',
-        start_date: new Date().toISOString().split('T')[0]
+        start_date: new Date().toISOString().split('T')[0],
+        client_name: ''
       });
     } catch (error: any) {
       toast.error("Erro ao adicionar campanha");
@@ -147,14 +161,87 @@ export const AdsManagementPanel = () => {
     }
   };
 
-  // Cálculos de métricas
-  const totalBudget = campaigns.reduce((sum, c) => sum + c.budget, 0);
-  const totalSpent = campaigns.reduce((sum, c) => sum + c.spent, 0);
-  const totalImpressions = campaigns.reduce((sum, c) => sum + c.impressions, 0);
-  const totalClicks = campaigns.reduce((sum, c) => sum + c.clicks, 0);
-  const totalConversions = campaigns.reduce((sum, c) => sum + c.conversions, 0);
-  const totalProductCost = campaigns.reduce((sum, c) => sum + (c.product_cost || 0), 0);
-  const totalRevenue = campaigns.reduce((sum, c) => sum + (c.revenue || 0), 0);
+  const handleEditCampaign = (campaign: AdCampaign) => {
+    setEditingCampaign(campaign);
+    setFormData({
+      name: campaign.name,
+      platform: campaign.platform,
+      budget: campaign.budget.toString(),
+      spent: campaign.spent.toString(),
+      impressions: campaign.impressions.toString(),
+      clicks: campaign.clicks.toString(),
+      conversions: campaign.conversions.toString(),
+      product_cost: campaign.product_cost?.toString() || '0',
+      revenue: campaign.revenue?.toString() || '0',
+      start_date: new Date(campaign.created_at).toISOString().split('T')[0],
+      client_name: campaign.client_name || ''
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateCampaign = async () => {
+    if (!editingCampaign) return;
+    
+    try {
+      if (!formData.name || !formData.budget || !formData.spent) {
+        toast.error("Preencha os campos obrigatórios");
+        return;
+      }
+
+      const { error } = await supabase
+        .from('ad_campaigns')
+        .update({
+          name: formData.name,
+          platform: formData.platform,
+          budget: parseFloat(formData.budget),
+          spent: parseFloat(formData.spent),
+          impressions: parseInt(formData.impressions) || 0,
+          clicks: parseInt(formData.clicks) || 0,
+          conversions: parseInt(formData.conversions) || 0,
+          product_cost: parseFloat(formData.product_cost) || 0,
+          revenue: parseFloat(formData.revenue) || 0,
+          client_name: formData.client_name || null
+        })
+        .eq('id', editingCampaign.id);
+
+      if (error) throw error;
+
+      toast.success("Campanha atualizada com sucesso!");
+      setIsEditDialogOpen(false);
+      setEditingCampaign(null);
+      loadCampaigns();
+      
+      setFormData({
+        name: '',
+        platform: 'meta',
+        budget: '',
+        spent: '',
+        impressions: '',
+        clicks: '',
+        conversions: '',
+        product_cost: '',
+        revenue: '',
+        start_date: new Date().toISOString().split('T')[0],
+        client_name: ''
+      });
+    } catch (error: any) {
+      toast.error("Erro ao atualizar campanha");
+    }
+  };
+
+  // Filtrar campanhas por cliente
+  const filteredCampaigns = selectedClient === 'all' 
+    ? campaigns 
+    : campaigns.filter(c => c.client_name === selectedClient);
+
+  // Cálculos de métricas (baseado nas campanhas filtradas)
+  const totalBudget = filteredCampaigns.reduce((sum, c) => sum + c.budget, 0);
+  const totalSpent = filteredCampaigns.reduce((sum, c) => sum + c.spent, 0);
+  const totalImpressions = filteredCampaigns.reduce((sum, c) => sum + c.impressions, 0);
+  const totalClicks = filteredCampaigns.reduce((sum, c) => sum + c.clicks, 0);
+  const totalConversions = filteredCampaigns.reduce((sum, c) => sum + c.conversions, 0);
+  const totalProductCost = filteredCampaigns.reduce((sum, c) => sum + (c.product_cost || 0), 0);
+  const totalRevenue = filteredCampaigns.reduce((sum, c) => sum + (c.revenue || 0), 0);
   
   const avgCPC = totalClicks > 0 ? totalSpent / totalClicks : 0;
   const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
@@ -167,15 +254,15 @@ export const AdsManagementPanel = () => {
   const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
   const roi = totalCost > 0 ? ((totalRevenue - totalCost) / totalCost) * 100 : 0;
 
-  // Dados para gráficos
-  const campaignPerformanceData = campaigns.map(c => ({
+  // Dados para gráficos (baseado nas campanhas filtradas)
+  const campaignPerformanceData = filteredCampaigns.map(c => ({
     name: c.name.substring(0, 15),
     impressions: c.impressions,
     clicks: c.clicks,
     conversions: c.conversions
   }));
 
-  const platformDistributionData = campaigns.reduce((acc, c) => {
+  const platformDistributionData = filteredCampaigns.reduce((acc, c) => {
     const existing = acc.find(item => item.name === c.platform);
     if (existing) {
       existing.value += c.spent;
@@ -188,7 +275,7 @@ export const AdsManagementPanel = () => {
     return acc;
   }, [] as { name: string; value: number }[]);
 
-  const spendingData = campaigns.map(c => ({
+  const spendingData = filteredCampaigns.map(c => ({
     name: c.name.substring(0, 15),
     orçamento: c.budget,
     gasto: c.spent
@@ -210,13 +297,27 @@ export const AdsManagementPanel = () => {
           <h2 className="text-3xl font-bold tracking-tight">Dashboard de Anúncios</h2>
           <p className="text-muted-foreground">Insira seus dados e visualize as métricas automaticamente</p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gradient-primary shadow-glow">
-              <Plus className="mr-2 h-4 w-4" />
-              Adicionar Campanha
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-3">
+          {clients.length > 0 && (
+            <Select value={selectedClient} onValueChange={setSelectedClient}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Filtrar por cliente" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Clientes</SelectItem>
+                {clients.map((client) => (
+                  <SelectItem key={client} value={client}>{client}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gradient-primary shadow-glow">
+                <Plus className="mr-2 h-4 w-4" />
+                Adicionar Campanha
+              </Button>
+            </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>Adicionar Dados de Campanha</DialogTitle>
@@ -229,6 +330,14 @@ export const AdsManagementPanel = () => {
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
                   placeholder="Ex: Black Friday 2024"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Cliente/Empresa (opcional)</Label>
+                <Input 
+                  value={formData.client_name}
+                  onChange={(e) => setFormData({...formData, client_name: e.target.value})}
+                  placeholder="Ex: Loja ABC"
                 />
               </div>
               <div className="grid gap-2">
@@ -268,6 +377,17 @@ export const AdsManagementPanel = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
+                  <Label>Quanto Faturei (R$)</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={formData.revenue}
+                    onChange={(e) => setFormData({...formData, revenue: e.target.value})}
+                    placeholder="1500.00"
+                  />
+                  <p className="text-xs text-muted-foreground">Receita total gerada</p>
+                </div>
+                <div className="grid gap-2">
                   <Label>Custo do Produto (R$)</Label>
                   <Input 
                     type="number"
@@ -276,16 +396,7 @@ export const AdsManagementPanel = () => {
                     onChange={(e) => setFormData({...formData, product_cost: e.target.value})}
                     placeholder="150.00"
                   />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Quanto Lucrei (R$)</Label>
-                  <Input 
-                    type="number"
-                    step="0.01"
-                    value={formData.revenue}
-                    onChange={(e) => setFormData({...formData, revenue: e.target.value})}
-                    placeholder="1500.00"
-                  />
+                  <p className="text-xs text-muted-foreground">Custo unitário (informativo)</p>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4">
@@ -328,6 +439,132 @@ export const AdsManagementPanel = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Dialog de Edição */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Editar Campanha</DialogTitle>
+              <DialogDescription>Atualize os dados da campanha</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label>Nome da Campanha *</Label>
+                <Input 
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  placeholder="Ex: Black Friday 2024"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Cliente/Empresa (opcional)</Label>
+                <Input 
+                  value={formData.client_name}
+                  onChange={(e) => setFormData({...formData, client_name: e.target.value})}
+                  placeholder="Ex: Loja ABC"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Plataforma</Label>
+                <Select value={formData.platform} onValueChange={(value: any) => setFormData({...formData, platform: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="meta">Meta Ads (Facebook/Instagram)</SelectItem>
+                    <SelectItem value="google">Google Ads</SelectItem>
+                    <SelectItem value="tiktok">TikTok Ads</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Orçamento (R$) *</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={formData.budget}
+                    onChange={(e) => setFormData({...formData, budget: e.target.value})}
+                    placeholder="1000.00"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Quanto Gastei (R$) *</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={formData.spent}
+                    onChange={(e) => setFormData({...formData, spent: e.target.value})}
+                    placeholder="850.00"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Quanto Faturei (R$)</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={formData.revenue}
+                    onChange={(e) => setFormData({...formData, revenue: e.target.value})}
+                    placeholder="1500.00"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Custo do Produto (R$)</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={formData.product_cost}
+                    onChange={(e) => setFormData({...formData, product_cost: e.target.value})}
+                    placeholder="150.00"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="grid gap-2">
+                  <Label>Impressões</Label>
+                  <Input 
+                    type="number"
+                    value={formData.impressions}
+                    onChange={(e) => setFormData({...formData, impressions: e.target.value})}
+                    placeholder="10000"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Cliques</Label>
+                  <Input 
+                    type="number"
+                    value={formData.clicks}
+                    onChange={(e) => setFormData({...formData, clicks: e.target.value})}
+                    placeholder="500"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Conversões</Label>
+                  <Input 
+                    type="number"
+                    value={formData.conversions}
+                    onChange={(e) => setFormData({...formData, conversions: e.target.value})}
+                    placeholder="50"
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setIsEditDialogOpen(false);
+                setEditingCampaign(null);
+              }}>
+                Cancelar
+              </Button>
+              <Button onClick={handleUpdateCampaign} className="gradient-primary">
+                Atualizar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        </div>
       </div>
 
       {loading ? (
@@ -595,10 +832,11 @@ export const AdsManagementPanel = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {campaigns.map((campaign) => {
+                  {filteredCampaigns.map((campaign) => {
                     const ctr = campaign.impressions > 0 ? (campaign.clicks / campaign.impressions) * 100 : 0;
                     const cpc = campaign.clicks > 0 ? campaign.spent / campaign.clicks : 0;
-                    const campaignProfit = (campaign.revenue || 0) - (campaign.spent + (campaign.product_cost || 0));
+                    // CORREÇÃO: Lucro = Receita - Gasto em anúncios (product_cost é apenas informativo)
+                    const campaignProfit = (campaign.revenue || 0) - campaign.spent;
                     
                     return (
                       <TableRow key={campaign.id}>
@@ -622,13 +860,22 @@ export const AdsManagementPanel = () => {
                         <TableCell className="text-right">{ctr.toFixed(2)}%</TableCell>
                         <TableCell className="text-right">R$ {cpc.toFixed(2)}</TableCell>
                         <TableCell className="text-right">
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => handleDeleteCampaign(campaign.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => handleEditCampaign(campaign)}
+                            >
+                              <Target className="h-4 w-4 text-primary" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => handleDeleteCampaign(campaign.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
