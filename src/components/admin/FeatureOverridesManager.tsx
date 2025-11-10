@@ -58,7 +58,10 @@ export const FeatureOverridesManager = () => {
       .order('category', { ascending: true });
 
     if (!error && data) {
+      console.log('Features carregadas:', data.length);
       setFeatures(data);
+    } else if (error) {
+      console.error('Erro ao carregar features:', error);
     }
   };
 
@@ -216,12 +219,18 @@ export const FeatureOverridesManager = () => {
         </h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="gradient-primary" onClick={() => setEditingOverride(null)}>
+            <Button 
+              className="gradient-primary" 
+              onClick={() => {
+                console.log('Abrindo dialog, features disponíveis:', features.length);
+                setEditingOverride(null);
+              }}
+            >
               <Plus className="w-4 h-4 mr-2" />
               Novo Bloqueio
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>
                 {editingOverride ? 'Editar Bloqueio' : 'Criar Novo Bloqueio'}

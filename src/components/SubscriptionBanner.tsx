@@ -35,9 +35,14 @@ export const SubscriptionBanner = () => {
         .select('*, plans(name, plan_type)')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .single();
+        .order('expires_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (subError || !subData) return;
+      if (subError || !subData) {
+        console.log('Nenhuma assinatura ativa encontrada');
+        return;
+      }
 
       setSubscription(subData);
       setPlan(subData.plans as unknown as Plan);
@@ -48,6 +53,12 @@ export const SubscriptionBanner = () => {
       const diffTime = expiresAt.getTime() - now.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       setDaysLeft(diffDays);
+      
+      console.log('Banner info:', {
+        planType: subData.plans?.plan_type,
+        daysLeft: diffDays,
+        expiresAt: subData.expires_at
+      });
     };
 
     fetchSubscription();
