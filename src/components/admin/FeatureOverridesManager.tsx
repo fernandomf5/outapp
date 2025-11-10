@@ -202,6 +202,16 @@ export const FeatureOverridesManager = () => {
     setFormData({ feature_key: "", user_id: "", is_blocked: true, message: "" });
   };
 
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (open) {
+      setEditingOverride(null);
+      setFormData({ feature_key: "", user_id: "", is_blocked: true, message: "" });
+      // Fire-and-forget to avoid blocking the UI
+      Promise.all([fetchFeatures(), fetchUsers()]).catch(() => {});
+    }
+  };
+
   const getFeatureName = (key: string) => {
     const feature = features.find(f => f.key === key);
     return feature?.name || key;
@@ -214,22 +224,17 @@ export const FeatureOverridesManager = () => {
           <Shield className="w-6 h-6 text-primary" />
           Gerenciar Acesso a Recursos
         </h2>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
           
             <Button 
               type="button"
               className="gradient-primary" 
-              onClick={async () => {
-                setEditingOverride(null);
-                setFormData({ feature_key: "", user_id: "", is_blocked: true, message: "" });
-                await Promise.all([fetchFeatures(), fetchUsers()]);
-                setIsDialogOpen(true);
-              }}
+              onClick={() => handleDialogOpenChange(true)}
             >
               <Plus className="w-4 h-4 mr-2" />
               Novo Bloqueio
             </Button>
-          {isDialogOpen && (
+          
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
@@ -314,7 +319,7 @@ export const FeatureOverridesManager = () => {
                 </Button>
               </div>
             </DialogContent>
-          )}
+          
         </Dialog>
       </div>
 
