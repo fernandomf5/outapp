@@ -363,13 +363,27 @@ export const TicketsManager = () => {
                     <p>Email: <span className="font-medium">{ticket.user_email || 'Não informado'}</span></p>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Badge className={getStatusColor(ticket.status)}>
-                    {ticket.status}
-                  </Badge>
-                  <Badge className={getPriorityColor(ticket.priority)}>
-                    {ticket.priority}
-                  </Badge>
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-2">
+                    <Badge className={getStatusColor(ticket.status)}>
+                      {ticket.status}
+                    </Badge>
+                    <Badge className={getPriorityColor(ticket.priority)}>
+                      {ticket.priority}
+                    </Badge>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteTicket(ticket.id);
+                    }}
+                    title="Excluir ticket"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
               <p className="text-sm text-muted-foreground line-clamp-2">{ticket.description}</p>
@@ -405,30 +419,20 @@ export const TicketsManager = () => {
                       <p>Email: <span className="font-medium">{selectedTicket.user_email || 'Não informado'}</span></p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Select
-                      value={selectedTicket.status}
-                      onValueChange={(v) => handleUpdateStatus(selectedTicket.id, v)}
-                    >
-                      <SelectTrigger className="w-40">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="open">Aberto</SelectItem>
-                        <SelectItem value="in_progress">Em Andamento</SelectItem>
-                        <SelectItem value="resolved">Resolvido</SelectItem>
-                        <SelectItem value="closed">Fechado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      onClick={() => handleDeleteTicket(selectedTicket.id)}
-                      title="Excluir ticket"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
+                  <Select
+                    value={selectedTicket.status}
+                    onValueChange={(v) => handleUpdateStatus(selectedTicket.id, v)}
+                  >
+                    <SelectTrigger className="w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="open">Aberto</SelectItem>
+                      <SelectItem value="in_progress">Em Andamento</SelectItem>
+                      <SelectItem value="resolved">Resolvido</SelectItem>
+                      <SelectItem value="closed">Fechado</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <p className="text-sm text-muted-foreground mb-2">{selectedTicket.description}</p>
                 <div className="flex gap-2">
