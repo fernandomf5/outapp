@@ -215,20 +215,21 @@ export const FeatureOverridesManager = () => {
           Gerenciar Acesso a Recursos
         </h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
+          
             <Button 
               type="button"
               className="gradient-primary" 
-              onClick={() => {
+              onClick={async () => {
                 setEditingOverride(null);
                 setFormData({ feature_key: "", user_id: "", is_blocked: true, message: "" });
+                await Promise.all([fetchFeatures(), fetchUsers()]);
                 setIsDialogOpen(true);
               }}
             >
               <Plus className="w-4 h-4 mr-2" />
               Novo Bloqueio
             </Button>
-          </DialogTrigger>
+          
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
