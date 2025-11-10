@@ -345,6 +345,7 @@ export const TaskOrganizerPanel = () => {
             category: taskForm.category,
             due_date: taskForm.due_date || null,
             block_id: taskForm.block_id || null,
+            client_id: taskForm.client_id || null,
           })
           .eq("id", editingTask.id);
 
@@ -359,6 +360,7 @@ export const TaskOrganizerPanel = () => {
           category: taskForm.category,
           due_date: taskForm.due_date || null,
           block_id: taskForm.block_id || blocks[0]?.id || null,
+          client_id: taskForm.client_id || null,
         });
 
         if (error) throw error;
