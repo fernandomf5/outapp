@@ -3336,6 +3336,7 @@ export type Database = {
           plan_type: Database["public"]["Enums"]["plan_type"]
           price: number
           updated_at: string
+          visible_on_landing: boolean | null
         }
         Insert: {
           countdown_enabled?: boolean | null
@@ -3352,6 +3353,7 @@ export type Database = {
           plan_type: Database["public"]["Enums"]["plan_type"]
           price: number
           updated_at?: string
+          visible_on_landing?: boolean | null
         }
         Update: {
           countdown_enabled?: boolean | null
@@ -3368,6 +3370,7 @@ export type Database = {
           plan_type?: Database["public"]["Enums"]["plan_type"]
           price?: number
           updated_at?: string
+          visible_on_landing?: boolean | null
         }
         Relationships: []
       }

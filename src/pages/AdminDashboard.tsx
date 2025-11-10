@@ -80,6 +80,7 @@ interface Plan {
   countdown_enabled?: boolean;
   countdown_ends_at?: string | null;
   limited_offer_banner?: string | null;
+  visible_on_landing?: boolean;
 }
 
 interface Tutorial {
@@ -193,7 +194,8 @@ const AdminDashboard = () => {
           duration_days: p.duration_days || 30,
           countdown_enabled: p.countdown_enabled || false,
           countdown_ends_at: p.countdown_ends_at || null,
-          limited_offer_banner: p.limited_offer_banner || null
+          limited_offer_banner: p.limited_offer_banner || null,
+          visible_on_landing: p.visible_on_landing !== false
         })));
       }
 
@@ -228,7 +230,8 @@ const AdminDashboard = () => {
             is_active: true,
             countdown_enabled: editingPlan.countdown_enabled,
             countdown_ends_at: editingPlan.countdown_ends_at,
-            limited_offer_banner: editingPlan.limited_offer_banner
+            limited_offer_banner: editingPlan.limited_offer_banner,
+            visible_on_landing: editingPlan.visible_on_landing !== false
           }])
           .select()
           .single();
@@ -245,7 +248,8 @@ const AdminDashboard = () => {
             duration_days: data.duration_days || 30,
             countdown_enabled: data.countdown_enabled || false,
             countdown_ends_at: data.countdown_ends_at || null,
-            limited_offer_banner: data.limited_offer_banner || null
+            limited_offer_banner: data.limited_offer_banner || null,
+            visible_on_landing: data.visible_on_landing !== false
           }]);
           toast({
             title: "Plano criado! ✅",
@@ -265,7 +269,8 @@ const AdminDashboard = () => {
             duration_days: editingPlan.duration_days,
             countdown_enabled: editingPlan.countdown_enabled,
             countdown_ends_at: editingPlan.countdown_ends_at,
-            limited_offer_banner: editingPlan.limited_offer_banner
+            limited_offer_banner: editingPlan.limited_offer_banner,
+            visible_on_landing: editingPlan.visible_on_landing !== false
           })
           .eq('id', editingPlan.id);
 
@@ -275,7 +280,8 @@ const AdminDashboard = () => {
             price: Number(editingPlan.price),
             countdown_enabled: editingPlan.countdown_enabled || false,
             countdown_ends_at: editingPlan.countdown_ends_at || null,
-            limited_offer_banner: editingPlan.limited_offer_banner || null
+            limited_offer_banner: editingPlan.limited_offer_banner || null,
+            visible_on_landing: editingPlan.visible_on_landing !== false
           } : p));
           toast({
             title: "Plano atualizado! ✅",
@@ -315,7 +321,8 @@ const AdminDashboard = () => {
       duration_days: 30,
       countdown_enabled: false,
       countdown_ends_at: null,
-      limited_offer_banner: null
+      limited_offer_banner: null,
+      visible_on_landing: true
     });
     setIsDialogOpen(true);
   };
@@ -1358,6 +1365,23 @@ const AdminDashboard = () => {
                 <p className="text-xs text-muted-foreground mt-2">
                   Digite um recurso por linha. Eles aparecerão organizados na landing page com ícones de check.
                 </p>
+              </div>
+
+              <div className="border-t pt-4 space-y-4">
+                <h3 className="font-semibold">Visibilidade</h3>
+                
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="visible-on-landing"
+                    checked={editingPlan.visible_on_landing !== false}
+                    onChange={(e) =>
+                      setEditingPlan({ ...editingPlan, visible_on_landing: e.target.checked })
+                    }
+                    className="w-4 h-4 rounded border-gray-300"
+                  />
+                  <Label htmlFor="visible-on-landing">Exibir na landing page</Label>
+                </div>
               </div>
 
               <div className="border-t pt-4 space-y-4">

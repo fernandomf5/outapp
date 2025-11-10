@@ -131,6 +131,7 @@ const Index = () => {
       .from('plans')
       .select('*')
       .eq('is_active', true)
+      .eq('visible_on_landing', true)
       .order('order_index', { ascending: true });
     
     if (!error && data) {
@@ -690,8 +691,7 @@ const Index = () => {
             {plans.map((plan) => {
               const isPopular = plan.plan_type === 'monthly' && plan.price > 50 && plan.price < 150;
               const features = Array.isArray(plan.features) ? plan.features : [];
-const hasFutureEnd = plan.countdown_ends_at ? new Date(plan.countdown_ends_at) > new Date() : false;
-const isOfferActive = hasFutureEnd;
+const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Date(plan.countdown_ends_at) > new Date();
               
               return (
                 <div
