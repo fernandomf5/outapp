@@ -95,7 +95,7 @@ const CustomPage = () => {
         </div>
       </main>
 
-      <LandingFooter />
+      <LandingFooter hideCustomPages={true} />
     </div>
   );
 };

@@ -11,7 +11,7 @@ interface CustomPageItem {
   is_active: boolean;
 }
 
-export const LandingFooter = () => {
+export const LandingFooter = ({ hideCustomPages = false }: { hideCustomPages?: boolean }) => {
   const [siteTitle, setSiteTitle] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [footerText, setFooterText] = useState("");
@@ -83,7 +83,7 @@ export const LandingFooter = () => {
             )}
             <SocialLinks links={socialLinks} variant="footer" />
           </div>
-          {footerPages.length > 0 && (
+          {!hideCustomPages && footerPages.length > 0 && (
             <div>
               <h4 className="font-semibold mb-4">Páginas</h4>
               <ul className="space-y-2">
