@@ -13,19 +13,11 @@ export const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRout
   const { user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
 
+  // Evita redirecionamentos automáticos que causam telas em branco
+  // Exibimos UI de bloqueio diretamente abaixo
   useEffect(() => {
-    if (!loading) {
-      if (!user) {
-        navigate('/auth');
-      } else if (requireAdmin) {
-        // FORÇAR ACESSO ADMIN PARA MASTER EMAIL
-        const isMasterEmail = user.email === 'fernandomoraisgarcia2011@gmail.com';
-        if (!isMasterEmail && !isAdmin) {
-          navigate('/dashboard');
-        }
-      }
-    }
-  }, [user, isAdmin, loading, navigate, requireAdmin]);
+    // no-op
+  }, []);
 
   if (loading) {
     return (
