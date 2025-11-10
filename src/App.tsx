@@ -37,6 +37,7 @@ import BriefingPublicPage from "./pages/BriefingPublicPage";
 import CustomPage from "./pages/CustomPage";
 import SitePage from "./pages/SitePage";
 import MembersAreaView from "./pages/MembersAreaView";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -120,7 +121,9 @@ const App = () => (
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            <AppContent />
+            <ErrorBoundary>
+              <AppContent />
+            </ErrorBoundary>
           </TooltipProvider>
         </AuthProvider>
       </ThemeProvider>

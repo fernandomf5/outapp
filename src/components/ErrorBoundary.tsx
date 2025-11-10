@@ -42,12 +42,27 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               </div>
             </details>
           )}
-          <button
-            className="inline-flex items-center rounded-md border px-3 py-2 text-sm"
-            onClick={() => this.setState({ hasError: false, error: undefined })}
-          >
-            Tentar novamente
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              className="inline-flex items-center rounded-md border px-3 py-2 text-sm"
+              onClick={() => this.setState({ hasError: false, error: undefined })}
+            >
+              Tentar novamente
+            </button>
+            <button
+              className="inline-flex items-center rounded-md border px-3 py-2 text-sm"
+              onClick={() => {
+                try {
+                  const details = `${this.state.error?.message ?? ''}\n\n${(this.state.error as any)?.stack ?? ''}`;
+                  navigator.clipboard?.writeText(details);
+                } catch (e) {
+                  console.error('Erro ao copiar detalhes do erro:', e);
+                }
+              }}
+            >
+              Copiar detalhes
+            </button>
+          </div>
         </div>
       );
     }
