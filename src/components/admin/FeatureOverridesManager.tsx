@@ -217,8 +217,12 @@ export const FeatureOverridesManager = () => {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button 
+              type="button"
               className="gradient-primary" 
-              onClick={() => setEditingOverride(null)}
+              onClick={() => {
+                setEditingOverride(null);
+                setFormData({ feature_key: "", user_id: "", is_blocked: true, message: "" });
+              }}
             >
               <Plus className="w-4 h-4 mr-2" />
               Novo Bloqueio
@@ -297,7 +301,7 @@ export const FeatureOverridesManager = () => {
                 />
               </div>
 
-              <Button onClick={handleSubmit} className="w-full gradient-primary">
+              <Button type="button" onClick={handleSubmit} className="w-full gradient-primary">
                 {editingOverride ? 'Atualizar' : 'Criar'} Bloqueio
               </Button>
             </div>
