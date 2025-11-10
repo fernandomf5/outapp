@@ -214,8 +214,6 @@ function DroppableBlock({ block, tasks, onEdit, onDelete, onEditBlock, onDeleteB
 export const TaskOrganizerPanel = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [blocks, setBlocks] = useState<TaskBlock[]>([]);
-  const [clients, setClients] = useState<Array<{id: string, name: string}>>([]);
-  const [selectedClient, setSelectedClient] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
@@ -231,7 +229,6 @@ export const TaskOrganizerPanel = () => {
     category: "",
     due_date: "",
     block_id: "",
-    client_id: "",
   });
 
   const [blockForm, setBlockForm] = useState({
@@ -249,26 +246,7 @@ export const TaskOrganizerPanel = () => {
 
   useEffect(() => {
     loadData();
-    loadClients();
   }, []);
-
-  const loadClients = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from("customers")
-        .select("id, name")
-        .eq("user_id", user.id)
-        .order("name", { ascending: true });
-
-      if (error) throw error;
-      setClients(data || []);
-    } catch (error: any) {
-      console.error("Erro ao carregar clientes:", error);
-    }
-  };
 
   const loadData = async () => {
     try {
@@ -345,7 +323,6 @@ export const TaskOrganizerPanel = () => {
             category: taskForm.category,
             due_date: taskForm.due_date || null,
             block_id: taskForm.block_id || null,
-            client_id: taskForm.client_id || null,
           })
           .eq("id", editingTask.id);
 
@@ -360,7 +337,6 @@ export const TaskOrganizerPanel = () => {
           category: taskForm.category,
           due_date: taskForm.due_date || null,
           block_id: taskForm.block_id || blocks[0]?.id || null,
-          client_id: taskForm.client_id || null,
         });
 
         if (error) throw error;
@@ -376,7 +352,6 @@ export const TaskOrganizerPanel = () => {
         category: "",
         due_date: "",
         block_id: "",
-        client_id: "",
       });
       loadData();
     } catch (error: any) {
@@ -515,7 +490,6 @@ export const TaskOrganizerPanel = () => {
       category: task.category || "",
       due_date: task.due_date || "",
       block_id: task.block_id || "",
-      client_id: (task as any).client_id || "",
     });
     setIsTaskDialogOpen(true);
   };
@@ -559,26 +533,9 @@ export const TaskOrganizerPanel = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex-1">
+        <div>
           <h2 className="text-3xl font-bold">Organizador de Tarefas</h2>
           <p className="text-muted-foreground">Organize suas tarefas com drag-and-drop</p>
-          
-          {/* Filtro por Cliente */}
-          <div className="mt-4 max-w-xs">
-            <Select value={selectedClient} onValueChange={setSelectedClient}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filtrar por cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os clientes</SelectItem>
-                {clients.map((client) => (
-                  <SelectItem key={client.id} value={client.id}>
-                    {client.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         </div>
         <div className="flex gap-2">
           <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
@@ -630,7 +587,7 @@ export const TaskOrganizerPanel = () => {
 
           <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={() => {
+               <Button onClick={() => {
                 setEditingTask(null);
                 setTaskForm({
                   title: "",
@@ -639,7 +596,6 @@ export const TaskOrganizerPanel = () => {
                   category: "",
                   due_date: "",
                   block_id: "",
-                  client_id: "",
                 });
               }}>
                 <Plus className="mr-2 h-4 w-4" />
@@ -723,22 +679,6 @@ export const TaskOrganizerPanel = () => {
                     />
                   </div>
                 </div>
-                <div>
-                  <Label htmlFor="client">Cliente</Label>
-                  <Select value={taskForm.client_id} onValueChange={(value) => setTaskForm({ ...taskForm, client_id: value })}>
-                    <SelectTrigger id="client">
-                      <SelectValue placeholder="Selecione um cliente (opcional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
-                      {clients.map(client => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
                 <Button onClick={handleAddTask} className="w-full">
                   {editingTask ? "Atualizar Tarefa" : "Criar Tarefa"}
                 </Button>
@@ -810,26 +750,17 @@ export const TaskOrganizerPanel = () => {
       >
         <div className="flex gap-4 overflow-x-auto pb-4">
           <SortableContext items={allBlockIds} strategy={verticalListSortingStrategy}>
-            {blocks.map((block) => {
-              let blockTasks = tasks.filter(t => t.block_id === block.id);
-              
-              // Filtrar por cliente se selecionado
-              if (selectedClient && selectedClient !== "all") {
-                blockTasks = blockTasks.filter(t => (t as any).client_id === selectedClient);
-              }
-              
-              return (
-                <DroppableBlock
-                  key={block.id}
-                  block={block}
-                  tasks={blockTasks}
-                  onEdit={openEditTask}
-                  onDelete={handleDeleteTask}
-                  onEditBlock={openEditBlock}
-                  onDeleteBlock={handleDeleteBlock}
-                />
-              );
-            })}
+            {blocks.map((block) => (
+              <DroppableBlock
+                key={block.id}
+                block={block}
+                tasks={tasks.filter(t => t.block_id === block.id)}
+                onEdit={openEditTask}
+                onDelete={handleDeleteTask}
+                onEditBlock={openEditBlock}
+                onDeleteBlock={handleDeleteBlock}
+              />
+            ))}
           </SortableContext>
           
           {blocks.length === 0 && (
