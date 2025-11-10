@@ -24,6 +24,7 @@ interface Task {
   category?: string;
   due_date?: string;
   block_id?: string;
+  client_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -214,6 +215,7 @@ function DroppableBlock({ block, tasks, onEdit, onDelete, onEditBlock, onDeleteB
 export const TaskOrganizerPanel = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [blocks, setBlocks] = useState<TaskBlock[]>([]);
+  const [clients, setClients] = useState<Array<{id: string, name: string}>>([]);
   const [loading, setLoading] = useState(true);
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
@@ -229,6 +231,7 @@ export const TaskOrganizerPanel = () => {
     category: "",
     due_date: "",
     block_id: "",
+    client_id: "",
   });
 
   const [blockForm, setBlockForm] = useState({
@@ -246,6 +249,7 @@ export const TaskOrganizerPanel = () => {
 
   useEffect(() => {
     loadData();
+    loadClients();
   }, []);
 
   const loadData = async () => {
@@ -314,22 +318,28 @@ export const TaskOrganizerPanel = () => {
       if (!user) return;
 
       if (editingTask) {
+        const updatePayload: any = {
+          title: taskForm.title,
+          description: taskForm.description,
+          priority: taskForm.priority,
+          category: taskForm.category,
+          due_date: taskForm.due_date || null,
+          block_id: taskForm.block_id || null,
+        };
+        // Somente adiciona client_id se existir na base (evita erro de tipagem/coluna)
+        if (taskForm.client_id !== undefined) {
+          updatePayload.client_id = taskForm.client_id || null;
+        }
+
         const { error } = await supabase
           .from("tasks")
-          .update({
-            title: taskForm.title,
-            description: taskForm.description,
-            priority: taskForm.priority,
-            category: taskForm.category,
-            due_date: taskForm.due_date || null,
-            block_id: taskForm.block_id || null,
-          })
+          .update(updatePayload as any)
           .eq("id", editingTask.id);
 
         if (error) throw error;
         toast.success("Tarefa atualizada com sucesso!");
       } else {
-        const { error } = await supabase.from("tasks").insert({
+        const insertPayload: any = {
           user_id: user.id,
           title: taskForm.title,
           description: taskForm.description,
@@ -337,7 +347,12 @@ export const TaskOrganizerPanel = () => {
           category: taskForm.category,
           due_date: taskForm.due_date || null,
           block_id: taskForm.block_id || blocks[0]?.id || null,
-        });
+        };
+        if (taskForm.client_id !== undefined && taskForm.client_id) {
+          insertPayload.client_id = taskForm.client_id;
+        }
+
+        const { error } = await supabase.from("tasks").insert(insertPayload as any);
 
         if (error) throw error;
         toast.success("Tarefa criada com sucesso!");
@@ -352,6 +367,7 @@ export const TaskOrganizerPanel = () => {
         category: "",
         due_date: "",
         block_id: "",
+        client_id: "",
       });
       loadData();
     } catch (error: any) {
@@ -490,6 +506,7 @@ export const TaskOrganizerPanel = () => {
       category: task.category || "",
       due_date: task.due_date || "",
       block_id: task.block_id || "",
+      client_id: task.client_id || "",
     });
     setIsTaskDialogOpen(true);
   };
@@ -587,7 +604,7 @@ export const TaskOrganizerPanel = () => {
 
           <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
             <DialogTrigger asChild>
-               <Button onClick={() => {
+              <Button onClick={() => {
                 setEditingTask(null);
                 setTaskForm({
                   title: "",
@@ -596,6 +613,7 @@ export const TaskOrganizerPanel = () => {
                   category: "",
                   due_date: "",
                   block_id: "",
+                  client_id: "",
                 });
               }}>
                 <Plus className="mr-2 h-4 w-4" />
@@ -679,7 +697,25 @@ export const TaskOrganizerPanel = () => {
                     />
                   </div>
                 </div>
+                <div>
+                  <Label htmlFor="client">Cliente</Label>
+                  <Select value={taskForm.client_id} onValueChange={(value) => setTaskForm({ ...taskForm, client_id: value })}>
+                    <SelectTrigger id="client">
+                      <SelectValue placeholder="Selecione um cliente (opcional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Nenhum</SelectItem>
+                      {clients.map(client => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <Button onClick={handleAddTask} className="w-full">
+                  {editingTask ? "Atualizar Tarefa" : "Criar Tarefa"}
+                </Button>
                   {editingTask ? "Atualizar Tarefa" : "Criar Tarefa"}
                 </Button>
               </div>
