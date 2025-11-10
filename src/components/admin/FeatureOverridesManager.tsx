@@ -222,6 +222,7 @@ export const FeatureOverridesManager = () => {
               onClick={() => {
                 setEditingOverride(null);
                 setFormData({ feature_key: "", user_id: "", is_blocked: true, message: "" });
+                setIsDialogOpen(true);
               }}
             >
               <Plus className="w-4 h-4 mr-2" />
