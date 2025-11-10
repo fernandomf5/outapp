@@ -1,4 +1,4 @@
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Lock, Video, Book, DollarSign, Play, Settings, Plus, Edit, Trash2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -447,11 +447,118 @@ export function MembersAreaCreator() {
               </div>
             </TabsContent>
 
-            <TabsContent value="payments" className="pt-6">
-              <div className="text-center py-12 border-2 border-dashed rounded-lg">
-                <DollarSign className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground">Funcionalidade de pagamentos em desenvolvimento</p>
-              </div>
+            <TabsContent value="payments" className="pt-6 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Integração Mercado Pago</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Configure sua integração com Mercado Pago para receber pagamentos dos alunos
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Access Token do Mercado Pago</Label>
+                    <Input 
+                      type="password"
+                      placeholder="APP_USR-..."
+                      onChange={async (e) => {
+                        if (!selectedArea) return;
+                        const { error } = await supabase
+                          .from('members_areas')
+                          .update({ 
+                            payment_config: { 
+                              mercadopago_token: e.target.value 
+                            } 
+                          } as any)
+                          .eq('id', selectedArea.id);
+                        if (!error) {
+                          toast.success('Token salvo!');
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Encontre em: Mercado Pago → Seu negócio → Credenciais → Access Token de produção
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Public Key do Mercado Pago</Label>
+                    <Input 
+                      placeholder="APP_USR-..."
+                      onChange={async (e) => {
+                        if (!selectedArea) return;
+                        const { error } = await supabase
+                          .from('members_areas')
+                          .update({ 
+                            payment_config: { 
+                              mercadopago_public_key: e.target.value 
+                            } 
+                          } as any)
+                          .eq('id', selectedArea.id);
+                        if (!error) {
+                          toast.success('Public Key salva!');
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Encontre em: Mercado Pago → Seu negócio → Credenciais → Public Key de produção
+                    </p>
+                  </div>
+
+                  <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+                    <h4 className="font-semibold mb-2 text-sm">💡 Como funciona:</h4>
+                    <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                      <li>Configure suas credenciais do Mercado Pago aqui</li>
+                      <li>Os alunos verão a opção de pagamento ao acessar módulos pagos</li>
+                      <li>Após confirmação do pagamento, o acesso será liberado automaticamente</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Link de Pagamento Personalizado</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Adicione links de pagamento externos para módulos específicos
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Link de Pagamento Externo</Label>
+                    <Input 
+                      placeholder="https://link-de-pagamento.com"
+                      onChange={async (e) => {
+                        if (!selectedArea) return;
+                        const { error } = await supabase
+                          .from('members_areas')
+                          .update({ 
+                            payment_config: { 
+                              external_payment_link: e.target.value 
+                            } 
+                          } as any)
+                          .eq('id', selectedArea.id);
+                        if (!error) {
+                          toast.success('Link salvo!');
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Use links do Mercado Pago, Hotmart, Stripe ou qualquer outro processador
+                    </p>
+                  </div>
+
+                  <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+                    <h4 className="font-semibold mb-2 text-sm">📋 Opções de pagamento:</h4>
+                    <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                      <li>Configure módulos como pagos na edição do módulo</li>
+                      <li>Defina preços individuais para cada módulo</li>
+                      <li>Alunos podem comprar acesso aos módulos pagos</li>
+                      <li>Liberação automática após confirmação do pagamento</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="settings" className="pt-6">

@@ -17,7 +17,8 @@ import {
   Plus,
   Trash2,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Monitor
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -68,6 +69,7 @@ export function WebsiteEditor({ website, onClose, onUpdate }: WebsiteEditorProps
   const [settings, setSettings] = useState(website.settings);
   const [saving, setSaving] = useState(false);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
+  const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
 
   const addSection = (type: Section['type']) => {
     const newSection: Section = {
@@ -425,12 +427,42 @@ export function WebsiteEditor({ website, onClose, onUpdate }: WebsiteEditorProps
         {/* Live Preview Panel */}
         {showPreview && (
           <div className="overflow-auto bg-background border-l">
-            <div className="sticky top-0 bg-muted/50 px-4 py-2 border-b text-sm font-medium text-muted-foreground">
-              Preview em tempo real
+            <div className="sticky top-0 bg-muted/50 px-4 py-2 border-b flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">Preview em tempo real</span>
+              <div className="flex gap-1">
+                <Button 
+                  size="sm" 
+                  variant={previewMode === 'desktop' ? 'default' : 'ghost'}
+                  onClick={() => setPreviewMode('desktop')}
+                >
+                  <Monitor className="h-4 w-4 mr-1" />
+                  Desktop
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant={previewMode === 'tablet' ? 'default' : 'ghost'}
+                  onClick={() => setPreviewMode('tablet')}
+                >
+                  <Layout className="h-4 w-4 mr-1" />
+                  Tablet
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant={previewMode === 'mobile' ? 'default' : 'ghost'}
+                  onClick={() => setPreviewMode('mobile')}
+                >
+                  <Type className="h-4 w-4 mr-1" />
+                  Mobile
+                </Button>
+              </div>
             </div>
-            <div className="p-6">
+            <div className="p-6 flex justify-center">
               <div 
-                className="bg-white rounded-lg shadow-lg overflow-hidden"
+                className={`bg-white rounded-lg shadow-lg overflow-hidden transition-all ${
+                  previewMode === 'mobile' ? 'max-w-[375px]' : 
+                  previewMode === 'tablet' ? 'max-w-[768px]' : 
+                  'w-full'
+                }`}
                 style={{
                   fontFamily: settings.fontFamily || 'Inter',
                   '--primary-color': settings.primaryColor || '#8B5CF6',

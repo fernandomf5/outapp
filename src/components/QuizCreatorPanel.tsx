@@ -45,14 +45,10 @@ export const QuizCreatorPanel = () => {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [customDomains, setCustomDomains] = useState<Array<{id: string; domain: string; is_verified: boolean}>>([]);
-  const [selectedCustomDomain, setSelectedCustomDomain] = useState("");
-  const [host, setHost] = useState("");
   
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    custom_domain: '',
     questions: [
       {
         question: '',
@@ -65,27 +61,7 @@ export const QuizCreatorPanel = () => {
 
   useEffect(() => {
     loadQuizzes();
-    fetchCustomDomains();
-    if (typeof window !== 'undefined') {
-      setHost(window.location.host);
-    }
   }, []);
-
-  const fetchCustomDomains = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    
-    const { data } = await supabase
-      .from('user_domains')
-      .select('id, domain, is_verified')
-      .eq('user_id', user.id)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
-
-    if (data) {
-      setCustomDomains(data);
-    }
-  };
 
   const loadQuizzes = async () => {
     try {
@@ -151,10 +127,26 @@ export const QuizCreatorPanel = () => {
     });
   };
 
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  };
+
   const handleAddQuiz = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      if (!formData.title) {
+        toast.error("Preencha o título do quiz");
+        return;
+      }
+
+      const slug = generateSlug(formData.title);
 
       const { data, error } = await supabase
         .from('quizzes')
@@ -162,7 +154,7 @@ export const QuizCreatorPanel = () => {
           user_id: user.id,
           title: formData.title,
           description: formData.description,
-          custom_domain: selectedCustomDomain === 'default' ? '' : selectedCustomDomain,
+          slug: slug,
           questions: formData.questions,
           is_active: true,
           responses_count: 0
@@ -183,7 +175,6 @@ export const QuizCreatorPanel = () => {
       setFormData({
         title: '',
         description: '',
-        custom_domain: '',
         questions: [
           {
             question: '',
@@ -193,7 +184,6 @@ export const QuizCreatorPanel = () => {
           }
         ]
       });
-      setSelectedCustomDomain('');
     } catch (error: any) {
       toast.error("Erro ao criar quiz");
     }
@@ -260,33 +250,6 @@ export const QuizCreatorPanel = () => {
                   placeholder="Descrição do quiz..."
                   rows={2}
                 />
-              </div>
-
-              <div>
-                <Label>Domínio Customizado (Opcional)</Label>
-                <Select
-                  value={selectedCustomDomain}
-                  onValueChange={setSelectedCustomDomain}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Usar domínio padrão" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="default">
-                      {(host || 'domínio padrão')} (padrão)
-                    </SelectItem>
-                    {customDomains.filter(d => d.is_verified).map((domain) => (
-                      <SelectItem key={domain.id} value={domain.domain}>
-                        ✓ {domain.domain}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {customDomains.filter(d => d.is_verified).length === 0 
-                    ? "Adicione e verifique um domínio em 'Gerenciador de Domínios'" 
-                    : "Selecione um domínio verificado para usar"}
-                </p>
               </div>
 
               <div className="space-y-4 mt-4">
