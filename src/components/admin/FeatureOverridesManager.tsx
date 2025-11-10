@@ -50,6 +50,11 @@ export const FeatureOverridesManager = () => {
     fetchUsers();
   }, []);
 
+  // Debug: monitor open state
+  useEffect(() => {
+    console.log('[FeatureOverridesManager] isDialogOpen:', isDialogOpen);
+  }, [isDialogOpen]);
+
   const fetchFeatures = async () => {
     const { data, error } = await supabase
       .from('features')
@@ -203,11 +208,18 @@ export const FeatureOverridesManager = () => {
   };
 
   const handleDialogOpenChange = (open: boolean) => {
+    console.log('[FeatureOverridesManager] handleDialogOpenChange', open);
     setIsDialogOpen(open);
     if (!open) {
       setEditingOverride(null);
       setFormData({ feature_key: "", user_id: "", is_blocked: true, message: "" });
     }
+  };
+
+  const handleOpenNewBlockClick = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    console.log('[FeatureOverridesManager] Novo Bloqueio click');
+    handleDialogOpenChange(true);
   };
 
   const getFeatureName = (key: string) => {
@@ -227,7 +239,7 @@ export const FeatureOverridesManager = () => {
             <Button 
               type="button"
               className="gradient-primary" 
-              onClick={() => handleDialogOpenChange(true)}
+              onClick={handleOpenNewBlockClick}
             >
               <Plus className="w-4 h-4 mr-2" />
               Novo Bloqueio
