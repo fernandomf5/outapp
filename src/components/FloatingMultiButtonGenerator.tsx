@@ -110,7 +110,7 @@ export const FloatingMultiButtonGenerator = () => {
     const posStyles = getPositionStyles();
     const subButtonsHtml = subButtons.map((btn, idx) => `
       <a href="${btn.link}" target="_blank" style="
-        display: ${isOpen ? 'flex' : 'none'};
+        display: none;
         align-items: center;
         justify-content: center;
         width: 50px;
@@ -121,8 +121,8 @@ export const FloatingMultiButtonGenerator = () => {
         text-decoration: none;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         margin-bottom: 10px;
-        opacity: ${isOpen ? '1' : '0'};
-        transform: ${isOpen ? 'scale(1)' : 'scale(0)'};
+        opacity: 0;
+        transform: scale(0);
         transition: all 0.3s ease;
         transition-delay: ${idx * 0.05}s;
       " class="floating-sub-btn">
