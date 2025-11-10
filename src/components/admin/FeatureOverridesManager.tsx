@@ -43,8 +43,6 @@ export const FeatureOverridesManager = () => {
     is_blocked: true,
     message: ""
   });
-  const [debugError, setDebugError] = useState<string | null>(null);
-  const [showDebug, setShowDebug] = useState(false);
 
   useEffect(() => {
     fetchFeatures();
@@ -204,71 +202,11 @@ export const FeatureOverridesManager = () => {
     setFormData({ feature_key: "", user_id: "", is_blocked: true, message: "" });
   };
 
-  const handleDialogOpenChange = (open: boolean) => {
-    console.log('[FeatureOverrides] onOpenChange ->', open);
-    setIsDialogOpen(open);
-    if (open) {
-      // Sempre gera um relatório inicial para você conseguir clicar em "Detalhes"
-      const initial = buildDebugReport('Click Novo Bloqueio - iniciado');
-      setDebugError(initial);
-      setShowDebug(false);
-
-      (async () => {
-        try {
-          await Promise.allSettled([fetchFeatures(), fetchUsers()]);
-          // Verifica se o Dialog realmente ficou visível
-          requestAnimationFrame(() => {
-            setTimeout(() => {
-              const node = document.querySelector('[role="dialog"][data-state="open"]');
-              if (node) {
-                // Sucesso: esconde o cartão de diagnóstico automaticamente
-                setDebugError(null);
-              } else {
-                const details = buildDebugReport('Dialog não visível após abertura');
-                setDebugError(details);
-                setShowDebug(false);
-              }
-            }, 150);
-          });
-        } catch (err) {
-          const details = buildDebugReport('Erro ao abrir dialog', err);
-          setDebugError(details);
-          setShowDebug(false);
-        }
-      })();
-    } else {
-      setEditingOverride(null);
-      setFormData({ feature_key: "", user_id: "", is_blocked: true, message: "" });
-    }
-  };
-
-  const handleOpenNewBlockClick = (e?: React.MouseEvent) => {
-    e?.preventDefault();
+  const handleOpenDialog = () => {
+    console.log('[FeatureOverrides] Opening dialog...');
+    fetchFeatures();
+    fetchUsers();
     setIsDialogOpen(true);
-  };
-
-  const buildDebugReport = (reason: string, err?: unknown) => {
-    const errorStr = err instanceof Error
-      ? `${err.name}: ${err.message}\n${err.stack}`
-      : err
-      ? (() => { try { return JSON.stringify(err); } catch { return String(err); } })()
-      : '';
-
-    const dialogStates = Array.from(document.querySelectorAll('[role="dialog"]'))
-      .map((n) => (n as HTMLElement).getAttribute('data-state') || 'unknown');
-
-    return [
-      '# FeatureOverrides Debug',
-      `timestamp: ${new Date().toISOString()}`,
-      `reason: ${reason}`,
-      `route: ${window.location.pathname}`,
-      `isDialogOpen: ${isDialogOpen}`,
-      `features_count: ${features.length}`,
-      `users_count: ${users.length}`,
-      `overrides_count: ${overrides.length}`,
-      `dom_dialog_states: ${JSON.stringify(dialogStates)}`,
-      errorStr ? `error: ${errorStr}` : ''
-    ].filter(Boolean).join('\n');
   };
   const getFeatureName = (key: string) => {
     const feature = features.find(f => f.key === key);
@@ -282,128 +220,101 @@ export const FeatureOverridesManager = () => {
           <Shield className="w-6 h-6 text-primary" />
           Gerenciar Acesso a Recursos
         </h2>
-          {/* Botão fora do DialogTrigger para controle manual e evitar conflitos */}
-          <Button 
-            type="button"
-            className="gradient-primary"
-            onClick={() => handleDialogOpenChange(true)}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Bloqueio
-          </Button>
-
-          {/* Dialog controlado por estado */}
-          <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingOverride ? 'Editar Bloqueio' : 'Criar Novo Bloqueio'}
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 mt-4">
-                <div>
-                  <Label>Recurso *</Label>
-                  <Select
-                    value={formData.feature_key}
-                    onValueChange={(value) => setFormData({ ...formData, feature_key: value })}
-                    disabled={!!editingOverride}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um recurso" />
-                    </SelectTrigger>
-                    <SelectContent>
-                    {features.length === 0 ? (
-                      <SelectItem disabled value="no-features">
-                        Nenhum recurso disponível
-                      </SelectItem>
-                    ) : (
-                      features.map((feature) => (
-                        <SelectItem key={feature.id} value={feature.key}>
-                          {feature.name} ({feature.key})
-                        </SelectItem>
-                      ))
-                    )}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Aplicar para (deixe vazio para global)</Label>
-                  <Select
-                    value={formData.user_id}
-                    onValueChange={(value) => setFormData({ ...formData, user_id: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todos os usuários (global)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todos os usuários (global)</SelectItem>
-                      {users.map((user) => (
-                        <SelectItem key={user.user_id} value={user.user_id}>
-                          {user.full_name} ({user.email})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Status</Label>
-                  <Select
-                    value={formData.is_blocked ? "blocked" : "allowed"}
-                    onValueChange={(value) => setFormData({ ...formData, is_blocked: value === "blocked" })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="blocked">🚫 Bloqueado</SelectItem>
-                      <SelectItem value="allowed">✅ Liberado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Mensagem personalizada</Label>
-                  <Textarea
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    placeholder="Ex: Recurso em manutenção. Previsão: 2 horas"
-                    rows={3}
-                  />
-                </div>
-
-                <Button type="button" onClick={handleSubmit} className="w-full gradient-primary">
-                  {editingOverride ? 'Atualizar' : 'Criar'} Bloqueio
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+        <Button 
+          onClick={handleOpenDialog}
+          className="gradient-primary"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Novo Bloqueio
+        </Button>
       </div>
 
-      {debugError && (
-        <Card className="mb-4 p-4 border-destructive/40 bg-destructive/5">
-          <div className="flex items-center justify-between">
-            <p className="text-sm">Não foi possível abrir o modal. Clique em Detalhes e me envie o conteúdo.</p>
-            <Button variant="destructive" size="sm" onClick={() => setShowDebug((v) => !v)}>
-              {showDebug ? 'Ocultar detalhes' : 'Detalhes'}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingOverride ? 'Editar Bloqueio' : 'Criar Novo Bloqueio'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div>
+              <Label>Recurso *</Label>
+              <Select
+                value={formData.feature_key}
+                onValueChange={(value) => setFormData({ ...formData, feature_key: value })}
+                disabled={!!editingOverride}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um recurso" />
+                </SelectTrigger>
+                <SelectContent>
+                {features.length === 0 ? (
+                  <SelectItem disabled value="no-features">
+                    Nenhum recurso disponível
+                  </SelectItem>
+                ) : (
+                  features.map((feature) => (
+                    <SelectItem key={feature.id} value={feature.key}>
+                      {feature.name} ({feature.key})
+                    </SelectItem>
+                  ))
+                )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Aplicar para (deixe vazio para global)</Label>
+              <Select
+                value={formData.user_id}
+                onValueChange={(value) => setFormData({ ...formData, user_id: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos os usuários (global)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos os usuários (global)</SelectItem>
+                  {users.map((user) => (
+                    <SelectItem key={user.user_id} value={user.user_id}>
+                      {user.full_name} ({user.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Status</Label>
+              <Select
+                value={formData.is_blocked ? "blocked" : "allowed"}
+                onValueChange={(value) => setFormData({ ...formData, is_blocked: value === "blocked" })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="blocked">🚫 Bloqueado</SelectItem>
+                  <SelectItem value="allowed">✅ Liberado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Mensagem personalizada</Label>
+              <Textarea
+                value={formData.message}
+                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                placeholder="Ex: Recurso em manutenção. Previsão: 2 horas"
+                rows={3}
+              />
+            </div>
+
+            <Button onClick={handleSubmit} className="w-full gradient-primary">
+              {editingOverride ? 'Atualizar' : 'Criar'} Bloqueio
             </Button>
           </div>
-          {showDebug && (
-            <div className="mt-3 space-y-2">
-              <Textarea readOnly rows={8} value={debugError || ''} />
-              <div className="flex gap-2">
-                <Button size="sm" onClick={() => { if (debugError) { navigator.clipboard.writeText(debugError); toast({ title: 'Detalhes copiados' }); } }}>
-                  Copiar
-                </Button>
-                <Button size="sm" variant="secondary" onClick={() => setDebugError(null)}>
-                  Limpar
-                </Button>
-              </div>
-            </div>
-          )}
-        </Card>
-      )}
+        </DialogContent>
+      </Dialog>
 
       <div className="space-y-3">
         {overrides.map((override) => (
