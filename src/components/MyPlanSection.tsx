@@ -36,6 +36,7 @@ interface Plan {
   countdown_enabled?: boolean;
   countdown_ends_at?: string;
   limited_offer_banner?: string;
+  is_visible?: boolean;
 }
 
 export const MyPlanSection = () => {
@@ -99,6 +100,7 @@ export const MyPlanSection = () => {
       .from('plans')
       .select('*')
       .eq('is_active', true)
+      .eq('is_visible', true)
       .neq('plan_type', 'free_trial')
       .order('order_index', { ascending: true });
 

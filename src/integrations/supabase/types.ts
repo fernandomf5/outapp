@@ -3330,13 +3330,13 @@ export type Database = {
           features: Json | null
           id: string
           is_active: boolean
+          is_visible: boolean | null
           limited_offer_banner: string | null
           name: string
           order_index: number
           plan_type: Database["public"]["Enums"]["plan_type"]
           price: number
           updated_at: string
-          visible_on_landing: boolean | null
         }
         Insert: {
           countdown_enabled?: boolean | null
@@ -3347,13 +3347,13 @@ export type Database = {
           features?: Json | null
           id?: string
           is_active?: boolean
+          is_visible?: boolean | null
           limited_offer_banner?: string | null
           name: string
           order_index?: number
           plan_type: Database["public"]["Enums"]["plan_type"]
           price: number
           updated_at?: string
-          visible_on_landing?: boolean | null
         }
         Update: {
           countdown_enabled?: boolean | null
@@ -3364,13 +3364,13 @@ export type Database = {
           features?: Json | null
           id?: string
           is_active?: boolean
+          is_visible?: boolean | null
           limited_offer_banner?: string | null
           name?: string
           order_index?: number
           plan_type?: Database["public"]["Enums"]["plan_type"]
           price?: number
           updated_at?: string
-          visible_on_landing?: boolean | null
         }
         Relationships: []
       }

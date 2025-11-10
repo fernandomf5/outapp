@@ -28,6 +28,7 @@ interface Plan {
   countdown_enabled?: boolean;
   countdown_ends_at?: string;
   limited_offer_banner?: string;
+  is_visible?: boolean;
 }
 
 interface CustomPage {
@@ -131,7 +132,7 @@ const Index = () => {
       .from('plans')
       .select('*')
       .eq('is_active', true)
-      .eq('visible_on_landing', true)
+      .eq('is_visible', true)
       .order('order_index', { ascending: true });
     
     if (!error && data) {
