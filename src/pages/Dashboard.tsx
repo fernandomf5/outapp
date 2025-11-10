@@ -702,15 +702,21 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="crm-geral">
-            <GeneralCRMPanel />
+            <FeatureGate featureKey="crm_contacts">
+              <GeneralCRMPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="dominios">
-            <MyDomainsPanel />
+            <FeatureGate featureKey="domain_manager">
+              <MyDomainsPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="floating-button">
-            <FloatingButtonGenerator />
+            <FeatureGate featureKey="whatsapp_link">
+              <FloatingButtonGenerator />
+            </FeatureGate>
           </TabsContent>
 
 
@@ -721,74 +727,78 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="qrcode">
-            <QRCodeGenerator />
+            <FeatureGate featureKey="qrcode_generator">
+              <QRCodeGenerator />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="management">
-            {selectedAgentForManagement ? (
-              <div>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setSelectedAgentForManagement(null)}
-                  className="mb-4"
-                >
-                  ← Voltar para lista de agentes
-                </Button>
-                <AgentManagementPanel 
-                  agentId={selectedAgentForManagement.id}
-                  agentName={selectedAgentForManagement.name}
-                />
-              </div>
-            ) : (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Gestão de Agentes</CardTitle>
-                  <CardDescription>
-                    Selecione um agente para gerenciar agendamentos e pedidos
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {aiAgents.length === 0 ? (
-                    <div className="text-center py-12">
-                      <Calendar className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                      <p className="text-muted-foreground mb-4">
-                        Você ainda não tem agentes IA criados
-                      </p>
-                      <Button onClick={() => handleTabChange('ai-agents')}>
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        Criar Agente IA
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {aiAgents.map((agent) => (
-                        <Card key={agent.id} className="cursor-pointer hover:shadow-lg transition-shadow"
-                          onClick={() => setSelectedAgentForManagement(agent)}
-                        >
-                          <CardHeader>
-                            <CardTitle className="text-lg">{agent.name}</CardTitle>
-                            <CardDescription>{agent.niche}</CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Calendar className="w-4 h-4" />
-                              <span>Agendamentos</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
-                              <ShoppingBag className="w-4 h-4" />
-                              <span>Pedidos</span>
-                            </div>
-                            <Button className="w-full mt-4" variant="outline">
-                              Gerenciar
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+            <FeatureGate featureKey="ai_agent">
+              {selectedAgentForManagement ? (
+                <div>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setSelectedAgentForManagement(null)}
+                    className="mb-4"
+                  >
+                    ← Voltar para lista de agentes
+                  </Button>
+                  <AgentManagementPanel 
+                    agentId={selectedAgentForManagement.id}
+                    agentName={selectedAgentForManagement.name}
+                  />
+                </div>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Gestão de Agentes</CardTitle>
+                    <CardDescription>
+                      Selecione um agente para gerenciar agendamentos e pedidos
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {aiAgents.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Calendar className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                        <p className="text-muted-foreground mb-4">
+                          Você ainda não tem agentes IA criados
+                        </p>
+                        <Button onClick={() => handleTabChange('ai-agents')}>
+                          <Sparkles className="mr-2 h-4 w-4" />
+                          Criar Agente IA
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {aiAgents.map((agent) => (
+                          <Card key={agent.id} className="cursor-pointer hover:shadow-lg transition-shadow"
+                            onClick={() => setSelectedAgentForManagement(agent)}
+                          >
+                            <CardHeader>
+                              <CardTitle className="text-lg">{agent.name}</CardTitle>
+                              <CardDescription>{agent.niche}</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Calendar className="w-4 h-4" />
+                                <span>Agendamentos</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+                                <ShoppingBag className="w-4 h-4" />
+                                <span>Pedidos</span>
+                              </div>
+                              <Button className="w-full mt-4" variant="outline">
+                                Gerenciar
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="linkbio">
@@ -825,65 +835,69 @@ const Dashboard = () => {
 
 
           <TabsContent value="chatbots">
-            {selectedChatbotForManagement ? (
-              <div>
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setSelectedChatbotForManagement(null);
-                    navigate('/dashboard?tab=chatbots');
-                  }}
-                  className="mb-4"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Voltar para Chatbots
-                </Button>
-                <ChatbotManagementPanel 
-                  chatbot={selectedChatbotForManagement}
+            <FeatureGate featureKey="chatbot_web">
+              {selectedChatbotForManagement ? (
+                <div>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setSelectedChatbotForManagement(null);
+                      navigate('/dashboard?tab=chatbots');
+                    }}
+                    className="mb-4"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Voltar para Chatbots
+                  </Button>
+                  <ChatbotManagementPanel 
+                    chatbot={selectedChatbotForManagement}
+                  />
+                </div>
+              ) : (
+                <MyChatbots 
+                  onManage={(chatbot) => setSelectedChatbotForManagement(chatbot)}
                 />
-              </div>
-            ) : (
-              <MyChatbots 
-                onManage={(chatbot) => setSelectedChatbotForManagement(chatbot)}
-              />
-            )}
+              )}
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="ai-agents">
-            {selectedAgentForManagement ? (
-              <Card className="p-6">
-                <div className="mb-6">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setSelectedAgentForManagement(null)}
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Voltar para Agentes IA
-                  </Button>
-                </div>
-                <h2 className="text-2xl font-bold mb-4">
-                  Gestão: {selectedAgentForManagement.name}
-                </h2>
-                <AgentManagementPanel 
-                  agentId={selectedAgentForManagement.id} 
-                  agentName={selectedAgentForManagement.name}
-                />
-              </Card>
-            ) : (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Gestão de Agentes IA</CardTitle>
-                  <CardDescription>
-                    Selecione um agente para gerenciar agendamentos, pedidos e clientes
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <MyAIAgents 
-                    onManage={(agent) => setSelectedAgentForManagement(agent)}
+            <FeatureGate featureKey="ai_agent">
+              {selectedAgentForManagement ? (
+                <Card className="p-6">
+                  <div className="mb-6">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setSelectedAgentForManagement(null)}
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Voltar para Agentes IA
+                    </Button>
+                  </div>
+                  <h2 className="text-2xl font-bold mb-4">
+                    Gestão: {selectedAgentForManagement.name}
+                  </h2>
+                  <AgentManagementPanel 
+                    agentId={selectedAgentForManagement.id} 
+                    agentName={selectedAgentForManagement.name}
                   />
-                </CardContent>
-              </Card>
-            )}
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Gestão de Agentes IA</CardTitle>
+                    <CardDescription>
+                      Selecione um agente para gerenciar agendamentos, pedidos e clientes
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <MyAIAgents 
+                      onManage={(agent) => setSelectedAgentForManagement(agent)}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="voucher">
@@ -895,49 +909,69 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="financeiro">
-            <FinancialManagementPanel />
+            <FeatureGate featureKey="financial_management">
+              <FinancialManagementPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="equipe">
-            <TeamManagementPanel />
+            <FeatureGate featureKey="team_management">
+              <TeamManagementPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="anuncios">
-            <AdsManagementPanel />
+            <FeatureGate featureKey="ads_management">
+              <AdsManagementPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="tarefas">
-            <TaskOrganizerPanel />
+            <FeatureGate featureKey="task_organizer">
+              <TaskOrganizerPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="popups">
-            <PopupCreatorPanel />
+            <FeatureGate featureKey="popup_creator">
+              <PopupCreatorPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="criador-quizz">
-            <ErrorBoundary>
-              <QuizCreatorPanel />
-            </ErrorBoundary>
+            <FeatureGate featureKey="quiz_creator">
+              <ErrorBoundary>
+                <QuizCreatorPanel />
+              </ErrorBoundary>
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="briefing">
-            <BriefingCreatorPanel />
+            <FeatureGate featureKey="briefing_creator">
+              <BriefingCreatorPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="area-membros">
-            <ErrorBoundary>
-              <MembersAreaCreator />
-            </ErrorBoundary>
+            <FeatureGate featureKey="members_area">
+              <ErrorBoundary>
+                <MembersAreaCreator />
+              </ErrorBoundary>
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="criador-sites">
-            <ErrorBoundary>
-              <WebsiteBuilder />
-            </ErrorBoundary>
+            <FeatureGate featureKey="website_builder">
+              <ErrorBoundary>
+                <WebsiteBuilder />
+              </ErrorBoundary>
+            </FeatureGate>
           </TabsContent>
               
           <TabsContent value="briefing-responses">
-            <BriefingResponsesPanel />
+            <FeatureGate featureKey="briefing_creator">
+              <BriefingResponsesPanel />
+            </FeatureGate>
           </TabsContent>
         </Tabs>
       </main>
