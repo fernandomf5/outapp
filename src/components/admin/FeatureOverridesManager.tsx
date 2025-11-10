@@ -208,6 +208,11 @@ export const FeatureOverridesManager = () => {
     console.log('[FeatureOverrides] onOpenChange ->', open);
     setIsDialogOpen(open);
     if (open) {
+      // Sempre gera um relatório inicial para você conseguir clicar em "Detalhes"
+      const initial = buildDebugReport('Click Novo Bloqueio - iniciado');
+      setDebugError(initial);
+      setShowDebug(false);
+
       (async () => {
         try {
           await Promise.allSettled([fetchFeatures(), fetchUsers()]);
@@ -215,27 +220,20 @@ export const FeatureOverridesManager = () => {
           requestAnimationFrame(() => {
             setTimeout(() => {
               const node = document.querySelector('[role="dialog"][data-state="open"]');
-              if (!node) {
+              if (node) {
+                // Sucesso: esconde o cartão de diagnóstico automaticamente
+                setDebugError(null);
+              } else {
                 const details = buildDebugReport('Dialog não visível após abertura');
                 setDebugError(details);
                 setShowDebug(false);
-                toast({
-                  title: "Falha ao abrir 'Novo Bloqueio'",
-                  description: "Clique em Detalhes abaixo e me envie o conteúdo.",
-                  variant: "destructive",
-                } as any);
               }
-            }, 100);
+            }, 150);
           });
         } catch (err) {
           const details = buildDebugReport('Erro ao abrir dialog', err);
           setDebugError(details);
           setShowDebug(false);
-          toast({
-            title: "Erro ao abrir 'Novo Bloqueio'",
-            description: "Clique em Detalhes abaixo e me envie o conteúdo.",
-            variant: "destructive",
-          } as any);
         }
       })();
     } else {
