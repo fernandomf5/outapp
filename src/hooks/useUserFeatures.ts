@@ -76,7 +76,9 @@ export const useUserFeatures = () => {
   };
 
   const hasFeature = (featureKey: string): boolean => {
-    return features.includes(featureKey);
+    // First check if user has feature in their plan
+    const hasInPlan = features.includes(featureKey);
+    return hasInPlan;
   };
 
   return {

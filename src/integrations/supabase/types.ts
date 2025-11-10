@@ -2545,6 +2545,33 @@ export type Database = {
         }
         Relationships: []
       }
+      feature_overrides: {
+        Row: {
+          created_at: string
+          feature_key: string
+          id: string
+          is_blocked: boolean
+          message: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          feature_key: string
+          id?: string
+          is_blocked?: boolean
+          message?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          feature_key?: string
+          id?: string
+          is_blocked?: boolean
+          message?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       features: {
         Row: {
           category: string | null

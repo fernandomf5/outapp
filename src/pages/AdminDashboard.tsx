@@ -30,6 +30,8 @@ import { MercadoPagoIntegration } from "@/components/admin/MercadoPagoIntegratio
 import { AdminSecurityPanel } from "@/components/admin/AdminSecurityPanel";
 import { PlanFeaturesManager } from "@/components/admin/PlanFeaturesManager";
 import { BlogManager } from "@/components/admin/BlogManager";
+import { FeaturesManager } from "@/components/admin/FeaturesManager";
+import { FeatureOverridesManager } from "@/components/admin/FeatureOverridesManager";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -706,6 +708,12 @@ const AdminDashboard = () => {
 
             {/* Plan Features Section */}
             {currentSection === 'plan-features' && <PlanFeaturesManager />}
+
+            {/* Features Manager Section */}
+            {currentSection === 'features-manager' && <FeaturesManager />}
+
+            {/* Feature Overrides Section */}
+            {currentSection === 'feature-access' && <FeatureOverridesManager />}
 
             {/* Videos Section */}
             {currentSection === 'videos' && (

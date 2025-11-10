@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useUserFeatures } from "@/hooks/useUserFeatures";
+import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ConversationNotificationBell } from "@/components/ConversationNotificationBell";
 import { TicketNotificationBell } from "@/components/TicketNotificationBell";
@@ -50,6 +51,7 @@ import { BriefingResponsesPanel } from "@/components/BriefingResponsesPanel";
 import { BriefingCreatorPanel } from "@/components/BriefingCreatorPanel";
 import { MembersAreaCreator } from "@/components/MembersAreaCreator";
 import { QuickNotesPanel } from "@/components/QuickNotesPanel";
+import { FeatureGate } from "@/components/FeatureGate";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -713,19 +715,9 @@ const Dashboard = () => {
 
 
           <TabsContent value="tools">
-            {hasFeature('whatsapp_link') ? (
+            <FeatureGate featureKey="whatsapp_link">
               <WhatsAppLinkGenerator />
-            ) : (
-              <Card className="p-12 text-center">
-                <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
-                <p className="text-muted-foreground mb-4">
-                  Faça upgrade do seu plano para gerar links do WhatsApp
-                </p>
-                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
-                  Ver Planos
-                </Button>
-              </Card>
-            )}
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="qrcode">
@@ -806,67 +798,27 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="cloner">
-            {hasFeature('page_cloner') ? (
+            <FeatureGate featureKey="page_cloner">
               <PageCloner />
-            ) : (
-              <Card className="p-12 text-center">
-                <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
-                <p className="text-muted-foreground mb-4">
-                  Faça upgrade do seu plano para clonar páginas
-                </p>
-                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
-                  Ver Planos
-                </Button>
-              </Card>
-            )}
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="crm">
-            {hasFeature('crm_contacts') ? (
+            <FeatureGate featureKey="crm_contacts">
               <CRMContacts />
-            ) : (
-              <Card className="p-12 text-center">
-                <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
-                <p className="text-muted-foreground mb-4">
-                  Faça upgrade do seu plano para acessar o CRM
-                </p>
-                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
-                  Ver Planos
-                </Button>
-              </Card>
-            )}
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="shortlinks">
-            {hasFeature('link_shortener') ? (
+            <FeatureGate featureKey="link_shortener">
               <LinkShortener />
-            ) : (
-              <Card className="p-12 text-center">
-                <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
-                <p className="text-muted-foreground mb-4">
-                  Faça upgrade do seu plano para encurtar links
-                </p>
-                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
-                  Ver Planos
-                </Button>
-              </Card>
-            )}
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="support">
-            {hasFeature('ticket_system') ? (
+            <FeatureGate featureKey="ticket_system">
               <TicketSystem />
-            ) : (
-              <Card className="p-12 text-center">
-                <h3 className="text-xl font-bold mb-2">Recurso não disponível</h3>
-                <p className="text-muted-foreground mb-4">
-                  Faça upgrade do seu plano para acessar o suporte
-                </p>
-                <Button onClick={() => navigate('/dashboard?tab=plan')} className="gradient-primary">
-                  Ver Planos
-                </Button>
-              </Card>
-            )}
+            </FeatureGate>
           </TabsContent>
 
 

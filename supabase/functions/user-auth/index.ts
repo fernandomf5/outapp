@@ -20,6 +20,8 @@ serve(async (req) => {
     const { action, email, password, name, code, userId } = requestData;
 
     if (action === 'register') {
+      console.log('[REGISTER] Starting registration for:', email);
+      
       // Hash password
       const encoder = new TextEncoder();
       const data = encoder.encode(password);
@@ -35,6 +37,8 @@ serve(async (req) => {
         .maybeSingle();
 
       if (existingProfile) {
+        console.log('[REGISTER] Email exists, is_banned:', existingProfile.is_banned);
+        
         if (existingProfile.is_banned) {
           return new Response(
             JSON.stringify({ error: 'Este e-mail está bloqueado. Entre em contato com o suporte.' }),
@@ -47,6 +51,8 @@ serve(async (req) => {
         );
       }
 
+      console.log('[REGISTER] Creating auth user...');
+      
       // Create user in Supabase Auth
       const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
         email,
@@ -55,7 +61,12 @@ serve(async (req) => {
         user_metadata: { full_name: name }
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        console.error('[REGISTER] Auth error:', authError);
+        throw authError;
+      }
+
+      console.log('[REGISTER] Auth user created, creating profile...');
 
       // Create profile
       const { data: profile, error: profileError } = await supabase
@@ -70,7 +81,12 @@ serve(async (req) => {
         .select()
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('[REGISTER] Profile error:', profileError);
+        throw profileError;
+      }
+
+      console.log('[REGISTER] Profile created, generating verification code...');
 
       // Generate 6-digit verification code
       const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -86,9 +102,11 @@ serve(async (req) => {
         });
 
       if (codeError) {
-        console.error('Error creating verification code:', codeError);
+        console.error('[REGISTER] Code error:', codeError);
         throw codeError;
       }
+
+      console.log('[REGISTER] Verification code created, sending email...');
 
       // Send verification email
       try {
@@ -102,17 +120,21 @@ serve(async (req) => {
         });
 
         if (emailError) {
-          console.error('Error sending verification email:', emailError);
+          console.error('[REGISTER] Email error:', emailError);
         }
       } catch (emailError) {
-        console.error('Failed to send verification email:', emailError);
+        console.error('[REGISTER] Failed to send verification email:', emailError);
       }
+
+      console.log('[REGISTER] Assigning user role...');
 
       // Assign user role
       await supabase.from('user_roles').insert({
         user_id: authUser.user.id,
         role: 'user'
       });
+
+      console.log('[REGISTER] Creating free trial subscription...');
 
       // Create free trial subscription
       const { data: freePlan } = await supabase
@@ -132,6 +154,8 @@ serve(async (req) => {
           expires_at: expiresAtSub.toISOString()
         });
       }
+
+      console.log('[REGISTER] Registration successful for:', email);
 
       return new Response(
         JSON.stringify({ user: profile, userId: authUser.user.id, needsVerification: true }),

@@ -111,19 +111,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (error) {
-        return { error: 'Erro ao criar conta. Verifique seus dados e tente novamente.' };
+        console.error('Edge function error:', error);
+        return { error: error.message || 'Erro ao criar conta. Verifique seus dados e tente novamente.' };
       }
 
-      if (data.error) {
+      if (data?.error) {
         return { error: data.error };
       }
 
       return { 
-        userId: data.userId,
-        needsVerification: data.needsVerification 
+        userId: data?.userId,
+        needsVerification: data?.needsVerification 
       };
     } catch (error: any) {
-      return { error: 'Erro ao criar conta. Verifique seus dados e tente novamente.' };
+      console.error('Signup error:', error);
+      return { error: error.message || 'Erro ao criar conta. Verifique seus dados e tente novamente.' };
     }
   };
 
