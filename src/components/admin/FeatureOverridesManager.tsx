@@ -204,11 +204,9 @@ export const FeatureOverridesManager = () => {
 
   const handleDialogOpenChange = (open: boolean) => {
     setIsDialogOpen(open);
-    if (open) {
+    if (!open) {
       setEditingOverride(null);
       setFormData({ feature_key: "", user_id: "", is_blocked: true, message: "" });
-      // Fire-and-forget to avoid blocking the UI
-      Promise.all([fetchFeatures(), fetchUsers()]).catch(() => {});
     }
   };
 
