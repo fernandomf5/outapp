@@ -124,13 +124,13 @@ export function UserSidebar() {
   ];
 
   const managementItems: MenuItem[] = [
+    { title: "Gestão de Clientes", icon: Users, path: "/dashboard", tab: "clientes" },
     { title: "Gestão Financeira", icon: DollarSign, path: "/dashboard", tab: "financeiro" },
     { title: "Gestão de Equipe", icon: UserCog, path: "/dashboard", tab: "equipe" },
     { title: "Gestão de Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios" },
   ];
 
   const crmItems: MenuItem[] = [
-    { title: "Gestão de Clientes", icon: Users, path: "/dashboard", tab: "clientes" },
     { title: "CRM Geral", icon: Database, path: "/dashboard", tab: "crm-geral" },
   ];
 
