@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Lock, Video, Book, DollarSign, Play, Settings, Plus, Edit, Trash2, Copy } from "lucide-react";
+import { Users, Lock, Video, Book, DollarSign, Play, Settings, Plus, Edit, Trash2, Copy, GraduationCap, MessageSquare, Briefcase, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,16 +20,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ModuleEditor } from "@/components/members-area/ModuleEditor";
+import { ProductsManager } from "@/components/members-area/ProductsManager";
+import { EnrollmentsManager } from "@/components/members-area/EnrollmentsManager";
 
 interface MembersArea {
   id: string;
   title: string;
   description: string;
+  area_type?: string;
   banner_url?: string;
   logo_url?: string;
+  welcome_message?: string;
   is_active: boolean;
   created_at: string;
   custom_domain?: string;
+  products?: Array<{
+    id: string;
+    name: string;
+    description: string;
+    price: string;
+    payment_link: string;
+    image_url: string;
+    modules_unlocked: string[];
+  }>;
 }
 
 interface Module {
@@ -48,10 +61,18 @@ interface Module {
   order_index?: number;
 }
 
+const areaTypes = [
+  { id: 'course', name: 'Curso Online', description: 'Cursos em vídeo, aulas e certificados', icon: GraduationCap },
+  { id: 'community', name: 'Comunidade Privada', description: 'Fórum e conteúdo exclusivo para membros', icon: MessageSquare },
+  { id: 'client_portal', name: 'Portal de Clientes', description: 'Área para gestão de clientes e serviços', icon: Briefcase },
+  { id: 'digital_products', name: 'Produtos Digitais', description: 'Venda de ebooks, templates e downloads', icon: Package },
+];
+
 export function MembersAreaCreator() {
   const [membersAreas, setMembersAreas] = useState<MembersArea[]>([]);
   const [selectedArea, setSelectedArea] = useState<MembersArea | null>(null);
   const [modules, setModules] = useState<Module[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -100,6 +121,47 @@ export function MembersAreaCreator() {
       .order('created_at', { ascending: false });
     if (data) {
       setCustomDomains(data as any);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedArea) {
+      loadModules(selectedArea.id);
+      loadProducts(selectedArea.id);
+    }
+  }, [selectedArea]);
+
+  const loadProducts = async (areaId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('members_areas')
+        .select('products')
+        .eq('id', areaId)
+        .single();
+
+      if (error) throw error;
+      setProducts(Array.isArray(data?.products) ? data.products : []);
+    } catch (error) {
+      console.error("Erro ao carregar produtos:", error);
+      setProducts([]);
+    }
+  };
+
+  const handleSaveProducts = async (newProducts: any[]) => {
+    if (!selectedArea) return;
+    
+    try {
+      const { error } = await supabase
+        .from('members_areas')
+        .update({ products: newProducts })
+        .eq('id', selectedArea.id);
+
+      if (error) throw error;
+      
+      setProducts(newProducts);
+      toast.success("Produtos salvos com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao salvar produtos");
     }
   };
 
@@ -171,12 +233,12 @@ export function MembersAreaCreator() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <Users className="w-6 h-6 text-primary" />
-            <div>
-              <h2 className="text-2xl font-bold">Gerador de Área de Membros</h2>
-              <p className="text-sm text-muted-foreground">
-                Crie áreas de membros profissionais com cursos, módulos e pagamentos
-              </p>
-            </div>
+              <div>
+                <h2 className="text-2xl font-bold">Gerador de Área de Membros</h2>
+                <p className="text-sm text-muted-foreground">
+                  Crie áreas de membros completas: cursos, comunidades, portais de clientes e produtos digitais
+                </p>
+              </div>
           </div>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
@@ -208,10 +270,17 @@ export function MembersAreaCreator() {
                       <SelectValue placeholder="Selecione o tipo" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="course">Curso</SelectItem>
-                      <SelectItem value="clients">Clientes</SelectItem>
-                      <SelectItem value="community">Comunidade</SelectItem>
-                      <SelectItem value="membership">Assinatura</SelectItem>
+                      {areaTypes.map((type) => (
+                        <SelectItem key={type.id} value={type.id}>
+                          <div className="flex items-center gap-2">
+                            <type.icon className="h-4 w-4" />
+                            <div>
+                              <div className="font-medium">{type.name}</div>
+                              <div className="text-xs text-muted-foreground">{type.description}</div>
+                            </div>
+                          </div>
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -328,7 +397,7 @@ export function MembersAreaCreator() {
             <div>
               <h3 className="text-xl font-bold">{(selectedArea as any).name || selectedArea.title}</h3>
               <p className="text-sm text-muted-foreground">
-                Gerencie módulos, alunos e configurações da sua área de membros
+                {areaTypes.find(t => t.id === selectedArea.area_type)?.name || 'Gerencie'} - Módulos, Produtos, Alunos e Pagamentos
               </p>
             </div>
             <Button variant="outline" onClick={() => setSelectedArea(null)}>
@@ -341,6 +410,10 @@ export function MembersAreaCreator() {
               <TabsTrigger value="modules">
                 <Book className="h-4 w-4 mr-2" />
                 Módulos
+              </TabsTrigger>
+              <TabsTrigger value="products">
+                <Package className="h-4 w-4 mr-2" />
+                Produtos
               </TabsTrigger>
               <TabsTrigger value="students">
                 <Users className="h-4 w-4 mr-2" />
@@ -440,11 +513,16 @@ export function MembersAreaCreator() {
               )}
             </TabsContent>
 
+            <TabsContent value="products" className="pt-6">
+              <ProductsManager 
+                products={products}
+                onUpdate={handleSaveProducts}
+                availableModules={modules.map(m => ({ id: m.id, title: m.title }))}
+              />
+            </TabsContent>
+
             <TabsContent value="students" className="pt-6">
-              <div className="text-center py-12 border-2 border-dashed rounded-lg">
-                <Users className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground">Funcionalidade de alunos em desenvolvimento</p>
-              </div>
+              <EnrollmentsManager areaId={selectedArea.id} />
             </TabsContent>
 
             <TabsContent value="payments" className="pt-6 space-y-6">
@@ -452,7 +530,7 @@ export function MembersAreaCreator() {
                 <CardHeader>
                   <CardTitle className="text-lg">Integração Mercado Pago</CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    Configure sua integração com Mercado Pago para receber pagamentos dos alunos
+                    Configure sua integração com Mercado Pago para receber pagamentos automaticamente dos alunos. Os produtos criados na aba "Produtos" liberarão conteúdos conforme as compras.
                   </p>
                 </CardHeader>
                 <CardContent className="space-y-4">

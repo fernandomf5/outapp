@@ -2949,6 +2949,50 @@ export type Database = {
         }
         Relationships: []
       }
+      members_area_enrollments: {
+        Row: {
+          area_id: string
+          created_at: string
+          enrolled_at: string
+          id: string
+          purchased_products: Json | null
+          status: string
+          updated_at: string
+          user_email: string
+          user_name: string | null
+        }
+        Insert: {
+          area_id: string
+          created_at?: string
+          enrolled_at?: string
+          id?: string
+          purchased_products?: Json | null
+          status?: string
+          updated_at?: string
+          user_email: string
+          user_name?: string | null
+        }
+        Update: {
+          area_id?: string
+          created_at?: string
+          enrolled_at?: string
+          id?: string
+          purchased_products?: Json | null
+          status?: string
+          updated_at?: string
+          user_email?: string
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_area_enrollments_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "members_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       members_area_modules: {
         Row: {
           category: string | null
@@ -2958,9 +3002,12 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean
+          is_locked: boolean | null
           members_area_id: string
           order_index: number
+          required_product_id: string | null
           title: string
+          unlock_after_days: number | null
           updated_at: string
           video_url: string | null
         }
@@ -2972,9 +3019,12 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_locked?: boolean | null
           members_area_id: string
           order_index?: number
+          required_product_id?: string | null
           title: string
+          unlock_after_days?: number | null
           updated_at?: string
           video_url?: string | null
         }
@@ -2986,9 +3036,12 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_locked?: boolean | null
           members_area_id?: string
           order_index?: number
+          required_product_id?: string | null
           title?: string
+          unlock_after_days?: number | null
           updated_at?: string
           video_url?: string | null
         }
@@ -3099,6 +3152,7 @@ export type Database = {
       }
       members_areas: {
         Row: {
+          access_rules: Json | null
           area_type: string
           banner_url: string | null
           created_at: string | null
@@ -3109,6 +3163,7 @@ export type Database = {
           logo_url: string | null
           name: string
           primary_color: string | null
+          products: Json | null
           require_approval: boolean | null
           requires_approval: boolean | null
           secondary_color: string | null
@@ -3120,6 +3175,7 @@ export type Database = {
           welcome_message: string | null
         }
         Insert: {
+          access_rules?: Json | null
           area_type?: string
           banner_url?: string | null
           created_at?: string | null
@@ -3130,6 +3186,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           primary_color?: string | null
+          products?: Json | null
           require_approval?: boolean | null
           requires_approval?: boolean | null
           secondary_color?: string | null
@@ -3141,6 +3198,7 @@ export type Database = {
           welcome_message?: string | null
         }
         Update: {
+          access_rules?: Json | null
           area_type?: string
           banner_url?: string | null
           created_at?: string | null
@@ -3151,6 +3209,7 @@ export type Database = {
           logo_url?: string | null
           name?: string
           primary_color?: string | null
+          products?: Json | null
           require_approval?: boolean | null
           requires_approval?: boolean | null
           secondary_color?: string | null
