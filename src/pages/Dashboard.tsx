@@ -307,9 +307,9 @@ const Dashboard = () => {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <SidebarTrigger />
-                <div className="bg-primary/10 p-2 rounded-xl">
+                <Link to="/dashboard" className="bg-primary/10 p-2 rounded-xl cursor-pointer hover:bg-primary/20 transition-smooth">
                   <Bot className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
-                </div>
+                </Link>
                 <div>
                   <h1 className="text-xl sm:text-2xl font-bold">
                     {t('hello')}, {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário'}! 👋
