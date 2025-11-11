@@ -121,7 +121,8 @@ export const QuickNotesPanel = () => {
     const now = new Date();
     notes.forEach(note => {
       if (!note.is_completed && note.reminder_date) {
-        const reminderDate = new Date(note.reminder_date);
+        // Parse reminder_date as UTC and convert to local time for comparison
+        const reminderDate = new Date(note.reminder_date + 'Z'); // Add 'Z' to treat as UTC
         // Show reminder if time has passed and not shown before
         if (reminderDate <= now) {
           const lastShown = localStorage.getItem(`reminder_${note.id}`);
@@ -261,7 +262,7 @@ export const QuickNotesPanel = () => {
                       <div className="flex items-center gap-1 mt-2">
                         <Clock className="h-3 w-3" />
                         <span className="text-xs">
-                          {format(new Date(note.reminder_date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                          {format(new Date(note.reminder_date + 'Z'), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                         </span>
                       </div>
                     )}

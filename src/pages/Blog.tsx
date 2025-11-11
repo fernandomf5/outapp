@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, Calendar, User, Eye, Tag, Search } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Helmet } from "react-helmet-async";
 
 interface BlogPost {
   id: string;
@@ -23,6 +24,19 @@ interface BlogPost {
   views_count: number;
 }
 
+interface BlogSettings {
+  site_name: string;
+  site_description: string;
+  logo_url: string | null;
+  banner_top_url: string | null;
+  banner_top_link: string | null;
+  header_menu: { label: string; url: string }[];
+  footer_content: string | null;
+  footer_menu: { label: string; url: string }[];
+  promotional_banners: { image_url: string; link: string; title?: string }[];
+  social_links: { platform: string; url: string }[];
+}
+
 export default function Blog() {
   const { slug } = useParams<{ slug?: string }>();
   const navigate = useNavigate();
@@ -30,14 +44,31 @@ export default function Blog() {
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [settings, setSettings] = useState<BlogSettings | null>(null);
 
   useEffect(() => {
+    loadBlogSettings();
     if (slug) {
       fetchPost(slug);
     } else {
       fetchPosts();
     }
   }, [slug]);
+
+  const loadBlogSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('blog_settings' as any)
+        .select('*')
+        .single();
+
+      if (!error && data) {
+        setSettings(data as any);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar configurações:", error);
+    }
+  };
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -92,6 +123,56 @@ export default function Blog() {
   if (selectedPost) {
     return (
       <div className="min-h-screen bg-background">
+        <Helmet>
+          <title>{selectedPost.title} | {settings?.site_name || 'Blog'}</title>
+          <meta name="description" content={selectedPost.excerpt || selectedPost.content.substring(0, 160)} />
+        </Helmet>
+
+        {/* Top Banner */}
+        {settings?.banner_top_url && (
+          <div className="w-full">
+            {settings.banner_top_link ? (
+              <a href={settings.banner_top_link} target="_blank" rel="noopener noreferrer">
+                <img src={settings.banner_top_url} alt="Banner" className="w-full h-auto max-h-32 object-cover" />
+              </a>
+            ) : (
+              <img src={settings.banner_top_url} alt="Banner" className="w-full h-auto max-h-32 object-cover" />
+            )}
+          </div>
+        )}
+
+        {/* Header */}
+        {settings && (
+          <header className="border-b bg-card">
+            <div className="container max-w-6xl mx-auto px-4 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  {settings.logo_url && (
+                    <img src={settings.logo_url} alt="Logo" className="h-10 w-auto" />
+                  )}
+                  <div>
+                    <h1 className="text-xl font-bold">{settings.site_name}</h1>
+                    <p className="text-sm text-muted-foreground">{settings.site_description}</p>
+                  </div>
+                </div>
+                {settings.header_menu.length > 0 && (
+                  <nav className="hidden md:flex gap-6">
+                    {settings.header_menu.map((item, index) => (
+                      <a
+                        key={index}
+                        href={item.url}
+                        className="text-sm hover:text-primary transition-colors"
+                      >
+                        {item.label}
+                      </a>
+                    ))}
+                  </nav>
+                )}
+              </div>
+            </div>
+          </header>
+        )}
+
         <div className="container max-w-4xl mx-auto px-4 py-8">
           <Button
             variant="ghost"
@@ -153,17 +234,131 @@ export default function Blog() {
               {selectedPost.content}
             </div>
           </article>
+
+          {/* Promotional Banners */}
+          {settings?.promotional_banners && settings.promotional_banners.length > 0 && (
+            <div className="mt-8 space-y-4">
+              {settings.promotional_banners.map((banner, index) => (
+                <a
+                  key={index}
+                  href={banner.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block hover:opacity-90 transition-opacity"
+                >
+                  <img
+                    src={banner.image_url}
+                    alt={banner.title || `Banner ${index + 1}`}
+                    className="w-full h-auto rounded-lg"
+                  />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
+
+        {/* Footer */}
+        {settings && (
+          <footer className="border-t bg-card mt-12">
+            <div className="container max-w-6xl mx-auto px-4 py-8">
+              <div className="grid md:grid-cols-2 gap-8">
+                <div>
+                  {settings.footer_content && (
+                    <p className="text-sm text-muted-foreground">{settings.footer_content}</p>
+                  )}
+                  {settings.social_links.length > 0 && (
+                    <div className="flex gap-4 mt-4">
+                      {settings.social_links.map((link, index) => (
+                        <a
+                          key={index}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          {link.platform}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {settings.footer_menu.length > 0 && (
+                  <div className="flex flex-col gap-2">
+                    {settings.footer_menu.map((item, index) => (
+                      <a
+                        key={index}
+                        href={item.url}
+                        className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        {item.label}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </footer>
+        )}
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{settings?.site_name || 'Blog Bot Reals Zapp'}</title>
+        <meta name="description" content={settings?.site_description || 'Notícias, atualizações e novidades'} />
+      </Helmet>
+
+      {/* Top Banner */}
+      {settings?.banner_top_url && (
+        <div className="w-full">
+          {settings.banner_top_link ? (
+            <a href={settings.banner_top_link} target="_blank" rel="noopener noreferrer">
+              <img src={settings.banner_top_url} alt="Banner" className="w-full h-auto max-h-32 object-cover" />
+            </a>
+          ) : (
+            <img src={settings.banner_top_url} alt="Banner" className="w-full h-auto max-h-32 object-cover" />
+          )}
+        </div>
+      )}
+
+      {/* Header */}
+      {settings && (
+        <header className="border-b bg-card">
+          <div className="container max-w-6xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                {settings.logo_url && (
+                  <img src={settings.logo_url} alt="Logo" className="h-10 w-auto" />
+                )}
+                <div>
+                  <h1 className="text-xl font-bold">{settings.site_name}</h1>
+                  <p className="text-sm text-muted-foreground">{settings.site_description}</p>
+                </div>
+              </div>
+              {settings.header_menu.length > 0 && (
+                <nav className="hidden md:flex gap-6">
+                  {settings.header_menu.map((item, index) => (
+                    <a
+                      key={index}
+                      href={item.url}
+                      className="text-sm hover:text-primary transition-colors"
+                    >
+                      {item.label}
+                    </a>
+                  ))}
+                </nav>
+              )}
+            </div>
+          </div>
+        </header>
+      )}
+
       <div className="container max-w-6xl mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Blog Bot Reals Zapp</h1>
-          <p className="text-muted-foreground">Notícias, atualizações e novidades</p>
+          <h1 className="text-4xl font-bold mb-2">{settings?.site_name || 'Blog Bot Reals Zapp'}</h1>
+          <p className="text-muted-foreground">{settings?.site_description || 'Notícias, atualizações e novidades'}</p>
         </div>
 
         <div className="mb-6">
@@ -222,7 +417,71 @@ export default function Blog() {
             Nenhum post encontrado
           </div>
         )}
+
+        {/* Promotional Banners */}
+        {settings?.promotional_banners && settings.promotional_banners.length > 0 && (
+          <div className="mt-8 space-y-4">
+            {settings.promotional_banners.map((banner, index) => (
+              <a
+                key={index}
+                href={banner.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block hover:opacity-90 transition-opacity"
+              >
+                <img
+                  src={banner.image_url}
+                  alt={banner.title || `Banner ${index + 1}`}
+                  className="w-full h-auto rounded-lg"
+                />
+              </a>
+            ))}
+          </div>
+        )}
       </div>
+
+      {/* Footer */}
+      {settings && (
+        <footer className="border-t bg-card mt-12">
+          <div className="container max-w-6xl mx-auto px-4 py-8">
+            <div className="grid md:grid-cols-2 gap-8">
+              <div>
+                {settings.footer_content && (
+                  <p className="text-sm text-muted-foreground">{settings.footer_content}</p>
+                )}
+                {settings.social_links.length > 0 && (
+                  <div className="flex gap-4 mt-4">
+                    {settings.social_links.map((link, index) => (
+                      <a
+                        key={index}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        {link.platform}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {settings.footer_menu.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  {settings.footer_menu.map((item, index) => (
+                    <a
+                      key={index}
+                      href={item.url}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {item.label}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </footer>
+      )}
     </div>
   );
 }
