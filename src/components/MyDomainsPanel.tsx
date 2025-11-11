@@ -227,7 +227,7 @@ export function MyDomainsPanel() {
                       Configure os Registros DNS
                     </h4>
                     <p className="text-sm text-muted-foreground pl-9 mb-3">
-                      Acesse o painel do seu provedor de domínio (Registro.br, GoDaddy, Hostgator, etc.) e adicione estes registros DNS:
+                      Acesse o painel do seu provedor de domínio (Registro.br, GoDaddy, Hostgator, etc.) e adicione <strong>3 registros DNS</strong>:
                     </p>
                     
                     <div className="pl-9 space-y-3">
@@ -266,6 +266,27 @@ export function MyDomainsPanel() {
                             <code className="bg-primary/10 px-3 py-1 rounded text-sm font-mono font-bold text-primary">185.158.133.1</code>
                           </div>
                         </div>
+                      </div>
+
+                      <div className="bg-background p-4 rounded-md border border-border">
+                        <p className="text-xs font-semibold mb-3 text-primary">🔐 Registro TXT (Verificação)</p>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-muted-foreground w-16">Tipo:</span>
+                            <code className="bg-muted px-3 py-1 rounded text-sm font-mono">TXT</code>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-muted-foreground w-16">Nome:</span>
+                            <code className="bg-muted px-3 py-1 rounded text-sm font-mono">_lovable</code>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-muted-foreground w-16">Valor:</span>
+                            <code className="bg-primary/10 px-3 py-1 rounded text-sm font-mono font-bold text-primary">lovable_verify=SEU_CODIGO</code>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Este registro é usado para verificar a propriedade do domínio
+                        </p>
                       </div>
                     </div>
 
