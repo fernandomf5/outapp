@@ -215,10 +215,16 @@ export const MyPlanSection = () => {
                 <div className="flex items-center justify-between p-4 bg-accent/50 rounded-lg">
                   <div>
                     <p className="text-sm text-muted-foreground">
-                      {isTrial ? 'Dias restantes no trial' : 'Próxima renovação em'}
+                      {currentPlan.duration_days === null 
+                        ? 'Plano' 
+                        : (isTrial ? 'Dias restantes no trial' : 'Próxima renovação em')
+                      }
                     </p>
                     <p className="text-2xl font-bold">
-                      {daysLeft} {daysLeft === 1 ? 'dia' : 'dias'}
+                      {currentPlan.duration_days === null 
+                        ? 'Vitalício' 
+                        : `${daysLeft} ${daysLeft === 1 ? 'dia' : 'dias'}`
+                      }
                     </p>
                   </div>
                   <div className="text-right">
