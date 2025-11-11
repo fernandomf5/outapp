@@ -3596,36 +3596,113 @@ export type Database = {
         }
         Relationships: []
       }
+      quiz_responses: {
+        Row: {
+          answers: Json
+          created_at: string
+          email: string | null
+          id: string
+          name: string | null
+          phone: string | null
+          quiz_id: string
+          score: number
+          whatsapp: string | null
+        }
+        Insert: {
+          answers: Json
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string | null
+          phone?: string | null
+          quiz_id: string
+          score: number
+          whatsapp?: string | null
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string | null
+          phone?: string | null
+          quiz_id?: string
+          score?: number
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_responses_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quizzes: {
         Row: {
+          collect_data: boolean | null
+          collect_email: boolean | null
+          collect_name: boolean | null
+          collect_phone: boolean | null
+          collect_whatsapp: boolean | null
           created_at: string
           description: string | null
           id: string
           is_active: boolean
+          offer_button_link: string | null
+          offer_button_text: string | null
+          offer_description: string | null
+          offer_title: string | null
           questions: Json
+          redirect_url: string | null
           responses_count: number
+          show_offer: boolean | null
           title: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          collect_data?: boolean | null
+          collect_email?: boolean | null
+          collect_name?: boolean | null
+          collect_phone?: boolean | null
+          collect_whatsapp?: boolean | null
           created_at?: string
           description?: string | null
           id?: string
           is_active?: boolean
+          offer_button_link?: string | null
+          offer_button_text?: string | null
+          offer_description?: string | null
+          offer_title?: string | null
           questions?: Json
+          redirect_url?: string | null
           responses_count?: number
+          show_offer?: boolean | null
           title: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          collect_data?: boolean | null
+          collect_email?: boolean | null
+          collect_name?: boolean | null
+          collect_phone?: boolean | null
+          collect_whatsapp?: boolean | null
           created_at?: string
           description?: string | null
           id?: string
           is_active?: boolean
+          offer_button_link?: string | null
+          offer_button_text?: string | null
+          offer_description?: string | null
+          offer_title?: string | null
           questions?: Json
+          redirect_url?: string | null
           responses_count?: number
+          show_offer?: boolean | null
           title?: string
           updated_at?: string
           user_id?: string
