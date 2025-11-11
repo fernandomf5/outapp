@@ -2949,6 +2949,47 @@ export type Database = {
         }
         Relationships: []
       }
+      members_area_access_requests: {
+        Row: {
+          area_id: string
+          email: string
+          id: string
+          notes: string | null
+          requested_at: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          area_id: string
+          email: string
+          id?: string
+          notes?: string | null
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          area_id?: string
+          email?: string
+          id?: string
+          notes?: string | null
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_area_access_requests_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "members_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       members_area_enrollments: {
         Row: {
           area_id: string
@@ -2989,6 +3030,59 @@ export type Database = {
             columns: ["area_id"]
             isOneToOne: false
             referencedRelation: "members_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      members_area_module_contents: {
+        Row: {
+          content_data: string | null
+          content_type: string
+          created_at: string
+          document_url: string | null
+          duration: string | null
+          id: string
+          is_active: boolean
+          module_id: string
+          order_index: number
+          title: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          content_data?: string | null
+          content_type: string
+          created_at?: string
+          document_url?: string | null
+          duration?: string | null
+          id?: string
+          is_active?: boolean
+          module_id: string
+          order_index?: number
+          title: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          content_data?: string | null
+          content_type?: string
+          created_at?: string
+          document_url?: string | null
+          duration?: string | null
+          id?: string
+          is_active?: boolean
+          module_id?: string
+          order_index?: number
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_area_module_contents_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "members_area_modules"
             referencedColumns: ["id"]
           },
         ]
