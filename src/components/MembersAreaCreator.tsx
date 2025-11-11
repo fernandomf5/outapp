@@ -400,9 +400,28 @@ export function MembersAreaCreator() {
                 {areaTypes.find(t => t.id === selectedArea.area_type)?.name || 'Gerencie'} - Módulos, Produtos, Alunos e Pagamentos
               </p>
             </div>
-            <Button variant="outline" onClick={() => setSelectedArea(null)}>
-              Voltar
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant={selectedArea.is_active ? "outline" : "default"}
+                className={!selectedArea.is_active ? "gradient-primary" : ""}
+                onClick={async () => {
+                  const { error } = await supabase
+                    .from('members_areas')
+                    .update({ is_active: !selectedArea.is_active } as any)
+                    .eq('id', selectedArea.id);
+                  if (!error) {
+                    toast.success(selectedArea.is_active ? 'Área despublicada!' : 'Área publicada!');
+                    setSelectedArea({...selectedArea, is_active: !selectedArea.is_active});
+                    loadMembersAreas();
+                  }
+                }}
+              >
+                {selectedArea.is_active ? 'Despublicar' : 'Publicar Área'}
+              </Button>
+              <Button variant="outline" onClick={() => setSelectedArea(null)}>
+                Voltar
+              </Button>
+            </div>
           </div>
 
           <Tabs defaultValue="modules">

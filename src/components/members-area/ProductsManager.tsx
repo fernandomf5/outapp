@@ -3,8 +3,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Trash2, ShoppingBag, DollarSign, Package } from "lucide-react";
+import { Plus, Trash2, ShoppingBag, DollarSign, Package, Save } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
+import { useState, useEffect } from "react";
 
 interface Product {
   id: string;
@@ -23,6 +24,14 @@ interface ProductsManagerProps {
 }
 
 export function ProductsManager({ products, onUpdate, availableModules }: ProductsManagerProps) {
+  const [localProducts, setLocalProducts] = useState<Product[]>(products);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  useEffect(() => {
+    setLocalProducts(products);
+    setHasChanges(false);
+  }, [products]);
+
   const addProduct = () => {
     const newProduct: Product = {
       id: `product-${Date.now()}`,
@@ -33,19 +42,22 @@ export function ProductsManager({ products, onUpdate, availableModules }: Produc
       image_url: '',
       modules_unlocked: []
     };
-    onUpdate([...products, newProduct]);
+    setLocalProducts([...localProducts, newProduct]);
+    setHasChanges(true);
   };
 
   const updateProduct = (id: string, field: keyof Product, value: any) => {
-    onUpdate(products.map(p => p.id === id ? { ...p, [field]: value } : p));
+    setLocalProducts(localProducts.map(p => p.id === id ? { ...p, [field]: value } : p));
+    setHasChanges(true);
   };
 
   const removeProduct = (id: string) => {
-    onUpdate(products.filter(p => p.id !== id));
+    setLocalProducts(localProducts.filter(p => p.id !== id));
+    setHasChanges(true);
   };
 
   const toggleModule = (productId: string, moduleId: string) => {
-    onUpdate(products.map(p => {
+    setLocalProducts(localProducts.map(p => {
       if (p.id !== productId) return p;
       const modules = p.modules_unlocked || [];
       const hasModule = modules.includes(moduleId);
@@ -56,34 +68,50 @@ export function ProductsManager({ products, onUpdate, availableModules }: Produc
           : [...modules, moduleId]
       };
     }));
+    setHasChanges(true);
+  };
+
+  const handleSave = () => {
+    onUpdate(localProducts);
+    setHasChanges(false);
   };
 
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
-            <ShoppingBag className="h-4 w-4" />
-            Produtos da Área de Membros
-          </CardTitle>
-          <Button size="sm" variant="outline" onClick={addProduct}>
-            <Plus className="h-3 w-3 mr-1" />
-            Novo Produto
-          </Button>
+          <div>
+            <CardTitle className="text-base flex items-center gap-2">
+              <ShoppingBag className="h-4 w-4" />
+              Produtos da Área de Membros
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Venda produtos e libere conteúdos automaticamente
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {hasChanges && (
+              <Button size="sm" onClick={handleSave} className="gradient-primary">
+                <Save className="h-3 w-3 mr-1" />
+                Salvar Alterações
+              </Button>
+            )}
+            <Button size="sm" variant="outline" onClick={addProduct}>
+              <Plus className="h-3 w-3 mr-1" />
+              Novo Produto
+            </Button>
+          </div>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Venda produtos e libere conteúdos automaticamente
-        </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        {products.length === 0 ? (
+        {localProducts.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
             <p className="text-sm">Nenhum produto adicionado</p>
             <p className="text-xs">Adicione produtos para vender dentro da área de membros</p>
           </div>
         ) : (
-          products.map((product) => (
+          localProducts.map((product) => (
             <div key={product.id} className="border rounded-lg p-4 space-y-4">
               <div className="flex items-center justify-between">
                 <h4 className="font-medium flex items-center gap-2">
