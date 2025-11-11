@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText, QrCode, Calendar, ShoppingBag, ArrowLeft, Calculator } from "lucide-react";
+import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText, QrCode, Calendar, ShoppingBag, ArrowLeft, Calculator, Brain, Globe, Users, HelpCircle, LinkIcon, Layers, MousePointer, DollarSign, CheckSquare, StickyNote, Eye, Megaphone, Code } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -73,6 +73,7 @@ const Dashboard = () => {
   const [searchParams] = useSearchParams();
   const [stats, setStats] = useState({
     totalBots: 0,
+    totalAgents: 0,
     activeConnections: 0,
     messagesThisMonth: 0,
     totalShortLinks: 0,
@@ -173,6 +174,7 @@ const Dashboard = () => {
 
         setStats({
           totalBots: botsData?.length || 0,
+          totalAgents: agentsData?.length || 0,
           activeConnections: agentsData?.filter(a => a.is_active).length || 0,
           messagesThisMonth: 0,
           totalShortLinks: shortLinksCount || 0,
@@ -395,37 +397,363 @@ const Dashboard = () => {
         {/* Quick Notes Panel */}
         <QuickNotesPanel />
         
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <Card className="p-4 sm:p-6 hover:shadow-lg transition-smooth">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <div className="bg-primary/10 p-2 sm:p-3 rounded-xl">
-                <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-              </div>
-            </div>
-            <h3 className="text-2xl sm:text-3xl font-bold mb-1">{stats.totalBots}</h3>
-            <p className="text-sm sm:text-base text-muted-foreground">Bots Criados</p>
+        {/* Stats Summary */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Chatbots</CardTitle>
+              <Bot className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalBots}</div>
+            </CardContent>
           </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Agentes IA</CardTitle>
+              <Brain className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalAgents}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Sites</CardTitle>
+              <Globe className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalWebsites}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Área de Membros</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalMembersAreas}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Quiz</CardTitle>
+              <HelpCircle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalQuizzes}</div>
+            </CardContent>
+          </Card>
+        </div>
 
-          <Card className="p-4 sm:p-6 hover:shadow-lg transition-smooth">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <div className="bg-success/10 p-2 sm:p-3 rounded-xl">
-                <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-success" />
-              </div>
-            </div>
-            <h3 className="text-2xl sm:text-3xl font-bold mb-1">{stats.activeConnections}</h3>
-            <p className="text-sm sm:text-base text-muted-foreground">Agentes IA Ativos</p>
-          </Card>
+        {/* All Resources Grid */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold">Todos os Recursos</h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {/* Chatbots */}
+            {hasFeature('chatbot_web') && (
+              <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("chatbots")}>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <Bot className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base">Chatbots</CardTitle>
+                      <p className="text-xs text-muted-foreground">{stats.totalBots} criados</p>
+                    </div>
+                  </div>
+                </CardHeader>
+              </Card>
+            )}
 
-          <Card className="p-4 sm:p-6 hover:shadow-lg transition-smooth">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <div className="bg-info/10 p-2 sm:p-3 rounded-xl">
-                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-info" />
-              </div>
-            </div>
-            <h3 className="text-2xl sm:text-3xl font-bold mb-1">{stats.messagesThisMonth}</h3>
-            <p className="text-sm sm:text-base text-muted-foreground">Conversas Este Mês</p>
-          </Card>
+            {/* Agentes IA */}
+            {hasFeature('ai_agent') && (
+              <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("agents")}>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <Brain className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base">Agentes IA</CardTitle>
+                      <p className="text-xs text-muted-foreground">{stats.totalAgents} criados</p>
+                    </div>
+                  </div>
+                </CardHeader>
+              </Card>
+            )}
+
+            {/* Criador de Sites */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("website-builder")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Globe className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Criador de Sites</CardTitle>
+                    <p className="text-xs text-muted-foreground">{stats.totalWebsites} sites</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Área de Membros */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("members-area")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Users className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Área de Membros</CardTitle>
+                    <p className="text-xs text-muted-foreground">{stats.totalMembersAreas} áreas</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Encurtador de Links */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("short-link")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Link2 className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Encurtador de Links</CardTitle>
+                    <p className="text-xs text-muted-foreground">{stats.totalShortLinks} links</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Link na Bio */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("linkbio")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <LinkIcon className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Link na Bio</CardTitle>
+                    <p className="text-xs text-muted-foreground">{stats.totalLinkBios} bios</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Clonador de Páginas */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("cloner")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Copy className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Clonador de Páginas</CardTitle>
+                    <p className="text-xs text-muted-foreground">{stats.totalClonedPages} páginas</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Quiz */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("quiz")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <HelpCircle className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Quiz</CardTitle>
+                    <p className="text-xs text-muted-foreground">{stats.totalQuizzes} quizzes</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Criador de Briefing */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("briefing")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <FileText className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Criador de Briefing</CardTitle>
+                    <p className="text-xs text-muted-foreground">{stats.totalBriefings} briefings</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Pop-up */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("popup")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Layers className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Criador de Pop-up</CardTitle>
+                    <p className="text-xs text-muted-foreground">{stats.totalPopups} pop-ups</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Gerador de QR Code */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("qr-code")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <QrCode className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Gerador de QR Code</CardTitle>
+                    <p className="text-xs text-muted-foreground">Criar QR codes</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Geradores de Botões */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("button-generators")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <MousePointer className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Geradores de Botões</CardTitle>
+                    <p className="text-xs text-muted-foreground">Chat e WhatsApp</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* CRM */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("crm")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Users className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">CRM</CardTitle>
+                    <p className="text-xs text-muted-foreground">Gestão de clientes</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Gerenciamento Financeiro */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("financial")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <DollarSign className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Gerenciamento Financeiro</CardTitle>
+                    <p className="text-xs text-muted-foreground">Controle financeiro</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Organizador de Tarefas */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("tasks")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <CheckSquare className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Organizador de Tarefas</CardTitle>
+                    <p className="text-xs text-muted-foreground">Gerencie tarefas</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Anotações Rápidas */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("notes")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <StickyNote className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Anotações Rápidas</CardTitle>
+                    <p className="text-xs text-muted-foreground">Notas e lembretes</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Espião de Anúncios */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("ad-spy")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Eye className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Espião de Anúncios</CardTitle>
+                    <p className="text-xs text-muted-foreground">Pesquisar anúncios</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Gerenciador de Anúncios */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("ads-management")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Megaphone className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Gerenciador de Anúncios</CardTitle>
+                    <p className="text-xs text-muted-foreground">Gestão de campanhas</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Gerenciador de Pixels */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("pixels")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Code className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Gerenciador de Pixels</CardTitle>
+                    <p className="text-xs text-muted-foreground">Rastreamento</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Meus Domínios */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("domains")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Globe className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Meus Domínios</CardTitle>
+                    <p className="text-xs text-muted-foreground">Gerenciar domínios</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+          </div>
         </div>
 
         {/* Quick Actions */}

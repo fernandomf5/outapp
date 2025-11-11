@@ -32,7 +32,17 @@ export const QuickNotesPanel = () => {
 
   useEffect(() => {
     loadNotes();
-  }, []);
+    
+    // Check for reminders every minute
+    const reminderInterval = setInterval(() => {
+      checkReminders();
+    }, 60000); // Check every minute
+
+    // Initial check
+    checkReminders();
+
+    return () => clearInterval(reminderInterval);
+  }, [notes]);
 
   const loadNotes = async () => {
     try {
@@ -105,6 +115,41 @@ export const QuickNotesPanel = () => {
     } catch (error) {
       toast.error("Erro ao excluir nota");
     }
+  };
+
+  const checkReminders = () => {
+    const now = new Date();
+    notes.forEach(note => {
+      if (!note.is_completed && note.reminder_date) {
+        const reminderDate = new Date(note.reminder_date);
+        // Show reminder if time has passed and not shown before
+        if (reminderDate <= now) {
+          const lastShown = localStorage.getItem(`reminder_${note.id}`);
+          const lastShownDate = lastShown ? new Date(lastShown) : null;
+          
+          // Only show if never shown or if it's been more than 1 hour
+          if (!lastShownDate || (now.getTime() - lastShownDate.getTime()) > 3600000) {
+            showReminderDialog(note);
+            localStorage.setItem(`reminder_${note.id}`, now.toISOString());
+          }
+        }
+      }
+    });
+  };
+
+  const showReminderDialog = (note: Note) => {
+    // Create reminder dialog
+    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSiC0fPTgjMGHm7A7+OZRQ0PVKno7q5aGApCm9/zuWEiByB61+/alEELETi25NZQOS');
+    audio.play().catch(() => {}); // Play notification sound
+
+    toast.warning(note.title, {
+      description: note.content,
+      duration: 10000,
+      action: {
+        label: "Marcar como concluído",
+        onClick: () => handleToggleComplete(note.id, note.is_completed)
+      }
+    });
   };
 
   const getPendingReminders = () => {
