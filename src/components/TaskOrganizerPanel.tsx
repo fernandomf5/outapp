@@ -223,7 +223,7 @@ export const TaskOrganizerPanel = () => {
   const [editingBlock, setEditingBlock] = useState<TaskBlock | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'blocks' | 'clients'>('blocks');
+  const [selectedClientFilter, setSelectedClientFilter] = useState<string>("all");
   const [taskForm, setTaskForm] = useState({
     title: "",
     description: "",
@@ -480,46 +480,6 @@ export const TaskOrganizerPanel = () => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
-    const isClientMode = viewMode === 'clients';
-
-    // Determine target column
-    let targetId: string | null = null;
-
-    if (isClientMode) {
-      // Over a client column?
-      if (typeof over.id === 'string' && over.id.startsWith('client:')) {
-        targetId = over.id as string; // e.g., client:<uuid> or client:__none__
-      } else {
-        // Over another task -> infer its client column
-        const overTask = tasks.find(t => t.id === (over.id as string));
-        const cid = (overTask as any)?.client_id ?? null;
-        targetId = `client:${cid ?? '__none__'}`;
-      }
-
-      const currentClientId = (task as any)?.client_id ?? null;
-      const targetClientRaw = targetId?.replace('client:', '') ?? null;
-      const targetClientId = targetClientRaw === '__none__' ? null : targetClientRaw;
-
-      if (targetClientId !== currentClientId) {
-        try {
-          const { error } = await supabase
-            .from('tasks')
-            .update({ client_id: targetClientId as any })
-            .eq('id', taskId);
-          if (error) throw error;
-
-          setTasks(prev => prev.map(t =>
-            t.id === taskId ? ({ ...t, client_id: targetClientId } as any) : t
-          ));
-          toast.success('Tarefa movida para o cliente com sucesso!');
-        } catch (error: any) {
-          toast.error('Erro ao mover tarefa: ' + error.message);
-        }
-      }
-      return;
-    }
-
-    // Blocks mode (original behavior)
     // Find the target block - could be the over.id itself or a parent block
     let targetBlockId: string | null = null;
     const overBlock = blocks.find(b => b.id === over.id);
@@ -599,14 +559,20 @@ export const TaskOrganizerPanel = () => {
     );
   }
 
-  const isClientMode = viewMode === 'clients';
-  const displayBlocks: TaskBlock[] = isClientMode
-    ? [
-        { id: 'client:__none__', name: 'Sem Cliente', color: '#9CA3AF', order_index: -1, created_at: '', updated_at: '' },
-        ...clients.map((c, idx) => ({ id: `client:${c.id}`, name: c.name, color: '#6366f1', order_index: idx, created_at: '', updated_at: '' }))
-      ]
-    : blocks;
-  const allBlockIds = displayBlocks.map(b => b.id);
+  // Filter tasks by selected client
+  const filteredTasks = selectedClientFilter === "all" 
+    ? tasks 
+    : selectedClientFilter === "none"
+    ? tasks.filter(task => !task.client_id)
+    : tasks.filter(task => task.client_id === selectedClientFilter);
+
+  const tasksByBlock = filteredTasks.reduce((acc, task) => {
+    if (!acc[task.block_id || '']) {
+      acc[task.block_id || ''] = [];
+    }
+    acc[task.block_id || ''].push(task);
+    return acc;
+  }, {} as Record<string, typeof tasks>);
 
   return (
     <div className="space-y-6">
@@ -617,17 +583,20 @@ export const TaskOrganizerPanel = () => {
           <p className="text-muted-foreground">Organize suas tarefas com drag-and-drop</p>
         </div>
         <div className="flex flex-wrap gap-2 items-center">
-          <div className="w-[200px]">
-            <Select value={viewMode} onValueChange={(v) => setViewMode(v as any)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Modo de visualização" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="blocks">Por Bloco</SelectItem>
-                <SelectItem value="clients">Por Cliente</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={selectedClientFilter} onValueChange={setSelectedClientFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filtrar por cliente" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os Clientes</SelectItem>
+              <SelectItem value="none">Sem Cliente</SelectItem>
+              {clients.map(client => (
+                <SelectItem key={client.id} value={client.id}>
+                  {client.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" onClick={() => {
@@ -856,32 +825,18 @@ export const TaskOrganizerPanel = () => {
         onDragEnd={handleDragEnd}
       >
         <div className="flex gap-4 overflow-x-auto pb-4">
-          <SortableContext items={allBlockIds} strategy={verticalListSortingStrategy}>
-            {displayBlocks.map((block) => {
-              let columnTasks: Task[] = [];
-              if (viewMode === 'clients') {
-                const clientKey = (block.id as string).replace('client:', '');
-                if (clientKey === '__none__') {
-                  columnTasks = tasks.filter(t => !(t as any).client_id);
-                } else {
-                  columnTasks = tasks.filter(t => (t as any).client_id === clientKey);
-                }
-              } else {
-                columnTasks = tasks.filter(t => t.block_id === block.id);
-              }
-
-              return (
-                <DroppableBlock
-                  key={block.id}
-                  block={block}
-                  tasks={columnTasks}
-                  onEdit={openEditTask}
-                  onDelete={handleDeleteTask}
-                  onEditBlock={openEditBlock}
-                  onDeleteBlock={handleDeleteBlock}
-                />
-              );
-            })}
+          <SortableContext items={blocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
+            {blocks.map((block) => (
+              <DroppableBlock
+                key={block.id}
+                block={block}
+                tasks={tasksByBlock[block.id] || []}
+                onEdit={openEditTask}
+                onDelete={handleDeleteTask}
+                onEditBlock={openEditBlock}
+                onDeleteBlock={handleDeleteBlock}
+              />
+            ))}
           </SortableContext>
           
           {blocks.length === 0 && (
