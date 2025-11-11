@@ -382,58 +382,10 @@ export const AdsManagementPanel = () => {
               <h2 className="text-2xl font-bold">Meus Clientes</h2>
               <p className="text-muted-foreground">Gerencie seus clientes e negócios</p>
             </div>
-            <Dialog open={isAddClientDialogOpen} onOpenChange={setIsAddClientDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="gradient-primary">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Novo Cliente
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Adicionar Cliente</DialogTitle>
-                  <DialogDescription>Crie um novo cliente ou negócio</DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label>Nome *</Label>
-                    <Input 
-                      value={clientFormData.name}
-                      onChange={(e) => setClientFormData({...clientFormData, name: e.target.value})}
-                      placeholder="Ex: Loja ABC"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Tipo</Label>
-                    <Select value={clientFormData.client_type} onValueChange={(value: any) => setClientFormData({...clientFormData, client_type: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="personal">Pessoal</SelectItem>
-                        <SelectItem value="company">Empresa</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Descrição</Label>
-                    <Input 
-                      value={clientFormData.description}
-                      onChange={(e) => setClientFormData({...clientFormData, description: e.target.value})}
-                      placeholder="Informações adicionais"
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsAddClientDialogOpen(false)}>
-                    Cancelar
-                  </Button>
-                  <Button onClick={handleAddClient} className="gradient-primary">
-                    Adicionar
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <Button className="gradient-primary" onClick={() => setIsAddClientDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Cliente
+            </Button>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -521,256 +473,14 @@ export const AdsManagementPanel = () => {
                   </SelectContent>
                 </Select>
               )}
-              <Dialog open={isAddCampaignDialogOpen} onOpenChange={setIsAddCampaignDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="gradient-primary shadow-glow" disabled={clients.length === 0}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Adicionar Campanha
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px]">
-                  <DialogHeader>
-                    <DialogTitle>Adicionar Dados de Campanha</DialogTitle>
-                    <DialogDescription>Insira os dados da sua campanha para gerar o dashboard</DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
-                    <div className="grid gap-2">
-                      <Label>Cliente *</Label>
-                      <Select value={campaignFormData.client_id} onValueChange={(value) => setCampaignFormData({...campaignFormData, client_id: value})}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o cliente" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {clients.map((client) => (
-                            <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>Nome da Campanha *</Label>
-                      <Input 
-                        value={campaignFormData.name}
-                        onChange={(e) => setCampaignFormData({...campaignFormData, name: e.target.value})}
-                        placeholder="Ex: Black Friday 2024"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>Plataforma</Label>
-                      <Select value={campaignFormData.platform} onValueChange={(value: any) => setCampaignFormData({...campaignFormData, platform: value})}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="meta">Meta Ads (Facebook/Instagram)</SelectItem>
-                          <SelectItem value="google">Google Ads</SelectItem>
-                          <SelectItem value="tiktok">TikTok Ads</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="grid gap-2">
-                        <Label>Orçamento (R$) *</Label>
-                        <Input 
-                          type="number"
-                          step="0.01"
-                          value={campaignFormData.budget}
-                          onChange={(e) => setCampaignFormData({...campaignFormData, budget: e.target.value})}
-                          placeholder="1000.00"
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Quanto Gastei (R$) *</Label>
-                        <Input 
-                          type="number"
-                          step="0.01"
-                          value={campaignFormData.spent}
-                          onChange={(e) => setCampaignFormData({...campaignFormData, spent: e.target.value})}
-                          placeholder="850.00"
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="grid gap-2">
-                        <Label>Quanto Faturei (R$)</Label>
-                        <Input 
-                          type="number"
-                          step="0.01"
-                          value={campaignFormData.revenue}
-                          onChange={(e) => setCampaignFormData({...campaignFormData, revenue: e.target.value})}
-                          placeholder="1500.00"
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Custo do Produto (R$)</Label>
-                        <Input 
-                          type="number"
-                          step="0.01"
-                          value={campaignFormData.product_cost}
-                          onChange={(e) => setCampaignFormData({...campaignFormData, product_cost: e.target.value})}
-                          placeholder="150.00"
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="grid gap-2">
-                        <Label>Impressões</Label>
-                        <Input 
-                          type="number"
-                          value={campaignFormData.impressions}
-                          onChange={(e) => setCampaignFormData({...campaignFormData, impressions: e.target.value})}
-                          placeholder="10000"
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Cliques</Label>
-                        <Input 
-                          type="number"
-                          value={campaignFormData.clicks}
-                          onChange={(e) => setCampaignFormData({...campaignFormData, clicks: e.target.value})}
-                          placeholder="500"
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Conversões</Label>
-                        <Input 
-                          type="number"
-                          value={campaignFormData.conversions}
-                          onChange={(e) => setCampaignFormData({...campaignFormData, conversions: e.target.value})}
-                          placeholder="50"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsAddCampaignDialogOpen(false)}>
-                      Cancelar
-                    </Button>
-                    <Button onClick={handleAddCampaign} className="gradient-primary">
-                      Adicionar
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-              {/* Edit Campaign Dialog */}
-              <Dialog open={isEditCampaignDialogOpen} onOpenChange={setIsEditCampaignDialogOpen}>
-                <DialogContent className="sm:max-w-[500px]">
-                  <DialogHeader>
-                    <DialogTitle>Editar Campanha</DialogTitle>
-                    <DialogDescription>Atualize os dados da campanha</DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
-                    <div className="grid gap-2">
-                      <Label>Cliente</Label>
-                      <Select value={campaignFormData.client_id} onValueChange={(value) => setCampaignFormData({...campaignFormData, client_id: value})}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o cliente" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {clients.map((client) => (
-                            <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>Nome da Campanha *</Label>
-                      <Input 
-                        value={campaignFormData.name}
-                        onChange={(e) => setCampaignFormData({...campaignFormData, name: e.target.value})}
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>Plataforma</Label>
-                      <Select value={campaignFormData.platform} onValueChange={(value: any) => setCampaignFormData({...campaignFormData, platform: value})}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="meta">Meta Ads</SelectItem>
-                          <SelectItem value="google">Google Ads</SelectItem>
-                          <SelectItem value="tiktok">TikTok Ads</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="grid gap-2">
-                        <Label>Orçamento (R$) *</Label>
-                        <Input 
-                          type="number"
-                          step="0.01"
-                          value={campaignFormData.budget}
-                          onChange={(e) => setCampaignFormData({...campaignFormData, budget: e.target.value})}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Quanto Gastei (R$) *</Label>
-                        <Input 
-                          type="number"
-                          step="0.01"
-                          value={campaignFormData.spent}
-                          onChange={(e) => setCampaignFormData({...campaignFormData, spent: e.target.value})}
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="grid gap-2">
-                        <Label>Faturei (R$)</Label>
-                        <Input 
-                          type="number"
-                          step="0.01"
-                          value={campaignFormData.revenue}
-                          onChange={(e) => setCampaignFormData({...campaignFormData, revenue: e.target.value})}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Custo Produto (R$)</Label>
-                        <Input 
-                          type="number"
-                          step="0.01"
-                          value={campaignFormData.product_cost}
-                          onChange={(e) => setCampaignFormData({...campaignFormData, product_cost: e.target.value})}
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="grid gap-2">
-                        <Label>Impressões</Label>
-                        <Input 
-                          type="number"
-                          value={campaignFormData.impressions}
-                          onChange={(e) => setCampaignFormData({...campaignFormData, impressions: e.target.value})}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Cliques</Label>
-                        <Input 
-                          type="number"
-                          value={campaignFormData.clicks}
-                          onChange={(e) => setCampaignFormData({...campaignFormData, clicks: e.target.value})}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Conversões</Label>
-                        <Input 
-                          type="number"
-                          value={campaignFormData.conversions}
-                          onChange={(e) => setCampaignFormData({...campaignFormData, conversions: e.target.value})}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsEditCampaignDialogOpen(false)}>
-                      Cancelar
-                    </Button>
-                    <Button onClick={handleUpdateCampaign} className="gradient-primary">
-                      Salvar
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+              <Button 
+                className="gradient-primary shadow-glow" 
+                disabled={clients.length === 0}
+                onClick={() => setIsAddCampaignDialogOpen(true)}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Adicionar Campanha
+              </Button>
             </div>
           </div>
 
@@ -973,6 +683,300 @@ export const AdsManagementPanel = () => {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Add Client Dialog */}
+      <Dialog open={isAddClientDialogOpen} onOpenChange={setIsAddClientDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adicionar Cliente</DialogTitle>
+            <DialogDescription>Crie um novo cliente ou negócio</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>Nome *</Label>
+              <Input 
+                value={clientFormData.name}
+                onChange={(e) => setClientFormData({...clientFormData, name: e.target.value})}
+                placeholder="Ex: Loja ABC"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Tipo</Label>
+              <Select value={clientFormData.client_type} onValueChange={(value: any) => setClientFormData({...clientFormData, client_type: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="personal">Pessoal</SelectItem>
+                  <SelectItem value="company">Empresa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Descrição</Label>
+              <Input 
+                value={clientFormData.description}
+                onChange={(e) => setClientFormData({...clientFormData, description: e.target.value})}
+                placeholder="Informações adicionais"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddClientDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleAddClient} className="gradient-primary">
+              Adicionar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Campaign Dialog */}
+      <Dialog open={isAddCampaignDialogOpen} onOpenChange={setIsAddCampaignDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Adicionar Dados de Campanha</DialogTitle>
+            <DialogDescription>Insira os dados da sua campanha para gerar o dashboard</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
+            <div className="grid gap-2">
+              <Label>Cliente *</Label>
+              <Select value={campaignFormData.client_id} onValueChange={(value) => setCampaignFormData({...campaignFormData, client_id: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Nome da Campanha *</Label>
+              <Input 
+                value={campaignFormData.name}
+                onChange={(e) => setCampaignFormData({...campaignFormData, name: e.target.value})}
+                placeholder="Ex: Black Friday 2024"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Plataforma</Label>
+              <Select value={campaignFormData.platform} onValueChange={(value: any) => setCampaignFormData({...campaignFormData, platform: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="meta">Meta Ads (Facebook/Instagram)</SelectItem>
+                  <SelectItem value="google">Google Ads</SelectItem>
+                  <SelectItem value="tiktok">TikTok Ads</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Orçamento (R$) *</Label>
+                <Input 
+                  type="number"
+                  step="0.01"
+                  value={campaignFormData.budget}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, budget: e.target.value})}
+                  placeholder="1000.00"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Quanto Gastei (R$) *</Label>
+                <Input 
+                  type="number"
+                  step="0.01"
+                  value={campaignFormData.spent}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, spent: e.target.value})}
+                  placeholder="850.00"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Quanto Faturei (R$)</Label>
+                <Input 
+                  type="number"
+                  step="0.01"
+                  value={campaignFormData.revenue}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, revenue: e.target.value})}
+                  placeholder="1500.00"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Custo do Produto (R$)</Label>
+                <Input 
+                  type="number"
+                  step="0.01"
+                  value={campaignFormData.product_cost}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, product_cost: e.target.value})}
+                  placeholder="150.00"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="grid gap-2">
+                <Label>Impressões</Label>
+                <Input 
+                  type="number"
+                  value={campaignFormData.impressions}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, impressions: e.target.value})}
+                  placeholder="10000"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Cliques</Label>
+                <Input 
+                  type="number"
+                  value={campaignFormData.clicks}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, clicks: e.target.value})}
+                  placeholder="500"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Conversões</Label>
+                <Input 
+                  type="number"
+                  value={campaignFormData.conversions}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, conversions: e.target.value})}
+                  placeholder="50"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddCampaignDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleAddCampaign} className="gradient-primary">
+              Adicionar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Campaign Dialog */}
+      <Dialog open={isEditCampaignDialogOpen} onOpenChange={setIsEditCampaignDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Editar Campanha</DialogTitle>
+            <DialogDescription>Atualize os dados da campanha</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
+            <div className="grid gap-2">
+              <Label>Cliente</Label>
+              <Select value={campaignFormData.client_id} onValueChange={(value) => setCampaignFormData({...campaignFormData, client_id: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Nome da Campanha *</Label>
+              <Input 
+                value={campaignFormData.name}
+                onChange={(e) => setCampaignFormData({...campaignFormData, name: e.target.value})}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Plataforma</Label>
+              <Select value={campaignFormData.platform} onValueChange={(value: any) => setCampaignFormData({...campaignFormData, platform: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="meta">Meta Ads</SelectItem>
+                  <SelectItem value="google">Google Ads</SelectItem>
+                  <SelectItem value="tiktok">TikTok Ads</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Orçamento (R$) *</Label>
+                <Input 
+                  type="number"
+                  step="0.01"
+                  value={campaignFormData.budget}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, budget: e.target.value})}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Quanto Gastei (R$) *</Label>
+                <Input 
+                  type="number"
+                  step="0.01"
+                  value={campaignFormData.spent}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, spent: e.target.value})}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Faturei (R$)</Label>
+                <Input 
+                  type="number"
+                  step="0.01"
+                  value={campaignFormData.revenue}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, revenue: e.target.value})}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Custo Produto (R$)</Label>
+                <Input 
+                  type="number"
+                  step="0.01"
+                  value={campaignFormData.product_cost}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, product_cost: e.target.value})}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="grid gap-2">
+                <Label>Impressões</Label>
+                <Input 
+                  type="number"
+                  value={campaignFormData.impressions}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, impressions: e.target.value})}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Cliques</Label>
+                <Input 
+                  type="number"
+                  value={campaignFormData.clicks}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, clicks: e.target.value})}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Conversões</Label>
+                <Input 
+                  type="number"
+                  value={campaignFormData.conversions}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, conversions: e.target.value})}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditCampaignDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleUpdateCampaign} className="gradient-primary">
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
