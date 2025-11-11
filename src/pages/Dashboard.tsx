@@ -468,7 +468,7 @@ const Dashboard = () => {
 
             {/* Agentes IA */}
             {hasFeature('ai_agent') && (
-              <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("agents")}>
+              <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("ai-agents")}>
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-primary/10">
@@ -483,23 +483,8 @@ const Dashboard = () => {
               </Card>
             )}
 
-            {/* Criador de Sites */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("website-builder")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Globe className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Criador de Sites</CardTitle>
-                    <p className="text-xs text-muted-foreground">{stats.totalWebsites} sites</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
             {/* Área de Membros */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("members-area")}>
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("area-membros")}>
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10">
@@ -514,7 +499,7 @@ const Dashboard = () => {
             </Card>
 
             {/* Encurtador de Links */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("short-link")}>
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("shortlinks")}>
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10">
@@ -559,7 +544,7 @@ const Dashboard = () => {
             </Card>
 
             {/* Quiz */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("quiz")}>
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("criador-quizz")}>
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10">
@@ -589,7 +574,7 @@ const Dashboard = () => {
             </Card>
 
             {/* Pop-up */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("popup")}>
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("popups")}>
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10">
@@ -604,7 +589,7 @@ const Dashboard = () => {
             </Card>
 
             {/* Gerador de QR Code */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("qr-code")}>
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("qrcode")}>
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10">
@@ -618,23 +603,23 @@ const Dashboard = () => {
               </CardHeader>
             </Card>
 
-            {/* Geradores de Botões */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("button-generators")}>
+            {/* Botão Flutuante Multi-Links */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("floating-button")}>
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10">
                     <MousePointer className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <CardTitle className="text-base">Geradores de Botões</CardTitle>
-                    <p className="text-xs text-muted-foreground">Chat e WhatsApp</p>
+                    <CardTitle className="text-base">Botão Flutuante Multi-Links</CardTitle>
+                    <p className="text-xs text-muted-foreground">Multi botões</p>
                   </div>
                 </div>
               </CardHeader>
             </Card>
 
             {/* CRM */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("crm")}>
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("crm-geral")}>
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10">
@@ -649,7 +634,7 @@ const Dashboard = () => {
             </Card>
 
             {/* Gerenciamento Financeiro */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("financial")}>
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("financeiro")}>
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10">
@@ -664,7 +649,7 @@ const Dashboard = () => {
             </Card>
 
             {/* Organizador de Tarefas */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("tasks")}>
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("tarefas")}>
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10">
@@ -678,38 +663,9 @@ const Dashboard = () => {
               </CardHeader>
             </Card>
 
-            {/* Anotações Rápidas */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("notes")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <StickyNote className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Anotações Rápidas</CardTitle>
-                    <p className="text-xs text-muted-foreground">Notas e lembretes</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Espião de Anúncios */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("ad-spy")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Eye className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Espião de Anúncios</CardTitle>
-                    <p className="text-xs text-muted-foreground">Pesquisar anúncios</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
 
             {/* Gerenciador de Anúncios */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("ads-management")}>
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("anuncios")}>
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10">
@@ -723,23 +679,8 @@ const Dashboard = () => {
               </CardHeader>
             </Card>
 
-            {/* Gerenciador de Pixels */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("pixels")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Code className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Gerenciador de Pixels</CardTitle>
-                    <p className="text-xs text-muted-foreground">Rastreamento</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
             {/* Meus Domínios */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("domains")}>
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("dominios")}>
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10">
