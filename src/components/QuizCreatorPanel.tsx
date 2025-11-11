@@ -146,15 +146,12 @@ export const QuizCreatorPanel = () => {
         return;
       }
 
-      const slug = generateSlug(formData.title);
-
       const { data, error } = await supabase
         .from('quizzes')
         .insert([{
           user_id: user.id,
           title: formData.title,
           description: formData.description,
-          slug: slug,
           questions: formData.questions,
           is_active: true,
           responses_count: 0

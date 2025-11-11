@@ -75,6 +75,14 @@ const Dashboard = () => {
     totalBots: 0,
     activeConnections: 0,
     messagesThisMonth: 0,
+    totalShortLinks: 0,
+    totalLinkBios: 0,
+    totalClonedPages: 0,
+    totalQuizzes: 0,
+    totalWebsites: 0,
+    totalBriefings: 0,
+    totalMembersAreas: 0,
+    totalPopups: 0,
   });
   const [chatbots, setChatbots] = useState<any[]>([]);
   const [aiAgents, setAiAgents] = useState<any[]>([]);
@@ -142,17 +150,39 @@ const Dashboard = () => {
       }
         
       if (botsData || agentsData) {
-        // Buscar conexões ativas
-        const { data: connectionsData } = await supabase
-          .from('whatsapp_connections')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('is_connected', true);
+        // Buscar estatísticas de todos os recursos
+        const [
+          { count: shortLinksCount },
+          { count: linkBiosCount },
+          { count: clonedPagesCount },
+          { count: quizzesCount },
+          { count: websitesCount },
+          { count: briefingsCount },
+          { count: membersAreasCount },
+          { count: popupsCount }
+        ] = await Promise.all([
+          supabase.from('short_links').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+          supabase.from('link_bios').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+          supabase.from('cloned_pages').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+          supabase.from('quizzes').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+          supabase.from('websites').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+          supabase.from('briefings').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+          supabase.from('members_areas').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+          supabase.from('popups').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+        ]);
 
         setStats({
           totalBots: botsData?.length || 0,
           activeConnections: agentsData?.filter(a => a.is_active).length || 0,
-          messagesThisMonth: 0, // Este valor viria de uma tabela de mensagens quando implementada
+          messagesThisMonth: 0,
+          totalShortLinks: shortLinksCount || 0,
+          totalLinkBios: linkBiosCount || 0,
+          totalClonedPages: clonedPagesCount || 0,
+          totalQuizzes: quizzesCount || 0,
+          totalWebsites: websitesCount || 0,
+          totalBriefings: briefingsCount || 0,
+          totalMembersAreas: membersAreasCount || 0,
+          totalPopups: popupsCount || 0,
         });
       }
     };
@@ -911,6 +941,18 @@ const Dashboard = () => {
 
           <TabsContent value="plan">
             <MyPlanSection />
+          </TabsContent>
+
+          <TabsContent value="tutoriais">
+            <Card className="p-6">
+              <CardHeader>
+                <CardTitle>Tutoriais</CardTitle>
+                <CardDescription>Assista aos vídeos tutoriais para aprender a usar a plataforma</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <TutorialVideos />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="financeiro">

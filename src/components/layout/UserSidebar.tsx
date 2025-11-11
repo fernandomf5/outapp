@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { Bot, Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ChevronDown, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -166,6 +166,7 @@ export function UserSidebar() {
     { title: t('support_ticket'), icon: LifeBuoy, path: "/dashboard", tab: "support", feature: "ticket_system" },
     { title: t('voucher'), icon: Gift, path: "/dashboard", tab: "voucher" },
     { title: t('my_plan'), icon: CreditCard, path: "/dashboard", tab: "plan" },
+    { title: "Tutoriais", icon: Lightbulb, path: "/dashboard", tab: "tutoriais" },
   ];
 
   const resourceItems: MenuItem[] = [
@@ -175,6 +176,14 @@ export function UserSidebar() {
   return (
     <Sidebar className={collapsed ? "w-14" : "w-60"} collapsible="icon">
       <SidebarContent>
+        {/* Logo */}
+        <div className="flex items-center justify-center p-4 border-b border-border">
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <Bot className="w-8 h-8 text-primary" />
+            {!collapsed && <span className="font-bold text-lg">Bot Reals Zapp</span>}
+          </Link>
+        </div>
+
         <SidebarGroup>
           <SidebarGroupLabel>{t('main')}</SidebarGroupLabel>
           <SidebarGroupContent>
