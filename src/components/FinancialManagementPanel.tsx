@@ -38,6 +38,8 @@ interface Transaction {
   payment_method: string;
   status: 'paid' | 'pending' | 'cancelled';
   created_at: string;
+  business_name?: string;
+  business_type?: 'personal' | 'company';
 }
 
 export const FinancialManagementPanel = () => {
@@ -46,6 +48,10 @@ export const FinancialManagementPanel = () => {
   const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all');
   const [dateFilter, setDateFilter] = useState<'today' | 'week' | 'month' | 'year' | 'all'>('month');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedBusiness, setSelectedBusiness] = useState<string>('all');
+  const [selectedBusinesses, setSelectedBusinesses] = useState<string[]>([]);
+  const [businesses, setBusinesses] = useState<string[]>([]);
+  const [consolidationMode, setConsolidationMode] = useState(false);
   
   const [formData, setFormData] = useState({
     type: 'income' as 'income' | 'expense',
@@ -54,12 +60,22 @@ export const FinancialManagementPanel = () => {
     amount: '',
     date: format(new Date(), 'yyyy-MM-dd'),
     payment_method: 'dinheiro',
-    status: 'paid' as 'paid' | 'pending' | 'cancelled'
+    status: 'paid' as 'paid' | 'pending' | 'cancelled',
+    business_name: '',
+    business_type: 'personal' as 'personal' | 'company'
   });
 
   useEffect(() => {
     loadTransactions();
   }, []);
+
+  useEffect(() => {
+    // Extrair lista única de negócios
+    const uniqueBusinesses = Array.from(
+      new Set(transactions.map(t => t.business_name).filter(Boolean))
+    ) as string[];
+    setBusinesses(uniqueBusinesses);
+  }, [transactions]);
 
   const loadTransactions = async () => {
     try {
@@ -91,7 +107,9 @@ export const FinancialManagementPanel = () => {
         .insert([{
           user_id: user.id,
           ...formData,
-          amount: parseFloat(formData.amount)
+          amount: parseFloat(formData.amount),
+          business_name: formData.business_name || null,
+          business_type: formData.business_type
         }]);
 
       if (error) throw error;
@@ -108,7 +126,9 @@ export const FinancialManagementPanel = () => {
         amount: '',
         date: format(new Date(), 'yyyy-MM-dd'),
         payment_method: 'dinheiro',
-        status: 'paid'
+        status: 'paid',
+        business_name: '',
+        business_type: 'personal'
       });
     } catch (error: any) {
       toast.error("Erro ao adicionar transação");
@@ -131,8 +151,16 @@ export const FinancialManagementPanel = () => {
     }
   };
 
+  // Filtrar transações
   const filteredTransactions = transactions.filter(t => {
     if (filter !== 'all' && t.type !== filter) return false;
+    
+    // Filtro de negócio
+    if (consolidationMode) {
+      if (selectedBusinesses.length > 0 && !selectedBusinesses.includes(t.business_name || '')) return false;
+    } else {
+      if (selectedBusiness !== 'all' && t.business_name !== selectedBusiness) return false;
+    }
     
     const transactionDate = new Date(t.date);
     const now = new Date();
@@ -167,14 +195,47 @@ export const FinancialManagementPanel = () => {
     .filter(t => t.status === 'pending')
     .reduce((sum, t) => sum + (t.type === 'income' ? t.amount : -t.amount), 0);
 
+  const toggleBusinessSelection = (business: string) => {
+    setSelectedBusinesses(prev => 
+      prev.includes(business) 
+        ? prev.filter(b => b !== business)
+        : [...prev, business]
+    );
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Gestão Financeira</h2>
-          <p className="text-muted-foreground">Controle completo das suas finanças</p>
+          <p className="text-muted-foreground">Controle completo das suas finanças por negócio</p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <div className="flex items-center gap-3">
+          {businesses.length > 0 && !consolidationMode && (
+            <Select value={selectedBusiness} onValueChange={setSelectedBusiness}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Filtrar por negócio" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Negócios</SelectItem>
+                {businesses.map((business) => (
+                  <SelectItem key={business} value={business}>{business}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          {businesses.length > 1 && (
+            <Button
+              variant={consolidationMode ? "default" : "outline"}
+              onClick={() => {
+                setConsolidationMode(!consolidationMode);
+                setSelectedBusinesses([]);
+              }}
+            >
+              {consolidationMode ? "Modo Simples" : "Consolidar Negócios"}
+            </Button>
+          )}
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button className="gradient-primary shadow-glow">
               <Plus className="mr-2 h-4 w-4" />
@@ -187,17 +248,39 @@ export const FinancialManagementPanel = () => {
               <DialogDescription>Registre uma nova receita ou despesa</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Tipo</Label>
+                  <Select value={formData.type} onValueChange={(value: 'income' | 'expense') => setFormData({...formData, type: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="income">Receita</SelectItem>
+                      <SelectItem value="expense">Despesa</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label>Tipo de Negócio</Label>
+                  <Select value={formData.business_type} onValueChange={(value: 'personal' | 'company') => setFormData({...formData, business_type: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="personal">Pessoa Física</SelectItem>
+                      <SelectItem value="company">Pessoa Jurídica</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <div className="grid gap-2">
-                <Label>Tipo</Label>
-                <Select value={formData.type} onValueChange={(value: 'income' | 'expense') => setFormData({...formData, type: value})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="income">Receita</SelectItem>
-                    <SelectItem value="expense">Despesa</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>Nome do Negócio/Cliente (opcional)</Label>
+                <Input 
+                  value={formData.business_name}
+                  onChange={(e) => setFormData({...formData, business_name: e.target.value})}
+                  placeholder="Ex: Loja ABC, Empresa XYZ..."
+                />
               </div>
               <div className="grid gap-2">
                 <Label>Categoria</Label>
@@ -273,7 +356,32 @@ export const FinancialManagementPanel = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
+
+      {/* Modo Consolidação */}
+      {consolidationMode && businesses.length > 0 && (
+        <Card className="glass">
+          <CardHeader>
+            <CardTitle>Selecionar Negócios para Consolidar</CardTitle>
+            <CardDescription>Marque os negócios que deseja somar nas métricas</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {businesses.map((business) => (
+                <Button
+                  key={business}
+                  variant={selectedBusinesses.includes(business) ? "default" : "outline"}
+                  onClick={() => toggleBusinessSelection(business)}
+                  className="transition-smooth"
+                >
+                  {business}
+                </Button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Resumo Financeiro */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -386,6 +494,7 @@ export const FinancialManagementPanel = () => {
                   <TableRow>
                     <TableHead>Data</TableHead>
                     <TableHead>Tipo</TableHead>
+                    <TableHead>Negócio</TableHead>
                     <TableHead>Categoria</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead>Método</TableHead>
@@ -404,6 +513,14 @@ export const FinancialManagementPanel = () => {
                         <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'}>
                           {transaction.type === 'income' ? 'Receita' : 'Despesa'}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          <span className="font-medium">{transaction.business_name || 'Sem negócio'}</span>
+                          <Badge variant="outline" className="w-fit text-xs">
+                            {transaction.business_type === 'personal' ? 'PF' : 'PJ'}
+                          </Badge>
+                        </div>
                       </TableCell>
                       <TableCell>{transaction.category}</TableCell>
                       <TableCell>{transaction.description}</TableCell>

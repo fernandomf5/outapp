@@ -2680,6 +2680,8 @@ export type Database = {
       financial_transactions: {
         Row: {
           amount: number
+          business_name: string | null
+          business_type: string | null
           category: string
           created_at: string
           date: string
@@ -2692,6 +2694,8 @@ export type Database = {
         }
         Insert: {
           amount: number
+          business_name?: string | null
+          business_type?: string | null
           category: string
           created_at?: string
           date: string
@@ -2704,6 +2708,8 @@ export type Database = {
         }
         Update: {
           amount?: number
+          business_name?: string | null
+          business_type?: string | null
           category?: string
           created_at?: string
           date?: string
