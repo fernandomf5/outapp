@@ -18,7 +18,7 @@ export type Database = {
         Row: {
           budget: number
           clicks: number
-          client_name: string | null
+          client_id: string | null
           conversions: number
           created_at: string
           end_date: string | null
@@ -37,7 +37,7 @@ export type Database = {
         Insert: {
           budget: number
           clicks?: number
-          client_name?: string | null
+          client_id?: string | null
           conversions?: number
           created_at?: string
           end_date?: string | null
@@ -56,7 +56,7 @@ export type Database = {
         Update: {
           budget?: number
           clicks?: number
-          client_name?: string | null
+          client_id?: string | null
           conversions?: number
           created_at?: string
           end_date?: string | null
@@ -69,6 +69,44 @@ export type Database = {
           spent?: number
           start_date?: string
           status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_campaigns_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "ad_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_clients: {
+        Row: {
+          client_type: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
           updated_at?: string
           user_id?: string
         }
