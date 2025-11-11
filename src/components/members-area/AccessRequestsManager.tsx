@@ -53,13 +53,24 @@ export function AccessRequestsManager({ areaId }: AccessRequestsManagerProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      // Buscar dados atuais para não sobrescrever o nome
+      const { data: currentRequest } = await supabase
+        .from('members_area_access_requests')
+        .select('notes')
+        .eq('id', requestId)
+        .single();
+
+      const updatedNotes = reviewNotes 
+        ? `${currentRequest?.notes || ''}\n\nNotas do revisor: ${reviewNotes}`.trim()
+        : currentRequest?.notes || '';
+
       const { error } = await supabase
         .from('members_area_access_requests')
         .update({
           status: newStatus,
           reviewed_at: new Date().toISOString(),
           reviewed_by: user.id,
-          notes: reviewNotes
+          notes: updatedNotes
         })
         .eq('id', requestId);
 

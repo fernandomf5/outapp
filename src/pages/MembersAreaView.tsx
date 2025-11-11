@@ -109,7 +109,7 @@ export default function MembersAreaView() {
         .insert({
           area_id: areaId,
           email: accessForm.email,
-          name: accessForm.name,
+          notes: accessForm.name, // Usando notes ao invés de name até types.ts ser atualizado
           status: 'pending'
         });
 
