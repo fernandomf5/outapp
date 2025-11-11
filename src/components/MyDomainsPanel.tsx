@@ -25,6 +25,7 @@ interface Domain {
   is_verified: boolean;
   is_active: boolean;
   created_at: string;
+  verification_code: string | null;
 }
 
 export function MyDomainsPanel() {
@@ -76,6 +77,9 @@ export function MyDomainsPanel() {
 
     setLoading(true);
 
+    // Gerar código único de verificação
+    const verificationCode = crypto.randomUUID().replace(/-/g, '').substring(0, 16);
+
     const { error } = await supabase
       .from("user_domains")
       .insert({
@@ -83,6 +87,7 @@ export function MyDomainsPanel() {
         domain: newDomain.trim().toLowerCase(),
         is_verified: false,
         is_active: true,
+        verification_code: verificationCode,
       });
 
     if (error) {
@@ -268,7 +273,7 @@ export function MyDomainsPanel() {
                         </div>
                       </div>
 
-                      <div className="bg-background p-4 rounded-md border border-border">
+                       <div className="bg-background p-4 rounded-md border border-border">
                         <p className="text-xs font-semibold mb-3 text-primary">🔐 Registro TXT (Verificação)</p>
                         <div className="space-y-2">
                           <div className="flex items-center gap-3">
@@ -281,11 +286,11 @@ export function MyDomainsPanel() {
                           </div>
                           <div className="flex items-center gap-3">
                             <span className="text-xs text-muted-foreground w-16">Valor:</span>
-                            <code className="bg-primary/10 px-3 py-1 rounded text-sm font-mono font-bold text-primary">lovable_verify=SEU_CODIGO</code>
+                            <code className="bg-primary/10 px-3 py-1 rounded text-sm font-mono font-bold text-primary">Veja abaixo</code>
                           </div>
                         </div>
                         <p className="text-xs text-muted-foreground mt-2">
-                          Este registro é usado para verificar a propriedade do domínio
+                          <strong>Importante:</strong> Cada domínio tem um código único que aparece na lista abaixo após adicionar o domínio
                         </p>
                       </div>
                     </div>
@@ -365,53 +370,83 @@ export function MyDomainsPanel() {
                 domains.map((domain) => (
                   <div
                     key={domain.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors"
+                    className="border rounded-lg hover:bg-accent transition-colors"
                   >
-                    <div className="flex items-center gap-3">
-                      <Globe className="w-5 h-5 text-primary" />
-                      <div>
-                        <div className="font-medium">{domain.domain}</div>
-                        <div className="text-xs text-muted-foreground">
-                          Adicionado em {new Date(domain.created_at).toLocaleDateString()}
+                    <div className="flex items-center justify-between p-4">
+                      <div className="flex items-center gap-3">
+                        <Globe className="w-5 h-5 text-primary" />
+                        <div>
+                          <div className="font-medium">{domain.domain}</div>
+                          <div className="text-xs text-muted-foreground">
+                            Adicionado em {new Date(domain.created_at).toLocaleDateString()}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {domain.is_verified ? (
-                        <Badge className="bg-green-500/20 text-green-500">
-                          <Check className="w-3 h-3 mr-1" />
-                          Verificado
-                        </Badge>
-                      ) : (
-                        <>
-                          <Badge variant="outline" className="text-yellow-500 border-yellow-500">
-                            <AlertCircle className="w-3 h-3 mr-1" />
-                            Pendente
+                      <div className="flex items-center gap-2">
+                        {domain.is_verified ? (
+                          <Badge className="bg-green-500/20 text-green-500">
+                            <Check className="w-3 h-3 mr-1" />
+                            Verificado
                           </Badge>
+                        ) : (
+                          <>
+                            <Badge variant="outline" className="text-yellow-500 border-yellow-500">
+                              <AlertCircle className="w-3 h-3 mr-1" />
+                              Pendente
+                            </Badge>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleVerifyDomain(domain.id)}
+                              disabled={verifyingId === domain.id}
+                              className="border-primary/30 hover:bg-primary/10"
+                            >
+                              {verifyingId === domain.id ? (
+                                <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
+                              ) : (
+                                <RefreshCw className="w-4 h-4 mr-1" />
+                              )}
+                              Verificar Agora
+                            </Button>
+                          </>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setDeletingId(domain.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Código de Verificação */}
+                    {domain.verification_code && (
+                      <div className="px-4 pb-4 pt-2 border-t bg-muted/30">
+                        <p className="text-xs font-semibold text-primary mb-2">🔐 Seu Código de Verificação TXT:</p>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 bg-background px-3 py-2 rounded text-sm font-mono border border-border">
+                            lovable_verify={domain.verification_code}
+                          </code>
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleVerifyDomain(domain.id)}
-                            disabled={verifyingId === domain.id}
-                            className="border-primary/30 hover:bg-primary/10"
+                            onClick={() => {
+                              navigator.clipboard.writeText(`lovable_verify=${domain.verification_code}`);
+                              toast({
+                                title: "Copiado!",
+                                description: "Código TXT copiado para a área de transferência",
+                              });
+                            }}
                           >
-                            {verifyingId === domain.id ? (
-                              <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
-                            ) : (
-                              <RefreshCw className="w-4 h-4 mr-1" />
-                            )}
-                            Verificar Agora
+                            Copiar
                           </Button>
-                        </>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setDeletingId(domain.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Adicione este código como registro TXT com nome <code className="bg-background px-1 rounded">_lovable</code> na zona DNS
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ))
               )}
