@@ -335,6 +335,15 @@ export default function BriefingPublicPage() {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 py-12 px-4">
       <Card className="max-w-3xl mx-auto glass">
         <CardHeader>
+          {briefing.logo_url && (
+            <div className="flex justify-center mb-4">
+              <img 
+                src={briefing.logo_url} 
+                alt="Logo" 
+                className="h-16 w-auto object-contain"
+              />
+            </div>
+          )}
           <CardTitle className="text-2xl">{briefing.title}</CardTitle>
           {briefing.description && (
             <CardDescription>{briefing.description}</CardDescription>

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ImageUpload } from "@/components/ImageUpload";
 import { 
   FileText, 
   Plus,
@@ -138,6 +139,7 @@ export function BriefingCreatorPanel() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    logo_url: '',
     fields: [] as BriefingField[]
   });
 
@@ -255,6 +257,7 @@ export function BriefingCreatorPanel() {
           .update({
             title: formData.title,
             description: formData.description,
+            logo_url: formData.logo_url,
             fields: formData.fields
           })
           .eq('id', editingBriefing.id);
@@ -268,6 +271,7 @@ export function BriefingCreatorPanel() {
             user_id: user.id,
             title: formData.title,
             description: formData.description,
+            logo_url: formData.logo_url,
             fields: formData.fields,
             is_active: true,
             responses_count: 0
@@ -279,7 +283,7 @@ export function BriefingCreatorPanel() {
 
       setIsCreateDialogOpen(false);
       setEditingBriefing(null);
-      setFormData({ title: '', description: '', fields: [] });
+      setFormData({ title: '', description: '', logo_url: '', fields: [] });
       loadBriefings();
     } catch (error: any) {
       toast.error("Erro ao salvar briefing");
@@ -291,6 +295,7 @@ export function BriefingCreatorPanel() {
     setFormData({
       title: briefing.title,
       description: briefing.description || '',
+      logo_url: (briefing as any).logo_url || '',
       fields: briefing.fields
     });
     setIsCreateDialogOpen(true);
@@ -347,7 +352,7 @@ export function BriefingCreatorPanel() {
           <DialogTrigger asChild>
             <Button className="gradient-primary shadow-glow" onClick={() => {
               setEditingBriefing(null);
-              setFormData({ title: '', description: '', fields: [] });
+              setFormData({ title: '', description: '', logo_url: '', fields: [] });
             }}>
               <Plus className="mr-2 h-4 w-4" />
               Criar Briefing
@@ -380,6 +385,15 @@ export function BriefingCreatorPanel() {
                       onChange={(e) => setFormData({...formData, description: e.target.value})}
                       placeholder="Descrição do briefing..."
                       rows={3}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Logo (opcional)</Label>
+                    <ImageUpload
+                      onImageSelect={(url) => setFormData({...formData, logo_url: url})}
+                      currentImage={formData.logo_url}
+                      bucketName="briefing-logos"
+                      label="Logo da empresa"
                     />
                   </div>
                 </div>
@@ -516,7 +530,7 @@ export function BriefingCreatorPanel() {
               <Button variant="outline" onClick={() => {
                 setIsCreateDialogOpen(false);
                 setEditingBriefing(null);
-                setFormData({ title: '', description: '', fields: [] });
+                setFormData({ title: '', description: '', logo_url: '', fields: [] });
               }}>
                 Cancelar
               </Button>
