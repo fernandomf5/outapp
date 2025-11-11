@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText, QrCode, Calendar, ShoppingBag, ArrowLeft, Calculator, Brain, Globe, Users, HelpCircle, LinkIcon, Layers, MousePointer, DollarSign, CheckSquare, StickyNote, Eye, Megaphone, Code } from "lucide-react";
+import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText, QrCode, Calendar, ShoppingBag, ArrowLeft, Calculator, Brain, Globe, Users, HelpCircle, LinkIcon, Layers, MousePointer, DollarSign, CheckSquare, StickyNote, Eye, Megaphone, Code, UserCog, FileCheck } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -449,7 +449,7 @@ const Dashboard = () => {
         <div className="space-y-4">
           <h2 className="text-2xl font-bold">Todos os Recursos</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {/* Chatbots */}
+            {/* Chat Online */}
             {hasFeature('chatbot_web') && (
               <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("chatbots")}>
                 <CardHeader>
@@ -458,7 +458,7 @@ const Dashboard = () => {
                       <Bot className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <CardTitle className="text-base">Chatbots</CardTitle>
+                      <CardTitle className="text-base">Chat Online</CardTitle>
                       <p className="text-xs text-muted-foreground">{stats.totalBots} criados</p>
                     </div>
                   </div>
@@ -689,6 +689,66 @@ const Dashboard = () => {
                   <div>
                     <CardTitle className="text-base">Meus Domínios</CardTitle>
                     <p className="text-xs text-muted-foreground">Gerenciar domínios</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Gerador de Link para WhatsApp */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("tools")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <MessageSquare className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Gerador de Link WhatsApp</CardTitle>
+                    <p className="text-xs text-muted-foreground">Links personalizados</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Gestão de Clientes */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("clientes")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Users className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Gestão de Clientes</CardTitle>
+                    <p className="text-xs text-muted-foreground">Gerencie seus clientes</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Gestão de Equipe */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("equipe")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <UserCog className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Gestão de Equipe</CardTitle>
+                    <p className="text-xs text-muted-foreground">Gerencie sua equipe</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Respostas de Briefing */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("briefing-responses")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <FileCheck className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Respostas de Briefing</CardTitle>
+                    <p className="text-xs text-muted-foreground">Visualize respostas</p>
                   </div>
                 </div>
               </CardHeader>
