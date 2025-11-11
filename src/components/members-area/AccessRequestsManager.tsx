@@ -15,6 +15,7 @@ interface AccessRequest {
   requested_at: string;
   reviewed_at?: string;
   notes?: string;
+  access_code?: string;
 }
 
 interface AccessRequestsManagerProps {
@@ -53,10 +54,10 @@ export function AccessRequestsManager({ areaId }: AccessRequestsManagerProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      // Buscar dados atuais para não sobrescrever o nome
+      // Buscar dados atuais
       const { data: currentRequest } = await supabase
         .from('members_area_access_requests')
-        .select('notes')
+        .select('notes, email')
         .eq('id', requestId)
         .single();
 
@@ -64,19 +65,37 @@ export function AccessRequestsManager({ areaId }: AccessRequestsManagerProps) {
         ? `${currentRequest?.notes || ''}\n\nNotas do revisor: ${reviewNotes}`.trim()
         : currentRequest?.notes || '';
 
+      // Gerar código de acesso se aprovado
+      let accessCode = null;
+      if (newStatus === 'approved') {
+        const { data: codeData } = await supabase
+          .rpc('generate_access_code' as any);
+        accessCode = codeData;
+      }
+
       const { error } = await supabase
         .from('members_area_access_requests')
         .update({
           status: newStatus,
           reviewed_at: new Date().toISOString(),
           reviewed_by: user.id,
-          notes: updatedNotes
+          notes: updatedNotes,
+          ...(accessCode && { access_code: accessCode })
         })
         .eq('id', requestId);
 
       if (error) throw error;
 
-      toast.success(`Acesso ${newStatus === 'approved' ? 'aprovado' : 'negado'}!`);
+      if (newStatus === 'approved' && accessCode) {
+        toast.success(`Acesso aprovado! Código de acesso: ${accessCode}`, {
+          duration: 10000,
+        });
+        // TODO: Enviar email com código de acesso
+        console.log(`Email: ${currentRequest?.email}, Código: ${accessCode}`);
+      } else {
+        toast.success(`Acesso ${newStatus === 'approved' ? 'aprovado' : 'negado'}!`);
+      }
+      
       setSelectedRequest(null);
       setReviewNotes("");
       loadRequests();
@@ -161,6 +180,11 @@ export function AccessRequestsManager({ areaId }: AccessRequestsManagerProps) {
                         {request.notes && (
                           <p className="text-sm mt-2">
                             <strong>Notas:</strong> {request.notes}
+                          </p>
+                        )}
+                        {request.access_code && request.status === 'approved' && (
+                          <p className="text-sm mt-2 font-mono bg-muted p-2 rounded">
+                            <strong>Código de Acesso:</strong> {request.access_code}
                           </p>
                         )}
 

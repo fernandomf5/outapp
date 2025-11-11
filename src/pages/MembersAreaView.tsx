@@ -2,13 +2,10 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { Helmet } from "react-helmet-async";
-import { Play, Loader2 } from "lucide-react";
+import { Play, Loader2, LogOut } from "lucide-react";
 import { ContentPlayer } from "@/components/members-area/ContentPlayer";
-import { toast } from "sonner";
 
 interface MembersArea {
   id: string;
@@ -41,96 +38,66 @@ export default function MembersAreaView() {
   const [loading, setLoading] = useState(true);
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
-  const [accessRequested, setAccessRequested] = useState(false);
-  const [requestingAccess, setRequestingAccess] = useState(false);
-  const [accessForm, setAccessForm] = useState({ name: '', email: '' });
-  const [hasAccess, setHasAccess] = useState(false);
+  const [memberSession, setMemberSession] = useState<any>(null);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const { data: areaData } = await supabase
+        // Verificar sessão do membro
+        const sessionData = localStorage.getItem(`member_session_${areaId}`);
+        if (!sessionData) {
+          // Redirecionar para página de autenticação
+          navigate(`/members-area-auth?area=${areaId}`);
+          return;
+        }
+
+        const session = JSON.parse(sessionData);
+        setMemberSession(session);
+
+        const { data: areaData, error: areaError } = await supabase
           .from('members_areas' as any)
           .select('*')
           .eq('id', areaId)
-          .single();
+          .maybeSingle();
         
-        if (!areaData) {
+        if (!areaData || areaError) {
           setArea(null);
           setLoading(false);
           return;
         }
         
         setArea(areaData as any);
-        
-        // Verificar se já existe uma solicitação de acesso aprovada
-        const storedEmail = localStorage.getItem(`area_${areaId}_email`);
-        if (storedEmail) {
-          const { data: accessData } = await supabase
-            .from('members_area_access_requests' as any)
-            .select('*')
-            .eq('area_id', areaId)
-            .eq('email', storedEmail)
-            .eq('status', 'approved')
-            .single();
-          
-          if (accessData) {
-            setHasAccess(true);
-            // Carregar módulos
-            const { data: modulesData } = await supabase
-              .from('members_area_modules' as any)
-              .select('*')
-              .eq('members_area_id', areaId)
-              .eq('is_active', true)
-              .order('order_index', { ascending: true });
-            setModules((modulesData as any) || []);
-          }
+
+        // Carregar módulos
+        const { data: modulesData, error: modulesError } = await supabase
+          .from('members_area_modules' as any)
+          .select('*')
+          .eq('area_id', areaId)
+          .eq('is_active', true)
+          .order('order_index', { ascending: true });
+
+        if (modulesData && !modulesError) {
+          setModules(modulesData as any);
         }
       } catch (e) {
+        console.error('Error loading area:', e);
         setArea(null);
       } finally {
         setLoading(false);
       }
     };
     load();
-  }, [areaId]);
+  }, [areaId, navigate]);
 
-  const handleAccessRequest = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!accessForm.email || !accessForm.name) {
-      toast.error("Por favor, preencha todos os campos");
-      return;
-    }
-
-    setRequestingAccess(true);
-    try {
-      const { error } = await supabase
-        .from('members_area_access_requests' as any)
-        .insert({
-          area_id: areaId,
-          email: accessForm.email,
-          notes: accessForm.name, // Usando notes ao invés de name até types.ts ser atualizado
-          status: 'pending'
-        });
-
-      if (error) throw error;
-
-      setAccessRequested(true);
-      toast.success("Solicitação enviada! Aguarde a aprovação do dono da área.");
-    } catch (error: any) {
-      console.error('Error requesting access:', error);
-      toast.error("Erro ao solicitar acesso: " + error.message);
-    } finally {
-      setRequestingAccess(false);
-    }
+  const handleLogout = () => {
+    localStorage.removeItem(`member_session_${areaId}`);
+    navigate(`/members-area-auth?area=${areaId}`);
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Card className="w-full max-w-4xl">
-          <CardContent className="p-10 text-center text-muted-foreground">Carregando área...</CardContent>
-        </Card>
+        <Loader2 className="w-8 h-8 animate-spin" />
       </div>
     );
   }
@@ -139,76 +106,8 @@ export default function MembersAreaView() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="w-full max-w-4xl">
-          <CardContent className="p-10 text-center text-muted-foreground">Área de membros não encontrada</CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Se não tem acesso, mostrar formulário de solicitação
-  if (!hasAccess && !accessRequested) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              <div className="text-center space-y-2">
-                {area.logo_url && (
-                  <img src={area.logo_url} alt="Logo" className="h-16 w-16 mx-auto rounded" />
-                )}
-                <h1 className="text-2xl font-bold">{area.name || area.title}</h1>
-                {area.description && (
-                  <p className="text-muted-foreground">{area.description}</p>
-                )}
-              </div>
-              
-              <div className="border-t pt-4">
-                <h2 className="text-lg font-semibold mb-4">Solicitar Acesso</h2>
-                <form onSubmit={handleAccessRequest} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nome</Label>
-                    <Input
-                      id="name"
-                      value={accessForm.name}
-                      onChange={(e) => setAccessForm({...accessForm, name: e.target.value})}
-                      placeholder="Seu nome"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={accessForm.email}
-                      onChange={(e) => setAccessForm({...accessForm, email: e.target.value})}
-                      placeholder="seu@email.com"
-                      required
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={requestingAccess}>
-                    {requestingAccess && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Solicitar Acesso
-                  </Button>
-                </form>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Se solicitou acesso mas ainda não foi aprovado
-  if (accessRequested || (!hasAccess && accessRequested)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-10 text-center">
-            <h2 className="text-2xl font-bold mb-4">Acesso Solicitado</h2>
-            <p className="text-muted-foreground">
-              Sua solicitação de acesso foi enviada com sucesso. Aguarde a aprovação do administrador da área.
-            </p>
+          <CardContent className="p-10 text-center text-muted-foreground">
+            Área de membros não encontrada
           </CardContent>
         </Card>
       </div>
@@ -232,16 +131,29 @@ export default function MembersAreaView() {
           <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-background/10" />
-        <div className="absolute bottom-4 left-4 md:left-8 flex items-center gap-4">
-          {area.logo_url && (
-            <img src={area.logo_url} alt="Logo" className="h-12 w-12 md:h-16 md:w-16 rounded" />
-          )}
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">{title}</h1>
-            {area.description && (
-              <p className="text-sm md:text-base text-muted-foreground max-w-2xl">{area.description}</p>
+        <div className="absolute bottom-4 left-4 md:left-8 right-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {area.logo_url && (
+              <img src={area.logo_url} alt="Logo" className="h-12 w-12 md:h-16 md:w-16 rounded" />
             )}
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">{title}</h1>
+              {area.description && (
+                <p className="text-sm md:text-base text-muted-foreground max-w-2xl">{area.description}</p>
+              )}
+            </div>
           </div>
+          {memberSession && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleLogout}
+              className="gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              Sair
+            </Button>
+          )}
         </div>
       </header>
 

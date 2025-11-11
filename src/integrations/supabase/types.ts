@@ -2951,6 +2951,7 @@ export type Database = {
       }
       members_area_access_requests: {
         Row: {
+          access_code: string | null
           area_id: string
           email: string
           id: string
@@ -2961,6 +2962,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          access_code?: string | null
           area_id: string
           email: string
           id?: string
@@ -2971,6 +2973,7 @@ export type Database = {
           status?: string
         }
         Update: {
+          access_code?: string | null
           area_id?: string
           email?: string
           id?: string
@@ -2992,6 +2995,7 @@ export type Database = {
       }
       members_area_enrollments: {
         Row: {
+          access_request_id: string | null
           area_id: string
           created_at: string
           enrolled_at: string
@@ -3003,6 +3007,7 @@ export type Database = {
           user_name: string | null
         }
         Insert: {
+          access_request_id?: string | null
           area_id: string
           created_at?: string
           enrolled_at?: string
@@ -3014,6 +3019,7 @@ export type Database = {
           user_name?: string | null
         }
         Update: {
+          access_request_id?: string | null
           area_id?: string
           created_at?: string
           enrolled_at?: string
@@ -3025,6 +3031,13 @@ export type Database = {
           user_name?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "members_area_enrollments_access_request_id_fkey"
+            columns: ["access_request_id"]
+            isOneToOne: false
+            referencedRelation: "members_area_access_requests"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "members_area_enrollments_area_id_fkey"
             columns: ["area_id"]
@@ -4714,6 +4727,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_access_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

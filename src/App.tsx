@@ -36,6 +36,7 @@ import QuizPage from "./pages/QuizPage";
 import BriefingPublicPage from "./pages/BriefingPublicPage";
 import CustomPage from "./pages/CustomPage";
 import MembersAreaView from "./pages/MembersAreaView";
+import MembersAreaAuth from "./pages/MembersAreaAuth";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient();
@@ -75,7 +76,8 @@ const AppContent = () => {
               <Route path="/blog/:slug" element={<Blog />} />
               <Route path="/calculadora" element={<CalculatorPage />} />
                <Route path="/quiz/:quizId" element={<QuizPage />} />
-                <Route path="/members/:areaId" element={<MembersAreaView />} />
+                <Route path="/members-area/:areaId" element={<MembersAreaView />} />
+                <Route path="/members-area-auth" element={<MembersAreaAuth />} />
                <Route path="/briefing/:briefingId" element={<BriefingPublicPage />} />
                
               <Route path="/bot-builder" element={
