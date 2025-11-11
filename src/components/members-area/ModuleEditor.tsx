@@ -23,9 +23,8 @@ interface Module {
   content_data?: string;
   document_url?: string;
   category?: string;
-  is_free: boolean;
-  price?: number;
   is_active: boolean;
+  is_locked?: boolean;
   order_index: number;
   duration?: string;
 }
@@ -44,8 +43,8 @@ export function ModuleEditor({ open, onOpenChange, areaId, module, onSave }: Mod
     title: '',
     description: '',
     content_type: 'video',
-    is_free: true,
     is_active: false,
+    is_locked: false,
     order_index: 0,
   });
   const [uploading, setUploading] = useState(false);
@@ -60,8 +59,8 @@ export function ModuleEditor({ open, onOpenChange, areaId, module, onSave }: Mod
         title: '',
         description: '',
         content_type: 'video',
-        is_free: true,
         is_active: false,
+        is_locked: false,
         order_index: 0,
       });
     }
@@ -360,10 +359,10 @@ export function ModuleEditor({ open, onOpenChange, areaId, module, onSave }: Mod
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center justify-between">
-              <Label>Conteúdo Gratuito</Label>
+              <Label>Bloqueado</Label>
               <Switch 
-                checked={formData.is_free}
-                onCheckedChange={(checked) => setFormData({...formData, is_free: checked})}
+                checked={formData.is_locked}
+                onCheckedChange={(checked) => setFormData({...formData, is_locked: checked})}
               />
             </div>
             <div className="flex items-center justify-between">
@@ -374,19 +373,6 @@ export function ModuleEditor({ open, onOpenChange, areaId, module, onSave }: Mod
               />
             </div>
           </div>
-
-          {!formData.is_free && (
-            <div className="grid gap-2">
-              <Label>Preço (R$)</Label>
-              <Input 
-                type="number"
-                value={formData.price || ''}
-                onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
-                placeholder="0.00"
-                step="0.01"
-              />
-            </div>
-          )}
 
           <div className="grid gap-2">
             <Label>Ordem de Exibição</Label>

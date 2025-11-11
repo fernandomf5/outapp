@@ -9,8 +9,7 @@ interface ModuleData {
   video_url?: string;
   content_type: string;
   content_data?: string;
-  is_free: boolean;
-  price?: number;
+  is_locked?: boolean;
 }
 
 interface ContentPlayerProps {
@@ -28,10 +27,9 @@ export function ContentPlayer({ open, onOpenChange, module }: ContentPlayerProps
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>{module.title}</DialogTitle>
-            <div className="flex gap-2">
-              {module.is_free && <Badge variant="secondary">Grátis</Badge>}
-              {module.price && <Badge>R$ {module.price.toFixed(2)}</Badge>}
-            </div>
+            {module.is_locked && (
+              <Badge variant="secondary">Bloqueado</Badge>
+            )}
           </div>
           {module.description && (
             <p className="text-sm text-muted-foreground">{module.description}</p>
