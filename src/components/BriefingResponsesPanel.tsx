@@ -12,7 +12,8 @@ import {
   Mail,
   Phone,
   Building2,
-  ExternalLink
+  ExternalLink,
+  Image as ImageIcon
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -292,43 +293,114 @@ export function BriefingResponsesPanel() {
                 <CardContent className="space-y-3">
                   {Object.entries(selectedResponse.responses).map(([key, value]) => {
                     const isFileUrl = typeof value === 'string' && 
-                      (value.startsWith('http') && value.includes('briefing-files'));
+                      (value.startsWith('http') || value.startsWith('https://'));
                     
                     const isImage = isFileUrl && 
-                      (value as string).match(/\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i);
+                      (value as string).match(/\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)(\?|$)/i);
+                    
+                    const handleDownload = async (url: string, filename: string) => {
+                      try {
+                        const response = await fetch(url);
+                        const blob = await response.blob();
+                        const downloadUrl = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = downloadUrl;
+                        link.download = filename || 'download';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        window.URL.revokeObjectURL(downloadUrl);
+                        toast.success("Download iniciado!");
+                      } catch (error) {
+                        toast.error("Erro ao baixar arquivo");
+                      }
+                    };
                     
                     return (
                       <div key={key} className="border-b pb-3 last:border-0">
                         <div className="font-semibold text-sm mb-2">{key}</div>
                         <div className="text-sm">
                           {isImage ? (
-                            <div className="space-y-2">
-                              <img 
-                                src={value as string} 
-                                alt={key}
-                                className="max-w-full h-auto rounded-lg border shadow-sm max-h-96 object-contain"
-                              />
-                              <a 
-                                href={value as string} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 text-primary hover:underline text-xs"
-                              >
-                                <ExternalLink className="h-3 w-3" />
-                                Abrir imagem em nova aba
-                              </a>
+                            <div className="space-y-3">
+                              <div className="relative group">
+                                <img 
+                                  src={value as string} 
+                                  alt={key}
+                                  className="max-w-full h-auto rounded-lg border shadow-sm max-h-96 object-contain bg-muted"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    const parent = target.parentElement;
+                                    if (parent) {
+                                      const errorMsg = document.createElement('div');
+                                      errorMsg.className = 'flex items-center gap-2 p-4 text-muted-foreground bg-muted rounded-lg';
+                                      errorMsg.innerHTML = `<svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg><span>Erro ao carregar imagem</span>`;
+                                      parent.appendChild(errorMsg);
+                                    }
+                                  }}
+                                />
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    const filename = (value as string).split('/').pop() || 'imagem';
+                                    handleDownload(value as string, filename);
+                                  }}
+                                  className="gap-2"
+                                >
+                                  <Download className="h-3 w-3" />
+                                  Baixar imagem
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  asChild
+                                >
+                                  <a 
+                                    href={value as string} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="gap-2"
+                                  >
+                                    <ExternalLink className="h-3 w-3" />
+                                    Abrir em nova aba
+                                  </a>
+                                </Button>
+                              </div>
                             </div>
                           ) : isFileUrl ? (
-                            <a 
-                              href={value as string} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 text-primary hover:underline"
-                            >
-                              <FileText className="h-4 w-4" />
-                              Ver arquivo enviado
-                              <ExternalLink className="h-3 w-3" />
-                            </a>
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const filename = (value as string).split('/').pop() || 'arquivo';
+                                  handleDownload(value as string, filename);
+                                }}
+                                className="gap-2"
+                              >
+                                <Download className="h-3 w-3" />
+                                Baixar arquivo
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                asChild
+                              >
+                                <a 
+                                  href={value as string} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="gap-2"
+                                >
+                                  <FileText className="h-4 w-4" />
+                                  Ver arquivo
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              </Button>
+                            </div>
                           ) : (
                             <span className="text-muted-foreground">
                               {typeof value === 'boolean' ? (value ? 'Sim' : 'Não') : value}
