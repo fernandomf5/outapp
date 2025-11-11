@@ -121,18 +121,26 @@ export const QuickNotesPanel = () => {
     const now = new Date();
     notes.forEach(note => {
       if (!note.is_completed && note.reminder_date) {
-        // Parse reminder_date as UTC and convert to local time for comparison
-        const reminderDate = new Date(note.reminder_date + 'Z'); // Add 'Z' to treat as UTC
-        // Show reminder if time has passed and not shown before
-        if (reminderDate <= now) {
-          const lastShown = localStorage.getItem(`reminder_${note.id}`);
-          const lastShownDate = lastShown ? new Date(lastShown) : null;
+        try {
+          // Parse reminder_date as UTC and convert to local time for comparison
+          const reminderDate = new Date(note.reminder_date + 'Z'); // Add 'Z' to treat as UTC
           
-          // Only show if never shown or if it's been more than 1 hour
-          if (!lastShownDate || (now.getTime() - lastShownDate.getTime()) > 3600000) {
-            showReminderDialog(note);
-            localStorage.setItem(`reminder_${note.id}`, now.toISOString());
+          // Validate date
+          if (isNaN(reminderDate.getTime())) return;
+          
+          // Show reminder if time has passed and not shown before
+          if (reminderDate <= now) {
+            const lastShown = localStorage.getItem(`reminder_${note.id}`);
+            const lastShownDate = lastShown ? new Date(lastShown) : null;
+            
+            // Only show if never shown or if it's been more than 1 hour
+            if (!lastShownDate || (now.getTime() - lastShownDate.getTime()) > 3600000) {
+              showReminderDialog(note);
+              localStorage.setItem(`reminder_${note.id}`, now.toISOString());
+            }
           }
+        } catch (error) {
+          console.error('Invalid reminder date for note:', note.id, error);
         }
       }
     });
@@ -154,11 +162,17 @@ export const QuickNotesPanel = () => {
   };
 
   const getPendingReminders = () => {
-    return notes.filter(note => 
-      !note.is_completed && 
-      note.reminder_date && 
-      new Date(note.reminder_date) <= new Date()
-    ).length;
+    return notes.filter(note => {
+      if (!note.is_completed && note.reminder_date) {
+        try {
+          const reminderDate = new Date(note.reminder_date);
+          return !isNaN(reminderDate.getTime()) && reminderDate <= new Date();
+        } catch {
+          return false;
+        }
+      }
+      return false;
+    }).length;
   };
 
   return (
@@ -258,14 +272,22 @@ export const QuickNotesPanel = () => {
                     <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
                       {note.content}
                     </p>
-                    {note.reminder_date && (
-                      <div className="flex items-center gap-1 mt-2">
-                        <Clock className="h-3 w-3" />
-                        <span className="text-xs">
-                          {format(new Date(note.reminder_date + 'Z'), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                        </span>
-                      </div>
-                    )}
+                    {note.reminder_date && (() => {
+                      try {
+                        const date = new Date(note.reminder_date + 'Z');
+                        if (isNaN(date.getTime())) return null;
+                        return (
+                          <div className="flex items-center gap-1 mt-2">
+                            <Clock className="h-3 w-3" />
+                            <span className="text-xs">
+                              {format(date, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                            </span>
+                          </div>
+                        );
+                      } catch {
+                        return null;
+                      }
+                    })()}
                   </div>
                   <Button
                     variant="ghost"
