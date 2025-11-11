@@ -363,7 +363,7 @@ export function MembersAreaCreator() {
                       variant="outline" 
                       size="sm"
                       onClick={() => {
-                        const link = `${window.location.origin}/members/${area.id}`;
+                        const link = `${window.location.origin}/members-area/${area.id}`;
                         navigator.clipboard.writeText(link);
                         toast.success("Link copiado!");
                       }}
@@ -374,7 +374,7 @@ export function MembersAreaCreator() {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => window.open(`/members/${area.id}`, '_blank')}
+                      onClick={() => window.open(`/members-area/${area.id}`, '_blank')}
                     >
                       Visualizar
                     </Button>
