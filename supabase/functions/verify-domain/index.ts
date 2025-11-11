@@ -55,6 +55,8 @@ serve(async (req) => {
         `https://dns.google/resolve?name=${domain.domain}&type=A`
       );
       const dnsDataA = await dnsResponseA.json();
+      
+      console.log('DNS A response:', JSON.stringify(dnsDataA));
 
       const expectedIP = "185.158.133.1";
       const hasCorrectIP = dnsDataA.Answer?.some(
@@ -69,11 +71,21 @@ serve(async (req) => {
         );
         const dnsDataTXT = await dnsResponseTXT.json();
         
+        console.log('DNS TXT response:', JSON.stringify(dnsDataTXT));
+        
         const expectedTxt = `lovable_verify=${domain.verification_code}`;
         hasTxtVerification = dnsDataTXT.Answer?.some(
-          (record: any) => record.type === 16 && record.data.includes(expectedTxt)
+          (record: any) => {
+            if (record.type !== 16) return false;
+            // TXT pode vir com ou sem aspas, e pode ser string ou array
+            const txtData = typeof record.data === 'string' ? record.data : record.data.join('');
+            const cleanData = txtData.replace(/"/g, ''); // Remove aspas
+            return cleanData.includes(expectedTxt) || cleanData.includes(domain.verification_code);
+          }
         );
       }
+
+      console.log('Verification results:', { hasCorrectIP, hasTxtVerification });
 
       // Para verificar, precisa ter ambos os registros corretos
       if (hasCorrectIP && (hasTxtVerification || !domain.verification_code)) {
@@ -98,7 +110,8 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({
             verified: false,
-            message: `DNS ainda não propagou. Faltam: ${missingRecords.join(", ")}`,
+            message: `DNS ainda não propagou. Faltam: ${missingRecords.join(", ")}. Aguarde alguns minutos e tente novamente.`,
+            details: `Verificando: ${domain.domain} (IP: ${hasCorrectIP ? '✓' : '✗'}, TXT: ${hasTxtVerification ? '✓' : '✗'})`
           }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
