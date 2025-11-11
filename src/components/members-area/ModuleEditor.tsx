@@ -17,7 +17,6 @@ interface Module {
   members_area_id: string;
   title: string;
   description?: string;
-  thumbnail_url?: string;
   video_url?: string;
   content_type: 'video' | 'document' | 'text';
   content_data?: string;
@@ -252,15 +251,6 @@ export function ModuleEditor({ open, onOpenChange, areaId, module, onSave }: Mod
             </div>
           </div>
 
-          <div className="grid gap-2">
-            <Label>Thumbnail</Label>
-            <ImageUpload
-              currentImage={formData.thumbnail_url || ''}
-              onImageSelect={(url) => setFormData({...formData, thumbnail_url: url})}
-              bucketName="members-content"
-              label="Thumbnail"
-            />
-          </div>
 
           {formData.content_type === 'video' && (
             <div className="grid gap-2">
