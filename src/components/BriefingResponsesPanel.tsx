@@ -11,7 +11,8 @@ import {
   Trash2,
   Mail,
   Phone,
-  Building2
+  Building2,
+  ExternalLink
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -289,14 +290,32 @@ export function BriefingResponsesPanel() {
                   <CardTitle className="text-base">Respostas do Briefing</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {Object.entries(selectedResponse.responses).map(([key, value]) => (
-                    <div key={key} className="border-b pb-2 last:border-0">
-                      <div className="font-semibold text-sm mb-1">{key}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {typeof value === 'boolean' ? (value ? 'Sim' : 'Não') : value}
+                  {Object.entries(selectedResponse.responses).map(([key, value]) => {
+                    const isFileUrl = typeof value === 'string' && 
+                      (value.startsWith('http') && value.includes('briefing-files'));
+                    
+                    return (
+                      <div key={key} className="border-b pb-2 last:border-0">
+                        <div className="font-semibold text-sm mb-1">{key}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {isFileUrl ? (
+                            <a 
+                              href={value as string} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-primary hover:underline"
+                            >
+                              <FileText className="h-4 w-4" />
+                              Ver arquivo enviado
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          ) : (
+                            typeof value === 'boolean' ? (value ? 'Sim' : 'Não') : value
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </CardContent>
               </Card>
             </div>

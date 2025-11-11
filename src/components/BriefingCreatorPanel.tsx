@@ -24,7 +24,10 @@ import {
   Upload,
   Calendar,
   Clock,
-  Link2
+  Link2,
+  List,
+  Circle,
+  Star
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -48,7 +51,7 @@ import { CSS } from '@dnd-kit/utilities';
 
 interface BriefingField {
   id: string;
-  type: 'text' | 'textarea' | 'email' | 'phone' | 'number' | 'checkbox' | 'file' | 'date' | 'time' | 'url';
+  type: 'text' | 'textarea' | 'email' | 'phone' | 'number' | 'checkbox' | 'file' | 'date' | 'time' | 'url' | 'select' | 'radio' | 'rating';
   label: string;
   placeholder?: string;
   required: boolean;
@@ -91,6 +94,9 @@ function SortableField({ field, onEdit, onDelete }: { field: BriefingField; onEd
       case 'date': return <Calendar className="h-4 w-4" />;
       case 'time': return <Clock className="h-4 w-4" />;
       case 'url': return <Link2 className="h-4 w-4" />;
+      case 'select': return <List className="h-4 w-4" />;
+      case 'radio': return <Circle className="h-4 w-4" />;
+      case 'rating': return <Star className="h-4 w-4" />;
       default: return <Type className="h-4 w-4" />;
     }
   };
@@ -321,6 +327,9 @@ export function BriefingCreatorPanel() {
     { value: 'phone', label: 'Telefone', icon: Phone },
     { value: 'number', label: 'Número', icon: Hash },
     { value: 'checkbox', label: 'Checkbox', icon: CheckSquare },
+    { value: 'select', label: 'Lista Suspensa', icon: List },
+    { value: 'radio', label: 'Múltipla Escolha', icon: Circle },
+    { value: 'rating', label: 'Avaliação (Estrelas)', icon: Star },
     { value: 'file', label: 'Upload de Arquivo', icon: Upload },
     { value: 'date', label: 'Data', icon: Calendar },
     { value: 'time', label: 'Hora', icon: Clock },
@@ -429,6 +438,24 @@ export function BriefingCreatorPanel() {
                             placeholder="Ex: Digite seu nome"
                           />
                         </div>
+                        
+                        {/* Campo de opções para select, radio */}
+                        {(['select', 'radio'].includes(fieldData.type)) && (
+                          <div className="grid gap-2">
+                            <Label>Opções (uma por linha)</Label>
+                            <Textarea
+                              value={fieldData.options?.join('\n') || ''}
+                              onChange={(e) => setFieldData({
+                                ...fieldData, 
+                                options: e.target.value.split('\n').filter(opt => opt.trim())
+                              })}
+                              placeholder="Opção 1&#10;Opção 2&#10;Opção 3"
+                              rows={4}
+                            />
+                            <p className="text-xs text-muted-foreground">Digite uma opção por linha</p>
+                          </div>
+                        )}
+                        
                         <div className="flex items-center space-x-2">
                           <input
                             type="checkbox"

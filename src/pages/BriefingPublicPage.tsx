@@ -6,9 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { FileText } from "lucide-react";
+import { FileText, Upload, X, Star } from "lucide-react";
 
 export default function BriefingPublicPage() {
   const { briefingId } = useParams();
@@ -16,6 +18,7 @@ export default function BriefingPublicPage() {
   const [submitting, setSubmitting] = useState(false);
   const [briefing, setBriefing] = useState<any>(null);
   const [responses, setResponses] = useState<Record<string, any>>({});
+  const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     loadBriefing();
@@ -37,6 +40,46 @@ export default function BriefingPublicPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFileUpload = async (fieldId: string, file: File) => {
+    try {
+      setUploadingFiles(prev => ({ ...prev, [fieldId]: true }));
+      
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${briefingId}/${fieldId}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError, data } = await supabase.storage
+        .from('briefing-files')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('briefing-files')
+        .getPublicUrl(fileName);
+
+      setResponses(prev => ({ 
+        ...prev, 
+        [fieldId]: publicUrl
+      }));
+      
+      toast.success("Arquivo enviado com sucesso!");
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error("Erro ao fazer upload do arquivo");
+    } finally {
+      setUploadingFiles(prev => ({ ...prev, [fieldId]: false }));
+    }
+  };
+
+  const handleRemoveFile = (fieldId: string) => {
+    setResponses(prev => {
+      const newResponses = { ...prev };
+      delete newResponses[fieldId];
+      return newResponses;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,6 +123,7 @@ export default function BriefingPublicPage() {
           <Input
             value={value}
             onChange={(e) => setResponses({ ...responses, [field.id]: e.target.value })}
+            placeholder={field.placeholder}
             required={field.required}
           />
         );
@@ -88,6 +132,7 @@ export default function BriefingPublicPage() {
           <Textarea
             value={value}
             onChange={(e) => setResponses({ ...responses, [field.id]: e.target.value })}
+            placeholder={field.placeholder}
             required={field.required}
             rows={4}
           />
@@ -98,6 +143,7 @@ export default function BriefingPublicPage() {
             type="email"
             value={value}
             onChange={(e) => setResponses({ ...responses, [field.id]: e.target.value })}
+            placeholder={field.placeholder}
             required={field.required}
           />
         );
@@ -107,6 +153,7 @@ export default function BriefingPublicPage() {
             type="tel"
             value={value}
             onChange={(e) => setResponses({ ...responses, [field.id]: e.target.value })}
+            placeholder={field.placeholder}
             required={field.required}
           />
         );
@@ -116,6 +163,35 @@ export default function BriefingPublicPage() {
             type="number"
             value={value}
             onChange={(e) => setResponses({ ...responses, [field.id]: e.target.value })}
+            placeholder={field.placeholder}
+            required={field.required}
+          />
+        );
+      case 'date':
+        return (
+          <Input
+            type="date"
+            value={value}
+            onChange={(e) => setResponses({ ...responses, [field.id]: e.target.value })}
+            required={field.required}
+          />
+        );
+      case 'time':
+        return (
+          <Input
+            type="time"
+            value={value}
+            onChange={(e) => setResponses({ ...responses, [field.id]: e.target.value })}
+            required={field.required}
+          />
+        );
+      case 'url':
+        return (
+          <Input
+            type="url"
+            value={value}
+            onChange={(e) => setResponses({ ...responses, [field.id]: e.target.value })}
+            placeholder={field.placeholder || "https://"}
             required={field.required}
           />
         );
@@ -128,6 +204,105 @@ export default function BriefingPublicPage() {
               required={field.required}
             />
             <span className="text-sm">{field.label}</span>
+          </div>
+        );
+      case 'select':
+        return (
+          <Select
+            value={value}
+            onValueChange={(val) => setResponses({ ...responses, [field.id]: val })}
+            required={field.required}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={field.placeholder || "Selecione uma opção"} />
+            </SelectTrigger>
+            <SelectContent>
+              {field.options?.map((option: string, idx: number) => (
+                <SelectItem key={idx} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+      case 'radio':
+        return (
+          <RadioGroup
+            value={value}
+            onValueChange={(val) => setResponses({ ...responses, [field.id]: val })}
+            required={field.required}
+          >
+            {field.options?.map((option: string, idx: number) => (
+              <div key={idx} className="flex items-center space-x-2">
+                <RadioGroupItem value={option} id={`${field.id}-${idx}`} />
+                <Label htmlFor={`${field.id}-${idx}`} className="cursor-pointer">
+                  {option}
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
+        );
+      case 'rating':
+        return (
+          <div className="flex gap-2">
+            {[1, 2, 3, 4, 5].map((rating) => (
+              <button
+                key={rating}
+                type="button"
+                onClick={() => setResponses({ ...responses, [field.id]: rating })}
+                className="focus:outline-none transition-colors"
+              >
+                <Star
+                  className={`h-8 w-8 ${
+                    value >= rating
+                      ? 'fill-yellow-400 text-yellow-400'
+                      : 'text-muted-foreground'
+                  }`}
+                />
+              </button>
+            ))}
+            {value && (
+              <span className="ml-2 text-sm text-muted-foreground self-center">
+                {value} de 5 estrelas
+              </span>
+            )}
+          </div>
+        );
+      case 'file':
+        return (
+          <div className="space-y-2">
+            {value ? (
+              <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/50">
+                <FileText className="h-5 w-5 text-primary" />
+                <span className="text-sm flex-1 truncate">Arquivo enviado</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleRemoveFile(field.id)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Input
+                  type="file"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleFileUpload(field.id, file);
+                    }
+                  }}
+                  disabled={uploadingFiles[field.id]}
+                  required={field.required}
+                  className="cursor-pointer"
+                />
+                {uploadingFiles[field.id] && (
+                  <span className="text-sm text-muted-foreground">Enviando...</span>
+                )}
+              </div>
+            )}
           </div>
         );
       default:
