@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import ClonedPage from "./ClonedPage";
 import CustomPage from "./CustomPage";
 import { Loader2 } from "lucide-react";
+import { normalizeDomain } from "@/utils/domainUtils";
 
 export default function ClonedOrCustomPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -17,13 +18,14 @@ export default function ClonedOrCustomPage() {
       }
 
       const hostname = window.location.hostname;
+      const normalizedHostname = normalizeDomain(hostname);
       const pathSegment = window.location.pathname.split('/')[1];
       
-      // Verifica se é um domínio personalizado cadastrado
+      // Verifica se é um domínio personalizado cadastrado (com normalização)
       const { data: customDomain } = await supabase
         .from('user_domains')
         .select('domain')
-        .eq('domain', hostname)
+        .eq('domain', normalizedHostname)
         .eq('is_verified', true)
         .eq('is_active', true)
         .maybeSingle();
@@ -34,7 +36,7 @@ export default function ClonedOrCustomPage() {
           .from('cloned_pages')
           .select('id')
           .eq('slug', slug)
-          .eq('custom_domain', hostname)
+          .eq('custom_domain', normalizedHostname)
           .eq('is_active', true)
           .maybeSingle();
 

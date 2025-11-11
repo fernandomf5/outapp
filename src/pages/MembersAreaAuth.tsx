@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeDomain } from "@/utils/domainUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -103,12 +104,13 @@ export default function MembersAreaAuth() {
 
       toast.success("Login realizado com sucesso!");
       
-      // Verifica se está usando domínio customizado
+      // Verifica se está usando domínio customizado (com normalização)
       const hostname = window.location.hostname;
+      const normalizedHostname = normalizeDomain(hostname);
       const { data: customDomain } = await supabase
         .from('user_domains')
         .select('domain')
-        .eq('domain', hostname)
+        .eq('domain', normalizedHostname)
         .eq('is_verified', true)
         .eq('is_active', true)
         .maybeSingle();

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { normalizeDomain } from "@/utils/domainUtils";
 
 export default function ClonedPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -23,21 +24,22 @@ export default function ClonedPage() {
 
       try {
         const hostname = window.location.hostname;
+        const normalizedHostname = normalizeDomain(hostname);
         const pathSegment = window.location.pathname.split('/')[1];
         
         let searchDomain = '';
         
-        // Primeiro verifica se é um domínio personalizado cadastrado
+        // Primeiro verifica se é um domínio personalizado cadastrado (com normalização)
         const { data: customDomain } = await supabase
           .from('user_domains')
           .select('domain')
-          .eq('domain', hostname)
+          .eq('domain', normalizedHostname)
           .eq('is_verified', true)
           .eq('is_active', true)
           .maybeSingle();
 
         if (customDomain) {
-          searchDomain = hostname;
+          searchDomain = normalizedHostname;
         } else {
           // Verifica se é um page path (page1, page2, etc)
           const pagePathPattern = /^page[1-5]$/;

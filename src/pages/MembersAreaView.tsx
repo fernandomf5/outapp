@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Helmet } from "react-helmet-async";
 import { Play, Loader2, LogOut } from "lucide-react";
 import { ContentPlayer } from "@/components/members-area/ContentPlayer";
+import { normalizeDomain } from "@/utils/domainUtils";
 
 interface MembersArea {
   id: string;
@@ -44,15 +45,16 @@ export default function MembersAreaView() {
     const load = async () => {
       try {
         const hostname = window.location.hostname;
+        const normalizedHostname = normalizeDomain(hostname);
         
         // Verificar sessão do membro
         const sessionData = localStorage.getItem(`member_session_${areaId}`);
         if (!sessionData) {
-          // Verifica se está usando domínio customizado
+          // Verifica se está usando domínio customizado (com normalização)
           const { data: customDomain } = await supabase
             .from('user_domains')
             .select('domain')
-            .eq('domain', hostname)
+            .eq('domain', normalizedHostname)
             .eq('is_verified', true)
             .eq('is_active', true)
             .maybeSingle();
@@ -106,12 +108,13 @@ export default function MembersAreaView() {
 
   const handleLogout = async () => {
     const hostname = window.location.hostname;
+    const normalizedHostname = normalizeDomain(hostname);
     
-    // Verifica se está usando domínio customizado
+    // Verifica se está usando domínio customizado (com normalização)
     const { data: customDomain } = await supabase
       .from('user_domains')
       .select('domain')
-      .eq('domain', hostname)
+      .eq('domain', normalizedHostname)
       .eq('is_verified', true)
       .eq('is_active', true)
       .maybeSingle();
