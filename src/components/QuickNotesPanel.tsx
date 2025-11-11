@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Plus, Trash2, Clock, CheckCircle2, StickyNote } from "lucide-react";
@@ -24,6 +25,7 @@ interface Note {
 export const QuickNotesPanel = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [reminderNote, setReminderNote] = useState<Note | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -147,18 +149,12 @@ export const QuickNotesPanel = () => {
   };
 
   const showReminderDialog = (note: Note) => {
-    // Create reminder dialog
+    // Play notification sound
     const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSiC0fPTgjMGHm7A7+OZRQ0PVKno7q5aGApCm9/zuWEiByB61+/alEELETi25NZQOS');
-    audio.play().catch(() => {}); // Play notification sound
+    audio.play().catch(() => {});
 
-    toast.warning(note.title, {
-      description: note.content,
-      duration: 10000,
-      action: {
-        label: "Marcar como concluído",
-        onClick: () => handleToggleComplete(note.id, note.is_completed)
-      }
-    });
+    // Show visual popup
+    setReminderNote(note);
   };
 
   const getPendingReminders = () => {
@@ -176,133 +172,165 @@ export const QuickNotesPanel = () => {
   };
 
   return (
-    <Card className="glass">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <StickyNote className="h-5 w-5" />
-            <CardTitle className="text-lg">Anotações Rápidas</CardTitle>
-            {getPendingReminders() > 0 && (
-              <Badge variant="destructive" className="ml-2">
-                {getPendingReminders()} lembrete(s)
-              </Badge>
-            )}
-          </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" variant="outline">
-                <Plus className="h-4 w-4 mr-1" />
-                Nova
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Nova Anotação</DialogTitle>
-                <DialogDescription>Crie uma nota rápida com lembrete opcional</DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label>Título</Label>
-                  <Input
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="Ex: Ligar para cliente"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Conteúdo</Label>
-                  <Textarea
-                    value={formData.content}
-                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                    placeholder="Detalhes da anotação..."
-                    rows={4}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Lembrete (Opcional)</Label>
-                  <Input
-                    type="datetime-local"
-                    value={formData.reminder_date}
-                    onChange={(e) => setFormData({ ...formData, reminder_date: e.target.value })}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancelar
+    <>
+      <AlertDialog open={!!reminderNote} onOpenChange={(open) => !open && setReminderNote(null)}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-primary" />
+              {reminderNote?.title}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-base pt-2">
+              {reminderNote?.content}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => {
+                if (reminderNote) {
+                  handleToggleComplete(reminderNote.id, reminderNote.is_completed);
+                }
+                setReminderNote(null);
+              }}
+              className="gradient-primary"
+            >
+              Marcar como concluído
+            </AlertDialogAction>
+            <AlertDialogAction onClick={() => setReminderNote(null)}>
+              Fechar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Card className="glass">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <StickyNote className="h-5 w-5" />
+              <CardTitle className="text-lg">Anotações Rápidas</CardTitle>
+              {getPendingReminders() > 0 && (
+                <Badge variant="destructive" className="ml-2">
+                  {getPendingReminders()} lembrete(s)
+                </Badge>
+              )}
+            </div>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Nova
                 </Button>
-                <Button onClick={handleAddNote} className="gradient-primary">
-                  Adicionar
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {notes.length === 0 ? (
-          <div className="text-center py-6 text-muted-foreground">
-            <StickyNote className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">Nenhuma anotação ainda</p>
-          </div>
-        ) : (
-          <div className="space-y-2 max-h-80 overflow-y-auto">
-            {notes.map((note) => (
-              <div
-                key={note.id}
-                className={`p-3 rounded-lg border transition-smooth ${
-                  note.is_completed ? 'bg-muted/50 opacity-60' : 'bg-card hover:shadow-md'
-                }`}
-              >
-                <div className="flex items-start gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 mt-0.5"
-                    onClick={() => handleToggleComplete(note.id, note.is_completed)}
-                  >
-                    <CheckCircle2 
-                      className={`h-4 w-4 ${note.is_completed ? 'text-success' : 'text-muted-foreground'}`}
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Nova Anotação</DialogTitle>
+                  <DialogDescription>Crie uma nota rápida com lembrete opcional</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label>Título</Label>
+                    <Input
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      placeholder="Ex: Ligar para cliente"
                     />
-                  </Button>
-                  <div className="flex-1 min-w-0">
-                    <h4 className={`font-medium text-sm ${note.is_completed ? 'line-through' : ''}`}>
-                      {note.title}
-                    </h4>
-                    <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
-                      {note.content}
-                    </p>
-                    {note.reminder_date && (() => {
-                      try {
-                        const date = new Date(note.reminder_date + 'Z');
-                        if (isNaN(date.getTime())) return null;
-                        return (
-                          <div className="flex items-center gap-1 mt-2">
-                            <Clock className="h-3 w-3" />
-                            <span className="text-xs">
-                              {format(date, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                            </span>
-                          </div>
-                        );
-                      } catch {
-                        return null;
-                      }
-                    })()}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => handleDeleteNote(note.id)}
-                  >
-                    <Trash2 className="h-3 w-3 text-destructive" />
-                  </Button>
+                  <div className="grid gap-2">
+                    <Label>Conteúdo</Label>
+                    <Textarea
+                      value={formData.content}
+                      onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                      placeholder="Detalhes da anotação..."
+                      rows={4}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Lembrete (Opcional)</Label>
+                    <Input
+                      type="datetime-local"
+                      value={formData.reminder_date}
+                      onChange={(e) => setFormData({ ...formData, reminder_date: e.target.value })}
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleAddNote} className="gradient-primary">
+                    Adicionar
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </CardHeader>
+        <CardContent>
+          {notes.length === 0 ? (
+            <div className="text-center py-6 text-muted-foreground">
+              <StickyNote className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">Nenhuma anotação ainda</p>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-80 overflow-y-auto">
+              {notes.map((note) => (
+                <div
+                  key={note.id}
+                  className={`p-3 rounded-lg border transition-smooth ${
+                    note.is_completed ? 'bg-muted/50 opacity-60' : 'bg-card hover:shadow-md'
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 mt-0.5"
+                      onClick={() => handleToggleComplete(note.id, note.is_completed)}
+                    >
+                      <CheckCircle2 
+                        className={`h-4 w-4 ${note.is_completed ? 'text-success' : 'text-muted-foreground'}`}
+                      />
+                    </Button>
+                    <div className="flex-1 min-w-0">
+                      <h4 className={`font-medium text-sm ${note.is_completed ? 'line-through' : ''}`}>
+                        {note.title}
+                      </h4>
+                      <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                        {note.content}
+                      </p>
+                      {note.reminder_date && (() => {
+                        try {
+                          const date = new Date(note.reminder_date + 'Z');
+                          if (isNaN(date.getTime())) return null;
+                          return (
+                            <div className="flex items-center gap-1 mt-2">
+                              <Clock className="h-3 w-3" />
+                              <span className="text-xs">
+                                {format(date, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                              </span>
+                            </div>
+                          );
+                        } catch {
+                          return null;
+                        }
+                      })()}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => handleDeleteNote(note.id)}
+                    >
+                      <Trash2 className="h-3 w-3 text-destructive" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </>
   );
 };
