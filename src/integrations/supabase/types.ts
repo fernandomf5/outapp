@@ -3100,6 +3100,7 @@ export type Database = {
           members_area_id: string
           order_index: number
           required_product_id: string | null
+          thumbnail_url: string | null
           title: string
           unlock_after_days: number | null
           updated_at: string
@@ -3117,6 +3118,7 @@ export type Database = {
           members_area_id: string
           order_index?: number
           required_product_id?: string | null
+          thumbnail_url?: string | null
           title: string
           unlock_after_days?: number | null
           updated_at?: string
@@ -3134,6 +3136,7 @@ export type Database = {
           members_area_id?: string
           order_index?: number
           required_product_id?: string | null
+          thumbnail_url?: string | null
           title?: string
           unlock_after_days?: number | null
           updated_at?: string
