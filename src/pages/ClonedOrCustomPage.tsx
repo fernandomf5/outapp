@@ -16,34 +16,53 @@ export default function ClonedOrCustomPage() {
         return;
       }
 
-      // Determinar o domínio para busca
       const hostname = window.location.hostname;
+      const pathSegment = window.location.pathname.split('/')[1];
       
-      // Verifica se é um domínio personalizado (não localhost e não o domínio principal)
-      const isCustomDomain = !hostname.includes('localhost') && 
-                             !hostname.includes('127.0.0.1') &&
-                             hostname !== window.location.host.split(':')[0];
-      
-      if (!isCustomDomain) {
-        // Se não é domínio personalizado, é uma custom page
-        setPageType('custom');
-        return;
-      }
-
-      // Tentar buscar como página clonada
-      const { data: clonedPage, error } = await supabase
-        .from('cloned_pages')
-        .select('id')
-        .eq('slug', slug)
-        .eq('custom_domain', hostname)
+      // Verifica se é um domínio personalizado cadastrado
+      const { data: customDomain } = await supabase
+        .from('user_domains')
+        .select('domain')
+        .eq('domain', hostname)
+        .eq('is_verified', true)
         .eq('is_active', true)
         .maybeSingle();
 
-      if (clonedPage) {
-        setPageType('cloned');
-      } else {
-        setPageType('custom');
+      // Se é um domínio customizado cadastrado, busca pela cloned page
+      if (customDomain) {
+        const { data: clonedPage } = await supabase
+          .from('cloned_pages')
+          .select('id')
+          .eq('slug', slug)
+          .eq('custom_domain', hostname)
+          .eq('is_active', true)
+          .maybeSingle();
+
+        if (clonedPage) {
+          setPageType('cloned');
+          return;
+        }
       }
+
+      // Verifica se é uma página com page path (page1, page2, etc)
+      const pagePathPattern = /^page[1-5]$/;
+      if (pagePathPattern.test(pathSegment)) {
+        const { data: clonedPage } = await supabase
+          .from('cloned_pages')
+          .select('id')
+          .eq('slug', slug)
+          .eq('custom_domain', pathSegment)
+          .eq('is_active', true)
+          .maybeSingle();
+
+        if (clonedPage) {
+          setPageType('cloned');
+          return;
+        }
+      }
+
+      // Se não encontrou página clonada, assume que é custom page
+      setPageType('custom');
     };
 
     detectPageType();

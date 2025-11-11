@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,8 +11,9 @@ import { Loader2 } from "lucide-react";
 
 export default function MembersAreaAuth() {
   const [searchParams] = useSearchParams();
+  const { areaId: areaIdFromUrl } = useParams();
   const navigate = useNavigate();
-  const areaId = searchParams.get("area");
+  const areaId = areaIdFromUrl || searchParams.get("area");
   
   const [loading, setLoading] = useState(false);
   const [loginForm, setLoginForm] = useState({ email: "", accessCode: "" });
@@ -101,7 +102,22 @@ export default function MembersAreaAuth() {
       }));
 
       toast.success("Login realizado com sucesso!");
-      navigate(`/members-area/${areaId}`);
+      
+      // Verifica se está usando domínio customizado
+      const hostname = window.location.hostname;
+      const { data: customDomain } = await supabase
+        .from('user_domains')
+        .select('domain')
+        .eq('domain', hostname)
+        .eq('is_verified', true)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (customDomain) {
+        window.location.href = `/members-area/${areaId}`;
+      } else {
+        navigate(`/members-area/${areaId}`);
+      }
     } catch (error: any) {
       console.error('Login error:', error);
       toast.error("Erro ao fazer login: " + error.message);

@@ -22,25 +22,38 @@ export default function ClonedPage() {
       console.log('Loading cloned page with slug:', slug);
 
       try {
-        // Determinar o domínio/path correto para busca
-        // Se for domínio personalizado, usa o hostname
-        // Se for path do sistema (page1, page2, etc), usa o primeiro segmento do path
         const hostname = window.location.hostname;
         const pathSegment = window.location.pathname.split('/')[1];
         
-        // Verifica se é um domínio personalizado (não localhost e não o domínio principal)
-        const isCustomDomain = !hostname.includes('localhost') && 
-                               !hostname.includes('127.0.0.1') &&
-                               hostname !== window.location.host.split(':')[0] &&
-                               pathSegment !== 'page1' && 
-                               pathSegment !== 'page2' && 
-                               pathSegment !== 'page3' && 
-                               pathSegment !== 'page4' && 
-                               pathSegment !== 'page5';
+        let searchDomain = '';
         
-        const searchDomain = isCustomDomain ? hostname : pathSegment;
+        // Primeiro verifica se é um domínio personalizado cadastrado
+        const { data: customDomain } = await supabase
+          .from('user_domains')
+          .select('domain')
+          .eq('domain', hostname)
+          .eq('is_verified', true)
+          .eq('is_active', true)
+          .maybeSingle();
+
+        if (customDomain) {
+          searchDomain = hostname;
+        } else {
+          // Verifica se é um page path (page1, page2, etc)
+          const pagePathPattern = /^page[1-5]$/;
+          if (pagePathPattern.test(pathSegment)) {
+            searchDomain = pathSegment;
+          }
+        }
         
-        console.log('Search params:', { slug, searchDomain, hostname, pathSegment, isCustomDomain });
+        if (!searchDomain) {
+          console.error('Invalid domain or page path');
+          setError('Domínio não configurado');
+          setLoading(false);
+          return;
+        }
+        
+        console.log('Search params:', { slug, searchDomain, hostname, pathSegment });
 
         // Fetch page data - buscar por slug E custom_domain
         const { data: page, error: pageError } = await supabase

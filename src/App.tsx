@@ -76,9 +76,10 @@ const AppContent = () => {
               <Route path="/blog/:slug" element={<Blog />} />
               <Route path="/calculadora" element={<CalculatorPage />} />
                <Route path="/quiz/:quizId" element={<QuizPage />} />
-                <Route path="/members-area/:areaId" element={<MembersAreaView />} />
-                <Route path="/members-area-auth" element={<MembersAreaAuth />} />
-               <Route path="/briefing/:briefingId" element={<BriefingPublicPage />} />
+          <Route path="/members-area/:areaId" element={<MembersAreaView />} />
+          <Route path="/members-area-auth" element={<MembersAreaAuth />} />
+          <Route path="/members-area-auth/:areaId" element={<MembersAreaAuth />} />
+          <Route path="/briefing/:briefingId" element={<BriefingPublicPage />} />
                
               <Route path="/bot-builder" element={
                 <ProtectedRoute>

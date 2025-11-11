@@ -43,11 +43,26 @@ export default function MembersAreaView() {
   useEffect(() => {
     const load = async () => {
       try {
+        const hostname = window.location.hostname;
+        
         // Verificar sessão do membro
         const sessionData = localStorage.getItem(`member_session_${areaId}`);
         if (!sessionData) {
-          // Redirecionar para página de autenticação
-          navigate(`/members-area-auth?area=${areaId}`);
+          // Verifica se está usando domínio customizado
+          const { data: customDomain } = await supabase
+            .from('user_domains')
+            .select('domain')
+            .eq('domain', hostname)
+            .eq('is_verified', true)
+            .eq('is_active', true)
+            .maybeSingle();
+
+          if (customDomain) {
+            // Redireciona mantendo o domínio customizado
+            window.location.href = `/members-area-auth?area=${areaId}`;
+          } else {
+            navigate(`/members-area-auth?area=${areaId}`);
+          }
           return;
         }
 
@@ -89,9 +104,25 @@ export default function MembersAreaView() {
     load();
   }, [areaId, navigate]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const hostname = window.location.hostname;
+    
+    // Verifica se está usando domínio customizado
+    const { data: customDomain } = await supabase
+      .from('user_domains')
+      .select('domain')
+      .eq('domain', hostname)
+      .eq('is_verified', true)
+      .eq('is_active', true)
+      .maybeSingle();
+
     localStorage.removeItem(`member_session_${areaId}`);
-    navigate(`/members-area-auth?area=${areaId}`);
+    
+    if (customDomain) {
+      window.location.href = `/members-area-auth?area=${areaId}`;
+    } else {
+      navigate(`/members-area-auth?area=${areaId}`);
+    }
   };
 
   if (loading) {

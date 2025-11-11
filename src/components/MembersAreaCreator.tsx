@@ -363,7 +363,18 @@ export function MembersAreaCreator() {
                       variant="outline" 
                       size="sm"
                       onClick={() => {
-                        const link = `${window.location.origin}/members-area/${area.id}`;
+                        const customDomain = (area as any).custom_domain;
+                        const slug = (area as any).slug || area.id;
+                        
+                        let link;
+                        if (customDomain && customDomain.includes('.')) {
+                          // Domínio customizado
+                          link = `https://${customDomain}/${slug}`;
+                        } else {
+                          // Domínio padrão
+                          link = `${window.location.origin}/members-area/${area.id}`;
+                        }
+                        
                         navigator.clipboard.writeText(link);
                         toast.success("Link copiado!");
                       }}
@@ -374,7 +385,16 @@ export function MembersAreaCreator() {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => window.open(`/members-area/${area.id}`, '_blank')}
+                      onClick={() => {
+                        const customDomain = (area as any).custom_domain;
+                        const slug = (area as any).slug || area.id;
+                        
+                        if (customDomain && customDomain.includes('.')) {
+                          window.open(`https://${customDomain}/${slug}`, '_blank');
+                        } else {
+                          window.open(`/members-area/${area.id}`, '_blank');
+                        }
+                      }}
                     >
                       Visualizar
                     </Button>
