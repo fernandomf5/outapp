@@ -34,6 +34,7 @@ interface TaskBlock {
   name: string;
   color: string;
   order_index: number;
+  client_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -237,6 +238,7 @@ export const TaskOrganizerPanel = () => {
   const [blockForm, setBlockForm] = useState({
     name: "",
     color: "#6366f1",
+    client_id: "",
   });
 
   const sensors = useSensors(
@@ -421,6 +423,7 @@ export const TaskOrganizerPanel = () => {
           .update({
             name: blockForm.name,
             color: blockForm.color,
+            client_id: blockForm.client_id || null,
           })
           .eq("id", editingBlock.id);
 
@@ -431,6 +434,7 @@ export const TaskOrganizerPanel = () => {
           user_id: user.id,
           name: blockForm.name,
           color: blockForm.color,
+          client_id: blockForm.client_id || null,
           order_index: blocks.length,
         });
 
@@ -440,7 +444,7 @@ export const TaskOrganizerPanel = () => {
 
       setIsBlockDialogOpen(false);
       setEditingBlock(null);
-      setBlockForm({ name: "", color: "#6366f1" });
+      setBlockForm({ name: "", color: "#6366f1", client_id: "" });
       loadData();
     } catch (error: any) {
       toast.error("Erro ao salvar bloco: " + error.message);
@@ -531,6 +535,7 @@ export const TaskOrganizerPanel = () => {
     setBlockForm({
       name: block.name,
       color: block.color,
+      client_id: block.client_id || "",
     });
     setIsBlockDialogOpen(true);
   };
@@ -559,12 +564,18 @@ export const TaskOrganizerPanel = () => {
     );
   }
 
-  // Filter tasks by selected client
+  // Filter tasks and blocks by selected client
   const filteredTasks = selectedClientFilter === "all" 
     ? tasks 
     : selectedClientFilter === "none"
     ? tasks.filter(task => !task.client_id)
     : tasks.filter(task => task.client_id === selectedClientFilter);
+
+  const filteredBlocks = selectedClientFilter === "all"
+    ? blocks
+    : selectedClientFilter === "none"
+    ? blocks.filter(block => !block.client_id)
+    : blocks.filter(block => block.client_id === selectedClientFilter || !block.client_id);
 
   const tasksByBlock = filteredTasks.reduce((acc, task) => {
     if (!acc[task.block_id || '']) {
@@ -601,7 +612,7 @@ export const TaskOrganizerPanel = () => {
             <DialogTrigger asChild>
               <Button variant="outline" onClick={() => {
                 setEditingBlock(null);
-                setBlockForm({ name: "", color: "#6366f1" });
+                setBlockForm({ name: "", color: "#6366f1", client_id: selectedClientFilter !== "all" ? selectedClientFilter : "" });
               }}>
                 <Plus className="mr-2 h-4 w-4" />
                 Novo Bloco
@@ -623,6 +634,22 @@ export const TaskOrganizerPanel = () => {
                     onChange={(e) => setBlockForm({ ...blockForm, name: e.target.value })}
                     placeholder="Ex: Em Revisão"
                   />
+                </div>
+                <div>
+                  <Label htmlFor="blockClient">Cliente</Label>
+                  <Select value={blockForm.client_id || "__none__"} onValueChange={(value) => setBlockForm({ ...blockForm, client_id: value === "__none__" ? "" : value })}>
+                    <SelectTrigger id="blockClient">
+                      <SelectValue placeholder="Selecione um cliente (opcional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Sem Cliente (Global)</SelectItem>
+                      {clients.map(client => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="blockColor">Cor</Label>
@@ -825,8 +852,8 @@ export const TaskOrganizerPanel = () => {
         onDragEnd={handleDragEnd}
       >
         <div className="flex gap-4 overflow-x-auto pb-4">
-          <SortableContext items={blocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
-            {blocks.map((block) => (
+          <SortableContext items={filteredBlocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
+            {filteredBlocks.map((block) => (
               <DroppableBlock
                 key={block.id}
                 block={block}
@@ -839,14 +866,16 @@ export const TaskOrganizerPanel = () => {
             ))}
           </SortableContext>
           
-          {blocks.length === 0 && (
+          {filteredBlocks.length === 0 && (
             <Card className="w-80">
               <CardContent className="flex items-center justify-center h-64">
                 <div className="text-center">
-                  <p className="text-muted-foreground mb-4">Nenhum bloco criado ainda</p>
+                  <p className="text-muted-foreground mb-4">
+                    {selectedClientFilter === "all" ? "Nenhum bloco criado ainda" : "Nenhum bloco para este cliente"}
+                  </p>
                   <Button onClick={() => setIsBlockDialogOpen(true)}>
                     <Plus className="mr-2 h-4 w-4" />
-                    Criar Primeiro Bloco
+                    Criar Bloco
                   </Button>
                 </div>
               </CardContent>

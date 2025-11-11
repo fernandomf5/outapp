@@ -3765,6 +3765,7 @@ export type Database = {
       }
       task_blocks: {
         Row: {
+          client_id: string | null
           color: string
           created_at: string
           id: string
@@ -3774,6 +3775,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          client_id?: string | null
           color?: string
           created_at?: string
           id?: string
@@ -3783,6 +3785,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          client_id?: string | null
           color?: string
           created_at?: string
           id?: string
@@ -3791,7 +3794,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "task_blocks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tasks: {
         Row: {
