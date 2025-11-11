@@ -82,6 +82,8 @@ export function MembersAreaCreator() {
   const [isModuleEditorOpen, setIsModuleEditorOpen] = useState(false);
   const [editingModule, setEditingModule] = useState<Module | null>(null);
   const [selectedModuleForContents, setSelectedModuleForContents] = useState<Module | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [editedArea, setEditedArea] = useState<MembersArea | null>(null);
 
   useEffect(() => {
     loadMembersAreas();
@@ -126,6 +128,8 @@ export function MembersAreaCreator() {
     if (selectedArea) {
       loadModules(selectedArea.id);
       loadProducts(selectedArea.id);
+      setEditedArea(selectedArea);
+      setHasUnsavedChanges(false);
     }
   }, [selectedArea]);
 
@@ -399,6 +403,30 @@ export function MembersAreaCreator() {
               </p>
             </div>
             <div className="flex gap-2">
+              {hasUnsavedChanges && (
+                <Button 
+                  className="gradient-primary"
+                  onClick={async () => {
+                    if (!editedArea) return;
+                    const { error } = await supabase
+                      .from('members_areas')
+                      .update({
+                        banner_url: editedArea.banner_url,
+                        logo_url: editedArea.logo_url,
+                        custom_domain: editedArea.custom_domain,
+                      } as any)
+                      .eq('id', editedArea.id);
+                    if (!error) {
+                      toast.success('Alterações salvas!');
+                      setSelectedArea(editedArea);
+                      setHasUnsavedChanges(false);
+                      loadMembersAreas();
+                    }
+                  }}
+                >
+                  Salvar
+                </Button>
+              )}
               <Button 
                 variant={selectedArea.is_active ? "outline" : "default"}
                 className={!selectedArea.is_active ? "gradient-primary" : ""}
@@ -680,16 +708,10 @@ export function MembersAreaCreator() {
                   <div className="grid gap-2">
                     <Label>Banner</Label>
                     <ImageUpload
-                      currentImage={selectedArea.banner_url || ''}
-                      onImageSelect={async (url) => {
-                        const { error } = await supabase
-                          .from('members_areas')
-                          .update({ banner_url: url } as any)
-                          .eq('id', selectedArea.id);
-                        if (!error) {
-                          toast.success('Banner atualizado!');
-                          loadMembersAreas();
-                        }
+                      currentImage={editedArea?.banner_url || selectedArea.banner_url || ''}
+                      onImageSelect={(url) => {
+                        setEditedArea({...selectedArea, banner_url: url});
+                        setHasUnsavedChanges(true);
                       }}
                       bucketName="members-content"
                       label="Banner"
@@ -698,16 +720,10 @@ export function MembersAreaCreator() {
                   <div className="grid gap-2">
                     <Label>Logo</Label>
                     <ImageUpload
-                      currentImage={selectedArea.logo_url || ''}
-                      onImageSelect={async (url) => {
-                        const { error } = await supabase
-                          .from('members_areas')
-                          .update({ logo_url: url } as any)
-                          .eq('id', selectedArea.id);
-                        if (!error) {
-                          toast.success('Logo atualizado!');
-                          loadMembersAreas();
-                        }
+                      currentImage={editedArea?.logo_url || selectedArea.logo_url || ''}
+                      onImageSelect={(url) => {
+                        setEditedArea({...selectedArea, logo_url: url});
+                        setHasUnsavedChanges(true);
                       }}
                       bucketName="members-content"
                       label="Logo"
@@ -720,17 +736,10 @@ export function MembersAreaCreator() {
                   <div className="grid gap-2">
                     <Label>Selecione um domínio</Label>
                     <Select 
-                      value={selectedArea.custom_domain || 'none'}
-                      onValueChange={async (value) => {
-                        const { error } = await supabase
-                          .from('members_areas')
-                          .update({ custom_domain: value === 'none' ? null : value } as any)
-                          .eq('id', selectedArea.id);
-                        if (!error) {
-                          toast.success('Domínio atualizado!');
-                          loadMembersAreas();
-                          setSelectedArea({...selectedArea, custom_domain: value === 'none' ? null : value});
-                        }
+                      value={editedArea?.custom_domain || selectedArea.custom_domain || 'none'}
+                      onValueChange={(value) => {
+                        setEditedArea({...selectedArea, custom_domain: value === 'none' ? undefined : value});
+                        setHasUnsavedChanges(true);
                       }}
                     >
                       <SelectTrigger>
