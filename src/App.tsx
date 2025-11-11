@@ -35,7 +35,6 @@ import CalculatorPage from "./pages/CalculatorPage";
 import QuizPage from "./pages/QuizPage";
 import BriefingPublicPage from "./pages/BriefingPublicPage";
 import CustomPage from "./pages/CustomPage";
-import SitePage from "./pages/SitePage";
 import MembersAreaView from "./pages/MembersAreaView";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
@@ -76,8 +75,7 @@ const AppContent = () => {
               <Route path="/blog/:slug" element={<Blog />} />
               <Route path="/calculadora" element={<CalculatorPage />} />
                <Route path="/quiz/:quizId" element={<QuizPage />} />
-               <Route path="/site/:slug" element={<SitePage />} />
-               <Route path="/members/:areaId" element={<MembersAreaView />} />
+                <Route path="/members/:areaId" element={<MembersAreaView />} />
                <Route path="/briefing/:briefingId" element={<BriefingPublicPage />} />
                
               <Route path="/bot-builder" element={

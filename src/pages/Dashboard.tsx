@@ -47,7 +47,6 @@ import { TaskOrganizerPanel } from "@/components/TaskOrganizerPanel";
 import { PopupCreatorPanel } from "@/components/PopupCreatorPanel";
 import { AdSpyPanel } from "@/components/AdSpyPanel";
 import { QuizCreatorPanel } from "@/components/QuizCreatorPanel";
-import { WebsiteBuilder } from "@/components/WebsiteBuilder";
 import { BriefingResponsesPanel } from "@/components/BriefingResponsesPanel";
 import { BriefingCreatorPanel } from "@/components/BriefingCreatorPanel";
 import { MembersAreaCreator } from "@/components/MembersAreaCreator";
@@ -1334,15 +1333,7 @@ const Dashboard = () => {
               </ErrorBoundary>
             </FeatureGate>
           </TabsContent>
-
-          <TabsContent value="criador-sites">
-            <FeatureGate featureKey="website_builder">
-              <ErrorBoundary>
-                <WebsiteBuilder />
-              </ErrorBoundary>
-            </FeatureGate>
-          </TabsContent>
-              
+               
           <TabsContent value="briefing-responses">
             <FeatureGate featureKey="briefing_creator">
               <BriefingResponsesPanel />
