@@ -141,7 +141,7 @@ export const LandingHeader = () => {
       <div className="container mx-auto px-6 sm:px-8 py-3 sm:py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2 cursor-pointer">
             {currentLogo() ? (
               <img 
                 src={currentLogo()} 
@@ -158,7 +158,7 @@ export const LandingHeader = () => {
                 </span>
               </>
             )}
-          </div>
+          </Link>
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-6">
             <a href="/" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
