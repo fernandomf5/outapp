@@ -115,14 +115,14 @@ export default function BriefingPublicPage() {
   };
 
   const renderField = (field: any) => {
-    const value = responses[field.id] || '';
+    const value = responses[field.label] || '';
 
     switch (field.type) {
       case 'text':
         return (
           <Input
             value={value}
-            onChange={(e) => setResponses({ ...responses, [field.id]: e.target.value })}
+            onChange={(e) => setResponses({ ...responses, [field.label]: e.target.value })}
             placeholder={field.placeholder}
             required={field.required}
           />
@@ -131,7 +131,7 @@ export default function BriefingPublicPage() {
         return (
           <Textarea
             value={value}
-            onChange={(e) => setResponses({ ...responses, [field.id]: e.target.value })}
+            onChange={(e) => setResponses({ ...responses, [field.label]: e.target.value })}
             placeholder={field.placeholder}
             required={field.required}
             rows={4}
@@ -142,7 +142,7 @@ export default function BriefingPublicPage() {
           <Input
             type="email"
             value={value}
-            onChange={(e) => setResponses({ ...responses, [field.id]: e.target.value })}
+            onChange={(e) => setResponses({ ...responses, [field.label]: e.target.value })}
             placeholder={field.placeholder}
             required={field.required}
           />
@@ -152,7 +152,7 @@ export default function BriefingPublicPage() {
           <Input
             type="tel"
             value={value}
-            onChange={(e) => setResponses({ ...responses, [field.id]: e.target.value })}
+            onChange={(e) => setResponses({ ...responses, [field.label]: e.target.value })}
             placeholder={field.placeholder}
             required={field.required}
           />
@@ -162,7 +162,7 @@ export default function BriefingPublicPage() {
           <Input
             type="number"
             value={value}
-            onChange={(e) => setResponses({ ...responses, [field.id]: e.target.value })}
+            onChange={(e) => setResponses({ ...responses, [field.label]: e.target.value })}
             placeholder={field.placeholder}
             required={field.required}
           />
@@ -172,7 +172,7 @@ export default function BriefingPublicPage() {
           <Input
             type="date"
             value={value}
-            onChange={(e) => setResponses({ ...responses, [field.id]: e.target.value })}
+            onChange={(e) => setResponses({ ...responses, [field.label]: e.target.value })}
             required={field.required}
           />
         );
@@ -181,7 +181,7 @@ export default function BriefingPublicPage() {
           <Input
             type="time"
             value={value}
-            onChange={(e) => setResponses({ ...responses, [field.id]: e.target.value })}
+            onChange={(e) => setResponses({ ...responses, [field.label]: e.target.value })}
             required={field.required}
           />
         );
@@ -190,7 +190,7 @@ export default function BriefingPublicPage() {
           <Input
             type="url"
             value={value}
-            onChange={(e) => setResponses({ ...responses, [field.id]: e.target.value })}
+            onChange={(e) => setResponses({ ...responses, [field.label]: e.target.value })}
             placeholder={field.placeholder || "https://"}
             required={field.required}
           />
@@ -200,7 +200,7 @@ export default function BriefingPublicPage() {
           <div className="flex items-center space-x-2">
             <Checkbox
               checked={value === true}
-              onCheckedChange={(checked) => setResponses({ ...responses, [field.id]: checked })}
+              onCheckedChange={(checked) => setResponses({ ...responses, [field.label]: checked })}
               required={field.required}
             />
             <span className="text-sm">{field.label}</span>
@@ -210,7 +210,7 @@ export default function BriefingPublicPage() {
         return (
           <Select
             value={value}
-            onValueChange={(val) => setResponses({ ...responses, [field.id]: val })}
+            onValueChange={(val) => setResponses({ ...responses, [field.label]: val })}
             required={field.required}
           >
             <SelectTrigger>
@@ -229,7 +229,7 @@ export default function BriefingPublicPage() {
         return (
           <RadioGroup
             value={value}
-            onValueChange={(val) => setResponses({ ...responses, [field.id]: val })}
+            onValueChange={(val) => setResponses({ ...responses, [field.label]: val })}
             required={field.required}
           >
             {field.options?.map((option: string, idx: number) => (
@@ -279,7 +279,7 @@ export default function BriefingPublicPage() {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  onClick={() => handleRemoveFile(field.id)}
+                  onClick={() => handleRemoveFile(field.label)}
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -291,14 +291,14 @@ export default function BriefingPublicPage() {
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      handleFileUpload(field.id, file);
+                      handleFileUpload(field.label, file);
                     }
                   }}
-                  disabled={uploadingFiles[field.id]}
+                  disabled={uploadingFiles[field.label]}
                   required={field.required}
                   className="cursor-pointer"
                 />
-                {uploadingFiles[field.id] && (
+                {uploadingFiles[field.label] && (
                   <span className="text-sm text-muted-foreground">Enviando...</span>
                 )}
               </div>

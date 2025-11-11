@@ -294,23 +294,45 @@ export function BriefingResponsesPanel() {
                     const isFileUrl = typeof value === 'string' && 
                       (value.startsWith('http') && value.includes('briefing-files'));
                     
+                    const isImage = isFileUrl && 
+                      (value as string).match(/\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i);
+                    
                     return (
-                      <div key={key} className="border-b pb-2 last:border-0">
-                        <div className="font-semibold text-sm mb-1">{key}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {isFileUrl ? (
+                      <div key={key} className="border-b pb-3 last:border-0">
+                        <div className="font-semibold text-sm mb-2">{key}</div>
+                        <div className="text-sm">
+                          {isImage ? (
+                            <div className="space-y-2">
+                              <img 
+                                src={value as string} 
+                                alt={key}
+                                className="max-w-full h-auto rounded-lg border shadow-sm max-h-96 object-contain"
+                              />
+                              <a 
+                                href={value as string} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 text-primary hover:underline text-xs"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                                Abrir imagem em nova aba
+                              </a>
+                            </div>
+                          ) : isFileUrl ? (
                             <a 
                               href={value as string} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-primary hover:underline"
+                              className="inline-flex items-center gap-2 text-primary hover:underline"
                             >
                               <FileText className="h-4 w-4" />
                               Ver arquivo enviado
                               <ExternalLink className="h-3 w-3" />
                             </a>
                           ) : (
-                            typeof value === 'boolean' ? (value ? 'Sim' : 'Não') : value
+                            <span className="text-muted-foreground">
+                              {typeof value === 'boolean' ? (value ? 'Sim' : 'Não') : value}
+                            </span>
                           )}
                         </div>
                       </div>
