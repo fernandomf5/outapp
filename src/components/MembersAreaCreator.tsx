@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Lock, Video, Book, DollarSign, Play, Settings, Plus, Edit, Trash2, Copy, GraduationCap, MessageSquare, Briefcase, Package } from "lucide-react";
+import { Users, Lock, Video, Book, DollarSign, Play, Settings, Plus, Edit, Trash2, Copy, GraduationCap, MessageSquare, Briefcase, Package, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +22,8 @@ import { Badge } from "@/components/ui/badge";
 import { ModuleEditor } from "@/components/members-area/ModuleEditor";
 import { ProductsManager } from "@/components/members-area/ProductsManager";
 import { EnrollmentsManager } from "@/components/members-area/EnrollmentsManager";
+import { AccessRequestsManager } from "@/components/members-area/AccessRequestsManager";
+import { ModuleContentsManager } from "@/components/members-area/ModuleContentsManager";
 
 interface MembersArea {
   id: string;
@@ -50,14 +52,12 @@ interface Module {
   members_area_id: string;
   title: string;
   description?: string;
-  thumbnail_url?: string;
   video_url?: string;
   content_type?: string;
   content_data?: string;
   category?: string;
-  is_free: boolean;
-  price?: number;
   is_active: boolean;
+  is_locked?: boolean;
   order_index?: number;
 }
 
@@ -84,6 +84,7 @@ export function MembersAreaCreator() {
   const [selectedDomain, setSelectedDomain] = useState<string>("");
   const [isModuleEditorOpen, setIsModuleEditorOpen] = useState(false);
   const [editingModule, setEditingModule] = useState<Module | null>(null);
+  const [selectedModuleForContents, setSelectedModuleForContents] = useState<Module | null>(null);
 
   useEffect(() => {
     loadMembersAreas();
@@ -434,6 +435,10 @@ export function MembersAreaCreator() {
                 <Package className="h-4 w-4 mr-2" />
                 Produtos
               </TabsTrigger>
+              <TabsTrigger value="access">
+                <Lock className="h-4 w-4 mr-2" />
+                Gerenciar Acessos
+              </TabsTrigger>
               <TabsTrigger value="students">
                 <Users className="h-4 w-4 mr-2" />
                 Alunos
@@ -472,30 +477,32 @@ export function MembersAreaCreator() {
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">
                   {modules.map((module) => (
-                    <Card key={module.id} className="p-4 hover:shadow-lg transition-smooth">
+                  <Card key={module.id} className="p-4 hover:shadow-lg transition-smooth">
                       <div className="flex items-start gap-4">
-                        {module.thumbnail_url ? (
-                          <img src={module.thumbnail_url} alt="" className="w-20 h-20 object-cover rounded" />
-                        ) : (
-                          <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/5 rounded flex items-center justify-center">
-                            <Play className="w-8 h-8 text-primary" />
-                          </div>
-                        )}
+                        <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/5 rounded flex items-center justify-center">
+                          <Play className="w-8 h-8 text-primary" />
+                        </div>
                          <div className="flex-1">
                           <h5 className="font-semibold mb-1">{module.title}</h5>
                           <p className="text-sm text-muted-foreground line-clamp-2">
                             {module.description}
                           </p>
                           <div className="flex gap-2 mt-2 flex-wrap">
-                            {module.is_free && <Badge variant="secondary">Grátis</Badge>}
-                            {module.price && (
-                              <Badge variant="outline">R$ {module.price.toFixed(2)}</Badge>
-                            )}
+                            {module.is_locked && <Badge variant="secondary">Bloqueado</Badge>}
                             <Badge variant={module.is_active ? 'default' : 'secondary'}>
                               {module.is_active ? 'Publicado' : 'Rascunho'}
                             </Badge>
+                            {module.category && <Badge variant="outline">{module.category}</Badge>}
                           </div>
                           <div className="flex gap-2 mt-3">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => setSelectedModuleForContents(module)}
+                            >
+                              <List className="h-3 w-3 mr-1" />
+                              Gerenciar Conteúdos
+                            </Button>
                             <Button 
                               size="sm" 
                               variant="outline"
@@ -538,6 +545,10 @@ export function MembersAreaCreator() {
                 onUpdate={handleSaveProducts}
                 availableModules={modules.map(m => ({ id: m.id, title: m.title }))}
               />
+            </TabsContent>
+
+            <TabsContent value="access" className="pt-6">
+              <AccessRequestsManager areaId={selectedArea.id} />
             </TabsContent>
 
             <TabsContent value="students" className="pt-6">
@@ -767,6 +778,20 @@ export function MembersAreaCreator() {
           }
         }}
       />
+
+      {selectedModuleForContents && (
+        <Dialog open={!!selectedModuleForContents} onOpenChange={() => setSelectedModuleForContents(null)}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Gerenciar Conteúdos</DialogTitle>
+            </DialogHeader>
+            <ModuleContentsManager 
+              moduleId={selectedModuleForContents.id}
+              moduleName={selectedModuleForContents.title}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
