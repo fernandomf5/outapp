@@ -770,7 +770,7 @@ export function MembersAreaCreator() {
                         value={editedArea?.slug || selectedArea.slug || ''}
                         onChange={(e) => {
                           const slug = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
-                          setEditedArea({...selectedArea, slug});
+                          setEditedArea({...(editedArea || selectedArea), slug});
                           setHasUnsavedChanges(true);
                         }}
                         placeholder="minha-area"
