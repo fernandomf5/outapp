@@ -2677,9 +2677,40 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_businesses: {
+        Row: {
+          business_type: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          business_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          business_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       financial_transactions: {
         Row: {
           amount: number
+          business_id: string | null
           business_name: string | null
           business_type: string | null
           category: string
@@ -2694,6 +2725,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          business_id?: string | null
           business_name?: string | null
           business_type?: string | null
           category: string
@@ -2708,6 +2740,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          business_id?: string | null
           business_name?: string | null
           business_type?: string | null
           category?: string
@@ -2720,7 +2753,15 @@ export type Database = {
           type?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "financial_transactions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       funnels: {
         Row: {

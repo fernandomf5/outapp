@@ -28,6 +28,14 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
+interface Business {
+  id: string;
+  name: string;
+  business_type: 'personal' | 'company';
+  description?: string;
+  created_at: string;
+}
+
 interface Transaction {
   id: string;
   type: 'income' | 'expense';
@@ -38,20 +46,26 @@ interface Transaction {
   payment_method: string;
   status: 'paid' | 'pending' | 'cancelled';
   created_at: string;
-  business_name?: string;
-  business_type?: 'personal' | 'company';
+  business_id?: string;
 }
 
 export const FinancialManagementPanel = () => {
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
+  const [selectedBusinessesForSum, setSelectedBusinessesForSum] = useState<string[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all');
   const [dateFilter, setDateFilter] = useState<'today' | 'week' | 'month' | 'year' | 'all'>('month');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [selectedBusiness, setSelectedBusiness] = useState<string>('all');
-  const [selectedBusinesses, setSelectedBusinesses] = useState<string[]>([]);
-  const [businesses, setBusinesses] = useState<string[]>([]);
+  const [isBusinessDialogOpen, setIsBusinessDialogOpen] = useState(false);
   const [consolidationMode, setConsolidationMode] = useState(false);
+
+  const [businessFormData, setBusinessFormData] = useState({
+    name: '',
+    business_type: 'personal' as 'personal' | 'company',
+    description: ''
+  });
   
   const [formData, setFormData] = useState({
     type: 'income' as 'income' | 'expense',
@@ -60,45 +74,126 @@ export const FinancialManagementPanel = () => {
     amount: '',
     date: format(new Date(), 'yyyy-MM-dd'),
     payment_method: 'dinheiro',
-    status: 'paid' as 'paid' | 'pending' | 'cancelled',
-    business_name: '',
-    business_type: 'personal' as 'personal' | 'company'
+    status: 'paid' as 'paid' | 'pending' | 'cancelled'
   });
 
   useEffect(() => {
-    loadTransactions();
+    loadBusinesses();
   }, []);
 
   useEffect(() => {
-    // Extrair lista única de negócios
-    const uniqueBusinesses = Array.from(
-      new Set(transactions.map(t => t.business_name).filter(Boolean))
-    ) as string[];
-    setBusinesses(uniqueBusinesses);
-  }, [transactions]);
+    if (selectedBusiness) {
+      loadTransactions();
+    }
+  }, [selectedBusiness]);
 
-  const loadTransactions = async () => {
+  const loadBusinesses = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data, error } = await supabase
-        .from('financial_transactions')
+        .from('financial_businesses')
         .select('*')
         .eq('user_id', user.id)
-        .order('date', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setTransactions(data as any || []);
+      setBusinesses((data || []) as Business[]);
     } catch (error: any) {
-      toast.error("Erro ao carregar transações");
+      toast.error("Erro ao carregar negócios");
     } finally {
       setLoading(false);
     }
   };
 
+  const loadTransactions = async () => {
+    try {
+      if (!selectedBusiness && !consolidationMode) return;
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      let query = supabase
+        .from('financial_transactions')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (consolidationMode && selectedBusinessesForSum.length > 0) {
+        query = query.in('business_id', selectedBusinessesForSum);
+      } else if (selectedBusiness) {
+        query = query.eq('business_id', selectedBusiness.id);
+      }
+
+      const { data, error } = await query.order('date', { ascending: false });
+
+      if (error) throw error;
+      setTransactions((data || []) as Transaction[]);
+    } catch (error: any) {
+      toast.error("Erro ao carregar transações");
+    }
+  };
+
+  const handleAddBusiness = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      if (!businessFormData.name.trim()) {
+        toast.error("Nome do negócio é obrigatório");
+        return;
+      }
+
+      const { error } = await supabase
+        .from('financial_businesses')
+        .insert([{
+          user_id: user.id,
+          ...businessFormData
+        }]);
+
+      if (error) throw error;
+
+      toast.success("Negócio adicionado com sucesso!");
+      setIsBusinessDialogOpen(false);
+      loadBusinesses();
+      
+      setBusinessFormData({
+        name: '',
+        business_type: 'personal',
+        description: ''
+      });
+    } catch (error: any) {
+      toast.error("Erro ao adicionar negócio");
+    }
+  };
+
+  const handleDeleteBusiness = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('financial_businesses')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success("Negócio excluído!");
+      if (selectedBusiness?.id === id) {
+        setSelectedBusiness(null);
+        setTransactions([]);
+      }
+      loadBusinesses();
+    } catch (error: any) {
+      toast.error("Erro ao excluir negócio");
+    }
+  };
+
   const handleAddTransaction = async () => {
     try {
+      if (!selectedBusiness) {
+        toast.error("Selecione um negócio primeiro");
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -106,10 +201,9 @@ export const FinancialManagementPanel = () => {
         .from('financial_transactions')
         .insert([{
           user_id: user.id,
+          business_id: selectedBusiness.id,
           ...formData,
-          amount: parseFloat(formData.amount),
-          business_name: formData.business_name || null,
-          business_type: formData.business_type
+          amount: parseFloat(formData.amount)
         }]);
 
       if (error) throw error;
@@ -118,7 +212,6 @@ export const FinancialManagementPanel = () => {
       setIsAddDialogOpen(false);
       loadTransactions();
       
-      // Reset form
       setFormData({
         type: 'income',
         category: '',
@@ -126,9 +219,7 @@ export const FinancialManagementPanel = () => {
         amount: '',
         date: format(new Date(), 'yyyy-MM-dd'),
         payment_method: 'dinheiro',
-        status: 'paid',
-        business_name: '',
-        business_type: 'personal'
+        status: 'paid'
       });
     } catch (error: any) {
       toast.error("Erro ao adicionar transação");
@@ -151,16 +242,8 @@ export const FinancialManagementPanel = () => {
     }
   };
 
-  // Filtrar transações
   const filteredTransactions = transactions.filter(t => {
     if (filter !== 'all' && t.type !== filter) return false;
-    
-    // Filtro de negócio
-    if (consolidationMode) {
-      if (selectedBusinesses.length > 0 && !selectedBusinesses.includes(t.business_name || '')) return false;
-    } else {
-      if (selectedBusiness !== 'all' && t.business_name !== selectedBusiness) return false;
-    }
     
     const transactionDate = new Date(t.date);
     const now = new Date();
@@ -195,13 +278,19 @@ export const FinancialManagementPanel = () => {
     .filter(t => t.status === 'pending')
     .reduce((sum, t) => sum + (t.type === 'income' ? t.amount : -t.amount), 0);
 
-  const toggleBusinessSelection = (business: string) => {
-    setSelectedBusinesses(prev => 
-      prev.includes(business) 
-        ? prev.filter(b => b !== business)
-        : [...prev, business]
+  const toggleBusinessSelection = (businessId: string) => {
+    setSelectedBusinessesForSum(prev => 
+      prev.includes(businessId) 
+        ? prev.filter(b => b !== businessId)
+        : [...prev, businessId]
     );
   };
+
+  useEffect(() => {
+    if (consolidationMode) {
+      loadTransactions();
+    }
+  }, [selectedBusinessesForSum]);
 
   return (
     <div className="space-y-6">
@@ -211,59 +300,30 @@ export const FinancialManagementPanel = () => {
           <p className="text-muted-foreground">Controle completo das suas finanças por negócio</p>
         </div>
         <div className="flex items-center gap-3">
-          {businesses.length > 0 && !consolidationMode && (
-            <Select value={selectedBusiness} onValueChange={setSelectedBusiness}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Filtrar por negócio" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Negócios</SelectItem>
-                {businesses.map((business) => (
-                  <SelectItem key={business} value={business}>{business}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-          {businesses.length > 1 && (
-            <Button
-              variant={consolidationMode ? "default" : "outline"}
-              onClick={() => {
-                setConsolidationMode(!consolidationMode);
-                setSelectedBusinesses([]);
-              }}
-            >
-              {consolidationMode ? "Modo Simples" : "Consolidar Negócios"}
-            </Button>
-          )}
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gradient-primary shadow-glow">
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Transação
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Adicionar Transação</DialogTitle>
-              <DialogDescription>Registre uma nova receita ou despesa</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+          <Dialog open={isBusinessDialogOpen} onOpenChange={setIsBusinessDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Plus className="mr-2 h-4 w-4" />
+                Novo Negócio
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Adicionar Negócio</DialogTitle>
+                <DialogDescription>Crie um novo negócio para gerenciar suas finanças</DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label>Tipo</Label>
-                  <Select value={formData.type} onValueChange={(value: 'income' | 'expense') => setFormData({...formData, type: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="income">Receita</SelectItem>
-                      <SelectItem value="expense">Despesa</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label>Nome do Negócio/Cliente *</Label>
+                  <Input 
+                    value={businessFormData.name}
+                    onChange={(e) => setBusinessFormData({...businessFormData, name: e.target.value})}
+                    placeholder="Ex: Loja ABC, Cliente João..."
+                  />
                 </div>
                 <div className="grid gap-2">
-                  <Label>Tipo de Negócio</Label>
-                  <Select value={formData.business_type} onValueChange={(value: 'personal' | 'company') => setFormData({...formData, business_type: value})}>
+                  <Label>Tipo</Label>
+                  <Select value={businessFormData.business_type} onValueChange={(value: 'personal' | 'company') => setBusinessFormData({...businessFormData, business_type: value})}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -273,109 +333,115 @@ export const FinancialManagementPanel = () => {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="grid gap-2">
+                  <Label>Descrição (opcional)</Label>
+                  <Input 
+                    value={businessFormData.description}
+                    onChange={(e) => setBusinessFormData({...businessFormData, description: e.target.value})}
+                    placeholder="Descrição adicional..."
+                  />
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label>Nome do Negócio/Cliente (opcional)</Label>
-                <Input 
-                  value={formData.business_name}
-                  onChange={(e) => setFormData({...formData, business_name: e.target.value})}
-                  placeholder="Ex: Loja ABC, Empresa XYZ..."
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>Categoria</Label>
-                <Input 
-                  value={formData.category}
-                  onChange={(e) => setFormData({...formData, category: e.target.value})}
-                  placeholder="Ex: Vendas, Marketing, Salários..."
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>Descrição</Label>
-                <Input 
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  placeholder="Descreva a transação"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>Valor (R$)</Label>
-                <Input 
-                  type="number"
-                  step="0.01"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                  placeholder="0.00"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>Data</Label>
-                <Input 
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({...formData, date: e.target.value})}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>Método de Pagamento</Label>
-                <Select value={formData.payment_method} onValueChange={(value) => setFormData({...formData, payment_method: value})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                    <SelectItem value="pix">PIX</SelectItem>
-                    <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
-                    <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
-                    <SelectItem value="transferencia">Transferência</SelectItem>
-                    <SelectItem value="boleto">Boleto</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label>Status</Label>
-                <Select value={formData.status} onValueChange={(value: 'paid' | 'pending' | 'cancelled') => setFormData({...formData, status: value})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="paid">Pago</SelectItem>
-                    <SelectItem value="pending">Pendente</SelectItem>
-                    <SelectItem value="cancelled">Cancelado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={handleAddTransaction} className="gradient-primary">
-                Adicionar
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsBusinessDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleAddBusiness} className="gradient-primary">
+                  Adicionar
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          
+          {businesses.length > 1 && (
+            <Button
+              variant={consolidationMode ? "default" : "outline"}
+              onClick={() => {
+                setConsolidationMode(!consolidationMode);
+                setSelectedBusinessesForSum([]);
+                setSelectedBusiness(null);
+                setTransactions([]);
+              }}
+            >
+              {consolidationMode ? "Modo Simples" : "Consolidar Negócios"}
+            </Button>
+          )}
         </div>
       </div>
+
+      {/* Lista de Negócios */}
+      {!consolidationMode && (
+        <Card className="glass">
+          <CardHeader>
+            <CardTitle>Meus Negócios</CardTitle>
+            <CardDescription>Selecione um negócio para ver suas transações</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {businesses.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Nenhum negócio cadastrado. Adicione um negócio para começar.
+              </div>
+            ) : (
+              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                {businesses.map((business) => (
+                  <Card 
+                    key={business.id}
+                    className={`cursor-pointer transition-smooth hover:shadow-glow ${
+                      selectedBusiness?.id === business.id ? 'border-primary shadow-glow' : ''
+                    }`}
+                    onClick={() => setSelectedBusiness(business)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <CardTitle className="text-base">{business.name}</CardTitle>
+                          <Badge variant="outline" className="mt-2">
+                            {business.business_type === 'personal' ? 'Pessoa Física' : 'Pessoa Jurídica'}
+                          </Badge>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteBusiness(business.id);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                      {business.description && (
+                        <p className="text-sm text-muted-foreground mt-2">{business.description}</p>
+                      )}
+                    </CardHeader>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Modo Consolidação */}
       {consolidationMode && businesses.length > 0 && (
         <Card className="glass">
           <CardHeader>
-            <CardTitle>Selecionar Negócios para Consolidar</CardTitle>
-            <CardDescription>Marque os negócios que deseja somar nas métricas</CardDescription>
+            <CardTitle>Consolidar Negócios</CardTitle>
+            <CardDescription>Selecione os negócios que deseja somar nas métricas</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {businesses.map((business) => (
                 <Button
-                  key={business}
-                  variant={selectedBusinesses.includes(business) ? "default" : "outline"}
-                  onClick={() => toggleBusinessSelection(business)}
+                  key={business.id}
+                  variant={selectedBusinessesForSum.includes(business.id) ? "default" : "outline"}
+                  onClick={() => toggleBusinessSelection(business.id)}
                   className="transition-smooth"
                 >
-                  {business}
+                  {business.name}
+                  <Badge variant="outline" className="ml-2">
+                    {business.business_type === 'personal' ? 'PF' : 'PJ'}
+                  </Badge>
                 </Button>
               ))}
             </div>
@@ -383,183 +449,288 @@ export const FinancialManagementPanel = () => {
         </Card>
       )}
 
-      {/* Resumo Financeiro */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="glass hover:shadow-glow transition-smooth">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Saldo Atual</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${balance >= 0 ? 'text-success' : 'text-destructive'}`}>
-              {balance >= 0 ? '+' : ''} R$ {balance.toFixed(2)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {balance >= 0 ? 'Positivo' : 'Negativo'}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="glass hover:shadow-glow transition-smooth">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Receitas</CardTitle>
-            <TrendingUp className="h-4 w-4 text-success" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-success">
-              R$ {totalIncome.toFixed(2)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {filteredTransactions.filter(t => t.type === 'income').length} transações
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="glass hover:shadow-glow transition-smooth">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Despesas</CardTitle>
-            <TrendingDown className="h-4 w-4 text-destructive" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-destructive">
-              R$ {totalExpense.toFixed(2)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {filteredTransactions.filter(t => t.type === 'expense').length} transações
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="glass hover:shadow-glow transition-smooth">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
-            <Calendar className="h-4 w-4 text-warning" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-warning">
-              R$ {pendingAmount.toFixed(2)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {filteredTransactions.filter(t => t.status === 'pending').length} transações
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filtros e Tabela */}
-      <Card className="glass">
-        <CardHeader>
+      {/* Só mostra métricas e transações se tiver um negócio selecionado ou estiver em modo consolidação */}
+      {(selectedBusiness || (consolidationMode && selectedBusinessesForSum.length > 0)) && (
+        <>
           <div className="flex items-center justify-between">
-            <CardTitle>Histórico de Transações</CardTitle>
-            <div className="flex gap-2">
-              <Select value={filter} onValueChange={(value: any) => setFilter(value)}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="income">Receitas</SelectItem>
-                  <SelectItem value="expense">Despesas</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={dateFilter} onValueChange={(value: any) => setDateFilter(value)}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="today">Hoje</SelectItem>
-                  <SelectItem value="week">Esta Semana</SelectItem>
-                  <SelectItem value="month">Este Mês</SelectItem>
-                  <SelectItem value="year">Este Ano</SelectItem>
-                  <SelectItem value="all">Tudo</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button variant="outline" size="icon">
-                <Download className="h-4 w-4" />
-              </Button>
-            </div>
+            <h3 className="text-xl font-semibold">
+              {consolidationMode 
+                ? `Consolidado (${selectedBusinessesForSum.length} negócios)` 
+                : selectedBusiness?.name}
+            </h3>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gradient-primary shadow-glow" disabled={!selectedBusiness}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nova Transação
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Adicionar Transação</DialogTitle>
+                  <DialogDescription>
+                    Transação para: <strong>{selectedBusiness?.name}</strong>
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label>Tipo</Label>
+                    <Select value={formData.type} onValueChange={(value: 'income' | 'expense') => setFormData({...formData, type: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="income">Receita</SelectItem>
+                        <SelectItem value="expense">Despesa</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Categoria</Label>
+                    <Input 
+                      value={formData.category}
+                      onChange={(e) => setFormData({...formData, category: e.target.value})}
+                      placeholder="Ex: Vendas, Marketing, Salários..."
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Descrição</Label>
+                    <Input 
+                      value={formData.description}
+                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      placeholder="Descreva a transação"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Valor (R$)</Label>
+                    <Input 
+                      type="number"
+                      step="0.01"
+                      value={formData.amount}
+                      onChange={(e) => setFormData({...formData, amount: e.target.value})}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Data</Label>
+                    <Input 
+                      type="date"
+                      value={formData.date}
+                      onChange={(e) => setFormData({...formData, date: e.target.value})}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Método de Pagamento</Label>
+                    <Select value={formData.payment_method} onValueChange={(value) => setFormData({...formData, payment_method: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                        <SelectItem value="pix">PIX</SelectItem>
+                        <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
+                        <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
+                        <SelectItem value="transferencia">Transferência</SelectItem>
+                        <SelectItem value="boleto">Boleto</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Status</Label>
+                    <Select value={formData.status} onValueChange={(value: 'paid' | 'pending' | 'cancelled') => setFormData({...formData, status: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="paid">Pago</SelectItem>
+                        <SelectItem value="pending">Pendente</SelectItem>
+                        <SelectItem value="cancelled">Cancelado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleAddTransaction} className="gradient-primary">
+                    Adicionar
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="text-center py-8 text-muted-foreground">Carregando...</div>
-          ) : filteredTransactions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Nenhuma transação encontrada
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Negócio</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead>Método</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Valor</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredTransactions.map((transaction) => (
-                    <TableRow key={transaction.id}>
-                      <TableCell>
-                        {format(new Date(transaction.date), "dd/MM/yyyy", { locale: ptBR })}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'}>
-                          {transaction.type === 'income' ? 'Receita' : 'Despesa'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-1">
-                          <span className="font-medium">{transaction.business_name || 'Sem negócio'}</span>
-                          <Badge variant="outline" className="w-fit text-xs">
-                            {transaction.business_type === 'personal' ? 'PF' : 'PJ'}
-                          </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell>{transaction.category}</TableCell>
-                      <TableCell>{transaction.description}</TableCell>
-                      <TableCell className="capitalize">{transaction.payment_method.replace('_', ' ')}</TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={
-                            transaction.status === 'paid' ? 'default' : 
-                            transaction.status === 'pending' ? 'secondary' : 
-                            'outline'
-                          }
-                        >
-                          {transaction.status === 'paid' ? 'Pago' : 
-                           transaction.status === 'pending' ? 'Pendente' : 
-                           'Cancelado'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className={`text-right font-bold ${
-                        transaction.type === 'income' ? 'text-success' : 'text-destructive'
-                      }`}>
-                        {transaction.type === 'income' ? '+' : '-'} R$ {transaction.amount.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => handleDeleteTransaction(transaction.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+
+          {/* Resumo Financeiro */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card className="glass hover:shadow-glow transition-smooth">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Saldo Atual</CardTitle>
+                <Wallet className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className={`text-2xl font-bold ${balance >= 0 ? 'text-success' : 'text-destructive'}`}>
+                  {balance >= 0 ? '+' : ''} R$ {balance.toFixed(2)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {balance >= 0 ? 'Positivo' : 'Negativo'}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="glass hover:shadow-glow transition-smooth">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Receitas</CardTitle>
+                <TrendingUp className="h-4 w-4 text-success" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-success">
+                  R$ {totalIncome.toFixed(2)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {filteredTransactions.filter(t => t.type === 'income').length} transações
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="glass hover:shadow-glow transition-smooth">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Despesas</CardTitle>
+                <TrendingDown className="h-4 w-4 text-destructive" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-destructive">
+                  R$ {totalExpense.toFixed(2)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {filteredTransactions.filter(t => t.type === 'expense').length} transações
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="glass hover:shadow-glow transition-smooth">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
+                <Calendar className="h-4 w-4 text-warning" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-warning">
+                  R$ {pendingAmount.toFixed(2)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {filteredTransactions.filter(t => t.status === 'pending').length} transações
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Filtros e Tabela */}
+          <Card className="glass">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Histórico de Transações</CardTitle>
+                <div className="flex gap-2">
+                  <Select value={filter} onValueChange={(value: any) => setFilter(value)}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      <SelectItem value="income">Receitas</SelectItem>
+                      <SelectItem value="expense">Despesas</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={dateFilter} onValueChange={(value: any) => setDateFilter(value)}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="today">Hoje</SelectItem>
+                      <SelectItem value="week">Esta Semana</SelectItem>
+                      <SelectItem value="month">Este Mês</SelectItem>
+                      <SelectItem value="year">Este Ano</SelectItem>
+                      <SelectItem value="all">Tudo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="icon">
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="text-center py-8 text-muted-foreground">Carregando...</div>
+              ) : filteredTransactions.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Nenhuma transação encontrada
+                </div>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>Categoria</TableHead>
+                        <TableHead>Descrição</TableHead>
+                        <TableHead>Método</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Valor</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredTransactions.map((transaction) => (
+                        <TableRow key={transaction.id}>
+                          <TableCell>
+                            {format(new Date(transaction.date), "dd/MM/yyyy", { locale: ptBR })}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'}>
+                              {transaction.type === 'income' ? 'Receita' : 'Despesa'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{transaction.category}</TableCell>
+                          <TableCell>{transaction.description}</TableCell>
+                          <TableCell className="capitalize">{transaction.payment_method.replace('_', ' ')}</TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={
+                                transaction.status === 'paid' ? 'default' : 
+                                transaction.status === 'pending' ? 'secondary' : 
+                                'outline'
+                              }
+                            >
+                              {transaction.status === 'paid' ? 'Pago' : 
+                               transaction.status === 'pending' ? 'Pendente' : 
+                               'Cancelado'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className={`text-right font-bold ${
+                            transaction.type === 'income' ? 'text-success' : 'text-destructive'
+                          }`}>
+                            {transaction.type === 'income' ? '+' : '-'} R$ {transaction.amount.toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => handleDeleteTransaction(transaction.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 };
