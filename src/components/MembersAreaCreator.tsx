@@ -36,6 +36,7 @@ interface MembersArea {
   is_active: boolean;
   created_at: string;
   custom_domain?: string;
+  slug?: string;
   products?: Array<{
     id: string;
     name: string;
@@ -414,6 +415,7 @@ export function MembersAreaCreator() {
                         banner_url: editedArea.banner_url,
                         logo_url: editedArea.logo_url,
                         custom_domain: editedArea.custom_domain,
+                        slug: editedArea.slug || null,
                       } as any)
                       .eq('id', editedArea.id);
                     if (!error) {
@@ -759,12 +761,35 @@ export function MembersAreaCreator() {
                         Nenhum domínio verificado. Adicione um domínio em "Meus Domínios".
                       </p>
                     )}
-                    {selectedArea.custom_domain && (
-                      <p className="text-sm text-primary">
-                        Área acessível em: https://{selectedArea.custom_domain}/members/{selectedArea.id}
-                      </p>
-                    )}
                   </div>
+                  
+                  {(editedArea?.custom_domain || selectedArea.custom_domain) && (
+                    <div className="grid gap-2">
+                      <Label>Slug da Área (opcional)</Label>
+                      <Input
+                        value={editedArea?.slug || selectedArea.slug || ''}
+                        onChange={(e) => {
+                          const slug = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                          setEditedArea({...selectedArea, slug});
+                          setHasUnsavedChanges(true);
+                        }}
+                        placeholder="minha-area"
+                        maxLength={50}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Use apenas letras minúsculas, números e hífens. Deixe em branco para usar o ID.
+                      </p>
+                      {(editedArea?.slug || selectedArea.slug) ? (
+                        <p className="text-sm text-primary">
+                          Área acessível em: https://{editedArea?.custom_domain || selectedArea.custom_domain}/members/{editedArea?.slug || selectedArea.slug}
+                        </p>
+                      ) : selectedArea.custom_domain && (
+                        <p className="text-sm text-primary">
+                          Área acessível em: https://{selectedArea.custom_domain}/members/{selectedArea.id}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </TabsContent>
