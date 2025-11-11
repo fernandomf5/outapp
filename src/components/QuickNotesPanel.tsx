@@ -34,11 +34,13 @@ export const QuickNotesPanel = () => {
 
   useEffect(() => {
     loadNotes();
-    
-    // Check for reminders every minute
+  }, []);
+
+  useEffect(() => {
+    // Check for reminders every 10 seconds for better responsiveness
     const reminderInterval = setInterval(() => {
       checkReminders();
-    }, 60000); // Check every minute
+    }, 10000);
 
     // Initial check
     checkReminders();
@@ -69,13 +71,25 @@ export const QuickNotesPanel = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Convert local datetime to UTC for storage
+      let reminderDateUTC = null;
+      if (formData.reminder_date) {
+        const localDate = new Date(formData.reminder_date);
+        reminderDateUTC = localDate.toISOString();
+        console.log('Saving reminder:', {
+          local: formData.reminder_date,
+          utc: reminderDateUTC,
+          localDate: localDate.toString()
+        });
+      }
+
       const { error } = await supabase
         .from('quick_notes' as any)
         .insert([{
           user_id: user.id,
           title: formData.title,
           content: formData.content,
-          reminder_date: formData.reminder_date || null,
+          reminder_date: reminderDateUTC,
           is_completed: false
         }] as any);
 
@@ -86,6 +100,7 @@ export const QuickNotesPanel = () => {
       setFormData({ title: '', content: '', reminder_date: '' });
       loadNotes();
     } catch (error) {
+      console.error('Error adding note:', error);
       toast.error("Erro ao adicionar nota");
     }
   };
@@ -121,14 +136,27 @@ export const QuickNotesPanel = () => {
 
   const checkReminders = () => {
     const now = new Date();
+    console.log('Checking reminders at:', now.toLocaleString(), 'Notes count:', notes.length);
+    
     notes.forEach(note => {
       if (!note.is_completed && note.reminder_date) {
         try {
-          // Parse reminder_date as UTC and convert to local time for comparison
-          const reminderDate = new Date(note.reminder_date + 'Z'); // Add 'Z' to treat as UTC
+          // Parse the reminder date from database (it's stored as ISO string in UTC)
+          const reminderDate = new Date(note.reminder_date);
           
           // Validate date
-          if (isNaN(reminderDate.getTime())) return;
+          if (isNaN(reminderDate.getTime())) {
+            console.error('Invalid date for note:', note.id, note.reminder_date);
+            return;
+          }
+          
+          console.log('Checking note:', {
+            id: note.id,
+            title: note.title,
+            reminderDate: reminderDate.toLocaleString(),
+            now: now.toLocaleString(),
+            isPast: reminderDate <= now
+          });
           
           // Show reminder if time has passed and not shown before
           if (reminderDate <= now) {
@@ -137,12 +165,15 @@ export const QuickNotesPanel = () => {
             
             // Only show if never shown or if it's been more than 1 hour
             if (!lastShownDate || (now.getTime() - lastShownDate.getTime()) > 3600000) {
+              console.log('Showing reminder for note:', note.id);
               showReminderDialog(note);
               localStorage.setItem(`reminder_${note.id}`, now.toISOString());
+            } else {
+              console.log('Reminder already shown recently for note:', note.id);
             }
           }
         } catch (error) {
-          console.error('Invalid reminder date for note:', note.id, error);
+          console.error('Error checking reminder for note:', note.id, error);
         }
       }
     });
@@ -299,22 +330,22 @@ export const QuickNotesPanel = () => {
                       <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
                         {note.content}
                       </p>
-                      {note.reminder_date && (() => {
-                        try {
-                          const date = new Date(note.reminder_date + 'Z');
-                          if (isNaN(date.getTime())) return null;
-                          return (
-                            <div className="flex items-center gap-1 mt-2">
-                              <Clock className="h-3 w-3" />
-                              <span className="text-xs">
-                                {format(date, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                              </span>
-                            </div>
-                          );
-                        } catch {
-                          return null;
-                        }
-                      })()}
+                    {note.reminder_date && (() => {
+                      try {
+                        const date = new Date(note.reminder_date);
+                        if (isNaN(date.getTime())) return null;
+                        return (
+                          <div className="flex items-center gap-1 mt-2">
+                            <Clock className="h-3 w-3" />
+                            <span className="text-xs">
+                              {format(date, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                            </span>
+                          </div>
+                        );
+                      } catch {
+                        return null;
+                      }
+                    })()}
                     </div>
                     <Button
                       variant="ghost"
