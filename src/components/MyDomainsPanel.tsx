@@ -384,10 +384,26 @@ export function MyDomainsPanel() {
                       </div>
                       <div className="flex items-center gap-2">
                         {domain.is_verified ? (
-                          <Badge className="bg-green-500/20 text-green-500">
-                            <Check className="w-3 h-3 mr-1" />
-                            Verificado
-                          </Badge>
+                          <>
+                            <Badge className="bg-green-500/20 text-green-500">
+                              <Check className="w-3 h-3 mr-1" />
+                              Verificado
+                            </Badge>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleVerifyDomain(domain.id)}
+                              disabled={verifyingId === domain.id}
+                              className="border-green-500/30 hover:bg-green-500/10"
+                            >
+                              {verifyingId === domain.id ? (
+                                <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
+                              ) : (
+                                <RefreshCw className="w-4 h-4 mr-1" />
+                              )}
+                              Re-verificar
+                            </Button>
+                          </>
                         ) : (
                           <>
                             <Badge variant="outline" className="text-yellow-500 border-yellow-500">
