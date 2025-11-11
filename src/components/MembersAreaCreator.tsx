@@ -52,10 +52,7 @@ interface Module {
   members_area_id: string;
   title: string;
   description?: string;
-  video_url?: string;
-  content_type?: string;
-  content_data?: string;
-  category?: string;
+  thumbnail_url?: string;
   is_active: boolean;
   is_locked?: boolean;
   order_index?: number;
@@ -492,7 +489,6 @@ export function MembersAreaCreator() {
                             <Badge variant={module.is_active ? 'default' : 'secondary'}>
                               {module.is_active ? 'Publicado' : 'Rascunho'}
                             </Badge>
-                            {module.category && <Badge variant="outline">{module.category}</Badge>}
                           </div>
                           <div className="flex gap-2 mt-3">
                             <Button 

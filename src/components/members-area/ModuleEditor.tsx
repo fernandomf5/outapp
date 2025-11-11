@@ -5,27 +5,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ImageUpload } from "@/components/ImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, Video, FileText, File } from "lucide-react";
-import { RichTextEditor } from "@/components/admin/RichTextEditor";
 
 interface Module {
   id?: string;
   members_area_id: string;
   title: string;
   description?: string;
-  video_url?: string;
-  content_type: 'video' | 'document' | 'text';
-  content_data?: string;
-  document_url?: string;
-  category?: string;
+  thumbnail_url?: string;
   is_active: boolean;
   is_locked?: boolean;
   order_index: number;
-  duration?: string;
 }
 
 interface ModuleEditorProps {
@@ -41,13 +33,10 @@ export function ModuleEditor({ open, onOpenChange, areaId, module, onSave }: Mod
     members_area_id: areaId,
     title: '',
     description: '',
-    content_type: 'video',
     is_active: false,
     is_locked: false,
     order_index: 0,
   });
-  const [uploading, setUploading] = useState(false);
-  const [categories, setCategories] = useState<string[]>([]);
 
   useEffect(() => {
     if (module) {
@@ -57,103 +46,12 @@ export function ModuleEditor({ open, onOpenChange, areaId, module, onSave }: Mod
         members_area_id: areaId,
         title: '',
         description: '',
-        content_type: 'video',
         is_active: false,
         is_locked: false,
         order_index: 0,
       });
     }
   }, [module, areaId]);
-
-  useEffect(() => {
-    loadCategories();
-  }, [areaId]);
-
-  const loadCategories = async () => {
-    const { data } = await supabase
-      .from('members_area_modules' as any)
-      .select('category')
-      .eq('members_area_id', areaId)
-      .not('category', 'is', null);
-    
-    if (data) {
-      const uniqueCategories = [...new Set((data as any[]).map(d => d.category).filter(Boolean))];
-      setCategories(uniqueCategories);
-    }
-  };
-
-  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('video/')) {
-      toast.error('Por favor, selecione um arquivo de vídeo');
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
-
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${areaId}/${Date.now()}.${fileExt}`;
-
-      const { error: uploadError, data } = await supabase.storage
-        .from('members-content')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('members-content')
-        .getPublicUrl(fileName);
-
-      setFormData(prev => ({ ...prev, video_url: publicUrl }));
-      toast.success('Vídeo enviado com sucesso!');
-    } catch (error: any) {
-      toast.error('Erro ao enviar vídeo: ' + error.message);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    if (!validTypes.includes(file.type)) {
-      toast.error('Por favor, selecione um PDF ou documento Word');
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
-
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${areaId}/docs/${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('members-content')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('members-content')
-        .getPublicUrl(fileName);
-
-      setFormData(prev => ({ ...prev, document_url: publicUrl }));
-      toast.success('Documento enviado com sucesso!');
-    } catch (error: any) {
-      toast.error('Erro ao enviar documento: ' + error.message);
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const handleSave = async () => {
     if (!formData.title) {
@@ -192,23 +90,6 @@ export function ModuleEditor({ open, onOpenChange, areaId, module, onSave }: Mod
 
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label>Tipo de Conteúdo</Label>
-            <Select 
-              value={formData.content_type} 
-              onValueChange={(value: any) => setFormData({...formData, content_type: value})}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="video">Vídeo</SelectItem>
-                <SelectItem value="document">Documento</SelectItem>
-                <SelectItem value="text">Texto</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid gap-2">
             <Label>Título</Label>
             <Input 
               value={formData.title}
@@ -222,130 +103,19 @@ export function ModuleEditor({ open, onOpenChange, areaId, module, onSave }: Mod
             <Textarea 
               value={formData.description || ''}
               onChange={(e) => setFormData({...formData, description: e.target.value})}
-              placeholder="Descreva o conteúdo..."
+              placeholder="Descreva o conteúdo do módulo..."
               rows={3}
             />
           </div>
 
           <div className="grid gap-2">
-            <Label>Categoria (opcional)</Label>
-            <div className="flex gap-2">
-              <Select 
-                value={formData.category || ''} 
-                onValueChange={(value) => setFormData({...formData, category: value})}
-              >
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Selecione ou crie nova" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map(cat => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Input 
-                placeholder="Nova categoria"
-                onChange={(e) => setFormData({...formData, category: e.target.value})}
-                className="flex-1"
-              />
-            </div>
+            <ImageUpload
+              label="Thumbnail do Módulo"
+              currentImage={formData.thumbnail_url}
+              onImageSelect={(url) => setFormData({...formData, thumbnail_url: url})}
+              bucketName="members-content"
+            />
           </div>
-
-
-          {formData.content_type === 'video' && (
-            <div className="grid gap-2">
-              <Label>Vídeo</Label>
-              <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                {formData.video_url ? (
-                  <div className="space-y-2">
-                    <Video className="w-12 h-12 mx-auto text-primary" />
-                    <p className="text-sm text-muted-foreground">Vídeo enviado</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setFormData({...formData, video_url: undefined})}
-                    >
-                      Substituir
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Upload className="w-12 h-12 mx-auto text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      {uploading ? 'Enviando...' : 'Clique para enviar vídeo'}
-                    </p>
-                    <Input 
-                      type="file" 
-                      accept="video/*"
-                      onChange={handleVideoUpload}
-                      disabled={uploading}
-                      className="max-w-xs mx-auto"
-                    />
-                  </div>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Ou cole a URL do vídeo (YouTube, Vimeo, etc.)
-              </p>
-              <Input
-                value={formData.video_url || ''}
-                onChange={(e) => setFormData({...formData, video_url: e.target.value})}
-                placeholder="https://youtube.com/watch?v=..."
-              />
-            </div>
-          )}
-
-          {formData.content_type === 'document' && (
-            <div className="grid gap-2">
-              <Label>Documento (PDF, Word)</Label>
-              <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                {formData.document_url ? (
-                  <div className="space-y-2">
-                    <File className="w-12 h-12 mx-auto text-primary" />
-                    <p className="text-sm text-muted-foreground">Documento enviado</p>
-                    <div className="flex gap-2 justify-center">
-                      <Button variant="outline" size="sm" asChild>
-                        <a href={formData.document_url} target="_blank" rel="noopener noreferrer">
-                          Ver Documento
-                        </a>
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setFormData({...formData, document_url: undefined})}
-                      >
-                        Substituir
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Upload className="w-12 h-12 mx-auto text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      {uploading ? 'Enviando...' : 'Clique para enviar documento'}
-                    </p>
-                    <Input 
-                      type="file" 
-                      accept=".pdf,.doc,.docx"
-                      onChange={handleDocumentUpload}
-                      disabled={uploading}
-                      className="max-w-xs mx-auto"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {formData.content_type === 'text' && (
-            <div className="grid gap-2">
-              <Label>Conteúdo</Label>
-              <RichTextEditor 
-                value={formData.content_data || ''}
-                onChange={(value) => setFormData({...formData, content_data: value})}
-              />
-            </div>
-          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center justify-between">
