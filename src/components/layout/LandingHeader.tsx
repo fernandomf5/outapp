@@ -136,12 +136,18 @@ export const LandingHeader = () => {
     </Sheet>
   );
 
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    navigate('/');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-6 sm:px-8 py-3 sm:py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 cursor-pointer">
+          <Link to="/" onClick={handleLogoClick} className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-smooth">
             {currentLogo() ? (
               <img 
                 src={currentLogo()} 
