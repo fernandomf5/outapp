@@ -18,12 +18,17 @@ import {
   Trash2,
   ArrowUp,
   ArrowDown,
-  Monitor
+  Monitor,
+  Menu,
+  ShoppingBag
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PreviewSection } from "./PreviewSection";
+import { HeaderEditor } from "./HeaderEditor";
+import { FooterEditor } from "./FooterEditor";
+import { ProductsEditor } from "./ProductsEditor";
 
 interface Section {
   id: string;
@@ -37,12 +42,32 @@ interface Website {
   title: string;
   slug: string;
   description?: string;
+  site_type?: string;
   settings: {
     primaryColor?: string;
     secondaryColor?: string;
     fontFamily?: string;
     logo?: string;
   };
+  header?: {
+    show_logo: boolean;
+    menu_items: Array<{ label: string; link: string }>;
+    cta_button: { text: string; link: string };
+  };
+  footer?: {
+    copyright: string;
+    social_links: Array<{ platform: string; url: string }>;
+    columns: Array<{ title: string; links: Array<{ label: string; url: string }> }>;
+  };
+  products?: Array<{
+    id: string;
+    name: string;
+    description: string;
+    price: string;
+    payment_link: string;
+    image_url: string;
+    category: string;
+  }>;
   sections: Section[];
   is_published: boolean;
 }
@@ -67,6 +92,9 @@ const sectionTypes = [
 export function WebsiteEditor({ website, onClose, onUpdate }: WebsiteEditorProps) {
   const [sections, setSections] = useState<Section[]>(website.sections || []);
   const [settings, setSettings] = useState(website.settings);
+  const [header, setHeader] = useState(website.header || { show_logo: true, menu_items: [], cta_button: { text: '', link: '' } });
+  const [footer, setFooter] = useState(website.footer || { copyright: '', social_links: [], columns: [] });
+  const [products, setProducts] = useState(website.products || []);
   const [saving, setSaving] = useState(false);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
@@ -176,6 +204,9 @@ export function WebsiteEditor({ website, onClose, onUpdate }: WebsiteEditorProps
         .from('websites')
         .update({
           settings,
+          header,
+          footer,
+          products,
           sections: sections as any,
           updated_at: new Date().toISOString()
         })
@@ -252,9 +283,12 @@ export function WebsiteEditor({ website, onClose, onUpdate }: WebsiteEditorProps
           {/* Configurações e Seções */}
           <div className="lg:col-span-1 space-y-4">
             <Tabs defaultValue="sections">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="sections">Seções</TabsTrigger>
-                <TabsTrigger value="settings">Configurações</TabsTrigger>
+                <TabsTrigger value="header">Header</TabsTrigger>
+                <TabsTrigger value="footer">Footer</TabsTrigger>
+                <TabsTrigger value="products">Produtos</TabsTrigger>
+                <TabsTrigger value="settings">Config</TabsTrigger>
               </TabsList>
 
               <TabsContent value="sections" className="space-y-4">
@@ -331,6 +365,18 @@ export function WebsiteEditor({ website, onClose, onUpdate }: WebsiteEditorProps
                     )}
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              <TabsContent value="header">
+                <HeaderEditor config={header} onUpdate={setHeader} />
+              </TabsContent>
+
+              <TabsContent value="footer">
+                <FooterEditor config={footer} onUpdate={setFooter} />
+              </TabsContent>
+
+              <TabsContent value="products">
+                <ProductsEditor products={products} onUpdate={setProducts} />
               </TabsContent>
 
               <TabsContent value="settings">

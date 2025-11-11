@@ -32,6 +32,7 @@ interface Website {
   slug: string;
   description?: string;
   template: string;
+  site_type?: string;
   custom_domain?: string;
   settings: {
     primaryColor?: string;
@@ -39,16 +40,35 @@ interface Website {
     fontFamily?: string;
     logo?: string;
   };
+  header?: {
+    show_logo: boolean;
+    menu_items: Array<{ label: string; link: string }>;
+    cta_button: { text: string; link: string };
+  };
+  footer?: {
+    copyright: string;
+    social_links: Array<{ platform: string; url: string }>;
+    columns: Array<{ title: string; links: Array<{ label: string; url: string }> }>;
+  };
+  products?: Array<{
+    id: string;
+    name: string;
+    description: string;
+    price: string;
+    payment_link: string;
+    image_url: string;
+    category: string;
+  }>;
   sections: any[];
   is_published: boolean;
   created_at: string;
 }
 
-const templates = [
-  { id: 'blank', name: 'Começar do Zero', description: 'Crie seu site do zero' },
-  { id: 'landing', name: 'Landing Page', description: 'Página única para captura de leads' },
-  { id: 'business', name: 'Site Empresarial', description: 'Site completo para empresas' },
-  { id: 'portfolio', name: 'Portfólio', description: 'Mostre seus trabalhos' },
+const siteTypes = [
+  { id: 'landing', name: 'Landing Page', description: 'Página única para captura de leads e conversão' },
+  { id: 'business', name: 'Site Institucional', description: 'Site completo para empresas e negócios' },
+  { id: 'portfolio', name: 'Portfólio', description: 'Mostre seus trabalhos e projetos' },
+  { id: 'catalog', name: 'Catálogo de Produtos', description: 'Exiba e venda seus produtos online' },
 ];
 
 export function WebsiteBuilder() {
@@ -62,7 +82,7 @@ export function WebsiteBuilder() {
     title: '',
     slug: '',
     description: '',
-    template: 'blank',
+    site_type: 'landing',
     custom_domain: ''
   });
 
@@ -102,6 +122,9 @@ export function WebsiteBuilder() {
       setWebsites((data || []).map(w => ({
         ...w,
         settings: (typeof w.settings === 'object' && w.settings !== null && !Array.isArray(w.settings) ? w.settings : {}) as Website['settings'],
+        header: (typeof w.header === 'object' && w.header !== null && !Array.isArray(w.header) ? w.header : { show_logo: true, menu_items: [], cta_button: { text: '', link: '' } }) as Website['header'],
+        footer: (typeof w.footer === 'object' && w.footer !== null && !Array.isArray(w.footer) ? w.footer : { copyright: '', social_links: [], columns: [] }) as Website['footer'],
+        products: (Array.isArray(w.products) ? w.products : []) as Website['products'],
         sections: (Array.isArray(w.sections) ? w.sections : []) as any[]
       })));
     } catch (error: any) {
@@ -132,20 +155,31 @@ export function WebsiteBuilder() {
 
       const slug = formData.slug || generateSlug(formData.title);
 
-      const { data, error } = await supabase
+      const { data, error} = await supabase
         .from('websites')
         .insert([{
           user_id: user.id,
           title: formData.title,
           slug: slug,
           description: formData.description,
-          template: formData.template,
+          site_type: formData.site_type,
           custom_domain: formData.custom_domain === 'default' ? '' : formData.custom_domain,
           settings: {
             primaryColor: '#8B5CF6',
             secondaryColor: '#EC4899',
             fontFamily: 'Inter'
           },
+          header: {
+            show_logo: true,
+            menu_items: [],
+            cta_button: { text: '', link: '' }
+          },
+          footer: {
+            copyright: '',
+            social_links: [],
+            columns: []
+          },
+          products: [],
           sections: [],
           is_published: false
         }])
@@ -156,14 +190,17 @@ export function WebsiteBuilder() {
 
       toast.success("Site criado com sucesso!");
       setIsCreateDialogOpen(false);
-      setFormData({ title: '', slug: '', description: '', template: 'landing', custom_domain: '' });
+      setFormData({ title: '', slug: '', description: '', site_type: 'landing', custom_domain: '' });
       if (data) {
         // Abra o editor imediatamente após criar
         setEditingWebsite({
           ...(data as any),
           settings: (typeof (data as any).settings === 'object' && (data as any).settings !== null ? (data as any).settings : {}),
+          header: (typeof (data as any).header === 'object' && (data as any).header !== null ? (data as any).header : { show_logo: true, menu_items: [], cta_button: { text: '', link: '' } }),
+          footer: (typeof (data as any).footer === 'object' && (data as any).footer !== null ? (data as any).footer : { copyright: '', social_links: [], columns: [] }),
+          products: (Array.isArray((data as any).products) ? (data as any).products : []),
           sections: (Array.isArray((data as any).sections) ? (data as any).sections : [])
-        } as Website);
+        } as any);
       } else {
         loadWebsites();
       }
@@ -273,20 +310,20 @@ export function WebsiteBuilder() {
               </div>
 
               <div className="grid gap-2">
-                <Label>Template *</Label>
+                <Label>Tipo de Site *</Label>
                 <Select
-                  value={formData.template}
-                  onValueChange={(value) => setFormData({...formData, template: value})}
+                  value={formData.site_type}
+                  onValueChange={(value) => setFormData({...formData, site_type: value})}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {templates.map((template) => (
-                      <SelectItem key={template.id} value={template.id}>
+                    {siteTypes.map((type) => (
+                      <SelectItem key={type.id} value={type.id}>
                         <div>
-                          <div className="font-medium">{template.name}</div>
-                          <div className="text-xs text-muted-foreground">{template.description}</div>
+                          <div className="font-medium">{type.name}</div>
+                          <div className="text-xs text-muted-foreground">{type.description}</div>
                         </div>
                       </SelectItem>
                     ))}
@@ -348,11 +385,11 @@ export function WebsiteBuilder() {
 
         <Card className="glass hover:shadow-glow transition-smooth">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Templates</CardTitle>
+            <CardTitle className="text-sm font-medium">Tipos de Site</CardTitle>
             <Layout className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{templates.length}</div>
+            <div className="text-2xl font-bold">{siteTypes.length}</div>
             <p className="text-xs text-muted-foreground">disponíveis</p>
           </CardContent>
         </Card>
@@ -426,7 +463,7 @@ export function WebsiteBuilder() {
                       <div className="flex items-center gap-2">
                         <Layout className="h-4 w-4 text-muted-foreground" />
                         <span className="text-muted-foreground">
-                          {templates.find(t => t.id === website.template)?.name || website.template}
+                          {siteTypes.find(t => t.id === (website as any).site_type)?.name || 'Landing Page'}
                         </span>
                       </div>
                       {website.custom_domain && (

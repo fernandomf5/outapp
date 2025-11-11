@@ -4465,10 +4465,14 @@ export type Database = {
           created_at: string
           custom_domain: string | null
           description: string | null
+          footer: Json | null
+          header: Json | null
           id: string
           is_published: boolean
+          products: Json | null
           sections: Json | null
           settings: Json | null
+          site_type: string | null
           slug: string
           template: string
           title: string
@@ -4479,10 +4483,14 @@ export type Database = {
           created_at?: string
           custom_domain?: string | null
           description?: string | null
+          footer?: Json | null
+          header?: Json | null
           id?: string
           is_published?: boolean
+          products?: Json | null
           sections?: Json | null
           settings?: Json | null
+          site_type?: string | null
           slug: string
           template?: string
           title: string
@@ -4493,10 +4501,14 @@ export type Database = {
           created_at?: string
           custom_domain?: string | null
           description?: string | null
+          footer?: Json | null
+          header?: Json | null
           id?: string
           is_published?: boolean
+          products?: Json | null
           sections?: Json | null
           settings?: Json | null
+          site_type?: string | null
           slug?: string
           template?: string
           title?: string
