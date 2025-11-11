@@ -17,8 +17,11 @@ import {
   Copy,
   BarChart3,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Gift,
+  Link as LinkIcon
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -49,6 +52,17 @@ export const QuizCreatorPanel = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    collect_data: false,
+    collect_name: true,
+    collect_email: true,
+    collect_phone: false,
+    collect_whatsapp: false,
+    show_offer: false,
+    offer_title: '',
+    offer_description: '',
+    offer_button_text: 'Quero essa oferta!',
+    offer_button_link: '',
+    redirect_url: '',
     questions: [
       {
         question: '',
@@ -153,6 +167,17 @@ export const QuizCreatorPanel = () => {
           title: formData.title,
           description: formData.description,
           questions: formData.questions,
+          collect_data: formData.collect_data,
+          collect_name: formData.collect_name,
+          collect_email: formData.collect_email,
+          collect_phone: formData.collect_phone,
+          collect_whatsapp: formData.collect_whatsapp,
+          show_offer: formData.show_offer,
+          offer_title: formData.offer_title,
+          offer_description: formData.offer_description,
+          offer_button_text: formData.offer_button_text,
+          offer_button_link: formData.offer_button_link,
+          redirect_url: formData.redirect_url,
           is_active: true,
           responses_count: 0
         }])
@@ -172,6 +197,17 @@ export const QuizCreatorPanel = () => {
       setFormData({
         title: '',
         description: '',
+        collect_data: false,
+        collect_name: true,
+        collect_email: true,
+        collect_phone: false,
+        collect_whatsapp: false,
+        show_offer: false,
+        offer_title: '',
+        offer_description: '',
+        offer_button_text: 'Quero essa oferta!',
+        offer_button_link: '',
+        redirect_url: '',
         questions: [
           {
             question: '',
@@ -248,6 +284,136 @@ export const QuizCreatorPanel = () => {
                   rows={2}
                 />
               </div>
+
+              {/* Captura de Dados */}
+              <Card className="p-4 bg-primary/5">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-base font-semibold">Capturar Dados do Cliente</Label>
+                      <p className="text-sm text-muted-foreground">Colete informações antes de mostrar os resultados</p>
+                    </div>
+                    <Switch
+                      checked={formData.collect_data}
+                      onCheckedChange={(checked) => setFormData({...formData, collect_data: checked})}
+                    />
+                  </div>
+
+                  {formData.collect_data && (
+                    <div className="grid grid-cols-2 gap-3 pl-4 border-l-2 border-primary/20">
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="collect_name"
+                          checked={formData.collect_name}
+                          onCheckedChange={(checked) => setFormData({...formData, collect_name: checked})}
+                        />
+                        <Label htmlFor="collect_name" className="text-sm">Nome</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="collect_email"
+                          checked={formData.collect_email}
+                          onCheckedChange={(checked) => setFormData({...formData, collect_email: checked})}
+                        />
+                        <Label htmlFor="collect_email" className="text-sm">Email</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="collect_phone"
+                          checked={formData.collect_phone}
+                          onCheckedChange={(checked) => setFormData({...formData, collect_phone: checked})}
+                        />
+                        <Label htmlFor="collect_phone" className="text-sm">Telefone</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="collect_whatsapp"
+                          checked={formData.collect_whatsapp}
+                          onCheckedChange={(checked) => setFormData({...formData, collect_whatsapp: checked})}
+                        />
+                        <Label htmlFor="collect_whatsapp" className="text-sm">WhatsApp</Label>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Card>
+
+              {/* Oferta no Final */}
+              <Card className="p-4 bg-success/5">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Gift className="h-5 w-5 text-success" />
+                      <div>
+                        <Label className="text-base font-semibold">Mostrar Oferta no Final</Label>
+                        <p className="text-sm text-muted-foreground">Apresente uma oferta após os resultados</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={formData.show_offer}
+                      onCheckedChange={(checked) => setFormData({...formData, show_offer: checked})}
+                    />
+                  </div>
+
+                  {formData.show_offer && (
+                    <div className="space-y-3 pl-4 border-l-2 border-success/20">
+                      <div className="grid gap-2">
+                        <Label>Título da Oferta</Label>
+                        <Input 
+                          value={formData.offer_title}
+                          onChange={(e) => setFormData({...formData, offer_title: e.target.value})}
+                          placeholder="Ex: Oferta Especial Para Você!"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Descrição da Oferta</Label>
+                        <Textarea 
+                          value={formData.offer_description}
+                          onChange={(e) => setFormData({...formData, offer_description: e.target.value})}
+                          placeholder="Descreva sua oferta..."
+                          rows={3}
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="grid gap-2">
+                          <Label>Texto do Botão</Label>
+                          <Input 
+                            value={formData.offer_button_text}
+                            onChange={(e) => setFormData({...formData, offer_button_text: e.target.value})}
+                            placeholder="Texto do botão"
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label>Link do Botão</Label>
+                          <Input 
+                            value={formData.offer_button_link}
+                            onChange={(e) => setFormData({...formData, offer_button_link: e.target.value})}
+                            placeholder="https://..."
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Card>
+
+              {/* Redirecionamento */}
+              <Card className="p-4 bg-accent/5">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <LinkIcon className="h-5 w-5 text-accent" />
+                    <div>
+                      <Label className="text-base font-semibold">Redirecionamento Final (Opcional)</Label>
+                      <p className="text-sm text-muted-foreground">Redireciona automaticamente após mostrar os resultados</p>
+                    </div>
+                  </div>
+                  <Input 
+                    value={formData.redirect_url}
+                    onChange={(e) => setFormData({...formData, redirect_url: e.target.value})}
+                    placeholder="https://seusite.com/obrigado"
+                  />
+                </div>
+              </Card>
 
               <div className="space-y-4 mt-4">
                 <div className="flex items-center justify-between">
