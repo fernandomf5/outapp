@@ -141,43 +141,43 @@ export default function Blog() {
           </div>
         )}
 
-        {/* Header */}
-        {settings && (
-          <header className="border-b bg-card">
-            <div className="container max-w-6xl mx-auto px-4 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  {settings.logo_url && (
-                    <img src={settings.logo_url} alt="Logo" className="h-10 w-auto" />
-                  )}
-                  <div>
-                    <h1 className="text-xl font-bold">{settings.site_name}</h1>
-                    <p className="text-sm text-muted-foreground">{settings.site_description}</p>
-                  </div>
-                </div>
-                {settings.header_menu.length > 0 && (
-                  <nav className="hidden md:flex gap-6">
-                    {settings.header_menu.map((item, index) => (
-                      <a
-                        key={index}
-                        href={item.url}
-                        className="text-sm hover:text-primary transition-colors"
-                      >
-                        {item.label}
-                      </a>
-                    ))}
-                  </nav>
+      {/* Header */}
+      {settings && (
+        <header className="border-b border-primary/20 bg-card shadow-md">
+          <div className="container max-w-6xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                {settings.logo_url && (
+                  <img src={settings.logo_url} alt="Logo" className="h-10 w-auto border-2 border-primary/30 rounded-lg p-1" />
                 )}
+                <div>
+                  <h1 className="text-xl font-bold text-primary">{settings.site_name}</h1>
+                  <p className="text-sm text-muted-foreground">{settings.site_description}</p>
+                </div>
               </div>
+              {settings.header_menu.length > 0 && (
+                <nav className="hidden md:flex gap-6">
+                  {settings.header_menu.map((item, index) => (
+                    <a
+                      key={index}
+                      href={item.url}
+                      className="text-sm hover:text-primary transition-colors font-medium border-b-2 border-transparent hover:border-primary pb-1"
+                    >
+                      {item.label}
+                    </a>
+                  ))}
+                </nav>
+              )}
             </div>
-          </header>
-        )}
+          </div>
+        </header>
+      )}
 
         <div className="container max-w-4xl mx-auto px-4 py-8">
           <Button
-            variant="ghost"
+            variant="outline"
             onClick={() => navigate('/blog')}
-            className="mb-6"
+            className="mb-6 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar para o Blog
@@ -197,21 +197,21 @@ export default function Blog() {
               
               <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-6">
                 <div className="flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  {selectedPost.author_name}
+                  <User className="w-4 h-4 text-primary" />
+                  <span className="font-medium">{selectedPost.author_name}</span>
                 </div>
                 {selectedPost.published_at && (
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
+                    <Calendar className="w-4 h-4 text-primary" />
                     {format(new Date(selectedPost.published_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                   </div>
                 )}
                 <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4" />
+                  <Eye className="w-4 h-4 text-primary" />
                   {selectedPost.views_count} visualizações
                 </div>
                 {selectedPost.category && (
-                  <Badge variant="outline">{selectedPost.category}</Badge>
+                  <Badge className="bg-primary text-primary-foreground">{selectedPost.category}</Badge>
                 )}
               </div>
 
@@ -325,15 +325,15 @@ export default function Blog() {
 
       {/* Header */}
       {settings && (
-        <header className="border-b bg-card">
+        <header className="border-b border-primary/20 bg-card shadow-md">
           <div className="container max-w-6xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 {settings.logo_url && (
-                  <img src={settings.logo_url} alt="Logo" className="h-10 w-auto" />
+                  <img src={settings.logo_url} alt="Logo" className="h-10 w-auto border-2 border-primary/30 rounded-lg p-1" />
                 )}
                 <div>
-                  <h1 className="text-xl font-bold">{settings.site_name}</h1>
+                  <h1 className="text-xl font-bold text-primary">{settings.site_name}</h1>
                   <p className="text-sm text-muted-foreground">{settings.site_description}</p>
                 </div>
               </div>
@@ -343,7 +343,7 @@ export default function Blog() {
                     <a
                       key={index}
                       href={item.url}
-                      className="text-sm hover:text-primary transition-colors"
+                      className="text-sm hover:text-primary transition-colors font-medium border-b-2 border-transparent hover:border-primary pb-1"
                     >
                       {item.label}
                     </a>
@@ -356,8 +356,8 @@ export default function Blog() {
       )}
 
       <div className="container max-w-6xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">{settings?.site_name || 'Blog Bot Reals Zapp'}</h1>
+        <div className="mb-8 pb-4 border-b-4 border-primary/30">
+          <h1 className="text-4xl font-bold mb-2 text-primary">{settings?.site_name || 'Blog Bot Reals Zapp'}</h1>
           <p className="text-muted-foreground">{settings?.site_description || 'Notícias, atualizações e novidades'}</p>
         </div>
 
@@ -377,32 +377,35 @@ export default function Blog() {
           {filteredPosts.map((post) => (
             <Card
               key={post.id}
-              className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+              className="overflow-hidden hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-primary hover:border-l-primary/80 hover:scale-105"
               onClick={() => navigate(`/blog/${post.slug}`)}
             >
               {post.featured_image_url && (
-                <img
-                  src={post.featured_image_url}
-                  alt={post.title}
-                  className="w-full h-48 object-cover"
-                />
+                <div className="relative">
+                  <img
+                    src={post.featured_image_url}
+                    alt={post.title}
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary/50"></div>
+                </div>
               )}
               <div className="p-6 space-y-4">
                 {post.category && (
-                  <Badge variant="outline">{post.category}</Badge>
+                  <Badge className="bg-primary text-primary-foreground">{post.category}</Badge>
                 )}
-                <h3 className="text-xl font-bold line-clamp-2">{post.title}</h3>
+                <h3 className="text-xl font-bold line-clamp-2 text-foreground hover:text-primary transition-colors">{post.title}</h3>
                 <p className="text-muted-foreground line-clamp-3">
                   {post.excerpt || post.content.substring(0, 150)}...
                 </p>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
-                    <User className="w-4 h-4" />
+                    <User className="w-4 h-4 text-primary" />
                     {post.author_name}
                   </div>
                   {post.published_at && (
                     <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
+                      <Calendar className="w-4 h-4 text-primary" />
                       {format(new Date(post.published_at), "dd/MM/yyyy")}
                     </div>
                   )}

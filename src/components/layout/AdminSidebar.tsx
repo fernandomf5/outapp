@@ -95,6 +95,7 @@ export function AdminSidebar() {
     { title: t('features_manager'), icon: Package, tab: "features-landing" },
     { title: t('faq_manager'), icon: FileText, tab: "faq" },
     { title: "Blog", icon: FileText, tab: "blog" },
+    { title: "Configurações do Blog", icon: Settings, tab: "blog-settings" },
     { title: t('tutorial_videos'), icon: Video, tab: "videos" },
   ];
 
