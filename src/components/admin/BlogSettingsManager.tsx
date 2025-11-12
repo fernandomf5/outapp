@@ -19,7 +19,6 @@ interface BlogSettings {
   header_menu: { label: string; url: string }[];
   footer_content: string | null;
   footer_menu: { label: string; url: string }[];
-  promotional_banners: { image_url: string; link: string; title?: string; description?: string }[];
   social_links: { platform: string; url: string }[];
 }
 
@@ -36,7 +35,6 @@ export const BlogSettingsManager = () => {
   });
   const [headerMenu, setHeaderMenu] = useState<{ label: string; url: string }[]>([]);
   const [footerMenu, setFooterMenu] = useState<{ label: string; url: string }[]>([]);
-  const [promotionalBanners, setPromotionalBanners] = useState<{ image_url: string; link: string; title?: string; description?: string }[]>([]);
   const [socialLinks, setSocialLinks] = useState<{ platform: string; url: string }[]>([]);
 
   useEffect(() => {
@@ -70,9 +68,6 @@ export const BlogSettingsManager = () => {
         const footerMenuData = (data as any).footer_menu;
         setFooterMenu(Array.isArray(footerMenuData) ? footerMenuData : []);
         
-        const bannersData = (data as any).promotional_banners;
-        setPromotionalBanners(Array.isArray(bannersData) ? bannersData : []);
-        
         const socialLinksData = (data as any).social_links;
         setSocialLinks(Array.isArray(socialLinksData) ? socialLinksData : []);
       }
@@ -94,7 +89,6 @@ export const BlogSettingsManager = () => {
         header_menu: headerMenu,
         footer_content: formData.footer_content || null,
         footer_menu: footerMenu,
-        promotional_banners: promotionalBanners,
         social_links: socialLinks
       };
 
@@ -276,74 +270,6 @@ export const BlogSettingsManager = () => {
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
-              </div>
-            ))}
-          </div>
-
-          {/* Promotional Banners */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Banners Promocionais</h3>
-              <Button
-                size="sm"
-                onClick={() => setPromotionalBanners([...promotionalBanners, { image_url: '', link: '', title: '', description: '' }])}
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Adicionar Banner
-              </Button>
-            </div>
-            {promotionalBanners.map((banner, index) => (
-              <div key={index} className="space-y-2 p-4 border rounded-lg">
-                <div className="flex justify-between items-center">
-                  <Label>Banner {index + 1}</Label>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setPromotionalBanners(promotionalBanners.filter((_, i) => i !== index))}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-                <Input
-                  placeholder="Título"
-                  value={banner.title || ''}
-                  onChange={(e) => {
-                    const newBanners = [...promotionalBanners];
-                    newBanners[index].title = e.target.value;
-                    setPromotionalBanners(newBanners);
-                  }}
-                />
-                <Input
-                  placeholder="Descrição"
-                  value={banner.description || ''}
-                  onChange={(e) => {
-                    const newBanners = [...promotionalBanners];
-                    newBanners[index].description = e.target.value;
-                    setPromotionalBanners(newBanners);
-                  }}
-                />
-                <div className="space-y-2">
-                  <Label>Imagem do Banner (Vertical - Formato Stories)</Label>
-                  <ImageUpload
-                    currentImage={banner.image_url}
-                    onImageSelect={(url) => {
-                      const newBanners = [...promotionalBanners];
-                      newBanners[index].image_url = url;
-                      setPromotionalBanners(newBanners);
-                    }}
-                    bucketName="blog-images"
-                    label="Imagem Vertical"
-                  />
-                </div>
-                <Input
-                  placeholder="Link de Destino"
-                  value={banner.link}
-                  onChange={(e) => {
-                    const newBanners = [...promotionalBanners];
-                    newBanners[index].link = e.target.value;
-                    setPromotionalBanners(newBanners);
-                  }}
-                />
               </div>
             ))}
           </div>
