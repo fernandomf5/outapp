@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Bot, Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ChevronDown, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone } from "lucide-react";
+import { Bot, Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,13 +13,9 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useUserFeatures } from "@/hooks/useUserFeatures";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -121,6 +117,8 @@ export function UserSidebar() {
 
   const mainItems: MenuItem[] = [
     { title: t('overview'), icon: TrendingUp, path: "/dashboard", tab: "overview" },
+    { title: "Gerenciador de Domínios", icon: Globe, path: "/dashboard", tab: "dominios" },
+    { title: "Blog", icon: FileText, path: "/blog" },
   ];
 
   const managementItems: MenuItem[] = [
@@ -128,37 +126,30 @@ export function UserSidebar() {
     { title: "Gestão Financeira", icon: DollarSign, path: "/dashboard", tab: "financeiro" },
     { title: "Gestão de Equipe", icon: UserCog, path: "/dashboard", tab: "equipe" },
     { title: "Gestão de Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios" },
+    { title: "Organizador de Tarefas", icon: Target, path: "/dashboard", tab: "tarefas" },
   ];
 
   const crmItems: MenuItem[] = [
     { title: "CRM Geral", icon: Database, path: "/dashboard", tab: "crm-geral" },
   ];
 
-  const chatbotItems: MenuItem[] = [
-    { title: "Criar Chat Online", icon: Bot, path: "/bot-builder" },
-    { title: "Meus Chats Online", icon: Bot, path: "/dashboard", tab: "chatbots" },
-  ];
-
-  const aiAgentItems: MenuItem[] = [
-    { title: t('create_ai_agent'), icon: Sparkles, path: "/ai-agent" },
-    { title: t('my_ai_agents'), icon: Sparkles, path: "/dashboard", tab: "ai-agents" },
-  ];
-
-
-  const toolsItems: MenuItem[] = [
+  const basicResourcesItems: MenuItem[] = [
     { title: "Gerador de Link para WhatsApp", icon: Wrench, path: "/dashboard", tab: "tools" },
     { title: "Botão Flutuante Multi-Links", icon: Zap, path: "/dashboard", tab: "floating-button" },
-    { title: "Gerador QR Code", icon: QrCode, path: "/dashboard", tab: "qrcode" },
-    { title: "Link na Bio", icon: ExternalLink, path: "/dashboard", tab: "linkbio" },
     { title: t('link_shortener_title'), icon: Link2, path: "/dashboard", tab: "shortlinks", feature: "link_shortener" },
+    { title: "Gerador QR Code", icon: QrCode, path: "/dashboard", tab: "qrcode" },
+  ];
+
+  const advancedResourcesItems: MenuItem[] = [
+    { title: "Chat Online", icon: Bot, path: "/dashboard", tab: "chatbots" },
+    { title: "Agentes IA", icon: Sparkles, path: "/dashboard", tab: "ai-agents" },
     { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner" },
-    { title: "Organizador de Tarefas", icon: Target, path: "/dashboard", tab: "tarefas" },
-    { title: "Criador de Pop-ups", icon: Megaphone, path: "/dashboard", tab: "popups" },
-    { title: "Gerenciador de Domínios", icon: Globe, path: "/dashboard", tab: "dominios" },
-    { title: "Criador de Quiz", icon: HelpCircle, path: "/dashboard", tab: "criador-quizz" },
+    { title: "Área de Membros", icon: UserCog, path: "/dashboard", tab: "area-membros" },
+    { title: "Link na Bio", icon: ExternalLink, path: "/dashboard", tab: "linkbio" },
     { title: "Criador de Briefing", icon: FileText, path: "/dashboard", tab: "briefing" },
     { title: "Respostas de Briefing", icon: FileCheck, path: "/dashboard", tab: "briefing-responses" },
-    { title: "Área de Membros", icon: UserCog, path: "/dashboard", tab: "area-membros" },
+    { title: "Criador de Quiz", icon: HelpCircle, path: "/dashboard", tab: "criador-quizz" },
+    { title: "Criador de Pop-ups", icon: Megaphone, path: "/dashboard", tab: "popups" },
   ];
 
   const supportItems: MenuItem[] = [
@@ -166,10 +157,6 @@ export function UserSidebar() {
     { title: t('voucher'), icon: Gift, path: "/dashboard", tab: "voucher" },
     { title: t('my_plan'), icon: CreditCard, path: "/dashboard", tab: "plan" },
     { title: "Tutoriais", icon: Lightbulb, path: "/dashboard", tab: "tutoriais" },
-  ];
-
-  const resourceItems: MenuItem[] = [
-    { title: "Blog", icon: FileText, path: "/blog" },
   ];
 
   return (
@@ -198,60 +185,6 @@ export function UserSidebar() {
                     </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-
-              <Collapsible defaultOpen className="group/collapsible">
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton>
-                      <Bot className="h-4 w-4" />
-                      {!collapsed && <span>Chats Online</span>}
-                      {!collapsed && <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />}
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {chatbotItems.map((item) => (
-                        <SidebarMenuSubItem key={item.title}>
-                          <SidebarMenuSubButton
-                            onClick={() => handleNavigation(item.path, item.tab)}
-                            className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
-                          >
-                            <item.icon className="h-4 w-4" />
-                            {!collapsed && <span>{item.title}</span>}
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </SidebarMenuItem>
-              </Collapsible>
-
-              <Collapsible defaultOpen className="group/collapsible">
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton>
-                      <Sparkles className="h-4 w-4" />
-                      {!collapsed && <span>{t('ai_agents')}</span>}
-                      {!collapsed && <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />}
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {aiAgentItems.map((item) => (
-                        <SidebarMenuSubItem key={item.title}>
-                          <SidebarMenuSubButton
-                            onClick={() => handleNavigation(item.path, item.tab)}
-                            className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
-                          >
-                            <item.icon className="h-4 w-4" />
-                            {!collapsed && <span>{item.title}</span>}
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </SidebarMenuItem>
-              </Collapsible>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -295,11 +228,44 @@ export function UserSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>{t('tools')}</SidebarGroupLabel>
+          <SidebarGroupLabel>Recursos</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <TooltipProvider delayDuration={300}>
-                {toolsItems.map((item) => {
+                {basicResourcesItems.map((item) => {
+                  if (item.feature && !hasFeature(item.feature)) return null;
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarMenuButton
+                            onClick={() => handleNavigation(item.path, item.tab)}
+                            className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                          >
+                            <item.icon className="h-4 w-4" />
+                            {!collapsed && <span>{item.title}</span>}
+                          </SidebarMenuButton>
+                        </TooltipTrigger>
+                        {collapsed && (
+                          <TooltipContent side="right">
+                            <p>{item.title}</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </TooltipProvider>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Recursos Avançados</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <TooltipProvider delayDuration={300}>
+                {advancedResourcesItems.map((item) => {
                   if (item.feature && !hasFeature(item.feature)) return null;
                   return (
                     <SidebarMenuItem key={item.title}>
@@ -345,25 +311,6 @@ export function UserSidebar() {
                   </SidebarMenuItem>
                 );
               })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Recursos</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {resourceItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    onClick={() => handleNavigation(item.path, item.tab)}
-                    className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {!collapsed && <span>{item.title}</span>}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
