@@ -12,6 +12,7 @@ import {
   SidebarMenuButton,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
@@ -116,100 +117,102 @@ export function AdminSidebar() {
   return (
     <TooltipProvider>
       <Sidebar className={collapsed ? "w-14" : "w-60"} collapsible="icon">
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>{t('dashboard')}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {dashboardItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton
-                          onClick={() => handleNavigation(item.tab)}
-                          className={isActive(item.tab) ? "bg-primary text-primary-foreground" : ""}
-                        >
-                          <item.icon className="h-4 w-4" />
-                          {!collapsed && <span>{item.title}</span>}
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      {collapsed && (
-                        <TooltipContent side="right">
-                          <p>{item.title}</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarGroup>
-            <SidebarGroupLabel>{t('content')}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {contentItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton
-                          onClick={() => handleNavigation(item.tab)}
-                          className={isActive(item.tab) ? "bg-primary text-primary-foreground" : ""}
-                        >
-                          <item.icon className="h-4 w-4" />
-                          {!collapsed && <span>{item.title}</span>}
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      {collapsed && (
-                        <TooltipContent side="right">
-                          <p>{item.title}</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarGroup>
-            <SidebarGroupLabel>{t('system')}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {systemItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton
-                          onClick={() => handleNavigation(item.tab)}
-                          className={isActive(item.tab) ? "bg-primary text-primary-foreground" : ""}
-                        >
-                          <div className="flex items-center gap-2 flex-1">
+        <ScrollArea className="flex-1">
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupLabel>{t('dashboard')}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {dashboardItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarMenuButton
+                            onClick={() => handleNavigation(item.tab)}
+                            className={isActive(item.tab) ? "bg-primary text-primary-foreground" : ""}
+                          >
                             <item.icon className="h-4 w-4" />
                             {!collapsed && <span>{item.title}</span>}
-                            {item.tab === 'tickets' && unreadTicketNotifications > 0 && (
-                              <Badge 
-                                className="ml-auto h-5 w-5 flex items-center justify-center p-0 bg-destructive text-destructive-foreground"
-                              >
-                                {unreadTicketNotifications > 9 ? '9+' : unreadTicketNotifications}
-                              </Badge>
-                            )}
-                          </div>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      {collapsed && (
-                        <TooltipContent side="right">
-                          <p>{item.title}</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
+                          </SidebarMenuButton>
+                        </TooltipTrigger>
+                        {collapsed && (
+                          <TooltipContent side="right">
+                            <p>{item.title}</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel>{t('content')}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {contentItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarMenuButton
+                            onClick={() => handleNavigation(item.tab)}
+                            className={isActive(item.tab) ? "bg-primary text-primary-foreground" : ""}
+                          >
+                            <item.icon className="h-4 w-4" />
+                            {!collapsed && <span>{item.title}</span>}
+                          </SidebarMenuButton>
+                        </TooltipTrigger>
+                        {collapsed && (
+                          <TooltipContent side="right">
+                            <p>{item.title}</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel>{t('system')}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {systemItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarMenuButton
+                            onClick={() => handleNavigation(item.tab)}
+                            className={isActive(item.tab) ? "bg-primary text-primary-foreground" : ""}
+                          >
+                            <div className="flex items-center gap-2 flex-1">
+                              <item.icon className="h-4 w-4" />
+                              {!collapsed && <span>{item.title}</span>}
+                              {item.tab === 'tickets' && unreadTicketNotifications > 0 && (
+                                <Badge 
+                                  className="ml-auto h-5 w-5 flex items-center justify-center p-0 bg-destructive text-destructive-foreground"
+                                >
+                                  {unreadTicketNotifications > 9 ? '9+' : unreadTicketNotifications}
+                                </Badge>
+                              )}
+                            </div>
+                          </SidebarMenuButton>
+                        </TooltipTrigger>
+                        {collapsed && (
+                          <TooltipContent side="right">
+                            <p>{item.title}</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+        </ScrollArea>
       </Sidebar>
     </TooltipProvider>
   );

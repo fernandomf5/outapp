@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bot, Menu } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -84,54 +85,56 @@ export const LandingHeader = () => {
           <Menu className="w-5 h-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-[280px] sm:w-[320px]">
-        <SheetHeader>
+      <SheetContent side="right" className="w-[280px] sm:w-[320px] p-0 flex flex-col">
+        <SheetHeader className="px-6 py-4 border-b border-border">
           <SheetTitle className="flex items-center gap-2">
             <Bot className="w-5 h-5 text-primary" />
             {t('menu')}
           </SheetTitle>
         </SheetHeader>
-        <nav className="flex flex-col gap-4 mt-8">
-          <a href="/" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
-            {t('home')}
-          </a>
-          <a href="/#recursos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
-            {t('features')}
-          </a>
-          <a href="/#planos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
-            {t('pricing')}
-          </a>
-          <a href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
-            Blog
-          </a>
-          <a href="/#faq" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
-            {t('faq')}
-          </a>
-           {headerPages.map((page) => (
-            <Link
-              key={page.id}
-              to={`/${page.slug}`}
-              className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2"
-            >
-              {page.title}
-            </Link>
-          ))}
-          <div className="mt-4 pt-4 border-t border-border">
-            <SocialLinks links={socialLinks} vertical />
-          </div>
-          <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-border">
-            <Button variant="ghost" onClick={() => navigate("/auth")} className="w-full justify-start">
-              {t('login')}
-            </Button>
-            <Button onClick={() => navigate("/auth")} className="gradient-primary shadow-glow w-full">
-              {t('start_free')}
-            </Button>
-          </div>
-          <div className="mt-4 flex gap-2">
-            <ThemeToggle />
-            <LanguageSelector />
-          </div>
-        </nav>
+        <ScrollArea className="flex-1 px-6">
+          <nav className="flex flex-col gap-4 py-6">
+            <a href="/" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
+              {t('home')}
+            </a>
+            <a href="/#recursos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
+              {t('features')}
+            </a>
+            <a href="/#planos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
+              {t('pricing')}
+            </a>
+            <a href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
+              Blog
+            </a>
+            <a href="/#faq" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
+              {t('faq')}
+            </a>
+             {headerPages.map((page) => (
+              <Link
+                key={page.id}
+                to={`/${page.slug}`}
+                className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2"
+              >
+                {page.title}
+              </Link>
+            ))}
+            <div className="mt-4 pt-4 border-t border-border">
+              <SocialLinks links={socialLinks} vertical />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-border">
+              <Button variant="ghost" onClick={() => navigate("/auth")} className="w-full justify-start">
+                {t('login')}
+              </Button>
+              <Button onClick={() => navigate("/auth")} className="gradient-primary shadow-glow w-full">
+                {t('start_free')}
+              </Button>
+            </div>
+            <div className="mt-4 flex gap-2 pb-6">
+              <ThemeToggle />
+              <LanguageSelector />
+            </div>
+          </nav>
+        </ScrollArea>
       </SheetContent>
     </Sheet>
   );

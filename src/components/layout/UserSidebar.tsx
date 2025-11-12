@@ -15,6 +15,7 @@ import {
   SidebarMenuButton,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useUserFeatures } from "@/hooks/useUserFeatures";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -161,145 +162,39 @@ export function UserSidebar() {
 
   return (
     <Sidebar className={collapsed ? "w-14" : "w-60"} collapsible="icon">
-      <SidebarContent>
-        {/* Logo */}
-        <div className="flex items-center justify-center p-4 border-b border-border">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <Bot className="w-8 h-8 text-primary" />
-            {!collapsed && <span className="font-bold text-lg">Bot Reals Zapp</span>}
-          </Link>
-        </div>
+      <div className="flex items-center justify-center p-4 border-b border-border">
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <Bot className="w-8 h-8 text-primary" />
+          {!collapsed && <span className="font-bold text-lg">Bot Reals Zapp</span>}
+        </Link>
+      </div>
+      
+      <ScrollArea className="flex-1">
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>{t('main')}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {mainItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        onClick={() => handleNavigation(item.path, item.tab)}
+                        className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>{t('main')}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {mainItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      onClick={() => handleNavigation(item.path, item.tab)}
-                      className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Gestão</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {managementItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    onClick={() => handleNavigation(item.path, item.tab)}
-                    className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {!collapsed && <span>{item.title}</span>}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>CRM</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {crmItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    onClick={() => handleNavigation(item.path, item.tab)}
-                    className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {!collapsed && <span>{item.title}</span>}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Recursos</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <TooltipProvider delayDuration={300}>
-                {basicResourcesItems.map((item) => {
-                  if (item.feature && !hasFeature(item.feature)) return null;
-                  return (
-                    <SidebarMenuItem key={item.title}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <SidebarMenuButton
-                            onClick={() => handleNavigation(item.path, item.tab)}
-                            className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
-                          >
-                            <item.icon className="h-4 w-4" />
-                            {!collapsed && <span>{item.title}</span>}
-                          </SidebarMenuButton>
-                        </TooltipTrigger>
-                        {collapsed && (
-                          <TooltipContent side="right">
-                            <p>{item.title}</p>
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </TooltipProvider>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Recursos Avançados</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <TooltipProvider delayDuration={300}>
-                {advancedResourcesItems.map((item) => {
-                  if (item.feature && !hasFeature(item.feature)) return null;
-                  return (
-                    <SidebarMenuItem key={item.title}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <SidebarMenuButton
-                            onClick={() => handleNavigation(item.path, item.tab)}
-                            className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
-                          >
-                            <item.icon className="h-4 w-4" />
-                            {!collapsed && <span>{item.title}</span>}
-                          </SidebarMenuButton>
-                        </TooltipTrigger>
-                        {collapsed && (
-                          <TooltipContent side="right">
-                            <p>{item.title}</p>
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </TooltipProvider>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>{t('support')}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {supportItems.map((item) => {
-                if (item.feature && !hasFeature(item.feature)) return null;
-                return (
+          <SidebarGroup>
+            <SidebarGroupLabel>Gestão</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {managementItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       onClick={() => handleNavigation(item.path, item.tab)}
@@ -309,12 +204,119 @@ export function UserSidebar() {
                       {!collapsed && <span>{item.title}</span>}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel>CRM</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {crmItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      onClick={() => handleNavigation(item.path, item.tab)}
+                      className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel>Recursos</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <TooltipProvider delayDuration={300}>
+                  {basicResourcesItems.map((item) => {
+                    if (item.feature && !hasFeature(item.feature)) return null;
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <SidebarMenuButton
+                              onClick={() => handleNavigation(item.path, item.tab)}
+                              className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                            >
+                              <item.icon className="h-4 w-4" />
+                              {!collapsed && <span>{item.title}</span>}
+                            </SidebarMenuButton>
+                          </TooltipTrigger>
+                          {collapsed && (
+                            <TooltipContent side="right">
+                              <p>{item.title}</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </TooltipProvider>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel>Recursos Avançados</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <TooltipProvider delayDuration={300}>
+                  {advancedResourcesItems.map((item) => {
+                    if (item.feature && !hasFeature(item.feature)) return null;
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <SidebarMenuButton
+                              onClick={() => handleNavigation(item.path, item.tab)}
+                              className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                            >
+                              <item.icon className="h-4 w-4" />
+                              {!collapsed && <span>{item.title}</span>}
+                            </SidebarMenuButton>
+                          </TooltipTrigger>
+                          {collapsed && (
+                            <TooltipContent side="right">
+                              <p>{item.title}</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </TooltipProvider>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel>{t('support')}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {supportItems.map((item) => {
+                  if (item.feature && !hasFeature(item.feature)) return null;
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        onClick={() => handleNavigation(item.path, item.tab)}
+                        className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </ScrollArea>
     </Sidebar>
   );
 }
