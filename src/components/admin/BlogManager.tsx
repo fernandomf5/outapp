@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Edit, Trash2, FileText, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ImageUpload } from "@/components/ImageUpload";
 
 interface BlogPost {
   id: string;
@@ -263,13 +264,13 @@ export function BlogManager() {
                 </div>
 
                 <div>
-                  <Label>Imagem Destaque (URL)</Label>
-                  <Input
-                    value={editingPost.featured_image_url || ''}
-                    onChange={(e) =>
-                      setEditingPost({ ...editingPost, featured_image_url: e.target.value })
+                  <ImageUpload
+                    label="Imagem Destaque"
+                    currentImage={editingPost.featured_image_url || ''}
+                    onImageSelect={(url) =>
+                      setEditingPost({ ...editingPost, featured_image_url: url })
                     }
-                    placeholder="https://..."
+                    bucketName="blog-images"
                   />
                 </div>
 
