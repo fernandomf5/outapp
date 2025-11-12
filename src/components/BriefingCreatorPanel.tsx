@@ -210,7 +210,12 @@ export function BriefingCreatorPanel() {
         const idx = prev.fields.findIndex(f => f.id === fieldData.id);
         if (idx !== -1) {
           const updated = [...prev.fields];
-          updated[idx] = { ...fieldData };
+          // Filtrar opções vazias ao salvar
+          const cleanedField = {
+            ...fieldData,
+            options: fieldData.options?.filter(opt => opt.trim()).length ? fieldData.options.filter(opt => opt.trim()) : undefined
+          };
+          updated[idx] = cleanedField;
           toast.success("Campo atualizado!");
           return { ...prev, fields: updated };
         }
@@ -223,12 +228,14 @@ export function BriefingCreatorPanel() {
         return prev;
       }
 
-      const newField = {
+      // Filtrar opções vazias ao salvar
+      const cleanedField = {
         ...fieldData,
         id: `field-${Date.now()}-${Math.random()}`,
+        options: fieldData.options?.filter(opt => opt.trim()).length ? fieldData.options.filter(opt => opt.trim()) : undefined
       };
       toast.success("Campo adicionado!");
-      return { ...prev, fields: [...prev.fields, newField] };
+      return { ...prev, fields: [...prev.fields, cleanedField] };
     });
 
     setFieldData({ id: '', type: 'text', label: '', placeholder: '', required: false });
@@ -468,7 +475,7 @@ export function BriefingCreatorPanel() {
                               value={fieldData.options?.join('\n') || ''}
                               onChange={(e) => setFieldData({
                                 ...fieldData, 
-                                options: e.target.value.split('\n').filter(opt => opt.trim())
+                                options: e.target.value.split('\n')
                               })}
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
