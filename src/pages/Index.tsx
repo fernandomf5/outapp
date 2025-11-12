@@ -16,6 +16,9 @@ import { CookieNotice } from "@/components/CookieNotice";
 import { SocialLinks } from "@/components/SocialLinks";
 import { useTheme } from "next-themes";
 import { CountdownTimer } from "@/components/CountdownTimer";
+import platformAdminDashboard from "@/assets/platform-admin-dashboard.jpg";
+import platformUserChat from "@/assets/platform-user-chat.jpg";
+import platformFlowBuilder from "@/assets/platform-flow-builder.jpg";
 
 interface Plan {
   id: string;
@@ -642,6 +645,91 @@ const Index = () => {
           </div>
         </section>
       )}
+
+      {/* Platform Screenshots Section */}
+      <section className="py-10 sm:py-16 md:py-20 px-6 sm:px-8 bg-background">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16">
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 sm:mb-3 md:mb-4">
+              Veja a Plataforma em Ação
+            </h2>
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
+              Interface intuitiva e poderosa para administradores e experiência fluida para seus clientes
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 mb-8">
+            {/* Admin Dashboard */}
+            <div className="group relative overflow-hidden rounded-xl border border-border bg-card hover:shadow-2xl transition-smooth">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative p-4 sm:p-6">
+                <div className="mb-4">
+                  <h3 className="text-lg sm:text-xl font-bold mb-2 flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5 text-primary" />
+                    Dashboard Administrativo
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Painel completo com métricas, analytics e gestão de todos os recursos da plataforma
+                  </p>
+                </div>
+                <div className="relative rounded-lg overflow-hidden shadow-lg">
+                  <img 
+                    src={platformAdminDashboard} 
+                    alt="Dashboard Administrativo" 
+                    className="w-full h-auto transform group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* User Chat Interface */}
+            <div className="group relative overflow-hidden rounded-xl border border-border bg-card hover:shadow-2xl transition-smooth">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative p-4 sm:p-6">
+                <div className="mb-4">
+                  <h3 className="text-lg sm:text-xl font-bold mb-2 flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5 text-primary" />
+                    Interface do Cliente
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Chat intuitivo e moderno para seus clientes interagirem com seus chatbots e agentes IA
+                  </p>
+                </div>
+                <div className="relative rounded-lg overflow-hidden shadow-lg">
+                  <img 
+                    src={platformUserChat} 
+                    alt="Interface do Cliente" 
+                    className="w-full h-auto transform group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Flow Builder - Full Width */}
+          <div className="group relative overflow-hidden rounded-xl border border-border bg-card hover:shadow-2xl transition-smooth">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative p-4 sm:p-6">
+              <div className="mb-4 text-center">
+                <h3 className="text-lg sm:text-xl font-bold mb-2 flex items-center justify-center gap-2">
+                  <Workflow className="w-5 h-5 text-primary" />
+                  Construtor Visual de Automações
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+                  Crie fluxos complexos de conversação com drag-and-drop. Sem código necessário.
+                </p>
+              </div>
+              <div className="relative rounded-lg overflow-hidden shadow-lg">
+                <img 
+                  src={platformFlowBuilder} 
+                  alt="Construtor de Automações" 
+                  className="w-full h-auto transform group-hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Features Section */}
       <section id="recursos" className="py-10 sm:py-16 md:py-20 px-6 sm:px-8 bg-background">
