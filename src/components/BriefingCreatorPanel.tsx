@@ -470,6 +470,11 @@ export function BriefingCreatorPanel() {
                                 ...fieldData, 
                                 options: e.target.value.split('\n').filter(opt => opt.trim())
                               })}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.stopPropagation();
+                                }
+                              }}
                               placeholder="Opção 1&#10;Opção 2&#10;Opção 3"
                               rows={4}
                             />
