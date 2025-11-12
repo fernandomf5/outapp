@@ -2769,7 +2769,9 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          logo_url: string | null
           name: string
+          order_index: number | null
           updated_at: string
           user_id: string
         }
@@ -2778,7 +2780,9 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          logo_url?: string | null
           name: string
+          order_index?: number | null
           updated_at?: string
           user_id: string
         }
@@ -2787,7 +2791,9 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          logo_url?: string | null
           name?: string
+          order_index?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -3357,6 +3363,7 @@ export type Database = {
           id: string
           members_area_id: string
           payment_status: string | null
+          product_id: string | null
           status: string
           updated_at: string | null
           user_email: string
@@ -3369,6 +3376,7 @@ export type Database = {
           id?: string
           members_area_id: string
           payment_status?: string | null
+          product_id?: string | null
           status?: string
           updated_at?: string | null
           user_email: string
@@ -3381,6 +3389,7 @@ export type Database = {
           id?: string
           members_area_id?: string
           payment_status?: string | null
+          product_id?: string | null
           status?: string
           updated_at?: string | null
           user_email?: string
@@ -3468,6 +3477,181 @@ export type Database = {
         }
         Relationships: []
       }
+      members_certificates: {
+        Row: {
+          certificate_code: string
+          created_at: string | null
+          id: string
+          issued_at: string | null
+          members_area_id: string
+          user_email: string
+          user_name: string
+        }
+        Insert: {
+          certificate_code: string
+          created_at?: string | null
+          id?: string
+          issued_at?: string | null
+          members_area_id: string
+          user_email: string
+          user_name: string
+        }
+        Update: {
+          certificate_code?: string
+          created_at?: string | null
+          id?: string
+          issued_at?: string | null
+          members_area_id?: string
+          user_email?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
+      members_client_documents: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          members_area_id: string
+          title: string
+          uploaded_by: string
+          user_email: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          members_area_id: string
+          title: string
+          uploaded_by: string
+          user_email: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          members_area_id?: string
+          title?: string
+          uploaded_by?: string
+          user_email?: string
+        }
+        Relationships: []
+      }
+      members_community_comments: {
+        Row: {
+          author_email: string
+          author_name: string
+          content: string
+          created_at: string | null
+          id: string
+          post_id: string
+        }
+        Insert: {
+          author_email: string
+          author_name: string
+          content: string
+          created_at?: string | null
+          id?: string
+          post_id: string
+        }
+        Update: {
+          author_email?: string
+          author_name?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_community_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "members_community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      members_community_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string
+          user_email: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id: string
+          user_email: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          user_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_community_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "members_community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      members_community_posts: {
+        Row: {
+          author_email: string
+          author_name: string
+          comments_count: number | null
+          content: string
+          created_at: string | null
+          id: string
+          image_url: string | null
+          is_pinned: boolean | null
+          likes_count: number | null
+          members_area_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          author_email: string
+          author_name: string
+          comments_count?: number | null
+          content: string
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_pinned?: boolean | null
+          likes_count?: number | null
+          members_area_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          author_email?: string
+          author_name?: string
+          comments_count?: number | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_pinned?: boolean | null
+          likes_count?: number | null
+          members_area_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       members_contents: {
         Row: {
           content_text: string | null
@@ -3515,6 +3699,84 @@ export type Database = {
           },
         ]
       }
+      members_course_progress: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          last_watched_at: string | null
+          members_area_id: string
+          module_id: string
+          progress_percentage: number | null
+          user_email: string
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          last_watched_at?: string | null
+          members_area_id: string
+          module_id: string
+          progress_percentage?: number | null
+          user_email: string
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          last_watched_at?: string | null
+          members_area_id?: string
+          module_id?: string
+          progress_percentage?: number | null
+          user_email?: string
+        }
+        Relationships: []
+      }
+      members_digital_downloads: {
+        Row: {
+          created_at: string | null
+          download_count: number | null
+          file_name: string
+          file_type: string | null
+          file_url: string
+          id: string
+          last_downloaded_at: string | null
+          members_area_id: string
+          product_id: string
+          user_email: string
+          version: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          download_count?: number | null
+          file_name: string
+          file_type?: string | null
+          file_url: string
+          id?: string
+          last_downloaded_at?: string | null
+          members_area_id: string
+          product_id: string
+          user_email: string
+          version?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          download_count?: number | null
+          file_name?: string
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          last_downloaded_at?: string | null
+          members_area_id?: string
+          product_id?: string
+          user_email?: string
+          version?: string | null
+        }
+        Relationships: []
+      }
       members_modules: {
         Row: {
           area_id: string
@@ -3552,6 +3814,116 @@ export type Database = {
             columns: ["area_id"]
             isOneToOne: false
             referencedRelation: "members_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      members_product_licenses: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          license_key: string
+          members_area_id: string
+          product_id: string
+          user_email: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          license_key: string
+          members_area_id: string
+          product_id: string
+          user_email: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          license_key?: string
+          members_area_id?: string
+          product_id?: string
+          user_email?: string
+        }
+        Relationships: []
+      }
+      members_support_tickets: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          members_area_id: string
+          priority: string | null
+          status: string | null
+          subject: string
+          updated_at: string | null
+          user_email: string
+          user_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          members_area_id: string
+          priority?: string | null
+          status?: string | null
+          subject: string
+          updated_at?: string | null
+          user_email: string
+          user_name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          members_area_id?: string
+          priority?: string | null
+          status?: string | null
+          subject?: string
+          updated_at?: string | null
+          user_email?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
+      members_ticket_messages: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_staff: boolean | null
+          message: string
+          sender_email: string
+          sender_name: string
+          ticket_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_staff?: boolean | null
+          message: string
+          sender_email: string
+          sender_name: string
+          ticket_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_staff?: boolean | null
+          message?: string
+          sender_email?: string
+          sender_name?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "members_support_tickets"
             referencedColumns: ["id"]
           },
         ]
