@@ -62,6 +62,7 @@ export const FinancialManagementPanel = () => {
   const [isBusinessDialogOpen, setIsBusinessDialogOpen] = useState(false);
   const [consolidationMode, setConsolidationMode] = useState(false);
   const [deleteTransactionId, setDeleteTransactionId] = useState<string | null>(null);
+  const [deleteBusinessId, setDeleteBusinessId] = useState<string | null>(null);
 
   const [businessFormData, setBusinessFormData] = useState({
     name: '',
@@ -169,23 +170,27 @@ export const FinancialManagementPanel = () => {
     }
   };
 
-  const handleDeleteBusiness = async (id: string) => {
+  const handleDeleteBusiness = async () => {
+    if (!deleteBusinessId) return;
+
     try {
       const { error } = await supabase
         .from('financial_businesses')
         .delete()
-        .eq('id', id);
+        .eq('id', deleteBusinessId);
 
       if (error) throw error;
 
       toast.success("Negócio excluído!");
-      if (selectedBusiness?.id === id) {
+      if (selectedBusiness?.id === deleteBusinessId) {
         setSelectedBusiness(null);
         setTransactions([]);
       }
       loadBusinesses();
     } catch (error: any) {
       toast.error("Erro ao excluir negócio");
+    } finally {
+      setDeleteBusinessId(null);
     }
   };
 
@@ -410,7 +415,7 @@ export const FinancialManagementPanel = () => {
                           size="icon"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDeleteBusiness(business.id);
+                            setDeleteBusinessId(business.id);
                           }}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
@@ -743,6 +748,13 @@ export const FinancialManagementPanel = () => {
         onOpenChange={() => setDeleteTransactionId(null)}
         onConfirm={handleDeleteTransaction}
         description="Você tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita e você perderá todos os dados relacionados."
+      />
+
+      <DeleteConfirmDialog
+        open={!!deleteBusinessId}
+        onOpenChange={() => setDeleteBusinessId(null)}
+        onConfirm={handleDeleteBusiness}
+        description="Você tem certeza que deseja excluir este negócio? Esta ação excluirá TODAS as transações associadas a ele e não pode ser desfeita!"
       />
     </div>
   );
