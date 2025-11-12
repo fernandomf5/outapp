@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Lock, Video, Book, DollarSign, Play, Settings, Plus, Edit, Trash2, Copy, GraduationCap, MessageSquare, Briefcase, Package, List } from "lucide-react";
+import { Users, Lock, Video, Book, DollarSign, Play, Settings, Plus, Edit, Trash2, Copy, GraduationCap, List, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,12 +61,7 @@ interface Module {
   order_index?: number;
 }
 
-const areaTypes = [
-  { id: 'course', name: 'Curso Online', description: 'Cursos em vídeo, aulas e certificados', icon: GraduationCap },
-  { id: 'community', name: 'Comunidade Privada', description: 'Fórum e conteúdo exclusivo para membros', icon: MessageSquare },
-  { id: 'client_portal', name: 'Portal de Clientes', description: 'Área para gestão de clientes e serviços', icon: Briefcase },
-  { id: 'digital_products', name: 'Produtos Digitais', description: 'Venda de ebooks, templates e downloads', icon: Package },
-];
+// Removido - agora focado apenas em cursos online
 
 export function MembersAreaCreator() {
   const [membersAreas, setMembersAreas] = useState<MembersArea[]>([]);
@@ -234,68 +229,54 @@ export function MembersAreaCreator() {
 
   return (
     <div className="space-y-6">
-      <Card className="p-6">
+      <Card className="p-6 bg-gradient-to-br from-primary/5 via-background to-secondary/5 border-primary/20">
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <Users className="w-6 h-6 text-primary" />
-              <div>
-                <h2 className="text-2xl font-bold">Gerador de Área de Membros</h2>
-                <p className="text-sm text-muted-foreground">
-                  Crie áreas de membros completas: cursos, comunidades, portais de clientes e produtos digitais
-                </p>
-              </div>
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
+              <GraduationCap className="w-8 h-8 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                Plataforma de Cursos Online
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Crie e gerencie seus cursos online profissionalmente
+              </p>
+            </div>
           </div>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gradient-primary shadow-glow">
                 <Plus className="mr-2 h-4 w-4" />
-                Criar Área de Membros
+                Criar Novo Curso
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
-                <DialogTitle>Nova Área de Membros</DialogTitle>
+                <DialogTitle className="text-2xl flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  Criar Novo Curso Online
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground">
+                  Configure seu curso e comece a criar módulos e aulas
+                </p>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label>Título da Área</Label>
+                  <Label>Nome do Curso</Label>
                   <Input 
                     value={formData.title}
                     onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    placeholder="Ex: Meu Curso Online"
+                    placeholder="Ex: Dominando React do Zero ao Avançado"
                   />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Tipo da Área</Label>
-                  <Select
-                    value={(formData as any).area_type}
-                    onValueChange={(v) => setFormData({ ...formData, area_type: v as any })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {areaTypes.map((type) => (
-                        <SelectItem key={type.id} value={type.id}>
-                          <div className="flex items-center gap-2">
-                            <type.icon className="h-4 w-4" />
-                            <div>
-                              <div className="font-medium">{type.name}</div>
-                              <div className="text-xs text-muted-foreground">{type.description}</div>
-                            </div>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
                 <div className="grid gap-2">
                   <Label>Descrição</Label>
                   <Textarea 
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    placeholder="Descrição da sua área de membros..."
-                    rows={3}
+                    placeholder="Descreva o que os alunos vão aprender no seu curso..."
+                    rows={4}
                   />
                 </div>
               </div>
@@ -304,7 +285,8 @@ export function MembersAreaCreator() {
                   Cancelar
                 </Button>
                 <Button onClick={handleCreateArea} className="gradient-primary">
-                  Criar
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Criar Curso
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -314,99 +296,113 @@ export function MembersAreaCreator() {
         {loading ? (
           <div className="text-center py-12 text-muted-foreground">Carregando...</div>
         ) : membersAreas.length === 0 ? (
-          <div className="text-center py-12 space-y-4">
-            <Lock className="w-16 h-16 mx-auto text-muted-foreground" />
-            <h3 className="text-xl font-semibold">Área de Membros</h3>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              Sistema completo para criar áreas de membros com módulos, aulas e conteúdos exclusivos. 
-              Configure aprovação de membros, organize seu conteúdo em módulos e ofereça aulas demonstrativas gratuitas.
+          <div className="text-center py-16 space-y-4">
+            <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-4">
+              <GraduationCap className="w-12 h-12 text-primary" />
+            </div>
+            <h3 className="text-2xl font-bold">Comece Sua Plataforma de Cursos</h3>
+            <p className="text-muted-foreground max-w-lg mx-auto">
+              Crie cursos online profissionais com módulos, aulas em vídeo, controle de acesso e pagamentos integrados.
+              Tudo o que você precisa para monetizar seu conhecimento.
             </p>
-            <Button onClick={() => setIsCreateDialogOpen(true)} className="gradient-primary">
-              <Plus className="mr-2 h-4 w-4" />
-              Criar Primeira Área
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
+              <Button onClick={() => setIsCreateDialogOpen(true)} className="gradient-primary shadow-glow">
+                <Plus className="mr-2 h-4 w-4" />
+                Criar Primeiro Curso
+              </Button>
+            </div>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {membersAreas.map((area) => (
-              <Card key={area.id} className="hover:shadow-lg transition-smooth overflow-hidden">
-                {area.banner_url && (
-                  <div className="h-32 bg-gradient-to-br from-primary/20 to-primary/5 relative">
-                    <img src={area.banner_url} alt="" className="w-full h-full object-cover" />
-                  </div>
-                )}
-                <div className="p-4 space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-bold text-lg mb-1">{(area as any).name || area.title}</h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {area.description}
-                      </p>
-                      <Badge variant={area.is_active ? 'default' : 'secondary'} className="mt-2">
-                        {area.is_active ? 'Ativa' : 'Inativa'}
-                      </Badge>
+              <Card key={area.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden border-primary/10 hover:border-primary/30">
+                <div className="relative h-48 bg-gradient-to-br from-primary/20 to-primary/5">
+                  {area.banner_url ? (
+                    <img src={area.banner_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Video className="w-16 h-16 text-primary/40" />
                     </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                  <Badge 
+                    variant={area.is_active ? 'default' : 'secondary'} 
+                    className="absolute top-3 right-3"
+                  >
+                    {area.is_active ? '🟢 Publicado' : '⚪ Rascunho'}
+                  </Badge>
+                </div>
+                <div className="p-5 space-y-4">
+                  <div>
+                    <h3 className="font-bold text-xl mb-2 line-clamp-1">
+                      {(area as any).name || area.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                      {area.description || 'Sem descrição'}
+                    </p>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2">
                     <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1"
+                      className="w-full gradient-primary shadow-glow"
+                      size="sm"
                       onClick={() => {
                         setSelectedArea(area);
                         loadModules(area.id);
                       }}
                     >
-                      <Settings className="h-3 w-3 mr-1" />
-                      Gerenciar
+                      <Settings className="h-4 w-4 mr-2" />
+                      Gerenciar Curso
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => {
-                        const customDomain = (area as any).custom_domain;
-                        const slug = (area as any).slug || area.id;
-                        
-                        let link;
-                        if (customDomain && customDomain.includes('.')) {
-                          // Domínio customizado
-                          link = `https://${customDomain}/${slug}`;
-                        } else {
-                          // Domínio padrão
-                          link = `${window.location.origin}/members-area/${area.id}`;
-                        }
-                        
-                        navigator.clipboard.writeText(link);
-                        toast.success("Link copiado!");
-                      }}
-                    >
-                      <Copy className="h-3 w-3 mr-1" />
-                      Copiar Link
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => {
-                        const customDomain = (area as any).custom_domain;
-                        const slug = (area as any).slug || area.id;
-                        
-                        if (customDomain && customDomain.includes('.')) {
-                          window.open(`https://${customDomain}/${slug}`, '_blank');
-                        } else {
-                          window.open(`/members-area/${area.id}`, '_blank');
-                        }
-                      }}
-                    >
-                      Visualizar
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleDeleteArea(area.id)}
-                    >
-                      <Trash2 className="h-3 w-3 text-destructive" />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          const customDomain = (area as any).custom_domain;
+                          const slug = (area as any).slug || area.id;
+                          
+                          let link;
+                          if (customDomain && customDomain.includes('.')) {
+                            link = `https://${customDomain}/${slug}`;
+                          } else {
+                            link = `${window.location.origin}/members-area/${area.id}`;
+                          }
+                          
+                          navigator.clipboard.writeText(link);
+                          toast.success("Link copiado!");
+                        }}
+                      >
+                        <Copy className="h-4 w-4 mr-1" />
+                        Link
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          const customDomain = (area as any).custom_domain;
+                          const slug = (area as any).slug || area.id;
+                          
+                          if (customDomain && customDomain.includes('.')) {
+                            window.open(`https://${customDomain}/${slug}`, '_blank');
+                          } else {
+                            window.open(`/members-area/${area.id}`, '_blank');
+                          }
+                        }}
+                      >
+                        <Play className="h-4 w-4 mr-1" />
+                        Ver
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDeleteArea(area.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </Card>
@@ -415,15 +411,20 @@ export function MembersAreaCreator() {
         )}
       </Card>
 
-      {/* Detalhes da Área Selecionada */}
+      {/* Detalhes do Curso Selecionado */}
       {selectedArea && (
-        <Card className="p-6">
+        <Card className="p-6 border-primary/20">
           <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-xl font-bold">{(selectedArea as any).name || selectedArea.title}</h3>
-              <p className="text-sm text-muted-foreground">
-                {areaTypes.find(t => t.id === selectedArea.area_type)?.name || 'Gerencie'} - Módulos, Produtos, Alunos e Pagamentos
-              </p>
+            <div className="flex items-center gap-4">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <GraduationCap className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold">{(selectedArea as any).name || selectedArea.title}</h3>
+                <p className="text-sm text-muted-foreground">
+                  Gerencie módulos, aulas, alunos e pagamentos do seu curso
+                </p>
+              </div>
             </div>
             <div className="flex gap-2">
               {hasUnsavedChanges && (
@@ -474,70 +475,27 @@ export function MembersAreaCreator() {
             </div>
           </div>
 
-          <Tabs defaultValue="homepage">
-            <TabsList>
+          <Tabs defaultValue="homepage" className="mt-6">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="homepage">
                 <Play className="h-4 w-4 mr-2" />
-                Página Inicial
+                Início
               </TabsTrigger>
-              
-              {/* Tabs baseadas no tipo de área */}
-              {selectedArea.area_type === 'course' && (
-                <>
-                  <TabsTrigger value="modules">
-                    <Book className="h-4 w-4 mr-2" />
-                    Módulos
-                  </TabsTrigger>
-                  <TabsTrigger value="progress">
-                    <GraduationCap className="h-4 w-4 mr-2" />
-                    Progresso & Certificados
-                  </TabsTrigger>
-                </>
-              )}
-
-              {selectedArea.area_type === 'community' && (
-                <TabsTrigger value="community">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Feed da Comunidade
-                </TabsTrigger>
-              )}
-
-              {selectedArea.area_type === 'client_portal' && (
-                <>
-                  <TabsTrigger value="portal">
-                    <Briefcase className="h-4 w-4 mr-2" />
-                    Portal do Cliente
-                  </TabsTrigger>
-                  <TabsTrigger value="modules">
-                    <Book className="h-4 w-4 mr-2" />
-                    Conteúdos
-                  </TabsTrigger>
-                </>
-              )}
-
-              {selectedArea.area_type === 'digital_products' && (
-                <TabsTrigger value="digital">
-                  <Package className="h-4 w-4 mr-2" />
-                  Produtos Digitais
-                </TabsTrigger>
-              )}
-
-              {/* Tabs comuns a todos os tipos */}
-              <TabsTrigger value="products">
-                <Package className="h-4 w-4 mr-2" />
-                Produtos
+              <TabsTrigger value="modules">
+                <Video className="h-4 w-4 mr-2" />
+                Módulos & Aulas
               </TabsTrigger>
               <TabsTrigger value="access">
                 <Lock className="h-4 w-4 mr-2" />
-                Gerenciar Acessos
+                Solicitações
               </TabsTrigger>
               <TabsTrigger value="students">
                 <Users className="h-4 w-4 mr-2" />
-                Membros
+                Alunos
               </TabsTrigger>
               <TabsTrigger value="payments">
                 <DollarSign className="h-4 w-4 mr-2" />
-                Pagamentos
+                Checkout
               </TabsTrigger>
               <TabsTrigger value="settings">
                 <Settings className="h-4 w-4 mr-2" />
@@ -553,10 +511,13 @@ export function MembersAreaCreator() {
             </TabsContent>
 
             <TabsContent value="modules" className="space-y-4 pt-6">
-              <div className="flex justify-between items-center">
-                <h4 className="font-semibold">Módulos e Cursos</h4>
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h4 className="text-lg font-bold">Módulos & Aulas do Curso</h4>
+                  <p className="text-sm text-muted-foreground">Organize o conteúdo do seu curso em módulos</p>
+                </div>
                 <Button 
-                  className="gradient-primary" 
+                  className="gradient-primary shadow-glow" 
                   size="sm"
                   onClick={() => {
                     setEditingModule(null);
@@ -564,46 +525,70 @@ export function MembersAreaCreator() {
                   }}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Módulo
+                  Novo Módulo
                 </Button>
               </div>
               
               {modules.length === 0 ? (
-                <div className="text-center py-12 border-2 border-dashed rounded-lg">
-                  <Video className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground">Nenhum módulo criado ainda</p>
+                <div className="text-center py-16 border-2 border-dashed rounded-xl bg-muted/30">
+                  <div className="w-20 h-20 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                    <Video className="w-10 h-10 text-primary" />
+                  </div>
+                  <h5 className="text-lg font-semibold mb-2">Crie seu primeiro módulo</h5>
+                  <p className="text-sm text-muted-foreground mb-4">Organize as aulas do curso em módulos temáticos</p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setEditingModule(null);
+                      setIsModuleEditorOpen(true);
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Criar Módulo
+                  </Button>
                 </div>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">
-                  {modules.map((module) => (
-                  <Card key={module.id} className="p-4 hover:shadow-lg transition-smooth">
-                      <div className="flex items-start gap-4">
-                        <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/5 rounded flex items-center justify-center">
-                          <Play className="w-8 h-8 text-primary" />
+                  {modules.map((module, index) => (
+                  <Card key={module.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden border-primary/10 hover:border-primary/30">
+                      <div className="flex items-start gap-4 p-5">
+                        <div className="relative">
+                          <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg flex items-center justify-center">
+                            {module.thumbnail_url ? (
+                              <img src={module.thumbnail_url} alt={module.title} className="w-full h-full object-cover rounded-lg" />
+                            ) : (
+                              <Video className="w-8 h-8 text-primary" />
+                            )}
+                          </div>
+                          <div className="absolute -top-2 -left-2 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">
+                            {index + 1}
+                          </div>
                         </div>
                          <div className="flex-1">
-                          <h5 className="font-semibold mb-1">{module.title}</h5>
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {module.description}
+                          <h5 className="font-bold text-base mb-1 line-clamp-1">{module.title}</h5>
+                          <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
+                            {module.description || 'Sem descrição'}
                           </p>
-                          <div className="flex gap-2 mt-2 flex-wrap">
-                            {module.is_locked && <Badge variant="secondary">Bloqueado</Badge>}
-                            <Badge variant={module.is_active ? 'default' : 'secondary'}>
-                              {module.is_active ? 'Publicado' : 'Rascunho'}
+                          <div className="flex gap-1.5 mb-3 flex-wrap">
+                            {module.is_locked && <Badge variant="secondary" className="text-xs">🔒 Bloqueado</Badge>}
+                            <Badge variant={module.is_active ? 'default' : 'secondary'} className="text-xs">
+                              {module.is_active ? '✓ Ativo' : '◯ Inativo'}
                             </Badge>
                           </div>
-                          <div className="flex gap-2 mt-3">
+                          <div className="flex flex-wrap gap-1.5">
                             <Button 
                               size="sm" 
                               variant="outline"
+                              className="text-xs h-8"
                               onClick={() => setSelectedModuleForContents(module)}
                             >
                               <List className="h-3 w-3 mr-1" />
-                              Gerenciar Conteúdos
+                              Aulas
                             </Button>
                             <Button 
                               size="sm" 
                               variant="outline"
+                              className="text-xs h-8"
                               onClick={() => {
                                 setEditingModule(module);
                                 setIsModuleEditorOpen(true);
@@ -615,14 +600,17 @@ export function MembersAreaCreator() {
                             <Button 
                               size="sm" 
                               variant="outline"
+                              className="text-xs h-8"
                               onClick={async () => {
-                                const { error } = await supabase
-                                  .from('members_area_modules')
-                                  .delete()
-                                  .eq('id', module.id);
-                                if (!error) {
-                                  toast.success('Módulo excluído');
-                                  loadModules(selectedArea.id);
+                                if (confirm('Deseja realmente excluir este módulo?')) {
+                                  const { error } = await supabase
+                                    .from('members_area_modules')
+                                    .delete()
+                                    .eq('id', module.id);
+                                  if (!error) {
+                                    toast.success('Módulo excluído');
+                                    loadModules(selectedArea.id);
+                                  }
                                 }
                               }}
                             >
@@ -637,74 +625,41 @@ export function MembersAreaCreator() {
               )}
             </TabsContent>
 
-            <TabsContent value="products" className="pt-6">
-              <ProductsManager 
-                products={products}
-                onUpdate={handleSaveProducts}
-                availableModules={modules.map(m => ({ id: m.id, title: m.title }))}
-              />
-            </TabsContent>
+            {/* Removido - produtos não são mais necessários nesta versão focada em cursos */}
 
             <TabsContent value="access" className="pt-6">
+              <div className="mb-4">
+                <h4 className="text-lg font-bold mb-1">Solicitações de Acesso</h4>
+                <p className="text-sm text-muted-foreground">Gerencie quem pode acessar seu curso</p>
+              </div>
               <AccessRequestsManager areaId={selectedArea.id} />
             </TabsContent>
 
             <TabsContent value="students" className="pt-6">
+              <div className="mb-4">
+                <h4 className="text-lg font-bold mb-1">Alunos Matriculados</h4>
+                <p className="text-sm text-muted-foreground">Veja todos os alunos com acesso ao curso</p>
+              </div>
               <EnrollmentsManager areaId={selectedArea.id} />
             </TabsContent>
 
-            {/* Tabs específicas por tipo de área */}
-            {selectedArea.area_type === 'course' && (
-              <TabsContent value="progress" className="pt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Progresso do Curso</CardTitle>
-                    <CardDescription>Em desenvolvimento...</CardDescription>
-                  </CardHeader>
-                </Card>
-              </TabsContent>
-            )}
-
-            {selectedArea.area_type === 'community' && (
-              <TabsContent value="community" className="pt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Feed da Comunidade</CardTitle>
-                    <CardDescription>Em desenvolvimento...</CardDescription>
-                  </CardHeader>
-                </Card>
-              </TabsContent>
-            )}
-
-            {selectedArea.area_type === 'client_portal' && (
-              <TabsContent value="portal" className="pt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Portal do Cliente</CardTitle>
-                    <CardDescription>Em desenvolvimento...</CardDescription>
-                  </CardHeader>
-                </Card>
-              </TabsContent>
-            )}
-
-            {selectedArea.area_type === 'digital_products' && (
-              <TabsContent value="digital" className="pt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Produtos Digitais</CardTitle>
-                    <CardDescription>Em desenvolvimento...</CardDescription>
-                  </CardHeader>
-                </Card>
-              </TabsContent>
-            )}
+            {/* Removido - tabs específicas não são necessárias */}
 
 
             <TabsContent value="payments" className="pt-6 space-y-6">
-              <Card>
+              <div className="mb-4">
+                <h4 className="text-lg font-bold mb-1">Checkout & Pagamentos</h4>
+                <p className="text-sm text-muted-foreground">Configure como seus alunos vão pagar pelo curso</p>
+              </div>
+              
+              <Card className="border-primary/20">
                 <CardHeader>
-                  <CardTitle className="text-lg">Integração Mercado Pago</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-primary" />
+                    Integração Mercado Pago
+                  </CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    Configure sua integração com Mercado Pago para receber pagamentos automaticamente dos alunos. Os produtos criados na aba "Produtos" liberarão conteúdos conforme as compras.
+                    Receba pagamentos automaticamente e libere o acesso ao curso após confirmação
                   </p>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -768,11 +723,14 @@ export function MembersAreaCreator() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-primary/20">
                 <CardHeader>
-                  <CardTitle className="text-lg">Link de Pagamento Personalizado</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Copy className="w-5 h-5 text-primary" />
+                    Link de Pagamento Externo
+                  </CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    Adicione links de pagamento externos para módulos específicos
+                    Use plataformas como Hotmart, Eduzz ou qualquer outro checkout
                   </p>
                 </CardHeader>
                 <CardContent className="space-y-4">
