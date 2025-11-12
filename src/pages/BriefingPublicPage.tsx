@@ -22,6 +22,7 @@ export default function BriefingPublicPage() {
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
   const [showNameDialog, setShowNameDialog] = useState(true);
   const [visitorName, setVisitorName] = useState('');
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     loadBriefing();
@@ -108,9 +109,6 @@ export default function BriefingPublicPage() {
 
       if (error) throw error;
 
-      toast.success("Briefing enviado com sucesso! ✅");
-      toast.info("Obrigado por responder o formulário!");
-      
       // Incrementar contador de respostas
       if (briefingId) {
         await supabase
@@ -118,9 +116,8 @@ export default function BriefingPublicPage() {
           .update({ responses_count: (briefing?.responses_count || 0) + 1 })
           .eq('id', briefingId);
       }
-      setResponses({});
-      setVisitorName('');
-      setShowNameDialog(true);
+      
+      setSubmitted(true);
     } catch (error) {
       toast.error("Erro ao enviar briefing");
     } finally {
@@ -339,6 +336,51 @@ export default function BriefingPublicPage() {
           <CardContent className="pt-6 text-center">
             <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
             <p className="text-muted-foreground">Briefing não encontrado</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (submitted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 py-12 px-4 flex items-center justify-center">
+        <Card className="max-w-md mx-auto glass text-center">
+          <CardHeader>
+            {briefing?.logo_url && (
+              <div className="flex justify-center mb-4">
+                <img 
+                  src={briefing.logo_url} 
+                  alt="Logo" 
+                  className="h-16 w-auto object-contain"
+                />
+              </div>
+            )}
+          </CardHeader>
+          <CardContent className="space-y-6 py-8">
+            <div className="flex justify-center">
+              <div className="rounded-full bg-green-500/10 p-4">
+                <svg
+                  className="h-16 w-16 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-bold">Briefing Enviado com Sucesso!</h3>
+              <p className="text-muted-foreground">
+                Obrigado por responder o formulário, {visitorName}!
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
