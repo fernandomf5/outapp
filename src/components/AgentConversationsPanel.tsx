@@ -48,6 +48,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   // Carregar nome salvo do localStorage
@@ -77,8 +78,19 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   }, [selectedConversation]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    scrollToBottom();
   }, [messages]);
+
+  const scrollToBottom = () => {
+    if (scrollAreaRef.current) {
+      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        setTimeout(() => {
+          viewport.scrollTop = viewport.scrollHeight;
+        }, 100);
+      }
+    }
+  };
 
   const loadConversations = async () => {
     const { data, error } = await supabase
@@ -356,9 +368,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
       await loadMessages(selectedConversation.id);
 
       // Scroll automático após enviar
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
+      scrollToBottom();
 
       toast({
         title: "Mensagem enviada",
@@ -599,7 +609,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                 </div>
               </CardHeader>
 
-              <ScrollArea className="flex-1 p-4">
+              <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
                 <div className="space-y-4">
                   {messages.map((msg) => {
                     // Mensagens do sistema (notificações automáticas)

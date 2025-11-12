@@ -35,6 +35,7 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId?: string })
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   // Carregar nome salvo do localStorage
@@ -74,6 +75,21 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId?: string })
       loadMessages(selectedConversation.id);
     }
   }, [selectedConversation]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    if (scrollAreaRef.current) {
+      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        setTimeout(() => {
+          viewport.scrollTop = viewport.scrollHeight;
+        }, 100);
+      }
+    }
+  };
 
   const loadConversations = async () => {
     try {
@@ -278,6 +294,10 @@ const handleSendMessage = async () => {
       setSelectedImage(null);
       setSelectedDocument(null);
       setImagePreview(null);
+      
+      // Scroll automático após enviar
+      scrollToBottom();
+      
       toast({
         title: "Mensagem enviada",
         description: needsDisableAI ? "Você assumiu o atendimento desta conversa." : "Mensagem enviada com sucesso.",
@@ -568,7 +588,7 @@ const handleSendMessage = async () => {
         <CardContent>
           {selectedConversation ? (
             <div className="space-y-4">
-              <ScrollArea className="h-[400px] border rounded-lg p-4">
+              <ScrollArea ref={scrollAreaRef} className="h-[400px] border rounded-lg p-4">
                 <div className="space-y-4">
 {messages.map((message) => {
                     // Mensagens do sistema (notificações automáticas)
