@@ -38,7 +38,13 @@ export default function BriefingPublicPage() {
         .single();
 
       if (error) throw error;
-      setBriefing(data);
+      
+      // Check if briefing is blocked
+      if (data?.is_blocked) {
+        setBriefing({ ...data, isBlocked: true });
+      } else {
+        setBriefing(data);
+      }
     } catch (error) {
       toast.error("Briefing não encontrado");
     } finally {
@@ -336,6 +342,51 @@ export default function BriefingPublicPage() {
           <CardContent className="pt-6 text-center">
             <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
             <p className="text-muted-foreground">Briefing não encontrado</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (briefing.is_blocked) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 py-12 px-4 flex items-center justify-center">
+        <Card className="max-w-md mx-auto glass text-center">
+          <CardHeader>
+            {briefing?.logo_url && (
+              <div className="flex justify-center mb-4">
+                <img 
+                  src={briefing.logo_url} 
+                  alt="Logo" 
+                  className="h-16 w-auto object-contain"
+                />
+              </div>
+            )}
+          </CardHeader>
+          <CardContent className="space-y-6 py-8">
+            <div className="flex justify-center">
+              <div className="rounded-full bg-destructive/10 p-4">
+                <svg
+                  className="h-16 w-16 text-destructive"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-bold">Briefing Bloqueado</h3>
+              <p className="text-muted-foreground">
+                Este briefing não está aceitando novas respostas no momento.
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>

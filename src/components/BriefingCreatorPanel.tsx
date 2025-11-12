@@ -29,7 +29,9 @@ import {
   Link2,
   List,
   Circle,
-  Star
+  Star,
+  Lock,
+  LockOpen
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
@@ -67,6 +69,7 @@ interface Briefing {
   description?: string;
   fields: BriefingField[];
   is_active: boolean;
+  is_blocked: boolean;
   responses_count: number;
   created_at: string;
 }
@@ -335,6 +338,23 @@ export function BriefingCreatorPanel() {
     const link = `${window.location.origin}/briefing/${briefingId}`;
     navigator.clipboard.writeText(link);
     toast.success("Link copiado!");
+  };
+
+  const handleToggleBlock = async (briefing: Briefing) => {
+    try {
+      const newBlockedState = !briefing.is_blocked;
+      const { error } = await supabase
+        .from('briefings' as any)
+        .update({ is_blocked: newBlockedState })
+        .eq('id', briefing.id);
+
+      if (error) throw error;
+      
+      toast.success(newBlockedState ? "Briefing bloqueado!" : "Briefing desbloqueado!");
+      loadBriefings();
+    } catch (error: any) {
+      toast.error("Erro ao atualizar briefing");
+    }
   };
 
   const totalResponses = briefings.reduce((sum, b) => sum + b.responses_count, 0);
@@ -640,9 +660,17 @@ export function BriefingCreatorPanel() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <CardTitle className="text-base mb-1">{briefing.title}</CardTitle>
-                        <Badge variant={briefing.is_active ? 'default' : 'secondary'} className="mt-2">
-                          {briefing.is_active ? 'Ativo' : 'Inativo'}
-                        </Badge>
+                        <div className="flex gap-2 mt-2">
+                          <Badge variant={briefing.is_active ? 'default' : 'secondary'}>
+                            {briefing.is_active ? 'Ativo' : 'Inativo'}
+                          </Badge>
+                          {briefing.is_blocked && (
+                            <Badge variant="destructive" className="flex items-center gap-1">
+                              <Lock className="h-3 w-3" />
+                              Bloqueado
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </CardHeader>
@@ -671,6 +699,18 @@ export function BriefingCreatorPanel() {
                       >
                         <Copy className="h-3 w-3 mr-1" />
                         Link
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleToggleBlock(briefing)}
+                        title={briefing.is_blocked ? "Desbloquear" : "Bloquear"}
+                      >
+                        {briefing.is_blocked ? (
+                          <LockOpen className="h-3 w-3" />
+                        ) : (
+                          <Lock className="h-3 w-3" />
+                        )}
                       </Button>
                       <Button 
                         variant="outline" 

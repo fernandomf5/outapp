@@ -1299,6 +1299,7 @@ export type Database = {
           fields: Json
           id: string
           is_active: boolean
+          is_blocked: boolean
           logo_url: string | null
           responses_count: number
           title: string
@@ -1311,6 +1312,7 @@ export type Database = {
           fields?: Json
           id?: string
           is_active?: boolean
+          is_blocked?: boolean
           logo_url?: string | null
           responses_count?: number
           title: string
@@ -1323,6 +1325,7 @@ export type Database = {
           fields?: Json
           id?: string
           is_active?: boolean
+          is_blocked?: boolean
           logo_url?: string | null
           responses_count?: number
           title?: string
