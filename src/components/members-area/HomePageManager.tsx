@@ -36,6 +36,7 @@ export function HomePageManager({ areaId, availableModules }: HomePageManagerPro
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [banners, setBanners] = useState<Array<{ id: string; image_url: string; link?: string }>>([]);
   const [featuredVideos, setFeaturedVideos] = useState<Array<{ id: string; title: string; video_url: string; thumbnail?: string }>>([]);
+  const [uploadKey, setUploadKey] = useState(0);
 
   const [formData, setFormData] = useState<Partial<Product>>({
     name: '',
@@ -132,6 +133,12 @@ export function HomePageManager({ areaId, availableModules }: HomePageManagerPro
   };
 
   const handleAddBanner = async (imageUrl: string) => {
+    // Verificar se o banner já existe (evitar duplicação)
+    if (banners.some(b => b.image_url === imageUrl)) {
+      toast.error('Este banner já foi adicionado');
+      return;
+    }
+
     const newBanner = { id: crypto.randomUUID(), image_url: imageUrl };
     const updatedBanners = [...banners, newBanner];
 
@@ -152,6 +159,7 @@ export function HomePageManager({ areaId, availableModules }: HomePageManagerPro
       if (error) throw error;
 
       setBanners(updatedBanners);
+      setUploadKey(prev => prev + 1); // Reset o componente de upload
       toast.success('Banner adicionado!');
     } catch (error: any) {
       toast.error('Erro ao adicionar banner: ' + error.message);
@@ -288,6 +296,7 @@ export function HomePageManager({ areaId, availableModules }: HomePageManagerPro
             </CardHeader>
             <CardContent className="space-y-4">
               <ImageUpload
+                key={uploadKey}
                 label="Adicionar Novo Banner"
                 onImageSelect={handleAddBanner}
                 bucketName="members-content"
