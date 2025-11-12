@@ -1294,6 +1294,7 @@ export type Database = {
       }
       briefings: {
         Row: {
+          collect_visitor_name: boolean | null
           created_at: string
           description: string | null
           fields: Json
@@ -1306,6 +1307,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          collect_visitor_name?: boolean | null
           created_at?: string
           description?: string | null
           fields?: Json
@@ -1318,6 +1320,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          collect_visitor_name?: boolean | null
           created_at?: string
           description?: string | null
           fields?: Json

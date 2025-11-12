@@ -87,11 +87,17 @@ export default function BriefingPublicPage() {
     setSubmitting(true);
 
     try {
+      // Separar o nome do visitante das respostas
+      const visitorName = responses['_visitor_name'];
+      const fieldResponses = { ...responses };
+      delete fieldResponses['_visitor_name'];
+
       const { error } = await supabase
         .from('briefing_responses')
         .insert([{
           briefing_id: briefingId,
-          responses: responses
+          visitor_name: visitorName || null,
+          responses: fieldResponses
         }]);
 
       if (error) throw error;
@@ -351,6 +357,22 @@ export default function BriefingPublicPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Campo de nome se habilitado */}
+            {briefing.collect_visitor_name && (
+              <div className="grid gap-2 pb-4 border-b">
+                <Label>
+                  Primeiro Nome
+                  <span className="text-destructive ml-1">*</span>
+                </Label>
+                <Input
+                  value={responses['_visitor_name'] || ''}
+                  onChange={(e) => setResponses({ ...responses, '_visitor_name': e.target.value })}
+                  placeholder="Digite seu primeiro nome"
+                  required
+                />
+              </div>
+            )}
+            
             {/* Campos do briefing */}
             <div className="space-y-4">
               {briefing.fields.map((field: any) => (
