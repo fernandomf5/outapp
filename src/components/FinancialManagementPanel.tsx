@@ -21,19 +21,25 @@ import {
   Wallet,
   PieChart,
   BarChart3,
-  Filter
+  Filter,
+  Edit2,
+  ChevronUp,
+  ChevronDown
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { ImageUpload } from "@/components/ImageUpload";
 
 interface Business {
   id: string;
   name: string;
   business_type: 'personal' | 'company';
   description?: string;
+  logo_url?: string;
+  order_index: number;
   created_at: string;
 }
 
@@ -63,11 +69,14 @@ export const FinancialManagementPanel = () => {
   const [consolidationMode, setConsolidationMode] = useState(false);
   const [deleteTransactionId, setDeleteTransactionId] = useState<string | null>(null);
   const [deleteBusinessId, setDeleteBusinessId] = useState<string | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
 
   const [businessFormData, setBusinessFormData] = useState({
     name: '',
     business_type: 'personal' as 'personal' | 'company',
-    description: ''
+    description: '',
+    logo_url: ''
   });
   
   const [formData, setFormData] = useState({
@@ -99,7 +108,7 @@ export const FinancialManagementPanel = () => {
         .from('financial_businesses')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('order_index', { ascending: true });
 
       if (error) throw error;
       setBusinesses((data || []) as Business[]);
@@ -147,11 +156,22 @@ export const FinancialManagementPanel = () => {
         return;
       }
 
+      // Get max order_index
+      const { data: maxOrderData } = await supabase
+        .from('financial_businesses')
+        .select('order_index')
+        .eq('user_id', user.id)
+        .order('order_index', { ascending: false })
+        .limit(1);
+
+      const maxOrder = maxOrderData?.[0]?.order_index ?? -1;
+
       const { error } = await supabase
         .from('financial_businesses')
         .insert([{
           user_id: user.id,
-          ...businessFormData
+          ...businessFormData,
+          order_index: maxOrder + 1
         }]);
 
       if (error) throw error;
@@ -163,7 +183,8 @@ export const FinancialManagementPanel = () => {
       setBusinessFormData({
         name: '',
         business_type: 'personal',
-        description: ''
+        description: '',
+        logo_url: ''
       });
     } catch (error: any) {
       toast.error("Erro ao adicionar negócio");
@@ -191,6 +212,84 @@ export const FinancialManagementPanel = () => {
       toast.error("Erro ao excluir negócio");
     } finally {
       setDeleteBusinessId(null);
+    }
+  };
+
+  const handleEditBusiness = async () => {
+    if (!editingBusiness) return;
+
+    try {
+      if (!businessFormData.name.trim()) {
+        toast.error("Nome do negócio é obrigatório");
+        return;
+      }
+
+      const { error } = await supabase
+        .from('financial_businesses')
+        .update({
+          name: businessFormData.name,
+          business_type: businessFormData.business_type,
+          description: businessFormData.description,
+          logo_url: businessFormData.logo_url
+        })
+        .eq('id', editingBusiness.id);
+
+      if (error) throw error;
+
+      toast.success("Negócio atualizado com sucesso!");
+      setIsEditDialogOpen(false);
+      setEditingBusiness(null);
+      loadBusinesses();
+      
+      setBusinessFormData({
+        name: '',
+        business_type: 'personal',
+        description: '',
+        logo_url: ''
+      });
+    } catch (error: any) {
+      toast.error("Erro ao atualizar negócio");
+    }
+  };
+
+  const openEditDialog = (business: Business) => {
+    setEditingBusiness(business);
+    setBusinessFormData({
+      name: business.name,
+      business_type: business.business_type,
+      description: business.description || '',
+      logo_url: business.logo_url || ''
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const moveBusiness = async (business: Business, direction: 'up' | 'down') => {
+    const currentIndex = businesses.findIndex(b => b.id === business.id);
+    if (
+      (direction === 'up' && currentIndex === 0) || 
+      (direction === 'down' && currentIndex === businesses.length - 1)
+    ) {
+      return;
+    }
+
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    const targetBusiness = businesses[targetIndex];
+
+    try {
+      // Swap order_index values
+      await supabase
+        .from('financial_businesses')
+        .update({ order_index: targetBusiness.order_index })
+        .eq('id', business.id);
+
+      await supabase
+        .from('financial_businesses')
+        .update({ order_index: business.order_index })
+        .eq('id', targetBusiness.id);
+
+      loadBusinesses();
+    } catch (error: any) {
+      toast.error("Erro ao reordenar negócios");
     }
   };
 
@@ -318,12 +417,18 @@ export const FinancialManagementPanel = () => {
                 Novo Negócio
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Adicionar Negócio</DialogTitle>
                 <DialogDescription>Crie um novo negócio para gerenciar suas finanças</DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
+                <ImageUpload
+                  currentImage={businessFormData.logo_url}
+                  onImageSelect={(url) => setBusinessFormData({...businessFormData, logo_url: url})}
+                  bucketName="business-logos"
+                  label="Logo do Negócio (opcional)"
+                />
                 <div className="grid gap-2">
                   <Label>Nome do Negócio/Cliente *</Label>
                   <Input 
@@ -394,7 +499,7 @@ export const FinancialManagementPanel = () => {
               </div>
             ) : (
               <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                {businesses.map((business) => (
+                {businesses.map((business, index) => (
                   <Card 
                     key={business.id}
                     className={`cursor-pointer transition-smooth hover:shadow-glow ${
@@ -403,27 +508,78 @@ export const FinancialManagementPanel = () => {
                     onClick={() => setSelectedBusiness(business)}
                   >
                     <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="text-base">{business.name}</CardTitle>
-                          <Badge variant="outline" className="mt-2">
-                            {business.business_type === 'personal' ? 'Pessoa Física' : 'Pessoa Jurídica'}
-                          </Badge>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          {business.logo_url && (
+                            <img 
+                              src={business.logo_url} 
+                              alt={business.name}
+                              className="w-12 h-12 rounded-lg object-cover flex-shrink-0 border"
+                            />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="text-base truncate">{business.name}</CardTitle>
+                            <Badge variant="outline" className="mt-2">
+                              {business.business_type === 'personal' ? 'Pessoa Física' : 'Pessoa Jurídica'}
+                            </Badge>
+                          </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeleteBusinessId(business.id);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                        <div className="flex flex-col gap-1 flex-shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              moveBusiness(business, 'up');
+                            }}
+                            disabled={index === 0}
+                          >
+                            <ChevronUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              moveBusiness(business, 'down');
+                            }}
+                            disabled={index === businesses.length - 1}
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                       {business.description && (
                         <p className="text-sm text-muted-foreground mt-2">{business.description}</p>
                       )}
+                      <div className="flex gap-2 mt-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEditDialog(business);
+                          }}
+                          className="flex-1"
+                        >
+                          <Edit2 className="h-3 w-3 mr-1" />
+                          Editar
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteBusinessId(business.id);
+                          }}
+                          className="flex-1"
+                        >
+                          <Trash2 className="h-3 w-3 mr-1 text-destructive" />
+                          Excluir
+                        </Button>
+                      </div>
                     </CardHeader>
                   </Card>
                 ))}
@@ -756,6 +912,68 @@ export const FinancialManagementPanel = () => {
         onConfirm={handleDeleteBusiness}
         description="Você tem certeza que deseja excluir este negócio? Esta ação excluirá TODAS as transações associadas a ele e não pode ser desfeita!"
       />
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Negócio</DialogTitle>
+            <DialogDescription>Atualize as informações do negócio</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <ImageUpload
+              currentImage={businessFormData.logo_url}
+              onImageSelect={(url) => setBusinessFormData({...businessFormData, logo_url: url})}
+              bucketName="business-logos"
+              label="Logo do Negócio (opcional)"
+            />
+            <div className="grid gap-2">
+              <Label>Nome do Negócio/Cliente *</Label>
+              <Input 
+                value={businessFormData.name}
+                onChange={(e) => setBusinessFormData({...businessFormData, name: e.target.value})}
+                placeholder="Ex: Loja ABC, Cliente João..."
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Tipo</Label>
+              <Select value={businessFormData.business_type} onValueChange={(value: 'personal' | 'company') => setBusinessFormData({...businessFormData, business_type: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="personal">Pessoa Física</SelectItem>
+                  <SelectItem value="company">Pessoa Jurídica</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Descrição (opcional)</Label>
+              <Input 
+                value={businessFormData.description}
+                onChange={(e) => setBusinessFormData({...businessFormData, description: e.target.value})}
+                placeholder="Descrição adicional..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setIsEditDialogOpen(false);
+              setEditingBusiness(null);
+              setBusinessFormData({
+                name: '',
+                business_type: 'personal',
+                description: '',
+                logo_url: ''
+              });
+            }}>
+              Cancelar
+            </Button>
+            <Button onClick={handleEditBusiness} className="gradient-primary">
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
