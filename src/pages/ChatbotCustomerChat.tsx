@@ -124,36 +124,71 @@ export default function ChatbotCustomerChat() {
 
       setChatbotInfo(chatbot);
 
-      // Always create a new conversation for authenticated users
-      // This ensures they can chat even if previous conversations were deleted
-      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const { data: newConv } = await supabase
-        .from('chatbot_conversations')
-        .insert({
-          chatbot_id: chatbotId,
-          session_id: sessionId,
-          visitor_email: customerData?.email || null,
-          visitor_name: customerData?.name || null,
-          visitor_phone: customerData?.phone || null,
-          status: 'active',
-          last_message_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+      // Buscar conversa existente baseada no email do cliente
+      let existingConv = null;
+      if (customerData?.email) {
+        const { data: conversations } = await supabase
+          .from('chatbot_conversations')
+          .select('*')
+          .eq('chatbot_id', chatbotId)
+          .eq('visitor_email', customerData.email)
+          .eq('status', 'active')
+          .order('last_message_at', { ascending: false })
+          .limit(1);
 
-      setConversationId(newConv.id);
-      await loadMessages(newConv.id);
+        if (conversations && conversations.length > 0) {
+          existingConv = conversations[0];
+        }
+      }
 
-      // Create notification for new conversation
-      await supabase
-        .from('chatbot_notifications')
-        .insert({
-          chatbot_id: chatbotId,
-          type: 'new_conversation',
-          title: 'Nova Conversa',
-          message: `${customerData?.name || 'Visitante'} iniciou uma conversa`,
-          is_read: false,
-        });
+      let conversationToUse;
+      
+      if (existingConv) {
+        // Usar conversa existente
+        conversationToUse = existingConv;
+        
+        // Atualizar última atividade
+        await supabase
+          .from('chatbot_conversations')
+          .update({ 
+            last_message_at: new Date().toISOString(),
+            visitor_name: customerData?.name || existingConv.visitor_name,
+            visitor_phone: customerData?.phone || existingConv.visitor_phone,
+          })
+          .eq('id', existingConv.id);
+      } else {
+        // Criar nova conversa apenas se não existir
+        const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const { data: newConv } = await supabase
+          .from('chatbot_conversations')
+          .insert({
+            chatbot_id: chatbotId,
+            session_id: sessionId,
+            visitor_email: customerData?.email || null,
+            visitor_name: customerData?.name || null,
+            visitor_phone: customerData?.phone || null,
+            status: 'active',
+            last_message_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        conversationToUse = newConv;
+
+        // Create notification apenas para novas conversas
+        await supabase
+          .from('chatbot_notifications')
+          .insert({
+            chatbot_id: chatbotId,
+            type: 'new_conversation',
+            title: 'Nova Conversa',
+            message: `${customerData?.name || 'Visitante'} iniciou uma conversa`,
+            is_read: false,
+          });
+      }
+
+      setConversationId(conversationToUse.id);
+      await loadMessages(conversationToUse.id);
     } catch (error) {
       console.error('Error loading chatbot:', error);
       toast({

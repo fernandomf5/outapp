@@ -297,30 +297,30 @@ export default function ChatbotCustomerAuth() {
   if (authMode === 'choice' && accessType === 'public') {
     return (
       <div className="min-h-screen flex items-center justify-center gradient-primary p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Bem-vindo ao Chat</CardTitle>
-            <CardDescription>
+        <Card className="w-full max-w-md mx-auto">
+          <CardHeader className="px-4 sm:px-6">
+            <CardTitle className="text-xl sm:text-2xl">Bem-vindo ao Chat</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
               Escolha como deseja acessar
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6 pb-6">
             <Button 
-              className="w-full h-auto py-6 flex-col gap-2" 
+              className="w-full h-auto py-5 sm:py-6 flex-col gap-2" 
               onClick={() => setAuthMode('register')}
             >
-              <MessageSquare className="w-6 h-6" />
-              <span className="font-semibold">Cadastre-se para Iniciar Chat</span>
+              <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />
+              <span className="font-semibold text-sm sm:text-base">Cadastre-se para Iniciar Chat</span>
               <span className="text-xs opacity-80">Novo cadastro</span>
             </Button>
 
             <Button 
               variant="outline"
-              className="w-full h-auto py-6 flex-col gap-2"
+              className="w-full h-auto py-5 sm:py-6 flex-col gap-2"
               onClick={() => setAuthMode('login')}
             >
-              <LogIn className="w-6 h-6" />
-              <span className="font-semibold">Entrar com Login e Senha</span>
+              <LogIn className="w-5 h-5 sm:w-6 sm:h-6" />
+              <span className="font-semibold text-sm sm:text-base">Entrar com Login e Senha</span>
               <span className="text-xs opacity-80">Já tenho uma conta</span>
             </Button>
           </CardContent>
@@ -331,34 +331,35 @@ export default function ChatbotCustomerAuth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center gradient-primary p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="space-y-1 px-4 sm:px-6">
+          <CardTitle className="text-xl sm:text-2xl">
             {authMode === 'login' ? 'Entrar no Chat' : 
              accessType === 'restricted' ? 'Solicitar Acesso' : 'Iniciar Novo Chat'}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-sm">
             {authMode === 'login' ? 'Entre com suas credenciais' : 
              accessType === 'restricted' ? 'Preencha seus dados para solicitar acesso' :
              'Preencha seus dados para iniciar'}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <CardContent className="px-4 sm:px-6 pb-6">
+          <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
             {authMode === 'register' && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nome</Label>
+                  <Label htmlFor="name" className="text-sm sm:text-base">Nome</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     required
                     placeholder="Seu nome completo"
+                    className="h-10 sm:h-11 text-sm sm:text-base"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone</Label>
+                  <Label htmlFor="phone" className="text-sm sm:text-base">Telefone</Label>
                   <Input
                     id="phone"
                     type="tel"
@@ -366,13 +367,14 @@ export default function ChatbotCustomerAuth() {
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
                     required
                     placeholder="(00) 00000-0000"
+                    className="h-10 sm:h-11 text-sm sm:text-base"
                   />
                 </div>
               </>
             )}
             
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm sm:text-base">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -380,12 +382,14 @@ export default function ChatbotCustomerAuth() {
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
                 required
                 placeholder="seu@email.com"
+                className="h-10 sm:h-11 text-sm sm:text-base"
+                autoComplete="email"
               />
             </div>
 
             {authMode === 'register' && (
               <div className="space-y-2">
-                <Label htmlFor="emailConfirm">Confirmar Email</Label>
+                <Label htmlFor="emailConfirm" className="text-sm sm:text-base">Confirmar Email</Label>
                 <Input
                   id="emailConfirm"
                   type="email"
@@ -393,12 +397,13 @@ export default function ChatbotCustomerAuth() {
                   onChange={(e) => setFormData({...formData, emailConfirm: e.target.value})}
                   required
                   placeholder="Digite o e-mail novamente"
+                  className="h-10 sm:h-11 text-sm sm:text-base"
                 />
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
+              <Label htmlFor="password" className="text-sm sm:text-base">Senha</Label>
               <Input
                 id="password"
                 type="password"
@@ -407,12 +412,14 @@ export default function ChatbotCustomerAuth() {
                 required
                 placeholder="Mínimo 6 caracteres"
                 minLength={6}
+                className="h-10 sm:h-11 text-sm sm:text-base"
+                autoComplete={authMode === 'login' ? 'current-password' : 'new-password'}
               />
             </div>
 
             {authMode === 'register' && (
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+                <Label htmlFor="confirmPassword" className="text-sm sm:text-base">Confirmar Senha</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -421,17 +428,19 @@ export default function ChatbotCustomerAuth() {
                   required
                   placeholder="Digite a senha novamente"
                   minLength={6}
+                  className="h-10 sm:h-11 text-sm sm:text-base"
+                  autoComplete="new-password"
                 />
               </div>
             )}
 
             {authMode === 'register' && accessType === 'restricted' && (
-              <div className="bg-yellow-50 dark:bg-yellow-950 p-3 rounded-md text-sm text-yellow-900 dark:text-yellow-100">
+              <div className="bg-yellow-50 dark:bg-yellow-950 p-3 rounded-md text-xs sm:text-sm text-yellow-900 dark:text-yellow-100">
                 ⚠️ Após o cadastro, você precisará aguardar a aprovação do administrador para acessar o chat.
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full h-10 sm:h-11 text-sm sm:text-base" disabled={loading}>
               {loading ? 'Processando...' : (
                 authMode === 'login' ? 'Entrar' : 
                 accessType === 'restricted' ? 'Solicitar Acesso' : 
@@ -443,7 +452,7 @@ export default function ChatbotCustomerAuth() {
               <Button
                 type="button"
                 variant="ghost"
-                className="w-full"
+                className="w-full h-10 sm:h-11 text-sm sm:text-base"
                 onClick={() => setAuthMode('choice')}
               >
                 ← Voltar
