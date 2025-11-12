@@ -26,6 +26,10 @@ import { AccessRequestsManager } from "@/components/members-area/AccessRequestsM
 import { ModuleContentsManager } from "@/components/members-area/ModuleContentsManager";
 import { HomePageManager } from "@/components/members-area/HomePageManager";
 import { MercadoPagoIntegration } from "@/components/admin/MercadoPagoIntegration";
+import { CourseProgressPanel } from "@/components/members-area/CourseProgressPanel";
+import { CommunityFeedPanel } from "@/components/members-area/CommunityFeedPanel";
+import { ClientPortalPanel } from "@/components/members-area/ClientPortalPanel";
+import { DigitalProductsPanel } from "@/components/members-area/DigitalProductsPanel";
 
 interface MembersArea {
   id: string;
@@ -480,10 +484,49 @@ export function MembersAreaCreator() {
                 <Play className="h-4 w-4 mr-2" />
                 Página Inicial
               </TabsTrigger>
-              <TabsTrigger value="modules">
-                <Book className="h-4 w-4 mr-2" />
-                Módulos
-              </TabsTrigger>
+              
+              {/* Tabs baseadas no tipo de área */}
+              {selectedArea.area_type === 'course' && (
+                <>
+                  <TabsTrigger value="modules">
+                    <Book className="h-4 w-4 mr-2" />
+                    Módulos
+                  </TabsTrigger>
+                  <TabsTrigger value="progress">
+                    <GraduationCap className="h-4 w-4 mr-2" />
+                    Progresso & Certificados
+                  </TabsTrigger>
+                </>
+              )}
+
+              {selectedArea.area_type === 'community' && (
+                <TabsTrigger value="community">
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Feed da Comunidade
+                </TabsTrigger>
+              )}
+
+              {selectedArea.area_type === 'client_portal' && (
+                <>
+                  <TabsTrigger value="portal">
+                    <Briefcase className="h-4 w-4 mr-2" />
+                    Portal do Cliente
+                  </TabsTrigger>
+                  <TabsTrigger value="modules">
+                    <Book className="h-4 w-4 mr-2" />
+                    Conteúdos
+                  </TabsTrigger>
+                </>
+              )}
+
+              {selectedArea.area_type === 'digital_products' && (
+                <TabsTrigger value="digital">
+                  <Package className="h-4 w-4 mr-2" />
+                  Produtos Digitais
+                </TabsTrigger>
+              )}
+
+              {/* Tabs comuns a todos os tipos */}
               <TabsTrigger value="products">
                 <Package className="h-4 w-4 mr-2" />
                 Produtos
@@ -494,7 +537,7 @@ export function MembersAreaCreator() {
               </TabsTrigger>
               <TabsTrigger value="students">
                 <Users className="h-4 w-4 mr-2" />
-                Alunos
+                Membros
               </TabsTrigger>
               <TabsTrigger value="payments">
                 <DollarSign className="h-4 w-4 mr-2" />
@@ -613,6 +656,31 @@ export function MembersAreaCreator() {
             <TabsContent value="students" className="pt-6">
               <EnrollmentsManager areaId={selectedArea.id} />
             </TabsContent>
+
+            {/* Tabs específicas por tipo de área */}
+            {selectedArea.area_type === 'course' && (
+              <TabsContent value="progress" className="pt-6">
+                <CourseProgressPanel areaId={selectedArea.id} />
+              </TabsContent>
+            )}
+
+            {selectedArea.area_type === 'community' && (
+              <TabsContent value="community" className="pt-6">
+                <CommunityFeedPanel areaId={selectedArea.id} />
+              </TabsContent>
+            )}
+
+            {selectedArea.area_type === 'client_portal' && (
+              <TabsContent value="portal" className="pt-6">
+                <ClientPortalPanel areaId={selectedArea.id} />
+              </TabsContent>
+            )}
+
+            {selectedArea.area_type === 'digital_products' && (
+              <TabsContent value="digital" className="pt-6">
+                <DigitalProductsPanel areaId={selectedArea.id} />
+              </TabsContent>
+            )}
 
             <TabsContent value="payments" className="pt-6 space-y-6">
               <Card>
