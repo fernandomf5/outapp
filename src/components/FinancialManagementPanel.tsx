@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -60,6 +61,7 @@ export const FinancialManagementPanel = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isBusinessDialogOpen, setIsBusinessDialogOpen] = useState(false);
   const [consolidationMode, setConsolidationMode] = useState(false);
+  const [deleteTransactionId, setDeleteTransactionId] = useState<string | null>(null);
 
   const [businessFormData, setBusinessFormData] = useState({
     name: '',
@@ -226,12 +228,14 @@ export const FinancialManagementPanel = () => {
     }
   };
 
-  const handleDeleteTransaction = async (id: string) => {
+  const handleDeleteTransaction = async () => {
+    if (!deleteTransactionId) return;
+    
     try {
       const { error } = await supabase
         .from('financial_transactions')
         .delete()
-        .eq('id', id);
+        .eq('id', deleteTransactionId);
 
       if (error) throw error;
 
@@ -239,6 +243,8 @@ export const FinancialManagementPanel = () => {
       loadTransactions();
     } catch (error: any) {
       toast.error("Erro ao excluir transação");
+    } finally {
+      setDeleteTransactionId(null);
     }
   };
 
@@ -716,7 +722,7 @@ export const FinancialManagementPanel = () => {
                             <Button 
                               variant="ghost" 
                               size="icon"
-                              onClick={() => handleDeleteTransaction(transaction.id)}
+                              onClick={() => setDeleteTransactionId(transaction.id)}
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
@@ -731,6 +737,13 @@ export const FinancialManagementPanel = () => {
           </Card>
         </>
       )}
+
+      <DeleteConfirmDialog
+        open={!!deleteTransactionId}
+        onOpenChange={() => setDeleteTransactionId(null)}
+        onConfirm={handleDeleteTransaction}
+        description="Você tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita e você perderá todos os dados relacionados."
+      />
     </div>
   );
 };
