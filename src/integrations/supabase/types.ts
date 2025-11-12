@@ -1261,7 +1261,7 @@ export type Database = {
           id: string
           responses: Json
           visitor_email: string | null
-          visitor_name: string | null
+          visitor_name: string
           visitor_phone: string | null
         }
         Insert: {
@@ -1270,7 +1270,7 @@ export type Database = {
           id?: string
           responses?: Json
           visitor_email?: string | null
-          visitor_name?: string | null
+          visitor_name: string
           visitor_phone?: string | null
         }
         Update: {
@@ -1279,7 +1279,7 @@ export type Database = {
           id?: string
           responses?: Json
           visitor_email?: string | null
-          visitor_name?: string | null
+          visitor_name?: string
           visitor_phone?: string | null
         }
         Relationships: [
@@ -1294,7 +1294,6 @@ export type Database = {
       }
       briefings: {
         Row: {
-          collect_visitor_name: boolean | null
           created_at: string
           description: string | null
           fields: Json
@@ -1307,7 +1306,6 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          collect_visitor_name?: boolean | null
           created_at?: string
           description?: string | null
           fields?: Json
@@ -1320,7 +1318,6 @@ export type Database = {
           user_id: string
         }
         Update: {
-          collect_visitor_name?: boolean | null
           created_at?: string
           description?: string | null
           fields?: Json

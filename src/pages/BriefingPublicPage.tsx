@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FileText, Upload, X, Star } from "lucide-react";
@@ -19,6 +20,8 @@ export default function BriefingPublicPage() {
   const [briefing, setBriefing] = useState<any>(null);
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
+  const [showNameDialog, setShowNameDialog] = useState(true);
+  const [visitorName, setVisitorName] = useState('');
 
   useEffect(() => {
     loadBriefing();
@@ -82,22 +85,25 @@ export default function BriefingPublicPage() {
     });
   };
 
+  const handleNameSubmit = () => {
+    if (!visitorName.trim()) {
+      toast.error("Por favor, informe seu primeiro nome");
+      return;
+    }
+    setShowNameDialog(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
-      // Separar o nome do visitante das respostas
-      const visitorName = responses['_visitor_name'];
-      const fieldResponses = { ...responses };
-      delete fieldResponses['_visitor_name'];
-
       const { error } = await supabase
         .from('briefing_responses')
         .insert([{
           briefing_id: briefingId,
-          visitor_name: visitorName || null,
-          responses: fieldResponses
+          visitor_name: visitorName,
+          responses: responses
         }]);
 
       if (error) throw error;
@@ -113,6 +119,8 @@ export default function BriefingPublicPage() {
           .eq('id', briefingId);
       }
       setResponses({});
+      setVisitorName('');
+      setShowNameDialog(true);
     } catch (error) {
       toast.error("Erro ao enviar briefing");
     } finally {
@@ -338,64 +346,83 @@ export default function BriefingPublicPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 py-12 px-4">
-      <Card className="max-w-3xl mx-auto glass">
-        <CardHeader>
-          {briefing.logo_url && (
-            <div className="flex justify-center mb-4">
-              <img 
-                src={briefing.logo_url} 
-                alt="Logo" 
-                className="h-16 w-auto object-contain"
+    <>
+      <Dialog open={showNameDialog} onOpenChange={setShowNameDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Bem-vindo!</DialogTitle>
+            <DialogDescription>
+              Por favor, informe seu primeiro nome antes de iniciar o briefing.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="visitor-name">Primeiro Nome *</Label>
+              <Input
+                id="visitor-name"
+                value={visitorName}
+                onChange={(e) => setVisitorName(e.target.value)}
+                placeholder="Digite seu primeiro nome"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleNameSubmit();
+                  }
+                }}
               />
             </div>
-          )}
-          <CardTitle className="text-2xl">{briefing.title}</CardTitle>
-          {briefing.description && (
-            <CardDescription>{briefing.description}</CardDescription>
-          )}
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Campo de nome se habilitado */}
-            {briefing.collect_visitor_name && (
-              <div className="grid gap-2 pb-4 border-b">
-                <Label>
-                  Primeiro Nome
-                  <span className="text-destructive ml-1">*</span>
-                </Label>
-                <Input
-                  value={responses['_visitor_name'] || ''}
-                  onChange={(e) => setResponses({ ...responses, '_visitor_name': e.target.value })}
-                  placeholder="Digite seu primeiro nome"
-                  required
+            <Button 
+              onClick={handleNameSubmit}
+              className="w-full gradient-primary"
+            >
+              Iniciar Briefing
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 py-12 px-4">
+        <Card className="max-w-3xl mx-auto glass">
+          <CardHeader>
+            {briefing.logo_url && (
+              <div className="flex justify-center mb-4">
+                <img 
+                  src={briefing.logo_url} 
+                  alt="Logo" 
+                  className="h-16 w-auto object-contain"
                 />
               </div>
             )}
-            
-            {/* Campos do briefing */}
-            <div className="space-y-4">
-              {briefing.fields.map((field: any) => (
-                <div key={field.id} className="grid gap-2">
-                  <Label>
-                    {field.label}
-                    {field.required && <span className="text-destructive ml-1">*</span>}
-                  </Label>
-                  {renderField(field)}
-                </div>
-              ))}
-            </div>
+            <CardTitle className="text-2xl">{briefing.title}</CardTitle>
+            {briefing.description && (
+              <CardDescription>{briefing.description}</CardDescription>
+            )}
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-4">
+                {briefing.fields.map((field: any) => (
+                  <div key={field.id} className="grid gap-2">
+                    <Label>
+                      {field.label}
+                      {field.required && <span className="text-destructive ml-1">*</span>}
+                    </Label>
+                    {renderField(field)}
+                  </div>
+                ))}
+              </div>
 
-            <Button 
-              type="submit" 
-              className="w-full gradient-primary shadow-glow"
-              disabled={submitting}
-            >
-              {submitting ? 'Enviando...' : 'Enviar Briefing'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+              <Button 
+                type="submit" 
+                className="w-full gradient-primary shadow-glow"
+                disabled={submitting || showNameDialog}
+              >
+                {submitting ? 'Enviando...' : 'Enviar Briefing'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </>
   );
 }
