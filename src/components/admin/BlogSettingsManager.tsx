@@ -313,15 +313,19 @@ export const BlogSettingsManager = () => {
                     setPromotionalBanners(newBanners);
                   }}
                 />
-                <Input
-                  placeholder="URL da Imagem"
-                  value={banner.image_url}
-                  onChange={(e) => {
-                    const newBanners = [...promotionalBanners];
-                    newBanners[index].image_url = e.target.value;
-                    setPromotionalBanners(newBanners);
-                  }}
-                />
+                <div className="space-y-2">
+                  <Label>Imagem do Banner</Label>
+                  <ImageUpload
+                    currentImage={banner.image_url}
+                    onImageSelect={(url) => {
+                      const newBanners = [...promotionalBanners];
+                      newBanners[index].image_url = url;
+                      setPromotionalBanners(newBanners);
+                    }}
+                    bucketName="blog-images"
+                    label="Imagem"
+                  />
+                </div>
                 <Input
                   placeholder="Link de Destino"
                   value={banner.link}
