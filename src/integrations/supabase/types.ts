@@ -1206,6 +1206,54 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_settings: {
+        Row: {
+          banner_top_link: string | null
+          banner_top_url: string | null
+          created_at: string
+          footer_content: string | null
+          footer_menu: Json | null
+          header_menu: Json | null
+          id: string
+          logo_url: string | null
+          promotional_banners: Json | null
+          site_description: string | null
+          site_name: string
+          social_links: Json | null
+          updated_at: string
+        }
+        Insert: {
+          banner_top_link?: string | null
+          banner_top_url?: string | null
+          created_at?: string
+          footer_content?: string | null
+          footer_menu?: Json | null
+          header_menu?: Json | null
+          id?: string
+          logo_url?: string | null
+          promotional_banners?: Json | null
+          site_description?: string | null
+          site_name?: string
+          social_links?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          banner_top_link?: string | null
+          banner_top_url?: string | null
+          created_at?: string
+          footer_content?: string | null
+          footer_menu?: Json | null
+          header_menu?: Json | null
+          id?: string
+          logo_url?: string | null
+          promotional_banners?: Json | null
+          site_description?: string | null
+          site_name?: string
+          social_links?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       briefing_responses: {
         Row: {
           briefing_id: string
