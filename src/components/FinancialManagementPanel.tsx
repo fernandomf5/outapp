@@ -974,6 +974,20 @@ export const FinancialManagementPanel = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <DeleteConfirmDialog
+        open={!!deleteTransactionId}
+        onOpenChange={() => setDeleteTransactionId(null)}
+        onConfirm={handleDeleteTransaction}
+        description="Você tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita e você perderá todos os dados relacionados."
+      />
+
+      <DeleteConfirmDialog
+        open={!!deleteBusinessId}
+        onOpenChange={() => setDeleteBusinessId(null)}
+        onConfirm={handleDeleteBusiness}
+        description="Você tem certeza que deseja excluir este negócio? Esta ação excluirá TODAS as transações associadas a ele e não pode ser desfeita!"
+      />
     </div>
   );
 };
