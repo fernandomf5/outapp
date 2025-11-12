@@ -52,6 +52,7 @@ export default function Blog() {
     if (slug) {
       fetchPost(slug);
     } else {
+      setSelectedPost(null);
       fetchPosts();
     }
   }, [slug]);
@@ -177,10 +178,7 @@ export default function Blog() {
         <div className="container max-w-4xl mx-auto px-4 py-8">
           <Button
             variant="outline"
-            onClick={() => {
-              setSelectedPost(null);
-              navigate('/blog');
-            }}
+            onClick={() => navigate('/blog')}
             className="mb-6 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
