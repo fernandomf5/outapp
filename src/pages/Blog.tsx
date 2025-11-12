@@ -44,6 +44,8 @@ export default function Blog() {
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [settings, setSettings] = useState<BlogSettings | null>(null);
 
   useEffect(() => {
@@ -106,12 +108,30 @@ export default function Blog() {
     setLoading(false);
   };
 
-  const filteredPosts = posts.filter(post =>
-    post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredPosts = posts.filter(post => {
+    // Filtro de texto
+    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    // Filtro de data
+    let matchesDate = true;
+    if (post.published_at) {
+      const postDate = new Date(post.published_at);
+      if (startDate) {
+        const start = new Date(startDate);
+        matchesDate = matchesDate && postDate >= start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999); // Incluir o dia completo
+        matchesDate = matchesDate && postDate <= end;
+      }
+    }
+    
+    return matchesSearch && matchesDate;
+  });
 
   if (loading) {
     return (
@@ -336,7 +356,7 @@ export default function Blog() {
       )}
 
       <div className="container max-w-6xl mx-auto px-4 py-8">
-        <div className="mb-6">
+        <div className="mb-6 space-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
@@ -346,6 +366,42 @@ export default function Blog() {
               className="pl-10"
             />
           </div>
+          
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Data Inicial</label>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Data Final</label>
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+          
+          {(searchQuery || startDate || endDate) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSearchQuery("");
+                setStartDate("");
+                setEndDate("");
+              }}
+              className="w-full"
+            >
+              Limpar Filtros
+            </Button>
+          )}
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
