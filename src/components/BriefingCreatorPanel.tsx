@@ -31,6 +31,7 @@ import {
   Star
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { toast } from "sonner";
 import {
   DndContext,
@@ -301,18 +302,24 @@ export function BriefingCreatorPanel() {
     setIsCreateDialogOpen(true);
   };
 
-  const handleDeleteBriefing = async (id: string) => {
+  const [deleteBriefingId, setDeleteBriefingId] = useState<string | null>(null);
+
+  const handleDeleteBriefing = async () => {
+    if (!deleteBriefingId) return;
+
     try {
       const { error } = await supabase
         .from('briefings' as any)
         .delete()
-        .eq('id', id);
+        .eq('id', deleteBriefingId);
 
       if (error) throw error;
       toast.success("Briefing excluído!");
       loadBriefings();
     } catch (error: any) {
       toast.error("Erro ao excluir briefing");
+    } finally {
+      setDeleteBriefingId(null);
     }
   };
 
@@ -662,7 +669,7 @@ export function BriefingCreatorPanel() {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => handleDeleteBriefing(briefing.id)}
+                        onClick={() => setDeleteBriefingId(briefing.id)}
                       >
                         <Trash2 className="h-3 w-3 text-destructive" />
                       </Button>
@@ -674,6 +681,13 @@ export function BriefingCreatorPanel() {
           )}
         </CardContent>
       </Card>
+
+      <DeleteConfirmDialog
+        open={!!deleteBriefingId}
+        onOpenChange={() => setDeleteBriefingId(null)}
+        onConfirm={handleDeleteBriefing}
+        description="Você tem certeza que deseja excluir este briefing? Esta ação não pode ser desfeita."
+      />
     </div>
   );
 }

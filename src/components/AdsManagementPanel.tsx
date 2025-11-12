@@ -23,6 +23,7 @@ import {
   Edit
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { toast } from "sonner";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -151,14 +152,16 @@ export const AdsManagementPanel = () => {
     }
   };
 
-  const handleDeleteClient = async (id: string) => {
-    if (!confirm("Tem certeza? Isso excluirá todas as campanhas associadas.")) return;
+  const [deleteClientId, setDeleteClientId] = useState<string | null>(null);
+
+  const handleDeleteClient = async () => {
+    if (!deleteClientId) return;
 
     try {
       const { error } = await supabase
         .from('ad_clients')
         .delete()
-        .eq('id', id);
+        .eq('id', deleteClientId);
 
       if (error) throw error;
 
@@ -166,6 +169,8 @@ export const AdsManagementPanel = () => {
       loadData();
     } catch (error: any) {
       toast.error("Erro ao excluir cliente");
+    } finally {
+      setDeleteClientId(null);
     }
   };
 
@@ -221,12 +226,16 @@ export const AdsManagementPanel = () => {
     }
   };
 
-  const handleDeleteCampaign = async (id: string) => {
+  const [deleteCampaignId, setDeleteCampaignId] = useState<string | null>(null);
+
+  const handleDeleteCampaign = async () => {
+    if (!deleteCampaignId) return;
+
     try {
       const { error } = await supabase
         .from('ad_campaigns')
         .delete()
-        .eq('id', id);
+        .eq('id', deleteCampaignId);
 
       if (error) throw error;
 
@@ -234,6 +243,8 @@ export const AdsManagementPanel = () => {
       loadData();
     } catch (error: any) {
       toast.error("Erro ao excluir campanha");
+    } finally {
+      setDeleteCampaignId(null);
     }
   };
 
@@ -410,7 +421,7 @@ export const AdsManagementPanel = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleDeleteClient(client.id)}
+                        onClick={() => setDeleteClientId(client.id)}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
@@ -666,7 +677,7 @@ export const AdsManagementPanel = () => {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  onClick={() => handleDeleteCampaign(campaign.id)}
+                                  onClick={() => setDeleteCampaignId(campaign.id)}
                                 >
                                   <Trash2 className="h-4 w-4 text-destructive" />
                                 </Button>
@@ -977,6 +988,20 @@ export const AdsManagementPanel = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <DeleteConfirmDialog
+        open={!!deleteClientId}
+        onOpenChange={() => setDeleteClientId(null)}
+        onConfirm={handleDeleteClient}
+        description="Você tem certeza que deseja excluir este cliente? Isso excluirá todas as campanhas associadas. Esta ação não pode ser desfeita."
+      />
+
+      <DeleteConfirmDialog
+        open={!!deleteCampaignId}
+        onOpenChange={() => setDeleteCampaignId(null)}
+        onConfirm={handleDeleteCampaign}
+        description="Você tem certeza que deseja excluir esta campanha? Esta ação não pode ser desfeita."
+      />
     </div>
   );
 };

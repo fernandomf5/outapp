@@ -26,10 +26,6 @@ import { AccessRequestsManager } from "@/components/members-area/AccessRequestsM
 import { ModuleContentsManager } from "@/components/members-area/ModuleContentsManager";
 import { HomePageManager } from "@/components/members-area/HomePageManager";
 import { MercadoPagoIntegration } from "@/components/admin/MercadoPagoIntegration";
-import { CourseProgressPanel } from "@/components/members-area/CourseProgressPanel";
-import { CommunityFeedPanel } from "@/components/members-area/CommunityFeedPanel";
-import { ClientPortalPanel } from "@/components/members-area/ClientPortalPanel";
-import { DigitalProductsPanel } from "@/components/members-area/DigitalProductsPanel";
 
 interface MembersArea {
   id: string;
@@ -660,27 +656,48 @@ export function MembersAreaCreator() {
             {/* Tabs específicas por tipo de área */}
             {selectedArea.area_type === 'course' && (
               <TabsContent value="progress" className="pt-6">
-                <CourseProgressPanel areaId={selectedArea.id} />
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Progresso do Curso</CardTitle>
+                    <CardDescription>Em desenvolvimento...</CardDescription>
+                  </CardHeader>
+                </Card>
               </TabsContent>
             )}
 
             {selectedArea.area_type === 'community' && (
               <TabsContent value="community" className="pt-6">
-                <CommunityFeedPanel areaId={selectedArea.id} />
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Feed da Comunidade</CardTitle>
+                    <CardDescription>Em desenvolvimento...</CardDescription>
+                  </CardHeader>
+                </Card>
               </TabsContent>
             )}
 
             {selectedArea.area_type === 'client_portal' && (
               <TabsContent value="portal" className="pt-6">
-                <ClientPortalPanel areaId={selectedArea.id} />
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Portal do Cliente</CardTitle>
+                    <CardDescription>Em desenvolvimento...</CardDescription>
+                  </CardHeader>
+                </Card>
               </TabsContent>
             )}
 
             {selectedArea.area_type === 'digital_products' && (
               <TabsContent value="digital" className="pt-6">
-                <DigitalProductsPanel areaId={selectedArea.id} />
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Produtos Digitais</CardTitle>
+                    <CardDescription>Em desenvolvimento...</CardDescription>
+                  </CardHeader>
+                </Card>
               </TabsContent>
             )}
+
 
             <TabsContent value="payments" className="pt-6 space-y-6">
               <Card>

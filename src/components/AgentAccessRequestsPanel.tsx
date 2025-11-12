@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { CheckCircle, XCircle, Clock, User, Mail, Phone, Ban, Trash2, RefreshCw } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -213,20 +214,24 @@ export function AgentAccessRequestsPanel({ agentId }: { agentId: string }) {
     }
   };
 
-  const handleDelete = async (requestId: string) => {
-    setProcessing(requestId);
+  const [deleteRequestId, setDeleteRequestId] = useState<string | null>(null);
+
+  const handleDelete = async () => {
+    if (!deleteRequestId) return;
+    
+    setProcessing(deleteRequestId);
     try {
       // Buscar o customer_id da solicitação antes de excluir
       const { data: requestData } = await supabase
         .from('agent_access_requests')
         .select('customer_id')
-        .eq('id', requestId)
+        .eq('id', deleteRequestId)
         .single();
 
       const { error } = await supabase
         .from('agent_access_requests')
         .delete()
-        .eq('id', requestId);
+        .eq('id', deleteRequestId);
 
       if (error) throw error;
 
@@ -252,6 +257,7 @@ export function AgentAccessRequestsPanel({ agentId }: { agentId: string }) {
       });
     } finally {
       setProcessing(null);
+      setDeleteRequestId(null);
     }
   };
 
@@ -368,7 +374,7 @@ export function AgentAccessRequestsPanel({ agentId }: { agentId: string }) {
                 <Button
                   size="sm"
                   variant="destructive"
-                  onClick={() => handleDelete(request.id)}
+                  onClick={() => setDeleteRequestId(request.id)}
                   disabled={processing === request.id}
                 >
                   <Trash2 className="w-4 h-4 mr-1" />
@@ -392,7 +398,7 @@ export function AgentAccessRequestsPanel({ agentId }: { agentId: string }) {
                 <Button
                   size="sm"
                   variant="destructive"
-                  onClick={() => handleDelete(request.id)}
+                  onClick={() => setDeleteRequestId(request.id)}
                   disabled={processing === request.id}
                 >
                   <Trash2 className="w-4 h-4 mr-1" />
@@ -440,6 +446,13 @@ export function AgentAccessRequestsPanel({ agentId }: { agentId: string }) {
           )}
         </Card>
       ))}
+
+      <DeleteConfirmDialog
+        open={!!deleteRequestId}
+        onOpenChange={() => setDeleteRequestId(null)}
+        onConfirm={handleDelete}
+        description="Você tem certeza que deseja excluir esta solicitação de acesso? Esta ação não pode ser desfeita."
+      />
     </div>
   );
 }

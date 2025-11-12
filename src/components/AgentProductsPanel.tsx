@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Package, Plus, Pencil, Trash2, DollarSign, Upload, Loader2 } from "lucide-react";
 import {
@@ -201,13 +202,15 @@ export default function AgentProductsPanel({ agentId }: { agentId: string }) {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este produto?")) return;
+  const [deleteProductId, setDeleteProductId] = useState<string | null>(null);
+
+  const handleDelete = async () => {
+    if (!deleteProductId) return;
 
     const { error } = await supabase
       .from('agent_products')
       .delete()
-      .eq('id', id);
+      .eq('id', deleteProductId);
 
     if (error) {
       toast({
@@ -221,6 +224,7 @@ export default function AgentProductsPanel({ agentId }: { agentId: string }) {
       });
       loadProducts();
     }
+    setDeleteProductId(null);
   };
 
   if (loading) {
@@ -412,7 +416,7 @@ export default function AgentProductsPanel({ agentId }: { agentId: string }) {
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => handleDelete(product.id)}
+                    onClick={() => setDeleteProductId(product.id)}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -422,6 +426,13 @@ export default function AgentProductsPanel({ agentId }: { agentId: string }) {
           ))}
         </div>
       )}
+
+      <DeleteConfirmDialog
+        open={!!deleteProductId}
+        onOpenChange={() => setDeleteProductId(null)}
+        onConfirm={handleDelete}
+        description="Você tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita."
+      />
     </div>
   );
 }

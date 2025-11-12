@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Clock, Plus, Pencil, Trash2, DollarSign, Upload, Loader2 } from "lucide-react";
 import {
@@ -196,13 +197,15 @@ export default function AgentServicesPanel({ agentId }: { agentId: string }) {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este serviço?")) return;
+  const [deleteServiceId, setDeleteServiceId] = useState<string | null>(null);
+
+  const handleDelete = async () => {
+    if (!deleteServiceId) return;
 
     const { error } = await supabase
       .from('agent_services')
       .delete()
-      .eq('id', id);
+      .eq('id', deleteServiceId);
 
     if (error) {
       toast({
@@ -216,6 +219,7 @@ export default function AgentServicesPanel({ agentId }: { agentId: string }) {
       });
       loadServices();
     }
+    setDeleteServiceId(null);
   };
 
   if (loading) {
@@ -395,7 +399,7 @@ export default function AgentServicesPanel({ agentId }: { agentId: string }) {
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => handleDelete(service.id)}
+                    onClick={() => setDeleteServiceId(service.id)}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -405,6 +409,13 @@ export default function AgentServicesPanel({ agentId }: { agentId: string }) {
           ))}
         </div>
       )}
+
+      <DeleteConfirmDialog
+        open={!!deleteServiceId}
+        onOpenChange={() => setDeleteServiceId(null)}
+        onConfirm={handleDelete}
+        description="Você tem certeza que deseja excluir este serviço? Esta ação não pode ser desfeita."
+      />
     </div>
   );
 }

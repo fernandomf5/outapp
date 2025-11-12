@@ -16,6 +16,7 @@ import {
   Image as ImageIcon
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -79,12 +80,16 @@ export function BriefingResponsesPanel() {
     }
   };
 
-  const handleDeleteResponse = async (id: string) => {
+  const [deleteResponseId, setDeleteResponseId] = useState<string | null>(null);
+
+  const handleDeleteResponse = async () => {
+    if (!deleteResponseId) return;
+
     try {
       const { error } = await supabase
         .from('briefing_responses')
         .delete()
-        .eq('id', id);
+        .eq('id', deleteResponseId);
 
       if (error) throw error;
 
@@ -92,6 +97,8 @@ export function BriefingResponsesPanel() {
       loadResponses();
     } catch (error: any) {
       toast.error("Erro ao excluir resposta");
+    } finally {
+      setDeleteResponseId(null);
     }
   };
 
@@ -244,7 +251,7 @@ export function BriefingResponsesPanel() {
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => handleDeleteResponse(response.id)}
+                          onClick={() => setDeleteResponseId(response.id)}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -416,6 +423,13 @@ export function BriefingResponsesPanel() {
           )}
         </DialogContent>
       </Dialog>
+
+      <DeleteConfirmDialog
+        open={!!deleteResponseId}
+        onOpenChange={() => setDeleteResponseId(null)}
+        onConfirm={handleDeleteResponse}
+        description="Você tem certeza que deseja excluir esta resposta? Esta ação não pode ser desfeita."
+      />
     </div>
   );
 }
