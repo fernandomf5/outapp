@@ -60,6 +60,7 @@ export function ClientsManagementPanel() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [tagFilter, setTagFilter] = useState<string>("all");
+  const [sortOrder, setSortOrder] = useState<string>("date-desc");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
@@ -94,7 +95,7 @@ export function ClientsManagementPanel() {
 
   useEffect(() => {
     filterCustomers();
-  }, [customers, searchTerm, statusFilter, tagFilter]);
+  }, [customers, searchTerm, statusFilter, tagFilter, sortOrder]);
 
   const fetchCustomers = async () => {
     if (!user) return;
@@ -147,6 +148,22 @@ export function ClientsManagementPanel() {
     // Filtro por tag
     if (tagFilter !== "all") {
       filtered = filtered.filter(customer => customer.tags?.includes(tagFilter));
+    }
+
+    // Ordenação
+    switch (sortOrder) {
+      case "name-asc":
+        filtered.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+        break;
+      case "name-desc":
+        filtered.sort((a, b) => b.name.localeCompare(a.name, 'pt-BR'));
+        break;
+      case "date-asc":
+        filtered.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        break;
+      case "date-desc":
+        filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        break;
     }
 
     setFilteredCustomers(filtered);
@@ -401,19 +418,33 @@ export function ClientsManagementPanel() {
               </Select>
             </div>
             
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={downloadCSV} variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Exportar CSV
-              </Button>
-              <Button onClick={downloadPhones} variant="outline" size="sm">
-                <Phone className="h-4 w-4 mr-2" />
-                Exportar Telefones
-              </Button>
-              <Button onClick={downloadEmails} variant="outline" size="sm">
-                <Mail className="h-4 w-4 mr-2" />
-                Exportar E-mails
-              </Button>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={downloadCSV} variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar CSV
+                </Button>
+                <Button onClick={downloadPhones} variant="outline" size="sm">
+                  <Phone className="h-4 w-4 mr-2" />
+                  Exportar Telefones
+                </Button>
+                <Button onClick={downloadEmails} variant="outline" size="sm">
+                  <Mail className="h-4 w-4 mr-2" />
+                  Exportar E-mails
+                </Button>
+              </div>
+              
+              <Select value={sortOrder} onValueChange={setSortOrder}>
+                <SelectTrigger className="w-full sm:w-[200px]">
+                  <SelectValue placeholder="Ordenar por" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name-asc">Nome (A → Z)</SelectItem>
+                  <SelectItem value="name-desc">Nome (Z → A)</SelectItem>
+                  <SelectItem value="date-desc">Mais Recentes</SelectItem>
+                  <SelectItem value="date-asc">Mais Antigos</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
