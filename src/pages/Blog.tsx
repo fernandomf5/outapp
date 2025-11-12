@@ -356,11 +356,6 @@ export default function Blog() {
       )}
 
       <div className="container max-w-6xl mx-auto px-4 py-8">
-        <div className="mb-8 pb-4 border-b-4 border-primary/30">
-          <h1 className="text-4xl font-bold mb-2 text-primary">{settings?.site_name || 'Blog Bot Reals Zapp'}</h1>
-          <p className="text-muted-foreground">{settings?.site_description || 'Notícias, atualizações e novidades'}</p>
-        </div>
-
         <div className="mb-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
