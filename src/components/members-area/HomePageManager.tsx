@@ -60,7 +60,13 @@ export function HomePageManager({ areaId, availableModules }: HomePageManagerPro
 
       if (error) throw error;
 
-      setProducts(Array.isArray(data?.products) ? (data.products as any[]) : []);
+      const productsData = Array.isArray(data?.products) ? (data.products as any[]) : [];
+      // Garantir que price seja número
+      const normalizedProducts = productsData.map(p => ({
+        ...p,
+        price: typeof p.price === 'number' ? p.price : parseFloat(p.price) || 0
+      }));
+      setProducts(normalizedProducts);
       
       const settings = data?.settings as any || {};
       setBanners(settings.banners || []);
@@ -79,6 +85,7 @@ export function HomePageManager({ areaId, availableModules }: HomePageManagerPro
     const newProduct = {
       id: editingProduct?.id || crypto.randomUUID(),
       ...formData,
+      price: typeof formData.price === 'number' ? formData.price : parseFloat(String(formData.price)) || 0,
     } as Product;
 
     let updatedProducts;
@@ -244,7 +251,7 @@ export function HomePageManager({ areaId, availableModules }: HomePageManagerPro
                             <h4 className="font-semibold">{product.name}</h4>
                             <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
                             <p className="text-lg font-bold text-primary mt-2">
-                              R$ {product.price.toFixed(2)}
+                              R$ {(typeof product.price === 'number' ? product.price : parseFloat(String(product.price)) || 0).toFixed(2)}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               Método: {product.payment_method === 'mercadopago' ? 'Mercado Pago' : product.payment_method === 'pix' ? 'PIX' : 'Link Manual'}
