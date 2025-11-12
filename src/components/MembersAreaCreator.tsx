@@ -24,6 +24,8 @@ import { ProductsManager } from "@/components/members-area/ProductsManager";
 import { EnrollmentsManager } from "@/components/members-area/EnrollmentsManager";
 import { AccessRequestsManager } from "@/components/members-area/AccessRequestsManager";
 import { ModuleContentsManager } from "@/components/members-area/ModuleContentsManager";
+import { HomePageManager } from "@/components/members-area/HomePageManager";
+import { MercadoPagoIntegration } from "@/components/admin/MercadoPagoIntegration";
 
 interface MembersArea {
   id: string;
@@ -472,8 +474,12 @@ export function MembersAreaCreator() {
             </div>
           </div>
 
-          <Tabs defaultValue="modules">
+          <Tabs defaultValue="homepage">
             <TabsList>
+              <TabsTrigger value="homepage">
+                <Play className="h-4 w-4 mr-2" />
+                Página Inicial
+              </TabsTrigger>
               <TabsTrigger value="modules">
                 <Book className="h-4 w-4 mr-2" />
                 Módulos
@@ -499,6 +505,13 @@ export function MembersAreaCreator() {
                 Configurações
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="homepage" className="pt-6">
+              <HomePageManager 
+                areaId={selectedArea.id}
+                availableModules={modules.map(m => ({ id: m.id, title: m.title }))}
+              />
+            </TabsContent>
 
             <TabsContent value="modules" className="space-y-4 pt-6">
               <div className="flex justify-between items-center">

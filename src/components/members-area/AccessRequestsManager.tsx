@@ -87,9 +87,12 @@ export function AccessRequestsManager({ areaId }: AccessRequestsManagerProps) {
       if (error) throw error;
 
       if (newStatus === 'approved' && accessCode) {
-        toast.success(`Acesso aprovado! Código de acesso: ${accessCode}`, {
-          duration: 10000,
-        });
+        toast.success(
+          `✅ Acesso aprovado!\n\n🔑 Código de Acesso: ${accessCode}\n\n⚠️ IMPORTANTE: Guarde este código! O usuário precisará dele junto com o e-mail para fazer login na área de membros.\n\n📧 Email: ${currentRequest?.email}`,
+          {
+            duration: 15000,
+          }
+        );
         // TODO: Enviar email com código de acesso
         console.log(`Email: ${currentRequest?.email}, Código: ${accessCode}`);
       } else {

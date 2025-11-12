@@ -7,6 +7,7 @@ import { Helmet } from "react-helmet-async";
 import { Play, Loader2, LogOut } from "lucide-react";
 import { ContentPlayer } from "@/components/members-area/ContentPlayer";
 import { normalizeDomain } from "@/utils/domainUtils";
+import { NetflixStyleCarousel } from "@/components/members-area/NetflixStyleCarousel";
 
 interface MembersArea {
   id: string;
@@ -40,6 +41,7 @@ export default function MembersAreaView() {
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
   const [memberSession, setMemberSession] = useState<any>(null);
+  const [banners, setBanners] = useState<Array<{ id: string; image_url: string }>>([]);
 
   useEffect(() => {
     const load = async () => {
@@ -85,11 +87,15 @@ export default function MembersAreaView() {
         
         setArea(areaData as any);
 
+        // Carregar banners das configurações
+        const settings = (areaData as any)?.settings || {};
+        setBanners(settings.banners || []);
+
         // Carregar módulos
         const { data: modulesData, error: modulesError } = await supabase
           .from('members_area_modules' as any)
           .select('*')
-          .eq('area_id', areaId)
+          .eq('members_area_id', areaId)
           .eq('is_active', true)
           .order('order_index', { ascending: true });
 
@@ -158,38 +164,71 @@ export default function MembersAreaView() {
         <link rel="canonical" href={`${window.location.origin}/members/${area.id}`} />
       </Helmet>
 
-      <header className="relative h-56 md:h-72 w-full overflow-hidden border-b">
-        {area.banner_url ? (
-          <img src={area.banner_url} alt={`Banner ${title}`} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-background/10" />
-        <div className="absolute bottom-4 left-4 md:left-8 right-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            {area.logo_url && (
-              <img src={area.logo_url} alt="Logo" className="h-12 w-12 md:h-16 md:w-16 rounded" />
-            )}
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold">{title}</h1>
-              {area.description && (
-                <p className="text-sm md:text-base text-muted-foreground max-w-2xl">{area.description}</p>
+      {/* Hero com Carousel estilo Netflix */}
+      {banners.length > 0 ? (
+        <div className="relative">
+          <NetflixStyleCarousel banners={banners} />
+          <div className="absolute bottom-0 left-0 right-0 p-8 z-10">
+            <div className="max-w-7xl mx-auto flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                {area.logo_url && (
+                  <img src={area.logo_url} alt="Logo" className="h-16 w-16 rounded-lg shadow-lg border-2 border-primary" />
+                )}
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">{title}</h1>
+                  {area.description && (
+                    <p className="text-sm md:text-base text-white/90 max-w-2xl drop-shadow-md">{area.description}</p>
+                  )}
+                </div>
+              </div>
+              {memberSession && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleLogout}
+                  className="gap-2 bg-background/80 backdrop-blur"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sair
+                </Button>
               )}
             </div>
           </div>
-          {memberSession && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleLogout}
-              className="gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              Sair
-            </Button>
-          )}
         </div>
-      </header>
+      ) : (
+        <header className="relative h-56 md:h-72 w-full overflow-hidden border-b">
+          {area.banner_url ? (
+            <img src={area.banner_url} alt={`Banner ${title}`} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-background/10" />
+          <div className="absolute bottom-4 left-4 md:left-8 right-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {area.logo_url && (
+                <img src={area.logo_url} alt="Logo" className="h-12 w-12 md:h-16 md:w-16 rounded" />
+              )}
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold">{title}</h1>
+                {area.description && (
+                  <p className="text-sm md:text-base text-muted-foreground max-w-2xl">{area.description}</p>
+                )}
+              </div>
+            </div>
+            {memberSession && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleLogout}
+                className="gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Sair
+              </Button>
+            )}
+          </div>
+        </header>
+      )}
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         {modules.length === 0 ? (
@@ -197,47 +236,56 @@ export default function MembersAreaView() {
             <p className="text-muted-foreground">Nenhum módulo publicado ainda.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {modules.map((m) => (
-              <div 
-                key={m.id} 
-                className="group cursor-pointer"
-                onClick={() => {
-                  setSelectedModule(m);
-                  setIsPlayerOpen(true);
-                }}
-              >
-                <div className="relative aspect-[16/9] rounded-lg overflow-hidden bg-muted">
-                  {m.thumbnail_url ? (
-                    <img 
-                      src={m.thumbnail_url} 
-                      alt={m.title} 
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" 
-                      loading="lazy" 
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                      <Play className="w-10 h-10 text-primary" />
+          <>
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <div className="h-8 w-1 bg-primary rounded"></div>
+              Conteúdos Disponíveis
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+              {modules.map((m) => (
+                <div 
+                  key={m.id} 
+                  className="group cursor-pointer transform transition-all duration-300 hover:scale-105"
+                  onClick={() => {
+                    setSelectedModule(m);
+                    setIsPlayerOpen(true);
+                  }}
+                >
+                  <div className="relative aspect-[16/9] rounded-lg overflow-hidden bg-muted shadow-lg">
+                    {m.thumbnail_url ? (
+                      <img 
+                        src={m.thumbnail_url} 
+                        alt={m.title} 
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" 
+                        loading="lazy" 
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                        <Play className="w-10 h-10 text-primary" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors flex items-center justify-center">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center gap-2">
+                        <Play className="w-12 h-12 text-white drop-shadow-lg" />
+                        <span className="text-white text-xs font-semibold">Assistir</span>
+                      </div>
                     </div>
-                  )}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                    <Play className="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    {m.is_free && (
+                      <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded shadow-lg">
+                        Grátis
+                      </div>
+                    )}
                   </div>
-                  {m.is_free && (
-                    <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
-                      Grátis
-                    </div>
-                  )}
+                  <div className="mt-2">
+                    <p className="font-medium line-clamp-2 text-sm group-hover:text-primary transition-colors">{m.title}</p>
+                    {m.description && (
+                      <p className="text-xs text-muted-foreground line-clamp-1 mt-1">{m.description}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="mt-2">
-                  <p className="font-medium line-clamp-2 text-sm">{m.title}</p>
-                  {m.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-1 mt-1">{m.description}</p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </>
         )}
       </main>
 
