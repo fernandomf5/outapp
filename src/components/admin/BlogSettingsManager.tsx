@@ -62,10 +62,19 @@ export const BlogSettingsManager = () => {
           banner_top_link: (data as any).banner_top_link || '',
           footer_content: (data as any).footer_content || ''
         });
-        setHeaderMenu((data as any).header_menu || []);
-        setFooterMenu((data as any).footer_menu || []);
-        setPromotionalBanners((data as any).promotional_banners || []);
-        setSocialLinks((data as any).social_links || []);
+        
+        // Garantir que sempre temos arrays válidos
+        const headerMenuData = (data as any).header_menu;
+        setHeaderMenu(Array.isArray(headerMenuData) ? headerMenuData : []);
+        
+        const footerMenuData = (data as any).footer_menu;
+        setFooterMenu(Array.isArray(footerMenuData) ? footerMenuData : []);
+        
+        const bannersData = (data as any).promotional_banners;
+        setPromotionalBanners(Array.isArray(bannersData) ? bannersData : []);
+        
+        const socialLinksData = (data as any).social_links;
+        setSocialLinks(Array.isArray(socialLinksData) ? socialLinksData : []);
       }
     } catch (error) {
       console.error("Erro ao carregar configurações:", error);
