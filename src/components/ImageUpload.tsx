@@ -41,29 +41,39 @@ export function ImageUpload({
 
       setUploading(true);
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Você precisa estar autenticado');
+        setUploading(false);
+        return;
+      }
 
-      const { error: uploadError, data } = await supabase.storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
         .from(bucketName)
-        .upload(filePath, file, {
+        .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: true
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from(bucketName)
-        .getPublicUrl(filePath);
+        .getPublicUrl(fileName);
 
       setImageUrl(publicUrl);
       onImageSelect(publicUrl);
       toast.success('Imagem enviada com sucesso!');
     } catch (error: any) {
       console.error('Error uploading image:', error);
-      toast.error('Erro ao enviar imagem');
+      toast.error(`Erro ao enviar imagem: ${error.message || 'Tente novamente'}`);
     } finally {
       setUploading(false);
     }
