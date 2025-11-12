@@ -34,7 +34,7 @@ interface BlogSettings {
   header_menu: { label: string; url: string }[];
   footer_content: string | null;
   footer_menu: { label: string; url: string }[];
-  promotional_banners: { image_url: string; link: string; title?: string }[];
+  promotional_banners: { image_url: string; link: string; title?: string; description?: string }[];
   social_links: { platform: string; url: string }[];
 }
 
@@ -237,24 +237,38 @@ export default function Blog() {
             </div>
           </article>
 
-          {/* Promotional Banners */}
+          {/* Promotional Banners - Stories Format */}
           {settings?.promotional_banners && settings.promotional_banners.length > 0 && (
-            <div className="mt-8 space-y-4">
-              {settings.promotional_banners.map((banner, index) => (
-                <a
-                  key={index}
-                  href={banner.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block hover:opacity-90 transition-opacity"
-                >
-                  <img
-                    src={banner.image_url}
-                    alt={banner.title || `Banner ${index + 1}`}
-                    className="w-full h-auto rounded-lg"
-                  />
-                </a>
-              ))}
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold mb-4">Ofertas Especiais</h3>
+              <div className="flex gap-4 overflow-x-auto pb-4">
+                {settings.promotional_banners.map((banner, index) => (
+                  <a
+                    key={index}
+                    href={banner.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-shrink-0 w-40 group"
+                  >
+                    <div className="relative aspect-[9/16] rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all hover:scale-105">
+                      <img
+                        src={banner.image_url}
+                        alt={banner.title || `Banner ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+                        {banner.title && (
+                          <h4 className="font-bold text-sm mb-1 line-clamp-2">{banner.title}</h4>
+                        )}
+                        {banner.description && (
+                          <p className="text-xs opacity-90 line-clamp-2">{banner.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -418,24 +432,38 @@ export default function Blog() {
           </div>
         )}
 
-        {/* Promotional Banners */}
+        {/* Promotional Banners - Stories Format */}
         {settings?.promotional_banners && settings.promotional_banners.length > 0 && (
-          <div className="mt-8 space-y-4">
-            {settings.promotional_banners.map((banner, index) => (
-              <a
-                key={index}
-                href={banner.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block hover:opacity-90 transition-opacity"
-              >
-                <img
-                  src={banner.image_url}
-                  alt={banner.title || `Banner ${index + 1}`}
-                  className="w-full h-auto rounded-lg"
-                />
-              </a>
-            ))}
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold mb-4">Ofertas Especiais</h3>
+            <div className="flex gap-4 overflow-x-auto pb-4">
+              {settings.promotional_banners.map((banner, index) => (
+                <a
+                  key={index}
+                  href={banner.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-shrink-0 w-40 group"
+                >
+                  <div className="relative aspect-[9/16] rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all hover:scale-105">
+                    <img
+                      src={banner.image_url}
+                      alt={banner.title || `Banner ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+                      {banner.title && (
+                        <h4 className="font-bold text-sm mb-1 line-clamp-2">{banner.title}</h4>
+                      )}
+                      {banner.description && (
+                        <p className="text-xs opacity-90 line-clamp-2">{banner.description}</p>
+                      )}
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
           </div>
         )}
       </div>

@@ -19,7 +19,7 @@ interface BlogSettings {
   header_menu: { label: string; url: string }[];
   footer_content: string | null;
   footer_menu: { label: string; url: string }[];
-  promotional_banners: { image_url: string; link: string; title?: string }[];
+  promotional_banners: { image_url: string; link: string; title?: string; description?: string }[];
   social_links: { platform: string; url: string }[];
 }
 
@@ -36,7 +36,7 @@ export const BlogSettingsManager = () => {
   });
   const [headerMenu, setHeaderMenu] = useState<{ label: string; url: string }[]>([]);
   const [footerMenu, setFooterMenu] = useState<{ label: string; url: string }[]>([]);
-  const [promotionalBanners, setPromotionalBanners] = useState<{ image_url: string; link: string; title?: string }[]>([]);
+  const [promotionalBanners, setPromotionalBanners] = useState<{ image_url: string; link: string; title?: string; description?: string }[]>([]);
   const [socialLinks, setSocialLinks] = useState<{ platform: string; url: string }[]>([]);
 
   useEffect(() => {
@@ -286,7 +286,7 @@ export const BlogSettingsManager = () => {
               <h3 className="text-lg font-semibold">Banners Promocionais</h3>
               <Button
                 size="sm"
-                onClick={() => setPromotionalBanners([...promotionalBanners, { image_url: '', link: '', title: '' }])}
+                onClick={() => setPromotionalBanners([...promotionalBanners, { image_url: '', link: '', title: '', description: '' }])}
               >
                 <Plus className="h-4 w-4 mr-1" />
                 Adicionar Banner
@@ -305,7 +305,7 @@ export const BlogSettingsManager = () => {
                   </Button>
                 </div>
                 <Input
-                  placeholder="Título (opcional)"
+                  placeholder="Título"
                   value={banner.title || ''}
                   onChange={(e) => {
                     const newBanners = [...promotionalBanners];
@@ -313,8 +313,17 @@ export const BlogSettingsManager = () => {
                     setPromotionalBanners(newBanners);
                   }}
                 />
+                <Input
+                  placeholder="Descrição"
+                  value={banner.description || ''}
+                  onChange={(e) => {
+                    const newBanners = [...promotionalBanners];
+                    newBanners[index].description = e.target.value;
+                    setPromotionalBanners(newBanners);
+                  }}
+                />
                 <div className="space-y-2">
-                  <Label>Imagem do Banner</Label>
+                  <Label>Imagem do Banner (Vertical - Formato Stories)</Label>
                   <ImageUpload
                     currentImage={banner.image_url}
                     onImageSelect={(url) => {
@@ -323,7 +332,7 @@ export const BlogSettingsManager = () => {
                       setPromotionalBanners(newBanners);
                     }}
                     bucketName="blog-images"
-                    label="Imagem"
+                    label="Imagem Vertical"
                   />
                 </div>
                 <Input
