@@ -9,6 +9,7 @@ import { ArrowLeft, Calendar, User, Eye, Tag, Search } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Helmet } from "react-helmet-async";
+import { linkifyText } from "@/utils/linkify";
 
 interface BlogPost {
   id: string;
@@ -231,7 +232,7 @@ export default function Blog() {
               className="prose prose-lg dark:prose-invert max-w-none"
               style={{ whiteSpace: 'pre-wrap' }}
             >
-              {selectedPost.content}
+              {linkifyText(selectedPost.content)}
             </div>
           </article>
 
