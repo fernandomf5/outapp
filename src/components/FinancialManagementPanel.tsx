@@ -71,6 +71,8 @@ export const FinancialManagementPanel = () => {
   const [deleteBusinessId, setDeleteBusinessId] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
+  const [isEditTransactionDialogOpen, setIsEditTransactionDialogOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   const [businessFormData, setBusinessFormData] = useState({
     name: '',
@@ -349,6 +351,58 @@ export const FinancialManagementPanel = () => {
       toast.error("Erro ao excluir transação");
     } finally {
       setDeleteTransactionId(null);
+    }
+  };
+
+  const openEditTransactionDialog = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setFormData({
+      type: transaction.type,
+      category: transaction.category,
+      description: transaction.description,
+      amount: transaction.amount.toString(),
+      date: transaction.date,
+      payment_method: transaction.payment_method,
+      status: transaction.status
+    });
+    setIsEditTransactionDialogOpen(true);
+  };
+
+  const handleEditTransaction = async () => {
+    if (!editingTransaction) return;
+
+    try {
+      const { error } = await supabase
+        .from('financial_transactions')
+        .update({
+          type: formData.type,
+          category: formData.category,
+          description: formData.description,
+          amount: parseFloat(formData.amount),
+          date: formData.date,
+          payment_method: formData.payment_method,
+          status: formData.status
+        })
+        .eq('id', editingTransaction.id);
+
+      if (error) throw error;
+
+      toast.success("Transação atualizada com sucesso!");
+      setIsEditTransactionDialogOpen(false);
+      setEditingTransaction(null);
+      loadTransactions();
+      
+      setFormData({
+        type: 'income',
+        category: '',
+        description: '',
+        amount: '',
+        date: format(new Date(), 'yyyy-MM-dd'),
+        payment_method: 'dinheiro',
+        status: 'paid'
+      });
+    } catch (error: any) {
+      toast.error("Erro ao atualizar transação");
     }
   };
 
@@ -880,13 +934,22 @@ export const FinancialManagementPanel = () => {
                             {transaction.type === 'income' ? '+' : '-'} R$ {transaction.amount.toFixed(2)}
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => setDeleteTransactionId(transaction.id)}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
+                            <div className="flex items-center justify-end gap-1">
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => openEditTransactionDialog(transaction)}
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => setDeleteTransactionId(transaction.id)}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -988,6 +1051,116 @@ export const FinancialManagementPanel = () => {
         onConfirm={handleDeleteBusiness}
         description="Você tem certeza que deseja excluir este negócio? Esta ação excluirá TODAS as transações associadas a ele e não pode ser desfeita!"
       />
+
+      <Dialog open={isEditTransactionDialogOpen} onOpenChange={setIsEditTransactionDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Transação</DialogTitle>
+            <DialogDescription>Atualize os dados da transação</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>Tipo</Label>
+              <Select value={formData.type} onValueChange={(value: 'income' | 'expense') => setFormData({...formData, type: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="income">Receita</SelectItem>
+                  <SelectItem value="expense">Despesa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Categoria</Label>
+              <Input 
+                value={formData.category}
+                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                placeholder="Ex: Vendas, Marketing, Salários..."
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Descrição</Label>
+              <Input 
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                placeholder="Descrição detalhada..."
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Valor (R$)</Label>
+                <Input 
+                  type="number"
+                  step="0.01"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({...formData, amount: e.target.value})}
+                  placeholder="0.00"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Data</Label>
+                <Input 
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData({...formData, date: e.target.value})}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Método de Pagamento</Label>
+                <Select value={formData.payment_method} onValueChange={(value) => setFormData({...formData, payment_method: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                    <SelectItem value="pix">PIX</SelectItem>
+                    <SelectItem value="credito">Cartão de Crédito</SelectItem>
+                    <SelectItem value="debito">Cartão de Débito</SelectItem>
+                    <SelectItem value="transferencia">Transferência</SelectItem>
+                    <SelectItem value="boleto">Boleto</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Status</Label>
+                <Select value={formData.status} onValueChange={(value: 'paid' | 'pending' | 'cancelled') => setFormData({...formData, status: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="paid">Pago</SelectItem>
+                    <SelectItem value="pending">Pendente</SelectItem>
+                    <SelectItem value="cancelled">Cancelado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setIsEditTransactionDialogOpen(false);
+              setEditingTransaction(null);
+              setFormData({
+                type: 'income',
+                category: '',
+                description: '',
+                amount: '',
+                date: format(new Date(), 'yyyy-MM-dd'),
+                payment_method: 'dinheiro',
+                status: 'paid'
+              });
+            }}>
+              Cancelar
+            </Button>
+            <Button onClick={handleEditTransaction} className="gradient-primary">
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
