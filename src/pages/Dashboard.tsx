@@ -71,6 +71,7 @@ const Dashboard = () => {
   const { t } = useLanguage();
   const { hasFeature, loading: featuresLoading } = useUserFeatures();
   const [searchParams] = useSearchParams();
+  const [userFullName, setUserFullName] = useState<string>('');
   const [stats, setStats] = useState({
     totalBots: 0,
     totalAgents: 0,
@@ -96,6 +97,48 @@ const Dashboard = () => {
   const section = searchParams.get('section');
   const chatbotId = searchParams.get('chatbotId');
   const agentId = searchParams.get('agentId');
+
+  // Buscar nome do usuário da tabela profiles
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (!error && data?.full_name) {
+        setUserFullName(data.full_name);
+      }
+    };
+
+    fetchUserProfile();
+
+    // Listener para atualizar em tempo real
+    const channel = supabase
+      .channel('profile-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `user_id=eq.${user?.id}`
+        },
+        (payload) => {
+          if (payload.new && payload.new.full_name) {
+            setUserFullName(payload.new.full_name);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   // Se tiver chatbotId na URL, abrir painel de gerenciamento
   useEffect(() => {
@@ -344,7 +387,7 @@ const Dashboard = () => {
                 </Link>
                 <div>
                   <h1 className="text-xl sm:text-2xl font-bold">
-                    {t('hello')}, {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário'}! 👋
+                    {t('hello')}, {userFullName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário'}! 👋
                   </h1>
                   <p className="text-xs sm:text-sm text-muted-foreground">{t('welcome_back')}</p>
                 </div>
