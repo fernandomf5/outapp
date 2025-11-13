@@ -51,6 +51,7 @@ import { BriefingResponsesPanel } from "@/components/BriefingResponsesPanel";
 import { BriefingCreatorPanel } from "@/components/BriefingCreatorPanel";
 import { MembersAreaCreator } from "@/components/MembersAreaCreator";
 import { QuickNotesPanel } from "@/components/QuickNotesPanel";
+import { TaskReminder } from "@/components/TaskReminder";
 import { FeatureGate } from "@/components/FeatureGate";
 import {
   AlertDialog,
@@ -393,6 +394,9 @@ const Dashboard = () => {
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
 
           <TabsContent value="overview" className="space-y-6 sm:space-y-8">
+        {/* Task Reminder */}
+        <TaskReminder />
+        
         {/* Quick Notes Panel */}
         <QuickNotesPanel />
         
