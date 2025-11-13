@@ -127,7 +127,7 @@ function SortableTask({ task, onEdit, onDelete }: SortableTaskProps) {
                 {task.due_date && (
                   <Badge variant="outline" className="text-xs">
                     <Calendar className="h-3 w-3 mr-1" />
-                    {new Date(task.due_date).toLocaleDateString("pt-BR")}
+                    {task.due_date.split('-').reverse().join('/')}
                   </Badge>
                 )}
               </div>

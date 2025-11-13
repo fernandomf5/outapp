@@ -27,15 +27,16 @@ export const TaskReminder = () => {
       if (!user) return;
 
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayStr = today.toISOString().split('T')[0];
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      const todayStr = `${year}-${month}-${day}`;
 
       const { data, error } = await supabase
         .from("tasks")
         .select("id, title, due_date, priority")
         .eq("user_id", user.id)
-        .gte("due_date", todayStr)
-        .lt("due_date", new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+        .eq("due_date", todayStr);
 
       if (error) throw error;
 
@@ -49,7 +50,7 @@ export const TaskReminder = () => {
   };
 
   const handleAccessTasks = () => {
-    navigate("/dashboard?tab=organizer");
+    navigate("/dashboard?tab=tarefas");
     setIsVisible(false);
   };
 
