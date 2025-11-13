@@ -122,7 +122,7 @@ export default function ChatbotCustomerAuth() {
     }
   };
 
-  const handlePasswordRecovery = async (action: 'reveal' | 'request-reset') => {
+  const handlePasswordRecovery = async () => {
     if (!recoveryEmail.trim()) {
       showError("Erro", "Digite seu e-mail");
       return;
@@ -132,7 +132,7 @@ export default function ChatbotCustomerAuth() {
     try {
       const { data, error } = await supabase.functions.invoke('chatbot-customer-password-recovery', {
         body: {
-          action,
+          action: 'request-reset',
           email: recoveryEmail,
           chatbotId,
         }
@@ -142,7 +142,7 @@ export default function ChatbotCustomerAuth() {
 
       toast({
         title: "Sucesso!",
-        description: data.message,
+        description: "Link de redefinição enviado para seu e-mail. Verifique sua caixa de entrada.",
       });
       
       setShowForgotPassword(false);
@@ -530,21 +530,13 @@ export default function ChatbotCustomerAuth() {
               />
             </div>
           </div>
-          <DialogFooter className="flex-col sm:flex-col gap-2">
+          <DialogFooter>
             <Button
-              onClick={() => handlePasswordRecovery('reveal')}
+              onClick={handlePasswordRecovery}
               disabled={recoveryLoading}
               className="w-full"
             >
-              {recoveryLoading ? 'Enviando...' : 'Enviar senha por e-mail'}
-            </Button>
-            <Button
-              onClick={() => handlePasswordRecovery('request-reset')}
-              disabled={recoveryLoading}
-              variant="outline"
-              className="w-full"
-            >
-              {recoveryLoading ? 'Enviando...' : 'Criar nova senha'}
+              {recoveryLoading ? 'Enviando...' : 'Enviar Link de Redefinição'}
             </Button>
           </DialogFooter>
         </DialogContent>
