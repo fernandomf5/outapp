@@ -58,7 +58,7 @@ const handler = async (req: Request): Promise<Response> => {
         .eq("id", agentId)
         .single();
 
-      const resetUrl = `${Deno.env.get("APP_URL") || "https://mlocikcfxbleddsvxciv.supabase.co"}/agent-reset-password/${token}`;
+      const resetUrl = `https://botrealszapp.com.br/agent-reset-password/${token}`;
 
       // Enviar email com link
       await resend.emails.send({
