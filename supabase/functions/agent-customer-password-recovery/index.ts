@@ -120,10 +120,17 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
+      // Hash da nova senha usando SHA-256
+      const encoder = new TextEncoder();
+      const data = encoder.encode(newPassword);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
       // Atualizar senha
       const { error: updateError } = await supabaseClient
         .from("agent_customers")
-        .update({ password: newPassword })
+        .update({ password_hash: passwordHash })
         .eq("id", resetRequest.customer_id);
 
       if (updateError) throw updateError;
