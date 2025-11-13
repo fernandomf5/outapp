@@ -73,7 +73,8 @@ export function MembersAreaCreator() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    area_type: 'course'
+    area_type: 'course',
+    access_mode: 'open' // 'open' = liberada, 'restricted' = solicitar acesso
   });
   const [customDomains, setCustomDomains] = useState<Array<{id: string; domain: string; is_verified: boolean}>>([]);
   const [selectedDomain, setSelectedDomain] = useState<string>("");
@@ -197,6 +198,7 @@ export function MembersAreaCreator() {
           name: formData.title,
           description: formData.description,
           area_type: (formData as any).area_type,
+          require_approval: (formData as any).access_mode === 'restricted',
           is_active: true
         }]);
 
@@ -204,7 +206,7 @@ export function MembersAreaCreator() {
 
       toast.success("Área de membros criada!");
       setIsCreateDialogOpen(false);
-      setFormData({ title: '', description: '', area_type: 'course' });
+      setFormData({ title: '', description: '', area_type: 'course', access_mode: 'open' });
       loadMembersAreas();
     } catch (error: any) {
       toast.error(`Erro ao criar área de membros: ${error?.message || ''}`);
@@ -278,6 +280,30 @@ export function MembersAreaCreator() {
                     placeholder="Descreva o que os alunos vão aprender no seu curso..."
                     rows={4}
                   />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Tipo de Acesso</Label>
+                  <Select 
+                    value={(formData as any).access_mode} 
+                    onValueChange={(value) => setFormData({...formData, access_mode: value} as any)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="open">
+                        🌐 Área Liberada - Qualquer pessoa pode acessar
+                      </SelectItem>
+                      <SelectItem value="restricted">
+                        🔒 Solicitar Acesso - Requer aprovação e código
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {(formData as any).access_mode === 'open' 
+                      ? 'Qualquer pessoa com o link pode acessar o conteúdo sem precisar fazer login.'
+                      : 'Usuários precisam solicitar acesso e você aprovará manualmente.'}
+                  </p>
                 </div>
               </div>
               <DialogFooter>

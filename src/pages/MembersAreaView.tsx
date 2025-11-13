@@ -65,30 +65,7 @@ export default function MembersAreaView() {
         const hostname = window.location.hostname;
         const normalizedHostname = normalizeDomain(hostname);
         
-        // Verificar sessão do membro
-        const sessionData = localStorage.getItem(`member_session_${areaId}`);
-        if (!sessionData) {
-          // Verifica se está usando domínio customizado (com normalização)
-          const { data: customDomain } = await supabase
-            .from('user_domains')
-            .select('domain')
-            .eq('domain', normalizedHostname)
-            .eq('is_verified', true)
-            .eq('is_active', true)
-            .maybeSingle();
-
-          if (customDomain) {
-            // Redireciona mantendo o domínio customizado
-            window.location.href = `/members-area-auth?area=${areaId}`;
-          } else {
-            navigate(`/members-area-auth?area=${areaId}`);
-          }
-          return;
-        }
-
-        const session = JSON.parse(sessionData);
-        setMemberSession(session);
-
+        // Primeiro, carregar dados da área para verificar se requer aprovação
         const { data: areaData, error: areaError } = await supabase
           .from('members_areas' as any)
           .select('*')
@@ -101,6 +78,56 @@ export default function MembersAreaView() {
           return;
         }
         
+        const requiresAuth = (areaData as any).require_approval;
+        
+        // Verificar sessão do membro apenas se a área requer autenticação
+        if (requiresAuth) {
+          const sessionData = localStorage.getItem(`member_session_${areaId}`);
+          if (!sessionData) {
+            // Verifica se está usando domínio customizado (com normalização)
+            const { data: customDomain } = await supabase
+              .from('user_domains')
+              .select('domain')
+              .eq('domain', normalizedHostname)
+              .eq('is_verified', true)
+              .eq('is_active', true)
+              .maybeSingle();
+
+            if (customDomain) {
+              // Redireciona mantendo o domínio customizado
+              window.location.href = `/members-area-auth?area=${areaId}`;
+            } else {
+              navigate(`/members-area-auth?area=${areaId}`);
+            }
+            return;
+          }
+
+          const session = JSON.parse(sessionData);
+          setMemberSession(session);
+          
+          // Verificar quais produtos o usuário já tem acesso
+          const { data: subscriptions } = await supabase
+            .from('members_area_subscriptions')
+            .select('*')
+            .eq('members_area_id', areaId)
+            .eq('user_email', session.email)
+            .eq('status', 'active');
+
+          if (subscriptions) {
+            // Extrair product_ids das subscrições
+            const productIds = subscriptions
+              .map(sub => (sub as any).product_id)
+              .filter(Boolean);
+            setUserProducts(productIds);
+          }
+        } else {
+          // Área liberada, criar sessão temporária sem email
+          setMemberSession({ 
+            email: 'public_access',
+            loginAt: new Date().toISOString() 
+          });
+        }
+
         setArea(areaData as any);
 
         // Carregar banners das configurações
@@ -117,22 +144,6 @@ export default function MembersAreaView() {
 
         if (modulesData && !modulesError) {
           setModules(modulesData as any);
-        }
-
-        // Verificar quais produtos o usuário já tem acesso
-        const { data: subscriptions } = await supabase
-          .from('members_area_subscriptions')
-          .select('*')
-          .eq('members_area_id', areaId)
-          .eq('user_email', session.email)
-          .eq('status', 'active');
-
-        if (subscriptions) {
-          // Extrair product_ids das subscrições
-          const productIds = subscriptions
-            .map(sub => (sub as any).product_id)
-            .filter(Boolean);
-          setUserProducts(productIds);
         }
       } catch (e) {
         console.error('Error loading area:', e);
@@ -230,7 +241,7 @@ export default function MembersAreaView() {
                   )}
                 </div>
               </div>
-              {memberSession && (
+              {memberSession && memberSession.email !== 'public_access' && (
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -264,7 +275,7 @@ export default function MembersAreaView() {
                 )}
               </div>
             </div>
-            {memberSession && (
+            {memberSession && memberSession.email !== 'public_access' && (
               <Button 
                 variant="outline" 
                 size="sm" 

@@ -38,6 +38,27 @@ export default function MembersAreaAuth() {
         
         if (data && !error) {
           setArea(data as any);
+          
+          // Se a área é liberada (não requer aprovação), redireciona direto
+          if (!(data as any).require_approval) {
+            const hostname = window.location.hostname;
+            const normalizedHostname = normalizeDomain(hostname);
+            
+            const { data: customDomain } = await supabase
+              .from('user_domains')
+              .select('domain')
+              .eq('domain', normalizedHostname)
+              .eq('is_verified', true)
+              .eq('is_active', true)
+              .maybeSingle();
+
+            if (customDomain) {
+              window.location.href = `/members-area/${areaId}`;
+            } else {
+              navigate(`/members-area/${areaId}`);
+            }
+            return;
+          }
         }
       } catch (error) {
         console.error('Error loading area:', error);
