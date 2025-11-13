@@ -70,6 +70,8 @@ export function MembersAreaCreator() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingArea, setEditingArea] = useState<MembersArea | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -229,6 +231,53 @@ export function MembersAreaCreator() {
     }
   };
 
+  const handleOpenEditDialog = (area: MembersArea) => {
+    setEditingArea(area);
+    setFormData({
+      title: (area as any).name || area.title,
+      description: area.description || '',
+      area_type: area.area_type || 'course',
+      access_mode: (area as any).require_approval ? 'restricted' : 'open'
+    } as any);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateArea = async () => {
+    try {
+      if (!editingArea) return;
+
+      if (!formData.title) {
+        toast.error("Preencha o título");
+        return;
+      }
+
+      const { error } = await supabase
+        .from('members_areas')
+        .update({
+          name: formData.title,
+          description: formData.description,
+          area_type: (formData as any).area_type,
+          require_approval: (formData as any).access_mode === 'restricted',
+        } as any)
+        .eq('id', editingArea.id);
+
+      if (error) throw error;
+
+      toast.success("Curso atualizado com sucesso!");
+      setIsEditDialogOpen(false);
+      setEditingArea(null);
+      setFormData({ title: '', description: '', area_type: 'course', access_mode: 'open' });
+      loadMembersAreas();
+      
+      // Se estava editando a área selecionada, atualiza
+      if (selectedArea?.id === editingArea.id) {
+        setSelectedArea(null);
+      }
+    } catch (error: any) {
+      toast.error(`Erro ao atualizar curso: ${error?.message || ''}`);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card className="p-6 bg-gradient-to-br from-primary/5 via-background to-secondary/5 border-primary/20">
@@ -317,6 +366,77 @@ export function MembersAreaCreator() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          
+          {/* Dialog de Edição */}
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle className="text-2xl flex items-center gap-2">
+                  <Edit className="w-5 h-5 text-primary" />
+                  Editar Curso Online
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground">
+                  Atualize as informações do seu curso
+                </p>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label>Nome do Curso</Label>
+                  <Input 
+                    value={formData.title}
+                    onChange={(e) => setFormData({...formData, title: e.target.value})}
+                    placeholder="Ex: Dominando React do Zero ao Avançado"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Descrição</Label>
+                  <Textarea 
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    placeholder="Descreva o que os alunos vão aprender no seu curso..."
+                    rows={4}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Tipo de Acesso</Label>
+                  <Select 
+                    value={(formData as any).access_mode} 
+                    onValueChange={(value) => setFormData({...formData, access_mode: value} as any)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="open">
+                        🌐 Área Liberada - Qualquer pessoa pode acessar
+                      </SelectItem>
+                      <SelectItem value="restricted">
+                        🔒 Solicitar Acesso - Requer aprovação e código
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {(formData as any).access_mode === 'open' 
+                      ? 'Qualquer pessoa com o link pode acessar o conteúdo sem precisar fazer login.'
+                      : 'Usuários precisam solicitar acesso e você aprovará manualmente.'}
+                  </p>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => {
+                  setIsEditDialogOpen(false);
+                  setEditingArea(null);
+                  setFormData({ title: '', description: '', area_type: 'course', access_mode: 'open' });
+                }}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleUpdateArea} className="gradient-primary">
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Salvar Alterações
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {loading ? (
@@ -385,6 +505,15 @@ export function MembersAreaCreator() {
                         variant="outline" 
                         size="sm"
                         className="flex-1"
+                        onClick={() => handleOpenEditDialog(area)}
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Editar
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="flex-1"
                         onClick={() => {
                           const customDomain = (area as any).custom_domain;
                           const slug = (area as any).slug || area.id;
@@ -403,6 +532,8 @@ export function MembersAreaCreator() {
                         <Copy className="h-4 w-4 mr-1" />
                         Link
                       </Button>
+                    </div>
+                    <div className="flex gap-2">
                       <Button 
                         variant="outline" 
                         size="sm"
