@@ -17,11 +17,21 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { chatbotId, conversationId, content, senderName, mediaUrl, mediaType } = await req.json();
+    const body = await req.json();
+    const { chatbotId, conversationId, content, senderName, mediaUrl, mediaType } = body;
 
-    if (!chatbotId || !conversationId || !content) {
+    console.log('Received message:', { chatbotId, conversationId, hasContent: !!content, senderName, hasMedia: !!mediaUrl });
+
+    if (!chatbotId || !conversationId) {
       return new Response(
-        JSON.stringify({ error: 'Dados inválidos' }),
+        JSON.stringify({ error: 'chatbotId e conversationId são obrigatórios' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!content && !mediaUrl) {
+      return new Response(
+        JSON.stringify({ error: 'Conteúdo ou mídia é obrigatório' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -41,18 +51,29 @@ serve(async (req) => {
     }
 
     // Insert user message
+    const messageData: any = {
+      conversation_id: conversationId,
+      role: 'user',
+      content: content || '',
+      sender_name: senderName || 'Visitante',
+    };
+
+    // Adicionar mídia apenas se existir
+    if (mediaUrl && mediaUrl.trim() !== '') {
+      messageData.media_url = mediaUrl;
+      messageData.media_type = mediaType || 'image';
+    }
+
+    console.log('Inserting message:', messageData);
+
     const { error: insertError } = await supabase
       .from('chatbot_messages')
-      .insert({
-        conversation_id: conversationId,
-        role: 'user',
-        content,
-        sender_name: senderName || 'Visitante',
-        media_url: mediaUrl || null,
-        media_type: mediaUrl ? (mediaType || 'image') : null,
-      });
+      .insert(messageData);
 
-    if (insertError) throw insertError;
+    if (insertError) {
+      console.error('Insert error:', insertError);
+      throw insertError;
+    }
 
     // Update conversation timestamp
     await supabase
