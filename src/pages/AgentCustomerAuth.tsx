@@ -27,9 +27,45 @@ export default function AgentCustomerAuth() {
 
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorDialog, setErrorDialog] = useState<{ title: string; message: string }>({ title: "", message: "" });
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState("");
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
+  
   const showError = (title: string, message: string) => {
     setErrorDialog({ title, message });
     setErrorDialogOpen(true);
+  };
+
+  const handlePasswordRecovery = async (action: 'reveal' | 'request-reset') => {
+    if (!recoveryEmail.trim()) {
+      showError("Erro", "Digite seu e-mail");
+      return;
+    }
+
+    setRecoveryLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('agent-customer-password-recovery', {
+        body: {
+          action,
+          email: recoveryEmail,
+          agentId,
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Sucesso!",
+        description: data.message,
+      });
+      
+      setShowForgotPassword(false);
+      setRecoveryEmail("");
+    } catch (error: any) {
+      showError("Erro", error.message || "Erro ao processar solicitação");
+    } finally {
+      setRecoveryLoading(false);
+    }
   };
 
   // Verifica o tipo de acesso do agent
@@ -348,6 +384,17 @@ export default function AgentCustomerAuth() {
                 'Cadastrar e Iniciar Chat'
               )}
             </Button>
+            
+            {authMode === 'login' && accessType !== 'private' && (
+              <Button 
+                type="button" 
+                variant="ghost" 
+                className="w-full text-sm" 
+                onClick={() => setShowForgotPassword(true)}
+              >
+                Esqueci minha senha
+              </Button>
+            )}
 
             {(authMode === 'login' || authMode === 'register') && (
               <Button
@@ -362,6 +409,48 @@ export default function AgentCustomerAuth() {
           </form>
         </CardContent>
       </Card>
+      
+      {/* Dialog de recuperação de senha */}
+      <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Recuperar Senha</DialogTitle>
+            <DialogDescription>
+              Escolha como deseja recuperar sua senha
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="recoveryEmail">E-mail</Label>
+              <Input
+                id="recoveryEmail"
+                type="email"
+                placeholder="seu@email.com"
+                value={recoveryEmail}
+                onChange={(e) => setRecoveryEmail(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex-col sm:flex-col gap-2">
+            <Button
+              onClick={() => handlePasswordRecovery('reveal')}
+              disabled={recoveryLoading}
+              className="w-full"
+            >
+              {recoveryLoading ? 'Enviando...' : 'Enviar senha por e-mail'}
+            </Button>
+            <Button
+              onClick={() => handlePasswordRecovery('request-reset')}
+              disabled={recoveryLoading}
+              variant="outline"
+              className="w-full"
+            >
+              {recoveryLoading ? 'Enviando...' : 'Criar nova senha'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
       <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
         <DialogContent>
           <DialogHeader>

@@ -37,6 +37,8 @@ import BriefingPublicPage from "./pages/BriefingPublicPage";
 import CustomPage from "./pages/CustomPage";
 import MembersAreaView from "./pages/MembersAreaView";
 import MembersAreaAuth from "./pages/MembersAreaAuth";
+import ChatbotResetPassword from "./pages/ChatbotResetPassword";
+import AgentResetPassword from "./pages/AgentResetPassword";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient();
@@ -72,6 +74,8 @@ const AppContent = () => {
               <Route path="/agent-chat/:agentId" element={<AgentCustomerChat />} />
               <Route path="/chatbot-auth/:chatbotId" element={<ChatbotCustomerAuth />} />
               <Route path="/chatbot-chat/:chatbotId" element={<ChatbotCustomerChat />} />
+              <Route path="/chatbot-reset-password/:token" element={<ChatbotResetPassword />} />
+              <Route path="/agent-reset-password/:token" element={<AgentResetPassword />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:slug" element={<Blog />} />
               <Route path="/calculadora" element={<CalculatorPage />} />
