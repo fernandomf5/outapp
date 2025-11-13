@@ -11,6 +11,7 @@ interface SocialLinksProps {
   links: SocialLink[];
   variant?: "default" | "footer";
   vertical?: boolean;
+  horizontal?: boolean;
 }
 
 const platformIcons: Record<string, any> = {
@@ -35,7 +36,7 @@ const platformColors: Record<string, string> = {
   whatsapp: "hover:text-[#25D366]",
 };
 
-export const SocialLinks = ({ links, variant = "default", vertical = false }: SocialLinksProps) => {
+export const SocialLinks = ({ links, variant = "default", vertical = false, horizontal = false }: SocialLinksProps) => {
   if (!links || links.length === 0) return null;
 
   const size = variant === "footer" ? 20 : 18;
@@ -68,6 +69,10 @@ export const SocialLinks = ({ links, variant = "default", vertical = false }: So
 
   if (vertical) {
     return <div className="flex flex-col gap-2">{socialButtons}</div>;
+  }
+
+  if (horizontal) {
+    return <div className="flex flex-row gap-2 flex-wrap justify-center">{socialButtons}</div>;
   }
 
   return (

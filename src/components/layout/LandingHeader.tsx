@@ -119,7 +119,7 @@ export const LandingHeader = () => {
               </Link>
             ))}
             <div className="mt-4 pt-4 border-t border-border">
-              <SocialLinks links={socialLinks} vertical />
+              <SocialLinks links={socialLinks} horizontal />
             </div>
             <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-border">
               <Button variant="ghost" onClick={() => navigate("/auth")} className="w-full justify-start">
