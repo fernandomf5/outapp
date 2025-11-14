@@ -159,9 +159,13 @@ const PublicChat = () => {
   };
 
   const createConversation = async () => {
-    if (!botId) return;
+    if (!botId) {
+      console.error('❌ botId não existe para criar conversa');
+      return;
+    }
 
     try {
+      console.log('🆕 Criando nova conversa para botId:', botId);
       const { data, error } = await supabase
         .from('chatbot_conversations')
         .insert({
@@ -175,7 +179,12 @@ const PublicChat = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao criar conversa:', error);
+        throw error;
+      }
+      
+      console.log('✅ Conversa criada com sucesso:', data.id);
       setConversationId(data.id);
       
       // Buscar dados do chatbot para fila
@@ -196,15 +205,19 @@ const PublicChat = () => {
             .lt('created_at', data.created_at);
           
           setQueuePosition((count || 0) + 1);
+          console.log('📋 Posição na fila:', (count || 0) + 1);
         }
       }
     } catch (error) {
-      console.error('Erro ao criar conversa:', error);
+      console.error('❌ Erro ao criar conversa:', error);
     }
   };
 
   const saveMessage = async (role: string, content: string, nodeId?: string) => {
-    if (!conversationId) return;
+    if (!conversationId) {
+      console.log('⚠️ conversationId não existe ainda, não salvando mensagem');
+      return;
+    }
 
     try {
       await supabase
@@ -213,15 +226,17 @@ const PublicChat = () => {
           conversation_id: conversationId,
           role,
           content,
-          node_id: nodeId || null // Garantir que seja null quando undefined
+          node_id: nodeId || null
         });
+      console.log('✅ Mensagem salva:', role, content.substring(0, 50));
     } catch (error) {
-      console.error('Erro ao salvar mensagem:', error);
+      console.error('❌ Erro ao salvar mensagem:', error);
     }
   };
 
   const fetchBotData = async () => {
     if (!botId) {
+      console.error('❌ botId não fornecido');
       toast({
         title: "Erro",
         description: "ID do bot não fornecido.",
@@ -231,6 +246,8 @@ const PublicChat = () => {
     }
 
     try {
+      console.log('🔍 Iniciando busca do chatbot:', botId);
+      
       // Tentar buscar como chatbot
       const { data: chatbot, error: chatbotError } = await supabase
         .from('chatbots')
@@ -238,11 +255,16 @@ const PublicChat = () => {
         .eq('id', botId)
         .maybeSingle();
 
-      console.log('🔍 Buscando chatbot:', botId);
       console.log('📦 Resultado chatbot:', chatbot);
       console.log('❌ Erro chatbot:', chatbotError);
 
+      if (chatbotError) {
+        console.error('❌ Erro na query do chatbot:', chatbotError);
+        throw chatbotError;
+      }
+
       if (chatbot && chatbot.is_active) {
+        console.log('✅ Chatbot encontrado e ativo');
         setBotData({ ...chatbot, type: 'chatbot' });
         setMessages([]);
         const config = chatbot.config as any || {};
@@ -251,8 +273,20 @@ const PublicChat = () => {
         const nodes = config.nodes || [];
         const edges = config.edges || [];
         
-        console.log('📊 Nodes:', nodes);
-        console.log('🔗 Edges:', edges);
+        console.log('📊 Nodes:', nodes.length);
+        console.log('🔗 Edges:', edges.length);
+        
+        // Se não houver nós configurados, mostrar mensagem padrão
+        if (nodes.length === 0) {
+          console.log('⚠️ Sem nós configurados, usando mensagem padrão');
+          setMessages([{
+            id: '1',
+            role: 'bot',
+            content: 'Olá! Como posso ajudar você hoje?',
+            timestamp: new Date()
+          }]);
+          return;
+        }
         
         const triggerNode = nodes.find((n: any) => n.type === 'trigger');
 
@@ -262,8 +296,18 @@ const PublicChat = () => {
           if (firstEdge) {
             const firstNode = nodes.find((n: any) => n.id === firstEdge.target);
             if (firstNode) {
-              console.log('✅ Iniciando com nó após trigger:', firstNode);
-              processNode(firstNode, nodes, edges);
+              console.log('✅ Iniciando com nó após trigger:', firstNode.type);
+              try {
+                await processNode(firstNode, nodes, edges);
+              } catch (error) {
+                console.error('❌ Erro ao processar nó:', error);
+                setMessages([{
+                  id: '1',
+                  role: 'bot',
+                  content: 'Olá! Como posso ajudar você hoje?',
+                  timestamp: new Date()
+                }]);
+              }
               return;
             }
           }
@@ -274,11 +318,20 @@ const PublicChat = () => {
         const startCandidates = nodes.filter((n: any) => n.type !== 'trigger' && !incomingTargets.has(n.id));
 
         if (startCandidates.length > 0) {
-          // priorizar mais alto no canvas; se empatar, por id mais antigo
           const firstStart = [...startCandidates]
             .sort((a: any, b: any) => (a.position?.y || 0) - (b.position?.y || 0) || (parseInt(a.id) - parseInt(b.id)))[0];
-          console.log('✅ Iniciando com nó sem entradas:', firstStart);
-          processNode(firstStart, nodes, edges);
+          console.log('✅ Iniciando com nó sem entradas:', firstStart.type);
+          try {
+            await processNode(firstStart, nodes, edges);
+          } catch (error) {
+            console.error('❌ Erro ao processar nó:', error);
+            setMessages([{
+              id: '1',
+              role: 'bot',
+              content: 'Olá! Como posso ajudar você hoje?',
+              timestamp: new Date()
+            }]);
+          }
           return;
         }
 
@@ -288,13 +341,23 @@ const PublicChat = () => {
           .sort((a: any, b: any) => (a.position?.y || 0) - (b.position?.y || 0))[0];
 
         if (firstTopNode) {
-          console.log('✅ Iniciando com primeiro nó (fallback):', firstTopNode);
-          processNode(firstTopNode, nodes, edges);
+          console.log('✅ Iniciando com primeiro nó (fallback):', firstTopNode.type);
+          try {
+            await processNode(firstTopNode, nodes, edges);
+          } catch (error) {
+            console.error('❌ Erro ao processar nó:', error);
+            setMessages([{
+              id: '1',
+              role: 'bot',
+              content: 'Olá! Como posso ajudar você hoje?',
+              timestamp: new Date()
+            }]);
+          }
           return;
         }
         
         // Fallback para mensagem padrão
-        console.log('⚠️ Usando mensagem padrão');
+        console.log('⚠️ Usando mensagem padrão final');
         setMessages([{
           id: '1',
           role: 'bot',
@@ -311,107 +374,119 @@ const PublicChat = () => {
         description: "Este chatbot não existe ou está inativo.",
         variant: "destructive"
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Erro ao buscar bot:', error);
+      console.error('❌ Stack:', error.stack);
       toast({
         title: "Erro ao carregar",
-        description: "Não foi possível carregar o bot. Tente novamente.",
+        description: `Não foi possível carregar o chat: ${error.message || 'Erro desconhecido'}`,
         variant: "destructive"
       });
     }
   };
 
   const processNode = async (node: any, nodes: any[], edges: any[]) => {
-    const newMessages: Message[] = [];
-    
-    // Processar diferentes tipos de nós
-    if (node.type === 'message' || node.type === 'text') {
-      newMessages.push({
-        id: node.id,
-        role: 'bot',
-        content: node.data.label || '',
-        timestamp: new Date(),
-        imageUrl: node.data.imageUrl,
-        buttons: node.data.buttons,
-        nodeId: node.id
-      } as any);
-    } else if (node.type === 'image') {
-      newMessages.push({
-        id: node.id,
-        role: 'bot',
-        content: node.data.label || 'Imagem',
-        timestamp: new Date(),
-        imageUrl: node.data.imageUrl,
-        buttons: node.data.buttons,
-        nodeId: node.id
-      } as any);
-    } else if (node.type === 'audio') {
-      newMessages.push({
-        id: node.id,
-        role: 'bot',
-        content: `🎵 ${node.data.label || 'Áudio'}`,
-        timestamp: new Date(),
-        audioUrl: node.data.audioUrl,
-        buttons: node.data.buttons,
-        nodeId: node.id
-      } as any);
-    } else if (node.type === 'video') {
-      newMessages.push({
-        id: node.id,
-        role: 'bot',
-        content: `🎥 ${node.data.label || 'Vídeo'}`,
-        timestamp: new Date(),
-        videoUrl: node.data.videoUrl,
-        buttons: node.data.buttons,
-        nodeId: node.id
-      } as any);
-    } else if (node.type === 'document') {
-      newMessages.push({
-        id: node.id,
-        role: 'bot',
-        content: `📄 ${node.data.label || 'Documento'}`,
-        timestamp: new Date(),
-        documentUrl: node.data.documentUrl,
-        documentName: node.data.documentName,
-        buttons: node.data.buttons,
-        nodeId: node.id
-      } as any);
-    } else if (node.type === 'question' || node.type === 'quickReply' || node.type === 'button') {
-      newMessages.push({
-        id: node.id,
-        role: 'bot',
-        content: node.data.label || '',
-        timestamp: new Date(),
-        imageUrl: node.data.imageUrl,
-        buttons: node.data.buttons,
-        nodeId: node.id
-      } as any);
-    } else if (node.type === 'humanAgent') {
-      const transferMessage = node.data.label || 'Você está sendo transferido para um atendente humano. Aguarde um momento...';
-      newMessages.push({
-        id: node.id,
-        role: 'bot',
-        content: transferMessage,
-        timestamp: new Date(),
-        nodeId: node.id
-      } as any);
+    try {
+      console.log('🎯 Processando nó:', node.type, node.id);
+      const newMessages: Message[] = [];
       
-      // Ativar modo atendimento humano
-      setIsHumanMode(true);
-      if (conversationId) {
-        await supabase
-          .from('chatbot_conversations')
-          .update({ status: 'waiting_agent' })
-          .eq('id', conversationId);
+      // Processar diferentes tipos de nós
+      if (node.type === 'message' || node.type === 'text') {
+        newMessages.push({
+          id: node.id,
+          role: 'bot',
+          content: node.data.label || '',
+          timestamp: new Date(),
+          imageUrl: node.data.imageUrl,
+          buttons: node.data.buttons,
+          nodeId: node.id
+        } as any);
+      } else if (node.type === 'image') {
+        newMessages.push({
+          id: node.id,
+          role: 'bot',
+          content: node.data.label || 'Imagem',
+          timestamp: new Date(),
+          imageUrl: node.data.imageUrl,
+          buttons: node.data.buttons,
+          nodeId: node.id
+        } as any);
+      } else if (node.type === 'audio') {
+        newMessages.push({
+          id: node.id,
+          role: 'bot',
+          content: `🎵 ${node.data.label || 'Áudio'}`,
+          timestamp: new Date(),
+          audioUrl: node.data.audioUrl,
+          buttons: node.data.buttons,
+          nodeId: node.id
+        } as any);
+      } else if (node.type === 'video') {
+        newMessages.push({
+          id: node.id,
+          role: 'bot',
+          content: `🎥 ${node.data.label || 'Vídeo'}`,
+          timestamp: new Date(),
+          videoUrl: node.data.videoUrl,
+          buttons: node.data.buttons,
+          nodeId: node.id
+        } as any);
+      } else if (node.type === 'document') {
+        newMessages.push({
+          id: node.id,
+          role: 'bot',
+          content: `📄 ${node.data.label || 'Documento'}`,
+          timestamp: new Date(),
+          documentUrl: node.data.documentUrl,
+          documentName: node.data.documentName,
+          buttons: node.data.buttons,
+          nodeId: node.id
+        } as any);
+      } else if (node.type === 'question' || node.type === 'quickReply' || node.type === 'button') {
+        newMessages.push({
+          id: node.id,
+          role: 'bot',
+          content: node.data.label || '',
+          timestamp: new Date(),
+          imageUrl: node.data.imageUrl,
+          buttons: node.data.buttons,
+          nodeId: node.id
+        } as any);
+      } else if (node.type === 'humanAgent') {
+        const transferMessage = node.data.label || 'Você está sendo transferido para um atendente humano. Aguarde um momento...';
+        newMessages.push({
+          id: node.id,
+          role: 'bot',
+          content: transferMessage,
+          timestamp: new Date(),
+          nodeId: node.id
+        } as any);
+        
+        // Ativar modo atendimento humano
+        setIsHumanMode(true);
+        if (conversationId) {
+          await supabase
+            .from('chatbot_conversations')
+            .update({ status: 'waiting_agent' })
+            .eq('id', conversationId);
+        }
       }
-    }
-    
-    // Adicionar mensagens ao chat e salvar no banco
-    setMessages(prev => [...prev, ...newMessages]);
-    
-    // Salvar cada mensagem no banco de dados
-    for (const msg of newMessages) {
-      await saveMessage('bot', msg.content, msg.nodeId);
+      
+      // Adicionar mensagens ao chat e salvar no banco
+      if (newMessages.length > 0) {
+        console.log('💬 Adicionando', newMessages.length, 'mensagens');
+        setMessages(prev => [...prev, ...newMessages]);
+        
+        // Salvar cada mensagem no banco de dados (só se conversationId existir)
+        if (conversationId) {
+          for (const msg of newMessages) {
+            await saveMessage('bot', msg.content, msg.nodeId);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('❌ Erro ao processar nó:', error);
+      // Não propagar o erro, apenas logar
     }
   };
 
