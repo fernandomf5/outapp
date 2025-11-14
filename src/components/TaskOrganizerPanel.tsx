@@ -118,50 +118,49 @@ function TaskCard({ task, blocks, tasksInBlock, onEdit, onDelete, onMoveToBlock,
           )}
         </div>
 
-        <div className="pt-2 border-t border-border/50">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <Label className="text-xs text-muted-foreground">Ordem</Label>
+        <div className="pt-2 border-t border-border/50 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <Label className="text-xs font-medium">Posição no Bloco</Label>
             <Input
               type="number"
               min={1}
               max={tasksInBlock.length}
-              defaultValue={(task.task_order ?? 0) + 1}
-              onBlur={(e) => {
+              value={(task.task_order ?? 0) + 1}
+              onChange={(e) => {
                 const val = parseInt(e.currentTarget.value, 10);
                 if (!Number.isFinite(val)) return;
                 const clamped = Math.max(1, Math.min(tasksInBlock.length, val));
-                if (clamped !== (task.task_order ?? 0) + 1) {
-                  onChangeOrder(task.id, clamped);
-                }
-                e.currentTarget.value = String(clamped);
+                onChangeOrder(task.id, clamped);
               }}
-              className="h-7 w-16"
+              className="h-8 w-20 text-center font-semibold"
             />
           </div>
-          <Label className="text-xs text-muted-foreground mb-1.5 block">Mover para</Label>
-          <div className="flex items-center gap-2">
-            <MoveRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-            <Select 
-              value={task.block_id || ""} 
-              onValueChange={(value) => onMoveToBlock(task.id, value)}
-            >
-              <SelectTrigger className="h-8 text-xs">
-                <SelectValue placeholder="Selecione o bloco" />
-              </SelectTrigger>
-              <SelectContent>
-                {blocks.map((block) => (
-                  <SelectItem key={block.id} value={block.id}>
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-2 h-2 rounded-full" 
-                        style={{ backgroundColor: block.color }}
-                      />
-                      <span>{block.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1.5 block">Mover para</Label>
+            <div className="flex items-center gap-2">
+              <MoveRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <Select 
+                value={task.block_id || ""} 
+                onValueChange={(value) => onMoveToBlock(task.id, value)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Selecione o bloco" />
+                </SelectTrigger>
+                <SelectContent>
+                  {blocks.map((block) => (
+                    <SelectItem key={block.id} value={block.id}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-2 h-2 rounded-full" 
+                          style={{ backgroundColor: block.color }}
+                        />
+                        <span>{block.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </CardContent>
