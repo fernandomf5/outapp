@@ -370,13 +370,16 @@ const PublicChat = () => {
         return;
       }
 
-      // Se chegou aqui, não encontrou chatbot - exibir erro
-      console.error('❌ Chatbot não encontrado ou inativo');
-      toast({
-        title: "Chatbot não encontrado",
-        description: "Este chatbot não existe ou está inativo.",
-        variant: "destructive"
-      });
+      // Se chegou aqui, não encontrou chatbot - usar fallback público
+      console.warn('⚠️ Chatbot não encontrado ou inativo — usando fallback público');
+      setBotData({ id: botId, type: 'chatbot', config: { nodes: [], edges: [] }, is_active: true });
+      setMessages([{
+        id: 'fallback-hello-2',
+        role: 'bot',
+        content: 'Olá! Como posso ajudar você hoje?',
+        timestamp: new Date()
+      }]);
+      return;
     } catch (error: any) {
       console.error('❌ Erro ao buscar bot:', error);
       console.error('❌ Stack:', error.stack);

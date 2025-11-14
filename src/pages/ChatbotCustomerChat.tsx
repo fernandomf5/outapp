@@ -193,11 +193,16 @@ export default function ChatbotCustomerChat() {
       await loadMessages(conversationToUse.id);
     } catch (error) {
       console.error('Error loading chatbot:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar o chat",
-        variant: "destructive",
-      });
+      // Fallback: abrir chat em modo leitura com mensagem padrão
+      setMessages([
+        {
+          id: 'fallback-hello-customer',
+          role: 'bot',
+          content: 'Olá! Tivemos um problema ao iniciar a conversa, mas você pode tentar enviar uma mensagem novamente em instantes.',
+          created_at: new Date().toISOString(),
+        }
+      ]);
+      // Evitar mostrar erro destrutivo ao usuário final
     }
   };
 
