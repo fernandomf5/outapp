@@ -8,8 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, Calendar, Flag, MoreVertical, GripVertical } from "lucide-react";
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCorners, PointerSensor, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
+import { Plus, Edit2, Trash2, Calendar, Flag, MoreVertical, GripVertical, ChevronLeft, ChevronRight } from "lucide-react";
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, pointerWithin, closestCenter, PointerSensor, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -149,9 +149,13 @@ interface DroppableBlockProps {
   onDelete: (id: string) => void;
   onEditBlock: (block: TaskBlock) => void;
   onDeleteBlock: (id: string) => void;
+  onMoveBlockForward: (id: string) => void;
+  onMoveBlockBackward: (id: string) => void;
+  canMoveForward: boolean;
+  canMoveBackward: boolean;
 }
 
-function DroppableBlock({ block, tasks, onEdit, onDelete, onEditBlock, onDeleteBlock }: DroppableBlockProps) {
+function DroppableBlock({ block, tasks, onEdit, onDelete, onEditBlock, onDeleteBlock, onMoveBlockForward, onMoveBlockBackward, canMoveForward, canMoveBackward }: DroppableBlockProps) {
   const taskIds = tasks.map(t => t.id);
   
   const { setNodeRef, isOver } = useDroppable({
@@ -164,7 +168,7 @@ function DroppableBlock({ block, tasks, onEdit, onDelete, onEditBlock, onDeleteB
 
   return (
     <div ref={setNodeRef} className="flex-shrink-0 w-80">
-      <Card className={`h-full flex flex-col ${isOver ? 'ring-2 ring-primary' : ''}`}>
+      <Card className={`h-full flex flex-col transition-all ${isOver ? 'ring-2 ring-primary shadow-lg scale-[1.02]' : ''}`}>
         <CardHeader className="pb-3" style={{ borderTopColor: block.color, borderTopWidth: '4px' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -186,6 +190,20 @@ function DroppableBlock({ block, tasks, onEdit, onDelete, onEditBlock, onDeleteB
                   <Edit2 className="mr-2 h-4 w-4" />
                   Editar Bloco
                 </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => onMoveBlockBackward(block.id)}
+                  disabled={!canMoveBackward}
+                >
+                  <ChevronLeft className="mr-2 h-4 w-4" />
+                  Mover para Trás
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => onMoveBlockForward(block.id)}
+                  disabled={!canMoveForward}
+                >
+                  <ChevronRight className="mr-2 h-4 w-4" />
+                  Mover para Frente
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onDeleteBlock(block.id)} className="text-destructive">
                   <Trash2 className="mr-2 h-4 w-4" />
                   Deletar Bloco
@@ -194,7 +212,7 @@ function DroppableBlock({ block, tasks, onEdit, onDelete, onEditBlock, onDeleteB
             </DropdownMenu>
           </div>
         </CardHeader>
-        <CardContent className="flex-1 overflow-y-auto p-4 min-h-[200px]">
+        <CardContent className="flex-1 overflow-y-auto p-4 min-h-[300px]">
           <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
             {tasks.map((task) => (
               <SortableTask
@@ -253,10 +271,20 @@ export const TaskOrganizerPanel = () => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 5,
+        tolerance: 5,
       },
     })
   );
+
+  // Custom collision detection with pointerWithin and fallback
+  const collisionDetection = (args: any) => {
+    const pointerCollisions = pointerWithin(args);
+    if (pointerCollisions.length > 0) {
+      return pointerCollisions;
+    }
+    return closestCenter(args);
+  };
 
   useEffect(() => {
     loadData();
@@ -530,6 +558,50 @@ export const TaskOrganizerPanel = () => {
       loadData();
     } catch (error: any) {
       toast.error("Erro ao deletar bloco: " + error.message);
+    }
+  };
+
+  const handleMoveBlockForward = async (id: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const currentBlock = blocks.find(b => b.id === id);
+      if (!currentBlock) return;
+
+      const nextBlock = blocks.find(b => b.order_index === currentBlock.order_index + 1);
+      if (!nextBlock) return;
+
+      // Swap order_index
+      await supabase.from("task_blocks").update({ order_index: currentBlock.order_index }).eq("id", nextBlock.id);
+      await supabase.from("task_blocks").update({ order_index: nextBlock.order_index }).eq("id", currentBlock.id);
+
+      toast.success("Bloco movido para frente!");
+      loadData();
+    } catch (error: any) {
+      toast.error("Erro ao mover bloco: " + error.message);
+    }
+  };
+
+  const handleMoveBlockBackward = async (id: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const currentBlock = blocks.find(b => b.id === id);
+      if (!currentBlock) return;
+
+      const prevBlock = blocks.find(b => b.order_index === currentBlock.order_index - 1);
+      if (!prevBlock) return;
+
+      // Swap order_index
+      await supabase.from("task_blocks").update({ order_index: currentBlock.order_index }).eq("id", prevBlock.id);
+      await supabase.from("task_blocks").update({ order_index: prevBlock.order_index }).eq("id", currentBlock.id);
+
+      toast.success("Bloco movido para trás!");
+      loadData();
+    } catch (error: any) {
+      toast.error("Erro ao mover bloco: " + error.message);
     }
   };
 
@@ -953,13 +1025,13 @@ export const TaskOrganizerPanel = () => {
       {/* Kanban Board */}
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCorners}
+        collisionDetection={collisionDetection}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
         <div className="flex gap-4 overflow-x-auto pb-4">
           <SortableContext items={filteredBlocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
-            {filteredBlocks.map((block) => (
+            {filteredBlocks.map((block, index) => (
               <DroppableBlock
                 key={block.id}
                 block={block}
@@ -968,6 +1040,10 @@ export const TaskOrganizerPanel = () => {
                 onDelete={handleDeleteTask}
                 onEditBlock={openEditBlock}
                 onDeleteBlock={handleDeleteBlock}
+                onMoveBlockForward={handleMoveBlockForward}
+                onMoveBlockBackward={handleMoveBlockBackward}
+                canMoveForward={index < filteredBlocks.length - 1}
+                canMoveBackward={index > 0}
               />
             ))}
           </SortableContext>
