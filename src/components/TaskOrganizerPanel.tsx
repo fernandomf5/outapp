@@ -25,6 +25,7 @@ interface Task {
   request_date?: string;
   block_id?: string;
   client_id?: string | null;
+  task_order?: number;
   created_at: string;
   updated_at: string;
 }
@@ -42,12 +43,14 @@ interface TaskBlock {
 interface TaskCardProps {
   task: Task;
   blocks: TaskBlock[];
+  tasksInBlock: Task[];
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
   onMoveToBlock: (taskId: string, blockId: string) => void;
+  onChangeOrder: (taskId: string, order1Based: number) => void;
 }
 
-function TaskCard({ task, blocks, onEdit, onDelete, onMoveToBlock }: TaskCardProps) {
+function TaskCard({ task, blocks, tasksInBlock, onEdit, onDelete, onMoveToBlock, onChangeOrder }: TaskCardProps) {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -116,6 +119,25 @@ function TaskCard({ task, blocks, onEdit, onDelete, onMoveToBlock }: TaskCardPro
         </div>
 
         <div className="pt-2 border-t border-border/50">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <Label className="text-xs text-muted-foreground">Ordem</Label>
+            <Input
+              type="number"
+              min={1}
+              max={tasksInBlock.length}
+              defaultValue={(task.task_order ?? 0) + 1}
+              onBlur={(e) => {
+                const val = parseInt(e.currentTarget.value, 10);
+                if (!Number.isFinite(val)) return;
+                const clamped = Math.max(1, Math.min(tasksInBlock.length, val));
+                if (clamped !== (task.task_order ?? 0) + 1) {
+                  onChangeOrder(task.id, clamped);
+                }
+                e.currentTarget.value = String(clamped);
+              }}
+              className="h-7 w-16"
+            />
+          </div>
           <Label className="text-xs text-muted-foreground mb-1.5 block">Mover para</Label>
           <div className="flex items-center gap-2">
             <MoveRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
@@ -157,9 +179,12 @@ interface DroppableBlockProps {
   onDeleteBlock: (id: string) => void;
   onMoveTaskToBlock: (taskId: string, blockId: string) => void;
   onChangeOrder: (id: string, order1Based: number) => void;
+  onChangeTaskOrder: (taskId: string, order1Based: number) => void;
 }
 
-function DroppableBlock({ block, tasks, allBlocks, onEdit, onDelete, onEditBlock, onDeleteBlock, onMoveTaskToBlock, onChangeOrder }: DroppableBlockProps) {
+function DroppableBlock({ block, tasks, allBlocks, onEdit, onDelete, onEditBlock, onDeleteBlock, onMoveTaskToBlock, onChangeOrder, onChangeTaskOrder }: DroppableBlockProps) {
+  const sortedTasks = [...tasks].sort((a, b) => (a.task_order ?? 0) - (b.task_order ?? 0));
+  
   return (
     <div className="flex-shrink-0 w-80">
       <Card className="h-full flex flex-col">
@@ -214,17 +239,19 @@ function DroppableBlock({ block, tasks, allBlocks, onEdit, onDelete, onEditBlock
           </div>
         </CardHeader>
         <CardContent className="flex-1 overflow-y-auto p-4 min-h-[300px]">
-          {tasks.map((task) => (
+          {sortedTasks.map((task) => (
             <TaskCard
               key={task.id}
               task={task}
               blocks={allBlocks}
+              tasksInBlock={sortedTasks}
               onEdit={onEdit}
               onDelete={onDelete}
               onMoveToBlock={onMoveTaskToBlock}
+              onChangeOrder={onChangeTaskOrder}
             />
           ))}
-          {tasks.length === 0 && (
+          {sortedTasks.length === 0 && (
             <div className="text-center py-8 text-muted-foreground text-sm">
               Nenhuma tarefa neste bloco
             </div>
@@ -622,17 +649,17 @@ export const TaskOrganizerPanel = () => {
 
   const handleMoveTaskToBlock = async (taskId: string, blockId: string) => {
     try {
-      // Atualização otimista - atualiza UI imediatamente
+      // Ao mover para outro bloco, reseta a ordem para 0
       setTasks(prevTasks => 
         prevTasks.map(t => 
-          t.id === taskId ? { ...t, block_id: blockId } : t
+          t.id === taskId ? { ...t, block_id: blockId, task_order: 0 } : t
         )
       );
 
       // Atualizar no banco em background
       const { error } = await supabase
         .from("tasks")
-        .update({ block_id: blockId })
+        .update({ block_id: blockId, task_order: 0 })
         .eq("id", taskId);
 
       if (error) throw error;
@@ -640,6 +667,49 @@ export const TaskOrganizerPanel = () => {
     } catch (error: any) {
       toast.error("Erro ao mover tarefa: " + error.message);
       loadData(); // Recarrega em caso de erro
+    }
+  };
+
+  const handleChangeTaskOrder = async (taskId: string, order1Based: number) => {
+    try {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task || !task.block_id) return;
+
+      const tasksInBlock = tasks.filter(t => t.block_id === task.block_id);
+      const total = tasksInBlock.length;
+      const target = Math.max(1, Math.min(total, Math.floor(order1Based || 1))) - 1;
+      
+      const currentIndex = tasksInBlock.findIndex(t => t.id === taskId);
+      if (currentIndex === -1) return;
+
+      const current = tasksInBlock[currentIndex];
+      const others = tasksInBlock
+        .filter(t => t.id !== taskId)
+        .sort((a, b) => (a.task_order ?? 0) - (b.task_order ?? 0));
+      
+      const reordered = [...others];
+      reordered.splice(target, 0, current);
+      const newTasksInBlock = reordered.map((t, i) => ({ ...t, task_order: i }));
+
+      // Atualiza localmente
+      setTasks(prevTasks => 
+        prevTasks.map(t => {
+          const updated = newTasksInBlock.find(nt => nt.id === t.id);
+          return updated || t;
+        })
+      );
+
+      // Atualizar no banco
+      await Promise.all(
+        newTasksInBlock.map(t =>
+          supabase.from('tasks').update({ task_order: t.task_order }).eq('id', t.id)
+        )
+      );
+
+      toast.success('Ordem da tarefa atualizada!');
+    } catch (error: any) {
+      toast.error('Erro ao atualizar ordem: ' + error.message);
+      loadData();
     }
   };
 
@@ -1068,6 +1138,7 @@ export const TaskOrganizerPanel = () => {
             onDeleteBlock={handleDeleteBlock}
             onMoveTaskToBlock={handleMoveTaskToBlock}
             onChangeOrder={handleChangeBlockOrder}
+            onChangeTaskOrder={handleChangeTaskOrder}
           />
         ))}
         
