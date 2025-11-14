@@ -248,6 +248,8 @@ export const TaskOrganizerPanel = () => {
     client_id: "",
   });
 
+  const [taskClientCategories, setTaskClientCategories] = useState<Array<{id:string; name:string}>>([]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -260,6 +262,14 @@ export const TaskOrganizerPanel = () => {
     loadData();
     loadClients();
   }, []);
+
+  useEffect(() => {
+    if (taskForm.client_id) {
+      loadClientCategories(taskForm.client_id);
+    } else {
+      setTaskClientCategories([]);
+    }
+  }, [taskForm.client_id]);
 
   const loadClients = async () => {
     try {
@@ -277,6 +287,51 @@ export const TaskOrganizerPanel = () => {
     } catch (error: any) {
       console.error("Erro ao carregar clientes:", error?.message || error);
       setClients([]);
+    }
+  };
+
+  const loadClientCategories = async (clientId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("task_categories")
+        .select("id, name")
+        .eq("user_id", user.id)
+        .eq("client_id", clientId)
+        .order("name", { ascending: true });
+
+      if (error) throw error;
+      setTaskClientCategories(data || []);
+    } catch (error: any) {
+      console.error("Erro ao carregar categorias:", error?.message || error);
+      setTaskClientCategories([]);
+    }
+  };
+
+  const handleAddCategoryPrompt = async () => {
+    const categoryName = prompt("Digite o nome da nova categoria para este cliente:");
+    if (!categoryName || !categoryName.trim()) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from("task_categories")
+        .insert({
+          user_id: user.id,
+          client_id: taskForm.client_id,
+          name: categoryName.trim()
+        });
+
+      if (error) throw error;
+
+      toast.success("Categoria criada com sucesso!");
+      await loadClientCategories(taskForm.client_id);
+    } catch (error: any) {
+      toast.error("Erro ao criar categoria: " + error.message);
     }
   };
 
@@ -396,6 +451,7 @@ export const TaskOrganizerPanel = () => {
         priority: "medium",
         category: "",
         due_date: "",
+        request_date: "",
         block_id: "",
         client_id: "",
       });
