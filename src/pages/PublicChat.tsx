@@ -260,7 +260,10 @@ const PublicChat = () => {
 
       if (chatbotError) {
         console.error('❌ Erro na query do chatbot:', chatbotError);
-        throw chatbotError;
+        // Fallback para modo público sem fluxo (RLS pode bloquear config)
+        setBotData({ id: botId, type: 'chatbot', config: { nodes: [], edges: [] }, is_active: true });
+        setMessages([{ id: 'fallback-hello', role: 'bot', content: 'Olá! Como posso ajudar você hoje?', timestamp: new Date() }]);
+        return;
       }
 
       if (chatbot && chatbot.is_active) {
