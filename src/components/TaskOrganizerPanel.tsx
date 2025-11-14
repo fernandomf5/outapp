@@ -155,14 +155,11 @@ interface DroppableBlockProps {
   onDelete: (id: string) => void;
   onEditBlock: (block: TaskBlock) => void;
   onDeleteBlock: (id: string) => void;
-  onMoveBlockForward: (id: string) => void;
-  onMoveBlockBackward: (id: string) => void;
   onMoveTaskToBlock: (taskId: string, blockId: string) => void;
-  canMoveForward: boolean;
-  canMoveBackward: boolean;
+  onChangeOrder: (id: string, order1Based: number) => void;
 }
 
-function DroppableBlock({ block, tasks, allBlocks, onEdit, onDelete, onEditBlock, onDeleteBlock, onMoveBlockForward, onMoveBlockBackward, onMoveTaskToBlock, canMoveForward, canMoveBackward }: DroppableBlockProps) {
+function DroppableBlock({ block, tasks, allBlocks, onEdit, onDelete, onEditBlock, onDeleteBlock, onMoveTaskToBlock, onChangeOrder }: DroppableBlockProps) {
   return (
     <div className="flex-shrink-0 w-80">
       <Card className="h-full flex flex-col">
@@ -176,37 +173,44 @@ function DroppableBlock({ block, tasks, allBlocks, onEdit, onDelete, onEditBlock
               <CardTitle className="text-base">{block.name}</CardTitle>
               <Badge variant="secondary">{tasks.length}</Badge>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onEditBlock(block)}>
-                  <Edit2 className="mr-2 h-4 w-4" />
-                  Editar Bloco
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => onMoveBlockBackward(block.id)}
-                  disabled={!canMoveBackward}
-                >
-                  <ChevronLeft className="mr-2 h-4 w-4" />
-                  Mover para Trás
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => onMoveBlockForward(block.id)}
-                  disabled={!canMoveForward}
-                >
-                  <ChevronRight className="mr-2 h-4 w-4" />
-                  Mover para Frente
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onDeleteBlock(block.id)} className="text-destructive">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Deletar Bloco
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Label className="text-xs text-muted-foreground">Ordem</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={allBlocks.length}
+                  defaultValue={(block.order_index ?? 0) + 1}
+                  onBlur={(e) => {
+                    const val = parseInt(e.currentTarget.value, 10);
+                    if (!Number.isFinite(val)) return;
+                    const clamped = Math.max(1, Math.min(allBlocks.length, val));
+                    if (clamped !== (block.order_index ?? 0) + 1) {
+                      onChangeOrder(block.id, clamped);
+                    }
+                    e.currentTarget.value = String(clamped);
+                  }}
+                  className="h-7 w-16"
+                />
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onEditBlock(block)}>
+                    <Edit2 className="mr-2 h-4 w-4" />
+                    Editar Bloco
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onDeleteBlock(block.id)} className="text-destructive">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Deletar Bloco
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="flex-1 overflow-y-auto p-4 min-h-[300px]">
@@ -639,6 +643,32 @@ export const TaskOrganizerPanel = () => {
     }
   };
 
+  const handleChangeBlockOrder = async (blockId: string, order1Based: number) => {
+    try {
+      const total = blocks.length;
+      const target = Math.max(1, Math.min(total, Math.floor(order1Based || 1))) - 1;
+      const currentIndex = blocks.findIndex(b => b.id === blockId);
+      if (currentIndex === -1) return;
+      const current = blocks[currentIndex];
+      const others = blocks
+        .filter(b => b.id !== blockId)
+        .sort((a, b) => a.order_index - b.order_index);
+      const reordered = [...others];
+      reordered.splice(target, 0, current);
+      const newBlocks = reordered.map((b, i) => ({ ...b, order_index: i }));
+      setBlocks(newBlocks);
+      await Promise.all(
+        newBlocks.map(b =>
+          supabase.from('task_blocks').update({ order_index: b.order_index }).eq('id', b.id)
+        )
+      );
+      toast.success('Ordem do bloco atualizada!');
+    } catch (error: any) {
+      toast.error('Erro ao atualizar ordem: ' + error.message);
+      loadData();
+    }
+  };
+
   const openEditTask = (task: Task) => {
     setEditingTask(task);
   setTaskForm({
@@ -1026,21 +1056,18 @@ export const TaskOrganizerPanel = () => {
 
       {/* Kanban Board */}
       <div className="flex gap-4 overflow-x-auto pb-4">
-        {filteredBlocks.map((block, index) => (
+        {filteredBlocks.map((block) => (
           <DroppableBlock
             key={block.id}
             block={block}
             tasks={tasksByBlock[block.id] || []}
-            allBlocks={filteredBlocks}
+            allBlocks={blocks}
             onEdit={openEditTask}
             onDelete={handleDeleteTask}
             onEditBlock={openEditBlock}
             onDeleteBlock={handleDeleteBlock}
-            onMoveBlockForward={handleMoveBlockForward}
-            onMoveBlockBackward={handleMoveBlockBackward}
             onMoveTaskToBlock={handleMoveTaskToBlock}
-            canMoveForward={index < filteredBlocks.length - 1}
-            canMoveBackward={index > 0}
+            onChangeOrder={handleChangeBlockOrder}
           />
         ))}
         
