@@ -328,16 +328,19 @@ export const AdsManagementPanel = () => {
   const totalClicks = filteredCampaigns.reduce((sum, c) => sum + c.clicks, 0);
   const totalConversions = filteredCampaigns.reduce((sum, c) => sum + c.conversions, 0);
   const totalRevenue = filteredCampaigns.reduce((sum, c) => sum + (c.revenue || 0), 0);
+  const totalProductCost = filteredCampaigns.reduce((sum, c) => sum + (c.product_cost || 0), 0);
   
   const avgCPC = totalClicks > 0 ? totalSpent / totalClicks : 0;
   const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
   const conversionRate = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
   const costPerConversion = totalConversions > 0 ? totalSpent / totalConversions : 0;
   
-  const totalCost = totalSpent;
-  const netProfit = totalRevenue - totalCost;
+  // Cálculos financeiros
+  const availableBalance = totalBudget - totalSpent; // Saldo disponível (quanto sobrou do investimento)
+  const netProfit = totalRevenue - totalSpent - totalProductCost; // Lucro líquido
+  const totalCashbox = availableBalance + netProfit; // Caixa total
   const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
-  const roi = totalCost > 0 ? ((totalRevenue - totalCost) / totalCost) * 100 : 0;
+  const roi = totalSpent > 0 ? ((totalRevenue - totalSpent - totalProductCost) / totalSpent) * 100 : 0;
 
   // Chart data
   const campaignPerformanceData = filteredCampaigns.map(c => ({
@@ -517,34 +520,54 @@ export const AdsManagementPanel = () => {
             </Card>
           ) : (
             <>
-              {/* Metrics Cards */}
+              {/* Metrics Cards - Financeiro */}
+              <div className="grid gap-6 md:grid-cols-3 mb-6">
+                <Card className="glass border-primary/20">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Saldo Disponível</CardTitle>
+                    <DollarSign className="h-5 w-5 text-primary" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-primary">R$ {availableBalance.toFixed(2)}</div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Orçamento: R$ {totalBudget.toFixed(2)} | Gasto: R$ {totalSpent.toFixed(2)}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="glass border-success/30 bg-gradient-to-br from-success/5 to-transparent">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-base font-bold">💰 Lucro Líquido</CardTitle>
+                    <TrendingUp className="h-6 w-6 text-success" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className={`text-4xl font-bold ${netProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                      R$ {netProfit.toFixed(2)}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Receita: R$ {totalRevenue.toFixed(2)} | Custos: R$ {(totalSpent + totalProductCost).toFixed(2)}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="glass border-accent/20">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Caixa Total</CardTitle>
+                    <DollarSign className="h-5 w-5 text-accent" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className={`text-3xl font-bold ${totalCashbox >= 0 ? 'text-accent' : 'text-destructive'}`}>
+                      R$ {totalCashbox.toFixed(2)}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Saldo + Lucro
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Metrics Cards - Performance */}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card className="glass">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Investimento Total</CardTitle>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">R$ {totalSpent.toFixed(2)}</div>
-                    <p className="text-xs text-muted-foreground">
-                      Orçamento: R$ {totalBudget.toFixed(2)}
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="glass">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Faturamento</CardTitle>
-                    <TrendingUp className="h-4 w-4 text-success" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-success">R$ {totalRevenue.toFixed(2)}</div>
-                    <p className="text-xs text-muted-foreground">
-                      Lucro: R$ {netProfit.toFixed(2)}
-                    </p>
-                  </CardContent>
-                </Card>
-
                 <Card className="glass">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">ROI</CardTitle>
@@ -569,6 +592,32 @@ export const AdsManagementPanel = () => {
                     <div className="text-2xl font-bold">{totalConversions}</div>
                     <p className="text-xs text-muted-foreground">
                       Taxa: {conversionRate.toFixed(2)}%
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="glass">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Impressões</CardTitle>
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{totalImpressions.toLocaleString()}</div>
+                    <p className="text-xs text-muted-foreground">
+                      CTR: {avgCTR.toFixed(2)}%
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="glass">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Cliques</CardTitle>
+                    <MousePointerClick className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{totalClicks.toLocaleString()}</div>
+                    <p className="text-xs text-muted-foreground">
+                      CPC: R$ {avgCPC.toFixed(2)}
                     </p>
                   </CardContent>
                 </Card>
