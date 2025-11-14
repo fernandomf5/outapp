@@ -349,6 +349,19 @@ const handleSendMessage = async () => {
 
       const messageContent = input.trim() || (mediaType === 'image' ? '📷 Imagem' : '📄 Documento');
 
+      // Otimista: mostrar imediatamente no cliente
+      const tempId = `temp-${Date.now()}`;
+      const optimisticMsg: Message = {
+        id: tempId,
+        role: 'user',
+        content: messageContent,
+        created_at: new Date().toISOString(),
+        sender_name: customer?.name || 'Você',
+        media_url: mediaUrl,
+        media_type: mediaType as any,
+      };
+      setMessages(prev => [...prev, optimisticMsg]);
+
       // Enviar mensagem via Edge Function (bypass RLS)
       const { error } = await supabase.functions.invoke('chatbot-customer-message', {
         body: {
@@ -362,6 +375,9 @@ const handleSendMessage = async () => {
       });
 
       if (error) throw error;
+
+      // Sincronizar com o servidor para evitar duplicados
+      await loadMessages(conversationId);
 
       // Enviar mensagem automática na primeira mensagem do cliente
       if (!autoReplySent && chatbotInfo?.enable_auto_reply && chatbotInfo?.auto_reply_message?.trim()) {
