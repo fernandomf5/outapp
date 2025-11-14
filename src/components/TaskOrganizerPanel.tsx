@@ -560,68 +560,50 @@ export const TaskOrganizerPanel = () => {
 
   const handleMoveBlockForward = async (id: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const currentBlockIndex = blocks.findIndex(b => b.id === id);
+      if (currentBlockIndex <= 0) return; // Já está no início
+      
+      const currentBlock = blocks[currentBlockIndex];
+      const previousBlock = blocks[currentBlockIndex - 1];
 
-      const currentBlock = blocks.find(b => b.id === id);
-      if (!currentBlock) return;
-
-      // Mover para frente = diminuir order_index (ir para esquerda)
-      const prevBlock = blocks.find(b => b.order_index === currentBlock.order_index - 1);
-      if (!prevBlock) return;
-
-      // Atualização otimista - atualiza UI imediatamente
-      const newBlocks = blocks.map(b => {
-        if (b.id === currentBlock.id) {
-          return { ...b, order_index: prevBlock.order_index };
-        }
-        if (b.id === prevBlock.id) {
-          return { ...b, order_index: currentBlock.order_index };
-        }
-        return b;
-      }).sort((a, b) => a.order_index - b.order_index);
+      // Trocar order_index entre os blocos
+      const newBlocks = [...blocks];
+      newBlocks[currentBlockIndex] = { ...currentBlock, order_index: previousBlock.order_index };
+      newBlocks[currentBlockIndex - 1] = { ...previousBlock, order_index: currentBlock.order_index };
+      newBlocks.sort((a, b) => a.order_index - b.order_index);
       
       setBlocks(newBlocks);
 
-      // Atualizar no banco em background
+      // Atualizar no banco
       await Promise.all([
-        supabase.from("task_blocks").update({ order_index: currentBlock.order_index }).eq("id", prevBlock.id),
-        supabase.from("task_blocks").update({ order_index: prevBlock.order_index }).eq("id", currentBlock.id)
+        supabase.from("task_blocks").update({ order_index: currentBlock.order_index }).eq("id", previousBlock.id),
+        supabase.from("task_blocks").update({ order_index: previousBlock.order_index }).eq("id", currentBlock.id)
       ]);
 
       toast.success("Bloco movido para frente!");
     } catch (error: any) {
       toast.error("Erro ao mover bloco: " + error.message);
-      loadData(); // Recarrega em caso de erro
+      loadData();
     }
   };
 
   const handleMoveBlockBackward = async (id: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const currentBlockIndex = blocks.findIndex(b => b.id === id);
+      if (currentBlockIndex >= blocks.length - 1) return; // Já está no final
+      
+      const currentBlock = blocks[currentBlockIndex];
+      const nextBlock = blocks[currentBlockIndex + 1];
 
-      const currentBlock = blocks.find(b => b.id === id);
-      if (!currentBlock) return;
-
-      // Mover para trás = aumentar order_index (ir para direita)
-      const nextBlock = blocks.find(b => b.order_index === currentBlock.order_index + 1);
-      if (!nextBlock) return;
-
-      // Atualização otimista - atualiza UI imediatamente
-      const newBlocks = blocks.map(b => {
-        if (b.id === currentBlock.id) {
-          return { ...b, order_index: nextBlock.order_index };
-        }
-        if (b.id === nextBlock.id) {
-          return { ...b, order_index: currentBlock.order_index };
-        }
-        return b;
-      }).sort((a, b) => a.order_index - b.order_index);
+      // Trocar order_index entre os blocos
+      const newBlocks = [...blocks];
+      newBlocks[currentBlockIndex] = { ...currentBlock, order_index: nextBlock.order_index };
+      newBlocks[currentBlockIndex + 1] = { ...nextBlock, order_index: currentBlock.order_index };
+      newBlocks.sort((a, b) => a.order_index - b.order_index);
       
       setBlocks(newBlocks);
 
-      // Atualizar no banco em background
+      // Atualizar no banco
       await Promise.all([
         supabase.from("task_blocks").update({ order_index: currentBlock.order_index }).eq("id", nextBlock.id),
         supabase.from("task_blocks").update({ order_index: nextBlock.order_index }).eq("id", currentBlock.id)
@@ -630,7 +612,7 @@ export const TaskOrganizerPanel = () => {
       toast.success("Bloco movido para trás!");
     } catch (error: any) {
       toast.error("Erro ao mover bloco: " + error.message);
-      loadData(); // Recarrega em caso de erro
+      loadData();
     }
   };
 
