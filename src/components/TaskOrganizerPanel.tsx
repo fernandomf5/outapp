@@ -115,29 +115,32 @@ function TaskCard({ task, blocks, onEdit, onDelete, onMoveToBlock }: TaskCardPro
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <MoveRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-          <Select 
-            value={task.block_id || ""} 
-            onValueChange={(value) => onMoveToBlock(task.id, value)}
-          >
-            <SelectTrigger className="h-8 text-xs">
-              <SelectValue placeholder="Selecione o bloco" />
-            </SelectTrigger>
-            <SelectContent>
-              {blocks.map((block) => (
-                <SelectItem key={block.id} value={block.id}>
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-2 h-2 rounded-full" 
-                      style={{ backgroundColor: block.color }}
-                    />
-                    <span>{block.name}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="pt-2 border-t border-border/50">
+          <Label className="text-xs text-muted-foreground mb-1.5 block">Mover para</Label>
+          <div className="flex items-center gap-2">
+            <MoveRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <Select 
+              value={task.block_id || ""} 
+              onValueChange={(value) => onMoveToBlock(task.id, value)}
+            >
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="Selecione o bloco" />
+              </SelectTrigger>
+              <SelectContent>
+                {blocks.map((block) => (
+                  <SelectItem key={block.id} value={block.id}>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-2 h-2 rounded-full" 
+                        style={{ backgroundColor: block.color }}
+                      />
+                      <span>{block.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </CardContent>
     </Card>
