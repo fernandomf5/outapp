@@ -561,23 +561,23 @@ export const TaskOrganizerPanel = () => {
   const handleMoveBlockForward = async (id: string) => {
     try {
       const currentBlockIndex = blocks.findIndex(b => b.id === id);
-      if (currentBlockIndex <= 0) return; // Já está no início
+      if (currentBlockIndex >= blocks.length - 1) return; // Já está no final
       
       const currentBlock = blocks[currentBlockIndex];
-      const previousBlock = blocks[currentBlockIndex - 1];
+      const nextBlock = blocks[currentBlockIndex + 1];
 
-      // Trocar order_index entre os blocos
+      // Trocar order_index entre os blocos (ir para a direita)
       const newBlocks = [...blocks];
-      newBlocks[currentBlockIndex] = { ...currentBlock, order_index: previousBlock.order_index };
-      newBlocks[currentBlockIndex - 1] = { ...previousBlock, order_index: currentBlock.order_index };
+      newBlocks[currentBlockIndex] = { ...currentBlock, order_index: nextBlock.order_index };
+      newBlocks[currentBlockIndex + 1] = { ...nextBlock, order_index: currentBlock.order_index };
       newBlocks.sort((a, b) => a.order_index - b.order_index);
       
       setBlocks(newBlocks);
 
       // Atualizar no banco
       await Promise.all([
-        supabase.from("task_blocks").update({ order_index: currentBlock.order_index }).eq("id", previousBlock.id),
-        supabase.from("task_blocks").update({ order_index: previousBlock.order_index }).eq("id", currentBlock.id)
+        supabase.from("task_blocks").update({ order_index: currentBlock.order_index }).eq("id", nextBlock.id),
+        supabase.from("task_blocks").update({ order_index: nextBlock.order_index }).eq("id", currentBlock.id)
       ]);
 
       toast.success("Bloco movido para frente!");
@@ -590,23 +590,23 @@ export const TaskOrganizerPanel = () => {
   const handleMoveBlockBackward = async (id: string) => {
     try {
       const currentBlockIndex = blocks.findIndex(b => b.id === id);
-      if (currentBlockIndex >= blocks.length - 1) return; // Já está no final
+      if (currentBlockIndex <= 0) return; // Já está no início
       
       const currentBlock = blocks[currentBlockIndex];
-      const nextBlock = blocks[currentBlockIndex + 1];
+      const previousBlock = blocks[currentBlockIndex - 1];
 
-      // Trocar order_index entre os blocos
+      // Trocar order_index entre os blocos (ir para a esquerda)
       const newBlocks = [...blocks];
-      newBlocks[currentBlockIndex] = { ...currentBlock, order_index: nextBlock.order_index };
-      newBlocks[currentBlockIndex + 1] = { ...nextBlock, order_index: currentBlock.order_index };
+      newBlocks[currentBlockIndex] = { ...currentBlock, order_index: previousBlock.order_index };
+      newBlocks[currentBlockIndex - 1] = { ...previousBlock, order_index: currentBlock.order_index };
       newBlocks.sort((a, b) => a.order_index - b.order_index);
       
       setBlocks(newBlocks);
 
       // Atualizar no banco
       await Promise.all([
-        supabase.from("task_blocks").update({ order_index: currentBlock.order_index }).eq("id", nextBlock.id),
-        supabase.from("task_blocks").update({ order_index: nextBlock.order_index }).eq("id", currentBlock.id)
+        supabase.from("task_blocks").update({ order_index: currentBlock.order_index }).eq("id", previousBlock.id),
+        supabase.from("task_blocks").update({ order_index: previousBlock.order_index }).eq("id", currentBlock.id)
       ]);
 
       toast.success("Bloco movido para trás!");
