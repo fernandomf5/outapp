@@ -67,6 +67,7 @@ export const AdsManagementPanel = () => {
   const [selectedClientId, setSelectedClientId] = useState<string>('all');
   const [startDateFilter, setStartDateFilter] = useState<string>('');
   const [endDateFilter, setEndDateFilter] = useState<string>('');
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   
   const [clientFormData, setClientFormData] = useState({
     name: '',
@@ -337,6 +338,11 @@ export const AdsManagementPanel = () => {
 
   // Filter campaigns by client and date
   const filteredCampaigns = campaigns.filter(c => {
+    // Filter by specific campaign if selected
+    if (selectedCampaignId && c.id !== selectedCampaignId) {
+      return false;
+    }
+    
     // Filter by client
     if (selectedClientId !== 'all' && c.client_id !== selectedClientId) {
       return false;
@@ -530,9 +536,21 @@ export const AdsManagementPanel = () => {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-3xl font-bold tracking-tight">Dashboard de Anúncios</h2>
-              <p className="text-muted-foreground">Insira seus dados e visualize as métricas automaticamente</p>
+              <p className="text-muted-foreground">
+                {selectedCampaignId 
+                  ? `Visualizando campanha: ${campaigns.find(c => c.id === selectedCampaignId)?.name}` 
+                  : 'Insira seus dados e visualize as métricas automaticamente'}
+              </p>
             </div>
             <div className="flex items-center gap-3">
+              {selectedCampaignId && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setSelectedCampaignId(null)}
+                >
+                  Ver Todas as Campanhas
+                </Button>
+              )}
               {clients.length > 0 && (
                 <>
                   <Select value={selectedClientId} onValueChange={setSelectedClientId}>
@@ -773,6 +791,7 @@ export const AdsManagementPanel = () => {
               <Card className="glass">
                 <CardHeader>
                   <CardTitle>Todas as Campanhas</CardTitle>
+                  <CardDescription>Clique em uma campanha para ver seus dados detalhados no dashboard</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -792,11 +811,16 @@ export const AdsManagementPanel = () => {
                       {filteredCampaigns.map((campaign) => {
                         const campaignROI = campaign.spent > 0 ? ((campaign.revenue - campaign.spent) / campaign.spent) * 100 : 0;
                         const client = clients.find(c => c.id === campaign.client_id);
+                        const isSelected = selectedCampaignId === campaign.id;
                         
                         return (
-                          <TableRow key={campaign.id}>
+                          <TableRow 
+                            key={campaign.id}
+                            className={`cursor-pointer transition-colors ${isSelected ? 'bg-primary/10 border-primary' : 'hover:bg-muted/50'}`}
+                            onClick={() => setSelectedCampaignId(isSelected ? null : campaign.id)}
+                          >
                             <TableCell className="font-medium">
-                              {getPlatformIcon(campaign.platform)} {campaign.name}
+                              {isSelected && '✓ '}{getPlatformIcon(campaign.platform)} {campaign.name}
                             </TableCell>
                             <TableCell>{client?.name || '-'}</TableCell>
                             <TableCell>
@@ -811,7 +835,7 @@ export const AdsManagementPanel = () => {
                             </TableCell>
                             <TableCell>{campaign.conversions}</TableCell>
                             <TableCell>
-                              <div className="flex gap-2">
+                              <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                                 <Button
                                   variant="ghost"
                                   size="icon"
