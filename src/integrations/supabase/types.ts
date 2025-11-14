@@ -806,6 +806,41 @@ export type Database = {
           },
         ]
       }
+      agent_password_resets: {
+        Row: {
+          created_at: string
+          customer_id: string
+          expires_at: string
+          id: string
+          token: string
+          used: boolean
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          expires_at: string
+          id?: string
+          token: string
+          used?: boolean
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          used?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_password_resets_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "agent_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_payments: {
         Row: {
           agent_id: string
@@ -1872,6 +1907,41 @@ export type Database = {
           },
           {
             foreignKeyName: "chatbot_orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "chatbot_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chatbot_password_resets: {
+        Row: {
+          created_at: string
+          customer_id: string
+          expires_at: string
+          id: string
+          token: string
+          used: boolean
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          expires_at: string
+          id?: string
+          token: string
+          used?: boolean
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          used?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_password_resets_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "chatbot_customers"
@@ -4561,6 +4631,41 @@ export type Database = {
           },
         ]
       }
+      task_categories: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          id: string
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_categories_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           block_id: string | null
@@ -4571,6 +4676,7 @@ export type Database = {
           due_date: string | null
           id: string
           priority: string
+          request_date: string | null
           status: string
           title: string
           updated_at: string
@@ -4585,6 +4691,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           priority?: string
+          request_date?: string | null
           status?: string
           title: string
           updated_at?: string
@@ -4599,6 +4706,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           priority?: string
+          request_date?: string | null
           status?: string
           title?: string
           updated_at?: string
