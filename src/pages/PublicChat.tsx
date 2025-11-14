@@ -45,9 +45,18 @@ const PublicChat = () => {
   const [autoReplySent, setAutoReplySent] = useState(false);
 
   useEffect(() => {
-    if (!showPreChatForm) {
-      fetchBotData();
+    if (!showPreChatForm && botId) {
+      // Setar botData mínimo imediatamente para permitir envio de mensagens
+      setBotData({ 
+        id: botId, 
+        type: 'chatbot', 
+        config: { nodes: [], edges: [] }, 
+        is_active: true 
+      });
+      
+      // Criar conversa e buscar dados em paralelo
       createConversation();
+      fetchBotData();
     }
   }, [botId, showPreChatForm]);
 
@@ -566,7 +575,7 @@ const PublicChat = () => {
 
 const handleSendMessage = async (messageText?: string, originNodeId?: string) => {
     const textToSend = messageText || inputMessage;
-    if (!textToSend.trim() || !botData) return;
+    if (!textToSend.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -586,7 +595,7 @@ const handleSendMessage = async (messageText?: string, originNodeId?: string) =>
     await saveMessage('user', textToSend, originNodeId);
 
     // Enviar mensagem automática na primeira mensagem do cliente
-    if (!autoReplySent && botData.type === 'chatbot' && botId) {
+    if (!autoReplySent && botData && botData.type === 'chatbot' && botId) {
       const { data: chatbotData } = await supabase
         .from('chatbots')
         .select('enable_auto_reply, auto_reply_message')
@@ -609,7 +618,7 @@ const handleSendMessage = async (messageText?: string, originNodeId?: string) =>
     }
 
     // Criar notificação para nova mensagem do cliente (apenas se for chatbot)
-    if (botData.type === 'chatbot' && conversationId && botId) {
+    if (botData && botData.type === 'chatbot' && conversationId && botId) {
       await supabase
         .from('chatbot_notifications')
         .insert({
@@ -628,7 +637,7 @@ const handleSendMessage = async (messageText?: string, originNodeId?: string) =>
     }
 
     // Verificar se a mensagem corresponde a alguma palavra-chave
-    if (botData.type === 'chatbot' && !originNodeId) {
+    if (botData && botData.type === 'chatbot' && !originNodeId) {
       const config = botData.config as any;
       const nodes = config.nodes || [];
       
@@ -662,7 +671,7 @@ const handleSendMessage = async (messageText?: string, originNodeId?: string) =>
 
     try {
       // Chatbot sempre usa fluxo - só processar se veio de um botão (originNodeId definido)
-      if (originNodeId) {
+      if (botData && originNodeId) {
         const contextNodeId = originNodeId;
         console.log('🔍 Nó de contexto:', contextNodeId);
         console.log('📝 Texto enviado pelo usuário:', textToSend);
