@@ -566,43 +566,7 @@ export const TaskOrganizerPanel = () => {
       const currentBlock = blocks.find(b => b.id === id);
       if (!currentBlock) return;
 
-      const nextBlock = blocks.find(b => b.order_index === currentBlock.order_index + 1);
-      if (!nextBlock) return;
-
-      // Atualização otimista - atualiza UI imediatamente
-      const newBlocks = blocks.map(b => {
-        if (b.id === currentBlock.id) {
-          return { ...b, order_index: nextBlock.order_index };
-        }
-        if (b.id === nextBlock.id) {
-          return { ...b, order_index: currentBlock.order_index };
-        }
-        return b;
-      }).sort((a, b) => a.order_index - b.order_index);
-      
-      setBlocks(newBlocks);
-
-      // Atualizar no banco em background
-      await Promise.all([
-        supabase.from("task_blocks").update({ order_index: currentBlock.order_index }).eq("id", nextBlock.id),
-        supabase.from("task_blocks").update({ order_index: nextBlock.order_index }).eq("id", currentBlock.id)
-      ]);
-
-      toast.success("Bloco movido para frente!");
-    } catch (error: any) {
-      toast.error("Erro ao mover bloco: " + error.message);
-      loadData(); // Recarrega em caso de erro
-    }
-  };
-
-  const handleMoveBlockBackward = async (id: string) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const currentBlock = blocks.find(b => b.id === id);
-      if (!currentBlock) return;
-
+      // Mover para frente = diminuir order_index (ir para esquerda)
       const prevBlock = blocks.find(b => b.order_index === currentBlock.order_index - 1);
       if (!prevBlock) return;
 
@@ -623,6 +587,44 @@ export const TaskOrganizerPanel = () => {
       await Promise.all([
         supabase.from("task_blocks").update({ order_index: currentBlock.order_index }).eq("id", prevBlock.id),
         supabase.from("task_blocks").update({ order_index: prevBlock.order_index }).eq("id", currentBlock.id)
+      ]);
+
+      toast.success("Bloco movido para frente!");
+    } catch (error: any) {
+      toast.error("Erro ao mover bloco: " + error.message);
+      loadData(); // Recarrega em caso de erro
+    }
+  };
+
+  const handleMoveBlockBackward = async (id: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const currentBlock = blocks.find(b => b.id === id);
+      if (!currentBlock) return;
+
+      // Mover para trás = aumentar order_index (ir para direita)
+      const nextBlock = blocks.find(b => b.order_index === currentBlock.order_index + 1);
+      if (!nextBlock) return;
+
+      // Atualização otimista - atualiza UI imediatamente
+      const newBlocks = blocks.map(b => {
+        if (b.id === currentBlock.id) {
+          return { ...b, order_index: nextBlock.order_index };
+        }
+        if (b.id === nextBlock.id) {
+          return { ...b, order_index: currentBlock.order_index };
+        }
+        return b;
+      }).sort((a, b) => a.order_index - b.order_index);
+      
+      setBlocks(newBlocks);
+
+      // Atualizar no banco em background
+      await Promise.all([
+        supabase.from("task_blocks").update({ order_index: currentBlock.order_index }).eq("id", nextBlock.id),
+        supabase.from("task_blocks").update({ order_index: nextBlock.order_index }).eq("id", currentBlock.id)
       ]);
 
       toast.success("Bloco movido para trás!");
