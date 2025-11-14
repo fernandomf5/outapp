@@ -162,21 +162,21 @@ export default function ChatbotCustomerChat() {
 
       // Criar nova conversa (para anônimos sempre, para autenticados se não existir)
       const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const { data: newConv } = await supabase
-        .from('chatbot_conversations')
-        .insert({
-          chatbot_id: chatbotId,
-          session_id: sessionId,
-          visitor_email: customerData?.email || null,
-          visitor_name: customerData?.name || null,
-          visitor_phone: customerData?.phone || null,
-          status: 'active',
-          last_message_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+      const { data: created, error: createErr } = await supabase.functions.invoke('create-chatbot-conversation', {
+        body: {
+          chatbotId,
+          sessionId,
+          visitorEmail: customerData?.email || null,
+          visitorName: customerData?.name || null,
+          visitorPhone: customerData?.phone || null,
+        }
+      });
 
-      conversationToUse = newConv;
+      if (createErr || !created?.conversationId) {
+        throw createErr || new Error('Falha ao criar conversa');
+      }
+
+      conversationToUse = { id: created.conversationId } as any;
 
       // Create notification para novas conversas
       await supabase
@@ -193,16 +193,12 @@ export default function ChatbotCustomerChat() {
       await loadMessages(conversationToUse.id);
     } catch (error) {
       console.error('Error loading chatbot:', error);
-      // Fallback: abrir chat em modo leitura com mensagem padrão
-      setMessages([
-        {
-          id: 'fallback-hello-customer',
-          role: 'bot',
-          content: 'Olá! Tivemos um problema ao iniciar a conversa, mas você pode tentar enviar uma mensagem novamente em instantes.',
-          created_at: new Date().toISOString(),
-        }
-      ]);
-      // Evitar mostrar erro destrutivo ao usuário final
+      // Evitar mensagem de fallback; mostrar alerta discreto e permitir tentar novamente
+      toast({
+        title: 'Não foi possível iniciar o chat',
+        description: 'Por favor, tente novamente em instantes.',
+        variant: 'destructive',
+      });
     }
   };
 
