@@ -772,8 +772,24 @@ export const TaskOrganizerPanel = () => {
               <SelectItem value="low">Baixa</SelectItem>
             </SelectContent>
           </Select>
-          <Input type="date" value={dateStart} onChange={(e) => setDateStart(e.target.value)} className="w-[160px]" />
-          <Input type="date" value={dateEnd} onChange={(e) => setDateEnd(e.target.value)} className="w-[160px]" />
+          <div className="flex items-center gap-2">
+            <Label className="text-sm whitespace-nowrap">Vencimento:</Label>
+            <Input 
+              type="date" 
+              value={dateStart} 
+              onChange={(e) => setDateStart(e.target.value)} 
+              placeholder="De"
+              className="w-[150px]" 
+            />
+            <span className="text-muted-foreground">até</span>
+            <Input 
+              type="date" 
+              value={dateEnd} 
+              onChange={(e) => setDateEnd(e.target.value)} 
+              placeholder="Até"
+              className="w-[150px]" 
+            />
+          </div>
           <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" onClick={() => {
