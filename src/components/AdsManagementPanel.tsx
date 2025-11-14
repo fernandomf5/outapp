@@ -32,6 +32,8 @@ interface AdClient {
   name: string;
   client_type: 'personal' | 'company';
   description?: string;
+  general_cashbox: number;
+  ads_cashbox: number;
   created_at: string;
 }
 
@@ -65,7 +67,9 @@ export const AdsManagementPanel = () => {
   const [clientFormData, setClientFormData] = useState({
     name: '',
     client_type: 'personal' as 'personal' | 'company',
-    description: ''
+    description: '',
+    general_cashbox: '',
+    ads_cashbox: ''
   });
 
   const [campaignFormData, setCampaignFormData] = useState({
@@ -133,7 +137,9 @@ export const AdsManagementPanel = () => {
           user_id: user.id,
           name: clientFormData.name,
           client_type: clientFormData.client_type,
-          description: clientFormData.description || null
+          description: clientFormData.description || null,
+          general_cashbox: parseFloat(clientFormData.general_cashbox) || 0,
+          ads_cashbox: parseFloat(clientFormData.ads_cashbox) || 0
         }]);
 
       if (error) throw error;
@@ -145,7 +151,9 @@ export const AdsManagementPanel = () => {
       setClientFormData({
         name: '',
         client_type: 'personal',
-        description: ''
+        description: '',
+        general_cashbox: '',
+        ads_cashbox: ''
       });
     } catch (error: any) {
       toast.error("Erro ao adicionar cliente");
@@ -336,11 +344,18 @@ export const AdsManagementPanel = () => {
   const costPerConversion = totalConversions > 0 ? totalSpent / totalConversions : 0;
   
   // Cálculos financeiros
-  const availableBalance = totalBudget - totalSpent; // Saldo disponível (quanto sobrou do investimento)
-  const netProfit = totalRevenue - totalSpent - totalProductCost; // Lucro líquido
-  const totalCashbox = availableBalance + netProfit; // Caixa total
-  const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
-  const roi = totalSpent > 0 ? ((totalRevenue - totalSpent - totalProductCost) / totalSpent) * 100 : 0;
+  const currentClient = selectedClientId !== 'all' 
+    ? clients.find(c => c.id === selectedClientId)
+    : null;
+  
+  const clientInitialAdsCashbox = currentClient?.ads_cashbox || 0;
+  const clientRemainingAdsCashbox = clientInitialAdsCashbox - totalSpent; // Saldo restante do caixa de anúncios
+  
+  const grossProfit = totalRevenue - totalSpent; // Lucro bruto (sem custo do produto)
+  const netProfit = totalRevenue - totalSpent - totalProductCost; // Lucro líquido (com custo do produto)
+  const totalCashbox = clientRemainingAdsCashbox + grossProfit; // Caixa total (saldo + lucro)
+  const profitMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
+  const roi = totalSpent > 0 ? (grossProfit / totalSpent) * 100 : 0; // ROI baseado no lucro bruto
 
   // Chart data
   const campaignPerformanceData = filteredCampaigns.map(c => ({
@@ -436,11 +451,26 @@ export const AdsManagementPanel = () => {
                   <CardContent>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
+                        <span className="text-muted-foreground">Caixa Geral:</span>
+                        <span className="font-medium text-primary">R$ {client.general_cashbox.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Caixa Anúncios:</span>
+                        <span className="font-medium text-info">R$ {client.ads_cashbox.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Saldo Anúncios:</span>
+                        <span className={`font-medium ${(client.ads_cashbox - clientSpent) >= 0 ? 'text-success' : 'text-destructive'}`}>
+                          R$ {(client.ads_cashbox - clientSpent).toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="h-px bg-border my-2" />
+                      <div className="flex justify-between">
                         <span className="text-muted-foreground">Campanhas:</span>
                         <span className="font-medium">{clientCampaigns.length}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Investido:</span>
+                        <span className="text-muted-foreground">Gasto Total:</span>
                         <span className="font-medium">R$ {clientSpent.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
@@ -522,45 +552,64 @@ export const AdsManagementPanel = () => {
             <>
               {/* Metrics Cards - Financeiro */}
               <div className="grid gap-6 md:grid-cols-3 mb-6">
-                <Card className="glass border-primary/20">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Saldo Disponível</CardTitle>
-                    <DollarSign className="h-5 w-5 text-primary" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-primary">R$ {availableBalance.toFixed(2)}</div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Orçamento: R$ {totalBudget.toFixed(2)} | Gasto: R$ {totalSpent.toFixed(2)}
-                    </p>
-                  </CardContent>
-                </Card>
+                {currentClient && (
+                  <Card className="glass border-info/20">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">💼 Caixa de Anúncios</CardTitle>
+                      <DollarSign className="h-5 w-5 text-info" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className={`text-3xl font-bold ${clientRemainingAdsCashbox >= 0 ? 'text-info' : 'text-destructive'}`}>
+                        R$ {clientRemainingAdsCashbox.toFixed(2)}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Inicial: R$ {clientInitialAdsCashbox.toFixed(2)} | Gasto: R$ {totalSpent.toFixed(2)}
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
 
-                <Card className="glass border-success/30 bg-gradient-to-br from-success/5 to-transparent">
+                <Card className="glass border-primary/30 bg-gradient-to-br from-primary/10 to-transparent">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-base font-bold">💰 Lucro Líquido</CardTitle>
-                    <TrendingUp className="h-6 w-6 text-success" />
+                    <CardTitle className="text-base font-bold">📊 Faturamento Total</CardTitle>
+                    <DollarSign className="h-6 w-6 text-primary" />
                   </CardHeader>
                   <CardContent>
-                    <div className={`text-4xl font-bold ${netProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
-                      R$ {netProfit.toFixed(2)}
+                    <div className="text-4xl font-bold text-primary">
+                      R$ {totalRevenue.toFixed(2)}
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">
-                      Receita: R$ {totalRevenue.toFixed(2)} | Custos: R$ {(totalSpent + totalProductCost).toFixed(2)}
+                      Receita bruta total das campanhas
                     </p>
                   </CardContent>
                 </Card>
 
-                <Card className="glass border-accent/20">
+                <Card className="glass border-success/40 bg-gradient-to-br from-success/10 to-transparent shadow-lg">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Caixa Total</CardTitle>
-                    <DollarSign className="h-5 w-5 text-accent" />
+                    <CardTitle className="text-lg font-bold">💰 Lucro Bruto</CardTitle>
+                    <TrendingUp className="h-7 w-7 text-success" />
                   </CardHeader>
                   <CardContent>
-                    <div className={`text-3xl font-bold ${totalCashbox >= 0 ? 'text-accent' : 'text-destructive'}`}>
+                    <div className={`text-5xl font-bold ${grossProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                      R$ {grossProfit.toFixed(2)}
+                    </div>
+                    <p className="text-sm font-medium text-muted-foreground mt-3">
+                      Faturamento - Gasto Anúncios
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="glass border-accent/30 bg-gradient-to-br from-accent/5 to-transparent">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-base font-bold">🏦 Caixa Total</CardTitle>
+                    <DollarSign className="h-6 w-6 text-accent" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className={`text-4xl font-bold ${totalCashbox >= 0 ? 'text-accent' : 'text-destructive'}`}>
                       R$ {totalCashbox.toFixed(2)}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Saldo + Lucro
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Saldo Anúncios + Lucro Bruto
                     </p>
                   </CardContent>
                 </Card>
@@ -779,6 +828,28 @@ export const AdsManagementPanel = () => {
                 onChange={(e) => setClientFormData({...clientFormData, description: e.target.value})}
                 placeholder="Informações adicionais"
               />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Caixa Geral (R$)</Label>
+                <Input 
+                  type="number"
+                  step="0.01"
+                  value={clientFormData.general_cashbox}
+                  onChange={(e) => setClientFormData({...clientFormData, general_cashbox: e.target.value})}
+                  placeholder="0.00"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Caixa para Anúncios (R$) *</Label>
+                <Input 
+                  type="number"
+                  step="0.01"
+                  value={clientFormData.ads_cashbox}
+                  onChange={(e) => setClientFormData({...clientFormData, ads_cashbox: e.target.value})}
+                  placeholder="0.00"
+                />
+              </div>
             </div>
           </div>
           <DialogFooter>
