@@ -50,6 +50,8 @@ interface AdCampaign {
   revenue: number;
   created_at: string;
   client_id?: string;
+  start_date?: string;
+  end_date?: string;
 }
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--success))'];
@@ -63,6 +65,8 @@ export const AdsManagementPanel = () => {
   const [isEditCampaignDialogOpen, setIsEditCampaignDialogOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<AdCampaign | null>(null);
   const [selectedClientId, setSelectedClientId] = useState<string>('all');
+  const [startDateFilter, setStartDateFilter] = useState<string>('');
+  const [endDateFilter, setEndDateFilter] = useState<string>('');
   
   const [clientFormData, setClientFormData] = useState({
     name: '',
@@ -83,6 +87,7 @@ export const AdsManagementPanel = () => {
     product_cost: '',
     revenue: '',
     start_date: new Date().toISOString().split('T')[0],
+    end_date: '',
     client_id: ''
   });
 
@@ -206,7 +211,8 @@ export const AdsManagementPanel = () => {
           product_cost: parseFloat(campaignFormData.product_cost) || 0,
           revenue: parseFloat(campaignFormData.revenue) || 0,
           status: 'active',
-          start_date: campaignFormData.start_date,
+          start_date: campaignFormData.start_date || null,
+          end_date: campaignFormData.end_date || null,
           client_id: campaignFormData.client_id
         }]);
 
@@ -227,6 +233,7 @@ export const AdsManagementPanel = () => {
         product_cost: '',
         revenue: '',
         start_date: new Date().toISOString().split('T')[0],
+        end_date: '',
         client_id: ''
       });
     } catch (error: any) {
@@ -268,7 +275,8 @@ export const AdsManagementPanel = () => {
       conversions: campaign.conversions.toString(),
       product_cost: campaign.product_cost?.toString() || '0',
       revenue: campaign.revenue?.toString() || '0',
-      start_date: new Date(campaign.created_at).toISOString().split('T')[0],
+      start_date: campaign.start_date || new Date(campaign.created_at).toISOString().split('T')[0],
+      end_date: campaign.end_date || '',
       client_id: campaign.client_id || ''
     });
     setIsEditCampaignDialogOpen(true);
@@ -295,6 +303,8 @@ export const AdsManagementPanel = () => {
           conversions: parseInt(campaignFormData.conversions) || 0,
           product_cost: parseFloat(campaignFormData.product_cost) || 0,
           revenue: parseFloat(campaignFormData.revenue) || 0,
+          start_date: campaignFormData.start_date || null,
+          end_date: campaignFormData.end_date || null,
           client_id: campaignFormData.client_id || null
         })
         .eq('id', editingCampaign.id);
@@ -317,6 +327,7 @@ export const AdsManagementPanel = () => {
         product_cost: '',
         revenue: '',
         start_date: new Date().toISOString().split('T')[0],
+        end_date: '',
         client_id: ''
       });
     } catch (error: any) {
@@ -324,10 +335,28 @@ export const AdsManagementPanel = () => {
     }
   };
 
-  // Filter campaigns by client
-  const filteredCampaigns = selectedClientId === 'all' 
-    ? campaigns 
-    : campaigns.filter(c => c.client_id === selectedClientId);
+  // Filter campaigns by client and date
+  const filteredCampaigns = campaigns.filter(c => {
+    // Filter by client
+    if (selectedClientId !== 'all' && c.client_id !== selectedClientId) {
+      return false;
+    }
+    
+    // Filter by date range
+    if (startDateFilter && c.start_date) {
+      if (new Date(c.start_date) < new Date(startDateFilter)) {
+        return false;
+      }
+    }
+    
+    if (endDateFilter && c.start_date) {
+      if (new Date(c.start_date) > new Date(endDateFilter)) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
 
   // Metrics calculations
   const totalBudget = filteredCampaigns.reduce((sum, c) => sum + c.budget, 0);
@@ -505,17 +534,37 @@ export const AdsManagementPanel = () => {
             </div>
             <div className="flex items-center gap-3">
               {clients.length > 0 && (
-                <Select value={selectedClientId} onValueChange={setSelectedClientId}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Filtrar por cliente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os Clientes</SelectItem>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <>
+                  <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Filtrar por cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os Clientes</SelectItem>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="date"
+                      value={startDateFilter}
+                      onChange={(e) => setStartDateFilter(e.target.value)}
+                      placeholder="Data inicial"
+                      className="w-[150px]"
+                    />
+                    <span className="text-muted-foreground">até</span>
+                    <Input
+                      type="date"
+                      value={endDateFilter}
+                      onChange={(e) => setEndDateFilter(e.target.value)}
+                      placeholder="Data final"
+                      className="w-[150px]"
+                    />
+                  </div>
+                </>
               )}
               <Button 
                 className="gradient-primary shadow-glow" 
@@ -905,6 +954,24 @@ export const AdsManagementPanel = () => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
+                <Label>Data de Início *</Label>
+                <Input 
+                  type="date"
+                  value={campaignFormData.start_date}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, start_date: e.target.value})}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Data de Fim</Label>
+                <Input 
+                  type="date"
+                  value={campaignFormData.end_date}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, end_date: e.target.value})}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
                 <Label>Orçamento (R$) *</Label>
                 <Input 
                   type="number"
@@ -1028,6 +1095,24 @@ export const AdsManagementPanel = () => {
                   <SelectItem value="tiktok">TikTok Ads</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Data de Início</Label>
+                <Input 
+                  type="date"
+                  value={campaignFormData.start_date}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, start_date: e.target.value})}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Data de Fim</Label>
+                <Input 
+                  type="date"
+                  value={campaignFormData.end_date}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, end_date: e.target.value})}
+                />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
