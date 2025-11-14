@@ -172,7 +172,7 @@ export function UserSidebar() {
       <ScrollArea className="flex-1">
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>{t('main')}</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-green-500 font-bold bg-green-500/10 rounded-md px-2 py-1 animate-pulse">{t('main')}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {mainItems.map((item) => (
@@ -191,7 +191,7 @@ export function UserSidebar() {
           </SidebarGroup>
 
           <SidebarGroup>
-            <SidebarGroupLabel>Gestão</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-green-500 font-bold bg-green-500/10 rounded-md px-2 py-1 animate-pulse">Gestão</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {managementItems.map((item) => (
@@ -210,7 +210,7 @@ export function UserSidebar() {
           </SidebarGroup>
 
           <SidebarGroup>
-            <SidebarGroupLabel>CRM</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-green-500 font-bold bg-green-500/10 rounded-md px-2 py-1 animate-pulse">CRM</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {crmItems.map((item) => (
@@ -229,7 +229,7 @@ export function UserSidebar() {
           </SidebarGroup>
 
           <SidebarGroup>
-            <SidebarGroupLabel>Recursos</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-green-500 font-bold bg-green-500/10 rounded-md px-2 py-1 animate-pulse">Recursos</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <TooltipProvider delayDuration={300}>
@@ -262,7 +262,7 @@ export function UserSidebar() {
           </SidebarGroup>
 
           <SidebarGroup>
-            <SidebarGroupLabel>Recursos Avançados</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-green-500 font-bold bg-green-500/10 rounded-md px-2 py-1 animate-pulse">Recursos Avançados</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <TooltipProvider delayDuration={300}>
@@ -295,7 +295,7 @@ export function UserSidebar() {
           </SidebarGroup>
 
           <SidebarGroup>
-            <SidebarGroupLabel>{t('support')}</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-green-500 font-bold bg-green-500/10 rounded-md px-2 py-1 animate-pulse">{t('support')}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {supportItems.map((item) => {
