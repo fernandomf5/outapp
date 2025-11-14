@@ -203,13 +203,26 @@ export default function ChatbotCustomerChat() {
   };
 
   const loadMessages = async (convId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('chatbot_messages')
       .select('*')
       .eq('conversation_id', convId)
       .order('created_at', { ascending: true });
 
-    setMessages((data || []) as Message[]);
+    if (error) {
+      console.error('Erro ao carregar mensagens:', error);
+      return; // não sobrescreve as mensagens locais (otimistas)
+    }
+    if (!data) return;
+
+    // Mesclar mantendo mensagens otimistas e evitando duplicatas por id
+    setMessages((prev) => {
+      const byId = new Map<string, Message>();
+      [...prev, ...data as any].forEach((m: any) => byId.set(m.id, m as Message));
+      return Array.from(byId.values()).sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
+    });
   };
 
   const setupRealtimeSubscription = () => {
