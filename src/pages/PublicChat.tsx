@@ -382,12 +382,15 @@ const PublicChat = () => {
       return;
     } catch (error: any) {
       console.error('❌ Erro ao buscar bot:', error);
-      console.error('❌ Stack:', error.stack);
-      toast({
-        title: "Erro ao carregar",
-        description: `Não foi possível carregar o chat: ${error.message || 'Erro desconhecido'}`,
-        variant: "destructive"
-      });
+      console.error('❌ Stack:', (error as any)?.stack);
+      // Fallback silencioso: abre chat básico sem fluxo
+      setBotData({ id: botId, type: 'chatbot', config: { nodes: [], edges: [] }, is_active: true });
+      setMessages([{
+        id: 'fallback-hello-error',
+        role: 'bot',
+        content: 'Olá! Como posso ajudar você hoje?',
+        timestamp: new Date()
+      }]);
     }
   };
 
