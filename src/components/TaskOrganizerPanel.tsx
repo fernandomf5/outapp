@@ -8,10 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, Calendar, Flag, MoreVertical, GripVertical, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Edit2, Trash2, Calendar, Flag, MoreVertical, ChevronLeft, ChevronRight, MoveRight } from "lucide-react";
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, pointerWithin, closestCenter, PointerSensor, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
-import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
@@ -40,29 +39,15 @@ interface TaskBlock {
   updated_at: string;
 }
 
-interface SortableTaskProps {
+interface TaskCardProps {
   task: Task;
+  blocks: TaskBlock[];
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
+  onMoveToBlock: (taskId: string, blockId: string) => void;
 }
 
-function SortableTask({ task, onEdit, onDelete }: SortableTaskProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: task.id });
-
-  const style = {
-    transform: `${CSS.Transform.toString(transform)}${isDragging ? ' scale(1.03)' : ''}`,
-    transition: 'transform 200ms ease, box-shadow 200ms ease, opacity 150ms',
-    opacity: isDragging ? 0.85 : 1,
-    boxShadow: isDragging ? '0 10px 30px -10px hsl(var(--primary) / 0.35)' : undefined,
-    willChange: 'transform',
-  };
+function TaskCard({ task, blocks, onEdit, onDelete, onMoveToBlock }: TaskCardProps) {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -82,93 +67,105 @@ function SortableTask({ task, onEdit, onDelete }: SortableTaskProps) {
     }
   };
 
+  const currentBlock = blocks.find(b => b.id === task.block_id);
+
   return (
-    <div ref={setNodeRef} style={style}>
-      <Card className="mb-3 hover:shadow-md transition-smooth">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing mt-1">
-              <GripVertical className="h-4 w-4 text-muted-foreground" />
-            </div>
-            
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <h4 className="font-semibold text-sm truncate">{task.title}</h4>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onEdit(task)}>
-                      <Edit2 className="mr-2 h-4 w-4" />
-                      Editar
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onDelete(task.id)} className="text-destructive">
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Deletar
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              
-              {task.description && (
-                <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{task.description}</p>
-              )}
-              
-              <div className="flex flex-wrap gap-2 items-center">
-                <Badge variant="secondary" className={getPriorityColor(task.priority)}>
-                  <Flag className="h-3 w-3 mr-1" />
-                  {getPriorityLabel(task.priority)}
-                </Badge>
-                
-                {task.category && (
-                  <Badge variant="outline">{task.category}</Badge>
-                )}
-                
-                {task.due_date && (
-                  <Badge variant="outline" className="text-xs">
-                    <Calendar className="h-3 w-3 mr-1" />
-                    {task.due_date.split('-').reverse().join('/')}
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <Card className="mb-3 hover:shadow-md transition-smooth">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <h4 className="font-semibold text-sm truncate flex-1">{task.title}</h4>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 shrink-0">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => onEdit(task)}>
+                <Edit2 className="mr-2 h-4 w-4" />
+                Editar
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className="flex items-center justify-between"
+                onSelect={(e) => e.preventDefault()}
+              >
+                <div className="flex items-center flex-1">
+                  <MoveRight className="mr-2 h-4 w-4" />
+                  <span>Mover para</span>
+                </div>
+              </DropdownMenuItem>
+              {blocks.map((block) => (
+                <DropdownMenuItem
+                  key={block.id}
+                  onClick={() => onMoveToBlock(task.id, block.id)}
+                  disabled={block.id === task.block_id}
+                  className="pl-8"
+                >
+                  <div className="flex items-center gap-2 w-full">
+                    <div 
+                      className="w-2.5 h-2.5 rounded-full shrink-0" 
+                      style={{ backgroundColor: block.color }}
+                    />
+                    <span className="truncate">{block.name}</span>
+                    {block.id === task.block_id && (
+                      <Badge variant="secondary" className="ml-auto text-xs">Atual</Badge>
+                    )}
+                  </div>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuItem onClick={() => onDelete(task.id)} className="text-destructive">
+                <Trash2 className="mr-2 h-4 w-4" />
+                Deletar
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        
+        {task.description && (
+          <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{task.description}</p>
+        )}
+        
+        <div className="flex flex-wrap gap-2 items-center">
+          <Badge variant="secondary" className={getPriorityColor(task.priority)}>
+            <Flag className="h-3 w-3 mr-1" />
+            {getPriorityLabel(task.priority)}
+          </Badge>
+          
+          {task.category && (
+            <Badge variant="outline">{task.category}</Badge>
+          )}
+          
+          {task.due_date && (
+            <Badge variant="outline" className="text-xs">
+              <Calendar className="h-3 w-3 mr-1" />
+              {task.due_date.split('-').reverse().join('/')}
+            </Badge>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
 interface DroppableBlockProps {
   block: TaskBlock;
   tasks: Task[];
+  allBlocks: TaskBlock[];
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
   onEditBlock: (block: TaskBlock) => void;
   onDeleteBlock: (id: string) => void;
   onMoveBlockForward: (id: string) => void;
   onMoveBlockBackward: (id: string) => void;
+  onMoveTaskToBlock: (taskId: string, blockId: string) => void;
   canMoveForward: boolean;
   canMoveBackward: boolean;
 }
 
-function DroppableBlock({ block, tasks, onEdit, onDelete, onEditBlock, onDeleteBlock, onMoveBlockForward, onMoveBlockBackward, canMoveForward, canMoveBackward }: DroppableBlockProps) {
-  const taskIds = tasks.map(t => t.id);
-  
-  const { setNodeRef, isOver } = useDroppable({
-    id: block.id,
-    data: {
-      type: 'block',
-      block,
-    }
-  });
-
+function DroppableBlock({ block, tasks, allBlocks, onEdit, onDelete, onEditBlock, onDeleteBlock, onMoveBlockForward, onMoveBlockBackward, onMoveTaskToBlock, canMoveForward, canMoveBackward }: DroppableBlockProps) {
   return (
-    <div ref={setNodeRef} className="flex-shrink-0 w-80">
-      <Card className={`h-full flex flex-col transition-all ${isOver ? 'ring-2 ring-primary shadow-lg scale-[1.02]' : ''}`}>
+    <div className="flex-shrink-0 w-80">
+      <Card className="h-full flex flex-col">
         <CardHeader className="pb-3" style={{ borderTopColor: block.color, borderTopWidth: '4px' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -213,21 +210,21 @@ function DroppableBlock({ block, tasks, onEdit, onDelete, onEditBlock, onDeleteB
           </div>
         </CardHeader>
         <CardContent className="flex-1 overflow-y-auto p-4 min-h-[300px]">
-          <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
-            {tasks.map((task) => (
-              <SortableTask
-                key={task.id}
-                task={task}
-                onEdit={onEdit}
-                onDelete={onDelete}
-              />
-            ))}
-            {tasks.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground text-sm">
-                Arraste tarefas para cá
-              </div>
-            )}
-          </SortableContext>
+          {tasks.map((task) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              blocks={allBlocks}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onMoveToBlock={onMoveTaskToBlock}
+            />
+          ))}
+          {tasks.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              Nenhuma tarefa neste bloco
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -605,51 +602,18 @@ export const TaskOrganizerPanel = () => {
     }
   };
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  };
+  const handleMoveTaskToBlock = async (taskId: string, blockId: string) => {
+    try {
+      const { error } = await supabase
+        .from("tasks")
+        .update({ block_id: blockId })
+        .eq("id", taskId);
 
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveId(null);
-    setOverId(null);
-
-    if (!over) return;
-
-    const taskId = active.id as string;
-    const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
-
-    // Find the target block - could be the over.id itself or a parent block
-    let targetBlockId: string | null = null;
-    const overBlock = blocks.find(b => b.id === over.id);
-    if (overBlock) {
-      targetBlockId = overBlock.id;
-    } else {
-      const overTask = tasks.find(t => t.id === over.id);
-      if (overTask && overTask.block_id) {
-        targetBlockId = overTask.block_id;
-      }
-    }
-
-    if (targetBlockId && task.block_id !== targetBlockId) {
-      try {
-        const { error } = await supabase
-          .from('tasks')
-          .update({ block_id: targetBlockId })
-          .eq('id', taskId);
-
-        if (error) throw error;
-
-        setTasks(prev => prev.map(t =>
-          t.id === taskId ? { ...t, block_id: targetBlockId! } : t
-        ));
-
-        toast.success('Tarefa movida com sucesso!');
-      } catch (error: any) {
-        toast.error('Erro ao mover tarefa: ' + error.message);
-      }
+      if (error) throw error;
+      toast.success("Tarefa movida com sucesso!");
+      loadData();
+    } catch (error: any) {
+      toast.error("Erro ao mover tarefa: " + error.message);
     }
   };
 
@@ -1039,63 +1003,41 @@ export const TaskOrganizerPanel = () => {
       </div>
 
       {/* Kanban Board */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={collisionDetection}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="flex gap-4 overflow-x-auto pb-4">
-          <SortableContext items={filteredBlocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
-            {filteredBlocks.map((block, index) => (
-              <DroppableBlock
-                key={block.id}
-                block={block}
-                tasks={tasksByBlock[block.id] || []}
-                onEdit={openEditTask}
-                onDelete={handleDeleteTask}
-                onEditBlock={openEditBlock}
-                onDeleteBlock={handleDeleteBlock}
-                onMoveBlockForward={handleMoveBlockForward}
-                onMoveBlockBackward={handleMoveBlockBackward}
-                canMoveForward={index < filteredBlocks.length - 1}
-                canMoveBackward={index > 0}
-              />
-            ))}
-          </SortableContext>
-          
-          {filteredBlocks.length === 0 && (
-            <Card className="w-80">
-              <CardContent className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <p className="text-muted-foreground mb-4">
-                    {selectedClientFilter === "all" ? "Nenhum bloco criado ainda" : "Nenhum bloco para este cliente"}
-                  </p>
-                  <Button onClick={() => setIsBlockDialogOpen(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Criar Bloco
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        <DragOverlay>
-          {activeId ? (
-            <Card className="w-80 opacity-90 rotate-3 shadow-lg">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <GripVertical className="h-4 w-4" />
-                  <span className="font-semibold">
-                    {tasks.find(t => t.id === activeId)?.title}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+      <div className="flex gap-4 overflow-x-auto pb-4">
+        {filteredBlocks.map((block, index) => (
+          <DroppableBlock
+            key={block.id}
+            block={block}
+            tasks={tasksByBlock[block.id] || []}
+            allBlocks={filteredBlocks}
+            onEdit={openEditTask}
+            onDelete={handleDeleteTask}
+            onEditBlock={openEditBlock}
+            onDeleteBlock={handleDeleteBlock}
+            onMoveBlockForward={handleMoveBlockForward}
+            onMoveBlockBackward={handleMoveBlockBackward}
+            onMoveTaskToBlock={handleMoveTaskToBlock}
+            canMoveForward={index < filteredBlocks.length - 1}
+            canMoveBackward={index > 0}
+          />
+        ))}
+        
+        {filteredBlocks.length === 0 && (
+          <Card className="w-80">
+            <CardContent className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <p className="text-muted-foreground mb-4">
+                  {selectedClientFilter === "all" ? "Nenhum bloco criado ainda" : "Nenhum bloco para este cliente"}
+                </p>
+                <Button onClick={() => setIsBlockDialogOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Criar Bloco
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 };
