@@ -80,39 +80,11 @@ function TaskCard({ task, blocks, onEdit, onDelete, onMoveToBlock }: TaskCardPro
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem onClick={() => onEdit(task)}>
                 <Edit2 className="mr-2 h-4 w-4" />
                 Editar
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                className="flex items-center justify-between"
-                onSelect={(e) => e.preventDefault()}
-              >
-                <div className="flex items-center flex-1">
-                  <MoveRight className="mr-2 h-4 w-4" />
-                  <span>Mover para</span>
-                </div>
-              </DropdownMenuItem>
-              {blocks.map((block) => (
-                <DropdownMenuItem
-                  key={block.id}
-                  onClick={() => onMoveToBlock(task.id, block.id)}
-                  disabled={block.id === task.block_id}
-                  className="pl-8"
-                >
-                  <div className="flex items-center gap-2 w-full">
-                    <div 
-                      className="w-2.5 h-2.5 rounded-full shrink-0" 
-                      style={{ backgroundColor: block.color }}
-                    />
-                    <span className="truncate">{block.name}</span>
-                    {block.id === task.block_id && (
-                      <Badge variant="secondary" className="ml-auto text-xs">Atual</Badge>
-                    )}
-                  </div>
-                </DropdownMenuItem>
-              ))}
               <DropdownMenuItem onClick={() => onDelete(task.id)} className="text-destructive">
                 <Trash2 className="mr-2 h-4 w-4" />
                 Deletar
@@ -125,7 +97,7 @@ function TaskCard({ task, blocks, onEdit, onDelete, onMoveToBlock }: TaskCardPro
           <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{task.description}</p>
         )}
         
-        <div className="flex flex-wrap gap-2 items-center">
+        <div className="flex flex-wrap gap-2 items-center mb-3">
           <Badge variant="secondary" className={getPriorityColor(task.priority)}>
             <Flag className="h-3 w-3 mr-1" />
             {getPriorityLabel(task.priority)}
@@ -141,6 +113,31 @@ function TaskCard({ task, blocks, onEdit, onDelete, onMoveToBlock }: TaskCardPro
               {task.due_date.split('-').reverse().join('/')}
             </Badge>
           )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <MoveRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          <Select 
+            value={task.block_id || ""} 
+            onValueChange={(value) => onMoveToBlock(task.id, value)}
+          >
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue placeholder="Selecione o bloco" />
+            </SelectTrigger>
+            <SelectContent>
+              {blocks.map((block) => (
+                <SelectItem key={block.id} value={block.id}>
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-2 h-2 rounded-full" 
+                      style={{ backgroundColor: block.color }}
+                    />
+                    <span>{block.name}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </CardContent>
     </Card>
