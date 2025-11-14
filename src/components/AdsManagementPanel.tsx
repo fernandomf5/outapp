@@ -552,22 +552,20 @@ export const AdsManagementPanel = () => {
             <>
               {/* Metrics Cards - Financeiro */}
               <div className="grid gap-6 md:grid-cols-3 mb-6">
-                {currentClient && (
-                  <Card className="glass border-info/20">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">💼 Caixa de Anúncios</CardTitle>
-                      <DollarSign className="h-5 w-5 text-info" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className={`text-3xl font-bold ${clientRemainingAdsCashbox >= 0 ? 'text-info' : 'text-destructive'}`}>
-                        R$ {clientRemainingAdsCashbox.toFixed(2)}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Inicial: R$ {clientInitialAdsCashbox.toFixed(2)} | Gasto: R$ {totalSpent.toFixed(2)}
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
+                <Card className="glass border-destructive/30 bg-gradient-to-br from-destructive/10 to-transparent">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-base font-bold">📉 Gasto com Anúncios</CardTitle>
+                    <TrendingDown className="h-6 w-6 text-destructive" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-4xl font-bold text-destructive">
+                      R$ {totalSpent.toFixed(2)}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Total investido em campanhas
+                    </p>
+                  </CardContent>
+                </Card>
 
                 <Card className="glass border-primary/30 bg-gradient-to-br from-primary/10 to-transparent">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -586,7 +584,7 @@ export const AdsManagementPanel = () => {
 
                 <Card className="glass border-success/40 bg-gradient-to-br from-success/10 to-transparent shadow-lg">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-bold">💰 Lucro Bruto</CardTitle>
+                    <CardTitle className="text-lg font-bold">💰 Lucro</CardTitle>
                     <TrendingUp className="h-7 w-7 text-success" />
                   </CardHeader>
                   <CardContent>
@@ -595,21 +593,6 @@ export const AdsManagementPanel = () => {
                     </div>
                     <p className="text-sm font-medium text-muted-foreground mt-3">
                       Faturamento - Gasto Anúncios
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="glass border-accent/30 bg-gradient-to-br from-accent/5 to-transparent">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-base font-bold">🏦 Caixa Total</CardTitle>
-                    <DollarSign className="h-6 w-6 text-accent" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className={`text-4xl font-bold ${totalCashbox >= 0 ? 'text-accent' : 'text-destructive'}`}>
-                      R$ {totalCashbox.toFixed(2)}
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Saldo Anúncios + Lucro Bruto
                     </p>
                   </CardContent>
                 </Card>
