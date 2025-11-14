@@ -135,7 +135,7 @@ export function UserSidebar() {
   ];
 
   const basicResourcesItems: MenuItem[] = [
-    { title: "Gerador de Link para WhatsApp", icon: Wrench, path: "/dashboard", tab: "tools" },
+    { title: "Gerador de Link Whats", icon: Wrench, path: "/dashboard", tab: "tools" },
     { title: "Botão Flutuante Multi-Links", icon: Zap, path: "/dashboard", tab: "floating-button" },
     { title: t('link_shortener_title'), icon: Link2, path: "/dashboard", tab: "shortlinks", feature: "link_shortener" },
     { title: "Gerador QR Code", icon: QrCode, path: "/dashboard", tab: "qrcode" },

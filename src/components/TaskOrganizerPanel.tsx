@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Plus, Edit2, Trash2, Calendar, Flag, MoreVertical, GripVertical } from "lucide-react";
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCorners, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCorners, PointerSensor, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -23,6 +23,7 @@ interface Task {
   priority: "low" | "medium" | "high";
   category?: string;
   due_date?: string;
+  request_date?: string;
   block_id?: string;
   client_id?: string | null;
   created_at: string;
@@ -56,9 +57,11 @@ function SortableTask({ task, onEdit, onDelete }: SortableTaskProps) {
   } = useSortable({ id: task.id });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
+    transform: `${CSS.Transform.toString(transform)}${isDragging ? ' scale(1.03)' : ''}`,
+    transition: 'transform 200ms ease, box-shadow 200ms ease, opacity 150ms',
+    opacity: isDragging ? 0.85 : 1,
+    boxShadow: isDragging ? '0 10px 30px -10px hsl(var(--primary) / 0.35)' : undefined,
+    willChange: 'transform',
   };
 
   const getPriorityColor = (priority: string) => {
@@ -151,7 +154,7 @@ interface DroppableBlockProps {
 function DroppableBlock({ block, tasks, onEdit, onDelete, onEditBlock, onDeleteBlock }: DroppableBlockProps) {
   const taskIds = tasks.map(t => t.id);
   
-  const { setNodeRef, isOver } = useSortable({
+  const { setNodeRef, isOver } = useDroppable({
     id: block.id,
     data: {
       type: 'block',
@@ -225,12 +228,16 @@ export const TaskOrganizerPanel = () => {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const [selectedClientFilter, setSelectedClientFilter] = useState<string>("all");
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [dateStart, setDateStart] = useState<string>("");
+  const [dateEnd, setDateEnd] = useState<string>("");
   const [taskForm, setTaskForm] = useState({
     title: "",
     description: "",
     priority: "medium" as "low" | "medium" | "high",
     category: "",
     due_date: "",
+    request_date: "",
     block_id: "",
     client_id: "",
   });
@@ -345,6 +352,7 @@ export const TaskOrganizerPanel = () => {
           priority: taskForm.priority,
           category: taskForm.category,
           due_date: taskForm.due_date || null,
+          request_date: taskForm.request_date || null,
           block_id: taskForm.block_id || null,
         };
         // Somente adiciona client_id se existir na base (evita erro de tipagem/coluna)
@@ -367,6 +375,7 @@ export const TaskOrganizerPanel = () => {
           priority: taskForm.priority,
           category: taskForm.category,
           due_date: taskForm.due_date || null,
+          request_date: taskForm.request_date || null,
           block_id: taskForm.block_id || blocks[0]?.id || null,
         };
         if (taskForm.client_id !== undefined && taskForm.client_id) {
@@ -518,12 +527,13 @@ export const TaskOrganizerPanel = () => {
 
   const openEditTask = (task: Task) => {
     setEditingTask(task);
-    setTaskForm({
+  setTaskForm({
       title: task.title,
       description: task.description || "",
       priority: task.priority,
       category: task.category || "",
       due_date: task.due_date || "",
+      request_date: task.request_date || "",
       block_id: task.block_id || "",
       client_id: task.client_id || "",
     });
@@ -565,11 +575,26 @@ export const TaskOrganizerPanel = () => {
   }
 
   // Filter tasks and blocks by selected client
-  const filteredTasks = selectedClientFilter === "all" 
+  const filteredTasksBase = selectedClientFilter === "all" 
     ? tasks 
     : selectedClientFilter === "none"
     ? tasks.filter(task => !task.client_id)
     : tasks.filter(task => task.client_id === selectedClientFilter);
+
+  const filteredByPriority = priorityFilter === 'all' 
+    ? filteredTasksBase 
+    : filteredTasksBase.filter(t => t.priority === priorityFilter as any);
+
+  const filteredByDate = filteredByPriority.filter(t => {
+    if (!dateStart && !dateEnd) return true;
+    const d = t.due_date ? new Date(t.due_date) : null;
+    if (!d) return false;
+    const startOk = dateStart ? d >= new Date(dateStart) : true;
+    const endOk = dateEnd ? d <= new Date(dateEnd) : true;
+    return startOk && endOk;
+  });
+
+  const filteredTasks = filteredByDate;
 
   const filteredBlocks = selectedClientFilter === "all"
     ? blocks
@@ -608,6 +633,19 @@ export const TaskOrganizerPanel = () => {
               ))}
             </SelectContent>
           </Select>
+          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filtrar por prioridade" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas Prioridades</SelectItem>
+              <SelectItem value="high">Alta</SelectItem>
+              <SelectItem value="medium">Média</SelectItem>
+              <SelectItem value="low">Baixa</SelectItem>
+            </SelectContent>
+          </Select>
+          <Input type="date" value={dateStart} onChange={(e) => setDateStart(e.target.value)} className="w-[160px]" />
+          <Input type="date" value={dateEnd} onChange={(e) => setDateEnd(e.target.value)} className="w-[160px]" />
           <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" onClick={() => {
@@ -681,6 +719,7 @@ export const TaskOrganizerPanel = () => {
                   priority: "medium",
                   category: "",
                   due_date: "",
+                  request_date: "",
                   block_id: "",
                   client_id: "",
                 });
@@ -763,6 +802,17 @@ export const TaskOrganizerPanel = () => {
                       type="date"
                       value={taskForm.due_date}
                       onChange={(e) => setTaskForm({ ...taskForm, due_date: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="request_date">Data da Solicitação</Label>
+                    <Input
+                      id="request_date"
+                      type="date"
+                      value={taskForm.request_date}
+                      onChange={(e) => setTaskForm({ ...taskForm, request_date: e.target.value })}
                     />
                   </div>
                 </div>
