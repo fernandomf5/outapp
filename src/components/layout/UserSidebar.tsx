@@ -177,13 +177,23 @@ export function UserSidebar() {
               <SidebarMenu>
                 {mainItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton
-                        onClick={() => handleNavigation(item.path, item.tab)}
-                        className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
-                      >
-                        <item.icon className="h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
-                      </SidebarMenuButton>
+                      {item.title === "Blog" ? (
+                        <SidebarMenuButton
+                          onClick={() => window.open(item.path, '_blank')}
+                          className=""
+                        >
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </SidebarMenuButton>
+                      ) : (
+                        <SidebarMenuButton
+                          onClick={() => handleNavigation(item.path, item.tab)}
+                          className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                        >
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </SidebarMenuButton>
+                      )}
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
