@@ -84,27 +84,33 @@ export type Database = {
       }
       ad_clients: {
         Row: {
+          ads_cashbox: number
           client_type: string
           created_at: string
           description: string | null
+          general_cashbox: number
           id: string
           name: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          ads_cashbox?: number
           client_type?: string
           created_at?: string
           description?: string | null
+          general_cashbox?: number
           id?: string
           name: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          ads_cashbox?: number
           client_type?: string
           created_at?: string
           description?: string | null
+          general_cashbox?: number
           id?: string
           name?: string
           updated_at?: string
