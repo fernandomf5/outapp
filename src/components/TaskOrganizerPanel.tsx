@@ -569,14 +569,29 @@ export const TaskOrganizerPanel = () => {
       const nextBlock = blocks.find(b => b.order_index === currentBlock.order_index + 1);
       if (!nextBlock) return;
 
-      // Swap order_index
-      await supabase.from("task_blocks").update({ order_index: currentBlock.order_index }).eq("id", nextBlock.id);
-      await supabase.from("task_blocks").update({ order_index: nextBlock.order_index }).eq("id", currentBlock.id);
+      // Atualização otimista - atualiza UI imediatamente
+      const newBlocks = blocks.map(b => {
+        if (b.id === currentBlock.id) {
+          return { ...b, order_index: nextBlock.order_index };
+        }
+        if (b.id === nextBlock.id) {
+          return { ...b, order_index: currentBlock.order_index };
+        }
+        return b;
+      }).sort((a, b) => a.order_index - b.order_index);
+      
+      setBlocks(newBlocks);
+
+      // Atualizar no banco em background
+      await Promise.all([
+        supabase.from("task_blocks").update({ order_index: currentBlock.order_index }).eq("id", nextBlock.id),
+        supabase.from("task_blocks").update({ order_index: nextBlock.order_index }).eq("id", currentBlock.id)
+      ]);
 
       toast.success("Bloco movido para frente!");
-      loadData();
     } catch (error: any) {
       toast.error("Erro ao mover bloco: " + error.message);
+      loadData(); // Recarrega em caso de erro
     }
   };
 
@@ -591,19 +606,42 @@ export const TaskOrganizerPanel = () => {
       const prevBlock = blocks.find(b => b.order_index === currentBlock.order_index - 1);
       if (!prevBlock) return;
 
-      // Swap order_index
-      await supabase.from("task_blocks").update({ order_index: currentBlock.order_index }).eq("id", prevBlock.id);
-      await supabase.from("task_blocks").update({ order_index: prevBlock.order_index }).eq("id", currentBlock.id);
+      // Atualização otimista - atualiza UI imediatamente
+      const newBlocks = blocks.map(b => {
+        if (b.id === currentBlock.id) {
+          return { ...b, order_index: prevBlock.order_index };
+        }
+        if (b.id === prevBlock.id) {
+          return { ...b, order_index: currentBlock.order_index };
+        }
+        return b;
+      }).sort((a, b) => a.order_index - b.order_index);
+      
+      setBlocks(newBlocks);
+
+      // Atualizar no banco em background
+      await Promise.all([
+        supabase.from("task_blocks").update({ order_index: currentBlock.order_index }).eq("id", prevBlock.id),
+        supabase.from("task_blocks").update({ order_index: prevBlock.order_index }).eq("id", currentBlock.id)
+      ]);
 
       toast.success("Bloco movido para trás!");
-      loadData();
     } catch (error: any) {
       toast.error("Erro ao mover bloco: " + error.message);
+      loadData(); // Recarrega em caso de erro
     }
   };
 
   const handleMoveTaskToBlock = async (taskId: string, blockId: string) => {
     try {
+      // Atualização otimista - atualiza UI imediatamente
+      setTasks(prevTasks => 
+        prevTasks.map(t => 
+          t.id === taskId ? { ...t, block_id: blockId } : t
+        )
+      );
+
+      // Atualizar no banco em background
       const { error } = await supabase
         .from("tasks")
         .update({ block_id: blockId })
@@ -611,9 +649,9 @@ export const TaskOrganizerPanel = () => {
 
       if (error) throw error;
       toast.success("Tarefa movida com sucesso!");
-      loadData();
     } catch (error: any) {
       toast.error("Erro ao mover tarefa: " + error.message);
+      loadData(); // Recarrega em caso de erro
     }
   };
 
