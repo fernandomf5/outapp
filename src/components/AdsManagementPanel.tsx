@@ -630,6 +630,21 @@ export const AdsManagementPanel = () => {
 
                 <Card className="glass">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Ticket do Produto</CardTitle>
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-primary">
+                      R$ {totalConversions > 0 ? (totalRevenue / totalConversions).toFixed(2) : '0.00'}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Ticket médio por venda
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="glass">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Impressões</CardTitle>
                     <Eye className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
@@ -922,7 +937,7 @@ export const AdsManagementPanel = () => {
                 />
               </div>
               <div className="grid gap-2">
-                <Label>Custo do Produto (R$)</Label>
+                <Label>Ticket do Produto (R$)</Label>
                 <Input 
                   type="number"
                   step="0.01"
