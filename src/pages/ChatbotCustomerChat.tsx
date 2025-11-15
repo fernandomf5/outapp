@@ -131,7 +131,38 @@ export default function ChatbotCustomerChat() {
 
       // Apenas clientes autenticados (não-anônimos) reutilizam conversas
       if (!isAnonymous && customerData?.email) {
-        // Buscar conversa existente baseada no email do cliente autenticado
+        // Verificar se existe conversa salva no localStorage primeiro
+        const savedConversationId = localStorage.getItem(`chatbot_conversation_${chatbotId}_${customerData.email}`);
+        
+        if (savedConversationId) {
+          // Verificar se a conversa ainda existe no banco
+          const { data: savedConv } = await supabase
+            .from('chatbot_conversations')
+            .select('*')
+            .eq('id', savedConversationId)
+            .eq('chatbot_id', chatbotId)
+            .maybeSingle();
+          
+          if (savedConv) {
+            conversationToUse = savedConv;
+            
+            // Atualizar última atividade
+            await supabase
+              .from('chatbot_conversations')
+              .update({ 
+                last_message_at: new Date().toISOString(),
+                visitor_name: customerData?.name || savedConv.visitor_name,
+                visitor_phone: customerData?.phone || savedConv.visitor_phone,
+              })
+              .eq('id', savedConv.id);
+
+            setConversationId(savedConv.id);
+            await loadMessages(savedConv.id);
+            return;
+          }
+        }
+        
+        // Se não tem no localStorage, buscar conversa existente baseada no email
         const { data: conversations } = await supabase
           .from('chatbot_conversations')
           .select('*')
@@ -143,6 +174,9 @@ export default function ChatbotCustomerChat() {
 
         if (conversations && conversations.length > 0) {
           conversationToUse = conversations[0];
+          
+          // Salvar no localStorage para próximas vezes
+          localStorage.setItem(`chatbot_conversation_${chatbotId}_${customerData.email}`, conversationToUse.id);
           
           // Atualizar última atividade
           await supabase
@@ -190,6 +224,12 @@ export default function ChatbotCustomerChat() {
         });
 
       setConversationId(conversationToUse.id);
+      
+      // Salvar conversationId no localStorage para clientes autenticados
+      if (!isAnonymous && customerData?.email) {
+        localStorage.setItem(`chatbot_conversation_${chatbotId}_${customerData.email}`, conversationToUse.id);
+      }
+      
       await loadMessages(conversationToUse.id);
     } catch (error) {
       console.error('Error loading chatbot:', error);
@@ -239,11 +279,16 @@ export default function ChatbotCustomerChat() {
         (payload) => {
           const newMessage = payload.new as Message;
           setMessages((prev) => {
+            // Evitar duplicatas
             const exists = prev.some(m => m.id === newMessage.id);
-            if (!exists && (newMessage.role === 'assistant' || newMessage.role === 'bot')) {
+            if (exists) return prev;
+            
+            // Tocar som apenas para mensagens do bot/atendente
+            if (newMessage.role === 'assistant' || newMessage.role === 'bot') {
               chatSounds.playReceiveSound();
             }
-            return exists ? prev : [...prev, newMessage];
+            
+            return [...prev, newMessage];
           });
         }
       )
