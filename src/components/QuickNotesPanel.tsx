@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, Clock, CheckCircle2, StickyNote } from "lucide-react";
+import { Plus, Trash2, Clock, CheckCircle2, StickyNote, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -26,6 +26,7 @@ export const QuickNotesPanel = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [reminderNote, setReminderNote] = useState<Note | null>(null);
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -83,26 +84,67 @@ export const QuickNotesPanel = () => {
         });
       }
 
-      const { error } = await supabase
-        .from('quick_notes' as any)
-        .insert([{
-          user_id: user.id,
-          title: formData.title,
-          content: formData.content,
-          reminder_date: reminderDateUTC,
-          is_completed: false
-        }] as any);
+      if (editingNote) {
+        // Atualizar nota existente
+        const { error } = await supabase
+          .from('quick_notes' as any)
+          .update({
+            title: formData.title,
+            content: formData.content,
+            reminder_date: reminderDateUTC,
+          } as any)
+          .eq('id', editingNote.id);
 
-      if (error) throw error;
+        if (error) throw error;
+        toast.success("Nota atualizada!");
+      } else {
+        // Criar nova nota
+        const { error } = await supabase
+          .from('quick_notes' as any)
+          .insert([{
+            user_id: user.id,
+            title: formData.title,
+            content: formData.content,
+            reminder_date: reminderDateUTC,
+            is_completed: false
+          }] as any);
 
-      toast.success("Nota adicionada!");
+        if (error) throw error;
+        toast.success("Nota adicionada!");
+      }
+
       setIsDialogOpen(false);
+      setEditingNote(null);
       setFormData({ title: '', content: '', reminder_date: '' });
       loadNotes();
     } catch (error) {
-      console.error('Error adding note:', error);
-      toast.error("Erro ao adicionar nota");
+      console.error('Error saving note:', error);
+      toast.error(editingNote ? "Erro ao atualizar nota" : "Erro ao adicionar nota");
     }
+  };
+
+  const handleEditNote = (note: Note) => {
+    setEditingNote(note);
+    
+    // Converter data UTC para formato datetime-local
+    let localDateTime = '';
+    if (note.reminder_date) {
+      const date = new Date(note.reminder_date);
+      // Format: YYYY-MM-DDTHH:mm
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      localDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+    
+    setFormData({
+      title: note.title,
+      content: note.content,
+      reminder_date: localDateTime
+    });
+    setIsDialogOpen(true);
   };
 
   const handleToggleComplete = async (id: string, currentStatus: boolean) => {
@@ -246,7 +288,13 @@ export const QuickNotesPanel = () => {
                 </Badge>
               )}
             </div>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={(open) => {
+              setIsDialogOpen(open);
+              if (!open) {
+                setEditingNote(null);
+                setFormData({ title: '', content: '', reminder_date: '' });
+              }
+            }}>
               <DialogTrigger asChild>
                 <Button size="sm" variant="outline">
                   <Plus className="h-4 w-4 mr-1" />
@@ -255,8 +303,10 @@ export const QuickNotesPanel = () => {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Nova Anotação</DialogTitle>
-                  <DialogDescription>Crie uma nota rápida com lembrete opcional</DialogDescription>
+                  <DialogTitle>{editingNote ? 'Editar Anotação' : 'Nova Anotação'}</DialogTitle>
+                  <DialogDescription>
+                    {editingNote ? 'Edite sua nota rápida' : 'Crie uma nota rápida com lembrete opcional'}
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid gap-2">
@@ -286,11 +336,15 @@ export const QuickNotesPanel = () => {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  <Button variant="outline" onClick={() => {
+                    setIsDialogOpen(false);
+                    setEditingNote(null);
+                    setFormData({ title: '', content: '', reminder_date: '' });
+                  }}>
                     Cancelar
                   </Button>
                   <Button onClick={handleAddNote} className="gradient-primary">
-                    Adicionar
+                    {editingNote ? 'Salvar' : 'Adicionar'}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -347,14 +401,24 @@ export const QuickNotesPanel = () => {
                       }
                     })()}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => handleDeleteNote(note.id)}
-                    >
-                      <Trash2 className="h-3 w-3 text-destructive" />
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => handleEditNote(note)}
+                      >
+                        <Pencil className="h-3.5 w-3.5 text-primary" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => handleDeleteNote(note.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
