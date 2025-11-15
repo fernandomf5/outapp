@@ -15,7 +15,7 @@ import { linkifyText } from "@/utils/linkify";
 
 interface Message {
   id: string;
-  role: 'user' | 'bot' | 'assistant';
+  role: 'user' | 'bot' | 'assistant' | 'admin';
   content: string;
   created_at: string;
   sender_name?: string;
@@ -283,8 +283,8 @@ export default function ChatbotCustomerChat() {
             const exists = prev.some(m => m.id === newMessage.id);
             if (exists) return prev;
             
-            // Tocar som apenas para mensagens do bot/atendente
-            if (newMessage.role === 'assistant' || newMessage.role === 'bot') {
+            // Tocar som para mensagens do bot/atendente/admin
+            if (newMessage.role === 'assistant' || newMessage.role === 'bot' || newMessage.role === 'admin') {
               chatSounds.playReceiveSound();
             }
             
@@ -434,8 +434,9 @@ const handleSendMessage = async () => {
 
       if (error) throw error;
 
-      // Sincronizar com o servidor para evitar duplicados
-      await loadMessages(conversationId);
+      // Remover mensagem otimística após confirmação do servidor
+      // O real-time vai adicionar a mensagem confirmada
+      setMessages(prev => prev.filter(m => m.id !== tempId));
 
       // Enviar mensagem automática na primeira mensagem do cliente
       if (!autoReplySent && chatbotInfo?.enable_auto_reply && chatbotInfo?.auto_reply_message?.trim()) {
