@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,7 +35,7 @@ export default function ChatbotCustomerChat() {
   const [customer, setCustomer] = useState<any>(null);
   const [chatbotInfo, setChatbotInfo] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -258,14 +258,19 @@ export default function ChatbotCustomerChat() {
 
     if (error) {
       console.error('Erro ao carregar mensagens:', error);
-      return; // não sobrescreve as mensagens locais (otimistas)
+      return;
     }
     if (!data) return;
 
-    // Mesclar mantendo mensagens otimistas e evitando duplicatas por id
+    const serverMsgs = data as Message[];
+    const serverKeys = new Set(serverMsgs.map(m => `${m.role}|${m.content}|${m.media_url ?? ''}|${m.media_type ?? ''}`));
+
     setMessages((prev) => {
+      // Remove otimistas que já foram confirmados pelo servidor
+      const prevFiltered = prev.filter(m => !(m.id.startsWith('temp-') && serverKeys.has(`${m.role}|${m.content}|${m.media_url ?? ''}|${m.media_type ?? ''}`)));
+
       const byId = new Map<string, Message>();
-      [...prev, ...data as any].forEach((m: any) => byId.set(m.id, m as Message));
+      [...prevFiltered, ...serverMsgs].forEach((m: any) => byId.set(m.id, m as Message));
       return Array.from(byId.values()).sort(
         (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       );
@@ -286,16 +291,28 @@ export default function ChatbotCustomerChat() {
         (payload) => {
           const newMessage = payload.new as Message;
           setMessages((prev) => {
-            // Evitar duplicatas
-            const exists = prev.some(m => m.id === newMessage.id);
-            if (exists) return prev;
+            // Substitui mensagem otimista (temp-*) se for equivalente
+            let next = prev;
+            const tempIdx = prev.findIndex(m =>
+              m.id.startsWith('temp-') &&
+              m.role === 'user' &&
+              m.content === newMessage.content &&
+              (newMessage.media_url ?? '') === (m.media_url ?? '') &&
+              (newMessage.media_type ?? '') === (m.media_type ?? '')
+            );
+            if (tempIdx !== -1) {
+              next = [...prev.slice(0, tempIdx), ...prev.slice(tempIdx + 1)];
+            }
+
+            // Evitar duplicatas por id
+            if (next.some(m => m.id === newMessage.id)) return next;
             
             // Tocar som para mensagens do bot/atendente/admin
             if (newMessage.role === 'assistant' || newMessage.role === 'bot' || newMessage.role === 'admin') {
               chatSounds.playReceiveSound();
             }
             
-            return [...prev, newMessage];
+            return [...next, newMessage];
           });
         }
       )
@@ -441,11 +458,6 @@ const handleSendMessage = async () => {
 
       if (error) throw error;
 
-      // Remover mensagem otimística após confirmação do servidor
-      setMessages(prev => prev.filter(m => m.id !== tempId));
-
-      // Sincronizar mensagens para garantir exibição imediata (fallback ao realtime)
-      await loadMessages(conversationId);
 
       // Enviar mensagem automática na primeira mensagem do cliente
       if (!autoReplySent && chatbotInfo?.enable_auto_reply && chatbotInfo?.auto_reply_message?.trim()) {
@@ -553,7 +565,7 @@ const handleSendMessage = async () => {
               }`}
             >
               <Card
-                className={`max-w-[70%] p-4 ${
+                className={`max-w-[85%] sm:max-w-[70%] p-4 ${
                   message.role === 'user'
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-card'
@@ -605,7 +617,7 @@ const handleSendMessage = async () => {
        </ScrollArea>
 
       {/* Input Area */}
-      <div className="bg-card border-t p-4">
+      <div className="bg-card border-t p-3 md:p-4 sticky bottom-0" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}>
         <div className="container mx-auto max-w-4xl">
           {imagePreview && (
             <div className="mb-2 relative inline-block">
@@ -652,7 +664,7 @@ const handleSendMessage = async () => {
                   handleSendMessage();
                 }
               }}
-              className="flex gap-2"
+              className="flex items-end gap-2"
             >
               <input
                 ref={fileInputRef}
@@ -676,8 +688,9 @@ const handleSendMessage = async () => {
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadingImage}
                 title="Enviar imagem"
+                className="h-11 w-11 md:h-10 md:w-10"
               >
-                <ImagePlus className="w-4 h-4" />
+                <ImagePlus className="w-5 h-5" />
               </Button>
 
               <Button
@@ -687,14 +700,15 @@ const handleSendMessage = async () => {
                 onClick={() => docInputRef.current?.click()}
                 disabled={uploadingImage}
                 title="Enviar documento"
+                className="h-11 w-11 md:h-10 md:w-10"
               >
-                <FileText className="w-4 h-4" />
+                <FileText className="w-5 h-5" />
               </Button>
 
               <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <Smile className="w-4 h-4" />
+                  <Button variant="outline" size="icon" className="h-11 w-11 md:h-10 md:w-10">
+                    <Smile className="w-5 h-5" />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-full p-0 border-0" align="start">
@@ -707,11 +721,15 @@ const handleSendMessage = async () => {
                 </PopoverContent>
               </Popover>
 
-              <Input
+              <textarea
                 ref={inputRef}
                 value={input}
                 onChange={(e) => {
                   setInput(e.target.value);
+                  if (inputRef.current) {
+                    inputRef.current.style.height = 'auto';
+                    inputRef.current.style.height = Math.min(inputRef.current.scrollHeight, 160) + 'px';
+                  }
                   if (e.target.value.length > input.length) {
                     chatSounds.playTypingSound();
                   }
@@ -726,13 +744,15 @@ const handleSendMessage = async () => {
                 }}
                 placeholder="Digite sua mensagem..."
                 disabled={loading || uploadingImage}
-                className="flex-1"
+                rows={1}
+                className="flex-1 resize-none rounded-md border border-input bg-background text-foreground px-4 py-3 md:py-2 leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/30 max-h-40"
               />
               <Button 
                 type="submit"
                 disabled={loading || uploadingImage || (!input.trim() && !selectedImage && !selectedDocument)}
+                className="h-11 w-11 md:h-10 md:w-10"
               >
-                <Send className="w-4 h-4" />
+                <Send className="w-5 h-5" />
               </Button>
             </form>
         </div>
