@@ -102,9 +102,16 @@ export default function ChatbotCustomerChat() {
     if (conversationId) {
       const cleanup = setupRealtimeSubscription();
       const presenceCleanup = setupPresenceTracking();
+
+      // Polling fallback: refresh messages periodically (helps on mobile if realtime misses)
+      const pollInterval = setInterval(() => {
+        loadMessages(conversationId);
+      }, 4000);
+
       return () => {
         cleanup();
         presenceCleanup();
+        clearInterval(pollInterval);
       };
     }
   }, [conversationId]);
@@ -435,8 +442,10 @@ const handleSendMessage = async () => {
       if (error) throw error;
 
       // Remover mensagem otimística após confirmação do servidor
-      // O real-time vai adicionar a mensagem confirmada
       setMessages(prev => prev.filter(m => m.id !== tempId));
+
+      // Sincronizar mensagens para garantir exibição imediata (fallback ao realtime)
+      await loadMessages(conversationId);
 
       // Enviar mensagem automática na primeira mensagem do cliente
       if (!autoReplySent && chatbotInfo?.enable_auto_reply && chatbotInfo?.auto_reply_message?.trim()) {
