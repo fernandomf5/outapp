@@ -595,8 +595,8 @@ export default function AgentCustomerChat() {
   };
 
   return (
-    <div className="min-h-screen gradient-primary">
-      <div className="container mx-auto max-w-4xl h-screen flex flex-col p-4">
+    <div className="min-h-dvh gradient-primary">
+      <div className="container mx-auto max-w-4xl h-dvh flex flex-col p-4">
         <Card className="flex-1 flex flex-col">
           <div className="p-4 border-b flex items-center justify-between">
             <div className="flex-1">
@@ -625,7 +625,7 @@ export default function AgentCustomerChat() {
             </Button>
           </div>
 
-          <ScrollArea className="flex-1 p-4">
+          <ScrollArea className="flex-1 p-4 pb-28">
             <div className="space-y-4">
               {/* Mensagem de boas-vindas do agente (sempre visível) */}
               {agentInfo?.config?.welcomeMessage && (
@@ -648,10 +648,10 @@ export default function AgentCustomerChat() {
                     {message.role === 'customer' ? customer?.name : (message.sender_name || agentInfo?.name)}
                   </span>
                   <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
+                    className={`max-w-[85%] sm:max-w-[70%] rounded-lg p-3 ${
                       message.role === 'customer'
                         ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
+                        : 'bg-card text-foreground'
                     }`}
                   >
                     {message.media_url && message.media_type === 'image' && (
@@ -874,7 +874,7 @@ export default function AgentCustomerChat() {
                   handleSendMessage();
                 }
               }}
-              className="flex gap-2"
+              className="flex items-end gap-2"
             >
               <input
                 ref={fileInputRef}
@@ -893,7 +893,7 @@ export default function AgentCustomerChat() {
               
               <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" type="button">
+                  <Button variant="outline" size="icon" type="button" className="h-11 w-11 md:h-10 md:w-10">
                     <Smile className="w-5 h-5" />
                   </Button>
                 </PopoverTrigger>
@@ -908,31 +908,35 @@ export default function AgentCustomerChat() {
               </Popover>
 
               <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadingMedia || !!selectedDocument}
+                className="h-11 w-11 md:h-10 md:w-10"
               >
                 <ImagePlus className="w-5 h-5" />
               </Button>
 
               <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
                 type="button"
                 onClick={() => docInputRef.current?.click()}
                 disabled={uploadingMedia || !!selectedImage}
+                className="h-11 w-11 md:h-10 md:w-10"
               >
                 <FileText className="w-5 h-5" />
               </Button>
 
-              <Input
+              <textarea
                 value={input}
                 onChange={(e) => {
-                  const newValue = e.target.value;
-                  setInput(newValue);
-                  if (newValue.length > input.length) {
+                  const el = e.currentTarget;
+                  setInput(el.value);
+                  el.style.height = 'auto';
+                  el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+                  if (el.value.length > input.length) {
                     chatSounds.playTypingSound();
                   }
                 }}
@@ -946,11 +950,14 @@ export default function AgentCustomerChat() {
                 }}
                 placeholder="Digite sua mensagem..."
                 disabled={loading || uploadingMedia}
-                className="flex-1"
+                rows={1}
+                className="flex-1 resize-none rounded-md border border-input bg-background text-foreground px-4 py-3 md:py-2 leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/30 max-h-40"
               />
+
               <Button 
                 type="submit"
                 disabled={loading || uploadingMedia || (!input.trim() && !selectedImage && !selectedDocument)}
+                className="h-11 w-11 md:h-10 md:w-10"
               >
                 <Send className="w-5 h-5" />
               </Button>
