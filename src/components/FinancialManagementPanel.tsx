@@ -24,7 +24,8 @@ import {
   Filter,
   Edit2,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  GripVertical
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -32,6 +33,68 @@ import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ImageUpload } from "@/components/ImageUpload";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, horizontalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+interface SortableTabProps {
+  id: string;
+  value: string;
+  category: {
+    id: string;
+    name: string;
+    color: string;
+  };
+  isSelected: boolean;
+  onClick: () => void;
+}
+
+const SortableTab = ({ id, value, category, isSelected, onClick }: SortableTabProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="inline-flex"
+    >
+      <button
+        onClick={onClick}
+        className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all gap-2 ${
+          isSelected 
+            ? 'bg-background text-foreground shadow-sm' 
+            : 'hover:bg-background/50'
+        }`}
+      >
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing"
+        >
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
+        </div>
+        <div 
+          className="w-3 h-3 rounded-full" 
+          style={{ backgroundColor: category.color }}
+        />
+        {category.name}
+      </button>
+    </div>
+  );
+};
 
 interface Business {
   id: string;
@@ -48,6 +111,7 @@ interface Category {
   name: string;
   color: string;
   business_id: string;
+  order_index: number;
 }
 
 interface Transaction {
@@ -181,7 +245,7 @@ export const FinancialManagementPanel = () => {
         .from('financial_categories')
         .select('*')
         .eq('business_id', selectedBusiness.id)
-        .order('name');
+        .order('order_index');
 
       if (error) throw error;
       setCategories((data || []) as Category[]);
@@ -200,12 +264,16 @@ export const FinancialManagementPanel = () => {
         return;
       }
 
+      // Pegar o maior order_index atual
+      const maxOrderIndex = categories.reduce((max, cat) => Math.max(max, cat.order_index), -1);
+
       const { error } = await supabase
         .from('financial_categories')
         .insert([{
           user_id: user.id,
           business_id: selectedBusiness.id,
-          ...categoryFormData
+          ...categoryFormData,
+          order_index: maxOrderIndex + 1
         }]);
 
       if (error) throw error;
@@ -222,6 +290,45 @@ export const FinancialManagementPanel = () => {
       toast.error("Erro ao adicionar categoria");
     }
   };
+
+  const handleDragEndCategories = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = categories.findIndex((cat) => cat.id === active.id);
+    const newIndex = categories.findIndex((cat) => cat.id === over.id);
+
+    const newCategories = arrayMove(categories, oldIndex, newIndex);
+    setCategories(newCategories);
+
+    // Atualizar order_index no banco de dados
+    try {
+      const updates = newCategories.map((category, index) => ({
+        id: category.id,
+        order_index: index
+      }));
+
+      for (const update of updates) {
+        await supabase
+          .from('financial_categories')
+          .update({ order_index: update.order_index })
+          .eq('id', update.id);
+      }
+
+      toast.success("Ordem das categorias atualizada!");
+    } catch (error) {
+      toast.error("Erro ao atualizar ordem das categorias");
+      loadCategories(); // Recarregar em caso de erro
+    }
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const handleAddBusiness = async () => {
     try {
@@ -987,22 +1094,42 @@ export const FinancialManagementPanel = () => {
                 <CardTitle>Categorias</CardTitle>
               </CardHeader>
               <CardContent>
-                <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-                  <TabsList className="w-full justify-start flex-wrap h-auto">
-                    <TabsTrigger value="all">
+                <div className="w-full">
+                  <div className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground w-full overflow-x-auto flex-wrap">
+                    <button
+                      onClick={() => setSelectedCategory('all')}
+                      className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all ${
+                        selectedCategory === 'all'
+                          ? 'bg-background text-foreground shadow-sm'
+                          : 'hover:bg-background/50'
+                      }`}
+                    >
                       Todas
-                    </TabsTrigger>
-                    {categories.map((category) => (
-                      <TabsTrigger key={category.id} value={category.name} className="gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: category.color }}
-                        />
-                        {category.name}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </Tabs>
+                    </button>
+                    
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEndCategories}
+                    >
+                      <SortableContext
+                        items={categories.map(cat => cat.id)}
+                        strategy={horizontalListSortingStrategy}
+                      >
+                        {categories.map((category) => (
+                          <SortableTab
+                            key={category.id}
+                            id={category.id}
+                            value={category.name}
+                            category={category}
+                            isSelected={selectedCategory === category.name}
+                            onClick={() => setSelectedCategory(category.name)}
+                          />
+                        ))}
+                      </SortableContext>
+                    </DndContext>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
