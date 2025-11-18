@@ -43,6 +43,13 @@ interface Business {
   created_at: string;
 }
 
+interface Category {
+  id: string;
+  name: string;
+  color: string;
+  business_id: string;
+}
+
 interface Transaction {
   id: string;
   type: 'income' | 'expense';
@@ -61,11 +68,14 @@ export const FinancialManagementPanel = () => {
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [selectedBusinessesForSum, setSelectedBusinessesForSum] = useState<string[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'yyyy-MM'));
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all');
-  const [dateFilter, setDateFilter] = useState<'today' | 'week' | 'month' | 'year' | 'all'>('month');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isBusinessDialogOpen, setIsBusinessDialogOpen] = useState(false);
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [consolidationMode, setConsolidationMode] = useState(false);
   const [deleteTransactionId, setDeleteTransactionId] = useState<string | null>(null);
   const [deleteBusinessId, setDeleteBusinessId] = useState<string | null>(null);
@@ -73,6 +83,11 @@ export const FinancialManagementPanel = () => {
   const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
   const [isEditTransactionDialogOpen, setIsEditTransactionDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+
+  const [categoryFormData, setCategoryFormData] = useState({
+    name: '',
+    color: '#6366f1'
+  });
 
   const [businessFormData, setBusinessFormData] = useState({
     name: '',
@@ -98,8 +113,15 @@ export const FinancialManagementPanel = () => {
   useEffect(() => {
     if (selectedBusiness) {
       loadTransactions();
+      loadCategories();
     }
   }, [selectedBusiness]);
+
+  useEffect(() => {
+    if (selectedBusiness) {
+      loadTransactions();
+    }
+  }, [selectedMonth]);
 
   const loadBusinesses = async () => {
     try {
@@ -145,6 +167,59 @@ export const FinancialManagementPanel = () => {
       setTransactions((data || []) as Transaction[]);
     } catch (error: any) {
       toast.error("Erro ao carregar transações");
+    }
+  };
+
+  const loadCategories = async () => {
+    try {
+      if (!selectedBusiness) return;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('financial_categories')
+        .select('*')
+        .eq('business_id', selectedBusiness.id)
+        .order('name');
+
+      if (error) throw error;
+      setCategories((data || []) as Category[]);
+    } catch (error: any) {
+      toast.error("Erro ao carregar categorias");
+    }
+  };
+
+  const handleAddCategory = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !selectedBusiness) return;
+
+      if (!categoryFormData.name.trim()) {
+        toast.error("Nome da categoria é obrigatório");
+        return;
+      }
+
+      const { error } = await supabase
+        .from('financial_categories')
+        .insert([{
+          user_id: user.id,
+          business_id: selectedBusiness.id,
+          ...categoryFormData
+        }]);
+
+      if (error) throw error;
+
+      toast.success("Categoria adicionada com sucesso!");
+      setIsCategoryDialogOpen(false);
+      loadCategories();
+      
+      setCategoryFormData({
+        name: '',
+        color: '#6366f1'
+      });
+    } catch (error: any) {
+      toast.error("Erro ao adicionar categoria");
     }
   };
 
@@ -407,25 +482,22 @@ export const FinancialManagementPanel = () => {
   };
 
   const filteredTransactions = transactions.filter(t => {
+    // Filter by category
+    if (selectedCategory !== 'all' && t.category !== selectedCategory) return false;
+    
+    // Filter by type
     if (filter !== 'all' && t.type !== filter) return false;
     
+    // Filter by selected month
     const transactionDate = new Date(t.date);
-    const now = new Date();
+    const [year, month] = selectedMonth.split('-');
     
-    switch(dateFilter) {
-      case 'today':
-        return transactionDate.toDateString() === now.toDateString();
-      case 'week':
-        const weekAgo = new Date(now.setDate(now.getDate() - 7));
-        return transactionDate >= weekAgo;
-      case 'month':
-        return transactionDate.getMonth() === now.getMonth() && 
-               transactionDate.getFullYear() === now.getFullYear();
-      case 'year':
-        return transactionDate.getFullYear() === now.getFullYear();
-      default:
-        return true;
+    if (transactionDate.getFullYear() !== parseInt(year) || 
+        transactionDate.getMonth() !== parseInt(month) - 1) {
+      return false;
     }
+    
+    return true;
   });
 
   const totalIncome = filteredTransactions
@@ -673,20 +745,69 @@ export const FinancialManagementPanel = () => {
       {/* Só mostra métricas e transações se tiver um negócio selecionado ou estiver em modo consolidação */}
       {(selectedBusiness || (consolidationMode && selectedBusinessesForSum.length > 0)) && (
         <>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-3">
             <h3 className="text-xl font-semibold">
               {consolidationMode 
                 ? `Consolidado (${selectedBusinessesForSum.length} negócios)` 
                 : selectedBusiness?.name}
             </h3>
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="gradient-primary shadow-glow" disabled={!selectedBusiness}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Nova Transação
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Input
+                type="month"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="w-auto"
+              />
+              <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" disabled={!selectedBusiness}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Cadastrar Categoria
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[400px]">
+                  <DialogHeader>
+                    <DialogTitle>Nova Categoria</DialogTitle>
+                    <DialogDescription>
+                      Adicione uma categoria para organizar suas transações
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label>Nome da Categoria *</Label>
+                      <Input 
+                        value={categoryFormData.name}
+                        onChange={(e) => setCategoryFormData({...categoryFormData, name: e.target.value})}
+                        placeholder="Ex: Vendas, Marketing, Salários..."
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>Cor</Label>
+                      <Input 
+                        type="color"
+                        value={categoryFormData.color}
+                        onChange={(e) => setCategoryFormData({...categoryFormData, color: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsCategoryDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button onClick={handleAddCategory} className="gradient-primary">
+                      Adicionar
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gradient-primary shadow-glow" disabled={!selectedBusiness}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Nova Transação
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                   <DialogTitle>Adicionar Transação</DialogTitle>
                   <DialogDescription>
@@ -708,11 +829,24 @@ export const FinancialManagementPanel = () => {
                   </div>
                   <div className="grid gap-2">
                     <Label>Categoria</Label>
-                    <Input 
-                      value={formData.category}
-                      onChange={(e) => setFormData({...formData, category: e.target.value})}
-                      placeholder="Ex: Vendas, Marketing, Salários..."
-                    />
+                    <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.name}>
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-3 h-3 rounded-full" 
+                                style={{ backgroundColor: cat.color }}
+                              />
+                              {cat.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="grid gap-2">
                     <Label>Descrição</Label>
@@ -780,6 +914,7 @@ export const FinancialManagementPanel = () => {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+            </div>
           </div>
 
           {/* Resumo Financeiro */}
@@ -845,6 +980,33 @@ export const FinancialManagementPanel = () => {
             </Card>
           </div>
 
+          {/* Abas de Categorias */}
+          {categories.length > 0 && (
+            <Card className="glass">
+              <CardHeader>
+                <CardTitle>Categorias</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
+                  <TabsList className="w-full justify-start flex-wrap h-auto">
+                    <TabsTrigger value="all">
+                      Todas
+                    </TabsTrigger>
+                    {categories.map((category) => (
+                      <TabsTrigger key={category.id} value={category.name} className="gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: category.color }}
+                        />
+                        {category.name}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Filtros e Tabela */}
           <Card className="glass">
             <CardHeader>
@@ -859,18 +1021,6 @@ export const FinancialManagementPanel = () => {
                       <SelectItem value="all">Todas</SelectItem>
                       <SelectItem value="income">Receitas</SelectItem>
                       <SelectItem value="expense">Despesas</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select value={dateFilter} onValueChange={(value: any) => setDateFilter(value)}>
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="today">Hoje</SelectItem>
-                      <SelectItem value="week">Esta Semana</SelectItem>
-                      <SelectItem value="month">Este Mês</SelectItem>
-                      <SelectItem value="year">Este Ano</SelectItem>
-                      <SelectItem value="all">Tudo</SelectItem>
                     </SelectContent>
                   </Select>
                   <Button variant="outline" size="icon">
@@ -1073,11 +1223,24 @@ export const FinancialManagementPanel = () => {
             </div>
             <div className="grid gap-2">
               <Label>Categoria</Label>
-              <Input 
-                value={formData.category}
-                onChange={(e) => setFormData({...formData, category: e.target.value})}
-                placeholder="Ex: Vendas, Marketing, Salários..."
-              />
+              <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.name}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: cat.color }}
+                        />
+                        {cat.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid gap-2">
               <Label>Descrição</Label>
