@@ -125,6 +125,8 @@ interface Transaction {
   status: 'paid' | 'pending' | 'cancelled';
   created_at: string;
   business_id?: string;
+  is_recurring?: boolean;
+  order_index?: number;
 }
 
 export const FinancialManagementPanel = () => {
@@ -136,8 +138,13 @@ export const FinancialManagementPanel = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'yyyy-MM'));
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all');
+  const [filter, setFilter] = useState<'all' | 'income' | 'expense' | 'pending'>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [detailsType, setDetailsType] = useState<'income' | 'expense' | 'pending' | null>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [isEditCategoryDialogOpen, setIsEditCategoryDialogOpen] = useState(false);
+  const [deleteCategoryId, setDeleteCategoryId] = useState<string | null>(null);
   const [isBusinessDialogOpen, setIsBusinessDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [consolidationMode, setConsolidationMode] = useState(false);
@@ -167,7 +174,8 @@ export const FinancialManagementPanel = () => {
     amount: '',
     date: format(new Date(), 'yyyy-MM-dd'),
     payment_method: 'dinheiro',
-    status: 'paid' as 'paid' | 'pending' | 'cancelled'
+    status: 'paid' as 'paid' | 'pending' | 'cancelled',
+    is_recurring: false
   });
 
   useEffect(() => {
@@ -225,7 +233,7 @@ export const FinancialManagementPanel = () => {
         query = query.eq('business_id', selectedBusiness.id);
       }
 
-      const { data, error } = await query.order('date', { ascending: false });
+      const { data, error } = await query.order('order_index', { ascending: true }).order('date', { ascending: false });
 
       if (error) throw error;
       setTransactions((data || []) as Transaction[]);
@@ -288,6 +296,75 @@ export const FinancialManagementPanel = () => {
       });
     } catch (error: any) {
       toast.error("Erro ao adicionar categoria");
+    }
+  };
+
+  const openEditCategoryDialog = (category: Category) => {
+    setEditingCategory(category);
+    setCategoryFormData({
+      name: category.name,
+      color: category.color
+    });
+    setIsEditCategoryDialogOpen(true);
+  };
+
+  const handleUpdateCategory = async () => {
+    try {
+      if (!editingCategory) return;
+
+      if (!categoryFormData.name.trim()) {
+        toast.error("Nome da categoria é obrigatório");
+        return;
+      }
+
+      const { error } = await supabase
+        .from('financial_categories')
+        .update({
+          name: categoryFormData.name,
+          color: categoryFormData.color
+        })
+        .eq('id', editingCategory.id);
+
+      if (error) throw error;
+
+      toast.success("Categoria atualizada com sucesso!");
+      setIsEditCategoryDialogOpen(false);
+      setEditingCategory(null);
+      setCategoryFormData({ name: '', color: '#6366f1' });
+      loadCategories();
+      
+      // Reset selected category if it was edited
+      if (selectedCategory === editingCategory.name) {
+        setSelectedCategory(categoryFormData.name);
+      }
+    } catch (error: any) {
+      toast.error("Erro ao atualizar categoria");
+    }
+  };
+
+  const handleDeleteCategory = async () => {
+    try {
+      if (!deleteCategoryId) return;
+
+      const { error } = await supabase
+        .from('financial_categories')
+        .delete()
+        .eq('id', deleteCategoryId);
+
+      if (error) throw error;
+
+      toast.success("Categoria excluída com sucesso!");
+      loadCategories();
+      
+      // Reset selected category if it was deleted
+      const deletedCategory = categories.find(c => c.id === deleteCategoryId);
+      if (selectedCategory === deletedCategory?.name) {
+        setSelectedCategory('all');
+      }
+    } catch (error: any) {
+      toast.error("Erro ao excluir categoria");
+    } finally {
+      setDeleteCategoryId(null);
     }
   };
 
@@ -396,6 +473,45 @@ export const FinancialManagementPanel = () => {
       toast.error("Erro ao excluir negócio");
     } finally {
       setDeleteBusinessId(null);
+    }
+  };
+
+  // Sensores para drag and drop de transações
+  const transactionSensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEndTransactions = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = filteredTransactions.findIndex((t) => t.id === active.id);
+    const newIndex = filteredTransactions.findIndex((t) => t.id === over.id);
+
+    const reorderedTransactions = arrayMove(filteredTransactions, oldIndex, newIndex);
+
+    // Update order_index for all transactions
+    try {
+      const updates = reorderedTransactions.map((transaction, index) => ({
+        id: transaction.id,
+        order_index: index
+      }));
+
+      for (const update of updates) {
+        await supabase
+          .from('financial_transactions')
+          .update({ order_index: update.order_index })
+          .eq('id', update.id);
+      }
+
+      loadTransactions();
+      toast.success("Ordem das transações atualizada!");
+    } catch (error) {
+      toast.error("Erro ao reordenar transações");
     }
   };
 
@@ -509,7 +625,8 @@ export const FinancialManagementPanel = () => {
         amount: '',
         date: format(new Date(), 'yyyy-MM-dd'),
         payment_method: 'dinheiro',
-        status: 'paid'
+        status: 'paid',
+        is_recurring: false
       });
     } catch (error: any) {
       toast.error("Erro ao adicionar transação");
@@ -545,7 +662,8 @@ export const FinancialManagementPanel = () => {
       amount: transaction.amount.toString(),
       date: transaction.date,
       payment_method: transaction.payment_method,
-      status: transaction.status
+      status: transaction.status,
+      is_recurring: transaction.is_recurring || false
     });
     setIsEditTransactionDialogOpen(true);
   };
@@ -563,7 +681,8 @@ export const FinancialManagementPanel = () => {
           amount: parseFloat(formData.amount),
           date: formData.date,
           payment_method: formData.payment_method,
-          status: formData.status
+          status: formData.status,
+          is_recurring: formData.is_recurring
         })
         .eq('id', editingTransaction.id);
 
@@ -581,7 +700,8 @@ export const FinancialManagementPanel = () => {
         amount: '',
         date: format(new Date(), 'yyyy-MM-dd'),
         payment_method: 'dinheiro',
-        status: 'paid'
+        status: 'paid',
+        is_recurring: false
       });
     } catch (error: any) {
       toast.error("Erro ao atualizar transação");
@@ -592,8 +712,10 @@ export const FinancialManagementPanel = () => {
     // Filter by category
     if (selectedCategory !== 'all' && t.category !== selectedCategory) return false;
     
-    // Filter by type
-    if (filter !== 'all' && t.type !== filter) return false;
+    // Filter by type and status
+    if (filter === 'pending' && t.status !== 'pending') return false;
+    if (filter === 'income' && t.type !== 'income') return false;
+    if (filter === 'expense' && t.type !== 'expense') return false;
     
     // Filter by selected month
     const transactionDate = new Date(t.date);
@@ -975,11 +1097,25 @@ export const FinancialManagementPanel = () => {
                   </div>
                   <div className="grid gap-2">
                     <Label>Data</Label>
-                    <Input 
-                      type="date"
-                      value={formData.date}
-                      onChange={(e) => setFormData({...formData, date: e.target.value})}
-                    />
+                    {!formData.is_recurring && (
+                      <Input 
+                        type="date"
+                        value={formData.date}
+                        onChange={(e) => setFormData({...formData, date: e.target.value})}
+                      />
+                    )}
+                    <div className="flex items-center space-x-2 mt-2">
+                      <input
+                        type="checkbox"
+                        id="is_recurring"
+                        checked={formData.is_recurring}
+                        onChange={(e) => setFormData({...formData, is_recurring: e.target.checked, date: e.target.checked ? '' : format(new Date(), 'yyyy-MM-dd')})}
+                        className="h-4 w-4 rounded border-gray-300"
+                      />
+                      <Label htmlFor="is_recurring" className="text-sm cursor-pointer">
+                        Transação Fixa (repete todo mês)
+                      </Label>
+                    </div>
                   </div>
                   <div className="grid gap-2">
                     <Label>Método de Pagamento</Label>
@@ -1050,9 +1186,23 @@ export const FinancialManagementPanel = () => {
                 <div className="text-2xl font-bold text-success">
                   R$ {totalIncome.toFixed(2)}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {filteredTransactions.filter(t => t.type === 'income').length} transações
-                </p>
+                <div className="flex items-center justify-between mt-2">
+                  <p className="text-xs text-muted-foreground">
+                    {filteredTransactions.filter(t => t.type === 'income').length} transações
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      setDetailsType('income');
+                      setIsDetailsDialogOpen(true);
+                    }}
+                  >
+                    <Eye className="h-3 w-3 mr-1" />
+                    Detalhar
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -1065,9 +1215,23 @@ export const FinancialManagementPanel = () => {
                 <div className="text-2xl font-bold text-destructive">
                   R$ {totalExpense.toFixed(2)}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {filteredTransactions.filter(t => t.type === 'expense').length} transações
-                </p>
+                <div className="flex items-center justify-between mt-2">
+                  <p className="text-xs text-muted-foreground">
+                    {filteredTransactions.filter(t => t.type === 'expense').length} transações
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      setDetailsType('expense');
+                      setIsDetailsDialogOpen(true);
+                    }}
+                  >
+                    <Eye className="h-3 w-3 mr-1" />
+                    Detalhar
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -1080,9 +1244,23 @@ export const FinancialManagementPanel = () => {
                 <div className="text-2xl font-bold text-warning">
                   R$ {pendingAmount.toFixed(2)}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {filteredTransactions.filter(t => t.status === 'pending').length} transações
-                </p>
+                <div className="flex items-center justify-between mt-2">
+                  <p className="text-xs text-muted-foreground">
+                    {filteredTransactions.filter(t => t.status === 'pending').length} transações
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      setDetailsType('pending');
+                      setIsDetailsDialogOpen(true);
+                    }}
+                  >
+                    <Eye className="h-3 w-3 mr-1" />
+                    Detalhar
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -1117,14 +1295,31 @@ export const FinancialManagementPanel = () => {
                         strategy={horizontalListSortingStrategy}
                       >
                         {categories.map((category) => (
-                          <SortableTab
-                            key={category.id}
-                            id={category.id}
-                            value={category.name}
-                            category={category}
-                            isSelected={selectedCategory === category.name}
-                            onClick={() => setSelectedCategory(category.name)}
-                          />
+                          <div key={category.id} className="inline-flex items-center gap-1">
+                            <SortableTab
+                              id={category.id}
+                              value={category.name}
+                              category={category}
+                              isSelected={selectedCategory === category.name}
+                              onClick={() => setSelectedCategory(category.name)}
+                            />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => openEditCategoryDialog(category)}
+                            >
+                              <Edit2 className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => setDeleteCategoryId(category.id)}
+                            >
+                              <Trash2 className="h-3 w-3 text-destructive" />
+                            </Button>
+                          </div>
                         ))}
                       </SortableContext>
                     </DndContext>
@@ -1148,6 +1343,7 @@ export const FinancialManagementPanel = () => {
                       <SelectItem value="all">Todas</SelectItem>
                       <SelectItem value="income">Receitas</SelectItem>
                       <SelectItem value="expense">Despesas</SelectItem>
+                      <SelectItem value="pending">Pendentes</SelectItem>
                     </SelectContent>
                   </Select>
                   <Button variant="outline" size="icon">
@@ -1179,11 +1375,26 @@ export const FinancialManagementPanel = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredTransactions.map((transaction) => (
-                        <TableRow key={transaction.id}>
-                          <TableCell>
-                            {format(new Date(transaction.date), "dd/MM/yyyy", { locale: ptBR })}
-                          </TableCell>
+                      <DndContext
+                        sensors={transactionSensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEndTransactions}
+                      >
+                        <SortableContext
+                          items={filteredTransactions.map(t => t.id)}
+                        >
+                          {filteredTransactions.map((transaction) => (
+                            <TableRow key={transaction.id}>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
+                                  {transaction.is_recurring ? (
+                                    <Badge variant="outline" className="text-xs">Fixa</Badge>
+                                  ) : (
+                                    format(new Date(transaction.date), "dd/MM/yyyy", { locale: ptBR })
+                                  )}
+                                </div>
+                              </TableCell>
                           <TableCell>
                             <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'}>
                               {transaction.type === 'income' ? 'Receita' : 'Despesa'}
@@ -1228,9 +1439,11 @@ export const FinancialManagementPanel = () => {
                               </Button>
                             </div>
                           </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
+                          </TableRow>
+                        ))}
+                      </SortableContext>
+                    </DndContext>
+                  </TableBody>
                   </Table>
                 </div>
               )}
@@ -1245,6 +1458,94 @@ export const FinancialManagementPanel = () => {
         onConfirm={handleDeleteTransaction}
         description="Você tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita e você perderá todos os dados relacionados."
       />
+
+      <DeleteConfirmDialog
+        open={!!deleteCategoryId}
+        onOpenChange={() => setDeleteCategoryId(null)}
+        onConfirm={handleDeleteCategory}
+        title="Excluir Categoria?"
+        description="Tem certeza que deseja excluir esta categoria? Esta ação não pode ser desfeita."
+      />
+
+      <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Categoria</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>Nome da Categoria</Label>
+              <Input
+                value={categoryFormData.name}
+                onChange={(e) => setCategoryFormData({...categoryFormData, name: e.target.value})}
+                placeholder="Ex: Vendas, Marketing..."
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Cor</Label>
+              <Input
+                type="color"
+                value={categoryFormData.color}
+                onChange={(e) => setCategoryFormData({...categoryFormData, color: e.target.value})}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditCategoryDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleUpdateCategory}>
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Detalhes - {detailsType === 'income' ? 'Receitas' : detailsType === 'expense' ? 'Despesas' : 'Pendentes'}
+            </DialogTitle>
+          </DialogHeader>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Data</TableHead>
+                <TableHead>Categoria</TableHead>
+                <TableHead>Descrição</TableHead>
+                <TableHead className="text-right">Valor</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredTransactions
+                .filter(t => 
+                  detailsType === 'pending' ? t.status === 'pending' :
+                  detailsType === 'income' ? t.type === 'income' :
+                  t.type === 'expense'
+                )
+                .map((transaction) => (
+                  <TableRow key={transaction.id}>
+                    <TableCell>
+                      {transaction.is_recurring ? (
+                        <Badge variant="outline">Fixa</Badge>
+                      ) : (
+                        format(new Date(transaction.date), "dd/MM/yyyy", { locale: ptBR })
+                      )}
+                    </TableCell>
+                    <TableCell>{transaction.category}</TableCell>
+                    <TableCell>{transaction.description}</TableCell>
+                    <TableCell className={`text-right font-bold ${
+                      transaction.type === 'income' ? 'text-success' : 'text-destructive'
+                    }`}>
+                      {transaction.type === 'income' ? '+' : '-'} R$ {transaction.amount.toFixed(2)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </DialogContent>
+      </Dialog>
 
       <DeleteConfirmDialog
         open={!!deleteBusinessId}
@@ -1390,11 +1691,25 @@ export const FinancialManagementPanel = () => {
               </div>
               <div className="grid gap-2">
                 <Label>Data</Label>
-                <Input 
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({...formData, date: e.target.value})}
-                />
+                {!formData.is_recurring && (
+                  <Input 
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData({...formData, date: e.target.value})}
+                  />
+                )}
+                <div className="flex items-center space-x-2 mt-2">
+                  <input
+                    type="checkbox"
+                    id="edit_is_recurring"
+                    checked={formData.is_recurring}
+                    onChange={(e) => setFormData({...formData, is_recurring: e.target.checked, date: e.target.checked ? '' : format(new Date(), 'yyyy-MM-dd')})}
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  <Label htmlFor="edit_is_recurring" className="text-sm cursor-pointer">
+                    Transação Fixa (repete todo mês)
+                  </Label>
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -1440,7 +1755,8 @@ export const FinancialManagementPanel = () => {
                 amount: '',
                 date: format(new Date(), 'yyyy-MM-dd'),
                 payment_method: 'dinheiro',
-                status: 'paid'
+                status: 'paid',
+                is_recurring: false
               });
             }}>
               Cancelar

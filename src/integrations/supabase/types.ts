@@ -2930,6 +2930,8 @@ export type Database = {
           date: string
           description: string
           id: string
+          is_recurring: boolean | null
+          order_index: number | null
           payment_method: string
           status: string
           type: string
@@ -2945,6 +2947,8 @@ export type Database = {
           date: string
           description: string
           id?: string
+          is_recurring?: boolean | null
+          order_index?: number | null
           payment_method: string
           status?: string
           type: string
@@ -2960,6 +2964,8 @@ export type Database = {
           date?: string
           description?: string
           id?: string
+          is_recurring?: boolean | null
+          order_index?: number | null
           payment_method?: string
           status?: string
           type?: string
