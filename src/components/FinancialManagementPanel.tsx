@@ -96,6 +96,95 @@ const SortableTab = ({ id, value, category, isSelected, onClick }: SortableTabPr
   );
 };
 
+interface SortableTransactionProps {
+  id: string;
+  transaction: Transaction;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+const SortableTransaction = ({ id, transaction, onEdit, onDelete }: SortableTransactionProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <TableRow ref={setNodeRef} style={style}>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing"
+          >
+            <GripVertical className="h-4 w-4 text-muted-foreground" />
+          </div>
+          {transaction.is_recurring ? (
+            <Badge variant="outline">Fixa</Badge>
+          ) : (
+            format(new Date(transaction.date), "dd/MM/yyyy", { locale: ptBR })
+          )}
+        </div>
+      </TableCell>
+      <TableCell>
+        <Badge variant={transaction.type === 'income' ? 'default' : 'secondary'}>
+          {transaction.type === 'income' ? 'Receita' : 'Despesa'}
+        </Badge>
+      </TableCell>
+      <TableCell>{transaction.category}</TableCell>
+      <TableCell>{transaction.description}</TableCell>
+      <TableCell className="capitalize">{transaction.payment_method.replace('_', ' ')}</TableCell>
+      <TableCell>
+        <Badge 
+          variant={
+            transaction.status === 'paid' ? 'default' : 
+            transaction.status === 'pending' ? 'secondary' : 
+            'outline'
+          }
+        >
+          {transaction.status === 'paid' ? 'Pago' : 
+           transaction.status === 'pending' ? 'Pendente' : 
+           'Cancelado'}
+        </Badge>
+      </TableCell>
+      <TableCell className={`text-right font-bold ${
+        transaction.type === 'income' ? 'text-success' : 'text-destructive'
+      }`}>
+        {transaction.type === 'income' ? '+' : '-'} R$ {transaction.amount.toFixed(2)}
+      </TableCell>
+      <TableCell className="text-right">
+        <div className="flex items-center justify-end gap-1">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={onEdit}
+          >
+            <Edit2 className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={onDelete}
+          >
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+};
+
 interface Business {
   id: string;
   name: string;
@@ -138,7 +227,7 @@ export const FinancialManagementPanel = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'yyyy-MM'));
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'income' | 'expense' | 'pending'>('all');
+  const [filter, setFilter] = useState<'all' | 'income' | 'expense' | 'paid' | 'pending' | 'cancelled'>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [detailsType, setDetailsType] = useState<'income' | 'expense' | 'pending' | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
@@ -603,14 +692,26 @@ export const FinancialManagementPanel = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      const transactionData: any = {
+        user_id: user.id,
+        business_id: selectedBusiness.id,
+        type: formData.type,
+        category: formData.category,
+        description: formData.description,
+        amount: parseFloat(formData.amount),
+        payment_method: formData.payment_method,
+        status: formData.status,
+        is_recurring: formData.is_recurring
+      };
+
+      // Only add date if it's not a recurring transaction
+      if (!formData.is_recurring) {
+        transactionData.date = formData.date;
+      }
+
       const { error } = await supabase
         .from('financial_transactions')
-        .insert([{
-          user_id: user.id,
-          business_id: selectedBusiness.id,
-          ...formData,
-          amount: parseFloat(formData.amount)
-        }]);
+        .insert([transactionData]);
 
       if (error) throw error;
 
@@ -714,6 +815,8 @@ export const FinancialManagementPanel = () => {
     
     // Filter by type and status
     if (filter === 'pending' && t.status !== 'pending') return false;
+    if (filter === 'paid' && t.status !== 'paid') return false;
+    if (filter === 'cancelled' && t.status !== 'cancelled') return false;
     if (filter === 'income' && t.type !== 'income') return false;
     if (filter === 'expense' && t.type !== 'expense') return false;
     
@@ -1343,7 +1446,9 @@ export const FinancialManagementPanel = () => {
                       <SelectItem value="all">Todas</SelectItem>
                       <SelectItem value="income">Receitas</SelectItem>
                       <SelectItem value="expense">Despesas</SelectItem>
+                      <SelectItem value="paid">Pagas</SelectItem>
                       <SelectItem value="pending">Pendentes</SelectItem>
+                      <SelectItem value="cancelled">Canceladas</SelectItem>
                     </SelectContent>
                   </Select>
                   <Button variant="outline" size="icon">
@@ -1522,7 +1627,7 @@ export const FinancialManagementPanel = () => {
                 .filter(t => 
                   detailsType === 'pending' ? t.status === 'pending' :
                   detailsType === 'income' ? t.type === 'income' :
-                  t.type === 'expense'
+                  t.type === 'expense' && t.status === 'paid'
                 )
                 .map((transaction) => (
                   <TableRow key={transaction.id}>
