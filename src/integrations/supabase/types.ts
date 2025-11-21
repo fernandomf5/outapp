@@ -16,61 +16,139 @@ export type Database = {
     Tables: {
       ad_campaigns: {
         Row: {
+          app_installs: number | null
+          brand_recall: number | null
           budget: number
+          campaign_type: string | null
+          catalog_sales: number | null
           clicks: number
           client_id: string | null
           conversions: number
+          cost_per_follower: number | null
+          cost_per_message: number | null
+          cpa_by_product: number | null
+          cpi: number | null
+          cpl: number | null
+          cpm: number | null
+          cpv: number | null
           created_at: string
+          custom_conversions: number | null
           end_date: string | null
+          engagement_cost: number | null
+          engagement_count: number | null
+          followers_gained: number | null
+          frequency: number | null
           id: string
           impressions: number
+          leads_generated: number | null
+          messages_count: number | null
           name: string
           platform: string
           product_cost: number | null
+          qualified_reach: number | null
+          reach: number | null
+          recovery_rate: number | null
+          response_rate: number | null
+          retention_rate: number | null
           revenue: number | null
+          roas_by_category: number | null
           spent: number
           start_date: string
           status: string
           updated_at: string
           user_id: string
+          video_views: number | null
+          video_watch_time: number | null
         }
         Insert: {
+          app_installs?: number | null
+          brand_recall?: number | null
           budget: number
+          campaign_type?: string | null
+          catalog_sales?: number | null
           clicks?: number
           client_id?: string | null
           conversions?: number
+          cost_per_follower?: number | null
+          cost_per_message?: number | null
+          cpa_by_product?: number | null
+          cpi?: number | null
+          cpl?: number | null
+          cpm?: number | null
+          cpv?: number | null
           created_at?: string
+          custom_conversions?: number | null
           end_date?: string | null
+          engagement_cost?: number | null
+          engagement_count?: number | null
+          followers_gained?: number | null
+          frequency?: number | null
           id?: string
           impressions?: number
+          leads_generated?: number | null
+          messages_count?: number | null
           name: string
           platform: string
           product_cost?: number | null
+          qualified_reach?: number | null
+          reach?: number | null
+          recovery_rate?: number | null
+          response_rate?: number | null
+          retention_rate?: number | null
           revenue?: number | null
+          roas_by_category?: number | null
           spent?: number
           start_date: string
           status?: string
           updated_at?: string
           user_id: string
+          video_views?: number | null
+          video_watch_time?: number | null
         }
         Update: {
+          app_installs?: number | null
+          brand_recall?: number | null
           budget?: number
+          campaign_type?: string | null
+          catalog_sales?: number | null
           clicks?: number
           client_id?: string | null
           conversions?: number
+          cost_per_follower?: number | null
+          cost_per_message?: number | null
+          cpa_by_product?: number | null
+          cpi?: number | null
+          cpl?: number | null
+          cpm?: number | null
+          cpv?: number | null
           created_at?: string
+          custom_conversions?: number | null
           end_date?: string | null
+          engagement_cost?: number | null
+          engagement_count?: number | null
+          followers_gained?: number | null
+          frequency?: number | null
           id?: string
           impressions?: number
+          leads_generated?: number | null
+          messages_count?: number | null
           name?: string
           platform?: string
           product_cost?: number | null
+          qualified_reach?: number | null
+          reach?: number | null
+          recovery_rate?: number | null
+          response_rate?: number | null
+          retention_rate?: number | null
           revenue?: number | null
+          roas_by_category?: number | null
           spent?: number
           start_date?: string
           status?: string
           updated_at?: string
           user_id?: string
+          video_views?: number | null
+          video_watch_time?: number | null
         }
         Relationships: [
           {
@@ -2927,7 +3005,7 @@ export type Database = {
           business_type: string | null
           category: string
           created_at: string
-          date: string
+          date: string | null
           description: string
           id: string
           is_recurring: boolean | null
@@ -2944,7 +3022,7 @@ export type Database = {
           business_type?: string | null
           category: string
           created_at?: string
-          date: string
+          date?: string | null
           description: string
           id?: string
           is_recurring?: boolean | null
@@ -2961,7 +3039,7 @@ export type Database = {
           business_type?: string | null
           category?: string
           created_at?: string
-          date?: string
+          date?: string | null
           description?: string
           id?: string
           is_recurring?: boolean | null
