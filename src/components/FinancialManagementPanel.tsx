@@ -702,8 +702,8 @@ export const FinancialManagementPanel = () => {
         payment_method: formData.payment_method,
         status: formData.status,
         is_recurring: formData.is_recurring,
-        // Mantemos sempre uma data válida para evitar erro no banco
-        date: formData.date,
+        // Para transações recorrentes, data é opcional
+        date: formData.is_recurring ? null : formData.date,
       };
 
       const { error } = await supabase
@@ -778,8 +778,8 @@ export const FinancialManagementPanel = () => {
         payment_method: formData.payment_method,
         status: formData.status,
         is_recurring: formData.is_recurring,
-        // Mantemos sempre uma data válida para evitar erro no banco
-        date: formData.date,
+        // Para transações recorrentes, data é opcional
+        date: formData.is_recurring ? null : formData.date,
       };
 
       const { error } = await supabase

@@ -32,7 +32,11 @@ const PublicChat = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [isAdminTyping, setIsAdminTyping] = useState(false);
   const [botData, setBotData] = useState<any>(null);
-  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(() => {
+    // Recuperar conversationId salvo no localStorage para persistência mobile
+    const saved = localStorage.getItem(`chat-conversation-${botId}`);
+    return saved || null;
+  });
   const [sessionId] = useState(() => `session-${Date.now()}-${Math.random()}`);
   const [isHumanMode, setIsHumanMode] = useState(false);
   const [showPreChatForm, setShowPreChatForm] = useState(true);
@@ -173,6 +177,48 @@ const PublicChat = () => {
       return;
     }
 
+    // Verificar se já existe conversa salva no localStorage
+    const savedConvId = localStorage.getItem(`chat-conversation-${botId}`);
+    if (savedConvId) {
+      console.log('♻️ Recuperando conversa existente:', savedConvId);
+      // Verificar se a conversa ainda existe
+      const { data: existingConv } = await supabase
+        .from('chatbot_conversations')
+        .select('*')
+        .eq('id', savedConvId)
+        .single();
+      
+      if (existingConv) {
+        console.log('✅ Conversa recuperada com sucesso');
+        setConversationId(savedConvId);
+        
+        // Recarregar mensagens da conversa
+        const { data: msgs } = await supabase
+          .from('chatbot_messages')
+          .select('*')
+          .eq('conversation_id', savedConvId)
+          .order('created_at', { ascending: true });
+        
+        if (msgs && msgs.length > 0) {
+          setMessages(msgs.map(msg => ({
+            id: msg.id,
+            role: msg.role === 'admin' || msg.role === 'bot' ? 'bot' : 'user',
+            content: msg.content,
+            timestamp: new Date(msg.created_at),
+            imageUrl: msg.media_url && msg.media_type === 'image' ? msg.media_url : undefined,
+            audioUrl: msg.media_url && msg.media_type === 'audio' ? msg.media_url : undefined,
+            videoUrl: msg.media_url && msg.media_type === 'video' ? msg.media_url : undefined,
+            documentUrl: msg.media_url && msg.media_type === 'document' ? msg.media_url : undefined,
+            nodeId: msg.node_id || undefined
+          })));
+        }
+        return;
+      } else {
+        // Conversa não existe mais, limpar localStorage
+        localStorage.removeItem(`chat-conversation-${botId}`);
+      }
+    }
+
     try {
       console.log('🆕 Criando nova conversa para botId:', botId);
       const { data, error } = await supabase
@@ -195,6 +241,9 @@ const PublicChat = () => {
       
       console.log('✅ Conversa criada com sucesso:', data.id);
       setConversationId(data.id);
+      
+      // Salvar conversationId no localStorage para persistência
+      localStorage.setItem(`chat-conversation-${botId}`, data.id);
       
       // Buscar dados do chatbot para fila
       const { data: chatbotData } = await supabase

@@ -41,6 +41,7 @@ interface AdCampaign {
   id: string;
   name: string;
   platform: 'meta' | 'google' | 'tiktok';
+  campaign_type: string;
   budget: number;
   spent: number;
   impressions: number;
@@ -48,6 +49,31 @@ interface AdCampaign {
   conversions: number;
   product_cost: number;
   revenue: number;
+  engagement_count?: number;
+  engagement_cost?: number;
+  reach?: number;
+  frequency?: number;
+  cpm?: number;
+  video_views?: number;
+  video_watch_time?: number;
+  cpv?: number;
+  leads_generated?: number;
+  cpl?: number;
+  messages_count?: number;
+  cost_per_message?: number;
+  response_rate?: number;
+  catalog_sales?: number;
+  roas_by_category?: number;
+  cpa_by_product?: number;
+  recovery_rate?: number;
+  followers_gained?: number;
+  cost_per_follower?: number;
+  app_installs?: number;
+  cpi?: number;
+  retention_rate?: number;
+  custom_conversions?: number;
+  brand_recall?: number;
+  qualified_reach?: number;
   created_at: string;
   client_id?: string;
   start_date?: string;
@@ -80,6 +106,7 @@ export const AdsManagementPanel = () => {
   const [campaignFormData, setCampaignFormData] = useState({
     name: '',
     platform: 'meta' as 'meta' | 'google' | 'tiktok',
+    campaign_type: 'conversion',
     budget: '',
     spent: '',
     impressions: '',
@@ -87,10 +114,45 @@ export const AdsManagementPanel = () => {
     conversions: '',
     product_cost: '',
     revenue: '',
+    engagement_count: '',
+    reach: '',
+    frequency: '',
+    video_views: '',
+    video_watch_time: '',
+    leads_generated: '',
+    messages_count: '',
+    response_rate: '',
+    catalog_sales: '',
+    recovery_rate: '',
+    followers_gained: '',
+    app_installs: '',
+    retention_rate: '',
+    custom_conversions: '',
+    brand_recall: '',
+    qualified_reach: '',
     start_date: new Date().toISOString().split('T')[0],
     end_date: '',
     client_id: ''
   });
+
+  // Definir quais campos aparecem para cada tipo de campanha
+  const campaignTypeFields: Record<string, string[]> = {
+    conversion: ['impressions', 'clicks', 'conversions', 'product_cost', 'revenue'],
+    traffic: ['impressions', 'clicks'],
+    engagement: ['impressions', 'engagement_count'],
+    reach: ['reach', 'frequency'],
+    video: ['video_views', 'video_watch_time'],
+    leads: ['leads_generated'],
+    messages: ['messages_count', 'response_rate'],
+    catalog: ['catalog_sales', 'conversions', 'revenue'],
+    remarketing: ['impressions', 'clicks', 'conversions', 'recovery_rate'],
+    ab_test: ['impressions', 'clicks', 'conversions'],
+    followers: ['followers_gained'],
+    app_install: ['app_installs', 'retention_rate'],
+    custom_conversion: ['custom_conversions'],
+    promotion: ['impressions', 'clicks', 'conversions', 'revenue'],
+    branding: ['reach', 'qualified_reach', 'brand_recall']
+  };
 
   useEffect(() => {
     loadData();
@@ -204,6 +266,7 @@ export const AdsManagementPanel = () => {
           user_id: user.id,
           name: campaignFormData.name,
           platform: campaignFormData.platform,
+          campaign_type: campaignFormData.campaign_type,
           budget: parseFloat(campaignFormData.budget),
           spent: parseFloat(campaignFormData.spent),
           impressions: parseInt(campaignFormData.impressions) || 0,
@@ -211,6 +274,22 @@ export const AdsManagementPanel = () => {
           conversions: parseInt(campaignFormData.conversions) || 0,
           product_cost: parseFloat(campaignFormData.product_cost) || 0,
           revenue: parseFloat(campaignFormData.revenue) || 0,
+          engagement_count: parseInt(campaignFormData.engagement_count) || 0,
+          reach: parseInt(campaignFormData.reach) || 0,
+          frequency: parseFloat(campaignFormData.frequency) || 0,
+          video_views: parseInt(campaignFormData.video_views) || 0,
+          video_watch_time: parseInt(campaignFormData.video_watch_time) || 0,
+          leads_generated: parseInt(campaignFormData.leads_generated) || 0,
+          messages_count: parseInt(campaignFormData.messages_count) || 0,
+          response_rate: parseFloat(campaignFormData.response_rate) || 0,
+          catalog_sales: parseInt(campaignFormData.catalog_sales) || 0,
+          recovery_rate: parseFloat(campaignFormData.recovery_rate) || 0,
+          followers_gained: parseInt(campaignFormData.followers_gained) || 0,
+          app_installs: parseInt(campaignFormData.app_installs) || 0,
+          retention_rate: parseFloat(campaignFormData.retention_rate) || 0,
+          custom_conversions: parseInt(campaignFormData.custom_conversions) || 0,
+          brand_recall: parseFloat(campaignFormData.brand_recall) || 0,
+          qualified_reach: parseInt(campaignFormData.qualified_reach) || 0,
           status: 'active',
           start_date: campaignFormData.start_date || null,
           end_date: campaignFormData.end_date || null,
@@ -226,6 +305,7 @@ export const AdsManagementPanel = () => {
       setCampaignFormData({
         name: '',
         platform: 'meta',
+        campaign_type: 'conversion',
         budget: '',
         spent: '',
         impressions: '',
@@ -233,6 +313,22 @@ export const AdsManagementPanel = () => {
         conversions: '',
         product_cost: '',
         revenue: '',
+        engagement_count: '',
+        reach: '',
+        frequency: '',
+        video_views: '',
+        video_watch_time: '',
+        leads_generated: '',
+        messages_count: '',
+        response_rate: '',
+        catalog_sales: '',
+        recovery_rate: '',
+        followers_gained: '',
+        app_installs: '',
+        retention_rate: '',
+        custom_conversions: '',
+        brand_recall: '',
+        qualified_reach: '',
         start_date: new Date().toISOString().split('T')[0],
         end_date: '',
         client_id: ''
@@ -269,6 +365,7 @@ export const AdsManagementPanel = () => {
     setCampaignFormData({
       name: campaign.name,
       platform: campaign.platform,
+      campaign_type: campaign.campaign_type || 'conversion',
       budget: campaign.budget.toString(),
       spent: campaign.spent.toString(),
       impressions: campaign.impressions.toString(),
@@ -276,6 +373,22 @@ export const AdsManagementPanel = () => {
       conversions: campaign.conversions.toString(),
       product_cost: campaign.product_cost?.toString() || '0',
       revenue: campaign.revenue?.toString() || '0',
+      engagement_count: campaign.engagement_count?.toString() || '',
+      reach: campaign.reach?.toString() || '',
+      frequency: campaign.frequency?.toString() || '',
+      video_views: campaign.video_views?.toString() || '',
+      video_watch_time: campaign.video_watch_time?.toString() || '',
+      leads_generated: campaign.leads_generated?.toString() || '',
+      messages_count: campaign.messages_count?.toString() || '',
+      response_rate: campaign.response_rate?.toString() || '',
+      catalog_sales: campaign.catalog_sales?.toString() || '',
+      recovery_rate: campaign.recovery_rate?.toString() || '',
+      followers_gained: campaign.followers_gained?.toString() || '',
+      app_installs: campaign.app_installs?.toString() || '',
+      retention_rate: campaign.retention_rate?.toString() || '',
+      custom_conversions: campaign.custom_conversions?.toString() || '',
+      brand_recall: campaign.brand_recall?.toString() || '',
+      qualified_reach: campaign.qualified_reach?.toString() || '',
       start_date: campaign.start_date || new Date(campaign.created_at).toISOString().split('T')[0],
       end_date: campaign.end_date || '',
       client_id: campaign.client_id || ''
@@ -297,6 +410,7 @@ export const AdsManagementPanel = () => {
         .update({
           name: campaignFormData.name,
           platform: campaignFormData.platform,
+          campaign_type: campaignFormData.campaign_type,
           budget: parseFloat(campaignFormData.budget),
           spent: parseFloat(campaignFormData.spent),
           impressions: parseInt(campaignFormData.impressions) || 0,
@@ -304,6 +418,22 @@ export const AdsManagementPanel = () => {
           conversions: parseInt(campaignFormData.conversions) || 0,
           product_cost: parseFloat(campaignFormData.product_cost) || 0,
           revenue: parseFloat(campaignFormData.revenue) || 0,
+          engagement_count: parseInt(campaignFormData.engagement_count) || 0,
+          reach: parseInt(campaignFormData.reach) || 0,
+          frequency: parseFloat(campaignFormData.frequency) || 0,
+          video_views: parseInt(campaignFormData.video_views) || 0,
+          video_watch_time: parseInt(campaignFormData.video_watch_time) || 0,
+          leads_generated: parseInt(campaignFormData.leads_generated) || 0,
+          messages_count: parseInt(campaignFormData.messages_count) || 0,
+          response_rate: parseFloat(campaignFormData.response_rate) || 0,
+          catalog_sales: parseInt(campaignFormData.catalog_sales) || 0,
+          recovery_rate: parseFloat(campaignFormData.recovery_rate) || 0,
+          followers_gained: parseInt(campaignFormData.followers_gained) || 0,
+          app_installs: parseInt(campaignFormData.app_installs) || 0,
+          retention_rate: parseFloat(campaignFormData.retention_rate) || 0,
+          custom_conversions: parseInt(campaignFormData.custom_conversions) || 0,
+          brand_recall: parseFloat(campaignFormData.brand_recall) || 0,
+          qualified_reach: parseInt(campaignFormData.qualified_reach) || 0,
           start_date: campaignFormData.start_date || null,
           end_date: campaignFormData.end_date || null,
           client_id: campaignFormData.client_id || null
@@ -320,6 +450,7 @@ export const AdsManagementPanel = () => {
       setCampaignFormData({
         name: '',
         platform: 'meta',
+        campaign_type: 'conversion',
         budget: '',
         spent: '',
         impressions: '',
@@ -327,6 +458,22 @@ export const AdsManagementPanel = () => {
         conversions: '',
         product_cost: '',
         revenue: '',
+        engagement_count: '',
+        reach: '',
+        frequency: '',
+        video_views: '',
+        video_watch_time: '',
+        leads_generated: '',
+        messages_count: '',
+        response_rate: '',
+        catalog_sales: '',
+        recovery_rate: '',
+        followers_gained: '',
+        app_installs: '',
+        retention_rate: '',
+        custom_conversions: '',
+        brand_recall: '',
+        qualified_reach: '',
         start_date: new Date().toISOString().split('T')[0],
         end_date: '',
         client_id: ''
@@ -976,6 +1123,31 @@ export const AdsManagementPanel = () => {
                 </SelectContent>
               </Select>
             </div>
+            <div className="grid gap-2">
+              <Label>Tipo de Campanha *</Label>
+              <Select value={campaignFormData.campaign_type} onValueChange={(value) => setCampaignFormData({...campaignFormData, campaign_type: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="conversion">Conversão</SelectItem>
+                  <SelectItem value="traffic">Tráfego</SelectItem>
+                  <SelectItem value="engagement">Engajamento</SelectItem>
+                  <SelectItem value="reach">Alcance</SelectItem>
+                  <SelectItem value="video">Visualização de Vídeo</SelectItem>
+                  <SelectItem value="leads">Geração de Leads</SelectItem>
+                  <SelectItem value="messages">Mensagens/WhatsApp</SelectItem>
+                  <SelectItem value="catalog">Catálogo/Vendas</SelectItem>
+                  <SelectItem value="remarketing">Remarketing</SelectItem>
+                  <SelectItem value="ab_test">Teste A/B</SelectItem>
+                  <SelectItem value="followers">Seguidores</SelectItem>
+                  <SelectItem value="app_install">Instalação de App</SelectItem>
+                  <SelectItem value="custom_conversion">Conversão Personalizada</SelectItem>
+                  <SelectItem value="promotion">Lançamento/Promoção</SelectItem>
+                  <SelectItem value="branding">Branding</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Data de Início *</Label>
@@ -1016,47 +1188,57 @@ export const AdsManagementPanel = () => {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label>Quanto Faturei (R$)</Label>
-                <Input 
-                  type="number"
-                  step="0.01"
-                  value={campaignFormData.revenue}
-                  onChange={(e) => setCampaignFormData({...campaignFormData, revenue: e.target.value})}
-                  placeholder="1500.00"
-                />
+            
+            {/* Campos dinâmicos baseados no tipo de campanha */}
+            {(campaignFormData.campaign_type === 'conversion' || campaignFormData.campaign_type === 'catalog' || campaignFormData.campaign_type === 'promotion') && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Quanto Faturei (R$)</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={campaignFormData.revenue}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, revenue: e.target.value})}
+                    placeholder="1500.00"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Ticket do Produto (R$)</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={campaignFormData.product_cost}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, product_cost: e.target.value})}
+                    placeholder="150.00"
+                  />
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label>Ticket do Produto (R$)</Label>
-                <Input 
-                  type="number"
-                  step="0.01"
-                  value={campaignFormData.product_cost}
-                  onChange={(e) => setCampaignFormData({...campaignFormData, product_cost: e.target.value})}
-                  placeholder="150.00"
-                />
+            )}
+            
+            {['conversion', 'traffic', 'remarketing', 'ab_test', 'promotion'].includes(campaignFormData.campaign_type) && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Impressões</Label>
+                  <Input 
+                    type="number"
+                    value={campaignFormData.impressions}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, impressions: e.target.value})}
+                    placeholder="10000"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Cliques</Label>
+                  <Input 
+                    type="number"
+                    value={campaignFormData.clicks}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, clicks: e.target.value})}
+                    placeholder="500"
+                  />
+                </div>
               </div>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="grid gap-2">
-                <Label>Impressões</Label>
-                <Input 
-                  type="number"
-                  value={campaignFormData.impressions}
-                  onChange={(e) => setCampaignFormData({...campaignFormData, impressions: e.target.value})}
-                  placeholder="10000"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>Cliques</Label>
-                <Input 
-                  type="number"
-                  value={campaignFormData.clicks}
-                  onChange={(e) => setCampaignFormData({...campaignFormData, clicks: e.target.value})}
-                  placeholder="500"
-                />
-              </div>
+            )}
+            
+            {['conversion', 'catalog', 'remarketing', 'ab_test', 'custom_conversion', 'promotion'].includes(campaignFormData.campaign_type) && (
               <div className="grid gap-2">
                 <Label>Conversões</Label>
                 <Input 
@@ -1066,7 +1248,199 @@ export const AdsManagementPanel = () => {
                   placeholder="50"
                 />
               </div>
-            </div>
+            )}
+            
+            {['engagement', 'traffic'].includes(campaignFormData.campaign_type) && (
+              <div className="grid gap-2">
+                <Label>Interações/Engajamentos</Label>
+                <Input 
+                  type="number"
+                  value={campaignFormData.engagement_count}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, engagement_count: e.target.value})}
+                  placeholder="200"
+                />
+              </div>
+            )}
+            
+            {['reach', 'branding'].includes(campaignFormData.campaign_type) && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Alcance</Label>
+                  <Input 
+                    type="number"
+                    value={campaignFormData.reach}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, reach: e.target.value})}
+                    placeholder="50000"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Frequência</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={campaignFormData.frequency}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, frequency: e.target.value})}
+                    placeholder="2.5"
+                  />
+                </div>
+              </div>
+            )}
+            
+            {campaignFormData.campaign_type === 'video' && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Visualizações de Vídeo</Label>
+                  <Input 
+                    type="number"
+                    value={campaignFormData.video_views}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, video_views: e.target.value})}
+                    placeholder="8000"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Tempo Assistido (segundos)</Label>
+                  <Input 
+                    type="number"
+                    value={campaignFormData.video_watch_time}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, video_watch_time: e.target.value})}
+                    placeholder="180000"
+                  />
+                </div>
+              </div>
+            )}
+            
+            {campaignFormData.campaign_type === 'leads' && (
+              <div className="grid gap-2">
+                <Label>Leads Gerados</Label>
+                <Input 
+                  type="number"
+                  value={campaignFormData.leads_generated}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, leads_generated: e.target.value})}
+                  placeholder="100"
+                />
+              </div>
+            )}
+            
+            {campaignFormData.campaign_type === 'messages' && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Conversas Iniciadas</Label>
+                  <Input 
+                    type="number"
+                    value={campaignFormData.messages_count}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, messages_count: e.target.value})}
+                    placeholder="150"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Taxa de Resposta (%)</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={campaignFormData.response_rate}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, response_rate: e.target.value})}
+                    placeholder="85.50"
+                  />
+                </div>
+              </div>
+            )}
+            
+            {campaignFormData.campaign_type === 'catalog' && (
+              <div className="grid gap-2">
+                <Label>Vendas de Catálogo</Label>
+                <Input 
+                  type="number"
+                  value={campaignFormData.catalog_sales}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, catalog_sales: e.target.value})}
+                  placeholder="75"
+                />
+              </div>
+            )}
+            
+            {campaignFormData.campaign_type === 'remarketing' && (
+              <div className="grid gap-2">
+                <Label>Taxa de Recuperação (%)</Label>
+                <Input 
+                  type="number"
+                  step="0.01"
+                  value={campaignFormData.recovery_rate}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, recovery_rate: e.target.value})}
+                  placeholder="15.5"
+                />
+              </div>
+            )}
+            
+            {campaignFormData.campaign_type === 'followers' && (
+              <div className="grid gap-2">
+                <Label>Novos Seguidores</Label>
+                <Input 
+                  type="number"
+                  value={campaignFormData.followers_gained}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, followers_gained: e.target.value})}
+                  placeholder="500"
+                />
+              </div>
+            )}
+            
+            {campaignFormData.campaign_type === 'app_install' && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Instalações de App</Label>
+                  <Input 
+                    type="number"
+                    value={campaignFormData.app_installs}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, app_installs: e.target.value})}
+                    placeholder="300"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Taxa de Retenção (%)</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={campaignFormData.retention_rate}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, retention_rate: e.target.value})}
+                    placeholder="45.5"
+                  />
+                </div>
+              </div>
+            )}
+            
+            {campaignFormData.campaign_type === 'custom_conversion' && (
+              <div className="grid gap-2">
+                <Label>Conversões Personalizadas</Label>
+                <Input 
+                  type="number"
+                  value={campaignFormData.custom_conversions}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, custom_conversions: e.target.value})}
+                  placeholder="120"
+                />
+              </div>
+            )}
+            
+            {campaignFormData.campaign_type === 'branding' && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Alcance Qualificado</Label>
+                  <Input 
+                    type="number"
+                    value={campaignFormData.qualified_reach}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, qualified_reach: e.target.value})}
+                    placeholder="30000"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Recall da Marca (%)</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={campaignFormData.brand_recall}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, brand_recall: e.target.value})}
+                    placeholder="65.5"
+                  />
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddCampaignDialogOpen(false)}>
@@ -1120,6 +1494,31 @@ export const AdsManagementPanel = () => {
                 </SelectContent>
               </Select>
             </div>
+            <div className="grid gap-2">
+              <Label>Tipo de Campanha *</Label>
+              <Select value={campaignFormData.campaign_type} onValueChange={(value) => setCampaignFormData({...campaignFormData, campaign_type: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="conversion">Conversão</SelectItem>
+                  <SelectItem value="traffic">Tráfego</SelectItem>
+                  <SelectItem value="engagement">Engajamento</SelectItem>
+                  <SelectItem value="reach">Alcance</SelectItem>
+                  <SelectItem value="video">Visualização de Vídeo</SelectItem>
+                  <SelectItem value="leads">Geração de Leads</SelectItem>
+                  <SelectItem value="messages">Mensagens/WhatsApp</SelectItem>
+                  <SelectItem value="catalog">Catálogo/Vendas</SelectItem>
+                  <SelectItem value="remarketing">Remarketing</SelectItem>
+                  <SelectItem value="ab_test">Teste A/B</SelectItem>
+                  <SelectItem value="followers">Seguidores</SelectItem>
+                  <SelectItem value="app_install">Instalação de App</SelectItem>
+                  <SelectItem value="custom_conversion">Conversão Personalizada</SelectItem>
+                  <SelectItem value="promotion">Lançamento/Promoção</SelectItem>
+                  <SelectItem value="branding">Branding</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Data de Início</Label>
@@ -1158,43 +1557,53 @@ export const AdsManagementPanel = () => {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label>Faturei (R$)</Label>
-                <Input 
-                  type="number"
-                  step="0.01"
-                  value={campaignFormData.revenue}
-                  onChange={(e) => setCampaignFormData({...campaignFormData, revenue: e.target.value})}
-                />
+            
+            {/* Campos dinâmicos baseados no tipo de campanha - mesma lógica do Add Dialog */}
+            {(campaignFormData.campaign_type === 'conversion' || campaignFormData.campaign_type === 'catalog' || campaignFormData.campaign_type === 'promotion') && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Quanto Faturei (R$)</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={campaignFormData.revenue}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, revenue: e.target.value})}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Ticket do Produto (R$)</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={campaignFormData.product_cost}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, product_cost: e.target.value})}
+                  />
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label>Custo Produto (R$)</Label>
-                <Input 
-                  type="number"
-                  step="0.01"
-                  value={campaignFormData.product_cost}
-                  onChange={(e) => setCampaignFormData({...campaignFormData, product_cost: e.target.value})}
-                />
+            )}
+            
+            {['conversion', 'traffic', 'remarketing', 'ab_test', 'promotion'].includes(campaignFormData.campaign_type) && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Impressões</Label>
+                  <Input 
+                    type="number"
+                    value={campaignFormData.impressions}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, impressions: e.target.value})}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Cliques</Label>
+                  <Input 
+                    type="number"
+                    value={campaignFormData.clicks}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, clicks: e.target.value})}
+                  />
+                </div>
               </div>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="grid gap-2">
-                <Label>Impressões</Label>
-                <Input 
-                  type="number"
-                  value={campaignFormData.impressions}
-                  onChange={(e) => setCampaignFormData({...campaignFormData, impressions: e.target.value})}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>Cliques</Label>
-                <Input 
-                  type="number"
-                  value={campaignFormData.clicks}
-                  onChange={(e) => setCampaignFormData({...campaignFormData, clicks: e.target.value})}
-                />
-              </div>
+            )}
+            
+            {['conversion', 'catalog', 'remarketing', 'ab_test', 'custom_conversion', 'promotion'].includes(campaignFormData.campaign_type) && (
               <div className="grid gap-2">
                 <Label>Conversões</Label>
                 <Input 
@@ -1203,7 +1612,183 @@ export const AdsManagementPanel = () => {
                   onChange={(e) => setCampaignFormData({...campaignFormData, conversions: e.target.value})}
                 />
               </div>
-            </div>
+            )}
+            
+            {['engagement', 'traffic'].includes(campaignFormData.campaign_type) && (
+              <div className="grid gap-2">
+                <Label>Interações/Engajamentos</Label>
+                <Input 
+                  type="number"
+                  value={campaignFormData.engagement_count}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, engagement_count: e.target.value})}
+                />
+              </div>
+            )}
+            
+            {['reach', 'branding'].includes(campaignFormData.campaign_type) && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Alcance</Label>
+                  <Input 
+                    type="number"
+                    value={campaignFormData.reach}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, reach: e.target.value})}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Frequência</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={campaignFormData.frequency}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, frequency: e.target.value})}
+                  />
+                </div>
+              </div>
+            )}
+            
+            {campaignFormData.campaign_type === 'video' && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Visualizações de Vídeo</Label>
+                  <Input 
+                    type="number"
+                    value={campaignFormData.video_views}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, video_views: e.target.value})}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Tempo Assistido (segundos)</Label>
+                  <Input 
+                    type="number"
+                    value={campaignFormData.video_watch_time}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, video_watch_time: e.target.value})}
+                  />
+                </div>
+              </div>
+            )}
+            
+            {campaignFormData.campaign_type === 'leads' && (
+              <div className="grid gap-2">
+                <Label>Leads Gerados</Label>
+                <Input 
+                  type="number"
+                  value={campaignFormData.leads_generated}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, leads_generated: e.target.value})}
+                />
+              </div>
+            )}
+            
+            {campaignFormData.campaign_type === 'messages' && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Conversas Iniciadas</Label>
+                  <Input 
+                    type="number"
+                    value={campaignFormData.messages_count}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, messages_count: e.target.value})}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Taxa de Resposta (%)</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={campaignFormData.response_rate}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, response_rate: e.target.value})}
+                  />
+                </div>
+              </div>
+            )}
+            
+            {campaignFormData.campaign_type === 'catalog' && (
+              <div className="grid gap-2">
+                <Label>Vendas de Catálogo</Label>
+                <Input 
+                  type="number"
+                  value={campaignFormData.catalog_sales}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, catalog_sales: e.target.value})}
+                />
+              </div>
+            )}
+            
+            {campaignFormData.campaign_type === 'remarketing' && (
+              <div className="grid gap-2">
+                <Label>Taxa de Recuperação (%)</Label>
+                <Input 
+                  type="number"
+                  step="0.01"
+                  value={campaignFormData.recovery_rate}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, recovery_rate: e.target.value})}
+                />
+              </div>
+            )}
+            
+            {campaignFormData.campaign_type === 'followers' && (
+              <div className="grid gap-2">
+                <Label>Novos Seguidores</Label>
+                <Input 
+                  type="number"
+                  value={campaignFormData.followers_gained}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, followers_gained: e.target.value})}
+                />
+              </div>
+            )}
+            
+            {campaignFormData.campaign_type === 'app_install' && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Instalações de App</Label>
+                  <Input 
+                    type="number"
+                    value={campaignFormData.app_installs}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, app_installs: e.target.value})}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Taxa de Retenção (%)</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={campaignFormData.retention_rate}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, retention_rate: e.target.value})}
+                  />
+                </div>
+              </div>
+            )}
+            
+            {campaignFormData.campaign_type === 'custom_conversion' && (
+              <div className="grid gap-2">
+                <Label>Conversões Personalizadas</Label>
+                <Input 
+                  type="number"
+                  value={campaignFormData.custom_conversions}
+                  onChange={(e) => setCampaignFormData({...campaignFormData, custom_conversions: e.target.value})}
+                />
+              </div>
+            )}
+            
+            {campaignFormData.campaign_type === 'branding' && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Alcance Qualificado</Label>
+                  <Input 
+                    type="number"
+                    value={campaignFormData.qualified_reach}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, qualified_reach: e.target.value})}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Recall da Marca (%)</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={campaignFormData.brand_recall}
+                    onChange={(e) => setCampaignFormData({...campaignFormData, brand_recall: e.target.value})}
+                  />
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditCampaignDialogOpen(false)}>
