@@ -4653,6 +4653,45 @@ export type Database = {
         }
         Relationships: []
       }
+      simple_members_areas: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          password: string
+          sections: Json | null
+          slug: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          password: string
+          sections?: Json | null
+          slug: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          password?: string
+          sections?: Json | null
+          slug?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           created_at: string

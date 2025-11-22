@@ -50,6 +50,7 @@ import { QuizCreatorPanel } from "@/components/QuizCreatorPanel";
 import { BriefingResponsesPanel } from "@/components/BriefingResponsesPanel";
 import { BriefingCreatorPanel } from "@/components/BriefingCreatorPanel";
 import { MembersAreaCreator } from "@/components/MembersAreaCreator";
+import { SimpleMembersArea } from "@/components/SimpleMembersArea";
 import { QuickNotesPanel } from "@/components/QuickNotesPanel";
 import { TaskReminder } from "@/components/TaskReminder";
 import { FeatureGate } from "@/components/FeatureGate";
@@ -1377,7 +1378,7 @@ const Dashboard = () => {
           <TabsContent value="area-membros">
             <FeatureGate featureKey="members_area">
               <ErrorBoundary>
-                <MembersAreaCreator />
+                <SimpleMembersArea />
               </ErrorBoundary>
             </FeatureGate>
           </TabsContent>
