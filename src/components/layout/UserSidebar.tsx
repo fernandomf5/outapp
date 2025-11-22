@@ -142,8 +142,7 @@ export function UserSidebar() {
   ];
 
   const advancedResourcesItems: MenuItem[] = [
-    { title: "Chat Online", icon: Bot, path: "/dashboard", tab: "chatbots" },
-    { title: "Agentes IA", icon: Sparkles, path: "/dashboard", tab: "ai-agents" },
+    { title: "Chat Online e Agente IA", icon: Bot, path: "/dashboard", tab: "ai-agents" },
     { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner" },
     { title: "Área de Membros", icon: UserCog, path: "/dashboard", tab: "area-membros" },
     { title: "Link na Bio", icon: ExternalLink, path: "/dashboard", tab: "linkbio" },
