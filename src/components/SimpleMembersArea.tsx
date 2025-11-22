@@ -4,14 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Trash2, Edit, Eye, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical } from "lucide-react";
+import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ImageUpload } from "@/components/ImageUpload";
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -96,6 +96,7 @@ export function SimpleMembersArea() {
   const [isAddBlockDialogOpen, setIsAddBlockDialogOpen] = useState(false);
   const [selectedSection, setSelectedSection] = useState<Section | null>(null);
   const [loading, setLoading] = useState(false);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState('');
 
   const [areaFormData, setAreaFormData] = useState({
     name: '',
@@ -129,13 +130,13 @@ export function SimpleMembersArea() {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from('simple_members_areas')
+        .from('simple_members_areas' as any)
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setAreas(data || []);
+      setAreas((data || []) as any as MembersArea[]);
     } catch (error: any) {
       toast.error('Erro ao carregar áreas: ' + error.message);
     }
@@ -150,7 +151,7 @@ export function SimpleMembersArea() {
       const slug = areaFormData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
       const { data, error } = await supabase
-        .from('simple_members_areas')
+        .from('simple_members_areas' as any)
         .insert({
           user_id: user.id,
           name: areaFormData.name,
@@ -191,8 +192,8 @@ export function SimpleMembersArea() {
       const updatedSections = [...selectedArea.sections, newSection];
 
       const { error } = await supabase
-        .from('simple_members_areas')
-        .update({ sections: updatedSections })
+        .from('simple_members_areas' as any)
+        .update({ sections: updatedSections as any })
         .eq('id', selectedArea.id);
 
       if (error) throw error;
@@ -226,8 +227,8 @@ export function SimpleMembersArea() {
       });
 
       const { error } = await supabase
-        .from('simple_members_areas')
-        .update({ sections: updatedSections })
+        .from('simple_members_areas' as any)
+        .update({ sections: updatedSections as any })
         .eq('id', selectedArea.id);
 
       if (error) throw error;
@@ -235,6 +236,7 @@ export function SimpleMembersArea() {
       setSelectedArea({ ...selectedArea, sections: updatedSections });
       setIsAddBlockDialogOpen(false);
       setBlockFormData({ type: 'text', title: '', content: '' });
+      setUploadedImageUrl('');
       toast.success('Bloco adicionado!');
     } catch (error: any) {
       toast.error('Erro ao adicionar bloco: ' + error.message);
@@ -247,7 +249,7 @@ export function SimpleMembersArea() {
     toast.success('Link copiado!');
   };
 
-  const handleDragEnd = async (event: DragEndEvent, sectionId: string) => {
+  const handleDragEnd = async (event: any, sectionId: string) => {
     const { active, over } = event;
     if (!over || active.id === over.id || !selectedArea) return;
 
@@ -268,8 +270,8 @@ export function SimpleMembersArea() {
 
     try {
       const { error } = await supabase
-        .from('simple_members_areas')
-        .update({ sections: updatedSections })
+        .from('simple_members_areas' as any)
+        .update({ sections: updatedSections as any })
         .eq('id', selectedArea.id);
 
       if (error) throw error;
@@ -412,9 +414,9 @@ export function SimpleMembersArea() {
                 <Label>Conteúdo</Label>
                 {blockFormData.type === 'image' ? (
                   <ImageUpload
-                    value={blockFormData.content}
-                    onChange={(url) => setBlockFormData({ ...blockFormData, content: url })}
-                    bucket="members-content"
+                    currentImage={blockFormData.content}
+                    onImageSelect={(url) => setBlockFormData({ ...blockFormData, content: url })}
+                    bucketName="members-content"
                   />
                 ) : (
                   <Textarea
