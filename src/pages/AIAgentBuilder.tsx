@@ -283,6 +283,35 @@ const AIAgentBuilder = () => {
             </div>
           </Card>
 
+          {/* Modo de Operação */}
+          <Card className="p-4 sm:p-6 border-primary/20">
+            <div className="max-w-2xl">
+              <Label className="text-base sm:text-lg font-semibold mb-3 block">Modo de Operação</Label>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <p className="font-semibold">🤖 Ativar Agente IA</p>
+                    <p className="text-sm text-muted-foreground">Respostas automáticas com inteligência artificial</p>
+                  </div>
+                  <Switch
+                    checked={isActive}
+                    onCheckedChange={setIsActive}
+                  />
+                </div>
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <p className="font-semibold">💬 Usar somente Chat Online</p>
+                    <p className="text-sm text-muted-foreground">Atendimento humano sem respostas automáticas da IA</p>
+                  </div>
+                  <Switch
+                    checked={!isActive}
+                    onCheckedChange={(checked) => setIsActive(!checked)}
+                  />
+                </div>
+              </div>
+            </div>
+          </Card>
+
           {/* Tipo de Acesso */}
           <Card className="p-4 sm:p-6 border-primary/20">
             <div className="max-w-2xl">
