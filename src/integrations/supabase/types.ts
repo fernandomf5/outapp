@@ -3007,13 +3007,18 @@ export type Database = {
           created_at: string
           date: string | null
           description: string
+          due_date: string | null
           id: string
           is_recurring: boolean | null
+          month: string | null
           order_index: number | null
           payment_method: string
+          reminder_enabled: boolean | null
           status: string
+          status_history: Json | null
           type: string
           user_id: string
+          year: number | null
         }
         Insert: {
           amount: number
@@ -3024,13 +3029,18 @@ export type Database = {
           created_at?: string
           date?: string | null
           description: string
+          due_date?: string | null
           id?: string
           is_recurring?: boolean | null
+          month?: string | null
           order_index?: number | null
           payment_method: string
+          reminder_enabled?: boolean | null
           status?: string
+          status_history?: Json | null
           type: string
           user_id: string
+          year?: number | null
         }
         Update: {
           amount?: number
@@ -3041,13 +3051,18 @@ export type Database = {
           created_at?: string
           date?: string | null
           description?: string
+          due_date?: string | null
           id?: string
           is_recurring?: boolean | null
+          month?: string | null
           order_index?: number | null
           payment_method?: string
+          reminder_enabled?: boolean | null
           status?: string
+          status_history?: Json | null
           type?: string
           user_id?: string
+          year?: number | null
         }
         Relationships: [
           {
