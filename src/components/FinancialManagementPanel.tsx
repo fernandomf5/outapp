@@ -4,204 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { 
-  DollarSign, 
-  TrendingUp, 
-  TrendingDown, 
-  Calendar,
-  Download,
-  Plus,
-  Eye,
-  Trash2,
-  CreditCard,
-  Wallet,
-  PieChart,
-  BarChart3,
-  Filter,
-  Edit2,
-  ChevronUp,
-  ChevronDown,
-  GripVertical
-} from "lucide-react";
+import { DollarSign, Plus, Edit2, Trash2, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ImageUpload } from "@/components/ImageUpload";
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, horizontalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-
-interface SortableTabProps {
-  id: string;
-  value: string;
-  category: {
-    id: string;
-    name: string;
-    color: string;
-  };
-  isSelected: boolean;
-  onClick: () => void;
-}
-
-const SortableTab = ({ id, value, category, isSelected, onClick }: SortableTabProps) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="inline-flex"
-    >
-      <button
-        onClick={onClick}
-        className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all gap-2 ${
-          isSelected 
-            ? 'bg-background text-foreground shadow-sm' 
-            : 'hover:bg-background/50'
-        }`}
-      >
-        <div
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing"
-        >
-          <GripVertical className="h-4 w-4 text-muted-foreground" />
-        </div>
-        <div 
-          className="w-3 h-3 rounded-full" 
-          style={{ backgroundColor: category.color }}
-        />
-        {category.name}
-      </button>
-    </div>
-  );
-};
-
-interface SortableTransactionProps {
-  id: string;
-  transaction: Transaction;
-  onEdit: () => void;
-  onDelete: () => void;
-}
-
-const SortableTransaction = ({ id, transaction, onEdit, onDelete }: SortableTransactionProps) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  return (
-    <TableRow ref={setNodeRef} style={style}>
-      <TableCell>
-        <div className="flex items-center gap-2">
-          <div
-            {...attributes}
-            {...listeners}
-            className="cursor-grab active:cursor-grabbing"
-          >
-            <GripVertical className="h-4 w-4 text-muted-foreground" />
-          </div>
-          {transaction.is_recurring ? (
-            <Badge variant="outline">Fixa</Badge>
-          ) : (
-            format(new Date(transaction.date), "dd/MM/yyyy", { locale: ptBR })
-          )}
-        </div>
-      </TableCell>
-      <TableCell>
-        <Badge variant={transaction.type === 'income' ? 'default' : 'secondary'}>
-          {transaction.type === 'income' ? 'Receita' : 'Despesa'}
-        </Badge>
-      </TableCell>
-      <TableCell>{transaction.category}</TableCell>
-      <TableCell>{transaction.description}</TableCell>
-      <TableCell className="capitalize">{transaction.payment_method.replace('_', ' ')}</TableCell>
-      <TableCell>
-        <Badge 
-          variant={
-            transaction.status === 'paid' ? 'default' : 
-            transaction.status === 'pending' ? 'secondary' : 
-            'outline'
-          }
-        >
-          {transaction.status === 'paid' ? 'Pago' : 
-           transaction.status === 'pending' ? 'Pendente' : 
-           'Cancelado'}
-        </Badge>
-      </TableCell>
-      <TableCell className={`text-right font-bold ${
-        transaction.type === 'income' ? 'text-success' : 'text-destructive'
-      }`}>
-        {transaction.type === 'income' ? '+' : '-'} R$ {transaction.amount.toFixed(2)}
-      </TableCell>
-      <TableCell className="text-right">
-        <div className="flex items-center justify-end gap-1">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={onEdit}
-          >
-            <Edit2 className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={onDelete}
-          >
-            <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
-        </div>
-      </TableCell>
-    </TableRow>
-  );
-};
-
-interface Business {
-  id: string;
-  name: string;
-  business_type: 'personal' | 'company';
-  description?: string;
-  logo_url?: string;
-  order_index: number;
-  created_at: string;
-}
-
-interface Category {
-  id: string;
-  name: string;
-  color: string;
-  business_id: string;
-  order_index: number;
-}
+import { Switch } from "@/components/ui/switch";
 
 interface Transaction {
   id: string;
@@ -209,1617 +20,581 @@ interface Transaction {
   category: string;
   description: string;
   amount: number;
-  date: string;
+  month: string;
+  due_date: string;
   payment_method: string;
   status: 'paid' | 'pending' | 'cancelled';
-  created_at: string;
-  business_id?: string;
-  is_recurring?: boolean;
-  order_index?: number;
+  is_recurring: boolean;
+  reminder_enabled: boolean;
+  year: number;
+  status_history: any[];
 }
 
+const MONTHS = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+];
+
 export const FinancialManagementPanel = () => {
-  const [businesses, setBusinesses] = useState<Business[]>([]);
-  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
-  const [selectedBusinessesForSum, setSelectedBusinessesForSum] = useState<string[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'yyyy-MM'));
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'income' | 'expense' | 'paid' | 'pending' | 'cancelled'>('all');
+  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'MMMM', { locale: ptBR }));
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [detailsType, setDetailsType] = useState<'income' | 'expense' | 'pending' | null>(null);
-  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [isEditCategoryDialogOpen, setIsEditCategoryDialogOpen] = useState(false);
-  const [deleteCategoryId, setDeleteCategoryId] = useState<string | null>(null);
-  const [isBusinessDialogOpen, setIsBusinessDialogOpen] = useState(false);
-  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
-  const [consolidationMode, setConsolidationMode] = useState(false);
-  const [deleteTransactionId, setDeleteTransactionId] = useState<string | null>(null);
-  const [deleteBusinessId, setDeleteBusinessId] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
-  const [isEditTransactionDialogOpen, setIsEditTransactionDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const [categoryFormData, setCategoryFormData] = useState({
-    name: '',
-    color: '#6366f1'
-  });
-
-  const [businessFormData, setBusinessFormData] = useState({
-    name: '',
-    business_type: 'personal' as 'personal' | 'company',
-    description: '',
-    logo_url: ''
-  });
-  
   const [formData, setFormData] = useState({
-    type: 'income' as 'income' | 'expense',
+    type: 'expense' as 'income' | 'expense',
     category: '',
     description: '',
     amount: '',
-    date: format(new Date(), 'yyyy-MM-dd'),
-    payment_method: 'dinheiro',
-    status: 'paid' as 'paid' | 'pending' | 'cancelled',
-    is_recurring: false
+    month: format(new Date(), 'MMMM', { locale: ptBR }),
+    due_date: format(new Date(), 'yyyy-MM-dd'),
+    payment_method: 'pix',
+    status: 'pending' as 'paid' | 'pending' | 'cancelled',
+    is_recurring: false,
+    reminder_enabled: false,
   });
 
   useEffect(() => {
-    loadBusinesses();
-  }, []);
+    loadTransactions();
+  }, [selectedMonth, selectedYear]);
 
-  useEffect(() => {
-    if (selectedBusiness) {
-      loadTransactions();
-      loadCategories();
-    }
-  }, [selectedBusiness]);
-
-  useEffect(() => {
-    if (selectedBusiness) {
-      loadTransactions();
-    }
-  }, [selectedMonth]);
-
-  const loadBusinesses = async () => {
+  const loadTransactions = async () => {
     try {
+      setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data, error } = await supabase
-        .from('financial_businesses')
+        .from('financial_transactions')
         .select('*')
         .eq('user_id', user.id)
-        .order('order_index', { ascending: true });
+        .eq('year', selectedYear)
+        .order('due_date', { ascending: true });
 
       if (error) throw error;
-      setBusinesses((data || []) as Business[]);
+      setTransactions((data || []) as any);
     } catch (error: any) {
-      toast.error("Erro ao carregar negócios");
+      toast.error('Erro ao carregar transações');
     } finally {
       setLoading(false);
     }
   };
 
-  const loadTransactions = async () => {
-    try {
-      if (!selectedBusiness && !consolidationMode) return;
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      let query = supabase
-        .from('financial_transactions')
-        .select('*')
-        .eq('user_id', user.id);
-
-      if (consolidationMode && selectedBusinessesForSum.length > 0) {
-        query = query.in('business_id', selectedBusinessesForSum);
-      } else if (selectedBusiness) {
-        query = query.eq('business_id', selectedBusiness.id);
-      }
-
-      const { data, error } = await query.order('order_index', { ascending: true }).order('date', { ascending: false });
-
-      if (error) throw error;
-      setTransactions((data || []) as Transaction[]);
-    } catch (error: any) {
-      toast.error("Erro ao carregar transações");
-    }
-  };
-
-  const loadCategories = async () => {
-    try {
-      if (!selectedBusiness) return;
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('financial_categories')
-        .select('*')
-        .eq('business_id', selectedBusiness.id)
-        .order('order_index');
-
-      if (error) throw error;
-      setCategories((data || []) as Category[]);
-    } catch (error: any) {
-      toast.error("Erro ao carregar categorias");
-    }
-  };
-
-  const handleAddCategory = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !selectedBusiness) return;
-
-      if (!categoryFormData.name.trim()) {
-        toast.error("Nome da categoria é obrigatório");
-        return;
-      }
-
-      // Pegar o maior order_index atual
-      const maxOrderIndex = categories.reduce((max, cat) => Math.max(max, cat.order_index), -1);
-
-      const { error } = await supabase
-        .from('financial_categories')
-        .insert([{
-          user_id: user.id,
-          business_id: selectedBusiness.id,
-          ...categoryFormData,
-          order_index: maxOrderIndex + 1
-        }]);
-
-      if (error) throw error;
-
-      toast.success("Categoria adicionada com sucesso!");
-      setIsCategoryDialogOpen(false);
-      loadCategories();
-      
-      setCategoryFormData({
-        name: '',
-        color: '#6366f1'
-      });
-    } catch (error: any) {
-      toast.error("Erro ao adicionar categoria");
-    }
-  };
-
-  const openEditCategoryDialog = (category: Category) => {
-    setEditingCategory(category);
-    setCategoryFormData({
-      name: category.name,
-      color: category.color
-    });
-    setIsEditCategoryDialogOpen(true);
-  };
-
-  const handleUpdateCategory = async () => {
-    try {
-      if (!editingCategory) return;
-
-      if (!categoryFormData.name.trim()) {
-        toast.error("Nome da categoria é obrigatório");
-        return;
-      }
-
-      const { error } = await supabase
-        .from('financial_categories')
-        .update({
-          name: categoryFormData.name,
-          color: categoryFormData.color
-        })
-        .eq('id', editingCategory.id);
-
-      if (error) throw error;
-
-      toast.success("Categoria atualizada com sucesso!");
-      setIsEditCategoryDialogOpen(false);
-      setEditingCategory(null);
-      setCategoryFormData({ name: '', color: '#6366f1' });
-      loadCategories();
-      
-      // Reset selected category if it was edited
-      if (selectedCategory === editingCategory.name) {
-        setSelectedCategory(categoryFormData.name);
-      }
-    } catch (error: any) {
-      toast.error("Erro ao atualizar categoria");
-    }
-  };
-
-  const handleDeleteCategory = async () => {
-    try {
-      if (!deleteCategoryId) return;
-
-      const { error } = await supabase
-        .from('financial_categories')
-        .delete()
-        .eq('id', deleteCategoryId);
-
-      if (error) throw error;
-
-      toast.success("Categoria excluída com sucesso!");
-      loadCategories();
-      
-      // Reset selected category if it was deleted
-      const deletedCategory = categories.find(c => c.id === deleteCategoryId);
-      if (selectedCategory === deletedCategory?.name) {
-        setSelectedCategory('all');
-      }
-    } catch (error: any) {
-      toast.error("Erro ao excluir categoria");
-    } finally {
-      setDeleteCategoryId(null);
-    }
-  };
-
-  const handleDragEndCategories = async (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = categories.findIndex((cat) => cat.id === active.id);
-    const newIndex = categories.findIndex((cat) => cat.id === over.id);
-
-    const newCategories = arrayMove(categories, oldIndex, newIndex);
-    setCategories(newCategories);
-
-    // Atualizar order_index no banco de dados
-    try {
-      const updates = newCategories.map((category, index) => ({
-        id: category.id,
-        order_index: index
-      }));
-
-      for (const update of updates) {
-        await supabase
-          .from('financial_categories')
-          .update({ order_index: update.order_index })
-          .eq('id', update.id);
-      }
-
-      toast.success("Ordem das categorias atualizada!");
-    } catch (error) {
-      toast.error("Erro ao atualizar ordem das categorias");
-      loadCategories(); // Recarregar em caso de erro
-    }
-  };
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const handleAddBusiness = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      if (!businessFormData.name.trim()) {
-        toast.error("Nome do negócio é obrigatório");
-        return;
-      }
-
-      // Get max order_index
-      const { data: maxOrderData } = await supabase
-        .from('financial_businesses')
-        .select('order_index')
-        .eq('user_id', user.id)
-        .order('order_index', { ascending: false })
-        .limit(1);
-
-      const maxOrder = maxOrderData?.[0]?.order_index ?? -1;
-
-      const { error } = await supabase
-        .from('financial_businesses')
-        .insert([{
-          user_id: user.id,
-          ...businessFormData,
-          order_index: maxOrder + 1
-        }]);
-
-      if (error) throw error;
-
-      toast.success("Negócio adicionado com sucesso!");
-      setIsBusinessDialogOpen(false);
-      loadBusinesses();
-      
-      setBusinessFormData({
-        name: '',
-        business_type: 'personal',
-        description: '',
-        logo_url: ''
-      });
-    } catch (error: any) {
-      toast.error("Erro ao adicionar negócio");
-    }
-  };
-
-  const handleDeleteBusiness = async () => {
-    if (!deleteBusinessId) return;
-
-    try {
-      const { error } = await supabase
-        .from('financial_businesses')
-        .delete()
-        .eq('id', deleteBusinessId);
-
-      if (error) throw error;
-
-      toast.success("Negócio excluído!");
-      if (selectedBusiness?.id === deleteBusinessId) {
-        setSelectedBusiness(null);
-        setTransactions([]);
-      }
-      loadBusinesses();
-    } catch (error: any) {
-      toast.error("Erro ao excluir negócio");
-    } finally {
-      setDeleteBusinessId(null);
-    }
-  };
-
-  // Sensores para drag and drop de transações
-  const transactionSensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const handleDragEndTransactions = async (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = filteredTransactions.findIndex((t) => t.id === active.id);
-    const newIndex = filteredTransactions.findIndex((t) => t.id === over.id);
-
-    const reorderedTransactions = arrayMove(filteredTransactions, oldIndex, newIndex);
-
-    // Update order_index for all transactions
-    try {
-      const updates = reorderedTransactions.map((transaction, index) => ({
-        id: transaction.id,
-        order_index: index
-      }));
-
-      for (const update of updates) {
-        await supabase
-          .from('financial_transactions')
-          .update({ order_index: update.order_index })
-          .eq('id', update.id);
-      }
-
-      loadTransactions();
-      toast.success("Ordem das transações atualizada!");
-    } catch (error) {
-      toast.error("Erro ao reordenar transações");
-    }
-  };
-
-  const handleEditBusiness = async () => {
-    if (!editingBusiness) return;
-
-    try {
-      if (!businessFormData.name.trim()) {
-        toast.error("Nome do negócio é obrigatório");
-        return;
-      }
-
-      const { error } = await supabase
-        .from('financial_businesses')
-        .update({
-          name: businessFormData.name,
-          business_type: businessFormData.business_type,
-          description: businessFormData.description,
-          logo_url: businessFormData.logo_url
-        })
-        .eq('id', editingBusiness.id);
-
-      if (error) throw error;
-
-      toast.success("Negócio atualizado com sucesso!");
-      setIsEditDialogOpen(false);
-      setEditingBusiness(null);
-      loadBusinesses();
-      
-      setBusinessFormData({
-        name: '',
-        business_type: 'personal',
-        description: '',
-        logo_url: ''
-      });
-    } catch (error: any) {
-      toast.error("Erro ao atualizar negócio");
-    }
-  };
-
-  const openEditDialog = (business: Business) => {
-    setEditingBusiness(business);
-    setBusinessFormData({
-      name: business.name,
-      business_type: business.business_type,
-      description: business.description || '',
-      logo_url: business.logo_url || ''
-    });
-    setIsEditDialogOpen(true);
-  };
-
-  const moveBusiness = async (business: Business, direction: 'up' | 'down') => {
-    const currentIndex = businesses.findIndex(b => b.id === business.id);
-    if (
-      (direction === 'up' && currentIndex === 0) || 
-      (direction === 'down' && currentIndex === businesses.length - 1)
-    ) {
-      return;
-    }
-
-    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-    const targetBusiness = businesses[targetIndex];
-
-    try {
-      // Swap order_index values
-      await supabase
-        .from('financial_businesses')
-        .update({ order_index: targetBusiness.order_index })
-        .eq('id', business.id);
-
-      await supabase
-        .from('financial_businesses')
-        .update({ order_index: business.order_index })
-        .eq('id', targetBusiness.id);
-
-      loadBusinesses();
-    } catch (error: any) {
-      toast.error("Erro ao reordenar negócios");
-    }
-  };
-
   const handleAddTransaction = async () => {
     try {
-      if (!selectedBusiness) {
-        toast.error("Selecione um negócio primeiro");
-        return;
-      }
-
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const transactionData: any = {
-        user_id: user.id,
-        business_id: selectedBusiness.id,
-        type: formData.type,
-        category: formData.category,
-        description: formData.description,
-        amount: parseFloat(formData.amount),
-        payment_method: formData.payment_method,
-        status: formData.status,
-        is_recurring: formData.is_recurring,
-        // Para transações recorrentes, data é opcional
-        date: formData.is_recurring ? null : formData.date,
-      };
-
       const { error } = await supabase
         .from('financial_transactions')
-        .insert([transactionData]);
+        .insert({
+          user_id: user.id,
+          type: formData.type,
+          category: formData.category,
+          description: formData.description,
+          amount: parseFloat(formData.amount),
+          month: formData.month,
+          due_date: formData.due_date,
+          payment_method: formData.payment_method,
+          status: formData.status,
+          is_recurring: formData.is_recurring,
+          reminder_enabled: formData.reminder_enabled,
+          year: selectedYear,
+          date: new Date().toISOString(),
+          status_history: [{
+            status: formData.status,
+            changed_at: new Date().toISOString(),
+            note: 'Transação criada'
+          }]
+        });
 
       if (error) throw error;
 
-      toast.success("Transação adicionada com sucesso!");
+      toast.success('Transação adicionada!');
       setIsAddDialogOpen(false);
-      loadTransactions();
-      
-      setFormData({
-        type: 'income',
-        category: '',
-        description: '',
-        amount: '',
-        date: format(new Date(), 'yyyy-MM-dd'),
-        payment_method: 'dinheiro',
-        status: 'paid',
-        is_recurring: false
-      });
-    } catch (error: any) {
-      toast.error("Erro ao adicionar transação");
-    }
-  };
-
-  const handleDeleteTransaction = async () => {
-    if (!deleteTransactionId) return;
-    
-    try {
-      const { error } = await supabase
-        .from('financial_transactions')
-        .delete()
-        .eq('id', deleteTransactionId);
-
-      if (error) throw error;
-
-      toast.success("Transação excluída!");
+      resetForm();
       loadTransactions();
     } catch (error: any) {
-      toast.error("Erro ao excluir transação");
-    } finally {
-      setDeleteTransactionId(null);
+      toast.error('Erro ao adicionar transação');
     }
-  };
-
-  const openEditTransactionDialog = (transaction: Transaction) => {
-    setEditingTransaction(transaction);
-    setFormData({
-      type: transaction.type,
-      category: transaction.category,
-      description: transaction.description,
-      amount: transaction.amount.toString(),
-      date: transaction.date,
-      payment_method: transaction.payment_method,
-      status: transaction.status,
-      is_recurring: transaction.is_recurring || false
-    });
-    setIsEditTransactionDialogOpen(true);
   };
 
   const handleEditTransaction = async () => {
     if (!editingTransaction) return;
 
     try {
-      const updateData: any = {
-        type: formData.type,
-        category: formData.category,
-        description: formData.description,
-        amount: parseFloat(formData.amount),
-        payment_method: formData.payment_method,
-        status: formData.status,
-        is_recurring: formData.is_recurring,
-        // Para transações recorrentes, data é opcional
-        date: formData.is_recurring ? null : formData.date,
-      };
-
       const { error } = await supabase
         .from('financial_transactions')
-        .update(updateData)
+        .update({
+          type: formData.type,
+          category: formData.category,
+          description: formData.description,
+          amount: parseFloat(formData.amount),
+          month: formData.month,
+          due_date: formData.due_date,
+          payment_method: formData.payment_method,
+          status: formData.status,
+          is_recurring: formData.is_recurring,
+          reminder_enabled: formData.reminder_enabled,
+        })
         .eq('id', editingTransaction.id);
 
       if (error) throw error;
 
-      toast.success("Transação atualizada com sucesso!");
-      setIsEditTransactionDialogOpen(false);
+      toast.success('Transação atualizada!');
+      setIsEditDialogOpen(false);
       setEditingTransaction(null);
+      resetForm();
       loadTransactions();
-      
-      setFormData({
-        type: 'income',
-        category: '',
-        description: '',
-        amount: '',
-        date: format(new Date(), 'yyyy-MM-dd'),
-        payment_method: 'dinheiro',
-        status: 'paid',
-        is_recurring: false
-      });
     } catch (error: any) {
-      toast.error("Erro ao atualizar transação");
+      toast.error('Erro ao atualizar transação');
     }
   };
 
-  const filteredTransactions = transactions.filter(t => {
-    // Filter by category
-    if (selectedCategory !== 'all' && t.category !== selectedCategory) return false;
-    
-    // Filter by type and status
-    if (filter === 'pending' && t.status !== 'pending') return false;
-    if (filter === 'paid' && t.status !== 'paid') return false;
-    if (filter === 'cancelled' && t.status !== 'cancelled') return false;
-    if (filter === 'income' && t.type !== 'income') return false;
-    if (filter === 'expense' && t.type !== 'expense') return false;
-    
-    // Filter by selected month
-    const transactionDate = new Date(t.date);
-    const [year, month] = selectedMonth.split('-');
-    
-    if (transactionDate.getFullYear() !== parseInt(year) || 
-        transactionDate.getMonth() !== parseInt(month) - 1) {
-      return false;
-    }
-    
-    return true;
-  });
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('financial_transactions')
+        .delete()
+        .eq('id', id);
 
-  const totalIncome = filteredTransactions
-    .filter(t => t.type === 'income' && t.status === 'paid')
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const totalExpense = filteredTransactions
-    .filter(t => t.type === 'expense' && t.status === 'paid')
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const balance = totalIncome - totalExpense;
-
-  const pendingAmount = filteredTransactions
-    .filter(t => t.status === 'pending')
-    .reduce((sum, t) => sum + (t.type === 'income' ? t.amount : -t.amount), 0);
-
-  const toggleBusinessSelection = (businessId: string) => {
-    setSelectedBusinessesForSum(prev => 
-      prev.includes(businessId) 
-        ? prev.filter(b => b !== businessId)
-        : [...prev, businessId]
-    );
-  };
-
-  useEffect(() => {
-    if (consolidationMode) {
+      if (error) throw error;
+      toast.success('Transação excluída!');
       loadTransactions();
+    } catch (error: any) {
+      toast.error('Erro ao excluir');
     }
-  }, [selectedBusinessesForSum]);
+  };
+
+  const handleStatusChange = async (transaction: Transaction, newStatus: 'paid' | 'pending' | 'cancelled') => {
+    try {
+      const statusHistory = [...(transaction.status_history || []), {
+        status: newStatus,
+        changed_at: new Date().toISOString(),
+        note: `Status alterado para ${newStatus}`
+      }];
+
+      const { error } = await supabase
+        .from('financial_transactions')
+        .update({ 
+          status: newStatus,
+          status_history: statusHistory as any
+        })
+        .eq('id', transaction.id);
+
+      if (error) throw error;
+      toast.success('Status atualizado!');
+      loadTransactions();
+    } catch (error: any) {
+      toast.error('Erro ao atualizar status');
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      type: 'expense',
+      category: '',
+      description: '',
+      amount: '',
+      month: format(new Date(), 'MMMM', { locale: ptBR }),
+      due_date: format(new Date(), 'yyyy-MM-dd'),
+      payment_method: 'pix',
+      status: 'pending',
+      is_recurring: false,
+      reminder_enabled: false,
+    });
+  };
+
+  const openEdit = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setFormData({
+      type: transaction.type,
+      category: transaction.category,
+      description: transaction.description,
+      amount: transaction.amount.toString(),
+      month: transaction.month,
+      due_date: transaction.due_date,
+      payment_method: transaction.payment_method,
+      status: transaction.status,
+      is_recurring: transaction.is_recurring,
+      reminder_enabled: transaction.reminder_enabled,
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const monthTransactions = transactions.filter(t => t.month === selectedMonth || t.is_recurring);
+
+  const totalIncome = monthTransactions
+    .filter(t => t.type === 'income' && t.status === 'paid')
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  const totalExpense = monthTransactions
+    .filter(t => t.type === 'expense' && t.status === 'paid')
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  const pendingAmount = monthTransactions
+    .filter(t => t.status === 'pending')
+    .reduce((sum, t) => sum + Number(t.amount), 0);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Gestão Financeira</h2>
-          <p className="text-muted-foreground">Controle completo das suas finanças por negócio</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Dialog open={isBusinessDialogOpen} onOpenChange={setIsBusinessDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <Plus className="mr-2 h-4 w-4" />
-                Novo Negócio
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Adicionar Negócio</DialogTitle>
-                <DialogDescription>Crie um novo negócio para gerenciar suas finanças</DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <ImageUpload
-                  currentImage={businessFormData.logo_url}
-                  onImageSelect={(url) => setBusinessFormData({...businessFormData, logo_url: url})}
-                  bucketName="business-logos"
-                  label="Logo do Negócio (opcional)"
-                />
-                <div className="grid gap-2">
-                  <Label>Nome do Negócio/Cliente *</Label>
-                  <Input 
-                    value={businessFormData.name}
-                    onChange={(e) => setBusinessFormData({...businessFormData, name: e.target.value})}
-                    placeholder="Ex: Loja ABC, Cliente João..."
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Tipo</Label>
-                  <Select value={businessFormData.business_type} onValueChange={(value: 'personal' | 'company') => setBusinessFormData({...businessFormData, business_type: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="personal">Pessoa Física</SelectItem>
-                      <SelectItem value="company">Pessoa Jurídica</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label>Descrição (opcional)</Label>
-                  <Input 
-                    value={businessFormData.description}
-                    onChange={(e) => setBusinessFormData({...businessFormData, description: e.target.value})}
-                    placeholder="Descrição adicional..."
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsBusinessDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleAddBusiness} className="gradient-primary">
-                  Adicionar
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          
-          {businesses.length > 1 && (
-            <Button
-              variant={consolidationMode ? "default" : "outline"}
-              onClick={() => {
-                setConsolidationMode(!consolidationMode);
-                setSelectedBusinessesForSum([]);
-                setSelectedBusiness(null);
-                setTransactions([]);
-              }}
-            >
-              {consolidationMode ? "Modo Simples" : "Consolidar Negócios"}
-            </Button>
-          )}
-        </div>
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold">Gestão Financeira</h2>
+        <Button onClick={() => setIsAddDialogOpen(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Nova Transação
+        </Button>
       </div>
 
-      {/* Lista de Negócios */}
-      {!consolidationMode && (
-        <Card className="glass">
-          <CardHeader>
-            <CardTitle>Meus Negócios</CardTitle>
-            <CardDescription>Selecione um negócio para ver suas transações</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {businesses.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                Nenhum negócio cadastrado. Adicione um negócio para começar.
-              </div>
-            ) : (
-              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                {businesses.map((business, index) => (
-                  <Card 
-                    key={business.id}
-                    className={`cursor-pointer transition-smooth hover:shadow-glow ${
-                      selectedBusiness?.id === business.id ? 'border-primary shadow-glow' : ''
-                    }`}
-                    onClick={() => setSelectedBusiness(business)}
-                  >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          {business.logo_url && (
-                            <img 
-                              src={business.logo_url} 
-                              alt={business.name}
-                              className="w-12 h-12 rounded-lg object-cover flex-shrink-0 border"
-                            />
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <CardTitle className="text-base truncate">{business.name}</CardTitle>
-                            <Badge variant="outline" className="mt-2">
-                              {business.business_type === 'personal' ? 'Pessoa Física' : 'Pessoa Jurídica'}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-1 flex-shrink-0">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              moveBusiness(business, 'up');
-                            }}
-                            disabled={index === 0}
-                          >
-                            <ChevronUp className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              moveBusiness(business, 'down');
-                            }}
-                            disabled={index === businesses.length - 1}
-                          >
-                            <ChevronDown className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      {business.description && (
-                        <p className="text-sm text-muted-foreground mt-2">{business.description}</p>
-                      )}
-                      <div className="flex gap-2 mt-3">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openEditDialog(business);
-                          }}
-                          className="flex-1"
-                        >
-                          <Edit2 className="h-3 w-3 mr-1" />
-                          Editar
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeleteBusinessId(business.id);
-                          }}
-                          className="flex-1"
-                        >
-                          <Trash2 className="h-3 w-3 mr-1 text-destructive" />
-                          Excluir
-                        </Button>
-                      </div>
-                    </CardHeader>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Modo Consolidação */}
-      {consolidationMode && businesses.length > 0 && (
-        <Card className="glass">
-          <CardHeader>
-            <CardTitle>Consolidar Negócios</CardTitle>
-            <CardDescription>Selecione os negócios que deseja somar nas métricas</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {businesses.map((business) => (
-                <Button
-                  key={business.id}
-                  variant={selectedBusinessesForSum.includes(business.id) ? "default" : "outline"}
-                  onClick={() => toggleBusinessSelection(business.id)}
-                  className="transition-smooth"
-                >
-                  {business.name}
-                  <Badge variant="outline" className="ml-2">
-                    {business.business_type === 'personal' ? 'PF' : 'PJ'}
-                  </Badge>
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Só mostra métricas e transações se tiver um negócio selecionado ou estiver em modo consolidação */}
-      {(selectedBusiness || (consolidationMode && selectedBusinessesForSum.length > 0)) && (
-        <>
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <h3 className="text-xl font-semibold">
-              {consolidationMode 
-                ? `Consolidado (${selectedBusinessesForSum.length} negócios)` 
-                : selectedBusiness?.name}
-            </h3>
-            <div className="flex items-center gap-2 flex-wrap">
-              <Input
-                type="month"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="w-auto"
-              />
-              <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" disabled={!selectedBusiness}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Cadastrar Categoria
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[400px]">
-                  <DialogHeader>
-                    <DialogTitle>Nova Categoria</DialogTitle>
-                    <DialogDescription>
-                      Adicione uma categoria para organizar suas transações
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                      <Label>Nome da Categoria *</Label>
-                      <Input 
-                        value={categoryFormData.name}
-                        onChange={(e) => setCategoryFormData({...categoryFormData, name: e.target.value})}
-                        placeholder="Ex: Vendas, Marketing, Salários..."
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>Cor</Label>
-                      <Input 
-                        type="color"
-                        value={categoryFormData.color}
-                        onChange={(e) => setCategoryFormData({...categoryFormData, color: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsCategoryDialogOpen(false)}>
-                      Cancelar
-                    </Button>
-                    <Button onClick={handleAddCategory} className="gradient-primary">
-                      Adicionar
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="gradient-primary shadow-glow" disabled={!selectedBusiness}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Nova Transação
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>Adicionar Transação</DialogTitle>
-                  <DialogDescription>
-                    Transação para: <strong>{selectedBusiness?.name}</strong>
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label>Tipo</Label>
-                    <Select value={formData.type} onValueChange={(value: 'income' | 'expense') => setFormData({...formData, type: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="income">Receita</SelectItem>
-                        <SelectItem value="expense">Despesa</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Categoria</Label>
-                    <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma categoria" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.name}>
-                            <div className="flex items-center gap-2">
-                              <div 
-                                className="w-3 h-3 rounded-full" 
-                                style={{ backgroundColor: cat.color }}
-                              />
-                              {cat.name}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Descrição</Label>
-                    <Input 
-                      value={formData.description}
-                      onChange={(e) => setFormData({...formData, description: e.target.value})}
-                      placeholder="Descreva a transação"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Valor (R$)</Label>
-                    <Input 
-                      type="number"
-                      step="0.01"
-                      value={formData.amount}
-                      onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Data</Label>
-                    {!formData.is_recurring && (
-                      <Input 
-                        type="date"
-                        value={formData.date}
-                        onChange={(e) => setFormData({...formData, date: e.target.value})}
-                      />
-                    )}
-                    <div className="flex items-center space-x-2 mt-2">
-                      <input
-                        type="checkbox"
-                        id="is_recurring"
-                        checked={formData.is_recurring}
-                        onChange={(e) => setFormData({...formData, is_recurring: e.target.checked, date: e.target.checked ? '' : format(new Date(), 'yyyy-MM-dd')})}
-                        className="h-4 w-4 rounded border-gray-300"
-                      />
-                      <Label htmlFor="is_recurring" className="text-sm cursor-pointer">
-                        Transação Fixa (repete todo mês)
-                      </Label>
-                    </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Método de Pagamento</Label>
-                    <Select value={formData.payment_method} onValueChange={(value) => setFormData({...formData, payment_method: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                        <SelectItem value="pix">PIX</SelectItem>
-                        <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
-                        <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
-                        <SelectItem value="transferencia">Transferência</SelectItem>
-                        <SelectItem value="boleto">Boleto</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Status</Label>
-                    <Select value={formData.status} onValueChange={(value: 'paid' | 'pending' | 'cancelled') => setFormData({...formData, status: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="paid">Pago</SelectItem>
-                        <SelectItem value="pending">Pendente</SelectItem>
-                        <SelectItem value="cancelled">Cancelado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                    Cancelar
-                  </Button>
-                  <Button onClick={handleAddTransaction} className="gradient-primary">
-                    Adicionar
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-            </div>
-          </div>
-
-          {/* Resumo Financeiro */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="glass hover:shadow-glow transition-smooth">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Saldo Atual</CardTitle>
-                <Wallet className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className={`text-2xl font-bold ${balance >= 0 ? 'text-success' : 'text-destructive'}`}>
-                  {balance >= 0 ? '+' : ''} R$ {balance.toFixed(2)}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {balance >= 0 ? 'Positivo' : 'Negativo'}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="glass hover:shadow-glow transition-smooth">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Receitas</CardTitle>
-                <TrendingUp className="h-4 w-4 text-success" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-success">
-                  R$ {totalIncome.toFixed(2)}
-                </div>
-                <div className="flex items-center justify-between mt-2">
-                  <p className="text-xs text-muted-foreground">
-                    {filteredTransactions.filter(t => t.type === 'income').length} transações
-                  </p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => {
-                      setDetailsType('income');
-                      setIsDetailsDialogOpen(true);
-                    }}
-                  >
-                    <Eye className="h-3 w-3 mr-1" />
-                    Detalhar
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="glass hover:shadow-glow transition-smooth">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Despesas</CardTitle>
-                <TrendingDown className="h-4 w-4 text-destructive" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-destructive">
-                  R$ {totalExpense.toFixed(2)}
-                </div>
-                <div className="flex items-center justify-between mt-2">
-                  <p className="text-xs text-muted-foreground">
-                    {filteredTransactions.filter(t => t.type === 'expense').length} transações
-                  </p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => {
-                      setDetailsType('expense');
-                      setIsDetailsDialogOpen(true);
-                    }}
-                  >
-                    <Eye className="h-3 w-3 mr-1" />
-                    Detalhar
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="glass hover:shadow-glow transition-smooth">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
-                <Calendar className="h-4 w-4 text-warning" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-warning">
-                  R$ {pendingAmount.toFixed(2)}
-                </div>
-                <div className="flex items-center justify-between mt-2">
-                  <p className="text-xs text-muted-foreground">
-                    {filteredTransactions.filter(t => t.status === 'pending').length} transações
-                  </p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => {
-                      setDetailsType('pending');
-                      setIsDetailsDialogOpen(true);
-                    }}
-                  >
-                    <Eye className="h-3 w-3 mr-1" />
-                    Detalhar
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Abas de Categorias */}
-          {categories.length > 0 && (
-            <Card className="glass">
-              <CardHeader>
-                <CardTitle>Categorias</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="w-full">
-                  <div className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground w-full overflow-x-auto flex-wrap">
-                    <button
-                      onClick={() => setSelectedCategory('all')}
-                      className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all ${
-                        selectedCategory === 'all'
-                          ? 'bg-background text-foreground shadow-sm'
-                          : 'hover:bg-background/50'
-                      }`}
-                    >
-                      Todas
-                    </button>
-                    
-                    <DndContext
-                      sensors={sensors}
-                      collisionDetection={closestCenter}
-                      onDragEnd={handleDragEndCategories}
-                    >
-                      <SortableContext
-                        items={categories.map(cat => cat.id)}
-                        strategy={horizontalListSortingStrategy}
-                      >
-                        {categories.map((category) => (
-                          <div key={category.id} className="inline-flex items-center gap-1">
-                            <SortableTab
-                              id={category.id}
-                              value={category.name}
-                              category={category}
-                              isSelected={selectedCategory === category.name}
-                              onClick={() => setSelectedCategory(category.name)}
-                            />
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => openEditCategoryDialog(category)}
-                            >
-                              <Edit2 className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => setDeleteCategoryId(category.id)}
-                            >
-                              <Trash2 className="h-3 w-3 text-destructive" />
-                            </Button>
-                          </div>
-                        ))}
-                      </SortableContext>
-                    </DndContext>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Filtros e Tabela */}
-          <Card className="glass">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Histórico de Transações</CardTitle>
-                <div className="flex gap-2">
-                  <Select value={filter} onValueChange={(value: any) => setFilter(value)}>
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas</SelectItem>
-                      <SelectItem value="income">Receitas</SelectItem>
-                      <SelectItem value="expense">Despesas</SelectItem>
-                      <SelectItem value="paid">Pagas</SelectItem>
-                      <SelectItem value="pending">Pendentes</SelectItem>
-                      <SelectItem value="cancelled">Canceladas</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button variant="outline" size="icon">
-                    <Download className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="text-center py-8 text-muted-foreground">Carregando...</div>
-              ) : filteredTransactions.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  Nenhuma transação encontrada
-                </div>
-              ) : (
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Data</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Categoria</TableHead>
-                        <TableHead>Descrição</TableHead>
-                        <TableHead>Método</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Valor</TableHead>
-                        <TableHead className="text-right">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      <DndContext
-                        sensors={transactionSensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={handleDragEndTransactions}
-                      >
-                        <SortableContext
-                          items={filteredTransactions.map(t => t.id)}
-                        >
-                          {filteredTransactions.map((transaction) => (
-                            <SortableTransaction
-                              key={transaction.id}
-                              id={transaction.id}
-                              transaction={transaction}
-                              onEdit={() => openEditTransactionDialog(transaction)}
-                              onDelete={() => setDeleteTransactionId(transaction.id)}
-                            />
-                          ))}
-                        </SortableContext>
-                      </DndContext>
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </>
-      )}
-
-      <DeleteConfirmDialog
-        open={!!deleteTransactionId}
-        onOpenChange={() => setDeleteTransactionId(null)}
-        onConfirm={handleDeleteTransaction}
-        description="Você tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita e você perderá todos os dados relacionados."
-      />
-
-      <DeleteConfirmDialog
-        open={!!deleteCategoryId}
-        onOpenChange={() => setDeleteCategoryId(null)}
-        onConfirm={handleDeleteCategory}
-        title="Excluir Categoria?"
-        description="Tem certeza que deseja excluir esta categoria? Esta ação não pode ser desfeita."
-      />
-
-      <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Categoria</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label>Nome da Categoria</Label>
-              <Input
-                value={categoryFormData.name}
-                onChange={(e) => setCategoryFormData({...categoryFormData, name: e.target.value})}
-                placeholder="Ex: Vendas, Marketing..."
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label>Cor</Label>
-              <Input
-                type="color"
-                value={categoryFormData.color}
-                onChange={(e) => setCategoryFormData({...categoryFormData, color: e.target.value})}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditCategoryDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleUpdateCategory}>
-              Salvar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              Detalhes - {detailsType === 'income' ? 'Receitas' : detailsType === 'expense' ? 'Despesas' : 'Pendentes'}
-            </DialogTitle>
-          </DialogHeader>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredTransactions
-                .filter(t => 
-                  detailsType === 'pending' ? t.status === 'pending' :
-                  detailsType === 'income' ? t.type === 'income' :
-                  t.type === 'expense' && t.status === 'paid'
-                )
-                .map((transaction) => (
-                  <TableRow key={transaction.id}>
-                    <TableCell>
-                      {transaction.is_recurring ? (
-                        <Badge variant="outline">Fixa</Badge>
-                      ) : (
-                        format(new Date(transaction.date), "dd/MM/yyyy", { locale: ptBR })
-                      )}
-                    </TableCell>
-                    <TableCell>{transaction.category}</TableCell>
-                    <TableCell>{transaction.description}</TableCell>
-                    <TableCell className={`text-right font-bold ${
-                      transaction.type === 'income' ? 'text-success' : 'text-destructive'
-                    }`}>
-                      {transaction.type === 'income' ? '+' : '-'} R$ {transaction.amount.toFixed(2)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-        </DialogContent>
-      </Dialog>
-
-      <DeleteConfirmDialog
-        open={!!deleteBusinessId}
-        onOpenChange={() => setDeleteBusinessId(null)}
-        onConfirm={handleDeleteBusiness}
-        description="Você tem certeza que deseja excluir este negócio? Esta ação excluirá TODAS as transações associadas a ele e não pode ser desfeita!"
-      />
-
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Editar Negócio</DialogTitle>
-            <DialogDescription>Atualize as informações do negócio</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <ImageUpload
-              currentImage={businessFormData.logo_url}
-              onImageSelect={(url) => setBusinessFormData({...businessFormData, logo_url: url})}
-              bucketName="business-logos"
-              label="Logo do Negócio (opcional)"
-            />
-            <div className="grid gap-2">
-              <Label>Nome do Negócio/Cliente *</Label>
-              <Input 
-                value={businessFormData.name}
-                onChange={(e) => setBusinessFormData({...businessFormData, name: e.target.value})}
-                placeholder="Ex: Loja ABC, Cliente João..."
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label>Tipo</Label>
-              <Select value={businessFormData.business_type} onValueChange={(value: 'personal' | 'company') => setBusinessFormData({...businessFormData, business_type: value})}>
+      {/* Seletores de Ano e Mês */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Filtros</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Ano</Label>
+              <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="personal">Pessoa Física</SelectItem>
-                  <SelectItem value="company">Pessoa Jurídica</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label>Descrição (opcional)</Label>
-              <Input 
-                value={businessFormData.description}
-                onChange={(e) => setBusinessFormData({...businessFormData, description: e.target.value})}
-                placeholder="Descrição adicional..."
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setIsEditDialogOpen(false);
-              setEditingBusiness(null);
-              setBusinessFormData({
-                name: '',
-                business_type: 'personal',
-                description: '',
-                logo_url: ''
-              });
-            }}>
-              Cancelar
-            </Button>
-            <Button onClick={handleEditBusiness} className="gradient-primary">
-              Salvar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <DeleteConfirmDialog
-        open={!!deleteTransactionId}
-        onOpenChange={() => setDeleteTransactionId(null)}
-        onConfirm={handleDeleteTransaction}
-        description="Você tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita e você perderá todos os dados relacionados."
-      />
-
-      <DeleteConfirmDialog
-        open={!!deleteBusinessId}
-        onOpenChange={() => setDeleteBusinessId(null)}
-        onConfirm={handleDeleteBusiness}
-        description="Você tem certeza que deseja excluir este negócio? Esta ação excluirá TODAS as transações associadas a ele e não pode ser desfeita!"
-      />
-
-      <Dialog open={isEditTransactionDialogOpen} onOpenChange={setIsEditTransactionDialogOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Editar Transação</DialogTitle>
-            <DialogDescription>Atualize os dados da transação</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label>Tipo</Label>
-              <Select value={formData.type} onValueChange={(value: 'income' | 'expense') => setFormData({...formData, type: value})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="income">Receita</SelectItem>
-                  <SelectItem value="expense">Despesa</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label>Categoria</Label>
-              <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.name}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: cat.color }}
-                        />
-                        {cat.name}
-                      </div>
-                    </SelectItem>
+                  {[2024, 2025, 2026, 2027].map(year => (
+                    <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid gap-2">
+            <div>
+              <Label>Mês</Label>
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {MONTHS.map(month => (
+                    <SelectItem key={month} value={month}>{month}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Cards de Resumo */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Receitas Pagas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-green-600">R$ {totalIncome.toFixed(2)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Despesas Pagas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-red-600">R$ {totalExpense.toFixed(2)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Saldo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">R$ {(totalIncome - totalExpense).toFixed(2)}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Tabela de Transações */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{selectedMonth} {selectedYear}</CardTitle>
+          <CardDescription>Transações do mês selecionado e transações fixas</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Descrição</TableHead>
+                <TableHead>Categoria</TableHead>
+                <TableHead>Vencimento</TableHead>
+                <TableHead>Valor</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {monthTransactions.map((transaction) => (
+                <TableRow key={transaction.id}>
+                  <TableCell>
+                    <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'}>
+                      {transaction.type === 'income' ? 'Receita' : 'Despesa'}
+                    </Badge>
+                    {transaction.is_recurring && <Badge className="ml-2" variant="outline">Fixa</Badge>}
+                  </TableCell>
+                  <TableCell>{transaction.description}</TableCell>
+                  <TableCell>{transaction.category}</TableCell>
+                  <TableCell>{format(new Date(transaction.due_date), 'dd/MM/yyyy')}</TableCell>
+                  <TableCell className="font-semibold">R$ {Number(transaction.amount).toFixed(2)}</TableCell>
+                  <TableCell>
+                    <Select value={transaction.status} onValueChange={(v) => handleStatusChange(transaction, v as any)}>
+                      <SelectTrigger className="w-[120px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pendente</SelectItem>
+                        <SelectItem value="paid">Pago</SelectItem>
+                        <SelectItem value="cancelled">Cancelado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(transaction)}>
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(transaction.id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {monthTransactions.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                    Nenhuma transação neste mês
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Dialog Adicionar */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Nova Transação</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Tipo</Label>
+                <Select value={formData.type} onValueChange={(v: any) => setFormData({ ...formData, type: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="income">Receita</SelectItem>
+                    <SelectItem value="expense">Despesa</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Categoria</Label>
+                <Input
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  placeholder="Ex: Aluguel, Salário..."
+                />
+              </div>
+            </div>
+            <div>
               <Label>Descrição</Label>
-              <Input 
+              <Input
                 value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                placeholder="Descrição detalhada..."
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Descrição da transação"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
+              <div>
                 <Label>Valor (R$)</Label>
-                <Input 
+                <Input
                   type="number"
                   step="0.01"
                   value={formData.amount}
-                  onChange={(e) => setFormData({...formData, amount: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                   placeholder="0.00"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label>Data</Label>
-                {!formData.is_recurring && (
-                  <Input 
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({...formData, date: e.target.value})}
-                  />
-                )}
-                <div className="flex items-center space-x-2 mt-2">
-                  <input
-                    type="checkbox"
-                    id="edit_is_recurring"
-                    checked={formData.is_recurring}
-                    onChange={(e) => setFormData({...formData, is_recurring: e.target.checked, date: e.target.checked ? '' : format(new Date(), 'yyyy-MM-dd')})}
-                    className="h-4 w-4 rounded border-gray-300"
-                  />
-                  <Label htmlFor="edit_is_recurring" className="text-sm cursor-pointer">
-                    Transação Fixa (repete todo mês)
-                  </Label>
-                </div>
+              <div>
+                <Label>Método de Pagamento</Label>
+                <Select value={formData.payment_method} onValueChange={(v) => setFormData({ ...formData, payment_method: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pix">PIX</SelectItem>
+                    <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                    <SelectItem value="credito">Crédito</SelectItem>
+                    <SelectItem value="debito">Débito</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label>Método de Pagamento</Label>
-                <Select value={formData.payment_method} onValueChange={(value) => setFormData({...formData, payment_method: value})}>
+              <div>
+                <Label>Mês</Label>
+                <Select value={formData.month} onValueChange={(v) => setFormData({ ...formData, month: v })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                    <SelectItem value="pix">PIX</SelectItem>
-                    <SelectItem value="credito">Cartão de Crédito</SelectItem>
-                    <SelectItem value="debito">Cartão de Débito</SelectItem>
-                    <SelectItem value="transferencia">Transferência</SelectItem>
-                    <SelectItem value="boleto">Boleto</SelectItem>
+                    {MONTHS.map(month => (
+                      <SelectItem key={month} value={month}>{month}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid gap-2">
-                <Label>Status</Label>
-                <Select value={formData.status} onValueChange={(value: 'paid' | 'pending' | 'cancelled') => setFormData({...formData, status: value})}>
+              <div>
+                <Label>Data de Vencimento</Label>
+                <Input
+                  type="date"
+                  value={formData.due_date}
+                  onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="reminder"
+                checked={formData.reminder_enabled}
+                onCheckedChange={(checked) => setFormData({ ...formData, reminder_enabled: checked })}
+              />
+              <Label htmlFor="reminder">Ativar lembrete de vencimento</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="recurring"
+                checked={formData.is_recurring}
+                onCheckedChange={(checked) => setFormData({ ...formData, is_recurring: checked })}
+              />
+              <Label htmlFor="recurring">Transação Fixa (repete todo mês)</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleAddTransaction}>Adicionar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Editar */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Editar Transação</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Tipo</Label>
+                <Select value={formData.type} onValueChange={(v: any) => setFormData({ ...formData, type: v })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="paid">Pago</SelectItem>
-                    <SelectItem value="pending">Pendente</SelectItem>
-                    <SelectItem value="cancelled">Cancelado</SelectItem>
+                    <SelectItem value="income">Receita</SelectItem>
+                    <SelectItem value="expense">Despesa</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Categoria</Label>
+                <Input
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                />
+              </div>
+            </div>
+            <div>
+              <Label>Descrição</Label>
+              <Input
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Valor (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Método de Pagamento</Label>
+                <Select value={formData.payment_method} onValueChange={(v) => setFormData({ ...formData, payment_method: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pix">PIX</SelectItem>
+                    <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                    <SelectItem value="credito">Crédito</SelectItem>
+                    <SelectItem value="debito">Débito</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Mês</Label>
+                <Select value={formData.month} onValueChange={(v) => setFormData({ ...formData, month: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MONTHS.map(month => (
+                      <SelectItem key={month} value={month}>{month}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Data de Vencimento</Label>
+                <Input
+                  type="date"
+                  value={formData.due_date}
+                  onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="edit_reminder"
+                checked={formData.reminder_enabled}
+                onCheckedChange={(checked) => setFormData({ ...formData, reminder_enabled: checked })}
+              />
+              <Label htmlFor="edit_reminder">Ativar lembrete de vencimento</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="edit_recurring"
+                checked={formData.is_recurring}
+                onCheckedChange={(checked) => setFormData({ ...formData, is_recurring: checked })}
+              />
+              <Label htmlFor="edit_recurring">Transação Fixa (repete todo mês)</Label>
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setIsEditTransactionDialogOpen(false);
-              setEditingTransaction(null);
-              setFormData({
-                type: 'income',
-                category: '',
-                description: '',
-                amount: '',
-                date: format(new Date(), 'yyyy-MM-dd'),
-                payment_method: 'dinheiro',
-                status: 'paid',
-                is_recurring: false
-              });
-            }}>
-              Cancelar
-            </Button>
-            <Button onClick={handleEditTransaction} className="gradient-primary">
-              Salvar
-            </Button>
+            <Button variant="outline" onClick={() => { setIsEditDialogOpen(false); resetForm(); }}>Cancelar</Button>
+            <Button onClick={handleEditTransaction}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

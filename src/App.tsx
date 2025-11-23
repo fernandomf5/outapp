@@ -37,6 +37,7 @@ import BriefingPublicPage from "./pages/BriefingPublicPage";
 import CustomPage from "./pages/CustomPage";
 import MembersAreaView from "./pages/MembersAreaView";
 import MembersAreaAuth from "./pages/MembersAreaAuth";
+import MembersAreaPublic from "./pages/MembersAreaPublic";
 import ChatbotResetPassword from "./pages/ChatbotResetPassword";
 import AgentResetPassword from "./pages/AgentResetPassword";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -83,6 +84,7 @@ const AppContent = () => {
           <Route path="/members-area/:areaId" element={<MembersAreaView />} />
           <Route path="/members-area-auth" element={<MembersAreaAuth />} />
           <Route path="/members-area-auth/:areaId" element={<MembersAreaAuth />} />
+          <Route path="/members/:slug" element={<MembersAreaPublic />} />
           <Route path="/briefing/:briefingId" element={<BriefingPublicPage />} />
                
               <Route path="/bot-builder" element={
