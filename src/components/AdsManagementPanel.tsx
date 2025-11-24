@@ -32,8 +32,7 @@ interface AdClient {
   name: string;
   client_type: 'personal' | 'company';
   description?: string;
-  general_cashbox: number;
-  ads_cashbox: number;
+  cashbox: number;
   created_at: string;
 }
 
@@ -99,9 +98,11 @@ export const AdsManagementPanel = () => {
     name: '',
     client_type: 'personal' as 'personal' | 'company',
     description: '',
-    general_cashbox: '',
-    ads_cashbox: ''
+    cashbox: ''
   });
+  
+  const [isEditClientDialogOpen, setIsEditClientDialogOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState<AdClient | null>(null);
 
   const [campaignFormData, setCampaignFormData] = useState({
     name: '',
@@ -206,8 +207,7 @@ export const AdsManagementPanel = () => {
           name: clientFormData.name,
           client_type: clientFormData.client_type,
           description: clientFormData.description || null,
-          general_cashbox: parseFloat(clientFormData.general_cashbox) || 0,
-          ads_cashbox: parseFloat(clientFormData.ads_cashbox) || 0
+          cashbox: parseFloat(clientFormData.cashbox) || 0
         }]);
 
       if (error) throw error;
@@ -220,12 +220,54 @@ export const AdsManagementPanel = () => {
         name: '',
         client_type: 'personal',
         description: '',
-        general_cashbox: '',
-        ads_cashbox: ''
+        cashbox: ''
       });
     } catch (error: any) {
       toast.error("Erro ao adicionar cliente");
     }
+  };
+
+  const handleEditClient = async () => {
+    if (!editingClient) return;
+
+    try {
+      const { error } = await supabase
+        .from('ad_clients')
+        .update({
+          name: clientFormData.name,
+          client_type: clientFormData.client_type,
+          description: clientFormData.description || null,
+          cashbox: parseFloat(clientFormData.cashbox) || 0
+        })
+        .eq('id', editingClient.id);
+
+      if (error) throw error;
+
+      toast.success("Cliente atualizado!");
+      setIsEditClientDialogOpen(false);
+      setEditingClient(null);
+      loadData();
+      
+      setClientFormData({
+        name: '',
+        client_type: 'personal',
+        description: '',
+        cashbox: ''
+      });
+    } catch (error: any) {
+      toast.error("Erro ao atualizar cliente");
+    }
+  };
+
+  const openEditClient = (client: AdClient) => {
+    setEditingClient(client);
+    setClientFormData({
+      name: client.name,
+      client_type: client.client_type,
+      description: client.description || '',
+      cashbox: client.cashbox.toString()
+    });
+    setIsEditClientDialogOpen(true);
   };
 
   const [deleteClientId, setDeleteClientId] = useState<string | null>(null);
@@ -530,14 +572,14 @@ export const AdsManagementPanel = () => {
     ? clients.find(c => c.id === selectedClientId)
     : null;
   
-  const clientInitialAdsCashbox = currentClient?.ads_cashbox || 0;
-  const clientRemainingAdsCashbox = clientInitialAdsCashbox - totalSpent; // Saldo restante do caixa de anúncios
+  const clientInitialCashbox = currentClient?.cashbox || 0;
+  const clientRemainingCashbox = clientInitialCashbox - totalSpent;
   
-  const grossProfit = totalRevenue - totalSpent; // Lucro bruto (sem custo do produto)
-  const netProfit = totalRevenue - totalSpent - totalProductCost; // Lucro líquido (com custo do produto)
-  const totalCashbox = clientRemainingAdsCashbox + grossProfit; // Caixa total (saldo + lucro)
+  const grossProfit = totalRevenue - totalSpent;
+  const netProfit = totalRevenue - totalSpent - totalProductCost;
+  const totalCashbox = clientRemainingCashbox + grossProfit;
   const profitMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
-  const roi = totalSpent > 0 ? (grossProfit / totalSpent) * 100 : 0; // ROI baseado no lucro bruto
+  const roi = totalSpent > 0 ? (grossProfit / totalSpent) * 100 : 0;
 
   // Chart data
   const campaignPerformanceData = filteredCampaigns.map(c => ({
@@ -630,20 +672,16 @@ export const AdsManagementPanel = () => {
                       <p className="text-sm text-muted-foreground mt-2">{client.description}</p>
                     )}
                   </CardHeader>
-                  <CardContent>
+                   <CardContent>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Caixa Geral:</span>
-                        <span className="font-medium text-primary">R$ {client.general_cashbox.toFixed(2)}</span>
+                        <span className="text-muted-foreground">Caixa para Anúncios:</span>
+                        <span className="font-medium text-primary">R$ {client.cashbox.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Caixa Anúncios:</span>
-                        <span className="font-medium text-info">R$ {client.ads_cashbox.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Saldo Anúncios:</span>
-                        <span className={`font-medium ${(client.ads_cashbox - clientSpent) >= 0 ? 'text-success' : 'text-destructive'}`}>
-                          R$ {(client.ads_cashbox - clientSpent).toFixed(2)}
+                        <span className="text-muted-foreground">Saldo Restante:</span>
+                        <span className={`font-medium ${(client.cashbox - clientSpent) >= 0 ? 'text-success' : 'text-destructive'}`}>
+                          R$ {(client.cashbox - clientSpent).toFixed(2)}
                         </span>
                       </div>
                       <div className="h-px bg-border my-2" />
@@ -659,6 +697,15 @@ export const AdsManagementPanel = () => {
                         <span className="text-muted-foreground">Faturado:</span>
                         <span className="font-medium text-success">R$ {clientRevenue.toFixed(2)}</span>
                       </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full mt-2"
+                        onClick={(e) => { e.stopPropagation(); openEditClient(client); }}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -1047,27 +1094,15 @@ export const AdsManagementPanel = () => {
                 placeholder="Informações adicionais"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label>Caixa Geral (R$)</Label>
-                <Input 
-                  type="number"
-                  step="0.01"
-                  value={clientFormData.general_cashbox}
-                  onChange={(e) => setClientFormData({...clientFormData, general_cashbox: e.target.value})}
-                  placeholder="0.00"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>Caixa para Anúncios (R$) *</Label>
-                <Input 
-                  type="number"
-                  step="0.01"
-                  value={clientFormData.ads_cashbox}
-                  onChange={(e) => setClientFormData({...clientFormData, ads_cashbox: e.target.value})}
-                  placeholder="0.00"
-                />
-              </div>
+            <div className="grid gap-2">
+              <Label>Caixa para Anúncios (R$) *</Label>
+              <Input 
+                type="number"
+                step="0.01"
+                value={clientFormData.cashbox}
+                onChange={(e) => setClientFormData({...clientFormData, cashbox: e.target.value})}
+                placeholder="0.00"
+              />
             </div>
           </div>
           <DialogFooter>
@@ -1814,6 +1849,64 @@ export const AdsManagementPanel = () => {
         onConfirm={handleDeleteCampaign}
         description="Você tem certeza que deseja excluir esta campanha? Esta ação não pode ser desfeita."
       />
+
+      {/* Edit Client Dialog */}
+      <Dialog open={isEditClientDialogOpen} onOpenChange={setIsEditClientDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Cliente</DialogTitle>
+            <DialogDescription>Atualize as informações do cliente</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>Nome *</Label>
+              <Input 
+                value={clientFormData.name}
+                onChange={(e) => setClientFormData({...clientFormData, name: e.target.value})}
+                placeholder="Ex: Loja ABC"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Tipo</Label>
+              <Select value={clientFormData.client_type} onValueChange={(value: any) => setClientFormData({...clientFormData, client_type: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="personal">Pessoal</SelectItem>
+                  <SelectItem value="company">Empresa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Descrição</Label>
+              <Input 
+                value={clientFormData.description}
+                onChange={(e) => setClientFormData({...clientFormData, description: e.target.value})}
+                placeholder="Informações adicionais"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Caixa para Anúncios (R$) *</Label>
+              <Input 
+                type="number"
+                step="0.01"
+                value={clientFormData.cashbox}
+                onChange={(e) => setClientFormData({...clientFormData, cashbox: e.target.value})}
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditClientDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleEditClient} className="gradient-primary">
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -14,6 +14,13 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
 
+interface Business {
+  id: string;
+  name: string;
+  business_type: 'personal' | 'company';
+  description?: string;
+}
+
 interface Transaction {
   id: string;
   type: 'income' | 'expense';
@@ -28,6 +35,7 @@ interface Transaction {
   reminder_enabled: boolean;
   year: number;
   status_history: any[];
+  business_id?: string;
 }
 
 const MONTHS = [
@@ -36,13 +44,24 @@ const MONTHS = [
 ];
 
 export const FinancialManagementPanel = () => {
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [selectedBusinessId, setSelectedBusinessId] = useState<string>('');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'MMMM', { locale: ptBR }));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isBusinessDialogOpen, setIsBusinessDialogOpen] = useState(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [isComparisonOpen, setIsComparisonOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [loading, setLoading] = useState(false);
+  const [businessFormData, setBusinessFormData] = useState({
+    name: '',
+    business_type: 'personal' as 'personal' | 'company',
+    description: ''
+  });
 
   const [formData, setFormData] = useState({
     type: 'expense' as 'income' | 'expense',
@@ -55,13 +74,44 @@ export const FinancialManagementPanel = () => {
     status: 'pending' as 'paid' | 'pending' | 'cancelled',
     is_recurring: false,
     reminder_enabled: false,
+    business_id: ''
   });
 
   useEffect(() => {
-    loadTransactions();
-  }, [selectedMonth, selectedYear]);
+    loadBusinesses();
+  }, []);
+
+  useEffect(() => {
+    if (selectedBusinessId) {
+      loadTransactions();
+    }
+  }, [selectedBusinessId, selectedMonth, selectedYear]);
+
+  const loadBusinesses = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('financial_businesses')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setBusinesses((data || []) as Business[]);
+      
+      if (data && data.length > 0) {
+        setSelectedBusinessId(data[0].id);
+      }
+    } catch (error: any) {
+      toast.error('Erro ao carregar negócios');
+    }
+  };
 
   const loadTransactions = async () => {
+    if (!selectedBusinessId) return;
+    
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
@@ -71,8 +121,9 @@ export const FinancialManagementPanel = () => {
         .from('financial_transactions')
         .select('*')
         .eq('user_id', user.id)
+        .eq('business_id', selectedBusinessId)
         .eq('year', selectedYear)
-        .order('due_date', { ascending: true });
+        .order('due_date', { ascending: true});
 
       if (error) throw error;
       setTransactions((data || []) as any);
@@ -80,6 +131,33 @@ export const FinancialManagementPanel = () => {
       toast.error('Erro ao carregar transações');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddBusiness = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('financial_businesses')
+        .insert({
+          user_id: user.id,
+          name: businessFormData.name,
+          business_type: businessFormData.business_type,
+          description: businessFormData.description || null
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success('Negócio adicionado!');
+      setIsBusinessDialogOpen(false);
+      setBusinessFormData({ name: '', business_type: 'personal', description: '' });
+      loadBusinesses();
+    } catch (error: any) {
+      toast.error('Erro ao adicionar negócio');
     }
   };
 
@@ -92,6 +170,7 @@ export const FinancialManagementPanel = () => {
         .from('financial_transactions')
         .insert({
           user_id: user.id,
+          business_id: selectedBusinessId,
           type: formData.type,
           category: formData.category,
           description: formData.description,
@@ -205,6 +284,7 @@ export const FinancialManagementPanel = () => {
       status: 'pending',
       is_recurring: false,
       reminder_enabled: false,
+      business_id: selectedBusinessId
     });
   };
 
@@ -221,11 +301,23 @@ export const FinancialManagementPanel = () => {
       status: transaction.status,
       is_recurring: transaction.is_recurring,
       reminder_enabled: transaction.reminder_enabled,
+      business_id: transaction.business_id || selectedBusinessId
     });
     setIsEditDialogOpen(true);
   };
 
-  const monthTransactions = transactions.filter(t => t.month === selectedMonth || t.is_recurring);
+  // Filtrar transações fixas apenas a partir do mês adicionado
+  const getMonthIndex = (month: string) => MONTHS.indexOf(month);
+  
+  const monthTransactions = transactions.filter(t => {
+    if (t.is_recurring) {
+      const transactionMonthIndex = getMonthIndex(t.month);
+      const selectedMonthIndex = getMonthIndex(selectedMonth);
+      // Só mostra transações fixas do mês adicionado em diante
+      return transactionMonthIndex <= selectedMonthIndex;
+    }
+    return t.month === selectedMonth;
+  }).filter(t => selectedCategory === 'all' || t.category === selectedCategory);
 
   const totalIncome = monthTransactions
     .filter(t => t.type === 'income' && t.status === 'paid')
@@ -238,24 +330,107 @@ export const FinancialManagementPanel = () => {
   const pendingAmount = monthTransactions
     .filter(t => t.status === 'pending')
     .reduce((sum, t) => sum + Number(t.amount), 0);
+    
+  const allCategories = Array.from(new Set(transactions.map(t => t.category).filter(Boolean)));
+
+  if (businesses.length === 0) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Gestão Financeira</CardTitle>
+            <CardDescription>Primeiro, crie um negócio para começar</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <DollarSign className="h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground mb-4">Nenhum negócio cadastrado</p>
+            <Button onClick={() => setIsBusinessDialogOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Criar Primeiro Negócio
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Dialog open={isBusinessDialogOpen} onOpenChange={setIsBusinessDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Criar Negócio</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4">
+              <div>
+                <Label>Nome</Label>
+                <Input
+                  value={businessFormData.name}
+                  onChange={(e) => setBusinessFormData({ ...businessFormData, name: e.target.value })}
+                  placeholder="Ex: Meu Negócio"
+                />
+              </div>
+              <div>
+                <Label>Tipo</Label>
+                <Select value={businessFormData.business_type} onValueChange={(v: any) => setBusinessFormData({ ...businessFormData, business_type: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="personal">Pessoa Física</SelectItem>
+                    <SelectItem value="company">Pessoa Jurídica</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Descrição</Label>
+                <Input
+                  value={businessFormData.description}
+                  onChange={(e) => setBusinessFormData({ ...businessFormData, description: e.target.value })}
+                  placeholder="Opcional"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsBusinessDialogOpen(false)}>Cancelar</Button>
+              <Button onClick={handleAddBusiness}>Criar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold">Gestão Financeira</h2>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Transação
-        </Button>
+        <div className="flex gap-2">
+          <Select value={selectedBusinessId} onValueChange={setSelectedBusinessId}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Selecione o negócio" />
+            </SelectTrigger>
+            <SelectContent>
+              {businesses.map((b) => (
+                <SelectItem key={b.id} value={b.id}>
+                  {b.name} ({b.business_type === 'personal' ? 'PF' : 'PJ'})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="outline" onClick={() => setIsBusinessDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Negócio
+          </Button>
+          <Button onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Transação
+          </Button>
+        </div>
       </div>
 
-      {/* Seletores de Ano e Mês */}
+      {/* Seletores de Ano, Mês e Categoria */}
       <Card>
         <CardHeader>
           <CardTitle>Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <Label>Ano</Label>
               <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
@@ -282,26 +457,57 @@ export const FinancialManagementPanel = () => {
                 </SelectContent>
               </Select>
             </div>
+            <div>
+              <Label>Categoria</Label>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  {allCategories.map(cat => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Cards de Resumo */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setIsDetailsDialogOpen(true)}>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Receitas Pagas</CardTitle>
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-sm font-medium">Receitas Pagas</CardTitle>
+              <Check className="w-4 h-4 text-green-600" />
+            </div>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-green-600">R$ {totalIncome.toFixed(2)}</p>
+            <Button variant="link" className="p-0 h-auto text-xs mt-1">Ver detalhes</Button>
+          </CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setIsDetailsDialogOpen(true)}>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-sm font-medium">Despesas Pagas</CardTitle>
+              <Check className="w-4 h-4 text-red-600" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-red-600">R$ {totalExpense.toFixed(2)}</p>
+            <Button variant="link" className="p-0 h-auto text-xs mt-1">Ver detalhes</Button>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Despesas Pagas</CardTitle>
+            <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-red-600">R$ {totalExpense.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-yellow-600">R$ {pendingAmount.toFixed(2)}</p>
+            <Button variant="link" className="p-0 h-auto text-xs mt-1" onClick={() => setIsDetailsDialogOpen(true)}>Ver detalhes</Button>
           </CardContent>
         </Card>
         <Card>
@@ -309,7 +515,10 @@ export const FinancialManagementPanel = () => {
             <CardTitle className="text-sm font-medium">Saldo</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">R$ {(totalIncome - totalExpense).toFixed(2)}</p>
+            <p className={`text-2xl font-bold ${(totalIncome - totalExpense) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              R$ {(totalIncome - totalExpense).toFixed(2)}
+            </p>
+            <Button variant="link" className="p-0 h-auto text-xs mt-1" onClick={() => setIsComparisonOpen(true)}>Comparar meses</Button>
           </CardContent>
         </Card>
       </div>
@@ -595,6 +804,182 @@ export const FinancialManagementPanel = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => { setIsEditDialogOpen(false); resetForm(); }}>Cancelar</Button>
             <Button onClick={handleEditTransaction}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Detalhes */}
+      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalhamento - {selectedMonth} {selectedYear}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6">
+            <div className="grid grid-cols-3 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Receitas Pagas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold text-green-600">R$ {totalIncome.toFixed(2)}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Despesas Pagas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold text-red-600">R$ {totalExpense.toFixed(2)}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Pendentes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold text-yellow-600">R$ {pendingAmount.toFixed(2)}</p>
+                </CardContent>
+              </Card>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-2">Transações do Mês</h3>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {monthTransactions.map((t) => (
+                    <TableRow key={t.id}>
+                      <TableCell>{format(new Date(t.due_date), 'dd/MM/yyyy')}</TableCell>
+                      <TableCell>{t.description}</TableCell>
+                      <TableCell>{t.category}</TableCell>
+                      <TableCell>
+                        <Badge variant={t.type === 'income' ? 'default' : 'destructive'}>
+                          {t.type === 'income' ? 'Receita' : 'Despesa'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-semibold">R$ {Number(t.amount).toFixed(2)}</TableCell>
+                      <TableCell>
+                        <Badge variant={t.status === 'paid' ? 'default' : t.status === 'pending' ? 'secondary' : 'destructive'}>
+                          {t.status === 'paid' ? 'Pago' : t.status === 'pending' ? 'Pendente' : 'Cancelado'}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Comparação */}
+      <Dialog open={isComparisonOpen} onOpenChange={setIsComparisonOpen}>
+        <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Comparação de Meses - {selectedYear}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Mês</TableHead>
+                  <TableHead>Receitas</TableHead>
+                  <TableHead>Despesas</TableHead>
+                  <TableHead>Saldo</TableHead>
+                  <TableHead>Pendentes</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {MONTHS.map((month) => {
+                  const monthTrans = transactions.filter(t => {
+                    if (t.is_recurring) {
+                      const transMonthIdx = getMonthIndex(t.month);
+                      const currMonthIdx = getMonthIndex(month);
+                      return transMonthIdx <= currMonthIdx;
+                    }
+                    return t.month === month;
+                  });
+                  
+                  const income = monthTrans
+                    .filter(t => t.type === 'income' && t.status === 'paid')
+                    .reduce((sum, t) => sum + Number(t.amount), 0);
+                  
+                  const expense = monthTrans
+                    .filter(t => t.type === 'expense' && t.status === 'paid')
+                    .reduce((sum, t) => sum + Number(t.amount), 0);
+                  
+                  const pending = monthTrans
+                    .filter(t => t.status === 'pending')
+                    .reduce((sum, t) => sum + Number(t.amount), 0);
+                  
+                  const balance = income - expense;
+                  
+                  return (
+                    <TableRow key={month} className={month === selectedMonth ? 'bg-muted/50' : ''}>
+                      <TableCell className="font-medium">{month}</TableCell>
+                      <TableCell className="text-green-600 font-semibold">R$ {income.toFixed(2)}</TableCell>
+                      <TableCell className="text-red-600 font-semibold">R$ {expense.toFixed(2)}</TableCell>
+                      <TableCell className={`font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        R$ {balance.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-yellow-600">R$ {pending.toFixed(2)}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Criar Negócio */}
+      <Dialog open={isBusinessDialogOpen} onOpenChange={setIsBusinessDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Criar Negócio</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div>
+              <Label>Nome</Label>
+              <Input
+                value={businessFormData.name}
+                onChange={(e) => setBusinessFormData({ ...businessFormData, name: e.target.value })}
+                placeholder="Ex: Meu Negócio"
+              />
+            </div>
+            <div>
+              <Label>Tipo</Label>
+              <Select value={businessFormData.business_type} onValueChange={(v: any) => setBusinessFormData({ ...businessFormData, business_type: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="personal">Pessoa Física</SelectItem>
+                  <SelectItem value="company">Pessoa Jurídica</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Descrição</Label>
+              <Input
+                value={businessFormData.description}
+                onChange={(e) => setBusinessFormData({ ...businessFormData, description: e.target.value })}
+                placeholder="Opcional"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsBusinessDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleAddBusiness}>Criar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
