@@ -20,7 +20,8 @@ import {
   TrendingDown,
   Percent,
   Building2,
-  Edit
+  Edit,
+  Sparkles
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
@@ -103,6 +104,8 @@ export const AdsManagementPanel = () => {
   
   const [isEditClientDialogOpen, setIsEditClientDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<AdClient | null>(null);
+  const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
+  const [generateScenario, setGenerateScenario] = useState<'positive' | 'negative'>('positive');
 
   const [campaignFormData, setCampaignFormData] = useState({
     name: '',
@@ -290,6 +293,53 @@ export const AdsManagementPanel = () => {
     } finally {
       setDeleteClientId(null);
     }
+  };
+
+  const generateScenarioData = (type: 'positive' | 'negative') => {
+    const baseMetrics = {
+      budget: 1000,
+      impressions: 10000,
+      clicks: 500,
+      conversions: 50,
+      spent: 800,
+      revenue: 2500
+    };
+
+    if (type === 'positive') {
+      return {
+        ...campaignFormData,
+        budget: '1000',
+        impressions: '15000',
+        clicks: '750',
+        conversions: '100',
+        spent: '700',
+        revenue: '5000',
+        product_cost: '1000',
+        reach: '12000',
+        frequency: '1.25',
+      };
+    } else {
+      return {
+        ...campaignFormData,
+        budget: '1000',
+        impressions: '5000',
+        clicks: '150',
+        conversions: '10',
+        spent: '900',
+        revenue: '800',
+        product_cost: '400',
+        reach: '4000',
+        frequency: '1.25',
+      };
+    }
+  };
+
+  const handleGenerateScenario = () => {
+    const scenarioData = generateScenarioData(generateScenario);
+    setCampaignFormData(scenarioData);
+    setIsGenerateDialogOpen(false);
+    setIsAddCampaignDialogOpen(true);
+    toast.success(`Cenário ${generateScenario === 'positive' ? 'positivo' : 'negativo'} gerado!`);
   };
 
   const handleAddCampaign = async () => {
@@ -737,6 +787,10 @@ export const AdsManagementPanel = () => {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              <Button variant="outline" onClick={() => setIsGenerateDialogOpen(true)}>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Gerar Cenário
+              </Button>
               {selectedCampaignId && (
                 <Button 
                   variant="outline" 
@@ -1903,6 +1957,59 @@ export const AdsManagementPanel = () => {
             </Button>
             <Button onClick={handleEditClient} className="gradient-primary">
               Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Generate Scenario Dialog */}
+      <Dialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Gerar Cenário de Métricas</DialogTitle>
+            <DialogDescription>Escolha entre um cenário positivo ou negativo para testar</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Tipo de Cenário</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <Button
+                  type="button"
+                  variant={generateScenario === 'positive' ? 'default' : 'outline'}
+                  onClick={() => setGenerateScenario('positive')}
+                  className="h-auto py-4 flex flex-col items-start"
+                >
+                  <TrendingUp className="h-5 w-5 mb-2" />
+                  <span className="font-semibold">Cenário Positivo</span>
+                  <span className="text-xs opacity-70 text-left">Alto engajamento e boas conversões</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant={generateScenario === 'negative' ? 'default' : 'outline'}
+                  onClick={() => setGenerateScenario('negative')}
+                  className="h-auto py-4 flex flex-col items-start"
+                >
+                  <TrendingDown className="h-5 w-5 mb-2" />
+                  <span className="font-semibold">Cenário Negativo</span>
+                  <span className="text-xs opacity-70 text-left">Baixo engajamento e poucas conversões</span>
+                </Button>
+              </div>
+            </div>
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                {generateScenario === 'positive' 
+                  ? '✅ Será criada uma campanha com: 15.000 impressões, 750 cliques, 100 conversões, R$ 5.000 de faturamento e apenas R$ 700 gastos.'
+                  : '⚠️ Será criada uma campanha com: 5.000 impressões, 150 cliques, 10 conversões, R$ 800 de faturamento e R$ 900 gastos.'}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsGenerateDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleGenerateScenario} className="gradient-primary">
+              <Sparkles className="h-4 w-4 mr-2" />
+              Gerar Campanha
             </Button>
           </DialogFooter>
         </DialogContent>
