@@ -497,6 +497,9 @@ export const AdsManagementPanel = () => {
         return;
       }
 
+      // Calcular diferença de gasto para atualizar caixa do cliente
+      const spentDifference = parseFloat(campaignFormData.spent) - editingCampaign.spent;
+
       const { error } = await supabase
         .from('ad_campaigns')
         .update({
@@ -696,6 +699,8 @@ export const AdsManagementPanel = () => {
               const clientCampaigns = campaigns.filter(c => c.client_id === client.id);
               const clientSpent = clientCampaigns.reduce((sum, c) => sum + c.spent, 0);
               const clientRevenue = clientCampaigns.reduce((sum, c) => sum + (c.revenue || 0), 0);
+              const clientProfit = clientRevenue - clientSpent;
+              const totalCashbox = client.cashbox - clientSpent + clientProfit;
               
               return (
                 <Card key={client.id} className="relative">
@@ -725,13 +730,19 @@ export const AdsManagementPanel = () => {
                    <CardContent>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Caixa para Anúncios:</span>
+                        <span className="text-muted-foreground">Caixa Inicial:</span>
                         <span className="font-medium text-primary">R$ {client.cashbox.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Saldo Restante:</span>
-                        <span className={`font-medium ${(client.cashbox - clientSpent) >= 0 ? 'text-success' : 'text-destructive'}`}>
-                          R$ {(client.cashbox - clientSpent).toFixed(2)}
+                        <span className="text-muted-foreground">Lucro:</span>
+                        <span className={`font-medium ${clientProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                          R$ {clientProfit.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between font-semibold">
+                        <span className="text-muted-foreground">Caixa Total:</span>
+                        <span className={`${totalCashbox >= 0 ? 'text-success' : 'text-destructive'}`}>
+                          R$ {totalCashbox.toFixed(2)}
                         </span>
                       </div>
                       <div className="h-px bg-border my-2" />

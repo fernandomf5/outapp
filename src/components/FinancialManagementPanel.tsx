@@ -53,6 +53,13 @@ export const FinancialManagementPanel = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isBusinessDialogOpen, setIsBusinessDialogOpen] = useState(false);
+  const [isEditBusinessDialogOpen, setIsEditBusinessDialogOpen] = useState(false);
+  const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [isEditCategoryDialogOpen, setIsEditCategoryDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<string | null>(null);
+  const [categoryFormData, setCategoryFormData] = useState({ name: '' });
+  const [categories, setCategories] = useState<string[]>([]);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
@@ -79,6 +86,7 @@ export const FinancialManagementPanel = () => {
 
   useEffect(() => {
     loadBusinesses();
+    loadCategories();
   }, []);
 
   useEffect(() => {
@@ -134,6 +142,24 @@ export const FinancialManagementPanel = () => {
     }
   };
 
+  const loadCategories = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('financial_categories')
+        .select('name')
+        .eq('user_id', user.id)
+        .order('name');
+
+      if (error) throw error;
+      setCategories((data || []).map(c => c.name));
+    } catch (error: any) {
+      toast.error('Erro ao carregar categorias');
+    }
+  };
+
   const handleAddBusiness = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -159,6 +185,130 @@ export const FinancialManagementPanel = () => {
     } catch (error: any) {
       toast.error('Erro ao adicionar negócio');
     }
+  };
+
+  const handleEditBusiness = async () => {
+    if (!editingBusiness) return;
+
+    try {
+      const { error } = await supabase
+        .from('financial_businesses')
+        .update({
+          name: businessFormData.name,
+          business_type: businessFormData.business_type,
+          description: businessFormData.description || null
+        })
+        .eq('id', editingBusiness.id);
+
+      if (error) throw error;
+
+      toast.success('Negócio atualizado!');
+      setIsEditBusinessDialogOpen(false);
+      setEditingBusiness(null);
+      setBusinessFormData({ name: '', business_type: 'personal', description: '' });
+      loadBusinesses();
+    } catch (error: any) {
+      toast.error('Erro ao atualizar negócio');
+    }
+  };
+
+  const handleDeleteBusiness = async (id: string) => {
+    if (!confirm('Tem certeza? Todas as transações serão excluídas.')) return;
+
+    try {
+      const { error } = await supabase
+        .from('financial_businesses')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      toast.success('Negócio excluído!');
+      loadBusinesses();
+    } catch (error: any) {
+      toast.error('Erro ao excluir negócio');
+    }
+  };
+
+  const openEditBusiness = (business: Business) => {
+    setEditingBusiness(business);
+    setBusinessFormData({
+      name: business.name,
+      business_type: business.business_type,
+      description: business.description || ''
+    });
+    setIsEditBusinessDialogOpen(true);
+  };
+
+  const handleAddCategory = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('financial_categories')
+        .insert({ user_id: user.id, name: categoryFormData.name });
+
+      if (error) throw error;
+
+      toast.success('Categoria adicionada!');
+      setIsCategoryDialogOpen(false);
+      setCategoryFormData({ name: '' });
+      loadCategories();
+    } catch (error: any) {
+      toast.error('Erro ao adicionar categoria');
+    }
+  };
+
+  const handleEditCategory = async () => {
+    if (!editingCategory) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('financial_categories')
+        .update({ name: categoryFormData.name })
+        .eq('user_id', user.id)
+        .eq('name', editingCategory);
+
+      if (error) throw error;
+
+      toast.success('Categoria atualizada!');
+      setIsEditCategoryDialogOpen(false);
+      setEditingCategory(null);
+      setCategoryFormData({ name: '' });
+      loadCategories();
+    } catch (error: any) {
+      toast.error('Erro ao atualizar categoria');
+    }
+  };
+
+  const handleDeleteCategory = async (name: string) => {
+    if (!confirm('Tem certeza? Transações com essa categoria não serão excluídas.')) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('financial_categories')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('name', name);
+
+      if (error) throw error;
+      toast.success('Categoria excluída!');
+      loadCategories();
+    } catch (error: any) {
+      toast.error('Erro ao excluir categoria');
+    }
+  };
+
+  const openEditCategory = (name: string) => {
+    setEditingCategory(name);
+    setCategoryFormData({ name });
+    setIsEditCategoryDialogOpen(true);
   };
 
   const handleAddTransaction = async () => {

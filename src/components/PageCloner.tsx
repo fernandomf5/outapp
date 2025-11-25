@@ -246,8 +246,12 @@ export const PageCloner = () => {
         ? cloneData.custom_slug.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '')
         : `clone-${Math.random().toString(36).substring(2, 10)}`;
 
-      // Usar page path selecionado ou page1 como padrão
-      const selectedDomain = cloneData.selected_page_path || window.location.host;
+      // Validar se um domínio foi selecionado
+      if (!cloneData.selected_page_path) {
+        throw new Error('Selecione um domínio ou página para clonar');
+      }
+
+      const selectedDomain = cloneData.selected_page_path;
       
       // Se for domínio personalizado (contém ponto), adiciona https://
       // Se for page path (page1, page2, etc), usa o domínio atual
