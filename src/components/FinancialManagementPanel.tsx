@@ -316,6 +316,9 @@ export const FinancialManagementPanel = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Converte a data para o formato correto sem problemas de timezone
+      const dueDate = new Date(formData.due_date + 'T12:00:00');
+
       const { error } = await supabase
         .from('financial_transactions')
         .insert({
@@ -326,7 +329,7 @@ export const FinancialManagementPanel = () => {
           description: formData.description,
           amount: parseFloat(formData.amount),
           month: formData.month,
-          due_date: formData.due_date,
+          due_date: dueDate.toISOString().split('T')[0],
           payment_method: formData.payment_method,
           status: formData.status,
           is_recurring: formData.is_recurring,
@@ -355,6 +358,9 @@ export const FinancialManagementPanel = () => {
     if (!editingTransaction) return;
 
     try {
+      // Converte a data para o formato correto sem problemas de timezone
+      const dueDate = new Date(formData.due_date + 'T12:00:00');
+
       const { error } = await supabase
         .from('financial_transactions')
         .update({
@@ -363,7 +369,7 @@ export const FinancialManagementPanel = () => {
           description: formData.description,
           amount: parseFloat(formData.amount),
           month: formData.month,
-          due_date: formData.due_date,
+          due_date: dueDate.toISOString().split('T')[0],
           payment_method: formData.payment_method,
           status: formData.status,
           is_recurring: formData.is_recurring,
