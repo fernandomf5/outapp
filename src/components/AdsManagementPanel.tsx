@@ -812,6 +812,167 @@ export const AdsManagementPanel = () => {
     }
   };
 
+  // Função para avaliar performance da campanha
+  const evaluateCampaignPerformance = (campaign: AdCampaign) => {
+    let score = 0;
+    let maxScore = 0;
+    let metrics: string[] = [];
+
+    // ROI
+    const campaignROI = campaign.spent > 0 ? ((campaign.revenue - campaign.spent) / campaign.spent) * 100 : 0;
+    if (campaignROI > 100) {
+      score += 3;
+      metrics.push(`✅ ROI excelente (${campaignROI.toFixed(0)}%)`);
+    } else if (campaignROI > 50) {
+      score += 2;
+      metrics.push(`✓ ROI bom (${campaignROI.toFixed(0)}%)`);
+    } else if (campaignROI > 0) {
+      score += 1;
+      metrics.push(`⚠️ ROI positivo mas baixo (${campaignROI.toFixed(0)}%)`);
+    } else {
+      metrics.push(`❌ ROI negativo (${campaignROI.toFixed(0)}%)`);
+    }
+    maxScore += 3;
+
+    // CTR (Click-through rate)
+    const ctr = campaign.impressions > 0 ? (campaign.clicks / campaign.impressions) * 100 : 0;
+    if (ctr > 2) {
+      score += 2;
+      metrics.push(`✅ CTR excelente (${ctr.toFixed(2)}%)`);
+    } else if (ctr > 1) {
+      score += 1;
+      metrics.push(`✓ CTR razoável (${ctr.toFixed(2)}%)`);
+    } else if (ctr > 0) {
+      metrics.push(`⚠️ CTR baixo (${ctr.toFixed(2)}%)`);
+    } else {
+      metrics.push(`❌ CTR muito baixo`);
+    }
+    maxScore += 2;
+
+    // Taxa de conversão
+    if (campaign.clicks > 0 && campaign.conversions > 0) {
+      const convRate = (campaign.conversions / campaign.clicks) * 100;
+      if (convRate > 5) {
+        score += 3;
+        metrics.push(`✅ Taxa de conversão excelente (${convRate.toFixed(2)}%)`);
+      } else if (convRate > 2) {
+        score += 2;
+        metrics.push(`✓ Taxa de conversão boa (${convRate.toFixed(2)}%)`);
+      } else if (convRate > 0.5) {
+        score += 1;
+        metrics.push(`⚠️ Taxa de conversão baixa (${convRate.toFixed(2)}%)`);
+      } else {
+        metrics.push(`❌ Taxa de conversão muito baixa (${convRate.toFixed(2)}%)`);
+      }
+      maxScore += 3;
+    }
+
+    // Métricas específicas por tipo
+    switch (campaign.campaign_type) {
+      case 'engagement':
+        if (campaign.engagement_count && campaign.impressions) {
+          const engRate = (campaign.engagement_count / campaign.impressions) * 100;
+          if (engRate > 10) {
+            score += 2;
+            metrics.push(`✅ Taxa de engajamento excelente (${engRate.toFixed(2)}%)`);
+          } else if (engRate > 5) {
+            score += 1;
+            metrics.push(`✓ Taxa de engajamento boa (${engRate.toFixed(2)}%)`);
+          } else {
+            metrics.push(`⚠️ Taxa de engajamento baixa (${engRate.toFixed(2)}%)`);
+          }
+          maxScore += 2;
+        }
+        break;
+      
+      case 'video':
+        if (campaign.video_views && campaign.video_watch_time) {
+          const avgWatchTime = campaign.video_watch_time / campaign.video_views;
+          if (avgWatchTime > 30) {
+            score += 2;
+            metrics.push(`✅ Tempo médio de visualização excelente (${avgWatchTime.toFixed(0)}s)`);
+          } else if (avgWatchTime > 15) {
+            score += 1;
+            metrics.push(`✓ Tempo médio razoável (${avgWatchTime.toFixed(0)}s)`);
+          } else {
+            metrics.push(`⚠️ Tempo médio baixo (${avgWatchTime.toFixed(0)}s)`);
+          }
+          maxScore += 2;
+        }
+        break;
+
+      case 'messages':
+        if (campaign.response_rate) {
+          if (campaign.response_rate > 60) {
+            score += 2;
+            metrics.push(`✅ Taxa de resposta excelente (${campaign.response_rate.toFixed(1)}%)`);
+          } else if (campaign.response_rate > 40) {
+            score += 1;
+            metrics.push(`✓ Taxa de resposta boa (${campaign.response_rate.toFixed(1)}%)`);
+          } else {
+            metrics.push(`⚠️ Taxa de resposta baixa (${campaign.response_rate.toFixed(1)}%)`);
+          }
+          maxScore += 2;
+        }
+        break;
+
+      case 'app_install':
+        if (campaign.retention_rate) {
+          if (campaign.retention_rate > 50) {
+            score += 2;
+            metrics.push(`✅ Retenção excelente (${campaign.retention_rate.toFixed(1)}%)`);
+          } else if (campaign.retention_rate > 30) {
+            score += 1;
+            metrics.push(`✓ Retenção razoável (${campaign.retention_rate.toFixed(1)}%)`);
+          } else {
+            metrics.push(`⚠️ Retenção baixa (${campaign.retention_rate.toFixed(1)}%)`);
+          }
+          maxScore += 2;
+        }
+        break;
+
+      case 'branding':
+        if (campaign.brand_recall) {
+          if (campaign.brand_recall > 40) {
+            score += 2;
+            metrics.push(`✅ Recall de marca excelente (${campaign.brand_recall.toFixed(1)}%)`);
+          } else if (campaign.brand_recall > 25) {
+            score += 1;
+            metrics.push(`✓ Recall de marca bom (${campaign.brand_recall.toFixed(1)}%)`);
+          } else {
+            metrics.push(`⚠️ Recall de marca baixo (${campaign.brand_recall.toFixed(1)}%)`);
+          }
+          maxScore += 2;
+        }
+        break;
+    }
+
+    const percentage = maxScore > 0 ? (score / maxScore) * 100 : 0;
+    let status: 'excellent' | 'good' | 'fair' | 'poor';
+    let message: string;
+    let icon: string;
+
+    if (percentage >= 80) {
+      status = 'excellent';
+      message = 'Campanha Excelente!';
+      icon = '🎉';
+    } else if (percentage >= 60) {
+      status = 'good';
+      message = 'Campanha Boa';
+      icon = '👍';
+    } else if (percentage >= 40) {
+      status = 'fair';
+      message = 'Campanha Regular';
+      icon = '⚠️';
+    } else {
+      status = 'poor';
+      message = 'Campanha Precisa Melhorar';
+      icon = '📉';
+    }
+
+    return { status, message, icon, metrics, score, maxScore, percentage };
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center p-8">Carregando...</div>;
   }
@@ -1062,130 +1223,367 @@ export const AdsManagementPanel = () => {
                 </Card>
               </div>
 
+              {/* Campaign Performance Evaluation */}
+              {selectedCampaignId && filteredCampaigns.length > 0 && (() => {
+                const campaign = filteredCampaigns[0];
+                const evaluation = evaluateCampaignPerformance(campaign);
+                const statusColors = {
+                  excellent: 'border-success bg-gradient-to-br from-success/20 to-transparent',
+                  good: 'border-primary bg-gradient-to-br from-primary/20 to-transparent',
+                  fair: 'border-warning bg-gradient-to-br from-warning/20 to-transparent',
+                  poor: 'border-destructive bg-gradient-to-br from-destructive/20 to-transparent'
+                };
+
+                return (
+                  <Card className={`glass ${statusColors[evaluation.status]} mb-6`}>
+                    <CardHeader>
+                      <CardTitle className="text-2xl flex items-center gap-3">
+                        <span className="text-4xl">{evaluation.icon}</span>
+                        {evaluation.message}
+                        <Badge variant={evaluation.status === 'excellent' || evaluation.status === 'good' ? 'default' : 'destructive'} className="ml-auto">
+                          {evaluation.percentage.toFixed(0)}% de performance
+                        </Badge>
+                      </CardTitle>
+                      <CardDescription className="text-base">
+                        Análise detalhada da campanha {campaign.name}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid gap-2">
+                        {evaluation.metrics.map((metric, idx) => (
+                          <div key={idx} className="text-sm font-medium">
+                            {metric}
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })()}
+
               {/* Metrics Cards - Performance */}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {selectedCampaignId && filteredCampaigns.length > 0 ? (
                   // Métricas específicas por tipo de campanha
                   (() => {
                     const campaign = filteredCampaigns[0];
-                    return (
-                      <>
-                        {['conversion', 'catalog', 'promotion'].includes(campaign.campaign_type) && (
-                          <>
-                            <Card className="glass">
-                              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">ROI</CardTitle>
-                                <Percent className="h-4 w-4 text-muted-foreground" />
-                              </CardHeader>
-                              <CardContent>
-                                <div className={`text-2xl font-bold ${(campaign.revenue - campaign.spent) >= 0 ? 'text-success' : 'text-destructive'}`}>
-                                  {campaign.spent > 0 ? (((campaign.revenue - campaign.spent) / campaign.spent) * 100).toFixed(1) : '0'}%
-                                </div>
-                              </CardContent>
-                            </Card>
-                            <Card className="glass">
-                              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Conversões</CardTitle>
-                                <Target className="h-4 w-4 text-muted-foreground" />
-                              </CardHeader>
-                              <CardContent>
-                                <div className="text-2xl font-bold">{campaign.conversions}</div>
-                                <p className="text-xs text-muted-foreground">
-                                  Taxa: {campaign.clicks > 0 ? ((campaign.conversions / campaign.clicks) * 100).toFixed(2) : '0'}%
-                                </p>
-                              </CardContent>
-                            </Card>
-                          </>
-                        )}
-                        
-                        {['traffic', 'engagement'].includes(campaign.campaign_type) && (
-                          <Card className="glass">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                              <CardTitle className="text-sm font-medium">Engajamentos</CardTitle>
-                              <Target className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                              <div className="text-2xl font-bold">{campaign.engagement_count || 0}</div>
-                            </CardContent>
-                          </Card>
-                        )}
-                        
-                        {['reach', 'branding'].includes(campaign.campaign_type) && (
-                          <>
-                            <Card className="glass">
-                              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Alcance</CardTitle>
-                                <Eye className="h-4 w-4 text-muted-foreground" />
-                              </CardHeader>
-                              <CardContent>
-                                <div className="text-2xl font-bold">{campaign.reach?.toLocaleString() || 0}</div>
-                              </CardContent>
-                            </Card>
-                            <Card className="glass">
-                              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Frequência</CardTitle>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="text-2xl font-bold">{campaign.frequency?.toFixed(2) || '0'}</div>
-                              </CardContent>
-                            </Card>
-                          </>
-                        )}
-                        
-                        {campaign.campaign_type === 'video' && (
-                          <>
-                            <Card className="glass">
-                              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Visualizações</CardTitle>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="text-2xl font-bold">{campaign.video_views?.toLocaleString() || 0}</div>
-                              </CardContent>
-                            </Card>
-                            <Card className="glass">
-                              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Tempo Assistido</CardTitle>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="text-2xl font-bold">{campaign.video_watch_time || 0}min</div>
-                              </CardContent>
-                            </Card>
-                          </>
-                        )}
-                        
-                        {campaign.campaign_type === 'leads' && (
-                          <Card className="glass">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                              <CardTitle className="text-sm font-medium">Leads Gerados</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                              <div className="text-2xl font-bold">{campaign.leads_generated || 0}</div>
-                            </CardContent>
-                          </Card>
-                        )}
-                        
-                        {campaign.campaign_type === 'messages' && (
-                          <>
-                            <Card className="glass">
-                              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Mensagens</CardTitle>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="text-2xl font-bold">{campaign.messages_count || 0}</div>
-                              </CardContent>
-                            </Card>
-                            <Card className="glass">
-                              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Taxa Resposta</CardTitle>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="text-2xl font-bold">{campaign.response_rate?.toFixed(1) || 0}%</div>
-                              </CardContent>
-                            </Card>
-                          </>
-                        )}
-                      </>
+                    const metricsCards = [];
+
+                    // Métricas básicas (sempre mostram)
+                    metricsCards.push(
+                      <Card key="impressions" className="glass">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                          <CardTitle className="text-sm font-medium">Impressões</CardTitle>
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold">{campaign.impressions.toLocaleString()}</div>
+                          <p className="text-xs text-muted-foreground">
+                            CPM: R$ {campaign.impressions > 0 ? ((campaign.spent / campaign.impressions) * 1000).toFixed(2) : '0'}
+                          </p>
+                        </CardContent>
+                      </Card>,
+                      <Card key="clicks" className="glass">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                          <CardTitle className="text-sm font-medium">Cliques</CardTitle>
+                          <MousePointerClick className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold">{campaign.clicks.toLocaleString()}</div>
+                          <p className="text-xs text-muted-foreground">
+                            CTR: {campaign.impressions > 0 ? ((campaign.clicks / campaign.impressions) * 100).toFixed(2) : '0'}%
+                          </p>
+                        </CardContent>
+                      </Card>
                     );
+
+                    // Métricas específicas por tipo de campanha
+                    if (['conversion', 'catalog', 'promotion', 'remarketing'].includes(campaign.campaign_type)) {
+                      metricsCards.push(
+                        <Card key="conversions" className="glass">
+                          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Conversões</CardTitle>
+                            <Target className="h-4 w-4 text-muted-foreground" />
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-2xl font-bold">{campaign.conversions}</div>
+                            <p className="text-xs text-muted-foreground">
+                              Taxa: {campaign.clicks > 0 ? ((campaign.conversions / campaign.clicks) * 100).toFixed(2) : '0'}%
+                            </p>
+                          </CardContent>
+                        </Card>,
+                        <Card key="roi" className="glass">
+                          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">ROI</CardTitle>
+                            <Percent className="h-4 w-4 text-muted-foreground" />
+                          </CardHeader>
+                          <CardContent>
+                            <div className={`text-2xl font-bold ${(campaign.revenue - campaign.spent) >= 0 ? 'text-success' : 'text-destructive'}`}>
+                              {campaign.spent > 0 ? (((campaign.revenue - campaign.spent) / campaign.spent) * 100).toFixed(1) : '0'}%
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              CPA: R$ {campaign.conversions > 0 ? (campaign.spent / campaign.conversions).toFixed(2) : '0'}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      );
+
+                      if (campaign.revenue > 0) {
+                        metricsCards.push(
+                          <Card key="revenue" className="glass">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                              <CardTitle className="text-sm font-medium">Receita</CardTitle>
+                              <DollarSign className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                              <div className="text-2xl font-bold text-success">R$ {campaign.revenue.toFixed(2)}</div>
+                              <p className="text-xs text-muted-foreground">
+                                Ticket: R$ {campaign.conversions > 0 ? (campaign.revenue / campaign.conversions).toFixed(2) : '0'}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        );
+                      }
+                    }
+
+                    if (['traffic', 'engagement'].includes(campaign.campaign_type) && campaign.engagement_count) {
+                      metricsCards.push(
+                        <Card key="engagement" className="glass">
+                          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Engajamentos</CardTitle>
+                            <Target className="h-4 w-4 text-muted-foreground" />
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-2xl font-bold">{campaign.engagement_count.toLocaleString()}</div>
+                            <p className="text-xs text-muted-foreground">
+                              Taxa: {campaign.impressions > 0 ? ((campaign.engagement_count / campaign.impressions) * 100).toFixed(2) : '0'}%
+                            </p>
+                          </CardContent>
+                        </Card>
+                      );
+                    }
+
+                    if (['reach', 'branding'].includes(campaign.campaign_type)) {
+                      if (campaign.reach) {
+                        metricsCards.push(
+                          <Card key="reach" className="glass">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                              <CardTitle className="text-sm font-medium">Alcance</CardTitle>
+                              <Eye className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                              <div className="text-2xl font-bold">{campaign.reach.toLocaleString()}</div>
+                            </CardContent>
+                          </Card>
+                        );
+                      }
+                      if (campaign.frequency) {
+                        metricsCards.push(
+                          <Card key="frequency" className="glass">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                              <CardTitle className="text-sm font-medium">Frequência</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="text-2xl font-bold">{campaign.frequency.toFixed(2)}</div>
+                              <p className="text-xs text-muted-foreground">Vezes por pessoa</p>
+                            </CardContent>
+                          </Card>
+                        );
+                      }
+                      if (campaign.qualified_reach) {
+                        metricsCards.push(
+                          <Card key="qualified_reach" className="glass">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                              <CardTitle className="text-sm font-medium">Alcance Qualificado</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="text-2xl font-bold">{campaign.qualified_reach.toLocaleString()}</div>
+                              <p className="text-xs text-muted-foreground">
+                                {campaign.reach ? ((campaign.qualified_reach / campaign.reach) * 100).toFixed(1) : '0'}% do alcance
+                              </p>
+                            </CardContent>
+                          </Card>
+                        );
+                      }
+                      if (campaign.brand_recall) {
+                        metricsCards.push(
+                          <Card key="brand_recall" className="glass">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                              <CardTitle className="text-sm font-medium">Recall de Marca</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="text-2xl font-bold">{campaign.brand_recall.toFixed(1)}%</div>
+                            </CardContent>
+                          </Card>
+                        );
+                      }
+                    }
+
+                    if (campaign.campaign_type === 'video') {
+                      if (campaign.video_views) {
+                        metricsCards.push(
+                          <Card key="video_views" className="glass">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                              <CardTitle className="text-sm font-medium">Visualizações</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="text-2xl font-bold">{campaign.video_views.toLocaleString()}</div>
+                              <p className="text-xs text-muted-foreground">
+                                CPV: R$ {campaign.video_views > 0 ? (campaign.spent / campaign.video_views).toFixed(2) : '0'}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        );
+                      }
+                      if (campaign.video_watch_time) {
+                        metricsCards.push(
+                          <Card key="watch_time" className="glass">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                              <CardTitle className="text-sm font-medium">Tempo Total</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="text-2xl font-bold">{(campaign.video_watch_time / 60).toFixed(0)}min</div>
+                              <p className="text-xs text-muted-foreground">
+                                Média: {campaign.video_views ? (campaign.video_watch_time / campaign.video_views).toFixed(0) : '0'}s por view
+                              </p>
+                            </CardContent>
+                          </Card>
+                        );
+                      }
+                    }
+
+                    if (campaign.campaign_type === 'leads' && campaign.leads_generated) {
+                      metricsCards.push(
+                        <Card key="leads" className="glass">
+                          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Leads Gerados</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-2xl font-bold">{campaign.leads_generated.toLocaleString()}</div>
+                            <p className="text-xs text-muted-foreground">
+                              CPL: R$ {campaign.leads_generated > 0 ? (campaign.spent / campaign.leads_generated).toFixed(2) : '0'}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      );
+                    }
+
+                    if (campaign.campaign_type === 'messages') {
+                      if (campaign.messages_count) {
+                        metricsCards.push(
+                          <Card key="messages" className="glass">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                              <CardTitle className="text-sm font-medium">Mensagens</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="text-2xl font-bold">{campaign.messages_count.toLocaleString()}</div>
+                              <p className="text-xs text-muted-foreground">
+                                Custo/msg: R$ {campaign.messages_count > 0 ? (campaign.spent / campaign.messages_count).toFixed(2) : '0'}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        );
+                      }
+                      if (campaign.response_rate) {
+                        metricsCards.push(
+                          <Card key="response_rate" className="glass">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                              <CardTitle className="text-sm font-medium">Taxa de Resposta</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="text-2xl font-bold">{campaign.response_rate.toFixed(1)}%</div>
+                            </CardContent>
+                          </Card>
+                        );
+                      }
+                    }
+
+                    if (campaign.campaign_type === 'catalog' && campaign.catalog_sales) {
+                      metricsCards.push(
+                        <Card key="catalog_sales" className="glass">
+                          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Vendas Catálogo</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-2xl font-bold">{campaign.catalog_sales.toLocaleString()}</div>
+                          </CardContent>
+                        </Card>
+                      );
+                    }
+
+                    if (campaign.campaign_type === 'remarketing' && campaign.recovery_rate) {
+                      metricsCards.push(
+                        <Card key="recovery" className="glass">
+                          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Taxa de Recuperação</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-2xl font-bold">{campaign.recovery_rate.toFixed(1)}%</div>
+                          </CardContent>
+                        </Card>
+                      );
+                    }
+
+                    if (campaign.campaign_type === 'followers' && campaign.followers_gained) {
+                      metricsCards.push(
+                        <Card key="followers" className="glass">
+                          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Seguidores Ganhos</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-2xl font-bold">{campaign.followers_gained.toLocaleString()}</div>
+                            <p className="text-xs text-muted-foreground">
+                              Custo/seguidor: R$ {campaign.followers_gained > 0 ? (campaign.spent / campaign.followers_gained).toFixed(2) : '0'}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      );
+                    }
+
+                    if (campaign.campaign_type === 'app_install') {
+                      if (campaign.app_installs) {
+                        metricsCards.push(
+                          <Card key="app_installs" className="glass">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                              <CardTitle className="text-sm font-medium">Instalações</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="text-2xl font-bold">{campaign.app_installs.toLocaleString()}</div>
+                              <p className="text-xs text-muted-foreground">
+                                CPI: R$ {campaign.app_installs > 0 ? (campaign.spent / campaign.app_installs).toFixed(2) : '0'}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        );
+                      }
+                      if (campaign.retention_rate) {
+                        metricsCards.push(
+                          <Card key="retention" className="glass">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                              <CardTitle className="text-sm font-medium">Retenção</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="text-2xl font-bold">{campaign.retention_rate.toFixed(1)}%</div>
+                            </CardContent>
+                          </Card>
+                        );
+                      }
+                    }
+
+                    if (campaign.campaign_type === 'custom_conversion' && campaign.custom_conversions) {
+                      metricsCards.push(
+                        <Card key="custom_conversions" className="glass">
+                          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Conversões Personalizadas</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-2xl font-bold">{campaign.custom_conversions.toLocaleString()}</div>
+                          </CardContent>
+                        </Card>
+                      );
+                    }
+
+                    return <>{metricsCards}</>;
                   })()
                 ) : (
                   // Métricas gerais
