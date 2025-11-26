@@ -721,7 +721,7 @@ export const FinancialManagementPanel = () => {
                   </TableCell>
                   <TableCell>{transaction.description}</TableCell>
                   <TableCell>{transaction.category}</TableCell>
-                  <TableCell>{format(new Date(transaction.due_date), 'dd/MM/yyyy')}</TableCell>
+                  <TableCell>{format(new Date(transaction.due_date + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
                   <TableCell className="font-semibold">R$ {Number(transaction.amount).toFixed(2)}</TableCell>
                   <TableCell>
                     <Select value={transaction.status} onValueChange={(v) => handleStatusChange(transaction, v as any)}>
@@ -1037,7 +1037,7 @@ export const FinancialManagementPanel = () => {
                 <TableBody>
                   {monthTransactions.map((t) => (
                     <TableRow key={t.id}>
-                      <TableCell>{format(new Date(t.due_date), 'dd/MM/yyyy')}</TableCell>
+                      <TableCell>{format(new Date(t.due_date + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
                       <TableCell>{t.description}</TableCell>
                       <TableCell>{t.category}</TableCell>
                       <TableCell>
