@@ -553,7 +553,7 @@ export function SimpleMembersArea() {
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <Label className="text-sm">Cor Primária</Label>
-                  <Popover open={showEditPrimaryColorPicker} onOpenChange={setShowEditPrimaryColorPicker}>
+                  <Popover modal={false} open={showEditPrimaryColorPicker} onOpenChange={setShowEditPrimaryColorPicker}>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start gap-2">
                         <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.primary_color }} />
@@ -570,7 +570,7 @@ export function SimpleMembersArea() {
                 </div>
                 <div>
                   <Label className="text-sm">Cor Secundária</Label>
-                  <Popover open={showEditSecondaryColorPicker} onOpenChange={setShowEditSecondaryColorPicker}>
+                  <Popover modal={false} open={showEditSecondaryColorPicker} onOpenChange={setShowEditSecondaryColorPicker}>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start gap-2">
                         <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.secondary_color }} />
@@ -719,7 +719,7 @@ export function SimpleMembersArea() {
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <Label className="text-sm">Cor Primária</Label>
-                  <Popover open={showCreatePrimaryColorPicker} onOpenChange={setShowCreatePrimaryColorPicker}>
+                  <Popover modal={false} open={showCreatePrimaryColorPicker} onOpenChange={setShowCreatePrimaryColorPicker}>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start gap-2">
                         <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.primary_color }} />
@@ -736,7 +736,7 @@ export function SimpleMembersArea() {
                 </div>
                 <div>
                   <Label className="text-sm">Cor Secundária</Label>
-                  <Popover open={showCreateSecondaryColorPicker} onOpenChange={setShowCreateSecondaryColorPicker}>
+                  <Popover modal={false} open={showCreateSecondaryColorPicker} onOpenChange={setShowCreateSecondaryColorPicker}>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start gap-2">
                         <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.secondary_color }} />
@@ -759,6 +759,91 @@ export function SimpleMembersArea() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Área de Membros</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Nome da Área</Label>
+              <Input
+                value={areaFormData.name}
+                onChange={(e) => setAreaFormData({ ...areaFormData, name: e.target.value })}
+                placeholder="Ex: Curso de Marketing Digital"
+              />
+            </div>
+            <div>
+              <Label>Descrição</Label>
+              <Textarea
+                value={areaFormData.description}
+                onChange={(e) => setAreaFormData({ ...areaFormData, description: e.target.value })}
+                placeholder="Descreva a área de membros..."
+              />
+            </div>
+            <div>
+              <Label>Senha de Acesso</Label>
+              <Input
+                value={areaFormData.password}
+                onChange={(e) => setAreaFormData({ ...areaFormData, password: e.target.value })}
+                placeholder="Defina uma senha"
+                type="text"
+              />
+            </div>
+            <div className="space-y-3">
+              <Label>Cores Personalizadas</Label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <Label className="text-sm">Cor Primária</Label>
+                  <Popover modal={false} open={showEditPrimaryColorPicker} onOpenChange={setShowEditPrimaryColorPicker}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start gap-2">
+                        <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.primary_color }} />
+                        <span className="text-sm">{areaFormData.primary_color}</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-3">
+                      <HexColorPicker
+                        color={areaFormData.primary_color}
+                        onChange={(color) => setAreaFormData({ ...areaFormData, primary_color: color })}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div>
+                  <Label className="text-sm">Cor Secundária</Label>
+                  <Popover modal={false} open={showEditSecondaryColorPicker} onOpenChange={setShowEditSecondaryColorPicker}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start gap-2">
+                        <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.secondary_color }} />
+                        <span className="text-sm">{areaFormData.secondary_color}</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-3">
+                      <HexColorPicker
+                        color={areaFormData.secondary_color}
+                        onChange={(color) => setAreaFormData({ ...areaFormData, secondary_color: color })}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+            </div>
+            <Button onClick={handleUpdateArea} className="w-full" disabled={loading}>
+              {loading ? 'Salvando...' : 'Salvar Alterações'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <DeleteConfirmDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDeleteArea}
+        title="Excluir Área de Membros"
+        description="Tem certeza que deseja excluir esta área de membros? Todas as seções e conteúdos serão perdidos permanentemente."
+      />
     </div>
   );
 }
