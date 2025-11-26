@@ -480,8 +480,6 @@ export const FinancialManagementPanel = () => {
   const pendingAmount = monthTransactions
     .filter(t => t.status === 'pending')
     .reduce((sum, t) => sum + Number(t.amount), 0);
-    
-  const allCategories = Array.from(new Set(transactions.map(t => t.category).filter(Boolean)));
 
   if (businesses.length === 0) {
     return (
@@ -629,7 +627,7 @@ export const FinancialManagementPanel = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas</SelectItem>
-                  {allCategories.map(cat => (
+                  {categories.map(cat => (
                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                   ))}
                 </SelectContent>
