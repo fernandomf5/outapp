@@ -4772,6 +4772,8 @@ export type Database = {
           is_active: boolean | null
           name: string
           password: string
+          primary_color: string | null
+          secondary_color: string | null
           sections: Json | null
           slug: string
           updated_at: string | null
@@ -4784,6 +4786,8 @@ export type Database = {
           is_active?: boolean | null
           name: string
           password: string
+          primary_color?: string | null
+          secondary_color?: string | null
           sections?: Json | null
           slug: string
           updated_at?: string | null
@@ -4796,6 +4800,8 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           password?: string
+          primary_color?: string | null
+          secondary_color?: string | null
           sections?: Json | null
           slug?: string
           updated_at?: string | null
