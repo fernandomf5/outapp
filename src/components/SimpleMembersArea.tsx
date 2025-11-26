@@ -266,8 +266,7 @@ export function SimpleMembersArea() {
     toast.success('Link copiado!');
   };
 
-  const handleOpenEditDialog = (area: MembersArea, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleOpenEditDialog = (area: MembersArea) => {
     setEditingArea(area);
     setAreaFormData({
       name: area.name,
@@ -645,7 +644,7 @@ export function SimpleMembersArea() {
                       <Edit className="w-4 h-4 mr-2" />
                       Gerenciar
                     </Button>
-                    <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleOpenEditDialog(area, e); }}>
+                    <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleOpenEditDialog(area); }}>
                       <Edit className="w-4 h-4" />
                     </Button>
                   </div>
