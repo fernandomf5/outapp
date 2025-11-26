@@ -551,6 +551,9 @@ export const FinancialManagementPanel = () => {
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold">Gestão Financeira</h2>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setIsCategoryDialogOpen(true)}>
+            Categorias
+          </Button>
           <Select value={selectedBusinessId} onValueChange={setSelectedBusinessId}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Selecione o negócio" />
@@ -566,6 +569,17 @@ export const FinancialManagementPanel = () => {
           <Button variant="outline" onClick={() => setIsBusinessDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Novo Negócio
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => {
+            const current = businesses.find(b => b.id === selectedBusinessId);
+            if (current) openEditBusiness(current);
+          }}>
+            <Edit2 className="w-4 h-4" />
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => {
+            if (selectedBusinessId) handleDeleteBusiness(selectedBusinessId);
+          }}>
+            <Trash2 className="w-4 h-4" />
           </Button>
           <Button onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
@@ -1130,6 +1144,103 @@ export const FinancialManagementPanel = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsBusinessDialogOpen(false)}>Cancelar</Button>
             <Button onClick={handleAddBusiness}>Criar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Editar Negócio */}
+      <Dialog open={isEditBusinessDialogOpen} onOpenChange={setIsEditBusinessDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Negócio</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div>
+              <Label>Nome</Label>
+              <Input
+                value={businessFormData.name}
+                onChange={(e) => setBusinessFormData({ ...businessFormData, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Tipo</Label>
+              <Select value={businessFormData.business_type} onValueChange={(v: any) => setBusinessFormData({ ...businessFormData, business_type: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="personal">Pessoa Física</SelectItem>
+                  <SelectItem value="company">Pessoa Jurídica</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Descrição</Label>
+              <Input
+                value={businessFormData.description}
+                onChange={(e) => setBusinessFormData({ ...businessFormData, description: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditBusinessDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleEditBusiness}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Gerenciar Categorias */}
+      <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Categorias</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Nova categoria"
+                value={categoryFormData.name}
+                onChange={(e) => setCategoryFormData({ name: e.target.value })}
+              />
+              <Button onClick={handleAddCategory}>
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+              {categories.map((cat) => (
+                <div key={cat} className="flex items-center justify-between p-2 border rounded">
+                  <span>{cat}</span>
+                  <div className="flex gap-1">
+                    <Button size="icon" variant="ghost" onClick={() => openEditCategory(cat)}>
+                      <Edit2 className="w-4 h-4" />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => handleDeleteCategory(cat)}>
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Editar Categoria */}
+      <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Categoria</DialogTitle>
+          </DialogHeader>
+          <div>
+            <Label>Nome</Label>
+            <Input
+              value={categoryFormData.name}
+              onChange={(e) => setCategoryFormData({ name: e.target.value })}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditCategoryDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleEditCategory}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
