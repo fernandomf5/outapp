@@ -926,74 +926,202 @@ export const AdsManagementPanel = () => {
 
               {/* Metrics Cards - Performance */}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card className="glass">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">ROI</CardTitle>
-                    <Percent className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className={`text-2xl font-bold ${roi >= 0 ? 'text-success' : 'text-destructive'}`}>
-                      {roi.toFixed(1)}%
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Margem: {profitMargin.toFixed(1)}%
-                    </p>
-                  </CardContent>
-                </Card>
+                {selectedCampaignId && filteredCampaigns.length > 0 ? (
+                  // Métricas específicas por tipo de campanha
+                  (() => {
+                    const campaign = filteredCampaigns[0];
+                    return (
+                      <>
+                        {['conversion', 'catalog', 'promotion'].includes(campaign.campaign_type) && (
+                          <>
+                            <Card className="glass">
+                              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">ROI</CardTitle>
+                                <Percent className="h-4 w-4 text-muted-foreground" />
+                              </CardHeader>
+                              <CardContent>
+                                <div className={`text-2xl font-bold ${(campaign.revenue - campaign.spent) >= 0 ? 'text-success' : 'text-destructive'}`}>
+                                  {campaign.spent > 0 ? (((campaign.revenue - campaign.spent) / campaign.spent) * 100).toFixed(1) : '0'}%
+                                </div>
+                              </CardContent>
+                            </Card>
+                            <Card className="glass">
+                              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Conversões</CardTitle>
+                                <Target className="h-4 w-4 text-muted-foreground" />
+                              </CardHeader>
+                              <CardContent>
+                                <div className="text-2xl font-bold">{campaign.conversions}</div>
+                                <p className="text-xs text-muted-foreground">
+                                  Taxa: {campaign.clicks > 0 ? ((campaign.conversions / campaign.clicks) * 100).toFixed(2) : '0'}%
+                                </p>
+                              </CardContent>
+                            </Card>
+                          </>
+                        )}
+                        
+                        {['traffic', 'engagement'].includes(campaign.campaign_type) && (
+                          <Card className="glass">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                              <CardTitle className="text-sm font-medium">Engajamentos</CardTitle>
+                              <Target className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                              <div className="text-2xl font-bold">{campaign.engagement_count || 0}</div>
+                            </CardContent>
+                          </Card>
+                        )}
+                        
+                        {['reach', 'branding'].includes(campaign.campaign_type) && (
+                          <>
+                            <Card className="glass">
+                              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Alcance</CardTitle>
+                                <Eye className="h-4 w-4 text-muted-foreground" />
+                              </CardHeader>
+                              <CardContent>
+                                <div className="text-2xl font-bold">{campaign.reach?.toLocaleString() || 0}</div>
+                              </CardContent>
+                            </Card>
+                            <Card className="glass">
+                              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Frequência</CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="text-2xl font-bold">{campaign.frequency?.toFixed(2) || '0'}</div>
+                              </CardContent>
+                            </Card>
+                          </>
+                        )}
+                        
+                        {campaign.campaign_type === 'video' && (
+                          <>
+                            <Card className="glass">
+                              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Visualizações</CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="text-2xl font-bold">{campaign.video_views?.toLocaleString() || 0}</div>
+                              </CardContent>
+                            </Card>
+                            <Card className="glass">
+                              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Tempo Assistido</CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="text-2xl font-bold">{campaign.video_watch_time || 0}min</div>
+                              </CardContent>
+                            </Card>
+                          </>
+                        )}
+                        
+                        {campaign.campaign_type === 'leads' && (
+                          <Card className="glass">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                              <CardTitle className="text-sm font-medium">Leads Gerados</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="text-2xl font-bold">{campaign.leads_generated || 0}</div>
+                            </CardContent>
+                          </Card>
+                        )}
+                        
+                        {campaign.campaign_type === 'messages' && (
+                          <>
+                            <Card className="glass">
+                              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Mensagens</CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="text-2xl font-bold">{campaign.messages_count || 0}</div>
+                              </CardContent>
+                            </Card>
+                            <Card className="glass">
+                              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Taxa Resposta</CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="text-2xl font-bold">{campaign.response_rate?.toFixed(1) || 0}%</div>
+                              </CardContent>
+                            </Card>
+                          </>
+                        )}
+                      </>
+                    );
+                  })()
+                ) : (
+                  // Métricas gerais
+                  <>
+                    <Card className="glass">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">ROI</CardTitle>
+                        <Percent className="h-4 w-4 text-muted-foreground" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className={`text-2xl font-bold ${roi >= 0 ? 'text-success' : 'text-destructive'}`}>
+                          {roi.toFixed(1)}%
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Margem: {profitMargin.toFixed(1)}%
+                        </p>
+                      </CardContent>
+                    </Card>
 
-                <Card className="glass">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Conversões</CardTitle>
-                    <Target className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{totalConversions}</div>
-                    <p className="text-xs text-muted-foreground">
-                      Taxa: {conversionRate.toFixed(2)}%
-                    </p>
-                  </CardContent>
-                </Card>
+                    <Card className="glass">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Conversões</CardTitle>
+                        <Target className="h-4 w-4 text-muted-foreground" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{totalConversions}</div>
+                        <p className="text-xs text-muted-foreground">
+                          Taxa: {conversionRate.toFixed(2)}%
+                        </p>
+                      </CardContent>
+                    </Card>
 
-                <Card className="glass">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Ticket do Produto</CardTitle>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-primary">
-                      R$ {totalConversions > 0 ? (totalRevenue / totalConversions).toFixed(2) : '0.00'}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Ticket médio por venda
-                    </p>
-                  </CardContent>
-                </Card>
+                    <Card className="glass">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Ticket do Produto</CardTitle>
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-primary">
+                          R$ {totalConversions > 0 ? (totalRevenue / totalConversions).toFixed(2) : '0.00'}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Ticket médio por venda
+                        </p>
+                      </CardContent>
+                    </Card>
 
-                <Card className="glass">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Impressões</CardTitle>
-                    <Eye className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{totalImpressions.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">
-                      CTR: {avgCTR.toFixed(2)}%
-                    </p>
-                  </CardContent>
-                </Card>
+                    <Card className="glass">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Impressões</CardTitle>
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{totalImpressions.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground">
+                          CTR: {avgCTR.toFixed(2)}%
+                        </p>
+                      </CardContent>
+                    </Card>
 
-                <Card className="glass">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Cliques</CardTitle>
-                    <MousePointerClick className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{totalClicks.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">
-                      CPC: R$ {avgCPC.toFixed(2)}
-                    </p>
-                  </CardContent>
-                </Card>
+                    <Card className="glass">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Cliques</CardTitle>
+                        <MousePointerClick className="h-4 w-4 text-muted-foreground" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{totalClicks.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground">
+                          CPC: R$ {avgCPC.toFixed(2)}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
               </div>
 
               {/* Charts */}
