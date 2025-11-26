@@ -80,7 +80,9 @@ export function MembersAreaCreator() {
     title: '',
     description: '',
     area_type: 'course',
-    access_mode: 'open' // 'open' = liberada, 'restricted' = solicitar acesso
+    access_mode: 'open', // 'open' = liberada, 'restricted' = solicitar acesso
+    primary_color: '#8B5CF6',
+    secondary_color: '#EC4899'
   });
   const [customDomains, setCustomDomains] = useState<Array<{id: string; domain: string; is_verified: boolean}>>([]);
   const [selectedDomain, setSelectedDomain] = useState<string>("");
@@ -91,6 +93,10 @@ export function MembersAreaCreator() {
   const [editedArea, setEditedArea] = useState<MembersArea | null>(null);
   const [showPrimaryColorPicker, setShowPrimaryColorPicker] = useState(false);
   const [showSecondaryColorPicker, setShowSecondaryColorPicker] = useState(false);
+  const [showCreatePrimaryColorPicker, setShowCreatePrimaryColorPicker] = useState(false);
+  const [showCreateSecondaryColorPicker, setShowCreateSecondaryColorPicker] = useState(false);
+  const [showEditPrimaryColorPicker, setShowEditPrimaryColorPicker] = useState(false);
+  const [showEditSecondaryColorPicker, setShowEditSecondaryColorPicker] = useState(false);
 
   useEffect(() => {
     loadMembersAreas();
@@ -207,14 +213,16 @@ export function MembersAreaCreator() {
           description: formData.description,
           area_type: (formData as any).area_type,
           require_approval: (formData as any).access_mode === 'restricted',
-          is_active: true
+          is_active: true,
+          primary_color: (formData as any).primary_color,
+          secondary_color: (formData as any).secondary_color
         }]);
 
       if (error) throw error;
 
       toast.success("Área de membros criada!");
       setIsCreateDialogOpen(false);
-      setFormData({ title: '', description: '', area_type: 'course', access_mode: 'open' });
+      setFormData({ title: '', description: '', area_type: 'course', access_mode: 'open', primary_color: '#8B5CF6', secondary_color: '#EC4899' });
       loadMembersAreas();
     } catch (error: any) {
       toast.error(`Erro ao criar área de membros: ${error?.message || ''}`);
@@ -243,7 +251,9 @@ export function MembersAreaCreator() {
       title: (area as any).name || area.title,
       description: area.description || '',
       area_type: area.area_type || 'course',
-      access_mode: (area as any).require_approval ? 'restricted' : 'open'
+      access_mode: (area as any).require_approval ? 'restricted' : 'open',
+      primary_color: area.primary_color || '#8B5CF6',
+      secondary_color: area.secondary_color || '#EC4899'
     } as any);
     setIsEditDialogOpen(true);
   };
@@ -264,6 +274,8 @@ export function MembersAreaCreator() {
           description: formData.description,
           area_type: (formData as any).area_type,
           require_approval: (formData as any).access_mode === 'restricted',
+          primary_color: (formData as any).primary_color,
+          secondary_color: (formData as any).secondary_color
         } as any)
         .eq('id', editingArea.id);
 
@@ -272,7 +284,7 @@ export function MembersAreaCreator() {
       toast.success("Curso atualizado com sucesso!");
       setIsEditDialogOpen(false);
       setEditingArea(null);
-      setFormData({ title: '', description: '', area_type: 'course', access_mode: 'open' });
+      setFormData({ title: '', description: '', area_type: 'course', access_mode: 'open', primary_color: '#8B5CF6', secondary_color: '#EC4899' });
       loadMembersAreas();
       
       // Se estava editando a área selecionada, atualiza
@@ -360,6 +372,57 @@ export function MembersAreaCreator() {
                       : 'Usuários precisam solicitar acesso e você aprovará manualmente.'}
                   </p>
                 </div>
+                <div className="space-y-3">
+                  <Label>Cores Personalizadas</Label>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="grid gap-2">
+                      <Label className="text-sm">Cor Primária</Label>
+                      <Popover open={showCreatePrimaryColorPicker} onOpenChange={setShowCreatePrimaryColorPicker}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start gap-2"
+                          >
+                            <div 
+                              className="w-5 h-5 rounded border border-border" 
+                              style={{ backgroundColor: (formData as any).primary_color }}
+                            />
+                            <span className="text-sm">{(formData as any).primary_color}</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-3">
+                          <HexColorPicker
+                            color={(formData as any).primary_color}
+                            onChange={(color) => setFormData({...formData, primary_color: color} as any)}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="text-sm">Cor Secundária</Label>
+                      <Popover open={showCreateSecondaryColorPicker} onOpenChange={setShowCreateSecondaryColorPicker}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start gap-2"
+                          >
+                            <div 
+                              className="w-5 h-5 rounded border border-border" 
+                              style={{ backgroundColor: (formData as any).secondary_color }}
+                            />
+                            <span className="text-sm">{(formData as any).secondary_color}</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-3">
+                          <HexColorPicker
+                            color={(formData as any).secondary_color}
+                            onChange={(color) => setFormData({...formData, secondary_color: color} as any)}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
@@ -427,12 +490,63 @@ export function MembersAreaCreator() {
                       : 'Usuários precisam solicitar acesso e você aprovará manualmente.'}
                   </p>
                 </div>
+                <div className="space-y-3">
+                  <Label>Cores Personalizadas</Label>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="grid gap-2">
+                      <Label className="text-sm">Cor Primária</Label>
+                      <Popover open={showEditPrimaryColorPicker} onOpenChange={setShowEditPrimaryColorPicker}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start gap-2"
+                          >
+                            <div 
+                              className="w-5 h-5 rounded border border-border" 
+                              style={{ backgroundColor: (formData as any).primary_color }}
+                            />
+                            <span className="text-sm">{(formData as any).primary_color}</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-3">
+                          <HexColorPicker
+                            color={(formData as any).primary_color}
+                            onChange={(color) => setFormData({...formData, primary_color: color} as any)}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="text-sm">Cor Secundária</Label>
+                      <Popover open={showEditSecondaryColorPicker} onOpenChange={setShowEditSecondaryColorPicker}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start gap-2"
+                          >
+                            <div 
+                              className="w-5 h-5 rounded border border-border" 
+                              style={{ backgroundColor: (formData as any).secondary_color }}
+                            />
+                            <span className="text-sm">{(formData as any).secondary_color}</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-3">
+                          <HexColorPicker
+                            color={(formData as any).secondary_color}
+                            onChange={(color) => setFormData({...formData, secondary_color: color} as any)}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => {
                   setIsEditDialogOpen(false);
                   setEditingArea(null);
-                  setFormData({ title: '', description: '', area_type: 'course', access_mode: 'open' });
+                  setFormData({ title: '', description: '', area_type: 'course', access_mode: 'open', primary_color: '#8B5CF6', secondary_color: '#EC4899' });
                 }}>
                   Cancelar
                 </Button>
