@@ -104,8 +104,6 @@ export const AdsManagementPanel = () => {
   
   const [isEditClientDialogOpen, setIsEditClientDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<AdClient | null>(null);
-  const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
-  const [generateScenario, setGenerateScenario] = useState<'positive' | 'negative'>('positive');
 
   const [campaignFormData, setCampaignFormData] = useState({
     name: '',
@@ -295,51 +293,195 @@ export const AdsManagementPanel = () => {
     }
   };
 
-  const generateScenarioData = (type: 'positive' | 'negative') => {
-    const baseMetrics = {
-      budget: 1000,
-      impressions: 10000,
-      clicks: 500,
-      conversions: 50,
-      spent: 800,
-      revenue: 2500
+  const generateScenarioData = (type: 'positive' | 'negative', campaignType: string) => {
+    const commonFields = {
+      budget: type === 'positive' ? '5000' : '3000',
+      spent: type === 'positive' ? '4200' : '2900',
     };
 
-    if (type === 'positive') {
-      return {
-        ...campaignFormData,
-        budget: '1000',
-        impressions: '15000',
-        clicks: '750',
-        conversions: '100',
-        spent: '700',
-        revenue: '5000',
-        product_cost: '1000',
-        reach: '12000',
-        frequency: '1.25',
-      };
-    } else {
-      return {
-        ...campaignFormData,
-        budget: '1000',
-        impressions: '5000',
-        clicks: '150',
-        conversions: '10',
-        spent: '900',
-        revenue: '800',
-        product_cost: '400',
-        reach: '4000',
-        frequency: '1.25',
-      };
+    const scenarioData: any = { ...campaignFormData, ...commonFields };
+
+    // Dados específicos por tipo de campanha
+    switch (campaignType) {
+      case 'conversion':
+        if (type === 'positive') {
+          scenarioData.impressions = '85000';
+          scenarioData.clicks = '4250';
+          scenarioData.conversions = '425';
+          scenarioData.revenue = '21250';
+          scenarioData.product_cost = '8500';
+        } else {
+          scenarioData.impressions = '45000';
+          scenarioData.clicks = '900';
+          scenarioData.conversions = '45';
+          scenarioData.revenue = '2250';
+          scenarioData.product_cost = '1800';
+        }
+        break;
+
+      case 'traffic':
+        if (type === 'positive') {
+          scenarioData.impressions = '120000';
+          scenarioData.clicks = '9600';
+          scenarioData.engagement_count = '4800';
+        } else {
+          scenarioData.impressions = '60000';
+          scenarioData.clicks = '1800';
+          scenarioData.engagement_count = '900';
+        }
+        break;
+
+      case 'engagement':
+        if (type === 'positive') {
+          scenarioData.impressions = '95000';
+          scenarioData.engagement_count = '19000';
+        } else {
+          scenarioData.impressions = '50000';
+          scenarioData.engagement_count = '5000';
+        }
+        break;
+
+      case 'reach':
+        if (type === 'positive') {
+          scenarioData.reach = '150000';
+          scenarioData.frequency = '2.8';
+        } else {
+          scenarioData.reach = '45000';
+          scenarioData.frequency = '1.5';
+        }
+        break;
+
+      case 'video':
+        if (type === 'positive') {
+          scenarioData.video_views = '75000';
+          scenarioData.video_watch_time = '1125000';
+        } else {
+          scenarioData.video_views = '25000';
+          scenarioData.video_watch_time = '187500';
+        }
+        break;
+
+      case 'leads':
+        if (type === 'positive') {
+          scenarioData.leads_generated = '850';
+        } else {
+          scenarioData.leads_generated = '145';
+        }
+        break;
+
+      case 'messages':
+        if (type === 'positive') {
+          scenarioData.messages_count = '680';
+          scenarioData.response_rate = '78.5';
+        } else {
+          scenarioData.messages_count = '145';
+          scenarioData.response_rate = '32.8';
+        }
+        break;
+
+      case 'catalog':
+        if (type === 'positive') {
+          scenarioData.catalog_sales = '340';
+          scenarioData.conversions = '340';
+          scenarioData.revenue = '17000';
+        } else {
+          scenarioData.catalog_sales = '58';
+          scenarioData.conversions = '58';
+          scenarioData.revenue = '2900';
+        }
+        break;
+
+      case 'remarketing':
+        if (type === 'positive') {
+          scenarioData.impressions = '42000';
+          scenarioData.clicks = '2520';
+          scenarioData.conversions = '252';
+          scenarioData.recovery_rate = '22.5';
+        } else {
+          scenarioData.impressions = '25000';
+          scenarioData.clicks = '500';
+          scenarioData.conversions = '25';
+          scenarioData.recovery_rate = '5.8';
+        }
+        break;
+
+      case 'ab_test':
+        if (type === 'positive') {
+          scenarioData.impressions = '50000';
+          scenarioData.clicks = '3000';
+          scenarioData.conversions = '300';
+        } else {
+          scenarioData.impressions = '30000';
+          scenarioData.clicks = '600';
+          scenarioData.conversions = '30';
+        }
+        break;
+
+      case 'followers':
+        if (type === 'positive') {
+          scenarioData.followers_gained = '2500';
+        } else {
+          scenarioData.followers_gained = '420';
+        }
+        break;
+
+      case 'app_install':
+        if (type === 'positive') {
+          scenarioData.app_installs = '1250';
+          scenarioData.retention_rate = '65.8';
+        } else {
+          scenarioData.app_installs = '210';
+          scenarioData.retention_rate = '22.5';
+        }
+        break;
+
+      case 'custom_conversion':
+        if (type === 'positive') {
+          scenarioData.custom_conversions = '425';
+        } else {
+          scenarioData.custom_conversions = '72';
+        }
+        break;
+
+      case 'promotion':
+        if (type === 'positive') {
+          scenarioData.impressions = '110000';
+          scenarioData.clicks = '5500';
+          scenarioData.conversions = '550';
+          scenarioData.revenue = '27500';
+        } else {
+          scenarioData.impressions = '48000';
+          scenarioData.clicks = '960';
+          scenarioData.conversions = '48';
+          scenarioData.revenue = '2400';
+        }
+        break;
+
+      case 'branding':
+        if (type === 'positive') {
+          scenarioData.reach = '180000';
+          scenarioData.qualified_reach = '135000';
+          scenarioData.brand_recall = '45.8';
+        } else {
+          scenarioData.reach = '58000';
+          scenarioData.qualified_reach = '29000';
+          scenarioData.brand_recall = '12.5';
+        }
+        break;
     }
+
+    return scenarioData;
   };
 
-  const handleGenerateScenario = () => {
-    const scenarioData = generateScenarioData(generateScenario);
+  const handleGenerateScenario = (type: 'positive' | 'negative') => {
+    if (!campaignFormData.campaign_type) {
+      toast.error("Selecione o tipo de campanha primeiro");
+      return;
+    }
+    
+    const scenarioData = generateScenarioData(type, campaignFormData.campaign_type);
     setCampaignFormData(scenarioData);
-    setIsGenerateDialogOpen(false);
-    setIsAddCampaignDialogOpen(true);
-    toast.success(`Cenário ${generateScenario === 'positive' ? 'positivo' : 'negativo'} gerado!`);
+    toast.success(`Cenário ${type === 'positive' ? 'positivo' : 'negativo'} gerado!`);
   };
 
   const handleAddCampaign = async () => {
@@ -798,12 +940,8 @@ export const AdsManagementPanel = () => {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="outline" onClick={() => setIsGenerateDialogOpen(true)}>
-                <Sparkles className="mr-2 h-4 w-4" />
-                Gerar Cenário
-              </Button>
               {selectedCampaignId && (
-                <Button 
+                <Button
                   variant="outline" 
                   onClick={() => setSelectedCampaignId(null)}
                 >
@@ -1376,6 +1514,29 @@ export const AdsManagementPanel = () => {
                 </SelectContent>
               </Select>
             </div>
+            
+            {campaignFormData.campaign_type && (
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => handleGenerateScenario('positive')}
+                >
+                  <Sparkles className="mr-2 h-4 w-4 text-green-500" />
+                  Gerar Cenário Positivo
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => handleGenerateScenario('negative')}
+                >
+                  <TrendingDown className="mr-2 h-4 w-4 text-red-500" />
+                  Gerar Cenário Negativo
+                </Button>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Data de Início *</Label>
@@ -2096,59 +2257,6 @@ export const AdsManagementPanel = () => {
             </Button>
             <Button onClick={handleEditClient} className="gradient-primary">
               Salvar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Generate Scenario Dialog */}
-      <Dialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Gerar Cenário de Métricas</DialogTitle>
-            <DialogDescription>Escolha entre um cenário positivo ou negativo para testar</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Tipo de Cenário</Label>
-              <div className="grid grid-cols-2 gap-4">
-                <Button
-                  type="button"
-                  variant={generateScenario === 'positive' ? 'default' : 'outline'}
-                  onClick={() => setGenerateScenario('positive')}
-                  className="h-auto py-4 flex flex-col items-start"
-                >
-                  <TrendingUp className="h-5 w-5 mb-2" />
-                  <span className="font-semibold">Cenário Positivo</span>
-                  <span className="text-xs opacity-70 text-left">Alto engajamento e boas conversões</span>
-                </Button>
-                <Button
-                  type="button"
-                  variant={generateScenario === 'negative' ? 'default' : 'outline'}
-                  onClick={() => setGenerateScenario('negative')}
-                  className="h-auto py-4 flex flex-col items-start"
-                >
-                  <TrendingDown className="h-5 w-5 mb-2" />
-                  <span className="font-semibold">Cenário Negativo</span>
-                  <span className="text-xs opacity-70 text-left">Baixo engajamento e poucas conversões</span>
-                </Button>
-              </div>
-            </div>
-            <div className="p-4 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground">
-                {generateScenario === 'positive' 
-                  ? '✅ Será criada uma campanha com: 15.000 impressões, 750 cliques, 100 conversões, R$ 5.000 de faturamento e apenas R$ 700 gastos.'
-                  : '⚠️ Será criada uma campanha com: 5.000 impressões, 150 cliques, 10 conversões, R$ 800 de faturamento e R$ 900 gastos.'}
-              </p>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsGenerateDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleGenerateScenario} className="gradient-primary">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Gerar Campanha
             </Button>
           </DialogFooter>
         </DialogContent>
