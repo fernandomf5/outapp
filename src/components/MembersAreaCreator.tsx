@@ -26,6 +26,8 @@ import { AccessRequestsManager } from "@/components/members-area/AccessRequestsM
 import { ModuleContentsManager } from "@/components/members-area/ModuleContentsManager";
 import { HomePageManager } from "@/components/members-area/HomePageManager";
 import { MercadoPagoIntegration } from "@/components/admin/MercadoPagoIntegration";
+import { HexColorPicker } from "react-colorful";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface MembersArea {
   id: string;
@@ -39,6 +41,8 @@ interface MembersArea {
   created_at: string;
   custom_domain?: string;
   slug?: string;
+  primary_color?: string;
+  secondary_color?: string;
   products?: Array<{
     id: string;
     name: string;
@@ -85,6 +89,8 @@ export function MembersAreaCreator() {
   const [selectedModuleForContents, setSelectedModuleForContents] = useState<Module | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [editedArea, setEditedArea] = useState<MembersArea | null>(null);
+  const [showPrimaryColorPicker, setShowPrimaryColorPicker] = useState(false);
+  const [showSecondaryColorPicker, setShowSecondaryColorPicker] = useState(false);
 
   useEffect(() => {
     loadMembersAreas();
@@ -596,6 +602,8 @@ export function MembersAreaCreator() {
                         logo_url: editedArea.logo_url,
                         custom_domain: editedArea.custom_domain,
                         slug: editedArea.slug || null,
+                        primary_color: editedArea.primary_color,
+                        secondary_color: editedArea.secondary_color,
                       } as any)
                       .eq('id', editedArea.id);
                     if (!error) {
@@ -963,6 +971,69 @@ export function MembersAreaCreator() {
                       bucketName="members-content"
                       label="Logo"
                     />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-semibold">Cores da Área de Membros</h4>
+                  <p className="text-sm text-muted-foreground">Personalize as cores primária e secundária da sua área de membros</p>
+                  
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid gap-2">
+                      <Label>Cor Primária</Label>
+                      <Popover open={showPrimaryColorPicker} onOpenChange={setShowPrimaryColorPicker}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start gap-2"
+                          >
+                            <div 
+                              className="w-6 h-6 rounded border border-border" 
+                              style={{ backgroundColor: editedArea?.primary_color || selectedArea.primary_color || '#8B5CF6' }}
+                            />
+                            <span>{editedArea?.primary_color || selectedArea.primary_color || '#8B5CF6'}</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-3">
+                          <HexColorPicker
+                            color={editedArea?.primary_color || selectedArea.primary_color || '#8B5CF6'}
+                            onChange={(color) => {
+                              setEditedArea({...(editedArea || selectedArea), primary_color: color});
+                              setHasUnsavedChanges(true);
+                            }}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <p className="text-xs text-muted-foreground">Cor principal (botões, destaques)</p>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label>Cor Secundária</Label>
+                      <Popover open={showSecondaryColorPicker} onOpenChange={setShowSecondaryColorPicker}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start gap-2"
+                          >
+                            <div 
+                              className="w-6 h-6 rounded border border-border" 
+                              style={{ backgroundColor: editedArea?.secondary_color || selectedArea.secondary_color || '#EC4899' }}
+                            />
+                            <span>{editedArea?.secondary_color || selectedArea.secondary_color || '#EC4899'}</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-3">
+                          <HexColorPicker
+                            color={editedArea?.secondary_color || selectedArea.secondary_color || '#EC4899'}
+                            onChange={(color) => {
+                              setEditedArea({...(editedArea || selectedArea), secondary_color: color});
+                              setHasUnsavedChanges(true);
+                            }}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <p className="text-xs text-muted-foreground">Cor secundária (acentos, detalhes)</p>
+                    </div>
                   </div>
                 </div>
 

@@ -32,6 +32,8 @@ interface MembersArea {
   slug: string;
   sections: Section[];
   is_active: boolean;
+  primary_color?: string;
+  secondary_color?: string;
 }
 
 export default function MembersAreaPublic() {
@@ -206,8 +208,41 @@ export default function MembersAreaPublic() {
     );
   }
 
+  // Apply custom colors via CSS variables
+  const primaryColor = area.primary_color || '#8B5CF6';
+  const secondaryColor = area.secondary_color || '#EC4899';
+
   return (
-    <div className="min-h-screen bg-background">
+    <div 
+      className="min-h-screen bg-background"
+      style={{
+        '--custom-primary': primaryColor,
+        '--custom-secondary': secondaryColor,
+      } as React.CSSProperties}
+    >
+      <style>{`
+        [style*="--custom-primary"] .gradient-primary {
+          background: linear-gradient(135deg, ${primaryColor}, ${secondaryColor});
+        }
+        [style*="--custom-primary"] .bg-primary {
+          background-color: ${primaryColor} !important;
+        }
+        [style*="--custom-primary"] .text-primary {
+          color: ${primaryColor} !important;
+        }
+        [style*="--custom-primary"] .border-primary {
+          border-color: ${primaryColor} !important;
+        }
+        [style*="--custom-primary"] .hover\\:bg-primary:hover {
+          background-color: ${primaryColor} !important;
+        }
+        [style*="--custom-primary"] .from-primary\\/10 {
+          --tw-gradient-from: ${primaryColor}1a !important;
+        }
+        [style*="--custom-primary"] .to-primary\\/5 {
+          --tw-gradient-to: ${primaryColor}0d !important;
+        }
+      `}</style>
       <div className="bg-gradient-to-r from-primary/10 to-primary/5 border-b">
         <div className="container mx-auto px-4 py-12">
           <h1 className="text-4xl font-bold mb-2">{area.name}</h1>

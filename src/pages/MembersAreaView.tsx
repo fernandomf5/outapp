@@ -18,6 +18,8 @@ interface MembersArea {
   banner_url?: string;
   logo_url?: string;
   products?: Product[];
+  primary_color?: string;
+  secondary_color?: string;
 }
 
 interface Product {
@@ -216,8 +218,35 @@ export default function MembersAreaView() {
 
   const title = area.name || area.title || 'Área de Membros';
 
+  // Apply custom colors via CSS variables
+  const primaryColor = area.primary_color || '#8B5CF6';
+  const secondaryColor = area.secondary_color || '#EC4899';
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div 
+      className="min-h-screen bg-background text-foreground"
+      style={{
+        '--custom-primary': primaryColor,
+        '--custom-secondary': secondaryColor,
+      } as React.CSSProperties}
+    >
+      <style>{`
+        [style*="--custom-primary"] .gradient-primary {
+          background: linear-gradient(135deg, ${primaryColor}, ${secondaryColor});
+        }
+        [style*="--custom-primary"] .bg-primary {
+          background-color: ${primaryColor} !important;
+        }
+        [style*="--custom-primary"] .text-primary {
+          color: ${primaryColor} !important;
+        }
+        [style*="--custom-primary"] .border-primary {
+          border-color: ${primaryColor} !important;
+        }
+        [style*="--custom-primary"] .hover\\:bg-primary:hover {
+          background-color: ${primaryColor} !important;
+        }
+      `}</style>
       <Helmet>
         <title>{`${title} | Área de Membros`}</title>
         <meta name="description" content={area.description || title} />
