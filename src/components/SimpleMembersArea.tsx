@@ -7,7 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical } from "lucide-react";
+import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { HexColorPicker } from "react-colorful";
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ImageUpload } from "@/components/ImageUpload";
@@ -39,6 +42,8 @@ interface MembersArea {
   slug: string;
   sections: Section[];
   is_active: boolean;
+  primary_color?: string;
+  secondary_color?: string;
 }
 
 const SortableBlock = ({ block, onEdit, onDelete }: { block: ContentBlock; onEdit: () => void; onDelete: () => void }) => {
@@ -92,16 +97,26 @@ export function SimpleMembersArea() {
   const [areas, setAreas] = useState<MembersArea[]>([]);
   const [selectedArea, setSelectedArea] = useState<MembersArea | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [areaToDelete, setAreaToDelete] = useState<MembersArea | null>(null);
+  const [editingArea, setEditingArea] = useState<MembersArea | null>(null);
   const [isAddSectionDialogOpen, setIsAddSectionDialogOpen] = useState(false);
   const [isAddBlockDialogOpen, setIsAddBlockDialogOpen] = useState(false);
   const [selectedSection, setSelectedSection] = useState<Section | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState('');
+  const [showCreatePrimaryColorPicker, setShowCreatePrimaryColorPicker] = useState(false);
+  const [showCreateSecondaryColorPicker, setShowCreateSecondaryColorPicker] = useState(false);
+  const [showEditPrimaryColorPicker, setShowEditPrimaryColorPicker] = useState(false);
+  const [showEditSecondaryColorPicker, setShowEditSecondaryColorPicker] = useState(false);
 
   const [areaFormData, setAreaFormData] = useState({
     name: '',
     description: '',
     password: '',
+    primary_color: '#8B5CF6',
+    secondary_color: '#EC4899',
   });
 
   const [sectionFormData, setSectionFormData] = useState({
@@ -160,6 +175,8 @@ export function SimpleMembersArea() {
           slug,
           sections: [],
           is_active: true,
+          primary_color: areaFormData.primary_color,
+          secondary_color: areaFormData.secondary_color,
         })
         .select()
         .single();
@@ -168,7 +185,7 @@ export function SimpleMembersArea() {
 
       toast.success('Área de membros criada com sucesso!');
       setIsCreateDialogOpen(false);
-      setAreaFormData({ name: '', description: '', password: '' });
+      setAreaFormData({ name: '', description: '', password: '', primary_color: '#8B5CF6', secondary_color: '#EC4899' });
       loadAreas();
     } catch (error: any) {
       toast.error('Erro ao criar área: ' + error.message);
@@ -247,6 +264,72 @@ export function SimpleMembersArea() {
     const link = `${window.location.origin}/members/${area.slug}`;
     navigator.clipboard.writeText(link);
     toast.success('Link copiado!');
+  };
+
+  const handleOpenEditDialog = (area: MembersArea, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingArea(area);
+    setAreaFormData({
+      name: area.name,
+      description: area.description,
+      password: area.password,
+      primary_color: area.primary_color || '#8B5CF6',
+      secondary_color: area.secondary_color || '#EC4899',
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateArea = async () => {
+    if (!editingArea) return;
+    
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('simple_members_areas' as any)
+        .update({
+          name: areaFormData.name,
+          description: areaFormData.description,
+          password: areaFormData.password,
+          primary_color: areaFormData.primary_color,
+          secondary_color: areaFormData.secondary_color,
+        })
+        .eq('id', editingArea.id);
+
+      if (error) throw error;
+
+      toast.success('Área atualizada com sucesso!');
+      setIsEditDialogOpen(false);
+      setEditingArea(null);
+      setAreaFormData({ name: '', description: '', password: '', primary_color: '#8B5CF6', secondary_color: '#EC4899' });
+      loadAreas();
+    } catch (error: any) {
+      toast.error('Erro ao atualizar área: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteArea = async () => {
+    if (!areaToDelete) return;
+    
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('simple_members_areas' as any)
+        .delete()
+        .eq('id', areaToDelete.id);
+
+      if (error) throw error;
+
+      toast.success('Área excluída com sucesso!');
+      setIsDeleteDialogOpen(false);
+      setAreaToDelete(null);
+      loadAreas();
+    } catch (error: any) {
+      toast.error('Erro ao excluir área: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDragEnd = async (event: any, sectionId: string) => {
@@ -433,10 +516,95 @@ export function SimpleMembersArea() {
               <Button onClick={handleAddBlock} className="w-full">Adicionar</Button>
             </div>
           </DialogContent>
-        </Dialog>
-      </div>
-    );
-  }
+      </Dialog>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Área de Membros</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Nome da Área</Label>
+              <Input
+                value={areaFormData.name}
+                onChange={(e) => setAreaFormData({ ...areaFormData, name: e.target.value })}
+                placeholder="Ex: Curso de Marketing Digital"
+              />
+            </div>
+            <div>
+              <Label>Descrição</Label>
+              <Textarea
+                value={areaFormData.description}
+                onChange={(e) => setAreaFormData({ ...areaFormData, description: e.target.value })}
+                placeholder="Descreva a área de membros..."
+              />
+            </div>
+            <div>
+              <Label>Senha de Acesso</Label>
+              <Input
+                value={areaFormData.password}
+                onChange={(e) => setAreaFormData({ ...areaFormData, password: e.target.value })}
+                placeholder="Defina uma senha"
+                type="text"
+              />
+            </div>
+            <div className="space-y-3">
+              <Label>Cores Personalizadas</Label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <Label className="text-sm">Cor Primária</Label>
+                  <Popover open={showEditPrimaryColorPicker} onOpenChange={setShowEditPrimaryColorPicker}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start gap-2">
+                        <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.primary_color }} />
+                        <span className="text-sm">{areaFormData.primary_color}</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-3">
+                      <HexColorPicker
+                        color={areaFormData.primary_color}
+                        onChange={(color) => setAreaFormData({ ...areaFormData, primary_color: color })}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div>
+                  <Label className="text-sm">Cor Secundária</Label>
+                  <Popover open={showEditSecondaryColorPicker} onOpenChange={setShowEditSecondaryColorPicker}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start gap-2">
+                        <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.secondary_color }} />
+                        <span className="text-sm">{areaFormData.secondary_color}</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-3">
+                      <HexColorPicker
+                        color={areaFormData.secondary_color}
+                        onChange={(color) => setAreaFormData({ ...areaFormData, secondary_color: color })}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+            </div>
+            <Button onClick={handleUpdateArea} className="w-full" disabled={loading}>
+              {loading ? 'Salvando...' : 'Salvar Alterações'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <DeleteConfirmDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDeleteArea}
+        title="Excluir Área de Membros"
+        description="Tem certeza que deseja excluir esta área de membros? Todas as seções e conteúdos serão perdidos permanentemente."
+      />
+    </div>
+  );
+}
 
   return (
     <div className="space-y-6">
@@ -461,7 +629,7 @@ export function SimpleMembersArea() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {areas.map((area) => (
-            <Card key={area.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setSelectedArea(area)}>
+            <Card key={area.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>{area.name}</span>
@@ -470,11 +638,44 @@ export function SimpleMembersArea() {
                 <p className="text-sm text-muted-foreground">{area.description}</p>
               </CardHeader>
               <CardContent>
-                <div className="flex justify-between items-center text-sm">
+                <div className="space-y-3">
                   <Badge variant="outline">{area.sections.length} seções</Badge>
-                  <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleCopyLink(area); }}>
-                    <LinkIcon className="w-4 h-4" />
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => setSelectedArea(area)}>
+                      <Edit className="w-4 h-4 mr-2" />
+                      Gerenciar
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleOpenEditDialog(area, e); }}>
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1" onClick={(e) => { e.stopPropagation(); handleCopyLink(area); }}>
+                      <LinkIcon className="w-4 h-4 mr-2" />
+                      Copiar Link
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        window.open(`/members/${area.slug}`, '_blank');
+                      }}
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        setAreaToDelete(area);
+                        setIsDeleteDialogOpen(true);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -513,6 +714,45 @@ export function SimpleMembersArea() {
                 type="text"
               />
               <p className="text-xs text-muted-foreground mt-1">Os membros precisarão desta senha para acessar o conteúdo</p>
+            </div>
+            <div className="space-y-3">
+              <Label>Cores Personalizadas</Label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <Label className="text-sm">Cor Primária</Label>
+                  <Popover open={showCreatePrimaryColorPicker} onOpenChange={setShowCreatePrimaryColorPicker}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start gap-2">
+                        <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.primary_color }} />
+                        <span className="text-sm">{areaFormData.primary_color}</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-3">
+                      <HexColorPicker
+                        color={areaFormData.primary_color}
+                        onChange={(color) => setAreaFormData({ ...areaFormData, primary_color: color })}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div>
+                  <Label className="text-sm">Cor Secundária</Label>
+                  <Popover open={showCreateSecondaryColorPicker} onOpenChange={setShowCreateSecondaryColorPicker}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start gap-2">
+                        <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.secondary_color }} />
+                        <span className="text-sm">{areaFormData.secondary_color}</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-3">
+                      <HexColorPicker
+                        color={areaFormData.secondary_color}
+                        onChange={(color) => setAreaFormData({ ...areaFormData, secondary_color: color })}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
             </div>
             <Button onClick={handleCreateArea} className="w-full" disabled={loading}>
               {loading ? 'Criando...' : 'Criar Área'}
