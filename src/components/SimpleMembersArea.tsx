@@ -548,53 +548,55 @@ export function SimpleMembersArea() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {areas.map((area) => (
             <Card key={area.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>{area.name}</span>
-                  {area.is_active ? <Unlock className="w-4 h-4 text-green-500" /> : <Lock className="w-4 h-4" />}
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center justify-between text-xl sm:text-lg gap-3">
+                  <span className="line-clamp-2 flex-1">{area.name}</span>
+                  {area.is_active ? <Unlock className="w-5 h-5 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" /> : <Lock className="w-5 h-5 sm:w-4 sm:h-4 flex-shrink-0" />}
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">{area.description}</p>
+                <p className="text-base sm:text-sm text-muted-foreground line-clamp-2">{area.description}</p>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <Badge variant="outline">{area.sections.length} seções</Badge>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1" onClick={() => setSelectedArea(area)}>
-                      <Edit className="w-4 h-4 mr-2" />
+                  <Badge variant="outline" className="text-sm py-1">{area.sections.length} seções</Badge>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button variant="outline" size="default" className="flex-1 h-11 sm:h-9 text-base sm:text-sm" onClick={() => setSelectedArea(area)}>
+                      <Edit className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
                       Gerenciar
                     </Button>
-                    <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleOpenEditDialog(area); }}>
-                      <Edit className="w-4 h-4" />
+                    <Button variant="outline" size="default" className="h-11 sm:h-9 px-4 sm:px-3" onClick={(e) => { e.stopPropagation(); handleOpenEditDialog(area); }}>
+                      <Edit className="w-5 h-5 sm:w-4 sm:h-4" />
                     </Button>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1" onClick={(e) => { e.stopPropagation(); handleCopyLink(area); }}>
-                      <LinkIcon className="w-4 h-4 mr-2" />
+                    <Button variant="outline" size="default" className="flex-1 h-11 sm:h-9 text-base sm:text-sm" onClick={(e) => { e.stopPropagation(); handleCopyLink(area); }}>
+                      <LinkIcon className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
                       Copiar Link
                     </Button>
                     <Button 
                       variant="outline" 
-                      size="sm"
+                      size="default"
+                      className="h-11 sm:h-9 px-4 sm:px-3"
                       onClick={(e) => { 
                         e.stopPropagation(); 
                         window.open(`/members/${area.slug}`, '_blank');
                       }}
                     >
-                      <ExternalLink className="w-4 h-4" />
+                      <ExternalLink className="w-5 h-5 sm:w-4 sm:h-4" />
                     </Button>
                     <Button 
                       variant="destructive" 
-                      size="sm"
+                      size="default"
+                      className="h-11 sm:h-9 px-4 sm:px-3"
                       onClick={(e) => { 
                         e.stopPropagation(); 
                         setAreaToDelete(area);
                         setIsDeleteDialogOpen(true);
                       }}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-5 h-5 sm:w-4 sm:h-4" />
                     </Button>
                   </div>
                 </div>
