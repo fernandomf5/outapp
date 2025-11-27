@@ -565,56 +565,56 @@ const Index = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-20 sm:pt-24 md:pt-32 pb-12 sm:pb-16 md:pb-20 px-6 sm:px-8 gradient-primary relative overflow-hidden">
+      <section className="pt-24 sm:pt-28 md:pt-32 pb-16 sm:pb-20 md:pb-24 px-6 sm:px-8 gradient-primary relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-10 w-48 sm:w-64 h-48 sm:h-64 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-20 right-10 w-64 sm:w-96 h-64 sm:h-96 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         </div>
         
         <div className="container mx-auto text-center text-white relative z-10 max-w-5xl">
-          <div className="inline-block mb-4 sm:mb-6 p-2 sm:p-3 bg-white/10 backdrop-blur-sm rounded-xl">
-            <Bot className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16" />
+          <div className="inline-block mb-6 sm:mb-8 p-3 sm:p-4 bg-white/10 backdrop-blur-sm rounded-xl">
+            <Bot className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20" />
           </div>
           
           <h1 
-            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 animate-fade-in leading-tight"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 sm:mb-8 animate-fade-in leading-tight px-2"
             dangerouslySetInnerHTML={{ __html: landingSettings.hero_title }}
           />
           
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-6 sm:mb-8 text-white/90 max-w-3xl mx-auto animate-fade-in">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-8 sm:mb-10 text-white/90 max-w-3xl mx-auto animate-fade-in leading-relaxed px-2">
             {landingSettings.hero_subtitle}
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-scale-in max-w-md sm:max-w-none mx-auto">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 justify-center animate-scale-in max-w-md sm:max-w-none mx-auto px-2">
             <Button 
               size="lg" 
               onClick={() => navigate("/auth")}
-              className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 shadow-glow text-sm sm:text-base md:text-lg px-6 sm:px-8 py-5 sm:py-6 active:scale-95 transition-transform"
+              className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 shadow-glow text-base sm:text-lg md:text-xl px-8 sm:px-10 py-6 sm:py-7 active:scale-95 transition-transform font-semibold"
             >
               {landingSettings.hero_cta_text}
             </Button>
             <Button 
               size="lg" 
               variant="outline"
-              className="w-full sm:w-auto bg-green-400/20 border-white text-white hover:bg-green-400/30 text-sm sm:text-base md:text-lg px-6 sm:px-8 py-5 sm:py-6 active:scale-95 transition-transform"
+              className="w-full sm:w-auto bg-green-400/20 border-white text-white hover:bg-green-400/30 text-base sm:text-lg md:text-xl px-8 sm:px-10 py-6 sm:py-7 active:scale-95 transition-transform font-semibold"
               onClick={() => document.getElementById('recursos')?.scrollIntoView({ behavior: 'smooth' })}
             >
               Ver Recursos
             </Button>
           </div>
           
-          <div className="mt-6 sm:mt-8 md:mt-12 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 md:gap-8 text-xs sm:text-sm">
+          <div className="mt-8 sm:mt-10 md:mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 md:gap-8 text-sm sm:text-base px-2">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-              <span>3 dias grátis</span>
+              <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+              <span className="font-medium">3 dias grátis</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-              <span>Sem cartão</span>
+              <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+              <span className="font-medium">Sem cartão</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-              <span>Cancele quando quiser</span>
+              <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+              <span className="font-medium">Cancele quando quiser</span>
             </div>
           </div>
         </div>
@@ -622,18 +622,18 @@ const Index = () => {
 
       {/* Video Section */}
       {videoUrl && (
-        <section className="py-10 sm:py-16 md:py-20 px-6 sm:px-8 bg-muted/30">
-          <div className="container mx-auto max-w-5xl">
-            <div className="text-center mb-6 sm:mb-10 md:mb-12">
-              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3 md:mb-4">
+        <section className="py-16 sm:py-20 md:py-24 px-6 sm:px-8 bg-muted/30">
+          <div className="container mx-auto max-w-6xl">
+            <div className="text-center mb-10 sm:mb-12 md:mb-16 px-2">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-5 md:mb-6 leading-tight">
                 {landingSettings.video_section_title}
               </h2>
-              <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground">
+              <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
                 {landingSettings.video_section_subtitle}
               </p>
             </div>
             
-            <div className="relative w-full aspect-video rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden shadow-2xl bg-muted">
+            <div className="relative w-full aspect-video rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl bg-muted">
               <iframe
                 src={videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
                 title="Video demonstração"
@@ -647,31 +647,31 @@ const Index = () => {
       )}
 
       {/* Features Section */}
-      <section id="recursos" className="py-10 sm:py-16 md:py-20 px-6 sm:px-8 bg-background">
+      <section id="recursos" className="py-16 sm:py-20 md:py-24 px-6 sm:px-8 bg-background">
         <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-8 sm:mb-12 md:mb-16">
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 sm:mb-3 md:mb-4">
+          <div className="text-center mb-12 sm:mb-16 md:mb-20 px-2">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-5 md:mb-6 leading-tight">
               {landingSettings.features_title}
             </h2>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               {landingSettings.features_subtitle}
             </p>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 md:gap-8">
             {features.map((feature, index) => {
               const Icon = getIconComponent(feature.icon);
               return (
                 <div
                   key={feature.id || index}
-                  className="bg-card p-5 sm:p-6 md:p-8 rounded-xl border border-border hover:shadow-xl transition-smooth hover-scale"
+                  className="bg-card p-7 sm:p-8 md:p-10 rounded-2xl border border-border hover:shadow-xl transition-smooth hover-scale"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <div className="bg-primary/10 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg md:rounded-xl flex items-center justify-center mb-3 sm:mb-4 md:mb-6">
-                    <Icon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-primary" />
+                  <div className="bg-primary/10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 rounded-xl md:rounded-2xl flex items-center justify-center mb-5 sm:mb-6 md:mb-7">
+                    <Icon className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 text-primary" />
                   </div>
-                  <h3 className="text-base sm:text-lg md:text-xl font-bold mb-1 sm:mb-2 md:mb-3">{feature.title}</h3>
-                  <p className="text-xs sm:text-sm md:text-base text-muted-foreground leading-relaxed">{feature.description}</p>
+                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4 leading-tight">{feature.title}</h3>
+                  <p className="text-sm sm:text-base md:text-lg text-muted-foreground leading-relaxed">{feature.description}</p>
                 </div>
               );
             })}
@@ -680,18 +680,18 @@ const Index = () => {
       </section>
 
       {/* Pricing Section */}
-      <section id="planos" className="py-10 sm:py-16 md:py-20 px-6 sm:px-8 bg-muted/30">
+      <section id="planos" className="py-16 sm:py-20 md:py-24 px-6 sm:px-8 bg-muted/30">
         <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-8 sm:mb-12 md:mb-16">
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 sm:mb-3 md:mb-4">
+          <div className="text-center mb-12 sm:mb-16 md:mb-20 px-2">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-5 md:mb-6 leading-tight">
               {landingSettings.pricing_title}
             </h2>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               {landingSettings.pricing_subtitle}
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 md:gap-8 lg:gap-10 max-w-6xl mx-auto">
             {plans.map((plan) => {
               const isPopular = plan.plan_type === 'monthly' && plan.price > 50 && plan.price < 150;
               const features = Array.isArray(plan.features) ? plan.features : [];
@@ -700,22 +700,22 @@ const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Da
               return (
                 <div
                   key={plan.id}
-                  className={`bg-card p-5 sm:p-6 md:p-8 rounded-xl border-2 transition-smooth hover-scale ${
+                  className={`bg-card p-7 sm:p-8 md:p-10 rounded-2xl border-2 transition-smooth hover-scale ${
                     isPopular 
                       ? 'border-primary shadow-glow relative' 
                       : 'border-border'
                   }`}
                 >
                   {isPopular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white px-3 py-1 rounded-full text-xs font-semibold">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1.5 rounded-full text-sm font-semibold">
                       Mais Popular
                     </div>
                   )}
                   
                   {isOfferActive && (
-                    <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-center">
+                    <div className="mb-5 p-4 bg-destructive/10 border border-destructive/20 rounded-xl text-center">
                       {plan.limited_offer_banner && (
-                        <p className="text-sm font-semibold text-destructive mb-2">
+                        <p className="text-base font-semibold text-destructive mb-2">
                           {plan.limited_offer_banner}
                         </p>
                       )}
@@ -733,27 +733,27 @@ const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Da
                     </div>
                   )}
                   
-                  <div className="mb-4 sm:mb-6">
-                    <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-2">{plan.name}</h3>
-                    <p className="text-muted-foreground text-xs sm:text-sm">{plan.description}</p>
+                  <div className="mb-6 sm:mb-7">
+                    <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3">{plan.name}</h3>
+                    <p className="text-muted-foreground text-sm sm:text-base">{plan.description}</p>
                   </div>
                   
-                  <div className="mb-5 sm:mb-6 md:mb-8">
-                    <span className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">
+                  <div className="mb-6 sm:mb-8 md:mb-10">
+                    <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold">
                       {plan.price === 0 ? 'Grátis' : `R$ ${plan.price}`}
                     </span>
                     {plan.price > 0 && (
-                      <span className="text-xs sm:text-sm md:text-base text-muted-foreground">
+                      <span className="text-sm sm:text-base md:text-lg text-muted-foreground">
                         /{plan.plan_type === 'monthly' ? 'mês' : plan.plan_type === 'annual' ? 'ano' : plan.plan_type === 'lifetime' ? 'vitalício' : plan.duration_days + ' dias'}
                       </span>
                     )}
                   </div>
                   
-                  <ul className="space-y-2 sm:space-y-3">
+                  <ul className="space-y-3 sm:space-y-4">
                     {features.map((feature: string, featureIndex: number) => (
-                      <li key={featureIndex} className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0 mt-0.5" />
-                        <span className="text-xs sm:text-sm">{feature}</span>
+                      <li key={featureIndex} className="flex items-start gap-3">
+                        <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-primary flex-shrink-0 mt-0.5" />
+                        <span className="text-sm sm:text-base">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -762,14 +762,14 @@ const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Da
             })}
           </div>
           
-          <div className="text-center mt-8 sm:mt-10 md:mt-12">
-            <p className="text-sm sm:text-base text-muted-foreground mb-4">
+          <div className="text-center mt-10 sm:mt-12 md:mt-16 px-2">
+            <p className="text-base sm:text-lg text-muted-foreground mb-5 leading-relaxed">
               Teste todas as funcionalidades por 3 dias sem compromisso. Sem cartão de crédito.
             </p>
             <Button 
               size="lg"
               onClick={() => navigate("/auth")}
-              className="gradient-primary shadow-glow text-sm sm:text-base md:text-lg px-6 sm:px-8 md:px-12 py-5 sm:py-6 md:py-7 active:scale-95 transition-transform w-full sm:w-auto max-w-md"
+              className="gradient-primary shadow-glow text-base sm:text-lg md:text-xl px-8 sm:px-10 md:px-14 py-6 sm:py-7 md:py-8 active:scale-95 transition-transform w-full sm:w-auto max-w-md font-semibold"
             >
               Começar Teste Grátis - 3 Dias 🚀
             </Button>
