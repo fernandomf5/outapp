@@ -435,7 +435,7 @@ export function SimpleMembersArea() {
           ))}
         </div>
 
-        <Dialog open={isAddSectionDialogOpen} onOpenChange={setIsAddSectionDialogOpen}>
+        <Dialog modal={false} open={isAddSectionDialogOpen} onOpenChange={setIsAddSectionDialogOpen}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Nova Seção</DialogTitle>
@@ -462,7 +462,7 @@ export function SimpleMembersArea() {
           </DialogContent>
         </Dialog>
 
-        <Dialog open={isAddBlockDialogOpen} onOpenChange={setIsAddBlockDialogOpen}>
+        <Dialog modal={false} open={isAddBlockDialogOpen} onOpenChange={setIsAddBlockDialogOpen}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Adicionar Conteúdo</DialogTitle>
@@ -517,7 +517,7 @@ export function SimpleMembersArea() {
           </DialogContent>
       </Dialog>
 
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <Dialog modal={false} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar Área de Membros</DialogTitle>
@@ -682,7 +682,7 @@ export function SimpleMembersArea() {
         </div>
       )}
 
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+      <Dialog modal={false} open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Nova Área de Membros</DialogTitle>
@@ -760,7 +760,7 @@ export function SimpleMembersArea() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <Dialog modal={false} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar Área de Membros</DialogTitle>
