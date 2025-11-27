@@ -16,7 +16,8 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { action, agentId, email, password, name, phone, accessType } = await req.json();
+    const body = await req.json();
+    const { action, agentId, email, password, name, phone, accessType, customerId, code } = body;
 
     if (action === 'register') {
       // Hash password (apenas para acesso não privado)
@@ -170,7 +171,6 @@ serve(async (req) => {
     }
 
     if (action === 'verify') {
-      const { customerId, code } = await req.json();
 
       // Get customer
       const { data: customer, error: customerError } = await supabase
@@ -221,7 +221,6 @@ serve(async (req) => {
     }
 
     if (action === 'resend') {
-      const { customerId } = await req.json();
 
       // Get customer
       const { data: customer, error: customerError } = await supabase
