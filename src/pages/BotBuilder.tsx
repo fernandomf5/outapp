@@ -188,7 +188,7 @@ const BotBuilder = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate("/dashboard?tab=chatbots")}
+                onClick={() => navigate("/dashboard?tab=ai-agents")}
               >
                 <ArrowLeft className="w-4 h-4" />
               </Button>
