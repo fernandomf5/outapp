@@ -553,10 +553,14 @@ export function SimpleMembersArea() {
                       <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.primary_color }} />
                       <span className="text-sm">{areaFormData.primary_color}</span>
                     </div>
-                    <HexColorPicker
-                      color={areaFormData.primary_color}
-                      onChange={(color) => setAreaFormData({ ...areaFormData, primary_color: color })}
-                    />
+                    <div style={{ pointerEvents: 'auto' }}>
+                      <div style={{ touchAction: 'none' }}>
+                        <HexColorPicker
+                          color={areaFormData.primary_color}
+                          onChange={(color) => setAreaFormData({ ...areaFormData, primary_color: color })}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div>
@@ -566,10 +570,14 @@ export function SimpleMembersArea() {
                       <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.secondary_color }} />
                       <span className="text-sm">{areaFormData.secondary_color}</span>
                     </div>
-                    <HexColorPicker
-                      color={areaFormData.secondary_color}
-                      onChange={(color) => setAreaFormData({ ...areaFormData, secondary_color: color })}
-                    />
+                    <div style={{ pointerEvents: 'auto' }}>
+                      <div style={{ touchAction: 'none' }}>
+                        <HexColorPicker
+                          color={areaFormData.secondary_color}
+                          onChange={(color) => setAreaFormData({ ...areaFormData, secondary_color: color })}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -707,27 +715,35 @@ export function SimpleMembersArea() {
                 <div>
                   <Label className="text-sm">Cor Primária</Label>
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.primary_color }} />
-                      <span className="text-sm">{areaFormData.primary_color}</span>
-                    </div>
-                    <HexColorPicker
-                      color={areaFormData.primary_color}
-                      onChange={(color) => setAreaFormData({ ...areaFormData, primary_color: color })}
-                    />
+                   <div className="flex items-center gap-2">
+                     <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.primary_color }} />
+                     <span className="text-sm">{areaFormData.primary_color}</span>
+                   </div>
+                   <div style={{ pointerEvents: 'auto' }}>
+                     <div style={{ touchAction: 'none' }}>
+                       <HexColorPicker
+                         color={areaFormData.primary_color}
+                         onChange={(color) => setAreaFormData({ ...areaFormData, primary_color: color })}
+                       />
+                     </div>
+                   </div>
                   </div>
                 </div>
                 <div>
                   <Label className="text-sm">Cor Secundária</Label>
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.secondary_color }} />
-                      <span className="text-sm">{areaFormData.secondary_color}</span>
-                    </div>
-                    <HexColorPicker
-                      color={areaFormData.secondary_color}
-                      onChange={(color) => setAreaFormData({ ...areaFormData, secondary_color: color })}
-                    />
+                   <div className="flex items-center gap-2">
+                     <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.secondary_color }} />
+                     <span className="text-sm">{areaFormData.secondary_color}</span>
+                   </div>
+                   <div style={{ pointerEvents: 'auto' }}>
+                     <div style={{ touchAction: 'none' }}>
+                       <HexColorPicker
+                         color={areaFormData.secondary_color}
+                         onChange={(color) => setAreaFormData({ ...areaFormData, secondary_color: color })}
+                       />
+                     </div>
+                   </div>
                   </div>
                 </div>
               </div>
