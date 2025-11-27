@@ -576,11 +576,9 @@ const Index = () => {
             <Bot className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20" />
           </div>
           
-          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 sm:mb-8 animate-fade-in leading-tight px-6 sm:px-8">
-            A Solução<br />
-            Tudo em Um<br />
-            para<br />
-            Empreendedores Digitais.
+          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 sm:mb-8 animate-fade-in leading-tight px-8 sm:px-12 md:px-16">
+            A Solução Tudo em Um<br />
+            para Empreendedores Digitais.
           </h1>
           
           <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-8 sm:mb-10 text-white/90 max-w-3xl mx-auto animate-fade-in leading-relaxed px-2">
