@@ -565,7 +565,7 @@ const Index = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-24 sm:pt-28 md:pt-32 pb-16 sm:pb-20 md:pb-24 px-6 sm:px-8 gradient-primary relative overflow-hidden">
+      <section className="pt-24 sm:pt-28 md:pt-32 pb-16 sm:pb-20 md:pb-24 px-4 sm:px-6 md:px-8 gradient-primary relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-10 w-48 sm:w-64 h-48 sm:h-64 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-20 right-10 w-64 sm:w-96 h-64 sm:h-96 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
@@ -577,7 +577,7 @@ const Index = () => {
           </div>
           
           <h1 
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 sm:mb-8 animate-fade-in leading-tight px-2"
+            className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 sm:mb-8 animate-fade-in leading-tight px-2"
             dangerouslySetInnerHTML={{ __html: landingSettings.hero_title }}
           />
           
@@ -622,8 +622,8 @@ const Index = () => {
 
       {/* Video Section */}
       {videoUrl && (
-        <section className="py-16 sm:py-20 md:py-24 px-6 sm:px-8 bg-muted/30">
-          <div className="container mx-auto max-w-6xl">
+        <section className="py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-8 bg-muted/30">
+          <div className="container mx-auto max-w-full sm:max-w-6xl lg:max-w-7xl">
             <div className="text-center mb-10 sm:mb-12 md:mb-16 px-2">
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-5 md:mb-6 leading-tight">
                 {landingSettings.video_section_title}
@@ -647,8 +647,8 @@ const Index = () => {
       )}
 
       {/* Features Section */}
-      <section id="recursos" className="py-16 sm:py-20 md:py-24 px-6 sm:px-8 bg-background">
-        <div className="container mx-auto max-w-7xl">
+      <section id="recursos" className="py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-8 bg-background">
+        <div className="container mx-auto max-w-full sm:max-w-7xl">
           <div className="text-center mb-12 sm:mb-16 md:mb-20 px-2">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-5 md:mb-6 leading-tight">
               {landingSettings.features_title}
@@ -658,7 +658,7 @@ const Index = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 md:gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-7 md:gap-8 max-w-5xl lg:max-w-7xl mx-auto">
             {features.map((feature, index) => {
               const Icon = getIconComponent(feature.icon);
               return (
@@ -680,8 +680,8 @@ const Index = () => {
       </section>
 
       {/* Pricing Section */}
-      <section id="planos" className="py-16 sm:py-20 md:py-24 px-6 sm:px-8 bg-muted/30">
-        <div className="container mx-auto max-w-7xl">
+      <section id="planos" className="py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-8 bg-muted/30">
+        <div className="container mx-auto max-w-full sm:max-w-7xl">
           <div className="text-center mb-12 sm:mb-16 md:mb-20 px-2">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-5 md:mb-6 leading-tight">
               {landingSettings.pricing_title}
@@ -691,7 +691,7 @@ const Index = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 md:gap-8 lg:gap-10 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-7 md:gap-8 lg:gap-10 max-w-5xl lg:max-w-7xl mx-auto">
             {plans.map((plan) => {
               const isPopular = plan.plan_type === 'monthly' && plan.price > 50 && plan.price < 150;
               const features = Array.isArray(plan.features) ? plan.features : [];
