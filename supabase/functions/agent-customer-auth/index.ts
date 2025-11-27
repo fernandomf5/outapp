@@ -29,6 +29,10 @@ serve(async (req) => {
         passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
       }
 
+      // Generate verification code (6 digits)
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 minutes
+
       // Check if customer already exists
       const { data: existing } = await supabase
         .from('agent_customers')
@@ -93,12 +97,35 @@ serve(async (req) => {
             email,
             phone,
             password_hash: passwordHash,
+            email_verified: false,
+            verification_token: verificationCode,
+            verification_token_expires_at: expiresAt,
           })
           .select()
           .single();
 
         if (createError) throw createError;
         customer = newCustomer;
+      }
+
+      // Send verification email
+      try {
+        const { data: agent } = await supabase
+          .from('ai_agents')
+          .select('name')
+          .eq('id', agentId)
+          .single();
+
+        await supabase.functions.invoke('send-verification-email', {
+          body: {
+            email: customer.email,
+            name: customer.name,
+            code: verificationCode,
+            chatbotName: agent?.name || 'Chat',
+          }
+        });
+      } catch (emailError) {
+        console.error('Error sending verification email:', emailError);
       }
 
       // If private access, create access request
@@ -134,7 +161,119 @@ serve(async (req) => {
       }
 
       return new Response(
-        JSON.stringify({ customer }),
+        JSON.stringify({ 
+          customer,
+          needsVerification: true 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'verify') {
+      const { customerId, code } = await req.json();
+
+      // Get customer
+      const { data: customer, error: customerError } = await supabase
+        .from('agent_customers')
+        .select('*')
+        .eq('id', customerId)
+        .single();
+
+      if (customerError || !customer) {
+        return new Response(
+          JSON.stringify({ error: 'Cliente não encontrado' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Check verification code
+      if (customer.verification_token !== code) {
+        return new Response(
+          JSON.stringify({ error: 'Código inválido' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Check expiration
+      if (new Date(customer.verification_token_expires_at) < new Date()) {
+        return new Response(
+          JSON.stringify({ error: 'Código expirado' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Update customer
+      const { error: updateError } = await supabase
+        .from('agent_customers')
+        .update({
+          email_verified: true,
+          verification_token: null,
+          verification_token_expires_at: null,
+        })
+        .eq('id', customerId);
+
+      if (updateError) throw updateError;
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'resend') {
+      const { customerId } = await req.json();
+
+      // Get customer
+      const { data: customer, error: customerError } = await supabase
+        .from('agent_customers')
+        .select('*')
+        .eq('id', customerId)
+        .single();
+
+      if (customerError || !customer) {
+        return new Response(
+          JSON.stringify({ error: 'Cliente não encontrado' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Generate new code
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+
+      // Update customer
+      const { error: updateError } = await supabase
+        .from('agent_customers')
+        .update({
+          verification_token: verificationCode,
+          verification_token_expires_at: expiresAt,
+        })
+        .eq('id', customerId);
+
+      if (updateError) throw updateError;
+
+      // Send verification email
+      try {
+        const { data: agent } = await supabase
+          .from('ai_agents')
+          .select('name')
+          .eq('id', customer.agent_id)
+          .single();
+
+        await supabase.functions.invoke('send-verification-email', {
+          body: {
+            email: customer.email,
+            name: customer.name,
+            code: verificationCode,
+            chatbotName: agent?.name || 'Chat',
+          }
+        });
+      } catch (emailError) {
+        console.error('Error sending verification email:', emailError);
+      }
+
+      return new Response(
+        JSON.stringify({ success: true }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

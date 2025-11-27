@@ -100,12 +100,16 @@ serve(async (req) => {
     if (activeConv) {
       conversationId = activeConv.id;
     } else {
+      // Check if AI is enabled in agent config
+      const aiEnabled = agent.config?.aiEnabled !== false;
+      
       const { data: newConv, error: newConvError } = await supabase
         .from('agent_conversations')
         .insert({
           agent_id: agentId,
           customer_id: customerId,
           status: 'active',
+          ai_enabled: aiEnabled,
           last_message_at: new Date().toISOString(),
         })
         .select()
