@@ -282,17 +282,33 @@ const AIAgentBuilder = () => {
         <div className="space-y-4 sm:space-y-6">
           {/* Nome do Agente - Destaque */}
           <Card className="p-4 sm:p-8 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-            <div className="max-w-2xl">
-              <Label className="text-base sm:text-lg font-semibold mb-3 block">Nome do Atendente ou Agente</Label>
-              <Input
-                value={agentName}
-                onChange={(e) => setAgentName(e.target.value)}
-                placeholder="Digite o nome do seu agente IA..."
-                className="text-lg sm:text-2xl font-bold h-12 sm:h-14 bg-background"
-              />
-              <p className="text-xs sm:text-sm text-muted-foreground mt-2">
-                Escolha um nome que represente bem o seu agente de atendimento
-              </p>
+            <div className="max-w-2xl space-y-6">
+              <div>
+                <Label className="text-base sm:text-lg font-semibold mb-3 block">Nome do Atendente ou Agente</Label>
+                <Input
+                  value={agentName}
+                  onChange={(e) => setAgentName(e.target.value)}
+                  placeholder="Digite o nome do seu agente IA..."
+                  className="text-lg sm:text-2xl font-bold h-12 sm:h-14 bg-background"
+                />
+                <p className="text-xs sm:text-sm text-muted-foreground mt-2">
+                  Escolha um nome que represente bem o seu agente de atendimento
+                </p>
+              </div>
+
+              <div>
+                <Label className="text-base sm:text-lg font-semibold mb-3 block">Mensagem de Boas-vindas</Label>
+                <Textarea
+                  value={welcomeMessage}
+                  onChange={(e) => setWelcomeMessage(e.target.value)}
+                  placeholder="Ex: Olá! Como posso ajudar você hoje?"
+                  rows={3}
+                  className="bg-background"
+                />
+                <p className="text-xs sm:text-sm text-muted-foreground mt-2">
+                  Esta mensagem será exibida quando o cliente iniciar uma conversa
+                </p>
+              </div>
             </div>
           </Card>
 
@@ -595,16 +611,6 @@ const AIAgentBuilder = () => {
                         <span>Objetivo</span>
                         <span>Empático</span>
                       </div>
-                    </div>
-
-                    <div>
-                      <Label className="mb-3 block">Mensagem de Boas-vindas</Label>
-                      <Textarea
-                        placeholder="Olá! Como posso ajudar você hoje?"
-                        value={welcomeMessage}
-                        onChange={(e) => setWelcomeMessage(e.target.value)}
-                        rows={3}
-                      />
                     </div>
                   </div>
                 </Card>
