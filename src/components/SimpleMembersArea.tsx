@@ -516,69 +516,6 @@ export function SimpleMembersArea() {
           </DialogContent>
       </Dialog>
 
-      <Dialog modal={false} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Área de Membros</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Nome da Área</Label>
-              <Input
-                value={areaFormData.name}
-                onChange={(e) => setAreaFormData({ ...areaFormData, name: e.target.value })}
-                placeholder="Ex: Curso de Marketing Digital"
-              />
-            </div>
-            <div>
-              <Label>Descrição</Label>
-              <Textarea
-                value={areaFormData.description}
-                onChange={(e) => setAreaFormData({ ...areaFormData, description: e.target.value })}
-                placeholder="Descreva a área de membros..."
-              />
-            </div>
-            <div>
-              <Label>Senha de Acesso</Label>
-              <Input
-                value={areaFormData.password}
-                onChange={(e) => setAreaFormData({ ...areaFormData, password: e.target.value })}
-                placeholder="Defina uma senha"
-                type="text"
-              />
-            </div>
-            <div className="space-y-3">
-              <Label>Cores Personalizadas</Label>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <Label className="text-sm">Cor Primária</Label>
-                  <div className="space-y-2">
-                    <Input
-                      type="color"
-                      value={areaFormData.primary_color}
-                      onChange={(e) => setAreaFormData({ ...areaFormData, primary_color: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-sm">Cor Secundária</Label>
-                  <div className="space-y-2">
-                    <Input
-                      type="color"
-                      value={areaFormData.secondary_color}
-                      onChange={(e) => setAreaFormData({ ...areaFormData, secondary_color: e.target.value })}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <Button onClick={handleUpdateArea} className="w-full" disabled={loading}>
-              {loading ? 'Salvando...' : 'Salvar Alterações'}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       <DeleteConfirmDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
