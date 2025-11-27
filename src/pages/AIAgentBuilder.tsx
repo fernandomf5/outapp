@@ -52,6 +52,7 @@ const AIAgentBuilder = () => {
   const [welcomeMessage, setWelcomeMessage] = useState("Olá! Sou seu assistente virtual. Como posso ajudar você hoje?");
   const [isSaving, setIsSaving] = useState(false);
   const [isActive, setIsActive] = useState(true);
+  const [aiEnabled, setAiEnabled] = useState(true);
   const [nicheSearch, setNicheSearch] = useState("");
   const [accessType, setAccessType] = useState<'public' | 'private' | 'anonymous'>('public');
   const [originalAccessType, setOriginalAccessType] = useState<'public' | 'private' | 'anonymous'>('public');
@@ -75,6 +76,7 @@ const AIAgentBuilder = () => {
         setKnowledge(agent.training_data?.knowledge || "");
         setWelcomeMessage(agent.config?.welcomeMessage || welcomeMessage);
         setIsActive(agent.is_active);
+        setAiEnabled(agent.config?.aiEnabled !== undefined ? agent.config.aiEnabled : true);
         const at = (agent as any).access_type || 'public';
         const normalizedAt = at === 'restricted' ? 'private' : at;
         setAccessType(normalizedAt);
@@ -140,7 +142,7 @@ const AIAgentBuilder = () => {
     if (!user) return;
     
     // Validar nicho apenas se o agente IA estiver ativo
-    if (isActive && !selectedNiche) {
+    if (aiEnabled && !selectedNiche) {
       toast({
         title: "Nicho obrigatório",
         description: "Selecione um nicho para seu agente IA.",
@@ -158,6 +160,7 @@ const AIAgentBuilder = () => {
         config: {
           personality,
           welcomeMessage,
+          aiEnabled,
         },
         training_data: {
           nicheData,
@@ -265,7 +268,7 @@ const AIAgentBuilder = () => {
             <Button 
               onClick={handleSave} 
               className="bg-primary hover:bg-primary/90 shrink-0"
-              disabled={isSaving || (isActive && !selectedNiche) || !agentName.trim()}
+              disabled={isSaving || (aiEnabled && !selectedNiche) || !agentName.trim()}
               size="sm"
             >
               <Save className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
@@ -280,7 +283,7 @@ const AIAgentBuilder = () => {
           {/* Nome do Agente - Destaque */}
           <Card className="p-4 sm:p-8 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
             <div className="max-w-2xl">
-              <Label className="text-base sm:text-lg font-semibold mb-3 block">Nome do Agente IA</Label>
+              <Label className="text-base sm:text-lg font-semibold mb-3 block">Nome do Atendente ou Agente</Label>
               <Input
                 value={agentName}
                 onChange={(e) => setAgentName(e.target.value)}
@@ -305,8 +308,8 @@ const AIAgentBuilder = () => {
                   </div>
                   <Switch
                     id="ai-agent-switch"
-                    checked={isActive}
-                    onCheckedChange={setIsActive}
+                    checked={aiEnabled}
+                    onCheckedChange={setAiEnabled}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground px-4">
