@@ -190,13 +190,13 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
     return (
       <Card className="p-12 text-center">
         <Sparkles className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-        <h3 className="text-xl font-semibold mb-2">{t('no_ai_agents')}</h3>
+        <h3 className="text-xl font-semibold mb-2">Nenhum chat criado</h3>
         <p className="text-muted-foreground mb-6">
-          {t('no_ai_agents_desc')}
+          Crie seu primeiro chat para atender clientes
         </p>
         <Button onClick={() => navigate("/ai-agent")} className="mx-auto">
           <Sparkles className="w-4 h-4 mr-2" />
-          {t('create_ai_agent')}
+          Criar Chat
         </Button>
       </Card>
     );
@@ -205,10 +205,10 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">{t('my_ai_agents')}</h2>
+        <h2 className="text-2xl font-bold">Meus Chats</h2>
         <Button onClick={() => navigate("/ai-agent")}>
           <Sparkles className="w-4 h-4 mr-2" />
-          {t('new_ai_agent')}
+          Novo Chat
         </Button>
       </div>
 

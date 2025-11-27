@@ -1162,9 +1162,9 @@ const Dashboard = () => {
               ) : (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Gestão de Agentes</CardTitle>
+                    <CardTitle>Gestão de Chats</CardTitle>
                     <CardDescription>
-                      Selecione um agente para gerenciar agendamentos e pedidos
+                      Selecione um chat para gerenciar agendamentos e pedidos
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -1296,9 +1296,9 @@ const Dashboard = () => {
               ) : (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Gestão de Agentes IA</CardTitle>
+                    <CardTitle>Gestão de Chats</CardTitle>
                     <CardDescription>
-                      Selecione um agente para gerenciar agendamentos, pedidos e clientes
+                      Selecione um chat para gerenciar agendamentos, pedidos e clientes
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
