@@ -106,11 +106,6 @@ export function SimpleMembersArea() {
   const [selectedSection, setSelectedSection] = useState<Section | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState('');
-  const [showCreatePrimaryColorPicker, setShowCreatePrimaryColorPicker] = useState(false);
-  const [showCreateSecondaryColorPicker, setShowCreateSecondaryColorPicker] = useState(false);
-  const [showEditPrimaryColorPicker, setShowEditPrimaryColorPicker] = useState(false);
-  const [showEditSecondaryColorPicker, setShowEditSecondaryColorPicker] = useState(false);
-
   const [areaFormData, setAreaFormData] = useState({
     name: '',
     description: '',
@@ -553,7 +548,7 @@ export function SimpleMembersArea() {
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <Label className="text-sm">Cor Primária</Label>
-                  <Popover modal={false} open={showEditPrimaryColorPicker} onOpenChange={setShowEditPrimaryColorPicker}>
+                  <Popover modal={false}>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start gap-2">
                         <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.primary_color }} />
@@ -570,7 +565,7 @@ export function SimpleMembersArea() {
                 </div>
                 <div>
                   <Label className="text-sm">Cor Secundária</Label>
-                  <Popover modal={false} open={showEditSecondaryColorPicker} onOpenChange={setShowEditSecondaryColorPicker}>
+                  <Popover modal={false}>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start gap-2">
                         <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.secondary_color }} />
@@ -719,7 +714,7 @@ export function SimpleMembersArea() {
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <Label className="text-sm">Cor Primária</Label>
-                  <Popover modal={false} open={showCreatePrimaryColorPicker} onOpenChange={setShowCreatePrimaryColorPicker}>
+                  <Popover modal={false}>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start gap-2">
                         <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.primary_color }} />
@@ -736,7 +731,7 @@ export function SimpleMembersArea() {
                 </div>
                 <div>
                   <Label className="text-sm">Cor Secundária</Label>
-                  <Popover modal={false} open={showCreateSecondaryColorPicker} onOpenChange={setShowCreateSecondaryColorPicker}>
+                  <Popover modal={false}>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start gap-2">
                         <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.secondary_color }} />
@@ -796,7 +791,7 @@ export function SimpleMembersArea() {
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <Label className="text-sm">Cor Primária</Label>
-                  <Popover modal={false} open={showEditPrimaryColorPicker} onOpenChange={setShowEditPrimaryColorPicker}>
+                  <Popover modal={false}>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start gap-2">
                         <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.primary_color }} />
@@ -813,7 +808,7 @@ export function SimpleMembersArea() {
                 </div>
                 <div>
                   <Label className="text-sm">Cor Secundária</Label>
-                  <Popover modal={false} open={showEditSecondaryColorPicker} onOpenChange={setShowEditSecondaryColorPicker}>
+                  <Popover modal={false}>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start gap-2">
                         <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.secondary_color }} />
