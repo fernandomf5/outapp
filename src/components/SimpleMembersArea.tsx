@@ -8,8 +8,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { HexColorPicker } from "react-colorful";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +42,7 @@ interface MembersArea {
   is_active: boolean;
   primary_color?: string;
   secondary_color?: string;
+  logo_url?: string;
 }
 
 const SortableBlock = ({ block, onEdit, onDelete }: { block: ContentBlock; onEdit: () => void; onDelete: () => void }) => {
@@ -112,11 +111,8 @@ export function SimpleMembersArea() {
     password: '',
     primary_color: '#8B5CF6',
     secondary_color: '#EC4899',
+    logo_url: '',
   });
-  const [showCreatePrimaryColorPicker, setShowCreatePrimaryColorPicker] = useState(false);
-  const [showCreateSecondaryColorPicker, setShowCreateSecondaryColorPicker] = useState(false);
-  const [showEditPrimaryColorPicker, setShowEditPrimaryColorPicker] = useState(false);
-  const [showEditSecondaryColorPicker, setShowEditSecondaryColorPicker] = useState(false);
 
   const [sectionFormData, setSectionFormData] = useState({
     title: '',
@@ -176,6 +172,7 @@ export function SimpleMembersArea() {
           is_active: true,
           primary_color: areaFormData.primary_color,
           secondary_color: areaFormData.secondary_color,
+          logo_url: areaFormData.logo_url || null,
         })
         .select()
         .single();
@@ -184,7 +181,7 @@ export function SimpleMembersArea() {
 
       toast.success('Área de membros criada com sucesso!');
       setIsCreateDialogOpen(false);
-      setAreaFormData({ name: '', description: '', password: '', primary_color: '#8B5CF6', secondary_color: '#EC4899' });
+      setAreaFormData({ name: '', description: '', password: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', logo_url: '' });
       loadAreas();
     } catch (error: any) {
       toast.error('Erro ao criar área: ' + error.message);
@@ -273,6 +270,7 @@ export function SimpleMembersArea() {
       password: area.password,
       primary_color: area.primary_color || '#8B5CF6',
       secondary_color: area.secondary_color || '#EC4899',
+      logo_url: area.logo_url || '',
     });
     setIsEditDialogOpen(true);
   };
@@ -290,6 +288,7 @@ export function SimpleMembersArea() {
           password: areaFormData.password,
           primary_color: areaFormData.primary_color,
           secondary_color: areaFormData.secondary_color,
+          logo_url: areaFormData.logo_url || null,
         })
         .eq('id', editingArea.id);
 
@@ -298,7 +297,7 @@ export function SimpleMembersArea() {
       toast.success('Área atualizada com sucesso!');
       setIsEditDialogOpen(false);
       setEditingArea(null);
-      setAreaFormData({ name: '', description: '', password: '', primary_color: '#8B5CF6', secondary_color: '#EC4899' });
+      setAreaFormData({ name: '', description: '', password: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', logo_url: '' });
       loadAreas();
     } catch (error: any) {
       toast.error('Erro ao atualizar área: ' + error.message);
@@ -638,28 +637,34 @@ export function SimpleMembersArea() {
               />
               <p className="text-xs text-muted-foreground mt-1">Os membros precisarão desta senha para acessar o conteúdo</p>
             </div>
+            <div>
+              <ImageUpload
+                label="Logo (opcional)"
+                onImageSelect={(url) => setAreaFormData({ ...areaFormData, logo_url: url })}
+                currentImage={areaFormData.logo_url}
+                bucketName="business-logos"
+              />
+            </div>
             <div className="space-y-3">
               <Label>Cores Personalizadas</Label>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <Label className="text-sm">Cor Primária</Label>
-                  <div className="space-y-2">
-                    <Input
-                      type="color"
-                      value={areaFormData.primary_color}
-                      onChange={(e) => setAreaFormData({ ...areaFormData, primary_color: e.target.value })}
-                    />
-                  </div>
+                  <Input
+                    type="color"
+                    value={areaFormData.primary_color}
+                    onChange={(e) => setAreaFormData({ ...areaFormData, primary_color: e.target.value })}
+                    className="h-10 w-full"
+                  />
                 </div>
                 <div>
                   <Label className="text-sm">Cor Secundária</Label>
-                  <div className="space-y-2">
-                    <Input
-                      type="color"
-                      value={areaFormData.secondary_color}
-                      onChange={(e) => setAreaFormData({ ...areaFormData, secondary_color: e.target.value })}
-                    />
-                  </div>
+                  <Input
+                    type="color"
+                    value={areaFormData.secondary_color}
+                    onChange={(e) => setAreaFormData({ ...areaFormData, secondary_color: e.target.value })}
+                    className="h-10 w-full"
+                  />
                 </div>
               </div>
             </div>
@@ -701,88 +706,34 @@ export function SimpleMembersArea() {
                 type="text"
               />
             </div>
+            <div>
+              <ImageUpload
+                label="Logo (opcional)"
+                onImageSelect={(url) => setAreaFormData({ ...areaFormData, logo_url: url })}
+                currentImage={areaFormData.logo_url}
+                bucketName="business-logos"
+              />
+            </div>
             <div className="space-y-3">
               <Label>Cores Personalizadas</Label>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <Label className="text-sm">Cor Primária</Label>
-                  <Popover modal={true}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal"
-                      >
-                        <div className="flex items-center gap-2 w-full">
-                          <div
-                            className="h-6 w-6 rounded border flex-shrink-0"
-                            style={{ backgroundColor: areaFormData.primary_color }}
-                          />
-                          <span className="flex-1 truncate text-xs">
-                            {areaFormData.primary_color}
-                          </span>
-                        </div>
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-4" style={{ zIndex: 9999 }}>
-                      <div className="space-y-3" style={{ pointerEvents: "auto" }}>
-                        <div style={{ touchAction: "none" }}>
-                          <HexColorPicker
-                            color={areaFormData.primary_color}
-                            onChange={(color) =>
-                              setAreaFormData({ ...areaFormData, primary_color: color })
-                            }
-                          />
-                        </div>
-                        <Input
-                          value={areaFormData.primary_color}
-                          onChange={(e) =>
-                            setAreaFormData({ ...areaFormData, primary_color: e.target.value })
-                          }
-                          placeholder="#8B5CF6"
-                        />
-                      </div>
-                    </PopoverContent>
-                  </Popover>
+                  <Input
+                    type="color"
+                    value={areaFormData.primary_color}
+                    onChange={(e) => setAreaFormData({ ...areaFormData, primary_color: e.target.value })}
+                    className="h-10 w-full"
+                  />
                 </div>
                 <div>
                   <Label className="text-sm">Cor Secundária</Label>
-                  <Popover modal={true}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal"
-                      >
-                        <div className="flex items-center gap-2 w-full">
-                          <div
-                            className="h-6 w-6 rounded border flex-shrink-0"
-                            style={{ backgroundColor: areaFormData.secondary_color }}
-                          />
-                          <span className="flex-1 truncate text-xs">
-                            {areaFormData.secondary_color}
-                          </span>
-                        </div>
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-4" style={{ zIndex: 9999 }}>
-                      <div className="space-y-3" style={{ pointerEvents: "auto" }}>
-                        <div style={{ touchAction: "none" }}>
-                          <HexColorPicker
-                            color={areaFormData.secondary_color}
-                            onChange={(color) =>
-                              setAreaFormData({ ...areaFormData, secondary_color: color })
-                            }
-                          />
-                        </div>
-                        <Input
-                          value={areaFormData.secondary_color}
-                          onChange={(e) =>
-                            setAreaFormData({ ...areaFormData, secondary_color: e.target.value })
-                          }
-                          placeholder="#EC4899"
-                        />
-                      </div>
-                    </PopoverContent>
-                  </Popover>
+                  <Input
+                    type="color"
+                    value={areaFormData.secondary_color}
+                    onChange={(e) => setAreaFormData({ ...areaFormData, secondary_color: e.target.value })}
+                    className="h-10 w-full"
+                  />
                 </div>
               </div>
             </div>

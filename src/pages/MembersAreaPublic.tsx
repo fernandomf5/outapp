@@ -34,6 +34,7 @@ interface MembersArea {
   is_active: boolean;
   primary_color?: string;
   secondary_color?: string;
+  logo_url?: string;
 }
 
 export default function MembersAreaPublic() {
@@ -245,8 +246,19 @@ export default function MembersAreaPublic() {
       `}</style>
       <div className="bg-gradient-to-r from-primary/10 to-primary/5 border-b">
         <div className="container mx-auto px-4 py-12">
-          <h1 className="text-4xl font-bold mb-2">{area.name}</h1>
-          <p className="text-muted-foreground text-lg">{area.description}</p>
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            {area.logo_url && (
+              <img 
+                src={area.logo_url} 
+                alt={area.name} 
+                className="w-24 h-24 object-contain rounded-lg"
+              />
+            )}
+            <div className="flex-1 text-center sm:text-left">
+              <h1 className="text-4xl font-bold mb-2">{area.name}</h1>
+              <p className="text-muted-foreground text-lg">{area.description}</p>
+            </div>
+          </div>
         </div>
       </div>
 
