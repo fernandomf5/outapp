@@ -4770,6 +4770,7 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean | null
+          logo_url: string | null
           name: string
           password: string
           primary_color: string | null
@@ -4784,6 +4785,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean | null
+          logo_url?: string | null
           name: string
           password: string
           primary_color?: string | null
@@ -4798,6 +4800,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean | null
+          logo_url?: string | null
           name?: string
           password?: string
           primary_color?: string | null
