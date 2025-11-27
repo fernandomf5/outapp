@@ -25,13 +25,31 @@ export const EmailVerification = ({ userId, email, onVerified, onBack }: EmailVe
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('user-auth', {
+      // Try agent-customer-auth first
+      let data, error;
+      const agentResult = await supabase.functions.invoke('agent-customer-auth', {
         body: {
           action: 'verify',
-          userId,
+          customerId: userId,
           code,
         }
       });
+
+      if (agentResult.error || agentResult.data?.error) {
+        // Fallback to user-auth for regular users
+        const userResult = await supabase.functions.invoke('user-auth', {
+          body: {
+            action: 'verify',
+            userId,
+            code,
+          }
+        });
+        data = userResult.data;
+        error = userResult.error;
+      } else {
+        data = agentResult.data;
+        error = agentResult.error;
+      }
 
       if (error) throw error;
 
@@ -65,12 +83,29 @@ export const EmailVerification = ({ userId, email, onVerified, onBack }: EmailVe
     setIsResending(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('user-auth', {
+      // Try agent-customer-auth first
+      let data, error;
+      const agentResult = await supabase.functions.invoke('agent-customer-auth', {
         body: {
           action: 'resend',
-          userId,
+          customerId: userId,
         }
       });
+
+      if (agentResult.error || agentResult.data?.error) {
+        // Fallback to user-auth for regular users
+        const userResult = await supabase.functions.invoke('user-auth', {
+          body: {
+            action: 'resend',
+            userId,
+          }
+        });
+        data = userResult.data;
+        error = userResult.error;
+      } else {
+        data = agentResult.data;
+        error = agentResult.error;
+      }
 
       if (error) throw error;
 

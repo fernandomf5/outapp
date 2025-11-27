@@ -8,15 +8,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { LogIn, MessageSquare } from "lucide-react";
+import { EmailVerification } from "@/components/EmailVerification";
 
 export default function AgentCustomerAuth() {
   const { agentId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [authMode, setAuthMode] = useState<'choice' | 'login' | 'register' | 'anonymous'>('choice');
+  const [authMode, setAuthMode] = useState<'choice' | 'login' | 'register' | 'anonymous' | 'verify'>('choice');
   const [loading, setLoading] = useState(false);
   const [checkingAccess, setCheckingAccess] = useState(true);
   const [accessType, setAccessType] = useState<string>('public');
+  const [customerId, setCustomerId] = useState<string>("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -133,6 +135,14 @@ export default function AgentCustomerAuth() {
 
       if (error) throw error;
 
+      // If needs verification, show verification screen
+      if (authMode === 'register' && data.needsVerification) {
+        setCustomerId(data.customer.id);
+        setAuthMode('verify');
+        setLoading(false);
+        return;
+      }
+
       if (data.customer) {
         // Para acesso privado, verificar status de aprovação
         if (accessType === 'private') {
@@ -213,6 +223,24 @@ export default function AgentCustomerAuth() {
           </CardContent>
         </Card>
       </div>
+    );
+  }
+
+  // Email verification screen
+  if (authMode === 'verify') {
+    return (
+      <EmailVerification
+        userId={customerId}
+        email={formData.email}
+        onVerified={() => {
+          toast({
+            title: "Email verificado!",
+            description: "Sua conta foi ativada com sucesso.",
+          });
+          navigate(`/agent-chat/${agentId}`);
+        }}
+        onBack={() => setAuthMode('choice')}
+      />
     );
   }
 
