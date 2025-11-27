@@ -767,33 +767,83 @@ export function SimpleMembersArea() {
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <Label className="text-sm">Cor Primária</Label>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.primary_color }} />
-                      <span className="text-sm">{areaFormData.primary_color}</span>
-                    </div>
-                    <div className="relative z-[2000]" style={{ touchAction: "none" }}>
-                      <HexColorPicker
-                        color={areaFormData.primary_color}
-                        onChange={(color) => setAreaFormData({ ...areaFormData, primary_color: color })}
-                        style={{ touchAction: "none", pointerEvents: "auto" }}
-                      />
-                    </div>
-                  </div>
+                  <Popover modal={true}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <div className="flex items-center gap-2 w-full">
+                          <div
+                            className="h-6 w-6 rounded border flex-shrink-0"
+                            style={{ backgroundColor: areaFormData.primary_color }}
+                          />
+                          <span className="flex-1 truncate text-xs">
+                            {areaFormData.primary_color}
+                          </span>
+                        </div>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-4" style={{ zIndex: 9999 }}>
+                      <div className="space-y-3" style={{ pointerEvents: "auto" }}>
+                        <div style={{ touchAction: "none" }}>
+                          <HexColorPicker
+                            color={areaFormData.primary_color}
+                            onChange={(color) =>
+                              setAreaFormData({ ...areaFormData, primary_color: color })
+                            }
+                          />
+                        </div>
+                        <Input
+                          value={areaFormData.primary_color}
+                          onChange={(e) =>
+                            setAreaFormData({ ...areaFormData, primary_color: e.target.value })
+                          }
+                          placeholder="#8B5CF6"
+                        />
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div>
                   <Label className="text-sm">Cor Secundária</Label>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded border" style={{ backgroundColor: areaFormData.secondary_color }} />
-                      <span className="text-sm">{areaFormData.secondary_color}</span>
-                    </div>
-                    <HexColorPicker
-                      color={areaFormData.secondary_color}
-                      onChange={(color) => setAreaFormData({ ...areaFormData, secondary_color: color })}
-                      style={{ touchAction: "none", pointerEvents: "auto" }}
-                    />
-                  </div>
+                  <Popover modal={true}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <div className="flex items-center gap-2 w-full">
+                          <div
+                            className="h-6 w-6 rounded border flex-shrink-0"
+                            style={{ backgroundColor: areaFormData.secondary_color }}
+                          />
+                          <span className="flex-1 truncate text-xs">
+                            {areaFormData.secondary_color}
+                          </span>
+                        </div>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-4" style={{ zIndex: 9999 }}>
+                      <div className="space-y-3" style={{ pointerEvents: "auto" }}>
+                        <div style={{ touchAction: "none" }}>
+                          <HexColorPicker
+                            color={areaFormData.secondary_color}
+                            onChange={(color) =>
+                              setAreaFormData({ ...areaFormData, secondary_color: color })
+                            }
+                          />
+                        </div>
+                        <Input
+                          value={areaFormData.secondary_color}
+                          onChange={(e) =>
+                            setAreaFormData({ ...areaFormData, secondary_color: e.target.value })
+                          }
+                          placeholder="#EC4899"
+                        />
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
             </div>
