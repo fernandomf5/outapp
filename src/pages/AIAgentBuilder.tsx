@@ -49,7 +49,7 @@ const AIAgentBuilder = () => {
     empathy: 80,
   });
   const [knowledge, setKnowledge] = useState("");
-  const [welcomeMessage, setWelcomeMessage] = useState("Olá! Sou seu assistente virtual. Como posso ajudar você hoje?");
+  const [welcomeMessage, setWelcomeMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [aiEnabled, setAiEnabled] = useState(true);
