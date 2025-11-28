@@ -14,6 +14,7 @@ export const LandingPageEditor = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState({
+    landing_title: "",
     hero_title: "",
     hero_subtitle: "",
     hero_cta_text: "",
@@ -125,7 +126,24 @@ export const LandingPageEditor = () => {
 
             <TabsContent value="hero" className="space-y-4">
               <div className="space-y-3">
-                <Label htmlFor="hero_title">Título Principal</Label>
+                <Label htmlFor="landing_title">Título da Página (Grande)</Label>
+                <Textarea
+                  id="landing_title"
+                  value={settings.landing_title}
+                  onChange={(e) => handleChange('landing_title', e.target.value)}
+                  placeholder="A Solução Tudo em Um<br />para Empreendedores Digitais."
+                  rows={2}
+                  className="resize-none"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Use &lt;br /&gt; para quebrar linha. Este é o título grande que aparece no topo.
+                </p>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-3">
+                <Label htmlFor="hero_title">Título Alternativo (Opcional)</Label>
                 <Textarea
                   id="hero_title"
                   value={settings.hero_title}
@@ -134,9 +152,6 @@ export const LandingPageEditor = () => {
                   rows={3}
                   className="resize-none"
                 />
-                <p className="text-xs text-muted-foreground">
-                  Use &lt;br /&gt; para quebrar linha
-                </p>
               </div>
 
               <Separator />

@@ -35,6 +35,7 @@ interface Transaction {
   reminder_enabled: boolean;
   year: number;
   status_history: any[];
+  monthly_status?: { [key: string]: 'paid' | 'pending' | 'cancelled' };
   business_id?: string;
 }
 
@@ -409,18 +410,37 @@ export const FinancialManagementPanel = () => {
       const statusHistory = [...(transaction.status_history || []), {
         status: newStatus,
         changed_at: new Date().toISOString(),
-        note: `Status alterado para ${newStatus}`
+        note: `Status alterado para ${newStatus} no mês ${selectedMonth}/${selectedYear}`
       }];
 
-      const { error } = await supabase
-        .from('financial_transactions')
-        .update({ 
-          status: newStatus,
-          status_history: statusHistory as any
-        })
-        .eq('id', transaction.id);
+      // Se é transação fixa, salva o status específico do mês
+      if (transaction.is_recurring) {
+        const monthKey = `${selectedMonth}-${selectedYear}`;
+        const monthlyStatus = transaction.monthly_status || {};
+        monthlyStatus[monthKey] = newStatus;
 
-      if (error) throw error;
+        const { error } = await supabase
+          .from('financial_transactions')
+          .update({ 
+            monthly_status: monthlyStatus as any,
+            status_history: statusHistory as any
+          })
+          .eq('id', transaction.id);
+
+        if (error) throw error;
+      } else {
+        // Para transações não fixas, atualiza o status global
+        const { error } = await supabase
+          .from('financial_transactions')
+          .update({ 
+            status: newStatus,
+            status_history: statusHistory as any
+          })
+          .eq('id', transaction.id);
+
+        if (error) throw error;
+      }
+      
       toast.success('Status atualizado!');
       loadTransactions();
     } catch (error: any) {
@@ -462,6 +482,15 @@ export const FinancialManagementPanel = () => {
     setIsEditDialogOpen(true);
   };
 
+  // Função para obter o status de uma transação fixa no mês selecionado
+  const getTransactionStatus = (transaction: Transaction) => {
+    if (transaction.is_recurring && transaction.monthly_status) {
+      const monthKey = `${selectedMonth}-${selectedYear}`;
+      return transaction.monthly_status[monthKey] || transaction.status;
+    }
+    return transaction.status;
+  };
+
   // Filtrar transações fixas apenas a partir do mês adicionado
   const getMonthIndex = (month: string) => MONTHS.indexOf(month);
   
@@ -475,15 +504,21 @@ export const FinancialManagementPanel = () => {
     return t.month === selectedMonth;
   }).filter(t => selectedCategory === 'all' || t.category === selectedCategory);
 
-  const totalIncome = monthTransactions
+  // Ajustar totais considerando o status específico por mês
+  const transactionsWithMonthStatus = monthTransactions.map(t => ({
+    ...t,
+    status: getTransactionStatus(t)
+  }));
+
+  const totalIncome = transactionsWithMonthStatus
     .filter(t => t.type === 'income' && t.status === 'paid')
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
-  const totalExpense = monthTransactions
+  const totalExpense = transactionsWithMonthStatus
     .filter(t => t.type === 'expense' && t.status === 'paid')
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
-  const pendingAmount = monthTransactions
+  const pendingAmount = transactionsWithMonthStatus
     .filter(t => t.status === 'pending')
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
@@ -711,7 +746,7 @@ export const FinancialManagementPanel = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {monthTransactions.map((transaction) => (
+              {transactionsWithMonthStatus.map((transaction) => (
                 <TableRow key={transaction.id}>
                   <TableCell>
                     <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'}>
@@ -747,7 +782,7 @@ export const FinancialManagementPanel = () => {
                   </TableCell>
                 </TableRow>
               ))}
-              {monthTransactions.length === 0 && (
+              {transactionsWithMonthStatus.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                     Nenhuma transação neste mês
