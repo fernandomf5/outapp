@@ -3035,6 +3035,7 @@ export type Database = {
           id: string
           is_recurring: boolean | null
           month: string | null
+          monthly_status: Json | null
           order_index: number | null
           payment_method: string
           reminder_enabled: boolean | null
@@ -3057,6 +3058,7 @@ export type Database = {
           id?: string
           is_recurring?: boolean | null
           month?: string | null
+          monthly_status?: Json | null
           order_index?: number | null
           payment_method: string
           reminder_enabled?: boolean | null
@@ -3079,6 +3081,7 @@ export type Database = {
           id?: string
           is_recurring?: boolean | null
           month?: string | null
+          monthly_status?: Json | null
           order_index?: number | null
           payment_method?: string
           reminder_enabled?: boolean | null
