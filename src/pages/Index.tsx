@@ -60,6 +60,7 @@ const Index = () => {
   const [headCode, setHeadCode] = useState("");
   const [footerCode, setFooterCode] = useState("");
   const [landingSettings, setLandingSettings] = useState({
+    landing_title: "A Solução Tudo em Um<br />para Empreendedores Digitais.",
     hero_title: "Plataforma Completa de Automação<br />e Marketing Digital com IA",
     hero_subtitle: "Construtor visual de automações, CRM, sistema de afiliados, pixels de conversão, agentes IA e muito mais. Tudo em uma plataforma. Teste grátis por 3 dias.",
     hero_cta_text: "Começar Teste Grátis 🚀",
@@ -576,10 +577,10 @@ const Index = () => {
             <Bot className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20" />
           </div>
           
-          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 sm:mb-8 animate-fade-in leading-tight px-8 sm:px-12 md:px-16">
-            A Solução Tudo em Um<br />
-            para Empreendedores Digitais.
-          </h1>
+          <h1 
+            className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 sm:mb-8 animate-fade-in leading-tight px-8 sm:px-12 md:px-16"
+            dangerouslySetInnerHTML={{ __html: landingSettings.landing_title }}
+          />
           
           <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-8 sm:mb-10 text-white/90 max-w-3xl mx-auto animate-fade-in leading-relaxed px-2">
             {landingSettings.hero_subtitle}
