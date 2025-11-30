@@ -2558,6 +2558,7 @@ export type Database = {
           created_at: string | null
           email: string
           id: string
+          is_read: boolean | null
           message: string
           name: string
           phone: string | null
@@ -2566,6 +2567,7 @@ export type Database = {
           created_at?: string | null
           email: string
           id?: string
+          is_read?: boolean | null
           message: string
           name: string
           phone?: string | null
@@ -2574,6 +2576,7 @@ export type Database = {
           created_at?: string | null
           email?: string
           id?: string
+          is_read?: boolean | null
           message?: string
           name?: string
           phone?: string | null

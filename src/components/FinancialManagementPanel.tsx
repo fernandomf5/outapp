@@ -7,12 +7,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Plus, Edit2, Trash2, Check } from "lucide-react";
+import { DollarSign, Plus, Edit2, Trash2, Check, GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Business {
   id: string;
@@ -37,12 +41,79 @@ interface Transaction {
   status_history: any[];
   monthly_status?: { [key: string]: 'paid' | 'pending' | 'cancelled' };
   business_id?: string;
+  order_index?: number;
 }
 
 const MONTHS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
 ];
+
+interface SortableRowProps {
+  transaction: Transaction;
+  onStatusChange: (transaction: Transaction, status: 'paid' | 'pending' | 'cancelled') => void;
+  onEdit: (transaction: Transaction) => void;
+  onDelete: (id: string) => void;
+}
+
+const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete }: SortableRowProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: transaction.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <TableRow ref={setNodeRef} style={style}>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+            <GripVertical className="w-4 h-4 text-muted-foreground" />
+          </div>
+          <div>
+            <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'}>
+              {transaction.type === 'income' ? 'Receita' : 'Despesa'}
+            </Badge>
+            {transaction.is_recurring && <Badge className="ml-2" variant="outline">Fixa</Badge>}
+          </div>
+        </div>
+      </TableCell>
+      <TableCell>{transaction.description}</TableCell>
+      <TableCell>{transaction.category}</TableCell>
+      <TableCell>{format(new Date(transaction.due_date + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
+      <TableCell className="font-semibold">R$ {Number(transaction.amount).toFixed(2)}</TableCell>
+      <TableCell>
+        <Select value={transaction.status} onValueChange={(v) => onStatusChange(transaction, v as any)}>
+          <SelectTrigger className="w-[120px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="pending">Pendente</SelectItem>
+            <SelectItem value="paid">Pago</SelectItem>
+            <SelectItem value="cancelled">Cancelado</SelectItem>
+          </SelectContent>
+        </Select>
+      </TableCell>
+      <TableCell>
+        <div className="flex gap-2">
+          <Button variant="ghost" size="icon" onClick={() => onEdit(transaction)}>
+            <Edit2 className="w-4 h-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => onDelete(transaction.id)}>
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+};
 
 export const FinancialManagementPanel = () => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -51,6 +122,7 @@ export const FinancialManagementPanel = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'MMMM', { locale: ptBR }));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isBusinessDialogOpen, setIsBusinessDialogOpen] = useState(false);
@@ -84,6 +156,13 @@ export const FinancialManagementPanel = () => {
     reminder_enabled: false,
     business_id: ''
   });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     loadBusinesses();
@@ -491,6 +570,42 @@ export const FinancialManagementPanel = () => {
     return transaction.status;
   };
 
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = transactionsWithMonthStatus.findIndex((t) => t.id === active.id);
+    const newIndex = transactionsWithMonthStatus.findIndex((t) => t.id === over.id);
+
+    const newOrder = arrayMove(transactionsWithMonthStatus, oldIndex, newIndex);
+    
+    // Atualizar order_index de todas as transações afetadas
+    const updates = newOrder.map((transaction, index) => ({
+      id: transaction.id,
+      order_index: index
+    }));
+
+    try {
+      // Atualizar no banco de dados
+      for (const update of updates) {
+        await supabase
+          .from('financial_transactions')
+          .update({ order_index: update.order_index })
+          .eq('id', update.id);
+      }
+
+      // Recarregar transações
+      await loadTransactions();
+      toast.success('Ordem atualizada');
+    } catch (error) {
+      console.error('Erro ao atualizar ordem:', error);
+      toast.error('Erro ao atualizar ordem');
+    }
+  };
+
   // Filtrar transações fixas apenas a partir do mês adicionado
   const getMonthIndex = (month: string) => MONTHS.indexOf(month);
   
@@ -505,10 +620,13 @@ export const FinancialManagementPanel = () => {
   }).filter(t => selectedCategory === 'all' || t.category === selectedCategory);
 
   // Ajustar totais considerando o status específico por mês
-  const transactionsWithMonthStatus = monthTransactions.map(t => ({
-    ...t,
-    status: getTransactionStatus(t)
-  }));
+  const transactionsWithMonthStatus = monthTransactions
+    .map(t => ({
+      ...t,
+      status: getTransactionStatus(t)
+    }))
+    .filter(t => statusFilter === 'all' || t.status === statusFilter)
+    .sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
 
   const totalIncome = transactionsWithMonthStatus
     .filter(t => t.type === 'income' && t.status === 'paid')
@@ -675,6 +793,17 @@ export const FinancialManagementPanel = () => {
               </Select>
             </div>
           </div>
+          <div className="mt-4">
+            <Label className="mb-2 block">Filtrar por Status</Label>
+            <Tabs value={statusFilter} onValueChange={setStatusFilter}>
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="all">Todos</TabsTrigger>
+                <TabsTrigger value="pending">Pendente</TabsTrigger>
+                <TabsTrigger value="paid">Pago</TabsTrigger>
+                <TabsTrigger value="cancelled">Cancelado</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </CardContent>
       </Card>
 
@@ -733,64 +862,48 @@ export const FinancialManagementPanel = () => {
           <CardDescription>Transações do mês selecionado e transações fixas</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead>Vencimento</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {transactionsWithMonthStatus.map((transaction) => (
-                <TableRow key={transaction.id}>
-                  <TableCell>
-                    <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'}>
-                      {transaction.type === 'income' ? 'Receita' : 'Despesa'}
-                    </Badge>
-                    {transaction.is_recurring && <Badge className="ml-2" variant="outline">Fixa</Badge>}
-                  </TableCell>
-                  <TableCell>{transaction.description}</TableCell>
-                  <TableCell>{transaction.category}</TableCell>
-                  <TableCell>{format(new Date(transaction.due_date + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
-                  <TableCell className="font-semibold">R$ {Number(transaction.amount).toFixed(2)}</TableCell>
-                  <TableCell>
-                    <Select value={transaction.status} onValueChange={(v) => handleStatusChange(transaction, v as any)}>
-                      <SelectTrigger className="w-[120px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Pendente</SelectItem>
-                        <SelectItem value="paid">Pago</SelectItem>
-                        <SelectItem value="cancelled">Cancelado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(transaction)}>
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(transaction.id)}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {transactionsWithMonthStatus.length === 0 && (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                    Nenhuma transação neste mês
-                  </TableCell>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead>Vencimento</TableHead>
+                  <TableHead>Valor</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Ações</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                <SortableContext
+                  items={transactionsWithMonthStatus.map((t) => t.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {transactionsWithMonthStatus.map((transaction) => (
+                    <SortableRow
+                      key={transaction.id}
+                      transaction={transaction}
+                      onStatusChange={handleStatusChange}
+                      onEdit={openEdit}
+                      onDelete={handleDelete}
+                    />
+                  ))}
+                </SortableContext>
+                {transactionsWithMonthStatus.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                      Nenhuma transação neste mês
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </DndContext>
         </CardContent>
       </Card>
 
