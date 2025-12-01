@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { Lock, Image as ImageIcon, Video, FileText, Link as LinkIcon, MousePointer } from "lucide-react";
+import { Lock, Image as ImageIcon, Video, FileText, Link as LinkIcon, MousePointer, Download, LogOut } from "lucide-react";
 import { toast } from "sonner";
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download';
   content: string;
   title?: string;
   order_index: number;
@@ -77,6 +77,12 @@ export default function MembersAreaPublic() {
     } else {
       toast.error('Senha incorreta');
     }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setPasswordInput('');
+    toast.success('Você saiu da área de membros');
   };
 
   const renderBlock = (block: ContentBlock) => {
@@ -147,6 +153,16 @@ export default function MembersAreaPublic() {
           <a href={block.content} target="_blank" rel="noopener noreferrer">
             <Button className="w-full" size="lg">
               {block.title || 'Clique aqui'}
+            </Button>
+          </a>
+        );
+      
+      case 'download':
+        return (
+          <a href={block.content} download>
+            <Button className="w-full gap-2" size="lg" variant="outline">
+              <Download className="w-5 h-5" />
+              {block.title || 'Baixar Arquivo'}
             </Button>
           </a>
         );
@@ -287,6 +303,10 @@ export default function MembersAreaPublic() {
               <h1 className="text-4xl font-bold mb-2">{area.name}</h1>
               <p className="text-muted-foreground text-lg">{area.description}</p>
             </div>
+            <Button onClick={handleLogout} variant="outline" className="gap-2">
+              <LogOut className="w-4 h-4" />
+              Sair
+            </Button>
           </div>
         </div>
       </div>
