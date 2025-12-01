@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink } from "lucide-react";
+import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink, Settings } from "lucide-react";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -103,8 +103,12 @@ export function SimpleMembersArea() {
   const [areaToDelete, setAreaToDelete] = useState<MembersArea | null>(null);
   const [editingArea, setEditingArea] = useState<MembersArea | null>(null);
   const [isAddSectionDialogOpen, setIsAddSectionDialogOpen] = useState(false);
+  const [isEditSectionDialogOpen, setIsEditSectionDialogOpen] = useState(false);
+  const [isDeleteSectionDialogOpen, setIsDeleteSectionDialogOpen] = useState(false);
   const [isAddBlockDialogOpen, setIsAddBlockDialogOpen] = useState(false);
   const [selectedSection, setSelectedSection] = useState<Section | null>(null);
+  const [editingSection, setEditingSection] = useState<Section | null>(null);
+  const [sectionToDelete, setSectionToDelete] = useState<Section | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState('');
   const [areaFormData, setAreaFormData] = useState({
@@ -224,6 +228,62 @@ export function SimpleMembersArea() {
       toast.success('Seção adicionada!');
     } catch (error: any) {
       toast.error('Erro ao adicionar seção: ' + error.message);
+    }
+  };
+
+  const handleEditSection = async () => {
+    if (!selectedArea || !editingSection) return;
+
+    try {
+      const updatedSections = selectedArea.sections.map(section =>
+        section.id === editingSection.id
+          ? {
+              ...section,
+              title: sectionFormData.title,
+              description: sectionFormData.description,
+              blocks_layout: sectionFormData.blocks_layout,
+            }
+          : section
+      );
+
+      const { error } = await supabase
+        .from('simple_members_areas' as any)
+        .update({ sections: updatedSections as any })
+        .eq('id', selectedArea.id);
+
+      if (error) throw error;
+
+      setSelectedArea({ ...selectedArea, sections: updatedSections });
+      setIsEditSectionDialogOpen(false);
+      setEditingSection(null);
+      setSectionFormData({ title: '', description: '', blocks_layout: ['full'] });
+      toast.success('Seção atualizada!');
+    } catch (error: any) {
+      toast.error('Erro ao atualizar seção: ' + error.message);
+    }
+  };
+
+  const handleDeleteSection = async () => {
+    if (!selectedArea || !sectionToDelete) return;
+
+    try {
+      const updatedSections = selectedArea.sections.filter(
+        section => section.id !== sectionToDelete.id
+      );
+
+      const { error } = await supabase
+        .from('simple_members_areas' as any)
+        .update({ sections: updatedSections as any })
+        .eq('id', selectedArea.id);
+
+      if (error) throw error;
+
+      setSelectedArea({ ...selectedArea, sections: updatedSections });
+      setIsDeleteSectionDialogOpen(false);
+      setSectionToDelete(null);
+      toast.success('Seção excluída!');
+    } catch (error: any) {
+      toast.error('Erro ao excluir seção: ' + error.message);
     }
   };
 
@@ -469,14 +529,41 @@ export function SimpleMembersArea() {
             <Card key={section.id}>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <div>
+                  <div className="flex-1">
                     <CardTitle>{section.title}</CardTitle>
                     {section.description && <p className="text-sm text-muted-foreground">{section.description}</p>}
                   </div>
-                  <Button onClick={() => { setSelectedSection(section); setIsAddBlockDialogOpen(true); }}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Adicionar Conteúdo
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => {
+                        setEditingSection(section);
+                        setSectionFormData({
+                          title: section.title,
+                          description: section.description || '',
+                          blocks_layout: section.blocks_layout || ['full'],
+                        });
+                        setIsEditSectionDialogOpen(true);
+                      }}
+                    >
+                      <Settings className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => {
+                        setSectionToDelete(section);
+                        setIsDeleteSectionDialogOpen(true);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                    <Button onClick={() => { setSelectedSection(section); setIsAddBlockDialogOpen(true); }}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar Conteúdo
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -560,6 +647,62 @@ export function SimpleMembersArea() {
             </div>
           </DialogContent>
         </Dialog>
+
+        <Dialog modal={false} open={isEditSectionDialogOpen} onOpenChange={setIsEditSectionDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Seção</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>Título da Seção</Label>
+                <Input
+                  value={sectionFormData.title}
+                  onChange={(e) => setSectionFormData({ ...sectionFormData, title: e.target.value })}
+                  placeholder="Ex: Módulo 1 - Introdução"
+                />
+              </div>
+              <div>
+                <Label>Descrição</Label>
+                <Textarea
+                  value={sectionFormData.description}
+                  onChange={(e) => setSectionFormData({ ...sectionFormData, description: e.target.value })}
+                  placeholder="Descreva esta seção..."
+                />
+              </div>
+              <div>
+                <Label>Layout dos Blocos</Label>
+                <Select 
+                  value={sectionFormData.blocks_layout.join(',')} 
+                  onValueChange={(value) => setSectionFormData({ ...sectionFormData, blocks_layout: value.split(',') as any })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="full">1 Bloco (Largura Total)</SelectItem>
+                    <SelectItem value="half,half">2 Blocos (Lado a Lado)</SelectItem>
+                    <SelectItem value="third,third,third">3 Blocos (Lado a Lado)</SelectItem>
+                    <SelectItem value="half,full">Bloco Metade + Bloco Total</SelectItem>
+                    <SelectItem value="full,half">Bloco Total + Bloco Metade</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Define quantos blocos esta seção terá e suas larguras
+                </p>
+              </div>
+              <Button onClick={handleEditSection} className="w-full">Salvar Alterações</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <DeleteConfirmDialog
+          open={isDeleteSectionDialogOpen}
+          onOpenChange={setIsDeleteSectionDialogOpen}
+          onConfirm={handleDeleteSection}
+          title="Excluir Seção"
+          description="Tem certeza que deseja excluir esta seção? Todos os conteúdos dentro dela serão perdidos permanentemente."
+        />
 
         <Dialog modal={false} open={isAddBlockDialogOpen} onOpenChange={(open) => {
           setIsAddBlockDialogOpen(open);
