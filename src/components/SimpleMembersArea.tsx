@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink, Settings } from "lucide-react";
+import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink, Settings, Download } from "lucide-react";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +18,7 @@ import { CSS } from '@dnd-kit/utilities';
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download';
   content: string;
   title?: string;
   order_index: number;
@@ -70,6 +70,7 @@ const SortableBlock = ({ block, onEdit, onDelete }: { block: ContentBlock; onEdi
       case 'document': return <FileText className="w-4 h-4" />;
       case 'link': return <LinkIcon className="w-4 h-4" />;
       case 'button': return <MousePointer className="w-4 h-4" />;
+      case 'download': return <Download className="w-4 h-4" />;
       default: return <FileText className="w-4 h-4" />;
     }
   };
@@ -752,6 +753,7 @@ export function SimpleMembersArea() {
                     <SelectItem value="document">Documento</SelectItem>
                     <SelectItem value="link">Link</SelectItem>
                     <SelectItem value="button">Botão</SelectItem>
+                    <SelectItem value="download">Download</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -771,6 +773,18 @@ export function SimpleMembersArea() {
                     onImageSelect={(url) => setBlockFormData({ ...blockFormData, content: url })}
                     bucketName="members-content"
                   />
+                ) : blockFormData.type === 'download' ? (
+                  <>
+                    <Input
+                      value={blockFormData.content}
+                      onChange={(e) => setBlockFormData({ ...blockFormData, content: e.target.value })}
+                      placeholder="URL do arquivo para download"
+                      className="mb-2"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Cole a URL do arquivo que deseja disponibilizar para download
+                    </p>
+                  </>
                 ) : (
                   <Textarea
                     value={blockFormData.content}
