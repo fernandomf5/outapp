@@ -22,6 +22,7 @@ interface ContentBlock {
   content: string;
   title?: string;
   order_index: number;
+  width?: 'full' | 'half' | 'third';
 }
 
 interface Section {
@@ -123,7 +124,10 @@ export function SimpleMembersArea() {
     type: 'text' as ContentBlock['type'],
     title: '',
     content: '',
+    width: 'full' as 'full' | 'half' | 'third',
   });
+
+  const [editingBlock, setEditingBlock] = useState<{ sectionId: string; block: ContentBlock } | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -230,6 +234,7 @@ export function SimpleMembersArea() {
         title: blockFormData.title,
         content: blockFormData.content,
         order_index: selectedSection.blocks.length,
+        width: blockFormData.width,
       };
 
       const updatedSections = selectedArea.sections.map(section => {
@@ -248,11 +253,74 @@ export function SimpleMembersArea() {
 
       setSelectedArea({ ...selectedArea, sections: updatedSections });
       setIsAddBlockDialogOpen(false);
-      setBlockFormData({ type: 'text', title: '', content: '' });
+      setBlockFormData({ type: 'text', title: '', content: '', width: 'full' });
       setUploadedImageUrl('');
       toast.success('Bloco adicionado!');
     } catch (error: any) {
       toast.error('Erro ao adicionar bloco: ' + error.message);
+    }
+  };
+
+  const handleEditBlock = async () => {
+    if (!selectedArea || !editingBlock) return;
+
+    try {
+      const updatedSections = selectedArea.sections.map(section => {
+        if (section.id === editingBlock.sectionId) {
+          return {
+            ...section,
+            blocks: section.blocks.map(block => 
+              block.id === editingBlock.block.id
+                ? { ...block, ...blockFormData }
+                : block
+            ),
+          };
+        }
+        return section;
+      });
+
+      const { error } = await supabase
+        .from('simple_members_areas' as any)
+        .update({ sections: updatedSections as any })
+        .eq('id', selectedArea.id);
+
+      if (error) throw error;
+
+      setSelectedArea({ ...selectedArea, sections: updatedSections });
+      setEditingBlock(null);
+      setIsAddBlockDialogOpen(false);
+      setBlockFormData({ type: 'text', title: '', content: '', width: 'full' });
+      toast.success('Bloco atualizado!');
+    } catch (error: any) {
+      toast.error('Erro ao atualizar bloco: ' + error.message);
+    }
+  };
+
+  const handleDeleteBlock = async (sectionId: string, blockId: string) => {
+    if (!selectedArea) return;
+
+    try {
+      const updatedSections = selectedArea.sections.map(section => {
+        if (section.id === sectionId) {
+          return {
+            ...section,
+            blocks: section.blocks.filter(block => block.id !== blockId),
+          };
+        }
+        return section;
+      });
+
+      const { error } = await supabase
+        .from('simple_members_areas' as any)
+        .update({ sections: updatedSections as any })
+        .eq('id', selectedArea.id);
+
+      if (error) throw error;
+
+      setSelectedArea({ ...selectedArea, sections: updatedSections });
+      toast.success('Bloco excluído!');
+    } catch (error: any) {
+      toast.error('Erro ao excluir bloco: ' + error.message);
     }
   };
 
@@ -416,8 +484,17 @@ export function SimpleMembersArea() {
                         <SortableBlock
                           key={block.id}
                           block={block}
-                          onEdit={() => {}}
-                          onDelete={() => {}}
+                          onEdit={() => {
+                            setEditingBlock({ sectionId: section.id, block });
+                            setBlockFormData({
+                              type: block.type,
+                              title: block.title || '',
+                              content: block.content,
+                              width: block.width || 'full',
+                            });
+                            setIsAddBlockDialogOpen(true);
+                          }}
+                          onDelete={() => handleDeleteBlock(section.id, block.id)}
                         />
                       ))}
                       {section.blocks.length === 0 && (
@@ -460,10 +537,16 @@ export function SimpleMembersArea() {
           </DialogContent>
         </Dialog>
 
-        <Dialog modal={false} open={isAddBlockDialogOpen} onOpenChange={setIsAddBlockDialogOpen}>
+        <Dialog modal={false} open={isAddBlockDialogOpen} onOpenChange={(open) => {
+          setIsAddBlockDialogOpen(open);
+          if (!open) {
+            setEditingBlock(null);
+            setBlockFormData({ type: 'text', title: '', content: '', width: 'full' });
+          }
+        }}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Adicionar Conteúdo</DialogTitle>
+              <DialogTitle>{editingBlock ? 'Editar Conteúdo' : 'Adicionar Conteúdo'}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -479,6 +562,19 @@ export function SimpleMembersArea() {
                     <SelectItem value="document">Documento</SelectItem>
                     <SelectItem value="link">Link</SelectItem>
                     <SelectItem value="button">Botão</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Largura do Bloco</Label>
+                <Select value={blockFormData.width} onValueChange={(value: any) => setBlockFormData({ ...blockFormData, width: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="full">Largura Total</SelectItem>
+                    <SelectItem value="half">Metade (2 colunas)</SelectItem>
+                    <SelectItem value="third">Um Terço (3 colunas)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -510,7 +606,9 @@ export function SimpleMembersArea() {
                   />
                 )}
               </div>
-              <Button onClick={handleAddBlock} className="w-full">Adicionar</Button>
+              <Button onClick={editingBlock ? handleEditBlock : handleAddBlock} className="w-full">
+                {editingBlock ? 'Salvar' : 'Adicionar'}
+              </Button>
             </div>
           </DialogContent>
       </Dialog>

@@ -14,6 +14,7 @@ interface ContentBlock {
   content: string;
   title?: string;
   order_index: number;
+  width?: 'full' | 'half' | 'third';
 }
 
 interface Section {
@@ -175,10 +176,37 @@ export default function MembersAreaPublic() {
   }
 
   if (!isAuthenticated) {
+    const primaryColor = area.primary_color || '#8B5CF6';
+    const secondaryColor = area.secondary_color || '#EC4899';
+    
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+      <div 
+        className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4"
+        style={{
+          '--custom-primary': primaryColor,
+          '--custom-secondary': secondaryColor,
+        } as React.CSSProperties}
+      >
+        <style>{`
+          [style*="--custom-primary"] .bg-primary {
+            background-color: ${primaryColor} !important;
+          }
+          [style*="--custom-primary"] .text-primary {
+            color: ${primaryColor} !important;
+          }
+          [style*="--custom-primary"] .bg-primary\\/10 {
+            background-color: ${primaryColor}1a !important;
+          }
+        `}</style>
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
+            {area.logo_url && (
+              <img 
+                src={area.logo_url} 
+                alt={area.name} 
+                className="mx-auto mb-4 w-20 h-20 object-contain rounded-lg"
+              />
+            )}
             <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
               <Lock className="w-8 h-8 text-primary" />
             </div>
@@ -262,10 +290,29 @@ export default function MembersAreaPublic() {
         </div>
       </div>
 
+      {/* Anchor Menu */}
+      {area.sections.length > 0 && (
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
+          <div className="container mx-auto px-4 py-3">
+            <nav className="flex gap-4 overflow-x-auto">
+              {area.sections.map((section) => (
+                <a
+                  key={section.id}
+                  href={`#section-${section.id}`}
+                  className="text-sm font-medium whitespace-nowrap hover:text-primary transition-colors"
+                >
+                  {section.title}
+                </a>
+              ))}
+            </nav>
+          </div>
+        </div>
+      )}
+
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
           {area.sections.map((section) => (
-            <Card key={section.id}>
+            <Card key={section.id} id={`section-${section.id}`} className="scroll-mt-20">
               <CardHeader>
                 <CardTitle className="text-2xl">{section.title}</CardTitle>
                 {section.description && (
@@ -273,9 +320,17 @@ export default function MembersAreaPublic() {
                 )}
               </CardHeader>
               <CardContent>
-                <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {section.blocks.map((block) => (
-                    <div key={block.id}>
+                    <div 
+                      key={block.id}
+                      className={
+                        block.width === 'full' ? 'col-span-1 md:col-span-2 lg:col-span-3' :
+                        block.width === 'half' ? 'col-span-1 md:col-span-1 lg:col-span-1' :
+                        block.width === 'third' ? 'col-span-1' :
+                        'col-span-1 md:col-span-2 lg:col-span-3'
+                      }
+                    >
                       {block.title && block.type !== 'button' && (
                         <h3 className="font-semibold mb-2">{block.title}</h3>
                       )}
@@ -283,9 +338,11 @@ export default function MembersAreaPublic() {
                     </div>
                   ))}
                   {section.blocks.length === 0 && (
-                    <p className="text-center text-muted-foreground py-8">
-                      Nenhum conteúdo disponível nesta seção
-                    </p>
+                    <div className="col-span-1 md:col-span-2 lg:col-span-3">
+                      <p className="text-center text-muted-foreground py-8">
+                        Nenhum conteúdo disponível nesta seção
+                      </p>
+                    </div>
                   )}
                 </div>
               </CardContent>
