@@ -14,7 +14,7 @@ interface ContentBlock {
   content: string;
   title?: string;
   order_index: number;
-  width?: 'full' | 'half' | 'third';
+  block_position: number; // qual bloco da seção (0, 1, 2...)
 }
 
 interface Section {
@@ -22,6 +22,7 @@ interface Section {
   title: string;
   description?: string;
   order_index: number;
+  blocks_layout: ('full' | 'half' | 'third')[]; // Define quantos blocos e suas larguras
   blocks: ContentBlock[];
 }
 
@@ -320,25 +321,36 @@ export default function MembersAreaPublic() {
                 )}
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {section.blocks.map((block) => (
-                    <div 
-                      key={block.id}
-                      className={
-                        block.width === 'full' ? 'col-span-1 md:col-span-2 lg:col-span-3' :
-                        block.width === 'half' ? 'col-span-1 md:col-span-1 lg:col-span-1' :
-                        block.width === 'third' ? 'col-span-1' :
-                        'col-span-1 md:col-span-2 lg:col-span-3'
-                      }
-                    >
-                      {block.title && block.type !== 'button' && (
-                        <h3 className="font-semibold mb-2">{block.title}</h3>
-                      )}
-                      {renderBlock(block)}
-                    </div>
-                  ))}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                  {(section.blocks_layout || ['full']).map((layoutWidth, layoutIndex) => {
+                    // Get blocks for this position
+                    const blocksInPosition = section.blocks.filter(b => (b.block_position || 0) === layoutIndex);
+                    
+                    // Calculate column span based on layout
+                    const colSpan = layoutWidth === 'full' ? 'md:col-span-12' :
+                                  layoutWidth === 'half' ? 'md:col-span-6' :
+                                  layoutWidth === 'third' ? 'md:col-span-4' : 'md:col-span-12';
+                    
+                    return (
+                      <div key={layoutIndex} className={`col-span-1 ${colSpan} space-y-4`}>
+                        {blocksInPosition.map((block) => (
+                          <div key={block.id}>
+                            {block.title && block.type !== 'button' && (
+                              <h3 className="font-semibold mb-2">{block.title}</h3>
+                            )}
+                            {renderBlock(block)}
+                          </div>
+                        ))}
+                        {blocksInPosition.length === 0 && (
+                          <div className="text-center text-muted-foreground py-4 text-sm">
+                            Bloco vazio
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                   {section.blocks.length === 0 && (
-                    <div className="col-span-1 md:col-span-2 lg:col-span-3">
+                    <div className="col-span-1 md:col-span-12">
                       <p className="text-center text-muted-foreground py-8">
                         Nenhum conteúdo disponível nesta seção
                       </p>

@@ -22,7 +22,7 @@ interface ContentBlock {
   content: string;
   title?: string;
   order_index: number;
-  width?: 'full' | 'half' | 'third';
+  block_position: number; // qual bloco da seção (0, 1, 2...)
 }
 
 interface Section {
@@ -30,6 +30,7 @@ interface Section {
   title: string;
   description?: string;
   order_index: number;
+  blocks_layout: ('full' | 'half' | 'third')[]; // Define quantos blocos e suas larguras
   blocks: ContentBlock[];
 }
 
@@ -118,13 +119,14 @@ export function SimpleMembersArea() {
   const [sectionFormData, setSectionFormData] = useState({
     title: '',
     description: '',
+    blocks_layout: ['full'] as ('full' | 'half' | 'third')[],
   });
 
   const [blockFormData, setBlockFormData] = useState({
     type: 'text' as ContentBlock['type'],
     title: '',
     content: '',
-    width: 'full' as 'full' | 'half' | 'third',
+    block_position: 0, // Em qual bloco da seção vai o conteúdo
   });
 
   const [editingBlock, setEditingBlock] = useState<{ sectionId: string; block: ContentBlock } | null>(null);
@@ -203,6 +205,7 @@ export function SimpleMembersArea() {
         title: sectionFormData.title,
         description: sectionFormData.description,
         order_index: selectedArea.sections.length,
+        blocks_layout: sectionFormData.blocks_layout,
         blocks: [],
       };
 
@@ -217,7 +220,7 @@ export function SimpleMembersArea() {
 
       setSelectedArea({ ...selectedArea, sections: updatedSections });
       setIsAddSectionDialogOpen(false);
-      setSectionFormData({ title: '', description: '' });
+      setSectionFormData({ title: '', description: '', blocks_layout: ['full'] });
       toast.success('Seção adicionada!');
     } catch (error: any) {
       toast.error('Erro ao adicionar seção: ' + error.message);
@@ -234,7 +237,7 @@ export function SimpleMembersArea() {
         title: blockFormData.title,
         content: blockFormData.content,
         order_index: selectedSection.blocks.length,
-        width: blockFormData.width,
+        block_position: blockFormData.block_position,
       };
 
       const updatedSections = selectedArea.sections.map(section => {
@@ -253,7 +256,7 @@ export function SimpleMembersArea() {
 
       setSelectedArea({ ...selectedArea, sections: updatedSections });
       setIsAddBlockDialogOpen(false);
-      setBlockFormData({ type: 'text', title: '', content: '', width: 'full' });
+      setBlockFormData({ type: 'text', title: '', content: '', block_position: 0 });
       setUploadedImageUrl('');
       toast.success('Bloco adicionado!');
     } catch (error: any) {
@@ -289,7 +292,7 @@ export function SimpleMembersArea() {
       setSelectedArea({ ...selectedArea, sections: updatedSections });
       setEditingBlock(null);
       setIsAddBlockDialogOpen(false);
-      setBlockFormData({ type: 'text', title: '', content: '', width: 'full' });
+      setBlockFormData({ type: 'text', title: '', content: '', block_position: 0 });
       toast.success('Bloco atualizado!');
     } catch (error: any) {
       toast.error('Erro ao atualizar bloco: ' + error.message);
@@ -484,13 +487,13 @@ export function SimpleMembersArea() {
                         <SortableBlock
                           key={block.id}
                           block={block}
-                          onEdit={() => {
+                           onEdit={() => {
                             setEditingBlock({ sectionId: section.id, block });
                             setBlockFormData({
                               type: block.type,
                               title: block.title || '',
                               content: block.content,
-                              width: block.width || 'full',
+                              block_position: block.block_position || 0,
                             });
                             setIsAddBlockDialogOpen(true);
                           }}
@@ -532,6 +535,27 @@ export function SimpleMembersArea() {
                   placeholder="Descreva esta seção..."
                 />
               </div>
+              <div>
+                <Label>Layout dos Blocos</Label>
+                <Select 
+                  value={sectionFormData.blocks_layout.join(',')} 
+                  onValueChange={(value) => setSectionFormData({ ...sectionFormData, blocks_layout: value.split(',') as any })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="full">1 Bloco (Largura Total)</SelectItem>
+                    <SelectItem value="half,half">2 Blocos (Lado a Lado)</SelectItem>
+                    <SelectItem value="third,third,third">3 Blocos (Lado a Lado)</SelectItem>
+                    <SelectItem value="half,full">Bloco Metade + Bloco Total</SelectItem>
+                    <SelectItem value="full,half">Bloco Total + Bloco Metade</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Define quantos blocos esta seção terá e suas larguras
+                </p>
+              </div>
               <Button onClick={handleAddSection} className="w-full">Adicionar Seção</Button>
             </div>
           </DialogContent>
@@ -541,7 +565,7 @@ export function SimpleMembersArea() {
           setIsAddBlockDialogOpen(open);
           if (!open) {
             setEditingBlock(null);
-            setBlockFormData({ type: 'text', title: '', content: '', width: 'full' });
+            setBlockFormData({ type: 'text', title: '', content: '', block_position: 0 });
           }
         }}>
           <DialogContent>
@@ -549,6 +573,29 @@ export function SimpleMembersArea() {
               <DialogTitle>{editingBlock ? 'Editar Conteúdo' : 'Adicionar Conteúdo'}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
+              {selectedSection && selectedSection.blocks_layout && selectedSection.blocks_layout.length > 1 && (
+                <div>
+                  <Label>Adicionar no Bloco</Label>
+                  <Select 
+                    value={blockFormData.block_position.toString()} 
+                    onValueChange={(value) => setBlockFormData({ ...blockFormData, block_position: parseInt(value) })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {selectedSection.blocks_layout.map((layout, index) => (
+                        <SelectItem key={index} value={index.toString()}>
+                          Bloco {index + 1} ({layout === 'full' ? 'Largura Total' : layout === 'half' ? 'Metade' : 'Um Terço'})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Escolha em qual bloco desta seção o conteúdo será adicionado
+                  </p>
+                </div>
+              )}
               <div>
                 <Label>Tipo de Conteúdo</Label>
                 <Select value={blockFormData.type} onValueChange={(value: any) => setBlockFormData({ ...blockFormData, type: value })}>
@@ -562,19 +609,6 @@ export function SimpleMembersArea() {
                     <SelectItem value="document">Documento</SelectItem>
                     <SelectItem value="link">Link</SelectItem>
                     <SelectItem value="button">Botão</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Largura do Bloco</Label>
-                <Select value={blockFormData.width} onValueChange={(value: any) => setBlockFormData({ ...blockFormData, width: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="full">Largura Total</SelectItem>
-                    <SelectItem value="half">Metade (2 colunas)</SelectItem>
-                    <SelectItem value="third">Um Terço (3 colunas)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
