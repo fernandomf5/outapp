@@ -1,252 +1,264 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import ReactFlow, {
-  Node,
-  Edge,
-  Connection,
-  addEdge,
-  useNodesState,
-  useEdgesState,
-  Background,
-  Controls,
-  MiniMap,
-  Handle,
-  Position,
-  NodeProps,
-  MarkerType,
-  Panel,
-  BackgroundVariant,
-  ReactFlowProvider,
-} from 'reactflow';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
+import { Plus, Save, FolderOpen, Trash2, Edit3, Palette, ZoomIn, ZoomOut, RotateCcw, Download, Brain, Sparkles, LayoutGrid, Move, MousePointer } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import {
-  Plus,
-  Save,
-  Trash2,
-  Edit,
-  FolderOpen,
-  Brain,
-  Sparkles,
-  LayoutGrid,
-} from 'lucide-react';
+import { toast } from 'sonner';
 
-const themes = {
-  default: {
-    name: 'Padrão',
-    colors: ['#8B5CF6', '#EC4899', '#10B981', '#F59E0B', '#3B82F6', '#EF4444'],
-    background: '#1a1a2e',
-    lineColor: '#a78bfa',
-  },
-  ocean: {
-    name: 'Oceano',
-    colors: ['#0EA5E9', '#06B6D4', '#14B8A6', '#22D3EE', '#38BDF8', '#67E8F9'],
-    background: '#0c1929',
-    lineColor: '#38bdf8',
-  },
-  forest: {
-    name: 'Floresta',
-    colors: ['#22C55E', '#16A34A', '#84CC16', '#4ADE80', '#A3E635', '#BEF264'],
-    background: '#0f1f14',
-    lineColor: '#4ade80',
-  },
-  sunset: {
-    name: 'Pôr do Sol',
-    colors: ['#F97316', '#FB923C', '#FBBF24', '#F59E0B', '#EAB308', '#FCD34D'],
-    background: '#1f1410',
-    lineColor: '#fbbf24',
-  },
-  purple: {
-    name: 'Roxo',
-    colors: ['#A855F7', '#8B5CF6', '#7C3AED', '#C084FC', '#D946EF', '#E879F9'],
-    background: '#1a0f29',
-    lineColor: '#c084fc',
-  },
-};
-
-function MindMapNode({ data, selected }: NodeProps) {
-  const isRoot = data.isRoot;
-  
-  return (
-    <div
-      style={{
-        padding: isRoot ? '16px 24px' : '12px 20px',
-        borderRadius: '16px',
-        backgroundColor: data.color || '#8B5CF6',
-        border: selected ? '3px solid white' : '2px solid rgba(255,255,255,0.3)',
-        boxShadow: `0 8px 24px ${data.color}60`,
-        minWidth: isRoot ? '160px' : '120px',
-        cursor: 'grab',
-        position: 'relative',
-      }}
-    >
-      <Handle
-        type="target"
-        position={Position.Top}
-        style={{ width: 14, height: 14, background: 'white', border: '2px solid #666', top: -7 }}
-      />
-      <Handle
-        type="target"
-        position={Position.Left}
-        style={{ width: 14, height: 14, background: 'white', border: '2px solid #666', left: -7 }}
-      />
-      
-      <div style={{ textAlign: 'center', color: 'white', fontWeight: isRoot ? 700 : 500, fontSize: isRoot ? '16px' : '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', userSelect: 'none' }}>
-        {data.icon && <span>{data.icon}</span>}
-        <span>{data.label}</span>
-      </div>
-      
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        style={{ width: 14, height: 14, background: 'white', border: '2px solid #666', bottom: -7 }}
-      />
-      <Handle
-        type="source"
-        position={Position.Right}
-        style={{ width: 14, height: 14, background: 'white', border: '2px solid #666', right: -7 }}
-      />
-    </div>
-  );
+interface MindMapNode {
+  id: string;
+  text: string;
+  x: number;
+  y: number;
+  color: string;
+  parentId: string | null;
+  isRoot: boolean;
+  icon?: string;
 }
 
 interface MindMap {
   id: string;
   name: string;
-  description: string | null;
-  nodes: Node[];
-  edges: Edge[];
+  description: string;
+  nodes: MindMapNode[];
   theme: string;
   created_at: string;
   updated_at: string;
 }
 
-export const MindMapCreatorPanel = () => {
-  return (
-    <ReactFlowProvider>
-      <MindMapCreatorContent />
-    </ReactFlowProvider>
-  );
+const THEMES = {
+  default: {
+    name: 'Padrão',
+    colors: ['#8B5CF6', '#EC4899', '#10B981', '#F59E0B', '#3B82F6', '#EF4444'],
+    bg: '#1a1a2e',
+    line: '#a78bfa',
+  },
+  ocean: { 
+    name: 'Oceano', 
+    colors: ['#0EA5E9', '#06B6D4', '#14B8A6', '#10B981', '#22C55E', '#38BDF8'],
+    bg: '#0c1929',
+    line: '#0EA5E9'
+  },
+  sunset: { 
+    name: 'Pôr do Sol', 
+    colors: ['#F97316', '#FB923C', '#FBBF24', '#F59E0B', '#EAB308', '#FCD34D'],
+    bg: '#1f1410',
+    line: '#F97316'
+  },
+  forest: { 
+    name: 'Floresta', 
+    colors: ['#22C55E', '#16A34A', '#15803D', '#84CC16', '#4ADE80', '#A3E635'],
+    bg: '#0f1f14',
+    line: '#22C55E'
+  },
+  purple: { 
+    name: 'Roxo', 
+    colors: ['#A855F7', '#9333EA', '#7C3AED', '#C084FC', '#D946EF', '#E879F9'],
+    bg: '#1a0f29',
+    line: '#A855F7'
+  },
 };
 
-const MindMapCreatorContent = () => {
-  const { toast } = useToast();
+const ICONS = ['🎯', '💡', '⭐', '🚀', '📌', '🔥', '💎', '🎨', '📊', '🔗', '✨', '🏆', '📝', '🎪', '🌟'];
+
+export const MindMapCreatorPanel = () => {
   const { user } = useAuth();
-  
-  const [mindMaps, setMindMaps] = useState<MindMap[]>([]);
-  const [currentMap, setCurrentMap] = useState<MindMap | null>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const [nodes, setNodes] = useState<MindMapNode[]>([]);
+  const [currentTheme, setCurrentTheme] = useState<keyof typeof THEMES>('default');
   const [mapName, setMapName] = useState('');
   const [mapDescription, setMapDescription] = useState('');
-  const [selectedTheme, setSelectedTheme] = useState<keyof typeof themes>('default');
-  const [isListDialogOpen, setIsListDialogOpen] = useState(false);
-  const [isNodeDialogOpen, setIsNodeDialogOpen] = useState(false);
-  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
-  
-  const [nodeLabel, setNodeLabel] = useState('');
-  const [nodeColor, setNodeColor] = useState('#8B5CF6');
-  const [nodeIcon, setNodeIcon] = useState('');
-  
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-
-  const nodeTypes = useMemo(() => ({ mindmap: MindMapNode }), []);
+  const [savedMaps, setSavedMaps] = useState<MindMap[]>([]);
+  const [currentMapId, setCurrentMapId] = useState<string | null>(null);
+  const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingNode, setEditingNode] = useState<MindMapNode | null>(null);
+  const [editText, setEditText] = useState('');
+  const [editIcon, setEditIcon] = useState('');
+  const [editColor, setEditColor] = useState('');
+  const [scale, setScale] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [draggedNode, setDraggedNode] = useState<string | null>(null);
+  const [isPanning, setIsPanning] = useState(false);
+  const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
+  const [connectingFrom, setConnectingFrom] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) fetchMindMaps();
+    fetchSavedMaps();
   }, [user]);
 
-  const fetchMindMaps = async () => {
+  const fetchSavedMaps = async () => {
     if (!user) return;
     const { data, error } = await supabase
       .from('mind_maps')
       .select('*')
       .eq('user_id', user.id)
       .order('updated_at', { ascending: false });
-
+    
     if (!error && data) {
-      setMindMaps(data.map((map: any) => ({
+      setSavedMaps(data.map(map => ({
         ...map,
-        nodes: Array.isArray(map.nodes) ? map.nodes : [],
-        edges: Array.isArray(map.edges) ? map.edges : [],
+        nodes: (map.nodes as any) || [],
       })));
     }
   };
 
-  const onConnect = useCallback((params: Connection) => {
-    const theme = themes[selectedTheme];
-    setEdges((eds) => addEdge({
-      ...params,
-      type: 'smoothstep',
-      animated: true,
-      style: { stroke: theme.lineColor, strokeWidth: 3 },
-      markerEnd: { type: MarkerType.ArrowClosed, color: theme.lineColor, width: 20, height: 20 },
-    }, eds));
-  }, [selectedTheme, setEdges]);
-
-  const addNode = useCallback((isRoot = false) => {
-    const theme = themes[selectedTheme];
-    const colorIndex = nodes.length % theme.colors.length;
-    
-    const newNode: Node = {
+  const createRootNode = () => {
+    const theme = THEMES[currentTheme];
+    const newNode: MindMapNode = {
       id: `node-${Date.now()}`,
-      type: 'mindmap',
-      position: { x: isRoot ? 400 : 200 + Math.random() * 300, y: isRoot ? 250 : 150 + Math.random() * 200 },
-      data: {
-        label: isRoot ? 'Ideia Central' : 'Nova Ideia',
-        color: isRoot ? theme.colors[0] : theme.colors[colorIndex],
-        icon: isRoot ? '🎯' : '',
-        isRoot,
-      },
-      draggable: true,
-      selectable: true,
-      connectable: true,
+      text: 'Ideia Central',
+      x: 400,
+      y: 250,
+      color: theme.colors[0],
+      parentId: null,
+      isRoot: true,
+      icon: '🎯',
     };
-    
-    if (isRoot) {
-      setNodes([newNode]);
-      setEdges([]);
-    } else {
-      setNodes((nds) => [...nds, newNode]);
-    }
-  }, [selectedTheme, nodes.length, setNodes, setEdges]);
-
-  const handleNodeDoubleClick = useCallback((_: React.MouseEvent, node: Node) => {
-    setSelectedNode(node);
-    setNodeLabel(node.data.label);
-    setNodeColor(node.data.color || '#8B5CF6');
-    setNodeIcon(node.data.icon || '');
-    setIsNodeDialogOpen(true);
-  }, []);
-
-  const updateNode = () => {
-    if (!selectedNode) return;
-    setNodes((nds) => nds.map((node) =>
-      node.id === selectedNode.id
-        ? { ...node, data: { ...node.data, label: nodeLabel, color: nodeColor, icon: nodeIcon } }
-        : node
-    ));
-    setIsNodeDialogOpen(false);
-    setSelectedNode(null);
+    setNodes([newNode]);
   };
 
-  const deleteSelectedNode = () => {
-    if (!selectedNode) return;
-    setNodes((nds) => nds.filter((node) => node.id !== selectedNode.id));
-    setEdges((eds) => eds.filter((edge) => edge.source !== selectedNode.id && edge.target !== selectedNode.id));
-    setIsNodeDialogOpen(false);
-    setSelectedNode(null);
+  const addNode = () => {
+    const theme = THEMES[currentTheme];
+    const newNode: MindMapNode = {
+      id: `node-${Date.now()}`,
+      text: 'Nova Ideia',
+      x: 200 + Math.random() * 400,
+      y: 100 + Math.random() * 300,
+      color: theme.colors[nodes.length % theme.colors.length],
+      parentId: null,
+      isRoot: false,
+    };
+    setNodes([...nodes, newNode]);
+    toast.success('Novo nó adicionado!');
+  };
+
+  const addChildNode = (parentId: string) => {
+    const parent = nodes.find(n => n.id === parentId);
+    if (!parent) return;
+
+    const theme = THEMES[currentTheme];
+    const childCount = nodes.filter(n => n.parentId === parentId).length;
+    const angle = (childCount * 60 - 90) * (Math.PI / 180);
+    const distance = 180;
+
+    const newNode: MindMapNode = {
+      id: `node-${Date.now()}`,
+      text: 'Nova Ideia',
+      x: parent.x + Math.cos(angle) * distance,
+      y: parent.y + Math.sin(angle) * distance,
+      color: theme.colors[(nodes.length) % theme.colors.length],
+      parentId: parentId,
+      isRoot: false,
+    };
+
+    setNodes([...nodes, newNode]);
+    toast.success('Nó filho adicionado!');
+  };
+
+  const deleteNode = (nodeId: string) => {
+    const node = nodes.find(n => n.id === nodeId);
+    if (node?.isRoot) {
+      toast.error('Não é possível deletar o nó central');
+      return;
+    }
+
+    const nodesToDelete = new Set<string>();
+    const findChildren = (id: string) => {
+      nodesToDelete.add(id);
+      nodes.filter(n => n.parentId === id).forEach(child => findChildren(child.id));
+    };
+    findChildren(nodeId);
+
+    setNodes(nodes.filter(n => !nodesToDelete.has(n.id)));
+    toast.success('Nó removido');
+  };
+
+  const openEditDialog = (node: MindMapNode) => {
+    setEditingNode(node);
+    setEditText(node.text);
+    setEditIcon(node.icon || '');
+    setEditColor(node.color);
+    setIsEditDialogOpen(true);
+  };
+
+  const saveNodeEdit = () => {
+    if (!editingNode) return;
+    setNodes(nodes.map(n => 
+      n.id === editingNode.id 
+        ? { ...n, text: editText, icon: editIcon, color: editColor } 
+        : n
+    ));
+    setIsEditDialogOpen(false);
+    setEditingNode(null);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent, nodeId?: string) => {
+    e.preventDefault();
+    if (nodeId) {
+      if (connectingFrom) {
+        // Complete connection
+        if (connectingFrom !== nodeId) {
+          setNodes(nodes.map(n => 
+            n.id === nodeId ? { ...n, parentId: connectingFrom } : n
+          ));
+          toast.success('Nós conectados!');
+        }
+        setConnectingFrom(null);
+      } else {
+        setDraggedNode(nodeId);
+      }
+    } else {
+      setIsPanning(true);
+    }
+    setLastMousePos({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (draggedNode) {
+      const dx = (e.clientX - lastMousePos.x) / scale;
+      const dy = (e.clientY - lastMousePos.y) / scale;
+      setNodes(prev => prev.map(n => 
+        n.id === draggedNode ? { ...n, x: n.x + dx, y: n.y + dy } : n
+      ));
+      setLastMousePos({ x: e.clientX, y: e.clientY });
+    } else if (isPanning) {
+      const dx = e.clientX - lastMousePos.x;
+      const dy = e.clientY - lastMousePos.y;
+      setOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+      setLastMousePos({ x: e.clientX, y: e.clientY });
+    }
+  }, [draggedNode, isPanning, lastMousePos, scale]);
+
+  const handleMouseUp = () => {
+    setDraggedNode(null);
+    setIsPanning(false);
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setScale(prev => Math.max(0.3, Math.min(2, prev + delta)));
+  };
+
+  const startConnecting = (nodeId: string) => {
+    setConnectingFrom(nodeId);
+    toast.info('Clique em outro nó para conectar');
   };
 
   const saveMap = async () => {
-    if (!user || !mapName) {
-      toast({ title: 'Erro', description: 'Digite um nome para o mapa', variant: 'destructive' });
+    if (!user) {
+      toast.error('Faça login para salvar');
+      return;
+    }
+    if (!mapName) {
+      toast.error('Digite um nome para o mapa');
       return;
     }
 
@@ -255,76 +267,164 @@ const MindMapCreatorContent = () => {
       name: mapName,
       description: mapDescription || null,
       nodes: JSON.parse(JSON.stringify(nodes)),
-      edges: JSON.parse(JSON.stringify(edges)),
-      theme: selectedTheme,
+      edges: JSON.parse(JSON.stringify([])),
+      theme: currentTheme,
+      updated_at: new Date().toISOString(),
     };
 
-    if (currentMap) {
-      const { error } = await supabase.from('mind_maps').update(mapData).eq('id', currentMap.id);
-      if (error) toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' });
-      else { toast({ title: 'Mapa atualizado!' }); fetchMindMaps(); }
+    if (currentMapId) {
+      const { error } = await supabase
+        .from('mind_maps')
+        .update(mapData)
+        .eq('id', currentMapId);
+      
+      if (error) {
+        toast.error('Erro ao atualizar');
+      } else {
+        toast.success('Mapa atualizado!');
+        fetchSavedMaps();
+      }
     } else {
-      const { error } = await supabase.from('mind_maps').insert(mapData);
-      if (error) toast({ title: 'Erro ao criar', description: error.message, variant: 'destructive' });
-      else { toast({ title: 'Mapa criado!' }); fetchMindMaps(); }
+      const { data, error } = await supabase
+        .from('mind_maps')
+        .insert([mapData])
+        .select()
+        .single();
+      
+      if (error) {
+        toast.error('Erro ao salvar');
+      } else {
+        setCurrentMapId(data.id);
+        toast.success('Mapa salvo!');
+        fetchSavedMaps();
+      }
     }
   };
 
   const loadMap = (map: MindMap) => {
-    console.log('Loading map:', map);
-    setCurrentMap(map);
+    setNodes(map.nodes || []);
     setMapName(map.name);
     setMapDescription(map.description || '');
-    setSelectedTheme(map.theme as keyof typeof themes || 'default');
-    
-    // Ensure nodes have draggable property
-    const loadedNodes = (map.nodes || []).map(node => ({
-      ...node,
-      draggable: true,
-      selectable: true,
-      connectable: true,
-    }));
-    
-    setNodes(loadedNodes);
-    setEdges(map.edges || []);
-    setIsListDialogOpen(false);
+    setCurrentTheme((map.theme as keyof typeof THEMES) || 'default');
+    setCurrentMapId(map.id);
+    setIsLoadDialogOpen(false);
+    setScale(1);
+    setOffset({ x: 0, y: 0 });
+    toast.success('Mapa carregado!');
   };
 
-  const deleteMap = async (id: string) => {
-    const { error } = await supabase.from('mind_maps').delete().eq('id', id);
+  const deleteMap = async (mapId: string) => {
+    const { error } = await supabase
+      .from('mind_maps')
+      .delete()
+      .eq('id', mapId);
+    
     if (!error) {
-      toast({ title: 'Mapa excluído' });
-      fetchMindMaps();
-      if (currentMap?.id === id) newMap();
+      toast.success('Mapa deletado');
+      fetchSavedMaps();
+      if (currentMapId === mapId) {
+        newMap();
+      }
     }
   };
 
   const newMap = () => {
-    setCurrentMap(null);
+    setNodes([]);
     setMapName('');
     setMapDescription('');
-    setNodes([]);
-    setEdges([]);
-    setSelectedTheme('default');
+    setCurrentMapId(null);
+    setScale(1);
+    setOffset({ x: 0, y: 0 });
+  };
+
+  const changeTheme = (theme: keyof typeof THEMES) => {
+    setCurrentTheme(theme);
+    const themeColors = THEMES[theme].colors;
+    setNodes(nodes.map((n, i) => ({
+      ...n,
+      color: themeColors[i % themeColors.length]
+    })));
   };
 
   const autoOrganize = () => {
-    if (nodes.length === 0) return;
-    const centerX = 400, centerY = 250, radius = 180;
-    
-    const organizedNodes = nodes.map((node) => {
-      if (node.data.isRoot) return { ...node, position: { x: centerX, y: centerY } };
-      const otherNodes = nodes.filter(n => !n.data.isRoot);
-      const nodeIndex = otherNodes.findIndex(n => n.id === node.id);
-      const angle = (nodeIndex / otherNodes.length) * 2 * Math.PI - Math.PI / 2;
-      return { ...node, position: { x: centerX + radius * Math.cos(angle), y: centerY + radius * Math.sin(angle) } };
+    const root = nodes.find(n => n.isRoot);
+    if (!root) {
+      toast.error('Adicione um nó central primeiro');
+      return;
+    }
+
+    const centerX = 400;
+    const centerY = 250;
+    const radius = 180;
+
+    const organizedNodes = nodes.map(node => {
+      if (node.isRoot) {
+        return { ...node, x: centerX, y: centerY };
+      }
+      
+      const siblings = nodes.filter(n => !n.isRoot);
+      const index = siblings.findIndex(s => s.id === node.id);
+      const angle = (index / siblings.length) * 2 * Math.PI - Math.PI / 2;
+      
+      return {
+        ...node,
+        x: centerX + Math.cos(angle) * radius,
+        y: centerY + Math.sin(angle) * radius,
+        parentId: node.parentId || root.id,
+      };
     });
-    
+
     setNodes(organizedNodes);
-    toast({ title: 'Nós organizados!' });
+    toast.success('Mapa organizado!');
   };
 
-  const theme = themes[selectedTheme];
+  const theme = THEMES[currentTheme];
+
+  const renderConnections = () => {
+    return nodes.filter(n => n.parentId).map(node => {
+      const parent = nodes.find(p => p.id === node.parentId);
+      if (!parent) return null;
+
+      const x1 = parent.x;
+      const y1 = parent.y;
+      const x2 = node.x;
+      const y2 = node.y;
+
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const cx1 = x1 + dx * 0.4;
+      const cy1 = y1;
+      const cx2 = x2 - dx * 0.4;
+      const cy2 = y2;
+
+      return (
+        <g key={`conn-${node.id}`}>
+          <path
+            d={`M ${x1} ${y1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x2} ${y2}`}
+            stroke={theme.line}
+            strokeWidth="4"
+            fill="none"
+            opacity="0.4"
+          />
+          <path
+            d={`M ${x1} ${y1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x2} ${y2}`}
+            stroke={theme.line}
+            strokeWidth="2"
+            fill="none"
+            opacity="0.8"
+          />
+          {/* Arrow */}
+          <circle
+            cx={x2}
+            cy={y2}
+            r="6"
+            fill={theme.line}
+            opacity="0.6"
+          />
+        </g>
+      );
+    });
+  };
 
   return (
     <Card className="h-full">
@@ -341,10 +441,58 @@ const MindMapCreatorContent = () => {
           </div>
           
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setIsListDialogOpen(true)}>
-              <FolderOpen className="w-4 h-4 mr-2" />
-              Meus Mapas ({mindMaps.length})
-            </Button>
+            <Dialog open={isLoadDialogOpen} onOpenChange={setIsLoadDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <FolderOpen className="w-4 h-4 mr-2" />
+                  Meus Mapas ({savedMaps.length})
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <FolderOpen className="w-5 h-5" />
+                    Meus Mapas Mentais
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {savedMaps.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">Nenhum mapa mental salvo ainda</p>
+                  ) : (
+                    savedMaps.map((map) => (
+                      <Card key={map.id} className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-semibold">{map.name}</h4>
+                            {map.description && <p className="text-sm text-muted-foreground">{map.description}</p>}
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant="outline" className="text-xs">{(map.nodes || []).length} nós</Badge>
+                              <Badge variant="outline" className="text-xs">
+                                Tema: {THEMES[map.theme as keyof typeof THEMES]?.name || 'Padrão'}
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button size="sm" onClick={() => loadMap(map)}>
+                              <Edit3 className="w-4 h-4 mr-1" />
+                              Abrir
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="text-destructive"
+                              onClick={() => deleteMap(map.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    ))
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
             <Button variant="outline" size="sm" onClick={newMap}>
               <Plus className="w-4 h-4 mr-2" />
               Novo
@@ -354,18 +502,26 @@ const MindMapCreatorContent = () => {
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {/* Controls */}
         <div className="flex flex-wrap gap-3 p-4 bg-muted/50 rounded-xl">
           <div className="flex-1 min-w-[200px]">
             <Label className="text-xs mb-1 block">Nome do Mapa</Label>
-            <Input value={mapName} onChange={(e) => setMapName(e.target.value)} placeholder="Ex: Planejamento de Projeto" className="h-9" />
+            <Input 
+              value={mapName} 
+              onChange={(e) => setMapName(e.target.value)} 
+              placeholder="Ex: Planejamento de Projeto" 
+              className="h-9" 
+            />
           </div>
           
           <div className="w-40">
             <Label className="text-xs mb-1 block">Tema</Label>
-            <Select value={selectedTheme} onValueChange={(v) => setSelectedTheme(v as keyof typeof themes)}>
-              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+            <Select value={currentTheme} onValueChange={(v) => changeTheme(v as keyof typeof THEMES)}>
+              <SelectTrigger className="h-9">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {Object.entries(themes).map(([key, t]) => (
+                {Object.entries(THEMES).map(([key, t]) => (
                   <SelectItem key={key} value={key}>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: t.colors[0] }} />
@@ -378,127 +534,264 @@ const MindMapCreatorContent = () => {
           </div>
           
           <div className="flex items-end gap-2 flex-wrap">
-            <Button onClick={() => addNode(true)} size="sm" variant="outline"><Sparkles className="w-4 h-4 mr-1" />Central</Button>
-            <Button onClick={() => addNode(false)} size="sm" className="bg-primary"><Plus className="w-4 h-4 mr-1" />Nó</Button>
-            <Button onClick={autoOrganize} size="sm" variant="outline"><LayoutGrid className="w-4 h-4 mr-2" />Organizar</Button>
-            <Button onClick={saveMap} size="sm" variant="secondary"><Save className="w-4 h-4 mr-2" />Salvar</Button>
+            <Button onClick={createRootNode} size="sm" variant="outline" disabled={nodes.some(n => n.isRoot)}>
+              <Sparkles className="w-4 h-4 mr-1" />
+              Central
+            </Button>
+            <Button onClick={addNode} size="sm" className="bg-primary">
+              <Plus className="w-4 h-4 mr-1" />
+              Nó
+            </Button>
+            <Button onClick={autoOrganize} size="sm" variant="outline">
+              <LayoutGrid className="w-4 h-4 mr-2" />
+              Organizar
+            </Button>
+            <Button onClick={saveMap} size="sm" variant="secondary">
+              <Save className="w-4 h-4 mr-2" />
+              Salvar
+            </Button>
           </div>
         </div>
 
-        <div style={{ height: 500, width: '100%', backgroundColor: theme.background, borderRadius: '12px', border: '2px solid hsl(var(--border))', position: 'relative' }}>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onNodeDoubleClick={handleNodeDoubleClick}
-            nodeTypes={nodeTypes}
-            fitView
-            panOnDrag={true}
-            zoomOnScroll={true}
-            zoomOnPinch={true}
-            nodesDraggable={true}
-            nodesConnectable={true}
-            elementsSelectable={true}
-            selectNodesOnDrag={false}
-            panOnScroll={false}
-            defaultEdgeOptions={{
-              type: 'smoothstep',
-              animated: true,
-              style: { stroke: theme.lineColor, strokeWidth: 3 },
-              markerEnd: { type: MarkerType.ArrowClosed, color: theme.lineColor, width: 20, height: 20 },
-            }}
-            connectionLineStyle={{ stroke: theme.lineColor, strokeWidth: 2 }}
-            proOptions={{ hideAttribution: true }}
-            style={{ width: '100%', height: '100%' }}
+        {/* Zoom controls */}
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setScale(s => Math.max(0.3, s - 0.2))}>
+            <ZoomOut className="h-4 w-4" />
+          </Button>
+          <span className="text-xs text-muted-foreground w-12 text-center">{Math.round(scale * 100)}%</span>
+          <Button variant="outline" size="sm" onClick={() => setScale(s => Math.min(2, s + 0.2))}>
+            <ZoomIn className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => { setScale(1); setOffset({ x: 0, y: 0 }); }}
           >
-            <Background color={theme.lineColor} gap={20} size={1} variant={BackgroundVariant.Dots} />
-            <Controls className="bg-card/90 backdrop-blur border border-border rounded-lg" showZoom showFitView showInteractive={false} />
-            <MiniMap className="!bg-card/90 !backdrop-blur !border !border-border !rounded-lg" nodeColor={(node) => node.data.color || theme.colors[0]} maskColor="rgba(0,0,0,0.5)" />
-            
-            {nodes.length === 0 && (
-              <Panel position="top-center" className="mt-4">
-                <div className="bg-card/90 backdrop-blur px-4 py-3 rounded-lg border border-border text-center">
-                  <p className="text-sm text-muted-foreground mb-2">Clique em <strong>"Central"</strong> para criar o nó principal</p>
-                  <p className="text-xs text-muted-foreground">Arraste das bolinhas brancas para conectar os nós</p>
-                </div>
-              </Panel>
-            )}
-          </ReactFlow>
+            <RotateCcw className="h-4 w-4" />
+          </Button>
+          {connectingFrom && (
+            <Badge variant="secondary" className="ml-2">
+              🔗 Conectando... (clique em outro nó)
+            </Badge>
+          )}
         </div>
 
+        {/* Canvas */}
+        <div
+          ref={canvasRef}
+          className="relative w-full h-[500px] rounded-xl border-2 border-border overflow-hidden select-none"
+          style={{ 
+            backgroundColor: theme.bg,
+            cursor: isPanning ? 'grabbing' : draggedNode ? 'move' : 'grab',
+          }}
+          onMouseDown={(e) => {
+            if (e.target === canvasRef.current || (e.target as HTMLElement).classList.contains('canvas-area')) {
+              handleMouseDown(e);
+            }
+          }}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onWheel={handleWheel}
+        >
+          {/* Grid pattern */}
+          <div 
+            className="absolute inset-0 pointer-events-none canvas-area"
+            style={{
+              backgroundImage: `radial-gradient(circle, ${theme.line}33 1px, transparent 1px)`,
+              backgroundSize: '30px 30px',
+            }}
+          />
+
+          {/* Transform container */}
+          <div
+            className="absolute inset-0 canvas-area"
+            style={{
+              transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
+              transformOrigin: 'center center',
+            }}
+          >
+            {/* SVG for connections */}
+            <svg 
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              style={{ overflow: 'visible' }}
+            >
+              {renderConnections()}
+            </svg>
+
+            {/* Nodes */}
+            {nodes.map(node => (
+              <div
+                key={node.id}
+                className={`absolute transform -translate-x-1/2 -translate-y-1/2 transition-shadow duration-200 group ${
+                  draggedNode === node.id ? 'z-50' : 'z-10'
+                } ${connectingFrom === node.id ? 'ring-4 ring-white ring-opacity-50' : ''}`}
+                style={{
+                  left: node.x,
+                  top: node.y,
+                }}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  handleMouseDown(e, node.id);
+                }}
+                onDoubleClick={() => openEditDialog(node)}
+              >
+                {/* Node card */}
+                <div
+                  className={`relative rounded-2xl shadow-lg cursor-move transition-all duration-200 hover:scale-105 ${
+                    node.isRoot ? 'min-w-[140px]' : 'min-w-[100px]'
+                  }`}
+                  style={{
+                    backgroundColor: node.color,
+                    boxShadow: `0 4px 20px ${node.color}60, 0 0 40px ${node.color}30`,
+                    border: connectingFrom === node.id ? '3px solid white' : '2px solid rgba(255,255,255,0.3)',
+                  }}
+                >
+                  <div className={`px-4 ${node.isRoot ? 'py-4' : 'py-3'} text-center`}>
+                    {node.icon && <span className="text-xl mb-1 block">{node.icon}</span>}
+                    <p className={`text-white font-semibold ${node.isRoot ? 'text-base' : 'text-sm'}`}>
+                      {node.text}
+                    </p>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="absolute -right-2 -top-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 z-20">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addChildNode(node.id);
+                      }}
+                      className="w-6 h-6 rounded-full bg-green-500 shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
+                      title="Adicionar filho"
+                    >
+                      <Plus className="h-4 w-4 text-white" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        startConnecting(node.id);
+                      }}
+                      className="w-6 h-6 rounded-full bg-blue-500 shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
+                      title="Conectar a outro nó"
+                    >
+                      <Move className="h-3 w-3 text-white" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openEditDialog(node);
+                      }}
+                      className="w-6 h-6 rounded-full bg-white shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
+                      title="Editar"
+                    >
+                      <Edit3 className="h-3 w-3 text-gray-700" />
+                    </button>
+                    {!node.isRoot && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteNode(node.id);
+                        }}
+                        className="w-6 h-6 rounded-full bg-red-500 shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
+                        title="Excluir"
+                      >
+                        <Trash2 className="h-3 w-3 text-white" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Empty state */}
+          {nodes.length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="bg-card/90 backdrop-blur px-6 py-4 rounded-lg border border-border text-center">
+                <p className="text-muted-foreground mb-2">
+                  Clique em <strong>"Central"</strong> para criar o nó principal
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Depois adicione mais nós e conecte-os
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Tips */}
         <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
           <Badge variant="outline">🖱️ Arraste os nós</Badge>
-          <Badge variant="outline">🔗 Arraste das bolinhas para conectar</Badge>
+          <Badge variant="outline">🔗 Clique no ícone azul para conectar</Badge>
           <Badge variant="outline">✏️ Duplo clique para editar</Badge>
           <Badge variant="outline">🔍 Scroll para zoom</Badge>
+          <Badge variant="outline">➕ Ícone verde adiciona filho</Badge>
         </div>
       </CardContent>
 
-      <Dialog open={isListDialogOpen} onOpenChange={setIsListDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><FolderOpen className="w-5 h-5" />Meus Mapas Mentais</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {mindMaps.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">Nenhum mapa mental salvo ainda</p>
-            ) : (
-              mindMaps.map((map) => (
-                <Card key={map.id} className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h4 className="font-semibold">{map.name}</h4>
-                      {map.description && <p className="text-sm text-muted-foreground">{map.description}</p>}
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline" className="text-xs">{(map.nodes || []).length} nós</Badge>
-                        <Badge variant="outline" className="text-xs">Tema: {themes[map.theme as keyof typeof themes]?.name || 'Padrão'}</Badge>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" onClick={() => loadMap(map)}><Edit className="w-4 h-4 mr-1" />Abrir</Button>
-                      <Button size="sm" variant="ghost" className="text-destructive" onClick={() => deleteMap(map.id)}><Trash2 className="w-4 h-4" /></Button>
-                    </div>
-                  </div>
-                </Card>
-              ))
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isNodeDialogOpen} onOpenChange={setIsNodeDialogOpen}>
+      {/* Edit Node Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Editar Nó</DialogTitle></DialogHeader>
-          
+          <DialogHeader>
+            <DialogTitle>Editar Nó</DialogTitle>
+          </DialogHeader>
           <div className="space-y-4">
             <div>
               <Label>Texto</Label>
-              <Input value={nodeLabel} onChange={(e) => setNodeLabel(e.target.value)} placeholder="Digite o texto do nó" />
+              <Input 
+                value={editText} 
+                onChange={(e) => setEditText(e.target.value)}
+                placeholder="Digite o texto do nó"
+              />
             </div>
-            
             <div>
-              <Label>Ícone (emoji)</Label>
-              <Input value={nodeIcon} onChange={(e) => setNodeIcon(e.target.value)} placeholder="Ex: 💡 🎯 📝 🚀 ⭐" />
-            </div>
-            
-            <div>
-              <Label>Cor</Label>
-              <div className="flex items-center gap-3 mt-2">
-                <input type="color" value={nodeColor} onChange={(e) => setNodeColor(e.target.value)} className="w-12 h-10 rounded cursor-pointer border-0" />
-                <div className="flex gap-1 flex-wrap">
-                  {theme.colors.map((color) => (
-                    <button key={color} onClick={() => setNodeColor(color)} className={`w-8 h-8 rounded-full transition-all hover:scale-110 ${nodeColor === color ? 'ring-2 ring-primary ring-offset-2' : ''}`} style={{ backgroundColor: color }} />
-                  ))}
-                </div>
+              <Label>Ícone</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <button
+                  onClick={() => setEditIcon('')}
+                  className={`w-8 h-8 rounded border flex items-center justify-center ${!editIcon ? 'border-primary bg-primary/10' : 'border-border'}`}
+                >
+                  <span className="text-xs">∅</span>
+                </button>
+                {ICONS.map(icon => (
+                  <button
+                    key={icon}
+                    onClick={() => setEditIcon(icon)}
+                    className={`w-8 h-8 rounded border flex items-center justify-center text-lg ${editIcon === icon ? 'border-primary bg-primary/10' : 'border-border'}`}
+                  >
+                    {icon}
+                  </button>
+                ))}
               </div>
             </div>
-            
+            <div>
+              <Label>Cor</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {THEMES[currentTheme].colors.map(color => (
+                  <button
+                    key={color}
+                    onClick={() => setEditColor(color)}
+                    className={`w-8 h-8 rounded-full ${editColor === color ? 'ring-2 ring-white ring-offset-2 ring-offset-background' : ''}`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+            </div>
             <div className="flex gap-2 pt-2">
-              <Button onClick={updateNode} className="flex-1">Salvar</Button>
-              <Button variant="destructive" onClick={deleteSelectedNode}><Trash2 className="w-4 h-4" /></Button>
+              <Button onClick={saveNodeEdit} className="flex-1">
+                Salvar
+              </Button>
+              {editingNode && !editingNode.isRoot && (
+                <Button 
+                  variant="destructive" 
+                  onClick={() => {
+                    deleteNode(editingNode.id);
+                    setIsEditDialogOpen(false);
+                  }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           </div>
         </DialogContent>
