@@ -465,10 +465,14 @@ export function BriefingCreatorPanel() {
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-3" onInteractOutside={(e) => e.preventDefault()}>
-                            <HexColorPicker
-                              color={formData.primary_color}
-                              onChange={(color) => setFormData({...formData, primary_color: color})}
-                            />
+                            <div className="space-y-3" style={{ pointerEvents: 'auto' }}>
+                              <div style={{ touchAction: 'none' }}>
+                                <HexColorPicker
+                                  color={formData.primary_color}
+                                  onChange={(color) => setFormData({...formData, primary_color: color})}
+                                />
+                              </div>
+                            </div>
                           </PopoverContent>
                         </Popover>
                       </div>
@@ -485,10 +489,14 @@ export function BriefingCreatorPanel() {
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-3" onInteractOutside={(e) => e.preventDefault()}>
-                            <HexColorPicker
-                              color={formData.secondary_color}
-                              onChange={(color) => setFormData({...formData, secondary_color: color})}
-                            />
+                            <div className="space-y-3" style={{ pointerEvents: 'auto' }}>
+                              <div style={{ touchAction: 'none' }}>
+                                <HexColorPicker
+                                  color={formData.secondary_color}
+                                  onChange={(color) => setFormData({...formData, secondary_color: color})}
+                                />
+                              </div>
+                            </div>
                           </PopoverContent>
                         </Popover>
                       </div>
