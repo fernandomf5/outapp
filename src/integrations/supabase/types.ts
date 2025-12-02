@@ -3113,6 +3113,7 @@ export type Database = {
       floating_buttons: {
         Row: {
           created_at: string
+          generated_code: string | null
           id: string
           main_button_color: string
           main_button_icon: string
@@ -3125,6 +3126,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          generated_code?: string | null
           id?: string
           main_button_color?: string
           main_button_icon?: string
@@ -3137,6 +3139,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          generated_code?: string | null
           id?: string
           main_button_color?: string
           main_button_icon?: string
