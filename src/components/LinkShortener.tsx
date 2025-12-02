@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Copy, Link2, Trash2, ExternalLink, Plus, MessageSquare, Bot, Sparkles } from "lucide-react";
+import { Copy, Link2, Trash2, ExternalLink, Plus, MessageSquare } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
 interface ShortLink {
@@ -27,31 +27,23 @@ export const LinkShortener = () => {
   const [customSlug, setCustomSlug] = useState("");
   const [links, setLinks] = useState<ShortLink[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [chatbots, setChatbots] = useState<any[]>([]);
-  const [aiAgents, setAiAgents] = useState<any[]>([]);
+  const [chats, setChats] = useState<any[]>([]);
 
   useEffect(() => {
     if (user) {
       fetchLinks();
-      fetchChatbots();
+      fetchChats();
     }
   }, [user]);
 
-  const fetchChatbots = async () => {
-    const { data: botsData } = await supabase
-      .from("chatbots")
-      .select("id, name")
-      .eq("user_id", user?.id)
-      .order("created_at", { ascending: false });
-
+  const fetchChats = async () => {
     const { data: agentsData } = await supabase
       .from("ai_agents")
       .select("id, name")
       .eq("user_id", user?.id)
       .order("created_at", { ascending: false });
 
-    setChatbots(botsData || []);
-    setAiAgents(agentsData || []);
+    setChats(agentsData || []);
   };
 
   const fetchLinks = async () => {
@@ -149,17 +141,23 @@ export const LinkShortener = () => {
     fetchLinks();
   };
 
-  const selectChatLink = (id: string, type: "chatbot" | "agent") => {
+  const selectChatLink = (id: string, name?: string) => {
     const baseUrl = window.location.origin;
-    const url = type === "chatbot" ? `${baseUrl}/chat/${id}` : `${baseUrl}/ai-chat/${id}`;
+    // Usar o mesmo formato de URL que "Meus Chats"
+    const slug = (name || '')
+      .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+      .toLowerCase().trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+    const url = `${baseUrl}/chat/${id}/${slug || 'chat'}`;
+    
     setOriginalUrl(url);
     
-    const bot = type === "chatbot" 
-      ? chatbots.find(c => c.id === id)
-      : aiAgents.find(a => a.id === id);
+    const chat = chats.find(c => c.id === id);
     
-    if (bot && !customName) {
-      setCustomName(bot.name);
+    if (chat && !customName) {
+      setCustomName(chat.name);
     }
   };
 
@@ -216,7 +214,7 @@ export const LinkShortener = () => {
   return (
     <div className="space-y-6">
       {/* Seleção rápida de chats */}
-      {(chatbots.length > 0 || aiAgents.length > 0) && (
+      {chats.length > 0 && (
         <Card className="p-6 bg-gradient-to-br from-card via-card to-accent/5 border-2 border-accent/20 shadow-lg">
           <div className="flex items-center gap-3 mb-4">
             <div className="bg-accent/20 p-3 rounded-xl">
@@ -224,50 +222,23 @@ export const LinkShortener = () => {
             </div>
             <div>
               <h3 className="text-lg font-bold text-foreground">Selecione um Chat</h3>
-              <p className="text-sm text-muted-foreground">Escolha um chatbot ou agente para encurtar o link</p>
+              <p className="text-sm text-muted-foreground">Escolha um chat para encurtar o link</p>
             </div>
           </div>
 
-          <div className="space-y-3">
-            {chatbots.length > 0 && (
-              <div>
-                <Label className="text-xs text-muted-foreground mb-2 block">Chatbots</Label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {chatbots.map((bot) => (
-                    <Button
-                      key={bot.id}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => selectChatLink(bot.id, "chatbot")}
-                      className="justify-start hover:bg-primary/10 hover:border-primary transition-all"
-                    >
-                      <Bot className="w-4 h-4 mr-2 text-primary" />
-                      {bot.name}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {aiAgents.length > 0 && (
-              <div>
-                <Label className="text-xs text-muted-foreground mb-2 block">Agentes IA</Label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {aiAgents.map((agent) => (
-                    <Button
-                      key={agent.id}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => selectChatLink(agent.id, "agent")}
-                      className="justify-start hover:bg-success/10 hover:border-success transition-all"
-                    >
-                      <Sparkles className="w-4 h-4 mr-2 text-success" />
-                      {agent.name}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {chats.map((chat) => (
+              <Button
+                key={chat.id}
+                variant="outline"
+                size="sm"
+                onClick={() => selectChatLink(chat.id, chat.name)}
+                className="justify-start hover:bg-primary/10 hover:border-primary transition-all"
+              >
+                <MessageSquare className="w-4 h-4 mr-2 text-primary" />
+                {chat.name}
+              </Button>
+            ))}
           </div>
         </Card>
       )}
