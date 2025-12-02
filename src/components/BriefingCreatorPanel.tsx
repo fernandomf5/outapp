@@ -465,10 +465,10 @@ export function BriefingCreatorPanel() {
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-3">
-                            <HexColorPicker
-                              color={formData.primary_color}
-                              onChange={(color) => setFormData({...formData, primary_color: color})}
-                            />
+                          <HexColorPicker
+                            color={formData.primary_color}
+                            onChange={(color) => setFormData(prev => ({...prev, primary_color: color}))}
+                          />
                           </PopoverContent>
                         </Popover>
                       </div>
@@ -485,10 +485,10 @@ export function BriefingCreatorPanel() {
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-3">
-                            <HexColorPicker
-                              color={formData.secondary_color}
-                              onChange={(color) => setFormData({...formData, secondary_color: color})}
-                            />
+                          <HexColorPicker
+                            color={formData.secondary_color}
+                            onChange={(color) => setFormData(prev => ({...prev, secondary_color: color}))}
+                          />
                           </PopoverContent>
                         </Popover>
                       </div>
