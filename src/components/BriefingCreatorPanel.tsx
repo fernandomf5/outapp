@@ -454,7 +454,7 @@ export function BriefingCreatorPanel() {
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="grid gap-2">
                         <Label className="text-sm">Cor Primária</Label>
-                        <Popover modal={false} open={showPrimaryColorPicker} onOpenChange={setShowPrimaryColorPicker}>
+                        <Popover open={showPrimaryColorPicker} onOpenChange={setShowPrimaryColorPicker}>
                           <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full justify-start gap-2">
                               <div 
@@ -464,21 +464,17 @@ export function BriefingCreatorPanel() {
                               <span className="text-sm">{formData.primary_color}</span>
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-3" onInteractOutside={(e) => e.preventDefault()}>
-                            <div className="space-y-3" style={{ pointerEvents: 'auto' }}>
-                              <div style={{ touchAction: 'none' }}>
-                                <HexColorPicker
-                                  color={formData.primary_color}
-                                  onChange={(color) => setFormData({...formData, primary_color: color})}
-                                />
-                              </div>
-                            </div>
+                          <PopoverContent className="w-auto p-3">
+                            <HexColorPicker
+                              color={formData.primary_color}
+                              onChange={(color) => setFormData({...formData, primary_color: color})}
+                            />
                           </PopoverContent>
                         </Popover>
                       </div>
                       <div className="grid gap-2">
                         <Label className="text-sm">Cor Secundária</Label>
-                        <Popover modal={false} open={showSecondaryColorPicker} onOpenChange={setShowSecondaryColorPicker}>
+                        <Popover open={showSecondaryColorPicker} onOpenChange={setShowSecondaryColorPicker}>
                           <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full justify-start gap-2">
                               <div 
@@ -488,15 +484,11 @@ export function BriefingCreatorPanel() {
                               <span className="text-sm">{formData.secondary_color}</span>
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-3" onInteractOutside={(e) => e.preventDefault()}>
-                            <div className="space-y-3" style={{ pointerEvents: 'auto' }}>
-                              <div style={{ touchAction: 'none' }}>
-                                <HexColorPicker
-                                  color={formData.secondary_color}
-                                  onChange={(color) => setFormData({...formData, secondary_color: color})}
-                                />
-                              </div>
-                            </div>
+                          <PopoverContent className="w-auto p-3">
+                            <HexColorPicker
+                              color={formData.secondary_color}
+                              onChange={(color) => setFormData({...formData, secondary_color: color})}
+                            />
                           </PopoverContent>
                         </Popover>
                       </div>
