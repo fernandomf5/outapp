@@ -402,14 +402,23 @@ export default function BriefingPublicPage() {
       <div 
         className="min-h-screen bg-gradient-to-b from-background to-muted/20 py-12 px-4 flex items-center justify-center"
         style={{
-          ['--briefing-primary' as any]: primaryColor,
-          ['--briefing-secondary' as any]: secondaryColor,
-        }}
+          '--custom-primary': primaryColor,
+          '--custom-secondary': secondaryColor,
+        } as React.CSSProperties}
       >
         <style>
           {`
-            .briefing-gradient {
-              background: linear-gradient(135deg, ${primaryColor}, ${secondaryColor});
+            [style*="--custom-primary"] .gradient-primary {
+              background: linear-gradient(135deg, ${primaryColor}, ${secondaryColor}) !important;
+            }
+            [style*="--custom-primary"] .bg-primary {
+              background-color: ${primaryColor} !important;
+            }
+            [style*="--custom-primary"] .text-primary {
+              color: ${primaryColor} !important;
+            }
+            [style*="--custom-primary"] .bg-primary\\/10 {
+              background-color: ${primaryColor}1a !important;
             }
           `}
         </style>
@@ -427,13 +436,9 @@ export default function BriefingPublicPage() {
           </CardHeader>
           <CardContent className="space-y-6 py-8">
             <div className="flex justify-center">
-              <div 
-                className="rounded-full p-4"
-                style={{ backgroundColor: `${primaryColor}20` }}
-              >
+              <div className="rounded-full p-4 bg-primary/10">
                 <svg
-                  className="h-16 w-16"
-                  style={{ color: primaryColor }}
+                  className="h-16 w-16 text-primary"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -467,14 +472,17 @@ export default function BriefingPublicPage() {
     <>
       <style>
         {`
-          .briefing-gradient {
-            background: linear-gradient(135deg, ${primaryColor}, ${secondaryColor});
+          [style*="--custom-primary"] .gradient-primary {
+            background: linear-gradient(135deg, ${primaryColor}, ${secondaryColor}) !important;
           }
-          .briefing-button {
-            background: linear-gradient(135deg, ${primaryColor}, ${secondaryColor});
+          [style*="--custom-primary"] .bg-primary {
+            background-color: ${primaryColor} !important;
           }
-          .briefing-button:hover {
-            opacity: 0.9;
+          [style*="--custom-primary"] .text-primary {
+            color: ${primaryColor} !important;
+          }
+          [style*="--custom-primary"] .border-primary {
+            border-color: ${primaryColor} !important;
           }
         `}
       </style>
@@ -504,7 +512,7 @@ export default function BriefingPublicPage() {
             </div>
             <Button 
               onClick={handleNameSubmit}
-              className="w-full briefing-button text-white shadow-lg"
+              className="w-full gradient-primary text-white shadow-lg"
             >
               Iniciar Briefing
             </Button>
@@ -515,9 +523,9 @@ export default function BriefingPublicPage() {
       <div 
         className="min-h-screen bg-gradient-to-b from-background to-muted/20 py-12 px-4"
         style={{
-          ['--briefing-primary' as any]: primaryColor,
-          ['--briefing-secondary' as any]: secondaryColor,
-        }}
+          '--custom-primary': primaryColor,
+          '--custom-secondary': secondaryColor,
+        } as React.CSSProperties}
       >
         <Card className="max-w-3xl mx-auto glass">
           <CardHeader>
@@ -530,10 +538,7 @@ export default function BriefingPublicPage() {
                 />
               </div>
             )}
-            <CardTitle 
-              className="text-2xl"
-              style={{ color: primaryColor }}
-            >
+            <CardTitle className="text-2xl text-primary">
               {briefing.title}
             </CardTitle>
             {briefing.description && (
@@ -556,7 +561,7 @@ export default function BriefingPublicPage() {
 
               <Button 
                 type="submit" 
-                className="w-full briefing-button text-white shadow-lg"
+                className="w-full gradient-primary text-white shadow-lg"
                 disabled={submitting || showNameDialog}
               >
                 {submitting ? 'Enviando...' : 'Enviar Briefing'}
