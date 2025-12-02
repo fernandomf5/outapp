@@ -7,8 +7,10 @@ import {
 } from "@/components/ui/accordion";
 import { HelpCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const FAQSection = ({ hideSupportCTA = false }: { hideSupportCTA?: boolean }) => {
+  const { t } = useLanguage();
   const [faqs, setFaqs] = useState<Array<{ question: string; answer: string }>>([]);
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export const FAQSection = ({ hideSupportCTA = false }: { hideSupportCTA?: boolea
             </div>
           </div>
           <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 sm:mb-3 md:mb-4">
-            Perguntas Frequentes
+            {t('faq')}
           </h2>
           <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
             Tire suas dúvidas sobre a plataforma e comece a automatizar seu negócio
