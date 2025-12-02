@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Bot, Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone } from "lucide-react";
+import { Bot, Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -91,6 +91,7 @@ export function UserSidebar() {
     { title: "Briefing", icon: FileText, path: "/dashboard", tab: "briefing" },
     { title: "Criador de Quiz", icon: HelpCircle, path: "/dashboard", tab: "criador-quizz" },
     { title: "Criador de Pop-ups", icon: Megaphone, path: "/dashboard", tab: "popups" },
+    { title: "Criador de Mapa Mental", icon: Brain, path: "/dashboard", tab: "mapa-mental" },
   ];
 
   const supportItems: MenuItem[] = [
