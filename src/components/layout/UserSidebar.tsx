@@ -42,64 +42,6 @@ export function UserSidebar() {
   const searchParams = new URLSearchParams(location.search);
   const currentTab = searchParams.get('tab') || 'overview';
   const collapsed = state === "collapsed";
-  const [unreadClientMessages, setUnreadClientMessages] = useState(0);
-
-  // Monitorar mensagens de clientes em tempo real
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchChatbotIds = async () => {
-      const { data: chatbots } = await supabase
-        .from('chatbots')
-        .select('id')
-        .eq('user_id', user.id);
-
-      if (!chatbots || chatbots.length === 0) return [];
-      return chatbots.map(c => c.id);
-    };
-
-    fetchChatbotIds().then(chatbotIds => {
-      if (chatbotIds.length === 0) return;
-
-      const clientMessagesChannel = supabase
-        .channel('client-messages-sidebar')
-        .on('postgres_changes', {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chatbot_messages',
-        }, async (payload) => {
-          const newMessage = payload.new as any;
-          const isUserMessage = newMessage.role === 'user';
-          const isFreeMessage = !newMessage.node_id || newMessage.node_id === null || newMessage.node_id === '';
-          
-          if (!isUserMessage || !isFreeMessage) return;
-
-          const { data: conversation } = await supabase
-            .from('chatbot_conversations')
-            .select('chatbot_id')
-            .eq('id', newMessage.conversation_id)
-            .single();
-
-          if (conversation && chatbotIds.includes(conversation.chatbot_id)) {
-            if (currentTab !== 'clients') {
-              setUnreadClientMessages(prev => prev + 1);
-            }
-          }
-        })
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(clientMessagesChannel);
-      };
-    });
-  }, [user, currentTab]);
-
-  // Resetar contador quando entrar na aba clientes
-  useEffect(() => {
-    if (currentTab === 'clients') {
-      setUnreadClientMessages(0);
-    }
-  }, [currentTab]);
 
   const isActive = (path: string, tab?: string) => {
     if (tab) {

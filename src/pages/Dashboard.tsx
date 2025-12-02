@@ -72,7 +72,6 @@ const Dashboard = () => {
   const [searchParams] = useSearchParams();
   const [userFullName, setUserFullName] = useState<string>('');
   const [stats, setStats] = useState({
-    totalBots: 0,
     totalAgents: 0,
     activeConnections: 0,
     messagesThisMonth: 0,
@@ -188,7 +187,6 @@ const Dashboard = () => {
         ]);
 
         setStats({
-          totalBots: 0,
           totalAgents: agentsData?.length || 0,
           activeConnections: agentsData?.filter(a => a.is_active).length || 0,
           messagesThisMonth: 0,
@@ -206,19 +204,6 @@ const Dashboard = () => {
 
     fetchData();
 
-    // Subscrever mudanças em tempo real para chatbots
-    const chatbotsSubscription = supabase
-      .channel('chatbots_changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'chatbots',
-        filter: `user_id=eq.${user?.id}`
-      }, () => {
-        fetchData();
-      })
-      .subscribe();
-
     // Subscrever mudanças em tempo real para agentes IA
     const agentsSubscription = supabase
       .channel('ai_agents_changes')
@@ -233,7 +218,6 @@ const Dashboard = () => {
       .subscribe();
 
     return () => {
-      chatbotsSubscription.unsubscribe();
       agentsSubscription.unsubscribe();
     };
   }, [user]);
@@ -292,7 +276,7 @@ const Dashboard = () => {
     navigator.clipboard.writeText(link);
     toast({
       title: "Link copiado! 🔗",
-      description: "O link do chatbot foi copiado para a área de transferência.",
+      description: "O link do chat foi copiado para a área de transferência.",
     });
   };
 
@@ -387,20 +371,11 @@ const Dashboard = () => {
         <QuickNotesPanel />
         
         {/* Stats Summary */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Chatbots</CardTitle>
-              <Bot className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalBots}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Agentes IA</CardTitle>
-              <Brain className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Chats</CardTitle>
+              <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalAgents}</div>
@@ -439,33 +414,16 @@ const Dashboard = () => {
         <div className="space-y-4">
           <h2 className="text-2xl font-bold">Todos os Recursos</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {/* Chat Online */}
-            {hasFeature('chatbot_web') && (
-              <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("chatbots")}>
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <Bot className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base">Chat Online</CardTitle>
-                      <p className="text-xs text-muted-foreground">{stats.totalBots} criados</p>
-                    </div>
-                  </div>
-                </CardHeader>
-              </Card>
-            )}
-
-            {/* Agentes IA */}
+            {/* Chat Online e Agente IA */}
             {hasFeature('ai_agent') && (
               <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("ai-agents")}>
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-primary/10">
-                      <Brain className="h-6 w-6 text-primary" />
+                      <MessageSquare className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <CardTitle className="text-base">Agentes IA</CardTitle>
+                      <CardTitle className="text-base">Chat Online</CardTitle>
                       <p className="text-xs text-muted-foreground">{stats.totalAgents} criados</p>
                     </div>
                   </div>
@@ -733,40 +691,21 @@ const Dashboard = () => {
 
         {/* Quick Actions */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          {hasFeature('chatbot_web') && (
-            <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/bot-builder")}>
-              <div className="flex items-start justify-between mb-3 sm:mb-4">
-                <div className="flex-1">
-                  <h3 className="text-lg sm:text-xl font-bold mb-2">Criar Chatbot Web</h3>
-                  <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                    Bot conversacional para seu site com fluxos personalizados
-                  </p>
-                </div>
-                <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                  <Bot className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
-                </div>
-              </div>
-              <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
-                Criar Chatbot
-              </Button>
-            </Card>
-          )}
-
           {hasFeature('ai_agent') && (
             <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/ai-agent")}>
               <div className="flex items-start justify-between mb-3 sm:mb-4">
                 <div className="flex-1">
-                  <h3 className="text-lg sm:text-xl font-bold mb-2">Criar Agente IA</h3>
+                  <h3 className="text-lg sm:text-xl font-bold mb-2">Criar Chat Online</h3>
                   <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
                     Assistente inteligente com IA que aprende com seu negócio
                   </p>
                 </div>
                 <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
-                  <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+                  <MessageSquare className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
                 </div>
               </div>
               <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
-                Criar Agente
+                Criar Chat
               </Button>
             </Card>
           )}
