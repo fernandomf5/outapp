@@ -925,7 +925,7 @@ const Dashboard = () => {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={(e) => handleCopyAgentLink(agent.id, e)}
+                      onClick={(e) => handleCopyAgentLink(agent.id, agent.name, e)}
                       title="Copiar link do agente"
                     >
                       <Link2 className="w-4 h-4 sm:mr-2" />
