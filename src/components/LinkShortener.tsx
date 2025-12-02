@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Copy, Link2, Trash2, ExternalLink, Plus, MessageSquare } from "lucide-react";
+import { Copy, Link2, Trash2, ExternalLink, Plus } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
 interface ShortLink {
@@ -27,24 +27,12 @@ export const LinkShortener = () => {
   const [customSlug, setCustomSlug] = useState("");
   const [links, setLinks] = useState<ShortLink[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [chats, setChats] = useState<any[]>([]);
 
   useEffect(() => {
     if (user) {
       fetchLinks();
-      fetchChats();
     }
   }, [user]);
-
-  const fetchChats = async () => {
-    const { data: agentsData } = await supabase
-      .from("ai_agents")
-      .select("id, name")
-      .eq("user_id", user?.id)
-      .order("created_at", { ascending: false });
-
-    setChats(agentsData || []);
-  };
 
   const fetchLinks = async () => {
     const { data, error } = await supabase
@@ -87,11 +75,9 @@ export const LinkShortener = () => {
     
     let finalShortCode: string;
     
-    // Se o usuário definiu uma slug personalizada, usar ela (sanitizada)
     if (customSlug.trim()) {
       finalShortCode = sanitizeSlug(customSlug.trim());
       
-      // Verificar se a slug já existe
       const { data: existing } = await supabase
         .from("short_links")
         .select("id")
@@ -108,7 +94,6 @@ export const LinkShortener = () => {
         return;
       }
     } else {
-      // Caso contrário, gerar código aleatório
       finalShortCode = generateShortCode();
     }
 
@@ -139,17 +124,6 @@ export const LinkShortener = () => {
     setCustomSlug("");
     setIsLoading(false);
     fetchLinks();
-  };
-
-  const selectChatLink = (id: string, name?: string) => {
-    // Usar o mesmo formato de URL que "Meus Chats" no Dashboard
-    const url = `${window.location.origin}/chat/${id}`;
-    
-    setOriginalUrl(url);
-    
-    if (name && !customName) {
-      setCustomName(name);
-    }
   };
 
   const copyToClipboard = (shortCode: string) => {
@@ -204,36 +178,6 @@ export const LinkShortener = () => {
 
   return (
     <div className="space-y-6">
-      {/* Seleção rápida de chats */}
-      {chats.length > 0 && (
-        <Card className="p-6 bg-gradient-to-br from-card via-card to-accent/5 border-2 border-accent/20 shadow-lg">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-accent/20 p-3 rounded-xl">
-              <MessageSquare className="w-5 h-5 text-accent" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-foreground">Selecione um Chat</h3>
-              <p className="text-sm text-muted-foreground">Escolha um chat para encurtar o link</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {chats.map((chat) => (
-              <Button
-                key={chat.id}
-                variant="outline"
-                size="sm"
-                onClick={() => selectChatLink(chat.id, chat.name)}
-                className="justify-start hover:bg-primary/10 hover:border-primary transition-all"
-              >
-                <MessageSquare className="w-4 h-4 mr-2 text-primary" />
-                {chat.name}
-              </Button>
-            ))}
-          </div>
-        </Card>
-      )}
-
       {/* Formulário de criação de link */}
       <Card className="p-6 bg-gradient-to-br from-card via-card to-primary/5 border-2 border-primary/20 shadow-lg hover:shadow-xl transition-all duration-300">
         <div className="flex items-center gap-3 mb-6">
