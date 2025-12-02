@@ -32,6 +32,7 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId?: string })
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedConversations, setSelectedConversations] = useState<Set<string>>(new Set());
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [onlineCustomers, setOnlineCustomers] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -73,6 +74,12 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId?: string })
   useEffect(() => {
     if (selectedConversation) {
       loadMessages(selectedConversation.id);
+      const presenceCleanup = setupPresenceTracking();
+      return () => {
+        if (presenceCleanup) {
+          presenceCleanup();
+        }
+      };
     }
   }, [selectedConversation]);
 
@@ -161,7 +168,36 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId?: string })
     } catch (error) {
       console.error('Error loading messages:', error);
     }
-};
+  };
+
+  const setupPresenceTracking = () => {
+    if (!selectedConversation) return null;
+
+    const conversationId = selectedConversation.id;
+    
+    const channel = supabase.channel(`chatbot-presence-${conversationId}`);
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const onlineConversations = new Set<string>();
+        
+        Object.values(state).forEach((presences: any) => {
+          presences.forEach((presence: any) => {
+            if (presence.conversation_id) {
+              onlineConversations.add(presence.conversation_id);
+            }
+          });
+        });
+        
+        setOnlineCustomers(onlineConversations);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -529,9 +565,14 @@ const handleSendMessage = async () => {
                           )}
                         </Button>
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium">
-                            {conversation.visitor_name || conversation.visitor_email?.split('@')[0] || conversation.visitor_phone || 'Visitante Anônimo'}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">
+                              {conversation.visitor_name || conversation.visitor_email?.split('@')[0] || conversation.visitor_phone || 'Visitante Anônimo'}
+                            </span>
+                            {onlineCustomers.has(conversation.id) && (
+                              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Online" />
+                            )}
+                          </div>
                           <span className="text-xs text-muted-foreground">#{conversation.id.slice(0, 8)}</span>
                         </div>
                       </div>
@@ -556,9 +597,16 @@ const handleSendMessage = async () => {
                         </Button>
                       </div>
                     </div>
-                    <Badge variant={conversation.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-                      {conversation.status === 'active' ? 'Ativa' : conversation.status === 'closed' ? 'Fechada' : conversation.status}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={conversation.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                        {conversation.status === 'active' ? 'Ativa' : conversation.status === 'closed' ? 'Fechada' : conversation.status}
+                      </Badge>
+                      {onlineCustomers.has(conversation.id) && (
+                        <Badge variant="outline" className="text-xs bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">
+                          Online
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </Card>
               ))}
@@ -570,7 +618,24 @@ const handleSendMessage = async () => {
       <Card className="md:col-span-2">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Mensagens</CardTitle>
+            <div className="flex items-center gap-3">
+              {selectedConversation && (
+                <>
+                  <div className="flex flex-col">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      {selectedConversation.visitor_name || selectedConversation.visitor_email?.split('@')[0] || selectedConversation.visitor_phone || 'Visitante Anônimo'}
+                      {onlineCustomers.has(selectedConversation.id) && (
+                        <Badge variant="outline" className="text-xs bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">
+                          Online
+                        </Badge>
+                      )}
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">#{selectedConversation.id.slice(0, 8)}</p>
+                  </div>
+                </>
+              )}
+              {!selectedConversation && <CardTitle>Mensagens</CardTitle>}
+            </div>
             {selectedConversation && (
               <Select value={selectedConversation.status} onValueChange={handleStatusChange}>
                 <SelectTrigger className="w-[180px]">

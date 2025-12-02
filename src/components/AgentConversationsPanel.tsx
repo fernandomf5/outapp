@@ -23,6 +23,7 @@ interface Conversation {
   last_message_at: string;
   ai_enabled?: boolean;
   agent_customers: {
+    id: string;
     name: string;
     email: string;
   };
@@ -45,6 +46,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   const [selectedDocument, setSelectedDocument] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [onlineCustomers, setOnlineCustomers] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -69,9 +71,13 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     if (selectedConversation) {
       loadMessages(selectedConversation.id);
       const messagesChannel = setupMessagesSubscription();
+      const presenceChannel = setupPresenceTracking();
       return () => {
         if (messagesChannel) {
           supabase.removeChannel(messagesChannel);
+        }
+        if (presenceChannel) {
+          supabase.removeChannel(presenceChannel);
         }
       };
     }
@@ -98,6 +104,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
       .select(`
         *,
         agent_customers (
+          id,
           name,
           email
         )
@@ -214,6 +221,34 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
           loadMessages(conversationId);
         }
       )
+      .subscribe();
+
+    return channel;
+  };
+
+  const setupPresenceTracking = () => {
+    if (!selectedConversation) return null;
+
+    const conversationId = selectedConversation.id;
+    const customerId = selectedConversation.agent_customers?.id;
+    
+    const channel = supabase.channel(`agent-presence-${conversationId}`);
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const onlineIds = new Set<string>();
+        
+        Object.values(state).forEach((presences: any) => {
+          presences.forEach((presence: any) => {
+            if (presence.customer_id) {
+              onlineIds.add(presence.customer_id);
+            }
+          });
+        });
+        
+        setOnlineCustomers(onlineIds);
+      })
       .subscribe();
 
     return channel;
@@ -543,9 +578,21 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2">
-                        <User className="w-4 h-4" />
+                        <div className="relative">
+                          <User className="w-4 h-4" />
+                          {onlineCustomers.has(conv.agent_customers.id) && (
+                            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-background rounded-full" />
+                          )}
+                        </div>
                         <div>
-                          <div className="font-medium text-sm">{conv.agent_customers.name}</div>
+                          <div className="font-medium text-sm flex items-center gap-2">
+                            {conv.agent_customers.name}
+                            {onlineCustomers.has(conv.agent_customers.id) && (
+                              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">
+                                Online
+                              </Badge>
+                            )}
+                          </div>
                           <div className="text-xs text-muted-foreground">{conv.agent_customers.email}</div>
                         </div>
                       </div>
@@ -583,9 +630,24 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
             <Card className="h-[600px] flex flex-col">
               <CardHeader className="border-b">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg">{selectedConversation.agent_customers.name}</CardTitle>
-                    <p className="text-sm text-muted-foreground">{selectedConversation.agent_customers.email}</p>
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <User className="w-5 h-5" />
+                      {onlineCustomers.has(selectedConversation.agent_customers.id) && (
+                        <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-background rounded-full animate-pulse" />
+                      )}
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        {selectedConversation.agent_customers.name}
+                        {onlineCustomers.has(selectedConversation.agent_customers.id) && (
+                          <Badge variant="outline" className="text-xs bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">
+                            Online
+                          </Badge>
+                        )}
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">{selectedConversation.agent_customers.email}</p>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <Button

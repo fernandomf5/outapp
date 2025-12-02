@@ -42,7 +42,7 @@ export default function ChatbotCustomerChat() {
   const [selectedDocument, setSelectedDocument] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const docInputRef = useRef<HTMLInputElement>(null);
+  const [docInputRef] = useState(useRef<HTMLInputElement>(null));
   const [isAdminTyping, setIsAdminTyping] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const [autoReplySent, setAutoReplySent] = useState(false);
@@ -329,32 +329,38 @@ export default function ChatbotCustomerChat() {
   };
 
   const setupPresenceTracking = () => {
-    const presenceChannel = supabase
-      .channel(`presence-${conversationId}`)
+    if (!conversationId || !customer?.id) return () => {};
+
+    const channel = supabase.channel(`chatbot-presence-${conversationId}`);
+
+    channel
       .on('presence', { event: 'sync' }, () => {
-        const state = presenceChannel.presenceState();
-        console.log('👥 Estado de presença:', state);
+        // Presença sincronizada
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
-          await presenceChannel.track({
-            user: 'visitor',
+          await channel.track({
+            conversation_id: conversationId,
+            customer_id: customer.id,
+            customer_name: customer.name,
             online_at: new Date().toISOString(),
           });
         }
       });
 
-    // Enviar status de online ao sair da página
-    const handleBeforeUnload = async () => {
-      await presenceChannel.untrack();
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    // Heartbeat para manter presença
+    const heartbeat = setInterval(async () => {
+      await channel.track({
+        conversation_id: conversationId,
+        customer_id: customer.id,
+        customer_name: customer.name,
+        online_at: new Date().toISOString(),
+      });
+    }, 30000); // A cada 30 segundos
 
     return () => {
-      presenceChannel.untrack();
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      supabase.removeChannel(presenceChannel);
+      clearInterval(heartbeat);
+      supabase.removeChannel(channel);
     };
   };
 

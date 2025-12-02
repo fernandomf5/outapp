@@ -121,7 +121,11 @@ export default function AgentCustomerChat() {
   useEffect(() => {
     if (conversationId) {
       const cleanup = setupRealtimeSubscription();
-      return cleanup;
+      const presenceCleanup = setupPresenceTracking();
+      return () => {
+        cleanup();
+        presenceCleanup();
+      };
     }
   }, [conversationId]);
 
@@ -289,6 +293,40 @@ export default function AgentCustomerChat() {
     }
   };
 
+
+  const setupPresenceTracking = () => {
+    if (!conversationId || !customer?.id) return () => {};
+
+    const channel = supabase.channel(`agent-presence-${conversationId}`);
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        // Presença sincronizada
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({
+            customer_id: customer.id,
+            customer_name: customer.name,
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    // Heartbeat para manter presença
+    const heartbeat = setInterval(async () => {
+      await channel.track({
+        customer_id: customer.id,
+        customer_name: customer.name,
+        online_at: new Date().toISOString(),
+      });
+    }, 30000); // A cada 30 segundos
+
+    return () => {
+      clearInterval(heartbeat);
+      supabase.removeChannel(channel);
+    };
+  };
 
   const setupRealtimeSubscription = () => {
     console.log('Configurando realtime para conversation_id:', conversationId);
