@@ -146,8 +146,7 @@ export function UserSidebar() {
     { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner" },
     { title: "Área de Membros", icon: UserCog, path: "/dashboard", tab: "area-membros" },
     { title: "Link na Bio", icon: ExternalLink, path: "/dashboard", tab: "linkbio" },
-    { title: "Criador de Briefing", icon: FileText, path: "/dashboard", tab: "briefing" },
-    { title: "Respostas de Briefing", icon: FileCheck, path: "/dashboard", tab: "briefing-responses" },
+    { title: "Briefing", icon: FileText, path: "/dashboard", tab: "briefing" },
     { title: "Criador de Quiz", icon: HelpCircle, path: "/dashboard", tab: "criador-quizz" },
     { title: "Criador de Pop-ups", icon: Megaphone, path: "/dashboard", tab: "popups" },
   ];

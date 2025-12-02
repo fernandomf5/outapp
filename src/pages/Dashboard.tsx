@@ -728,21 +728,6 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
             </Card>
-
-            {/* Respostas de Briefing */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("briefing-responses")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <FileCheck className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Respostas de Briefing</CardTitle>
-                    <p className="text-xs text-muted-foreground">Visualize respostas</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
           </div>
         </div>
 
@@ -1277,7 +1262,36 @@ const Dashboard = () => {
 
           <TabsContent value="briefing">
             <FeatureGate featureKey="briefing_creator">
-              <BriefingCreatorPanel />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Briefing</CardTitle>
+                  <CardDescription>
+                    Gerencie seus briefings e visualize respostas
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue="criador" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 mb-6">
+                      <TabsTrigger value="criador">
+                        <FileText className="w-4 h-4 mr-2" />
+                        Criador de Briefing
+                      </TabsTrigger>
+                      <TabsTrigger value="respostas">
+                        <FileCheck className="w-4 h-4 mr-2" />
+                        Respostas do Briefing
+                      </TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="criador">
+                      <BriefingCreatorPanel />
+                    </TabsContent>
+                    
+                    <TabsContent value="respostas">
+                      <BriefingResponsesPanel />
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
             </FeatureGate>
           </TabsContent>
 
@@ -1286,12 +1300,6 @@ const Dashboard = () => {
               <ErrorBoundary>
                 <SimpleMembersArea />
               </ErrorBoundary>
-            </FeatureGate>
-          </TabsContent>
-               
-          <TabsContent value="briefing-responses">
-            <FeatureGate featureKey="briefing_creator">
-              <BriefingResponsesPanel />
             </FeatureGate>
           </TabsContent>
         </Tabs>

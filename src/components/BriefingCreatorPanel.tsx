@@ -53,6 +53,8 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { HexColorPicker } from 'react-colorful';
 
 interface BriefingField {
   id: string;
@@ -145,6 +147,8 @@ export function BriefingCreatorPanel() {
     title: '',
     description: '',
     logo_url: '',
+    primary_color: '#8B5CF6',
+    secondary_color: '#EC4899',
     fields: [] as BriefingField[]
   });
 
@@ -270,6 +274,8 @@ export function BriefingCreatorPanel() {
             title: formData.title,
             description: formData.description,
             logo_url: formData.logo_url,
+            primary_color: formData.primary_color,
+            secondary_color: formData.secondary_color,
             fields: formData.fields
           })
           .eq('id', editingBriefing.id);
@@ -284,6 +290,8 @@ export function BriefingCreatorPanel() {
             title: formData.title,
             description: formData.description,
             logo_url: formData.logo_url,
+            primary_color: formData.primary_color,
+            secondary_color: formData.secondary_color,
             fields: formData.fields,
             is_active: true,
             responses_count: 0
@@ -295,7 +303,7 @@ export function BriefingCreatorPanel() {
 
       setIsCreateDialogOpen(false);
       setEditingBriefing(null);
-      setFormData({ title: '', description: '', logo_url: '', fields: [] });
+      setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', fields: [] });
       loadBriefings();
     } catch (error: any) {
       toast.error("Erro ao salvar briefing");
@@ -308,6 +316,8 @@ export function BriefingCreatorPanel() {
       title: briefing.title,
       description: briefing.description || '',
       logo_url: (briefing as any).logo_url || '',
+      primary_color: (briefing as any).primary_color || '#8B5CF6',
+      secondary_color: (briefing as any).secondary_color || '#EC4899',
       fields: briefing.fields
     });
     setIsCreateDialogOpen(true);
@@ -387,7 +397,7 @@ export function BriefingCreatorPanel() {
           <DialogTrigger asChild>
             <Button className="gradient-primary shadow-glow" onClick={() => {
               setEditingBriefing(null);
-              setFormData({ title: '', description: '', logo_url: '', fields: [] });
+              setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', fields: [] });
             }}>
               <Plus className="mr-2 h-4 w-4" />
               Criar Briefing
@@ -430,6 +440,48 @@ export function BriefingCreatorPanel() {
                       bucketName="briefing-logos"
                       label="Logo da empresa"
                     />
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-2">
+                      <Label>Cor Primária</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="justify-start gap-2">
+                            <div 
+                              className="w-5 h-5 rounded border border-border" 
+                              style={{ backgroundColor: formData.primary_color }}
+                            />
+                            <span className="text-sm">{formData.primary_color}</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-3">
+                          <HexColorPicker
+                            color={formData.primary_color}
+                            onChange={(color) => setFormData({...formData, primary_color: color})}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>Cor Secundária</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="justify-start gap-2">
+                            <div 
+                              className="w-5 h-5 rounded border border-border" 
+                              style={{ backgroundColor: formData.secondary_color }}
+                            />
+                            <span className="text-sm">{formData.secondary_color}</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-3">
+                          <HexColorPicker
+                            color={formData.secondary_color}
+                            onChange={(color) => setFormData({...formData, secondary_color: color})}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                   </div>
                 </div>
               </TabsContent>
@@ -570,7 +622,7 @@ export function BriefingCreatorPanel() {
               <Button variant="outline" onClick={() => {
                 setIsCreateDialogOpen(false);
                 setEditingBriefing(null);
-                setFormData({ title: '', description: '', logo_url: '', fields: [] });
+                setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', fields: [] });
               }}>
                 Cancelar
               </Button>

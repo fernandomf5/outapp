@@ -1417,7 +1417,9 @@ export type Database = {
           is_active: boolean
           is_blocked: boolean
           logo_url: string | null
+          primary_color: string | null
           responses_count: number
+          secondary_color: string | null
           title: string
           updated_at: string
           user_id: string
@@ -1430,7 +1432,9 @@ export type Database = {
           is_active?: boolean
           is_blocked?: boolean
           logo_url?: string | null
+          primary_color?: string | null
           responses_count?: number
+          secondary_color?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -1443,7 +1447,9 @@ export type Database = {
           is_active?: boolean
           is_blocked?: boolean
           logo_url?: string | null
+          primary_color?: string | null
           responses_count?: number
+          secondary_color?: string | null
           title?: string
           updated_at?: string
           user_id?: string
