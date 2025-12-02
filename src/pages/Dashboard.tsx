@@ -52,6 +52,7 @@ import { TutorialVideos } from "@/components/TutorialVideos";
 import { QuickNotesPanel } from "@/components/QuickNotesPanel";
 import { TaskReminder } from "@/components/TaskReminder";
 import { FeatureGate } from "@/components/FeatureGate";
+import { MindMapCreatorPanel } from "@/components/MindMapCreatorPanel";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -686,6 +687,21 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
             </Card>
+
+            {/* Criador de Mapa Mental */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("mapa-mental")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Brain className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Criador de Mapa Mental</CardTitle>
+                    <p className="text-xs text-muted-foreground">Organize suas ideias</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
           </div>
         </div>
 
@@ -1152,6 +1168,10 @@ const Dashboard = () => {
                 <TutorialVideos />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="mapa-mental">
+            <MindMapCreatorPanel />
           </TabsContent>
         </Tabs>
       </main>
