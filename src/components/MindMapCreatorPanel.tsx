@@ -383,6 +383,14 @@ const MindMapCreatorContent = () => {
             onNodeDoubleClick={handleNodeDoubleClick}
             nodeTypes={nodeTypes}
             fitView
+            panOnDrag={true}
+            zoomOnScroll={true}
+            zoomOnPinch={true}
+            nodesDraggable={true}
+            nodesConnectable={true}
+            elementsSelectable={true}
+            selectNodesOnDrag={false}
+            panOnScroll={false}
             defaultEdgeOptions={{
               type: 'smoothstep',
               animated: true,
