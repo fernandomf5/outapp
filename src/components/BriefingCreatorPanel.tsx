@@ -441,46 +441,49 @@ export function BriefingCreatorPanel() {
                       label="Logo da empresa"
                     />
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="grid gap-2">
-                      <Label>Cor Primária</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className="justify-start gap-2">
-                            <div 
-                              className="w-5 h-5 rounded border border-border" 
-                              style={{ backgroundColor: formData.primary_color }}
+                  <div className="space-y-3">
+                    <Label>Cores Personalizadas</Label>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="grid gap-2">
+                        <Label className="text-sm">Cor Primária</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="justify-start gap-2">
+                              <div 
+                                className="w-5 h-5 rounded border border-border" 
+                                style={{ backgroundColor: formData.primary_color }}
+                              />
+                              <span className="text-sm">{formData.primary_color}</span>
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-3">
+                            <HexColorPicker
+                              color={formData.primary_color}
+                              onChange={(color) => setFormData({...formData, primary_color: color})}
                             />
-                            <span className="text-sm">{formData.primary_color}</span>
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-3">
-                          <HexColorPicker
-                            color={formData.primary_color}
-                            onChange={(color) => setFormData({...formData, primary_color: color})}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>Cor Secundária</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className="justify-start gap-2">
-                            <div 
-                              className="w-5 h-5 rounded border border-border" 
-                              style={{ backgroundColor: formData.secondary_color }}
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label className="text-sm">Cor Secundária</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="justify-start gap-2">
+                              <div 
+                                className="w-5 h-5 rounded border border-border" 
+                                style={{ backgroundColor: formData.secondary_color }}
+                              />
+                              <span className="text-sm">{formData.secondary_color}</span>
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-3">
+                            <HexColorPicker
+                              color={formData.secondary_color}
+                              onChange={(color) => setFormData({...formData, secondary_color: color})}
                             />
-                            <span className="text-sm">{formData.secondary_color}</span>
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-3">
-                          <HexColorPicker
-                            color={formData.secondary_color}
-                            onChange={(color) => setFormData({...formData, secondary_color: color})}
-                          />
-                        </PopoverContent>
-                      </Popover>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
                     </div>
                   </div>
                 </div>
