@@ -248,18 +248,17 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         });
         
         setOnlineCustomers(onlineIds);
-        console.log('📊 Total de clientes online:', onlineIds.size);
       })
       .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        console.log('👋 Cliente entrou:', key, newPresences);
+        console.log('🟢 Cliente entrou no chat:', key, newPresences);
         newPresences.forEach((presence: any) => {
           if (presence.customer_id) {
-            setOnlineCustomers(prev => new Set(prev).add(presence.customer_id));
+            setOnlineCustomers(prev => new Set([...prev, presence.customer_id]));
           }
         });
       })
       .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-        console.log('👋 Cliente saiu:', key, leftPresences);
+        console.log('🔴 Cliente saiu do chat:', key, leftPresences);
         leftPresences.forEach((presence: any) => {
           if (presence.customer_id) {
             setOnlineCustomers(prev => {
