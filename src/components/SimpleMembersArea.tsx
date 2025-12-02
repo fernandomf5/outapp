@@ -773,6 +773,12 @@ export function SimpleMembersArea() {
                     onImageSelect={(url) => setBlockFormData({ ...blockFormData, content: url })}
                     bucketName="members-content"
                   />
+                ) : blockFormData.type === 'document' ? (
+                  <ImageUpload
+                    currentImage={blockFormData.content}
+                    onImageSelect={(url) => setBlockFormData({ ...blockFormData, content: url })}
+                    bucketName="members-content"
+                  />
                 ) : blockFormData.type === 'download' ? (
                   <>
                     <Input
