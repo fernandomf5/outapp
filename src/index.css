@@ -333,3 +333,52 @@ All colors MUST be HSL.
   75% { transform: rotate(5deg); }
   100% { transform: rotate(0deg); }
 }
+
+/* ReactFlow Mind Map Styles */
+.react-flow__renderer {
+  z-index: 1 !important;
+}
+
+.react-flow__node {
+  cursor: grab !important;
+  pointer-events: all !important;
+}
+
+.react-flow__node:active {
+  cursor: grabbing !important;
+}
+
+.react-flow__handle {
+  width: 12px !important;
+  height: 12px !important;
+  background: white !important;
+  border: 2px solid #666 !important;
+  cursor: crosshair !important;
+  pointer-events: all !important;
+  opacity: 1 !important;
+}
+
+.react-flow__handle:hover {
+  background: #10B981 !important;
+  transform: scale(1.3);
+}
+
+.react-flow__pane {
+  cursor: grab !important;
+}
+
+.react-flow__pane:active {
+  cursor: grabbing !important;
+}
+
+.react-flow__edge {
+  pointer-events: all !important;
+}
+
+.react-flow__controls {
+  z-index: 10 !important;
+}
+
+.react-flow__minimap {
+  z-index: 10 !important;
+}
