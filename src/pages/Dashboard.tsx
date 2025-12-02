@@ -31,12 +31,10 @@ import { PixelsManager } from "@/components/PixelsManager";
 import { PageCloner } from "@/components/PageCloner";
 import { LinkShortener } from "@/components/LinkShortener";
 import { LinkBioCreator } from "@/components/LinkBioCreator";
-import { MyChatbots } from "@/components/MyChatbots";
 import { MyAIAgents } from "@/components/MyAIAgents";
 import { QRCodeGenerator } from "@/components/QRCodeGenerator";
 import { GeneralCRMPanel } from "@/components/GeneralCRMPanel";
 import { ClientsManagementPanel } from "@/components/ClientsManagementPanel";
-import { ChatbotManagementPanel } from "@/components/ChatbotManagementPanel";
 import AgentManagementPanel from "@/components/AgentManagementPanel";
 import { MyDomainsPanel } from "@/components/MyDomainsPanel";
 import { FloatingMultiButtonGenerator } from "@/components/FloatingMultiButtonGenerator";
@@ -87,12 +85,9 @@ const Dashboard = () => {
     totalMembersAreas: 0,
     totalPopups: 0,
   });
-  const [chatbots, setChatbots] = useState<any[]>([]);
   const [aiAgents, setAiAgents] = useState<any[]>([]);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null);
   const [selectedAgentForManagement, setSelectedAgentForManagement] = useState<any>(null);
-  const [selectedChatbotForManagement, setSelectedChatbotForManagement] = useState<any>(null);
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const activeTab = searchParams.get('tab') || 'overview';
   const section = searchParams.get('section');
@@ -141,16 +136,6 @@ const Dashboard = () => {
     };
   }, [user]);
 
-  // Se tiver chatbotId na URL, abrir painel de gerenciamento
-  useEffect(() => {
-    if (chatbotId && activeTab === 'chatbots') {
-      const chatbot = chatbots.find((c) => c.id === chatbotId);
-      if (chatbot) {
-        setSelectedChatbotForManagement(chatbot);
-      }
-    }
-  }, [chatbotId, chatbots, activeTab]);
-
   // Se tiver agentId na URL, abrir painel de gerenciamento
   useEffect(() => {
     if (agentId && activeTab === 'ai-agents') {
@@ -166,16 +151,6 @@ const Dashboard = () => {
     const fetchData = async () => {
       if (!user) return;
 
-      // Buscar chatbots do usuário com contagem de cliques
-      const { data: botsData, error: botsError } = await supabase
-        .from('chatbots')
-        .select(`
-          *,
-          button_clicks:button_link_clicks(count)
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
       // Buscar agentes IA do usuário com contagem de cliques
       const { data: agentsData, error: agentsError } = await supabase
         .from('ai_agents')
@@ -186,15 +161,11 @@ const Dashboard = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (!botsError && botsData) {
-        setChatbots(botsData);
-      }
-
       if (!agentsError && agentsData) {
         setAiAgents(agentsData);
       }
         
-      if (botsData || agentsData) {
+      if (agentsData) {
         // Buscar estatísticas de todos os recursos
         const [
           { count: shortLinksCount },
@@ -217,7 +188,7 @@ const Dashboard = () => {
         ]);
 
         setStats({
-          totalBots: botsData?.length || 0,
+          totalBots: 0,
           totalAgents: agentsData?.length || 0,
           activeConnections: agentsData?.filter(a => a.is_active).length || 0,
           messagesThisMonth: 0,
@@ -284,35 +255,6 @@ const Dashboard = () => {
       // Força navegação mesmo com erro
       navigate("/auth", { replace: true });
     }
-  };
-
-  const handleEdit = (botId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigate(`/bot-builder?id=${botId}`);
-  };
-
-  const handleDelete = async () => {
-    if (!deletingId) return;
-
-    const { error } = await supabase
-      .from('chatbots')
-      .delete()
-      .eq('id', deletingId);
-
-    if (error) {
-      toast({
-        title: "Erro ao excluir",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      setChatbots(chatbots.filter(bot => bot.id !== deletingId));
-      toast({
-        title: "Chatbot excluído",
-        description: "O chatbot foi removido com sucesso.",
-      });
-    }
-    setDeletingId(null);
   };
 
   const handleDeleteAgent = async () => {
@@ -922,50 +864,50 @@ const Dashboard = () => {
           <TutorialVideos />
         </div>
 
-        {/* Recent Activity */}
+        {/* AI Agents Section */}
         <Card className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold">Meus Chatbots</h2>
-            <Button onClick={() => navigate("/bot-builder")} size="sm" className="w-full sm:w-auto">
-              <Bot className="w-4 h-4 mr-2" />
-              Criar Chatbot
+            <h2 className="text-xl sm:text-2xl font-bold">Meus Agentes IA</h2>
+            <Button onClick={() => navigate("/ai-agent")} size="sm" className="w-full sm:w-auto">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Criar Agente IA
             </Button>
           </div>
 
-          {chatbots.length === 0 ? (
+          {aiAgents.length === 0 ? (
             <div className="text-center py-12">
               <div className="bg-primary/10 p-6 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                <Bot className="w-10 h-10 text-primary" />
+                <Sparkles className="w-10 h-10 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Nenhum chatbot criado ainda</h3>
+              <h3 className="text-xl font-semibold mb-2">Nenhum agente IA criado ainda</h3>
               <p className="text-muted-foreground mb-6">
-                Comece criando seu primeiro chatbot para automatizar seu WhatsApp
+                Crie seu primeiro agente inteligente para automatizar atendimentos
               </p>
-              <Button onClick={() => navigate("/bot-builder")} className="gradient-primary">
-                <Bot className="w-4 h-4 mr-2" />
-                Criar Meu Primeiro Chatbot
+              <Button onClick={() => navigate("/ai-agent")} className="gradient-primary">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Criar Meu Primeiro Agente
               </Button>
             </div>
           ) : (
             <div className="space-y-4">
-              {chatbots.map((bot) => (
+              {aiAgents.map((agent) => (
                 <div
-                  key={bot.id}
-                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl bg-accent/50 hover:bg-accent transition-smooth gap-3 sm:gap-4 cursor-pointer"
-                  onClick={() => navigate(`/bot-builder?id=${bot.id}`)}
+                  key={agent.id}
+                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl bg-accent/50 hover:bg-accent transition-smooth gap-3 sm:gap-4"
+                  onClick={() => navigate("/ai-agent")}
                 >
                   <div className="flex items-center gap-3 sm:gap-4 flex-1">
                     <div className="bg-primary/10 p-2 sm:p-3 rounded-xl">
-                      <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                      <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-sm sm:text-base">{bot.name}</h3>
+                      <h3 className="font-semibold text-sm sm:text-base">{agent.name}</h3>
                       <p className="text-xs sm:text-sm text-muted-foreground">
-                        {bot.description || "Sem descrição"}
+                        {agent.description || agent.niche || "Sem descrição"}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs text-muted-foreground">
-                          🔗 {bot.button_clicks?.[0]?.count || 0} cliques em links
+                          🔗 {agent.button_clicks?.[0]?.count || 0} cliques em links
                         </span>
                       </div>
                     </div>
@@ -973,18 +915,18 @@ const Dashboard = () => {
                   <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
                     <span
                       className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium flex-1 sm:flex-none text-center ${
-                        bot.is_active
+                        agent.is_active
                           ? "bg-success/20 text-success"
                           : "bg-warning/20 text-warning"
                       }`}
                     >
-                      {bot.is_active ? "Ativo" : "Inativo"}
+                      {agent.is_active ? "Ativo" : "Inativo"}
                     </span>
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={(e) => handleCopyLink(bot.id, e)}
-                      title="Copiar link do chatbot"
+                      onClick={(e) => handleCopyAgentLink(agent.id, e)}
+                      title="Copiar link do agente"
                     >
                       <Link2 className="w-4 h-4 sm:mr-2" />
                       <span className="hidden sm:inline">Link</span>
@@ -992,17 +934,9 @@ const Dashboard = () => {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={(e) => handleEdit(bot.id, e)}
-                    >
-                      <Pencil className="w-4 h-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Editar</span>
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setDeletingId(bot.id);
+                        setDeletingAgentId(agent.id);
                       }}
                       className="text-destructive hover:text-destructive"
                     >
@@ -1244,34 +1178,6 @@ const Dashboard = () => {
             </FeatureGate>
           </TabsContent>
 
-
-          <TabsContent value="chatbots">
-            <FeatureGate featureKey="chatbot_web">
-              {selectedChatbotForManagement ? (
-                <div>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      setSelectedChatbotForManagement(null);
-                      navigate('/dashboard?tab=chatbots');
-                    }}
-                    className="mb-4"
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Voltar para Chatbots
-                  </Button>
-                  <ChatbotManagementPanel 
-                    chatbot={selectedChatbotForManagement}
-                  />
-                </div>
-              ) : (
-                <MyChatbots 
-                  onManage={(chatbot) => setSelectedChatbotForManagement(chatbot)}
-                />
-              )}
-            </FeatureGate>
-          </TabsContent>
-
           <TabsContent value="ai-agents">
             <FeatureGate featureKey="ai_agent">
               {selectedAgentForManagement ? (
@@ -1391,24 +1297,7 @@ const Dashboard = () => {
         </Tabs>
       </main>
 
-      {/* Delete Confirmation Dialogs */}
-      <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Chatbot</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir este chatbot? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
+      {/* Delete Confirmation Dialog for Agent */}
       <AlertDialog open={!!deletingAgentId} onOpenChange={() => setDeletingAgentId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

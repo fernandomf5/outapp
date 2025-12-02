@@ -236,22 +236,38 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         const state = channel.presenceState();
         const onlineIds = new Set<string>();
         
-        Object.keys(state).forEach((customerId) => {
-          if (state[customerId] && state[customerId].length > 0) {
-            onlineIds.add(customerId);
-          }
+        console.log('🔄 Estado de presença atualizado:', state);
+        
+        Object.values(state).forEach((presences: any) => {
+          presences.forEach((presence: any) => {
+            if (presence.customer_id) {
+              onlineIds.add(presence.customer_id);
+              console.log('✅ Cliente online:', presence.customer_id, presence.customer_name);
+            }
+          });
         });
         
         setOnlineCustomers(onlineIds);
+        console.log('📊 Total de clientes online:', onlineIds.size);
       })
-      .on('presence', { event: 'join' }, ({ key }) => {
-        setOnlineCustomers(prev => new Set(prev).add(key));
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        console.log('👋 Cliente entrou:', key, newPresences);
+        newPresences.forEach((presence: any) => {
+          if (presence.customer_id) {
+            setOnlineCustomers(prev => new Set(prev).add(presence.customer_id));
+          }
+        });
       })
-      .on('presence', { event: 'leave' }, ({ key }) => {
-        setOnlineCustomers(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(key);
-          return newSet;
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        console.log('👋 Cliente saiu:', key, leftPresences);
+        leftPresences.forEach((presence: any) => {
+          if (presence.customer_id) {
+            setOnlineCustomers(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(presence.customer_id);
+              return newSet;
+            });
+          }
         });
       })
       .subscribe();

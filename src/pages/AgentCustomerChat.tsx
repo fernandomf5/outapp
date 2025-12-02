@@ -303,33 +303,33 @@ export default function AgentCustomerChat() {
 
     channel
       .on('presence', { event: 'sync' }, () => {
-        // Presença sincronizada
+        console.log('✅ Presença sincronizada no cliente');
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           await channel.track({
-            [customer.id]: {
-              customer_id: customer.id,
-              customer_name: customer.name,
-              online_at: new Date().toISOString(),
-            }
+            customer_id: customer.id,
+            customer_name: customer.name,
+            conversation_id: conversationId,
+            online_at: new Date().toISOString(),
           });
+          console.log('✅ Cliente marcado como online:', customer.id);
         }
       });
 
     // Heartbeat para manter presença
     const heartbeat = setInterval(async () => {
       await channel.track({
-        [customer.id]: {
-          customer_id: customer.id,
-          customer_name: customer.name,
-          online_at: new Date().toISOString(),
-        }
+        customer_id: customer.id,
+        customer_name: customer.name,
+        conversation_id: conversationId,
+        online_at: new Date().toISOString(),
       });
     }, 30000); // A cada 30 segundos
 
     return () => {
       clearInterval(heartbeat);
+      channel.untrack();
       supabase.removeChannel(channel);
     };
   };
