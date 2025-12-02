@@ -464,11 +464,17 @@ export function BriefingCreatorPanel() {
                               <span className="text-sm">{formData.primary_color}</span>
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-3 pointer-events-auto">
-                            <HexColorPicker
-                              color={formData.primary_color}
-                              onChange={(color) => setFormData(prev => ({...prev, primary_color: color}))}
-                            />
+                          <PopoverContent 
+                            className="w-auto p-3 z-[9999]" 
+                            style={{ pointerEvents: 'auto' }}
+                            onOpenAutoFocus={(e) => e.preventDefault()}
+                          >
+                            <div style={{ touchAction: 'none', pointerEvents: 'auto' }}>
+                              <HexColorPicker
+                                color={formData.primary_color}
+                                onChange={(color) => setFormData(prev => ({...prev, primary_color: color}))}
+                              />
+                            </div>
                           </PopoverContent>
                         </Popover>
                       </div>
@@ -484,11 +490,17 @@ export function BriefingCreatorPanel() {
                               <span className="text-sm">{formData.secondary_color}</span>
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-3 pointer-events-auto">
-                            <HexColorPicker
-                              color={formData.secondary_color}
-                              onChange={(color) => setFormData(prev => ({...prev, secondary_color: color}))}
-                            />
+                          <PopoverContent 
+                            className="w-auto p-3 z-[9999]" 
+                            style={{ pointerEvents: 'auto' }}
+                            onOpenAutoFocus={(e) => e.preventDefault()}
+                          >
+                            <div style={{ touchAction: 'none', pointerEvents: 'auto' }}>
+                              <HexColorPicker
+                                color={formData.secondary_color}
+                                onChange={(color) => setFormData(prev => ({...prev, secondary_color: color}))}
+                              />
+                            </div>
                           </PopoverContent>
                         </Popover>
                       </div>
