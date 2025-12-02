@@ -1057,10 +1057,16 @@ export const MindMapCreatorPanel = () => {
 
           {/* Empty state */}
           {nodes.length === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="bg-card/90 backdrop-blur px-6 py-4 rounded-lg border border-border text-center">
+            <div 
+              className="absolute inset-0 flex items-center justify-center cursor-pointer z-50"
+              onClick={(e) => {
+                e.stopPropagation();
+                createRootNode();
+              }}
+            >
+              <div className="bg-card/90 backdrop-blur px-6 py-4 rounded-lg border border-border text-center pointer-events-none">
                 <p className="text-muted-foreground mb-2">
-                  Clique em <strong>"Central"</strong> para criar o nó principal
+                  Clique aqui para criar o nó central
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Depois adicione mais nós e conecte-os
