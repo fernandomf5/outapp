@@ -44,6 +44,8 @@ export const TeamManagementPanel = () => {
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
   
   const [formData, setFormData] = useState({
@@ -124,6 +126,55 @@ export const TeamManagementPanel = () => {
       loadMembers();
     } catch (error: any) {
       toast.error("Erro ao remover membro");
+    }
+  };
+
+  const handleEditMember = (member: TeamMember) => {
+    setEditingMember(member);
+    setFormData({
+      name: member.name,
+      email: member.email,
+      phone: member.phone || '',
+      role: member.role,
+      department: member.department,
+      status: member.status
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateMember = async () => {
+    if (!editingMember) return;
+    
+    try {
+      const { error } = await supabase
+        .from('team_members')
+        .update({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          role: formData.role,
+          department: formData.department,
+          status: formData.status
+        })
+        .eq('id', editingMember.id);
+
+      if (error) throw error;
+
+      toast.success("Membro atualizado com sucesso!");
+      setIsEditDialogOpen(false);
+      setEditingMember(null);
+      loadMembers();
+      
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        role: '',
+        department: '',
+        status: 'active'
+      });
+    } catch (error: any) {
+      toast.error("Erro ao atualizar membro");
     }
   };
 
@@ -371,7 +422,7 @@ export const TeamManagementPanel = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" onClick={() => handleEditMember(member)}>
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button 
@@ -386,9 +437,92 @@ export const TeamManagementPanel = () => {
                 </Card>
               ))}
             </div>
-          )}
+            )}
         </CardContent>
       </Card>
+
+      {/* Dialog de Edição */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Editar Membro da Equipe</DialogTitle>
+            <DialogDescription>Atualize as informações do colaborador</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>Nome Completo</Label>
+              <Input 
+                value={formData.name}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                placeholder="João Silva"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>E-mail</Label>
+              <Input 
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                placeholder="joao@empresa.com"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Telefone</Label>
+              <Input 
+                value={formData.phone}
+                onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                placeholder="(11) 99999-9999"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Cargo</Label>
+              <Input 
+                value={formData.role}
+                onChange={(e) => setFormData({...formData, role: e.target.value})}
+                placeholder="Ex: Desenvolvedor, Designer..."
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Departamento</Label>
+              <Select value={formData.department} onValueChange={(value) => setFormData({...formData, department: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tecnologia">Tecnologia</SelectItem>
+                  <SelectItem value="marketing">Marketing</SelectItem>
+                  <SelectItem value="vendas">Vendas</SelectItem>
+                  <SelectItem value="financeiro">Financeiro</SelectItem>
+                  <SelectItem value="rh">Recursos Humanos</SelectItem>
+                  <SelectItem value="operacoes">Operações</SelectItem>
+                  <SelectItem value="suporte">Suporte</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Status</Label>
+              <Select value={formData.status} onValueChange={(value: any) => setFormData({...formData, status: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Ativo</SelectItem>
+                  <SelectItem value="inactive">Inativo</SelectItem>
+                  <SelectItem value="on_leave">De Férias</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleUpdateMember} className="gradient-primary">
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
