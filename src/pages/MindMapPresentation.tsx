@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Brain, ZoomIn, ZoomOut, RotateCcw, Maximize, Minimize } from 'lucide-react';
+import { Brain, ZoomIn, ZoomOut, RotateCcw, Maximize, Minimize, ChevronRight, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface MindMapNode {
@@ -90,6 +90,7 @@ export default function MindMapPresentation() {
   const { id } = useParams();
   const canvasRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<MindMap | null>(null);
+  const [nodes, setNodes] = useState<MindMapNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [scale, setScale] = useState(1);
@@ -122,8 +123,20 @@ export default function MindMapPresentation() {
         ...data,
         nodes: (data.nodes as any) || [],
       });
+      setNodes((data.nodes as any) || []);
     }
     setLoading(false);
+  };
+
+  const getDirectChildCount = (nodeId: string): number => {
+    return nodes.filter(n => n.parentId === nodeId).length;
+  };
+
+  const toggleCollapse = (nodeId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setNodes(prev => prev.map(n => 
+      n.id === nodeId ? { ...n, collapsed: !n.collapsed } : n
+    ));
   };
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
@@ -191,7 +204,6 @@ export default function MindMapPresentation() {
   }
 
   const theme = THEMES[map.theme as keyof typeof THEMES] || THEMES.default;
-  const nodes = map.nodes;
 
   const renderConnections = () => {
     return nodes.filter(n => n.parentId).map(node => {
@@ -332,6 +344,7 @@ export default function MindMapPresentation() {
             return checkParent(parent);
           }).map(node => {
             const sizeClasses = getNodeSizeClasses(node.size, node.isRoot);
+            const childCount = getDirectChildCount(node.id);
             return (
               <div
                 key={node.id}
@@ -363,6 +376,22 @@ export default function MindMapPresentation() {
                       </p>
                     )}
                   </div>
+                  
+                  {/* Collapse/Expand button */}
+                  {childCount > 0 && (
+                    <button
+                      onClick={(e) => toggleCollapse(node.id, e)}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-colors border border-white/30"
+                      title={node.collapsed ? 'Expandir' : 'Recolher'}
+                    >
+                      {node.collapsed ? (
+                        <ChevronRight className="w-4 h-4 text-white" />
+                      ) : (
+                        <ChevronUp className="w-4 h-4 text-white" />
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             );
