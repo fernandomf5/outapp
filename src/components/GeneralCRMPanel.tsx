@@ -1,15 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Download, Phone, Mail, Edit, Trash2 } from "lucide-react";
+import { Download, Phone, Mail, Edit, Trash2, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Lead {
   id: string;
@@ -29,6 +30,19 @@ export function GeneralCRMPanel() {
   const [loading, setLoading] = useState(true);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
+
+  // Get unique sources for filter dropdown
+  const uniqueSources = useMemo(() => {
+    const sources = [...new Set(leads.map(lead => lead.source))];
+    return sources.sort();
+  }, [leads]);
+
+  // Filtered leads based on source filter
+  const filteredLeads = useMemo(() => {
+    if (sourceFilter === "all") return leads;
+    return leads.filter(lead => lead.source === sourceFilter);
+  }, [leads, sourceFilter]);
 
   useEffect(() => {
     if (!user) return;
@@ -153,7 +167,7 @@ export function GeneralCRMPanel() {
   };
 
   const downloadPhones = () => {
-    const phones = leads
+    const phones = filteredLeads
       .filter(lead => lead.phone && lead.phone !== 'N/A')
       .map(lead => lead.phone)
       .join('\n');
@@ -162,14 +176,14 @@ export function GeneralCRMPanel() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'telefones-leads.txt';
+    a.download = `telefones-leads${sourceFilter !== 'all' ? `-${sourceFilter}` : ''}.txt`;
     a.click();
     window.URL.revokeObjectURL(url);
     toast.success('Telefones baixados com sucesso!');
   };
 
   const downloadEmails = () => {
-    const emails = leads
+    const emails = filteredLeads
       .filter(lead => lead.email && lead.email !== 'N/A')
       .map(lead => lead.email)
       .join('\n');
@@ -178,7 +192,7 @@ export function GeneralCRMPanel() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'emails-leads.txt';
+    a.download = `emails-leads${sourceFilter !== 'all' ? `-${sourceFilter}` : ''}.txt`;
     a.click();
     window.URL.revokeObjectURL(url);
     toast.success('E-mails baixados com sucesso!');
@@ -247,7 +261,7 @@ export function GeneralCRMPanel() {
   const downloadAllLeads = () => {
     const csv = [
       'Nome,Email,Telefone,Origem,Fonte,Data',
-      ...leads.map(lead => 
+      ...filteredLeads.map(lead => 
         `"${lead.name}","${lead.email}","${lead.phone}","${lead.source}","${lead.sourceName}","${new Date(lead.createdAt).toLocaleString('pt-BR')}"`
       )
     ].join('\n');
@@ -256,10 +270,10 @@ export function GeneralCRMPanel() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'todos-leads.csv';
+    a.download = `leads${sourceFilter !== 'all' ? `-${sourceFilter}` : ''}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
-    toast.success('Todos os leads baixados com sucesso!');
+    toast.success('Leads baixados com sucesso!');
   };
 
   return (
@@ -272,28 +286,44 @@ export function GeneralCRMPanel() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-2 mb-4">
-            <Button onClick={downloadPhones} variant="outline" size="sm">
-              <Phone className="h-4 w-4 mr-2" />
-              Baixar Telefones
-            </Button>
-            <Button onClick={downloadEmails} variant="outline" size="sm">
-              <Mail className="h-4 w-4 mr-2" />
-              Baixar E-mails
-            </Button>
-            <Button onClick={downloadAllLeads} variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Baixar Todos (CSV)
-            </Button>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filtrar por origem" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as origens</SelectItem>
+                  {uniqueSources.map(source => (
+                    <SelectItem key={source} value={source}>{source}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={downloadPhones} variant="outline" size="sm">
+                <Phone className="h-4 w-4 mr-2" />
+                Baixar Telefones
+              </Button>
+              <Button onClick={downloadEmails} variant="outline" size="sm">
+                <Mail className="h-4 w-4 mr-2" />
+                Baixar E-mails
+              </Button>
+              <Button onClick={downloadAllLeads} variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Baixar CSV
+              </Button>
+            </div>
           </div>
 
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">
               Carregando leads...
             </div>
-          ) : leads.length === 0 ? (
+          ) : filteredLeads.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              Nenhum lead capturado ainda
+              {sourceFilter !== "all" ? "Nenhum lead encontrado para esta origem" : "Nenhum lead capturado ainda"}
             </div>
           ) : (
             <div className="overflow-x-auto rounded-md border">
@@ -310,7 +340,7 @@ export function GeneralCRMPanel() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {leads.map((lead) => (
+                  {filteredLeads.map((lead) => (
                     <TableRow key={lead.id}>
                       <TableCell className="font-medium">{lead.name}</TableCell>
                       <TableCell>{lead.email}</TableCell>
@@ -350,7 +380,11 @@ export function GeneralCRMPanel() {
           )}
 
           <div className="mt-4 text-sm text-muted-foreground">
-            Total de leads: <span className="font-semibold">{leads.length}</span>
+            {sourceFilter !== "all" ? (
+              <>Mostrando <span className="font-semibold">{filteredLeads.length}</span> de <span className="font-semibold">{leads.length}</span> leads</>
+            ) : (
+              <>Total de leads: <span className="font-semibold">{leads.length}</span></>
+            )}
           </div>
         </CardContent>
       </Card>
