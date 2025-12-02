@@ -12,14 +12,16 @@ import ReactFlow, {
   Handle,
   Position,
   NodeProps,
+  MarkerType,
+  Panel,
+  BackgroundVariant,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
@@ -30,89 +32,101 @@ import {
   Save,
   Trash2,
   Edit,
-  Download,
   FolderOpen,
-  Palette,
-  Image,
-  Circle,
-  Square,
-  Hexagon,
-  Star,
-  Triangle,
   Brain,
   Sparkles,
-  FileText,
   LayoutGrid,
 } from 'lucide-react';
 
-// Temas predefinidos
+// Temas predefinidos com lineColor para conexões
 const themes = {
   default: {
     name: 'Padrão',
     colors: ['#8B5CF6', '#EC4899', '#10B981', '#F59E0B', '#3B82F6', '#EF4444'],
-    background: '#1e1e2e',
+    background: '#1a1a2e',
+    lineColor: '#a78bfa',
   },
   ocean: {
     name: 'Oceano',
     colors: ['#0EA5E9', '#06B6D4', '#14B8A6', '#22D3EE', '#38BDF8', '#67E8F9'],
     background: '#0c1929',
+    lineColor: '#38bdf8',
   },
   forest: {
     name: 'Floresta',
     colors: ['#22C55E', '#16A34A', '#84CC16', '#4ADE80', '#A3E635', '#BEF264'],
     background: '#0f1f14',
+    lineColor: '#4ade80',
   },
   sunset: {
     name: 'Pôr do Sol',
     colors: ['#F97316', '#FB923C', '#FBBF24', '#F59E0B', '#EAB308', '#FCD34D'],
     background: '#1f1410',
+    lineColor: '#fbbf24',
   },
   purple: {
     name: 'Roxo',
     colors: ['#A855F7', '#8B5CF6', '#7C3AED', '#C084FC', '#D946EF', '#E879F9'],
     background: '#1a0f29',
+    lineColor: '#c084fc',
   },
 };
 
-// Formas dos nós
-const nodeShapes = ['circle', 'rectangle', 'rounded', 'hexagon', 'diamond'];
-
-// Componente de nó customizado
+// Custom Mind Map Node Component - GitMind style
 const MindMapNode = ({ data, selected }: NodeProps) => {
-  const shapeStyles: Record<string, string> = {
-    circle: 'rounded-full aspect-square',
-    rectangle: 'rounded-none',
-    rounded: 'rounded-xl',
-    hexagon: 'clip-hexagon',
-    diamond: 'rotate-45',
-  };
-
+  const isRoot = data.isRoot;
+  
   return (
     <div
-      className={`relative p-4 min-w-[120px] max-w-[200px] shadow-lg transition-all duration-300 ${
-        shapeStyles[data.shape || 'rounded']
-      } ${selected ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+      className={`
+        relative px-5 py-3 rounded-2xl shadow-xl cursor-grab active:cursor-grabbing
+        transition-all duration-200 border-2
+        ${selected ? 'ring-4 ring-white/40 scale-105 shadow-2xl' : 'hover:scale-102 hover:shadow-2xl'}
+        ${isRoot ? 'min-w-[180px] py-4' : 'min-w-[130px]'}
+      `}
       style={{
         backgroundColor: data.color || '#8B5CF6',
-        color: '#fff',
-        transform: data.shape === 'diamond' ? 'rotate(45deg)' : 'none',
+        borderColor: selected ? '#fff' : 'rgba(255,255,255,0.2)',
+        boxShadow: `0 8px 32px ${data.color}50`,
       }}
     >
-      <Handle type="target" position={Position.Top} className="!bg-white !w-3 !h-3" />
-      <Handle type="target" position={Position.Left} className="!bg-white !w-3 !h-3" />
+      {/* Connection handles - all sides */}
+      <Handle
+        type="target"
+        position={Position.Top}
+        id="top-target"
+        className="!w-4 !h-4 !bg-white !border-2 !border-white/50 hover:!scale-125 !transition-transform"
+        style={{ top: -8 }}
+      />
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="left-target"
+        className="!w-4 !h-4 !bg-white !border-2 !border-white/50 hover:!scale-125 !transition-transform"
+        style={{ left: -8 }}
+      />
       
-      <div
-        className="text-center font-semibold text-sm"
-        style={{
-          transform: data.shape === 'diamond' ? 'rotate(-45deg)' : 'none',
-        }}
-      >
-        {data.icon && <span className="mr-1">{data.icon}</span>}
-        {data.label}
+      {/* Node content */}
+      <div className="text-center text-white font-medium select-none flex items-center justify-center gap-2">
+        {data.icon && <span className="text-lg">{data.icon}</span>}
+        <span className={isRoot ? 'text-lg font-bold' : 'text-sm'}>{data.label}</span>
       </div>
       
-      <Handle type="source" position={Position.Bottom} className="!bg-white !w-3 !h-3" />
-      <Handle type="source" position={Position.Right} className="!bg-white !w-3 !h-3" />
+      {/* Source handles */}
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="bottom-source"
+        className="!w-4 !h-4 !bg-white !border-2 !border-white/50 hover:!scale-125 !transition-transform"
+        style={{ bottom: -8 }}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="right-source"
+        className="!w-4 !h-4 !bg-white !border-2 !border-white/50 hover:!scale-125 !transition-transform"
+        style={{ right: -8 }}
+      />
     </div>
   );
 };
@@ -149,7 +163,6 @@ export const MindMapCreatorPanel = () => {
   // Node editing state
   const [nodeLabel, setNodeLabel] = useState('');
   const [nodeColor, setNodeColor] = useState('#8B5CF6');
-  const [nodeShape, setNodeShape] = useState('rounded');
   const [nodeIcon, setNodeIcon] = useState('');
   
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -180,13 +193,23 @@ export const MindMapCreatorPanel = () => {
 
   const onConnect = useCallback(
     (params: Connection) => {
+      const theme = themes[selectedTheme];
       setEdges((eds) =>
         addEdge(
           {
             ...params,
             type: 'smoothstep',
             animated: true,
-            style: { stroke: themes[selectedTheme].colors[0], strokeWidth: 2 },
+            style: { 
+              stroke: theme.lineColor, 
+              strokeWidth: 3,
+            },
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              color: theme.lineColor,
+              width: 20,
+              height: 20,
+            },
           },
           eds
         )
@@ -195,52 +218,41 @@ export const MindMapCreatorPanel = () => {
     [selectedTheme]
   );
 
-  const addNode = () => {
+  const addNode = (isRoot = false) => {
     const theme = themes[selectedTheme];
     const colorIndex = nodes.length % theme.colors.length;
     
+    const centerX = 400;
+    const centerY = 250;
+    
     const newNode: Node = {
-      id: `node-${Date.now()}`,
+      id: isRoot ? `node-central-${Date.now()}` : `node-${Date.now()}`,
       type: 'mindmap',
       position: { 
-        x: Math.random() * 400 + 100, 
-        y: Math.random() * 300 + 100 
+        x: isRoot ? centerX : centerX + (nodes.length * 50) + Math.random() * 80, 
+        y: isRoot ? centerY : centerY + (nodes.length * 30) + Math.random() * 60 
       },
       data: {
-        label: 'Nova Ideia',
-        color: theme.colors[colorIndex],
-        shape: 'rounded',
-        icon: '',
+        label: isRoot ? 'Ideia Central' : 'Nova Ideia',
+        color: isRoot ? theme.colors[0] : theme.colors[colorIndex],
+        icon: isRoot ? '🎯' : '',
+        isRoot,
       },
+      draggable: true,
     };
     
-    setNodes((nds) => [...nds, newNode]);
-  };
-
-  const addCentralNode = () => {
-    const theme = themes[selectedTheme];
-    
-    const centralNode: Node = {
-      id: `node-central-${Date.now()}`,
-      type: 'mindmap',
-      position: { x: 300, y: 200 },
-      data: {
-        label: 'Ideia Central',
-        color: theme.colors[0],
-        shape: 'circle',
-        icon: '🧠',
-      },
-    };
-    
-    setNodes([centralNode]);
-    setEdges([]);
+    if (isRoot) {
+      setNodes([newNode]);
+      setEdges([]);
+    } else {
+      setNodes((nds) => [...nds, newNode]);
+    }
   };
 
   const handleNodeClick = (event: React.MouseEvent, node: Node) => {
     setSelectedNode(node);
     setNodeLabel(node.data.label);
     setNodeColor(node.data.color || '#8B5CF6');
-    setNodeShape(node.data.shape || 'rounded');
     setNodeIcon(node.data.icon || '');
     setIsNodeDialogOpen(true);
   };
@@ -257,7 +269,6 @@ export const MindMapCreatorPanel = () => {
                 ...node.data,
                 label: nodeLabel,
                 color: nodeColor,
-                shape: nodeShape,
                 icon: nodeIcon,
               },
             }
@@ -465,14 +476,14 @@ export const MindMapCreatorPanel = () => {
             </Select>
           </div>
           
-          <div className="flex items-end gap-2">
-            <Button onClick={addCentralNode} size="sm" variant="outline">
-              <Sparkles className="w-4 h-4 mr-2" />
+          <div className="flex items-end gap-2 flex-wrap">
+            <Button onClick={() => addNode(true)} size="sm" variant="outline">
+              <Sparkles className="w-4 h-4 mr-1" />
               Ideia Central
             </Button>
-            <Button onClick={addNode} size="sm" className="bg-primary">
-              <Plus className="w-4 h-4 mr-2" />
-              Adicionar Nó
+            <Button onClick={() => addNode(false)} size="sm" className="bg-primary">
+              <Plus className="w-4 h-4 mr-1" />
+              Nó
             </Button>
             <Button onClick={autoOrganize} size="sm" variant="outline">
               <LayoutGrid className="w-4 h-4 mr-2" />
@@ -488,7 +499,7 @@ export const MindMapCreatorPanel = () => {
         {/* Canvas do Mapa Mental */}
         <div
           ref={reactFlowWrapper}
-          className="h-[500px] rounded-xl overflow-hidden border border-border"
+          className="h-[500px] rounded-xl overflow-hidden border-2 border-border"
           style={{ backgroundColor: themes[selectedTheme].background }}
         >
           <ReactFlow
@@ -500,26 +511,62 @@ export const MindMapCreatorPanel = () => {
             onNodeClick={handleNodeClick}
             nodeTypes={nodeTypes}
             fitView
+            snapToGrid
+            snapGrid={[15, 15]}
             defaultEdgeOptions={{
               type: 'smoothstep',
               animated: true,
-              style: { stroke: themes[selectedTheme].colors[0], strokeWidth: 2 },
+              style: { stroke: themes[selectedTheme].lineColor, strokeWidth: 3 },
+              markerEnd: {
+                type: MarkerType.ArrowClosed,
+                color: themes[selectedTheme].lineColor,
+                width: 20,
+                height: 20,
+              },
             }}
+            connectionLineStyle={{ stroke: themes[selectedTheme].lineColor, strokeWidth: 2 }}
+            proOptions={{ hideAttribution: true }}
           >
-            <Background color={themes[selectedTheme].colors[0]} gap={20} size={1} />
-            <Controls className="bg-card border border-border rounded-lg" />
-            <MiniMap
-              className="bg-card border border-border rounded-lg"
-              nodeColor={(node) => node.data.color || themes[selectedTheme].colors[0]}
+            <Background 
+              color={themes[selectedTheme].lineColor} 
+              gap={20} 
+              size={1} 
+              variant={BackgroundVariant.Dots}
             />
+            <Controls 
+              className="bg-card/90 backdrop-blur border border-border rounded-lg !shadow-lg"
+              showZoom={true}
+              showFitView={true}
+              showInteractive={false}
+            />
+            <MiniMap
+              className="!bg-card/90 !backdrop-blur !border !border-border !rounded-lg"
+              nodeColor={(node) => node.data.color || themes[selectedTheme].colors[0]}
+              maskColor="rgba(0,0,0,0.5)"
+            />
+            
+            {/* Instructions Panel */}
+            {nodes.length === 0 && (
+              <Panel position="top-center" className="mt-4">
+                <div className="bg-card/90 backdrop-blur px-4 py-3 rounded-lg border border-border text-center">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Comece clicando em <strong>"Ideia Central"</strong> para criar o nó principal
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Depois adicione nós e arraste das bolinhas brancas para conectar
+                  </p>
+                </div>
+              </Panel>
+            )}
           </ReactFlow>
         </div>
 
         {/* Dicas */}
         <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-          <Badge variant="outline">Clique em um nó para editar</Badge>
-          <Badge variant="outline">Arraste entre nós para conectar</Badge>
-          <Badge variant="outline">Use scroll para zoom</Badge>
+          <Badge variant="outline">🖱️ Arraste os nós para mover</Badge>
+          <Badge variant="outline">🔗 Arraste das bolinhas para conectar</Badge>
+          <Badge variant="outline">✏️ Clique para editar</Badge>
+          <Badge variant="outline">🔍 Scroll para zoom</Badge>
         </div>
       </CardContent>
 
@@ -600,25 +647,25 @@ export const MindMapCreatorPanel = () => {
               <Input
                 value={nodeIcon}
                 onChange={(e) => setNodeIcon(e.target.value)}
-                placeholder="Ex: 💡 🎯 📝"
+                placeholder="Ex: 💡 🎯 📝 🚀 ⭐"
               />
             </div>
             
             <div>
               <Label>Cor</Label>
-              <div className="flex items-center gap-2 mt-1">
+              <div className="flex items-center gap-3 mt-2">
                 <input
                   type="color"
                   value={nodeColor}
                   onChange={(e) => setNodeColor(e.target.value)}
-                  className="w-10 h-10 rounded cursor-pointer"
+                  className="w-12 h-10 rounded cursor-pointer border-0"
                 />
-                <div className="flex gap-1">
+                <div className="flex gap-1 flex-wrap">
                   {themes[selectedTheme].colors.map((color) => (
                     <button
                       key={color}
                       onClick={() => setNodeColor(color)}
-                      className={`w-8 h-8 rounded-full transition-transform hover:scale-110 ${
+                      className={`w-8 h-8 rounded-full transition-all hover:scale-110 ${
                         nodeColor === color ? 'ring-2 ring-primary ring-offset-2' : ''
                       }`}
                       style={{ backgroundColor: color }}
@@ -628,40 +675,9 @@ export const MindMapCreatorPanel = () => {
               </div>
             </div>
             
-            <div>
-              <Label>Forma</Label>
-              <Select value={nodeShape} onValueChange={setNodeShape}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="rounded">
-                    <div className="flex items-center gap-2">
-                      <Square className="w-4 h-4" /> Arredondado
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="circle">
-                    <div className="flex items-center gap-2">
-                      <Circle className="w-4 h-4" /> Círculo
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="rectangle">
-                    <div className="flex items-center gap-2">
-                      <Square className="w-4 h-4" /> Retângulo
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="diamond">
-                    <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4" /> Diamante
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="flex gap-2">
+            <div className="flex gap-2 pt-2">
               <Button onClick={updateNode} className="flex-1">
-                Salvar Alterações
+                Salvar
               </Button>
               <Button variant="destructive" onClick={deleteSelectedNode}>
                 <Trash2 className="w-4 h-4" />
