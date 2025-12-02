@@ -17,7 +17,6 @@ import ReactFlow, {
   BackgroundVariant,
   ReactFlowProvider,
 } from 'reactflow';
-import 'reactflow/dist/style.css';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -386,7 +385,7 @@ const MindMapCreatorContent = () => {
           </div>
         </div>
 
-        <div style={{ height: 500, width: '100%', backgroundColor: theme.background, borderRadius: '12px', border: '2px solid hsl(var(--border))' }}>
+        <div style={{ height: 500, width: '100%', backgroundColor: theme.background, borderRadius: '12px', border: '2px solid hsl(var(--border))', position: 'relative' }}>
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -412,6 +411,7 @@ const MindMapCreatorContent = () => {
             }}
             connectionLineStyle={{ stroke: theme.lineColor, strokeWidth: 2 }}
             proOptions={{ hideAttribution: true }}
+            style={{ width: '100%', height: '100%' }}
           >
             <Background color={theme.lineColor} gap={20} size={1} variant={BackgroundVariant.Dots} />
             <Controls className="bg-card/90 backdrop-blur border border-border rounded-lg" showZoom showFitView showInteractive={false} />
