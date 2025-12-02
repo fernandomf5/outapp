@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Copy, Plus, Trash2, Zap } from "lucide-react";
+import { Copy, Plus, Trash2, Zap, Save, Edit2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SubButton {
   id: string;
@@ -17,8 +18,21 @@ interface SubButton {
   imageUrl?: string;
 }
 
+interface SavedButton {
+  id: string;
+  name: string;
+  main_button_text: string;
+  main_button_icon: string;
+  main_button_color: string;
+  position: string;
+  sub_buttons: SubButton[];
+  created_at: string;
+}
+
 export const FloatingMultiButtonGenerator = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [configName, setConfigName] = useState("");
   const [mainButtonText, setMainButtonText] = useState("Contato");
   const [mainButtonIcon, setMainButtonIcon] = useState("whatsapp");
   const [mainButtonColor, setMainButtonColor] = useState("#25d366");
@@ -27,6 +41,120 @@ export const FloatingMultiButtonGenerator = () => {
     { id: '1', text: 'WhatsApp', link: '', icon: 'whatsapp', imageUrl: undefined }
   ]);
   const [isOpen, setIsOpen] = useState(false);
+  const [savedButtons, setSavedButtons] = useState<SavedButton[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      fetchSavedButtons();
+    }
+  }, [user]);
+
+  const fetchSavedButtons = async () => {
+    const { data, error } = await supabase
+      .from("floating_buttons")
+      .select("*")
+      .eq("user_id", user?.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching buttons:", error);
+      return;
+    }
+
+    setSavedButtons(data?.map(item => ({
+      ...item,
+      sub_buttons: (item.sub_buttons as unknown) as SubButton[]
+    })) || []);
+  };
+
+  const resetForm = () => {
+    setConfigName("");
+    setMainButtonText("Contato");
+    setMainButtonIcon("whatsapp");
+    setMainButtonColor("#25d366");
+    setPosition("bottom-right");
+    setSubButtons([{ id: '1', text: 'WhatsApp', link: '', icon: 'whatsapp', imageUrl: undefined }]);
+    setEditingId(null);
+  };
+
+  const loadConfig = (config: SavedButton) => {
+    setConfigName(config.name);
+    setMainButtonText(config.main_button_text);
+    setMainButtonIcon(config.main_button_icon);
+    setMainButtonColor(config.main_button_color);
+    setPosition(config.position as any);
+    setSubButtons(config.sub_buttons);
+    setEditingId(config.id);
+  };
+
+  const saveConfig = async () => {
+    if (!configName.trim()) {
+      toast({
+        title: "Nome obrigatório",
+        description: "Por favor, dê um nome para esta configuração.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    const configData = {
+      user_id: user?.id,
+      name: configName,
+      main_button_text: mainButtonText,
+      main_button_icon: mainButtonIcon,
+      main_button_color: mainButtonColor,
+      position,
+      sub_buttons: JSON.parse(JSON.stringify(subButtons)),
+    };
+
+    if (editingId) {
+      const { error } = await supabase
+        .from("floating_buttons")
+        .update({ ...configData, updated_at: new Date().toISOString() })
+        .eq("id", editingId);
+
+      if (error) {
+        toast({ title: "Erro ao atualizar", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Atualizado!", description: "Configuração atualizada com sucesso." });
+        resetForm();
+        fetchSavedButtons();
+      }
+    } else {
+      const { error } = await supabase
+        .from("floating_buttons")
+        .insert(configData);
+
+      if (error) {
+        toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Salvo!", description: "Configuração salva com sucesso." });
+        resetForm();
+        fetchSavedButtons();
+      }
+    }
+
+    setIsLoading(false);
+  };
+
+  const deleteConfig = async (id: string) => {
+    const { error } = await supabase
+      .from("floating_buttons")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Excluído!", description: "Configuração removida com sucesso." });
+      if (editingId === id) resetForm();
+      fetchSavedButtons();
+    }
+  };
   
   const addSubButton = () => {
     setSubButtons([...subButtons, {
@@ -53,7 +181,7 @@ export const FloatingMultiButtonGenerator = () => {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
       
-      const { error: uploadError, data } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('chatbot-media')
         .upload(fileName, file);
 
@@ -188,9 +316,76 @@ function toggleFloatingButtons() {
         Gerador de Botão Flutuante Multi-Links
       </h2>
 
+      {/* Configurações Salvas */}
+      {savedButtons.length > 0 && (
+        <div className="mb-6 p-4 bg-muted/50 rounded-lg border">
+          <h3 className="text-lg font-semibold mb-3">Configurações Salvas</h3>
+          <div className="grid gap-2">
+            {savedButtons.map((config) => (
+              <div
+                key={config.id}
+                className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                  editingId === config.id ? 'bg-primary/10 border-primary' : 'bg-card hover:bg-accent/50'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: config.main_button_color }}
+                    dangerouslySetInnerHTML={{ __html: getIconSvg(config.main_button_icon) }}
+                  />
+                  <div>
+                    <p className="font-medium">{config.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {config.sub_buttons.length} botões • {config.position}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => loadConfig(config)}
+                    className="h-8 w-8"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => deleteConfig(config.id)}
+                    className="h-8 w-8 text-destructive hover:bg-destructive/20"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Configuração */}
         <div className="space-y-4">
+          {/* Nome da configuração */}
+          <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+            <div className="flex items-center justify-between mb-2">
+              <Label className="font-semibold">Nome da Configuração *</Label>
+              {editingId && (
+                <Button variant="ghost" size="sm" onClick={resetForm}>
+                  <X className="w-4 h-4 mr-1" />
+                  Cancelar Edição
+                </Button>
+              )}
+            </div>
+            <Input
+              value={configName}
+              onChange={(e) => setConfigName(e.target.value)}
+              placeholder="Ex: Botões do meu site"
+            />
+          </div>
+
           <div>
             <Label>Texto do Botão Principal</Label>
             <Input
@@ -250,7 +445,7 @@ function toggleFloatingButtons() {
               </Button>
             </div>
 
-            <div className="space-y-3 max-h-[400px] overflow-y-auto">
+            <div className="space-y-3 max-h-[300px] overflow-y-auto">
               {subButtons.map((btn) => (
                 <div key={btn.id} className="p-3 border rounded-lg space-y-2">
                   <div className="flex items-center justify-between">
@@ -313,12 +508,23 @@ function toggleFloatingButtons() {
               ))}
             </div>
           </div>
+
+          {/* Botão Salvar */}
+          <Button
+            onClick={saveConfig}
+            disabled={isLoading}
+            className="w-full"
+            variant="default"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            {isLoading ? "Salvando..." : editingId ? "Atualizar Configuração" : "Salvar Configuração"}
+          </Button>
         </div>
 
         {/* Preview */}
         <div>
           <Label className="mb-2 block">Prévia</Label>
-          <div className="relative bg-muted/50 rounded-lg p-4 h-[600px] border-2 border-dashed">
+          <div className="relative bg-muted/50 rounded-lg p-4 h-[500px] border-2 border-dashed">
             <div 
               style={{ 
                 position: 'absolute',
@@ -388,7 +594,7 @@ function toggleFloatingButtons() {
             <Textarea
               value={generateCode()}
               readOnly
-              rows={8}
+              rows={6}
               className="font-mono text-xs mt-2"
             />
             <Button onClick={copyCode} className="w-full mt-2">

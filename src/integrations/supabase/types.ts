@@ -3110,6 +3110,45 @@ export type Database = {
           },
         ]
       }
+      floating_buttons: {
+        Row: {
+          created_at: string
+          id: string
+          main_button_color: string
+          main_button_icon: string
+          main_button_text: string
+          name: string
+          position: string
+          sub_buttons: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          main_button_color?: string
+          main_button_icon?: string
+          main_button_text?: string
+          name: string
+          position?: string
+          sub_buttons?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          main_button_color?: string
+          main_button_icon?: string
+          main_button_text?: string
+          name?: string
+          position?: string
+          sub_buttons?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       funnels: {
         Row: {
           config: Json | null
