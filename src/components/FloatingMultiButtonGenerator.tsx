@@ -26,6 +26,7 @@ interface SavedButton {
   main_button_color: string;
   position: string;
   sub_buttons: SubButton[];
+  generated_code: string;
   created_at: string;
 }
 
