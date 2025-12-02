@@ -229,6 +229,8 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   const setupPresenceTracking = () => {
     if (!agentId) return null;
 
+    console.log('🎯 Painel do agente - Configurando rastreamento de presença para agentId:', agentId);
+
     const channel = supabase.channel(`agent-conversations-${agentId}`);
 
     channel
@@ -236,40 +238,54 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         const state = channel.presenceState();
         const onlineIds = new Set<string>();
         
-        console.log('🔄 Estado de presença atualizado:', state);
+        console.log('🔄 Painel - Estado de presença sincronizado:', state);
         
         Object.values(state).forEach((presences: any) => {
           presences.forEach((presence: any) => {
             if (presence.customer_id) {
               onlineIds.add(presence.customer_id);
-              console.log('✅ Cliente online:', presence.customer_id, presence.customer_name);
+              console.log('✅ Painel - Cliente online detectado:', {
+                customerId: presence.customer_id,
+                customerName: presence.customer_name,
+                conversationId: presence.conversation_id
+              });
             }
           });
         });
         
+        console.log('📊 Painel - Total de clientes online:', onlineIds.size, Array.from(onlineIds));
         setOnlineCustomers(onlineIds);
       })
       .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        console.log('🟢 Cliente entrou no chat:', key, newPresences);
+        console.log('🟢 Painel - Cliente entrou no chat:', key, newPresences);
         newPresences.forEach((presence: any) => {
           if (presence.customer_id) {
-            setOnlineCustomers(prev => new Set([...prev, presence.customer_id]));
-          }
-        });
-      })
-      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-        console.log('🔴 Cliente saiu do chat:', key, leftPresences);
-        leftPresences.forEach((presence: any) => {
-          if (presence.customer_id) {
+            console.log('➕ Adicionando cliente online:', presence.customer_id);
             setOnlineCustomers(prev => {
-              const newSet = new Set(prev);
-              newSet.delete(presence.customer_id);
+              const newSet = new Set([...prev, presence.customer_id]);
+              console.log('📊 Clientes online após join:', Array.from(newSet));
               return newSet;
             });
           }
         });
       })
-      .subscribe();
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        console.log('🔴 Painel - Cliente saiu do chat:', key, leftPresences);
+        leftPresences.forEach((presence: any) => {
+          if (presence.customer_id) {
+            console.log('➖ Removendo cliente online:', presence.customer_id);
+            setOnlineCustomers(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(presence.customer_id);
+              console.log('📊 Clientes online após leave:', Array.from(newSet));
+              return newSet;
+            });
+          }
+        });
+      })
+      .subscribe((status) => {
+        console.log('📡 Painel - Status da subscrição:', status);
+      });
 
     return channel;
   };

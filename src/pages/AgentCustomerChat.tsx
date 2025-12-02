@@ -297,37 +297,60 @@ export default function AgentCustomerChat() {
 
 
   const setupPresenceTracking = () => {
-    if (!conversationId || !customer?.id) return () => {};
+    if (!conversationId || !customer?.id || !agentId) return () => {};
 
-    const channel = supabase.channel(`agent-conversations-${agentId}`);
+    console.log('🚀 Configurando presença do cliente:', {
+      agentId,
+      customerId: customer.id,
+      customerName: customer.name,
+      conversationId
+    });
+
+    const channel = supabase.channel(`agent-conversations-${agentId}`, {
+      config: {
+        presence: {
+          key: customer.id,
+        },
+      },
+    });
 
     channel
       .on('presence', { event: 'sync' }, () => {
-        console.log('✅ Presença sincronizada no cliente');
+        const state = channel.presenceState();
+        console.log('✅ Cliente - Presença sincronizada:', state);
+      })
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        console.log('✅ Cliente - Alguém entrou:', key, newPresences);
+      })
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        console.log('✅ Cliente - Alguém saiu:', key, leftPresences);
       })
       .subscribe(async (status) => {
+        console.log('📡 Status da subscrição do cliente:', status);
         if (status === 'SUBSCRIBED') {
-          await channel.track({
+          const trackResult = await channel.track({
             customer_id: customer.id,
             customer_name: customer.name,
             conversation_id: conversationId,
             online_at: new Date().toISOString(),
           });
-          console.log('✅ Cliente marcado como online:', customer.id);
+          console.log('✅ Cliente marcado como online:', customer.id, 'Result:', trackResult);
         }
       });
 
     // Heartbeat para manter presença
     const heartbeat = setInterval(async () => {
-      await channel.track({
+      const trackResult = await channel.track({
         customer_id: customer.id,
         customer_name: customer.name,
         conversation_id: conversationId,
         online_at: new Date().toISOString(),
       });
+      console.log('💓 Heartbeat enviado:', trackResult);
     }, 30000); // A cada 30 segundos
 
     return () => {
+      console.log('🔌 Desconectando cliente:', customer.id);
       clearInterval(heartbeat);
       channel.untrack();
       supabase.removeChannel(channel);
