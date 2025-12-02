@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Plus, Save, FolderOpen, Trash2, Edit3, ZoomIn, ZoomOut, RotateCcw, Brain, Sparkles, LayoutGrid, Move, Link2, Copy, ChevronDown, GitBranch, ArrowRight, Circle, TreePine } from 'lucide-react';
+import { Plus, Save, FolderOpen, Trash2, Edit3, ZoomIn, ZoomOut, RotateCcw, Brain, Sparkles, LayoutGrid, Move, Link2, Copy, ChevronDown, GitBranch, ArrowRight, Circle, TreePine, Unlink, ChevronRight, ChevronUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -21,6 +21,7 @@ interface MindMapNode {
   parentId: string | null;
   isRoot: boolean;
   icon?: string;
+  collapsed?: boolean;
 }
 
 interface MindMap {
@@ -196,6 +197,36 @@ export const MindMapCreatorPanel = () => {
 
     setNodes(nodes.filter(n => !nodesToDelete.has(n.id)));
     toast.success('Nó removido');
+  };
+
+  const disconnectNode = (nodeId: string) => {
+    const node = nodes.find(n => n.id === nodeId);
+    if (!node || node.isRoot) {
+      toast.error('Não é possível desconectar o nó central');
+      return;
+    }
+    setNodes(nodes.map(n => 
+      n.id === nodeId ? { ...n, parentId: null } : n
+    ));
+    toast.success('Nó desconectado!');
+  };
+
+  const toggleCollapse = (nodeId: string) => {
+    setNodes(nodes.map(n => 
+      n.id === nodeId ? { ...n, collapsed: !n.collapsed } : n
+    ));
+  };
+
+  const getChildCount = (nodeId: string): number => {
+    return nodes.filter(n => n.parentId === nodeId).length;
+  };
+
+  const isNodeVisible = (node: MindMapNode): boolean => {
+    if (!node.parentId) return true;
+    const parent = nodes.find(n => n.id === node.parentId);
+    if (!parent) return true;
+    if (parent.collapsed) return false;
+    return isNodeVisible(parent);
   };
 
   const openEditDialog = (node: MindMapNode) => {
@@ -568,7 +599,7 @@ export const MindMapCreatorPanel = () => {
   const theme = THEMES[currentTheme];
 
   const renderConnections = () => {
-    return nodes.filter(n => n.parentId).map(node => {
+    return nodes.filter(n => n.parentId && isNodeVisible(n)).map(node => {
       const parent = nodes.find(p => p.id === node.parentId);
       if (!parent) return null;
 
@@ -846,89 +877,129 @@ export const MindMapCreatorPanel = () => {
             </svg>
 
             {/* Nodes */}
-            {nodes.map(node => (
-              <div
-                key={node.id}
-                className={`absolute transform -translate-x-1/2 -translate-y-1/2 transition-shadow duration-200 group ${
-                  draggedNode === node.id ? 'z-50' : 'z-10'
-                } ${connectingFrom === node.id ? 'ring-4 ring-white ring-opacity-50' : ''}`}
-                style={{
-                  left: node.x,
-                  top: node.y,
-                  touchAction: 'none',
-                }}
-                onPointerDown={(e) => {
-                  e.stopPropagation();
-                  handlePointerDown(e, node.id);
-                }}
-                onDoubleClick={() => openEditDialog(node)}
-              >
-                {/* Node card */}
+            {nodes.filter(node => isNodeVisible(node)).map(node => {
+              const childCount = getChildCount(node.id);
+              return (
                 <div
-                  className={`relative rounded-2xl shadow-lg cursor-move transition-all duration-200 hover:scale-105 ${
-                    node.isRoot ? 'min-w-[140px]' : 'min-w-[100px]'
-                  }`}
+                  key={node.id}
+                  className={`absolute transform -translate-x-1/2 -translate-y-1/2 transition-shadow duration-200 group ${
+                    draggedNode === node.id ? 'z-50' : 'z-10'
+                  } ${connectingFrom === node.id ? 'ring-4 ring-white ring-opacity-50' : ''}`}
                   style={{
-                    backgroundColor: node.color,
-                    boxShadow: `0 4px 20px ${node.color}60, 0 0 40px ${node.color}30`,
-                    border: connectingFrom === node.id ? '3px solid white' : '2px solid rgba(255,255,255,0.3)',
+                    left: node.x,
+                    top: node.y,
+                    touchAction: 'none',
                   }}
+                  onPointerDown={(e) => {
+                    e.stopPropagation();
+                    handlePointerDown(e, node.id);
+                  }}
+                  onDoubleClick={() => openEditDialog(node)}
                 >
-                  <div className={`px-4 ${node.isRoot ? 'py-4' : 'py-3'} text-center`}>
-                    {node.icon && <span className="text-xl mb-1 block">{node.icon}</span>}
-                    <p className={`text-white font-semibold ${node.isRoot ? 'text-base' : 'text-sm'}`}>
-                      {node.text}
-                    </p>
-                  </div>
+                  {/* Node card */}
+                  <div
+                    className={`relative rounded-2xl shadow-lg cursor-move transition-all duration-200 hover:scale-105 ${
+                      node.isRoot ? 'min-w-[140px]' : 'min-w-[100px]'
+                    }`}
+                    style={{
+                      backgroundColor: node.color,
+                      boxShadow: `0 4px 20px ${node.color}60, 0 0 40px ${node.color}30`,
+                      border: connectingFrom === node.id ? '3px solid white' : '2px solid rgba(255,255,255,0.3)',
+                    }}
+                  >
+                    <div className={`px-4 ${node.isRoot ? 'py-4' : 'py-3'} text-center`}>
+                      {node.icon && <span className="text-xl mb-1 block">{node.icon}</span>}
+                      <p className={`text-white font-semibold ${node.isRoot ? 'text-base' : 'text-sm'}`}>
+                        {node.text}
+                      </p>
+                      {/* Collapse indicator */}
+                      {childCount > 0 && node.collapsed && (
+                        <span className="text-xs text-white/70 mt-1 block">
+                          ({childCount} ocultos)
+                        </span>
+                      )}
+                    </div>
 
-                  {/* Action buttons */}
-                  <div className="absolute -right-2 -top-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 z-20">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addChildNode(node.id);
-                      }}
-                      className="w-6 h-6 rounded-full bg-green-500 shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
-                      title="Adicionar filho"
-                    >
-                      <Plus className="h-4 w-4 text-white" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        startConnecting(node.id);
-                      }}
-                      className="w-6 h-6 rounded-full bg-blue-500 shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
-                      title="Conectar a outro nó"
-                    >
-                      <Move className="h-3 w-3 text-white" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openEditDialog(node);
-                      }}
-                      className="w-6 h-6 rounded-full bg-white shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
-                      title="Editar"
-                    >
-                      <Edit3 className="h-3 w-3 text-gray-700" />
-                    </button>
-                    {!node.isRoot && (
+                    {/* Collapse/Expand button - bottom center */}
+                    {childCount > 0 && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          deleteNode(node.id);
+                          toggleCollapse(node.id);
                         }}
-                        className="w-6 h-6 rounded-full bg-red-500 shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
-                        title="Excluir"
+                        className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-white shadow-lg flex items-center justify-center hover:scale-110 transition-transform z-20"
+                        title={node.collapsed ? `Expandir (${childCount} itens)` : 'Recolher'}
                       >
-                        <Trash2 className="h-3 w-3 text-white" />
+                        {node.collapsed ? (
+                          <ChevronRight className="h-4 w-4 text-gray-700" />
+                        ) : (
+                          <ChevronUp className="h-4 w-4 text-gray-700" />
+                        )}
                       </button>
                     )}
+
+                    {/* Action buttons */}
+                    <div className="absolute -right-2 -top-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 z-20">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          addChildNode(node.id);
+                        }}
+                        className="w-6 h-6 rounded-full bg-green-500 shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
+                        title="Adicionar filho"
+                      >
+                        <Plus className="h-4 w-4 text-white" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startConnecting(node.id);
+                        }}
+                        className="w-6 h-6 rounded-full bg-blue-500 shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
+                        title="Conectar a outro nó"
+                      >
+                        <Move className="h-3 w-3 text-white" />
+                      </button>
+                      {/* Disconnect button - only show if node has parent */}
+                      {node.parentId && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            disconnectNode(node.id);
+                          }}
+                          className="w-6 h-6 rounded-full bg-orange-500 shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
+                          title="Desconectar"
+                        >
+                          <Unlink className="h-3 w-3 text-white" />
+                        </button>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEditDialog(node);
+                        }}
+                        className="w-6 h-6 rounded-full bg-white shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
+                        title="Editar"
+                      >
+                        <Edit3 className="h-3 w-3 text-gray-700" />
+                      </button>
+                      {!node.isRoot && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteNode(node.id);
+                          }}
+                          className="w-6 h-6 rounded-full bg-red-500 shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
+                          title="Excluir"
+                        >
+                          <Trash2 className="h-3 w-3 text-white" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Empty state */}
@@ -950,9 +1021,10 @@ export const MindMapCreatorPanel = () => {
         <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
           <Badge variant="outline">🖱️ Arraste os nós</Badge>
           <Badge variant="outline">🔗 Clique no ícone azul para conectar</Badge>
+          <Badge variant="outline">🔓 Ícone laranja desconecta</Badge>
+          <Badge variant="outline">📂 Botão inferior expande/recolhe filhos</Badge>
           <Badge variant="outline">✏️ Duplo clique para editar</Badge>
           <Badge variant="outline">🔍 Scroll para zoom</Badge>
-          <Badge variant="outline">➕ Ícone verde adiciona filho</Badge>
         </div>
       </CardContent>
 
