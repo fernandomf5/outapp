@@ -188,18 +188,18 @@ function DroppableBlock({ block, tasks, allBlocks, onEdit, onDelete, onEditBlock
     <div className="flex-shrink-0 w-80">
       <Card className="h-full flex flex-col">
         <CardHeader className="pb-3" style={{ borderTopColor: block.color, borderTopWidth: '4px' }}>
-          <div className="flex items-center justify-between gap-2 min-w-0">
-            <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
               <div 
                 className="w-3 h-3 rounded-full flex-shrink-0" 
                 style={{ backgroundColor: block.color }}
               />
-              <CardTitle className="text-base truncate" title={block.name}>{block.name}</CardTitle>
+              <CardTitle className="text-base truncate flex-1" title={block.name}>{block.name}</CardTitle>
               <Badge variant="secondary" className="flex-shrink-0">{tasks.length}</Badge>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-1">
-                <Label className="text-xs text-muted-foreground whitespace-nowrap">Ordem</Label>
+                <Label className="text-xs text-muted-foreground">Ordem</Label>
                 <Input
                   type="number"
                   min={1}
@@ -219,7 +219,7 @@ function DroppableBlock({ block, tasks, allBlocks, onEdit, onDelete, onEditBlock
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0 flex-shrink-0">
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
