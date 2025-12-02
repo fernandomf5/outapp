@@ -299,7 +299,7 @@ export default function AgentCustomerChat() {
   const setupPresenceTracking = () => {
     if (!conversationId || !customer?.id) return () => {};
 
-    const channel = supabase.channel(`agent-presence-${conversationId}`);
+    const channel = supabase.channel(`agent-conversations-${agentId}`);
 
     channel
       .on('presence', { event: 'sync' }, () => {
@@ -308,9 +308,11 @@ export default function AgentCustomerChat() {
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           await channel.track({
-            customer_id: customer.id,
-            customer_name: customer.name,
-            online_at: new Date().toISOString(),
+            [customer.id]: {
+              customer_id: customer.id,
+              customer_name: customer.name,
+              online_at: new Date().toISOString(),
+            }
           });
         }
       });
@@ -318,9 +320,11 @@ export default function AgentCustomerChat() {
     // Heartbeat para manter presença
     const heartbeat = setInterval(async () => {
       await channel.track({
-        customer_id: customer.id,
-        customer_name: customer.name,
-        online_at: new Date().toISOString(),
+        [customer.id]: {
+          customer_id: customer.id,
+          customer_name: customer.name,
+          online_at: new Date().toISOString(),
+        }
       });
     }, 30000); // A cada 30 segundos
 

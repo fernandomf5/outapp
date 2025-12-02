@@ -115,21 +115,36 @@ const PublicChat = () => {
 
     // Canal de presença - indicar que o cliente está online
     const presenceChannel = supabase
-      .channel(`presence-${conversationId}`)
+      .channel(`chatbot-conversations-${botId}`)
       .on('presence', { event: 'sync' }, () => {
         console.log('👥 Presença sincronizada');
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           await presenceChannel.track({
-            user: 'visitor',
-            online_at: new Date().toISOString(),
+            [sessionId]: {
+              session_id: sessionId,
+              conversation_id: conversationId,
+              online_at: new Date().toISOString(),
+            }
           });
           console.log('✅ Cliente marcado como online');
         }
       });
 
+    // Heartbeat para manter presença
+    const heartbeat = setInterval(async () => {
+      await presenceChannel.track({
+        [sessionId]: {
+          session_id: sessionId,
+          conversation_id: conversationId,
+          online_at: new Date().toISOString(),
+        }
+      });
+    }, 30000); // A cada 30 segundos
+
     return () => {
+      clearInterval(heartbeat);
       supabase.removeChannel(channel);
       supabase.removeChannel(adminTypingChannel);
       supabase.removeChannel(presenceChannel);

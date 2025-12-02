@@ -32,7 +32,7 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId?: string })
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedConversations, setSelectedConversations] = useState<Set<string>>(new Set());
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
-  const [onlineCustomers, setOnlineCustomers] = useState<Set<string>>(new Set());
+  const [onlineVisitors, setOnlineVisitors] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -66,20 +66,19 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId?: string })
       })
       .subscribe();
 
+    const presenceChannel = setupPresenceTracking();
+
     return () => {
       supabase.removeChannel(channel);
+      if (presenceChannel) {
+        presenceChannel();
+      }
     };
   }, [chatbotId, selectedConversation]);
 
   useEffect(() => {
     if (selectedConversation) {
       loadMessages(selectedConversation.id);
-      const presenceCleanup = setupPresenceTracking();
-      return () => {
-        if (presenceCleanup) {
-          presenceCleanup();
-        }
-      };
     }
   }, [selectedConversation]);
 
@@ -171,26 +170,32 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId?: string })
   };
 
   const setupPresenceTracking = () => {
-    if (!selectedConversation) return null;
+    if (!chatbotId) return null;
 
-    const conversationId = selectedConversation.id;
-    
-    const channel = supabase.channel(`chatbot-presence-${conversationId}`);
+    const channel = supabase.channel(`chatbot-conversations-${chatbotId}`);
 
     channel
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
-        const onlineConversations = new Set<string>();
+        const online = new Set<string>();
         
-        Object.values(state).forEach((presences: any) => {
-          presences.forEach((presence: any) => {
-            if (presence.conversation_id) {
-              onlineConversations.add(presence.conversation_id);
-            }
-          });
+        Object.keys(state).forEach((sessionId) => {
+          if (state[sessionId] && state[sessionId].length > 0) {
+            online.add(sessionId);
+          }
         });
         
-        setOnlineCustomers(onlineConversations);
+        setOnlineVisitors(online);
+      })
+      .on('presence', { event: 'join' }, ({ key }) => {
+        setOnlineVisitors(prev => new Set(prev).add(key));
+      })
+      .on('presence', { event: 'leave' }, ({ key }) => {
+        setOnlineVisitors(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(key);
+          return newSet;
+        });
       })
       .subscribe();
 
@@ -569,7 +574,7 @@ const handleSendMessage = async () => {
                             <span className="text-sm font-medium">
                               {conversation.visitor_name || conversation.visitor_email?.split('@')[0] || conversation.visitor_phone || 'Visitante Anônimo'}
                             </span>
-                            {onlineCustomers.has(conversation.id) && (
+                            {onlineVisitors.has(conversation.session_id) && (
                               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Online" />
                             )}
                           </div>
@@ -601,7 +606,7 @@ const handleSendMessage = async () => {
                       <Badge variant={conversation.status === 'active' ? 'default' : 'secondary'} className="text-xs">
                         {conversation.status === 'active' ? 'Ativa' : conversation.status === 'closed' ? 'Fechada' : conversation.status}
                       </Badge>
-                      {onlineCustomers.has(conversation.id) && (
+                      {onlineVisitors.has(conversation.session_id) && (
                         <Badge variant="outline" className="text-xs bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">
                           Online
                         </Badge>
@@ -624,7 +629,7 @@ const handleSendMessage = async () => {
                   <div className="flex flex-col">
                     <CardTitle className="text-lg flex items-center gap-2">
                       {selectedConversation.visitor_name || selectedConversation.visitor_email?.split('@')[0] || selectedConversation.visitor_phone || 'Visitante Anônimo'}
-                      {onlineCustomers.has(selectedConversation.id) && (
+                      {onlineVisitors.has(selectedConversation.session_id) && (
                         <Badge variant="outline" className="text-xs bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">
                           Online
                         </Badge>

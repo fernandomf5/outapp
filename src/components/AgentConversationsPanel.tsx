@@ -62,8 +62,12 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   useEffect(() => {
     loadConversations();
     const channel = setupConversationsSubscription();
+    const presenceChannel = setupPresenceTracking();
     return () => {
       supabase.removeChannel(channel);
+      if (presenceChannel) {
+        supabase.removeChannel(presenceChannel);
+      }
     };
   }, [agentId]);
 
@@ -71,13 +75,9 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
     if (selectedConversation) {
       loadMessages(selectedConversation.id);
       const messagesChannel = setupMessagesSubscription();
-      const presenceChannel = setupPresenceTracking();
       return () => {
         if (messagesChannel) {
           supabase.removeChannel(messagesChannel);
-        }
-        if (presenceChannel) {
-          supabase.removeChannel(presenceChannel);
         }
       };
     }
@@ -227,27 +227,32 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   };
 
   const setupPresenceTracking = () => {
-    if (!selectedConversation) return null;
+    if (!agentId) return null;
 
-    const conversationId = selectedConversation.id;
-    const customerId = selectedConversation.agent_customers?.id;
-    
-    const channel = supabase.channel(`agent-presence-${conversationId}`);
+    const channel = supabase.channel(`agent-conversations-${agentId}`);
 
     channel
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
         const onlineIds = new Set<string>();
         
-        Object.values(state).forEach((presences: any) => {
-          presences.forEach((presence: any) => {
-            if (presence.customer_id) {
-              onlineIds.add(presence.customer_id);
-            }
-          });
+        Object.keys(state).forEach((customerId) => {
+          if (state[customerId] && state[customerId].length > 0) {
+            onlineIds.add(customerId);
+          }
         });
         
         setOnlineCustomers(onlineIds);
+      })
+      .on('presence', { event: 'join' }, ({ key }) => {
+        setOnlineCustomers(prev => new Set(prev).add(key));
+      })
+      .on('presence', { event: 'leave' }, ({ key }) => {
+        setOnlineCustomers(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(key);
+          return newSet;
+        });
       })
       .subscribe();
 
