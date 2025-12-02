@@ -606,13 +606,20 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                           )}
                         </div>
                         <div>
-                          <div className="font-medium text-sm flex items-center gap-2">
-                            {conv.agent_customers.name}
-                            {onlineCustomers.has(conv.agent_customers.id) && (
+                          {/* Status indicator above name */}
+                          <div className="mb-0.5">
+                            {onlineCustomers.has(conv.agent_customers.id) ? (
                               <Badge variant="outline" className="text-xs bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">
-                                Online
+                                ● Online
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-xs bg-gray-50 text-gray-600 dark:bg-gray-900/20 dark:text-gray-400">
+                                ○ Offline
                               </Badge>
                             )}
+                          </div>
+                          <div className="font-medium text-sm">
+                            {conv.agent_customers.name}
                           </div>
                           <div className="text-xs text-muted-foreground">{conv.agent_customers.email}</div>
                         </div>
