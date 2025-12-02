@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -15,6 +15,7 @@ import ReactFlow, {
   MarkerType,
   Panel,
   BackgroundVariant,
+  ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,7 +39,6 @@ import {
   LayoutGrid,
 } from 'lucide-react';
 
-// Temas predefinidos com lineColor para conexões
 const themes = {
   default: {
     name: 'Padrão',
@@ -72,68 +72,51 @@ const themes = {
   },
 };
 
-// Custom Mind Map Node Component - GitMind style
-const MindMapNode = ({ data, selected }: NodeProps) => {
+function MindMapNode({ data, selected }: NodeProps) {
   const isRoot = data.isRoot;
   
   return (
     <div
-      className={`
-        relative px-5 py-3 rounded-2xl shadow-xl cursor-grab active:cursor-grabbing
-        transition-all duration-200 border-2
-        ${selected ? 'ring-4 ring-white/40 scale-105 shadow-2xl' : 'hover:scale-102 hover:shadow-2xl'}
-        ${isRoot ? 'min-w-[180px] py-4' : 'min-w-[130px]'}
-      `}
       style={{
+        padding: isRoot ? '16px 24px' : '12px 20px',
+        borderRadius: '16px',
         backgroundColor: data.color || '#8B5CF6',
-        borderColor: selected ? '#fff' : 'rgba(255,255,255,0.2)',
-        boxShadow: `0 8px 32px ${data.color}50`,
+        border: selected ? '3px solid white' : '2px solid rgba(255,255,255,0.3)',
+        boxShadow: `0 8px 24px ${data.color}60`,
+        minWidth: isRoot ? '160px' : '120px',
+        cursor: 'grab',
+        position: 'relative',
       }}
     >
-      {/* Connection handles - all sides */}
       <Handle
         type="target"
         position={Position.Top}
-        id="top-target"
-        className="!w-4 !h-4 !bg-white !border-2 !border-white/50 hover:!scale-125 !transition-transform"
-        style={{ top: -8 }}
+        style={{ width: 14, height: 14, background: 'white', border: '2px solid #666', top: -7 }}
       />
       <Handle
         type="target"
         position={Position.Left}
-        id="left-target"
-        className="!w-4 !h-4 !bg-white !border-2 !border-white/50 hover:!scale-125 !transition-transform"
-        style={{ left: -8 }}
+        style={{ width: 14, height: 14, background: 'white', border: '2px solid #666', left: -7 }}
       />
       
-      {/* Node content */}
-      <div className="text-center text-white font-medium select-none flex items-center justify-center gap-2">
-        {data.icon && <span className="text-lg">{data.icon}</span>}
-        <span className={isRoot ? 'text-lg font-bold' : 'text-sm'}>{data.label}</span>
+      <div style={{ textAlign: 'center', color: 'white', fontWeight: isRoot ? 700 : 500, fontSize: isRoot ? '16px' : '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', userSelect: 'none' }}>
+        {data.icon && <span>{data.icon}</span>}
+        <span>{data.label}</span>
       </div>
       
-      {/* Source handles */}
       <Handle
         type="source"
         position={Position.Bottom}
-        id="bottom-source"
-        className="!w-4 !h-4 !bg-white !border-2 !border-white/50 hover:!scale-125 !transition-transform"
-        style={{ bottom: -8 }}
+        style={{ width: 14, height: 14, background: 'white', border: '2px solid #666', bottom: -7 }}
       />
       <Handle
         type="source"
         position={Position.Right}
-        id="right-source"
-        className="!w-4 !h-4 !bg-white !border-2 !border-white/50 hover:!scale-125 !transition-transform"
-        style={{ right: -8 }}
+        style={{ width: 14, height: 14, background: 'white', border: '2px solid #666', right: -7 }}
       />
     </div>
   );
-};
-
-const nodeTypes = {
-  mindmap: MindMapNode,
-};
+}
 
 interface MindMap {
   id: string;
@@ -147,9 +130,16 @@ interface MindMap {
 }
 
 export const MindMapCreatorPanel = () => {
+  return (
+    <ReactFlowProvider>
+      <MindMapCreatorContent />
+    </ReactFlowProvider>
+  );
+};
+
+const MindMapCreatorContent = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const reactFlowWrapper = useRef<HTMLDivElement>(null);
   
   const [mindMaps, setMindMaps] = useState<MindMap[]>([]);
   const [currentMap, setCurrentMap] = useState<MindMap | null>(null);
@@ -160,7 +150,6 @@ export const MindMapCreatorPanel = () => {
   const [isNodeDialogOpen, setIsNodeDialogOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   
-  // Node editing state
   const [nodeLabel, setNodeLabel] = useState('');
   const [nodeColor, setNodeColor] = useState('#8B5CF6');
   const [nodeIcon, setNodeIcon] = useState('');
@@ -168,13 +157,14 @@ export const MindMapCreatorPanel = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
+  const nodeTypes = useMemo(() => ({ mindmap: MindMapNode }), []);
+
   useEffect(() => {
-    fetchMindMaps();
+    if (user) fetchMindMaps();
   }, [user]);
 
   const fetchMindMaps = async () => {
     if (!user) return;
-    
     const { data, error } = await supabase
       .from('mind_maps')
       .select('*')
@@ -182,63 +172,39 @@ export const MindMapCreatorPanel = () => {
       .order('updated_at', { ascending: false });
 
     if (!error && data) {
-      const formattedData = data.map((map: any) => ({
+      setMindMaps(data.map((map: any) => ({
         ...map,
         nodes: Array.isArray(map.nodes) ? map.nodes : [],
         edges: Array.isArray(map.edges) ? map.edges : [],
-      }));
-      setMindMaps(formattedData);
+      })));
     }
   };
 
-  const onConnect = useCallback(
-    (params: Connection) => {
-      const theme = themes[selectedTheme];
-      setEdges((eds) =>
-        addEdge(
-          {
-            ...params,
-            type: 'smoothstep',
-            animated: true,
-            style: { 
-              stroke: theme.lineColor, 
-              strokeWidth: 3,
-            },
-            markerEnd: {
-              type: MarkerType.ArrowClosed,
-              color: theme.lineColor,
-              width: 20,
-              height: 20,
-            },
-          },
-          eds
-        )
-      );
-    },
-    [selectedTheme]
-  );
+  const onConnect = useCallback((params: Connection) => {
+    const theme = themes[selectedTheme];
+    setEdges((eds) => addEdge({
+      ...params,
+      type: 'smoothstep',
+      animated: true,
+      style: { stroke: theme.lineColor, strokeWidth: 3 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: theme.lineColor, width: 20, height: 20 },
+    }, eds));
+  }, [selectedTheme, setEdges]);
 
-  const addNode = (isRoot = false) => {
+  const addNode = useCallback((isRoot = false) => {
     const theme = themes[selectedTheme];
     const colorIndex = nodes.length % theme.colors.length;
     
-    const centerX = 400;
-    const centerY = 250;
-    
     const newNode: Node = {
-      id: isRoot ? `node-central-${Date.now()}` : `node-${Date.now()}`,
+      id: `node-${Date.now()}`,
       type: 'mindmap',
-      position: { 
-        x: isRoot ? centerX : centerX + (nodes.length * 50) + Math.random() * 80, 
-        y: isRoot ? centerY : centerY + (nodes.length * 30) + Math.random() * 60 
-      },
+      position: { x: isRoot ? 400 : 200 + Math.random() * 300, y: isRoot ? 250 : 150 + Math.random() * 200 },
       data: {
         label: isRoot ? 'Ideia Central' : 'Nova Ideia',
         color: isRoot ? theme.colors[0] : theme.colors[colorIndex],
         icon: isRoot ? '🎯' : '',
         isRoot,
       },
-      draggable: true,
     };
     
     if (isRoot) {
@@ -247,97 +213,58 @@ export const MindMapCreatorPanel = () => {
     } else {
       setNodes((nds) => [...nds, newNode]);
     }
-  };
+  }, [selectedTheme, nodes.length, setNodes, setEdges]);
 
-  const handleNodeClick = (event: React.MouseEvent, node: Node) => {
+  const handleNodeDoubleClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedNode(node);
     setNodeLabel(node.data.label);
     setNodeColor(node.data.color || '#8B5CF6');
     setNodeIcon(node.data.icon || '');
     setIsNodeDialogOpen(true);
-  };
+  }, []);
 
   const updateNode = () => {
     if (!selectedNode) return;
-    
-    setNodes((nds) =>
-      nds.map((node) =>
-        node.id === selectedNode.id
-          ? {
-              ...node,
-              data: {
-                ...node.data,
-                label: nodeLabel,
-                color: nodeColor,
-                icon: nodeIcon,
-              },
-            }
-          : node
-      )
-    );
-    
+    setNodes((nds) => nds.map((node) =>
+      node.id === selectedNode.id
+        ? { ...node, data: { ...node.data, label: nodeLabel, color: nodeColor, icon: nodeIcon } }
+        : node
+    ));
     setIsNodeDialogOpen(false);
     setSelectedNode(null);
   };
 
   const deleteSelectedNode = () => {
     if (!selectedNode) return;
-    
     setNodes((nds) => nds.filter((node) => node.id !== selectedNode.id));
-    setEdges((eds) =>
-      eds.filter(
-        (edge) => edge.source !== selectedNode.id && edge.target !== selectedNode.id
-      )
-    );
-    
+    setEdges((eds) => eds.filter((edge) => edge.source !== selectedNode.id && edge.target !== selectedNode.id));
     setIsNodeDialogOpen(false);
     setSelectedNode(null);
   };
 
   const saveMap = async () => {
     if (!user || !mapName) {
-      toast({
-        title: 'Erro',
-        description: 'Digite um nome para o mapa',
-        variant: 'destructive',
-      });
+      toast({ title: 'Erro', description: 'Digite um nome para o mapa', variant: 'destructive' });
       return;
     }
-
-    // Convert nodes and edges to plain JSON objects
-    const nodesJson = JSON.parse(JSON.stringify(nodes));
-    const edgesJson = JSON.parse(JSON.stringify(edges));
 
     const mapData = {
       user_id: user.id,
       name: mapName,
       description: mapDescription || null,
-      nodes: nodesJson,
-      edges: edgesJson,
+      nodes: JSON.parse(JSON.stringify(nodes)),
+      edges: JSON.parse(JSON.stringify(edges)),
       theme: selectedTheme,
     };
 
     if (currentMap) {
-      const { error } = await supabase
-        .from('mind_maps')
-        .update(mapData)
-        .eq('id', currentMap.id);
-
-      if (error) {
-        toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' });
-      } else {
-        toast({ title: 'Mapa atualizado!' });
-        fetchMindMaps();
-      }
+      const { error } = await supabase.from('mind_maps').update(mapData).eq('id', currentMap.id);
+      if (error) toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' });
+      else { toast({ title: 'Mapa atualizado!' }); fetchMindMaps(); }
     } else {
       const { error } = await supabase.from('mind_maps').insert(mapData);
-
-      if (error) {
-        toast({ title: 'Erro ao criar', description: error.message, variant: 'destructive' });
-      } else {
-        toast({ title: 'Mapa criado!' });
-        fetchMindMaps();
-      }
+      if (error) toast({ title: 'Erro ao criar', description: error.message, variant: 'destructive' });
+      else { toast({ title: 'Mapa criado!' }); fetchMindMaps(); }
     }
   };
 
@@ -353,13 +280,10 @@ export const MindMapCreatorPanel = () => {
 
   const deleteMap = async (id: string) => {
     const { error } = await supabase.from('mind_maps').delete().eq('id', id);
-
     if (!error) {
       toast({ title: 'Mapa excluído' });
       fetchMindMaps();
-      if (currentMap?.id === id) {
-        newMap();
-      }
+      if (currentMap?.id === id) newMap();
     }
   };
 
@@ -372,45 +296,23 @@ export const MindMapCreatorPanel = () => {
     setSelectedTheme('default');
   };
 
-  const exportAsImage = () => {
-    toast({
-      title: 'Exportando...',
-      description: 'A funcionalidade de exportar está em desenvolvimento',
-    });
-  };
-
   const autoOrganize = () => {
     if (nodes.length === 0) return;
-
-    const centerX = 400;
-    const centerY = 300;
-    const radius = 200;
+    const centerX = 400, centerY = 250, radius = 180;
     
-    // Encontrar nó central (primeiro nó ou o que tem "central" no ID)
-    const centralNodeIndex = nodes.findIndex((n) => n.id.includes('central'));
-    const startIndex = centralNodeIndex >= 0 ? 0 : -1;
-    
-    const organizedNodes = nodes.map((node, index) => {
-      if (index === centralNodeIndex || (centralNodeIndex < 0 && index === 0)) {
-        return { ...node, position: { x: centerX, y: centerY } };
-      }
-      
-      const adjustedIndex = centralNodeIndex >= 0 && index > centralNodeIndex ? index - 1 : index;
-      const totalOther = centralNodeIndex >= 0 ? nodes.length - 1 : nodes.length - 1;
-      const angle = (adjustedIndex / Math.max(totalOther, 1)) * 2 * Math.PI - Math.PI / 2;
-      
-      return {
-        ...node,
-        position: {
-          x: centerX + radius * Math.cos(angle),
-          y: centerY + radius * Math.sin(angle),
-        },
-      };
+    const organizedNodes = nodes.map((node) => {
+      if (node.data.isRoot) return { ...node, position: { x: centerX, y: centerY } };
+      const otherNodes = nodes.filter(n => !n.data.isRoot);
+      const nodeIndex = otherNodes.findIndex(n => n.id === node.id);
+      const angle = (nodeIndex / otherNodes.length) * 2 * Math.PI - Math.PI / 2;
+      return { ...node, position: { x: centerX + radius * Math.cos(angle), y: centerY + radius * Math.sin(angle) } };
     });
     
     setNodes(organizedNodes);
     toast({ title: 'Nós organizados!' });
   };
+
+  const theme = themes[selectedTheme];
 
   return (
     <Card className="h-full">
@@ -422,9 +324,7 @@ export const MindMapCreatorPanel = () => {
             </div>
             <div>
               <CardTitle className="text-xl">Criador de Mapa Mental</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Organize suas ideias visualmente
-              </p>
+              <p className="text-sm text-muted-foreground">Organize suas ideias visualmente</p>
             </div>
           </div>
           
@@ -442,33 +342,22 @@ export const MindMapCreatorPanel = () => {
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Controles superiores */}
         <div className="flex flex-wrap gap-3 p-4 bg-muted/50 rounded-xl">
           <div className="flex-1 min-w-[200px]">
             <Label className="text-xs mb-1 block">Nome do Mapa</Label>
-            <Input
-              value={mapName}
-              onChange={(e) => setMapName(e.target.value)}
-              placeholder="Ex: Planejamento de Projeto"
-              className="h-9"
-            />
+            <Input value={mapName} onChange={(e) => setMapName(e.target.value)} placeholder="Ex: Planejamento de Projeto" className="h-9" />
           </div>
           
           <div className="w-40">
             <Label className="text-xs mb-1 block">Tema</Label>
             <Select value={selectedTheme} onValueChange={(v) => setSelectedTheme(v as keyof typeof themes)}>
-              <SelectTrigger className="h-9">
-                <SelectValue />
-              </SelectTrigger>
+              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {Object.entries(themes).map(([key, theme]) => (
+                {Object.entries(themes).map(([key, t]) => (
                   <SelectItem key={key} value={key}>
                     <div className="flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: theme.colors[0] }}
-                      />
-                      {theme.name}
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: t.colors[0] }} />
+                      {t.name}
                     </div>
                   </SelectItem>
                 ))}
@@ -477,154 +366,79 @@ export const MindMapCreatorPanel = () => {
           </div>
           
           <div className="flex items-end gap-2 flex-wrap">
-            <Button onClick={() => addNode(true)} size="sm" variant="outline">
-              <Sparkles className="w-4 h-4 mr-1" />
-              Ideia Central
-            </Button>
-            <Button onClick={() => addNode(false)} size="sm" className="bg-primary">
-              <Plus className="w-4 h-4 mr-1" />
-              Nó
-            </Button>
-            <Button onClick={autoOrganize} size="sm" variant="outline">
-              <LayoutGrid className="w-4 h-4 mr-2" />
-              Organizar
-            </Button>
-            <Button onClick={saveMap} size="sm" variant="secondary">
-              <Save className="w-4 h-4 mr-2" />
-              Salvar
-            </Button>
+            <Button onClick={() => addNode(true)} size="sm" variant="outline"><Sparkles className="w-4 h-4 mr-1" />Central</Button>
+            <Button onClick={() => addNode(false)} size="sm" className="bg-primary"><Plus className="w-4 h-4 mr-1" />Nó</Button>
+            <Button onClick={autoOrganize} size="sm" variant="outline"><LayoutGrid className="w-4 h-4 mr-2" />Organizar</Button>
+            <Button onClick={saveMap} size="sm" variant="secondary"><Save className="w-4 h-4 mr-2" />Salvar</Button>
           </div>
         </div>
 
-        {/* Canvas do Mapa Mental */}
-        <div
-          ref={reactFlowWrapper}
-          className="h-[500px] rounded-xl overflow-hidden border-2 border-border"
-          style={{ backgroundColor: themes[selectedTheme].background }}
-        >
+        <div className="rounded-xl overflow-hidden border-2 border-border" style={{ height: 500, backgroundColor: theme.background }}>
           <ReactFlow
             nodes={nodes}
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
-            onNodeClick={handleNodeClick}
+            onNodeDoubleClick={handleNodeDoubleClick}
             nodeTypes={nodeTypes}
             fitView
-            snapToGrid
-            snapGrid={[15, 15]}
-            panOnDrag
-            selectionOnDrag={false}
-            zoomOnScroll
-            zoomOnPinch
-            panOnScroll={false}
-            selectNodesOnDrag={false}
-            nodesDraggable={true}
-            nodesConnectable={true}
-            elementsSelectable={true}
             defaultEdgeOptions={{
               type: 'smoothstep',
               animated: true,
-              style: { stroke: themes[selectedTheme].lineColor, strokeWidth: 3 },
-              markerEnd: {
-                type: MarkerType.ArrowClosed,
-                color: themes[selectedTheme].lineColor,
-                width: 20,
-                height: 20,
-              },
+              style: { stroke: theme.lineColor, strokeWidth: 3 },
+              markerEnd: { type: MarkerType.ArrowClosed, color: theme.lineColor, width: 20, height: 20 },
             }}
-            connectionLineStyle={{ stroke: themes[selectedTheme].lineColor, strokeWidth: 2 }}
+            connectionLineStyle={{ stroke: theme.lineColor, strokeWidth: 2 }}
             proOptions={{ hideAttribution: true }}
           >
-            <Background 
-              color={themes[selectedTheme].lineColor} 
-              gap={20} 
-              size={1} 
-              variant={BackgroundVariant.Dots}
-            />
-            <Controls 
-              className="bg-card/90 backdrop-blur border border-border rounded-lg !shadow-lg"
-              showZoom={true}
-              showFitView={true}
-              showInteractive={false}
-            />
-            <MiniMap
-              className="!bg-card/90 !backdrop-blur !border !border-border !rounded-lg"
-              nodeColor={(node) => node.data.color || themes[selectedTheme].colors[0]}
-              maskColor="rgba(0,0,0,0.5)"
-            />
+            <Background color={theme.lineColor} gap={20} size={1} variant={BackgroundVariant.Dots} />
+            <Controls className="bg-card/90 backdrop-blur border border-border rounded-lg" showZoom showFitView showInteractive={false} />
+            <MiniMap className="!bg-card/90 !backdrop-blur !border !border-border !rounded-lg" nodeColor={(node) => node.data.color || theme.colors[0]} maskColor="rgba(0,0,0,0.5)" />
             
-            {/* Instructions Panel */}
             {nodes.length === 0 && (
               <Panel position="top-center" className="mt-4">
                 <div className="bg-card/90 backdrop-blur px-4 py-3 rounded-lg border border-border text-center">
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Comece clicando em <strong>"Ideia Central"</strong> para criar o nó principal
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Depois adicione nós e arraste das bolinhas brancas para conectar
-                  </p>
+                  <p className="text-sm text-muted-foreground mb-2">Clique em <strong>"Central"</strong> para criar o nó principal</p>
+                  <p className="text-xs text-muted-foreground">Arraste das bolinhas brancas para conectar os nós</p>
                 </div>
               </Panel>
             )}
           </ReactFlow>
         </div>
 
-        {/* Dicas */}
         <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-          <Badge variant="outline">🖱️ Arraste os nós para mover</Badge>
+          <Badge variant="outline">🖱️ Arraste os nós</Badge>
           <Badge variant="outline">🔗 Arraste das bolinhas para conectar</Badge>
-          <Badge variant="outline">✏️ Clique para editar</Badge>
+          <Badge variant="outline">✏️ Duplo clique para editar</Badge>
           <Badge variant="outline">🔍 Scroll para zoom</Badge>
         </div>
       </CardContent>
 
-      {/* Dialog para listar mapas salvos */}
       <Dialog open={isListDialogOpen} onOpenChange={setIsListDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FolderOpen className="w-5 h-5" />
-              Meus Mapas Mentais
-            </DialogTitle>
+            <DialogTitle className="flex items-center gap-2"><FolderOpen className="w-5 h-5" />Meus Mapas Mentais</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {mindMaps.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                Nenhum mapa mental salvo ainda
-              </p>
+              <p className="text-center text-muted-foreground py-8">Nenhum mapa mental salvo ainda</p>
             ) : (
               mindMaps.map((map) => (
                 <Card key={map.id} className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <h4 className="font-semibold">{map.name}</h4>
-                      {map.description && (
-                        <p className="text-sm text-muted-foreground">{map.description}</p>
-                      )}
+                      {map.description && <p className="text-sm text-muted-foreground">{map.description}</p>}
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline" className="text-xs">
-                          {(map.nodes || []).length} nós
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          Tema: {themes[map.theme as keyof typeof themes]?.name || 'Padrão'}
-                        </Badge>
+                        <Badge variant="outline" className="text-xs">{(map.nodes || []).length} nós</Badge>
+                        <Badge variant="outline" className="text-xs">Tema: {themes[map.theme as keyof typeof themes]?.name || 'Padrão'}</Badge>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={() => loadMap(map)}>
-                        <Edit className="w-4 h-4 mr-1" />
-                        Abrir
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-destructive"
-                        onClick={() => deleteMap(map.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <Button size="sm" onClick={() => loadMap(map)}><Edit className="w-4 h-4 mr-1" />Abrir</Button>
+                      <Button size="sm" variant="ghost" className="text-destructive" onClick={() => deleteMap(map.id)}><Trash2 className="w-4 h-4" /></Button>
                     </div>
                   </div>
                 </Card>
@@ -634,63 +448,36 @@ export const MindMapCreatorPanel = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog para editar nó */}
       <Dialog open={isNodeDialogOpen} onOpenChange={setIsNodeDialogOpen}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Nó</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Editar Nó</DialogTitle></DialogHeader>
           
           <div className="space-y-4">
             <div>
               <Label>Texto</Label>
-              <Input
-                value={nodeLabel}
-                onChange={(e) => setNodeLabel(e.target.value)}
-                placeholder="Digite o texto do nó"
-              />
+              <Input value={nodeLabel} onChange={(e) => setNodeLabel(e.target.value)} placeholder="Digite o texto do nó" />
             </div>
             
             <div>
               <Label>Ícone (emoji)</Label>
-              <Input
-                value={nodeIcon}
-                onChange={(e) => setNodeIcon(e.target.value)}
-                placeholder="Ex: 💡 🎯 📝 🚀 ⭐"
-              />
+              <Input value={nodeIcon} onChange={(e) => setNodeIcon(e.target.value)} placeholder="Ex: 💡 🎯 📝 🚀 ⭐" />
             </div>
             
             <div>
               <Label>Cor</Label>
               <div className="flex items-center gap-3 mt-2">
-                <input
-                  type="color"
-                  value={nodeColor}
-                  onChange={(e) => setNodeColor(e.target.value)}
-                  className="w-12 h-10 rounded cursor-pointer border-0"
-                />
+                <input type="color" value={nodeColor} onChange={(e) => setNodeColor(e.target.value)} className="w-12 h-10 rounded cursor-pointer border-0" />
                 <div className="flex gap-1 flex-wrap">
-                  {themes[selectedTheme].colors.map((color) => (
-                    <button
-                      key={color}
-                      onClick={() => setNodeColor(color)}
-                      className={`w-8 h-8 rounded-full transition-all hover:scale-110 ${
-                        nodeColor === color ? 'ring-2 ring-primary ring-offset-2' : ''
-                      }`}
-                      style={{ backgroundColor: color }}
-                    />
+                  {theme.colors.map((color) => (
+                    <button key={color} onClick={() => setNodeColor(color)} className={`w-8 h-8 rounded-full transition-all hover:scale-110 ${nodeColor === color ? 'ring-2 ring-primary ring-offset-2' : ''}`} style={{ backgroundColor: color }} />
                   ))}
                 </div>
               </div>
             </div>
             
             <div className="flex gap-2 pt-2">
-              <Button onClick={updateNode} className="flex-1">
-                Salvar
-              </Button>
-              <Button variant="destructive" onClick={deleteSelectedNode}>
-                <Trash2 className="w-4 h-4" />
-              </Button>
+              <Button onClick={updateNode} className="flex-1">Salvar</Button>
+              <Button variant="destructive" onClick={deleteSelectedNode}><Trash2 className="w-4 h-4" /></Button>
             </div>
           </div>
         </DialogContent>
