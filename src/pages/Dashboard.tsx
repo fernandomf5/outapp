@@ -48,6 +48,7 @@ import { BriefingResponsesPanel } from "@/components/BriefingResponsesPanel";
 import { BriefingCreatorPanel } from "@/components/BriefingCreatorPanel";
 import { MembersAreaCreator } from "@/components/MembersAreaCreator";
 import { SimpleMembersArea } from "@/components/SimpleMembersArea";
+import { TutorialVideos } from "@/components/TutorialVideos";
 import { QuickNotesPanel } from "@/components/QuickNotesPanel";
 import { TaskReminder } from "@/components/TaskReminder";
 import { FeatureGate } from "@/components/FeatureGate";
@@ -1198,6 +1199,20 @@ const Dashboard = () => {
                 <SimpleMembersArea />
               </ErrorBoundary>
             </FeatureGate>
+          </TabsContent>
+
+          <TabsContent value="tutoriais">
+            <Card>
+              <CardHeader>
+                <CardTitle>Tutoriais</CardTitle>
+                <CardDescription>
+                  Aprenda a usar todas as funcionalidades da plataforma
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <TutorialVideos />
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </main>
