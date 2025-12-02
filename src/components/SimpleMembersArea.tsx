@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink, Settings, Download } from "lucide-react";
+import { DocumentUpload } from "@/components/DocumentUpload";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -774,9 +775,9 @@ export function SimpleMembersArea() {
                     bucketName="members-content"
                   />
                 ) : blockFormData.type === 'document' ? (
-                  <ImageUpload
-                    currentImage={blockFormData.content}
-                    onImageSelect={(url) => setBlockFormData({ ...blockFormData, content: url })}
+                  <DocumentUpload
+                    currentDocument={blockFormData.content}
+                    onDocumentSelect={(url) => setBlockFormData({ ...blockFormData, content: url })}
                     bucketName="members-content"
                   />
                 ) : blockFormData.type === 'download' ? (
