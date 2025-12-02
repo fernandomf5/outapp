@@ -17,7 +17,6 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { TutorialVideos } from "@/components/TutorialVideos";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { MyPlanSection } from "@/components/MyPlanSection";
 import { DraggableCalculator } from "@/components/DraggableCalculator";
@@ -844,33 +843,28 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Tutorial Videos */}
-        <div className="mb-6 sm:mb-8">
-          <TutorialVideos />
-        </div>
-
-        {/* AI Agents Section */}
+        {/* Meus Chats Section */}
         <Card className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold">Meus Agentes IA</h2>
+            <h2 className="text-xl sm:text-2xl font-bold">Meus Chats</h2>
             <Button onClick={() => navigate("/ai-agent")} size="sm" className="w-full sm:w-auto">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Criar Agente IA
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Criar Chat
             </Button>
           </div>
 
           {aiAgents.length === 0 ? (
             <div className="text-center py-12">
               <div className="bg-primary/10 p-6 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                <Sparkles className="w-10 h-10 text-primary" />
+                <MessageSquare className="w-10 h-10 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Nenhum agente IA criado ainda</h3>
+              <h3 className="text-xl font-semibold mb-2">Nenhum chat criado ainda</h3>
               <p className="text-muted-foreground mb-6">
-                Crie seu primeiro agente inteligente para automatizar atendimentos
+                Crie seu primeiro chat para automatizar atendimentos
               </p>
               <Button onClick={() => navigate("/ai-agent")} className="gradient-primary">
-                <Sparkles className="w-4 h-4 mr-2" />
-                Criar Meu Primeiro Agente
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Criar Meu Primeiro Chat
               </Button>
             </div>
           ) : (
@@ -883,92 +877,7 @@ const Dashboard = () => {
                 >
                   <div className="flex items-center gap-3 sm:gap-4 flex-1">
                     <div className="bg-primary/10 p-2 sm:p-3 rounded-xl">
-                      <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-sm sm:text-base">{agent.name}</h3>
-                      <p className="text-xs sm:text-sm text-muted-foreground">
-                        {agent.description || agent.niche || "Sem descrição"}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-muted-foreground">
-                          🔗 {agent.button_clicks?.[0]?.count || 0} cliques em links
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
-                    <span
-                      className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium flex-1 sm:flex-none text-center ${
-                        agent.is_active
-                          ? "bg-success/20 text-success"
-                          : "bg-warning/20 text-warning"
-                      }`}
-                    >
-                      {agent.is_active ? "Ativo" : "Inativo"}
-                    </span>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={(e) => handleCopyAgentLink(agent.id, agent.name, e)}
-                      title="Copiar link do agente"
-                    >
-                      <Link2 className="w-4 h-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Link</span>
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeletingAgentId(agent.id);
-                      }}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-
-        {/* AI Agents Section */}
-        <Card className="p-4 sm:p-6 mt-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold">Meus Agentes IA</h2>
-            <Button onClick={() => navigate("/ai-agent")} size="sm" className="w-full sm:w-auto">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Criar Agente IA
-            </Button>
-          </div>
-
-          {aiAgents.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="bg-primary/10 p-6 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                <Sparkles className="w-10 h-10 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Nenhum agente IA criado ainda</h3>
-              <p className="text-muted-foreground mb-6">
-                Crie seu primeiro agente inteligente para automatizar atendimentos
-              </p>
-              <Button onClick={() => navigate("/ai-agent")} className="gradient-primary">
-                <Sparkles className="w-4 h-4 mr-2" />
-                Criar Meu Primeiro Agente
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {aiAgents.map((agent) => (
-                <div
-                  key={agent.id}
-                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl bg-accent/50 hover:bg-accent transition-smooth gap-3 sm:gap-4"
-                  onClick={() => navigate("/ai-agent")}
-                >
-                  <div className="flex items-center gap-3 sm:gap-4 flex-1">
-                    <div className="bg-primary/10 p-2 sm:p-3 rounded-xl">
-                      <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                      <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-sm sm:text-base">{agent.name}</h3>
@@ -1208,18 +1117,6 @@ const Dashboard = () => {
 
           <TabsContent value="plan">
             <MyPlanSection />
-          </TabsContent>
-
-          <TabsContent value="tutoriais">
-            <Card className="p-6">
-              <CardHeader>
-                <CardTitle>Tutoriais</CardTitle>
-                <CardDescription>Assista aos vídeos tutoriais para aprender a usar a plataforma</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <TutorialVideos />
-              </CardContent>
-            </Card>
           </TabsContent>
 
           <TabsContent value="financeiro">
