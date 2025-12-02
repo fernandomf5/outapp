@@ -722,28 +722,30 @@ export default function AgentCustomerChat() {
           </ScrollArea>
 
           <div className="p-4 border-t space-y-2">
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => setShowAppointmentDialog(true)}
-                disabled={!hasServices}
-                title={!hasServices ? "Nenhum serviço disponível" : ""}
-              >
-                <Calendar className="w-4 h-4 mr-2" />
-                Agendar
-              </Button>
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => setShowOrderDialog(true)}
-                disabled={!hasProducts}
-                title={!hasProducts ? "Nenhum produto disponível" : ""}
-              >
-                <ShoppingBag className="w-4 h-4 mr-2" />
-                Fazer Pedido
-              </Button>
-            </div>
+            {(hasServices || hasProducts) && (
+              <div className="flex gap-2">
+                {hasServices && (
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowAppointmentDialog(true)}
+                  >
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Agendar
+                  </Button>
+                )}
+                {hasProducts && (
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowOrderDialog(true)}
+                  >
+                    <ShoppingBag className="w-4 h-4 mr-2" />
+                    Fazer Pedido
+                  </Button>
+                )}
+              </div>
+            )}
 
             {/* Meus Agendamentos */}
             {appointments.length > 0 && (
