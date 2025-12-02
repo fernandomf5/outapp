@@ -66,7 +66,8 @@ export const FloatingMultiButtonGenerator = () => {
 
     setSavedButtons(data?.map(item => ({
       ...item,
-      sub_buttons: (item.sub_buttons as unknown) as SubButton[]
+      sub_buttons: (item.sub_buttons as unknown) as SubButton[],
+      generated_code: item.generated_code || ''
     })) || []);
   };
 
@@ -102,6 +103,7 @@ export const FloatingMultiButtonGenerator = () => {
 
     setIsLoading(true);
 
+    const generatedCode = generateCode();
     const configData = {
       user_id: user?.id,
       name: configName,
@@ -110,6 +112,7 @@ export const FloatingMultiButtonGenerator = () => {
       main_button_color: mainButtonColor,
       position,
       sub_buttons: JSON.parse(JSON.stringify(subButtons)),
+      generated_code: generatedCode,
     };
 
     if (editingId) {
@@ -203,8 +206,8 @@ export const FloatingMultiButtonGenerator = () => {
     }
   };
 
-  const getPositionStyles = () => {
-    switch (position) {
+  const getPositionStylesFromConfig = (pos: string) => {
+    switch (pos) {
       case 'bottom-right':
         return { bottom: '20px', right: '20px' };
       case 'bottom-left':
@@ -213,7 +216,13 @@ export const FloatingMultiButtonGenerator = () => {
         return { top: '20px', right: '20px' };
       case 'top-left':
         return { top: '20px', left: '20px' };
+      default:
+        return { bottom: '20px', right: '20px' };
     }
+  };
+
+  const getPositionStyles = () => {
+    return getPositionStylesFromConfig(position);
   };
 
   const getIconSvg = (iconType: string, imageUrl?: string) => {
@@ -233,6 +242,73 @@ export const FloatingMultiButtonGenerator = () => {
       default:
         return `<svg fill="white" width="24" height="24" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>`;
     }
+  };
+
+  const generateCodeFromConfig = (config: SavedButton) => {
+    const posStyles = getPositionStylesFromConfig(config.position);
+    const subButtonsHtml = config.sub_buttons.map((btn, idx) => `
+      <a href="${btn.link}" target="_blank" style="
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        background: ${config.main_button_color};
+        border-radius: 50%;
+        color: white;
+        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        margin-bottom: 10px;
+        opacity: 0;
+        transform: scale(0);
+        transition: all 0.3s ease;
+        transition-delay: ${idx * 0.05}s;
+      " class="floating-sub-btn">
+        ${getIconSvg(btn.icon, btn.imageUrl)}
+      </a>
+    `).join('');
+
+    return `<!-- Botão Flutuante Multi-Links -->
+<div id="floating-multi-btn-container" style="position: fixed; ${Object.entries(posStyles).map(([k,v]) => k+':'+v).join('; ')}; z-index: 9999; display: flex; flex-direction: column; align-items: center;">
+  ${subButtonsHtml}
+  
+  <button id="floating-main-btn" onclick="toggleFloatingButtons()" style="
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: ${config.main_button_color};
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+  " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+    ${getIconSvg(config.main_button_icon)}
+  </button>
+</div>
+
+<script>
+let isOpen = false;
+
+function toggleFloatingButtons() {
+  isOpen = !isOpen;
+  const subButtons = document.querySelectorAll('.floating-sub-btn');
+  const mainBtn = document.getElementById('floating-main-btn');
+  
+  subButtons.forEach((btn, idx) => {
+    setTimeout(() => {
+      btn.style.display = isOpen ? 'flex' : 'none';
+      btn.style.opacity = isOpen ? '1' : '0';
+      btn.style.transform = isOpen ? 'scale(1)' : 'scale(0)';
+    }, idx * 50);
+  });
+  
+  mainBtn.style.transform = isOpen ? 'rotate(45deg) scale(1.1)' : 'rotate(0deg) scale(1)';
+}
+</script>`;
   };
 
   const generateCode = () => {
@@ -346,8 +422,24 @@ function toggleFloatingButtons() {
                   <Button
                     variant="ghost"
                     size="icon"
+                    onClick={() => {
+                      navigator.clipboard.writeText(config.generated_code || generateCodeFromConfig(config));
+                      toast({
+                        title: "Código copiado!",
+                        description: "Cole no HTML do seu site, antes do </body>"
+                      });
+                    }}
+                    className="h-8 w-8"
+                    title="Copiar código"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => loadConfig(config)}
                     className="h-8 w-8"
+                    title="Editar"
                   >
                     <Edit2 className="w-4 h-4" />
                   </Button>
@@ -356,6 +448,7 @@ function toggleFloatingButtons() {
                     size="icon"
                     onClick={() => deleteConfig(config.id)}
                     className="h-8 w-8 text-destructive hover:bg-destructive/20"
+                    title="Excluir"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
