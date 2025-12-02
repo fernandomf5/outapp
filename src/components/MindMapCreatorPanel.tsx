@@ -513,6 +513,15 @@ export const MindMapCreatorPanel = () => {
             fitView
             snapToGrid
             snapGrid={[15, 15]}
+            panOnDrag
+            selectionOnDrag={false}
+            zoomOnScroll
+            zoomOnPinch
+            panOnScroll={false}
+            selectNodesOnDrag={false}
+            nodesDraggable={true}
+            nodesConnectable={true}
+            elementsSelectable={true}
             defaultEdgeOptions={{
               type: 'smoothstep',
               animated: true,
