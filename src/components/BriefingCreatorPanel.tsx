@@ -454,7 +454,7 @@ export function BriefingCreatorPanel() {
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="grid gap-2">
                         <Label className="text-sm">Cor Primária</Label>
-                        <Popover open={showPrimaryColorPicker} onOpenChange={setShowPrimaryColorPicker}>
+                        <Popover modal={false} open={showPrimaryColorPicker} onOpenChange={setShowPrimaryColorPicker}>
                           <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full justify-start gap-2">
                               <div 
@@ -464,17 +464,17 @@ export function BriefingCreatorPanel() {
                               <span className="text-sm">{formData.primary_color}</span>
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-3">
-                          <HexColorPicker
-                            color={formData.primary_color}
-                            onChange={(color) => setFormData(prev => ({...prev, primary_color: color}))}
-                          />
+                          <PopoverContent className="w-auto p-3" onInteractOutside={(e) => e.preventDefault()}>
+                            <HexColorPicker
+                              color={formData.primary_color}
+                              onChange={(color) => setFormData({...formData, primary_color: color})}
+                            />
                           </PopoverContent>
                         </Popover>
                       </div>
                       <div className="grid gap-2">
                         <Label className="text-sm">Cor Secundária</Label>
-                        <Popover open={showSecondaryColorPicker} onOpenChange={setShowSecondaryColorPicker}>
+                        <Popover modal={false} open={showSecondaryColorPicker} onOpenChange={setShowSecondaryColorPicker}>
                           <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full justify-start gap-2">
                               <div 
@@ -484,11 +484,11 @@ export function BriefingCreatorPanel() {
                               <span className="text-sm">{formData.secondary_color}</span>
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-3">
-                          <HexColorPicker
-                            color={formData.secondary_color}
-                            onChange={(color) => setFormData(prev => ({...prev, secondary_color: color}))}
-                          />
+                          <PopoverContent className="w-auto p-3" onInteractOutside={(e) => e.preventDefault()}>
+                            <HexColorPicker
+                              color={formData.secondary_color}
+                              onChange={(color) => setFormData({...formData, secondary_color: color})}
+                            />
                           </PopoverContent>
                         </Popover>
                       </div>
