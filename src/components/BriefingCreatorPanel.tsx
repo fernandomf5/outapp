@@ -53,8 +53,6 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { HexColorPicker } from 'react-colorful';
 
 interface BriefingField {
   id: string;
@@ -304,8 +302,6 @@ export function BriefingCreatorPanel() {
       setIsCreateDialogOpen(false);
       setEditingBriefing(null);
       setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', fields: [] });
-      setShowPrimaryColorPicker(false);
-      setShowSecondaryColorPicker(false);
       loadBriefings();
     } catch (error: any) {
       toast.error("Erro ao salvar briefing");
@@ -322,14 +318,10 @@ export function BriefingCreatorPanel() {
       secondary_color: (briefing as any).secondary_color || '#EC4899',
       fields: briefing.fields
     });
-    setShowPrimaryColorPicker(false);
-    setShowSecondaryColorPicker(false);
     setIsCreateDialogOpen(true);
   };
 
   const [deleteBriefingId, setDeleteBriefingId] = useState<string | null>(null);
-  const [showPrimaryColorPicker, setShowPrimaryColorPicker] = useState(false);
-  const [showSecondaryColorPicker, setShowSecondaryColorPicker] = useState(false);
 
   const handleDeleteBriefing = async () => {
     if (!deleteBriefingId) return;
@@ -404,8 +396,6 @@ export function BriefingCreatorPanel() {
             <Button className="gradient-primary shadow-glow" onClick={() => {
               setEditingBriefing(null);
               setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', fields: [] });
-              setShowPrimaryColorPicker(false);
-              setShowSecondaryColorPicker(false);
             }}>
               <Plus className="mr-2 h-4 w-4" />
               Criar Briefing
@@ -454,55 +444,37 @@ export function BriefingCreatorPanel() {
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="grid gap-2">
                         <Label className="text-sm">Cor Primária</Label>
-                        <Popover open={showPrimaryColorPicker} onOpenChange={setShowPrimaryColorPicker}>
-                          <PopoverTrigger asChild>
-                            <Button variant="outline" className="w-full justify-start gap-2">
-                              <div 
-                                className="w-5 h-5 rounded border border-border" 
-                                style={{ backgroundColor: formData.primary_color }}
-                              />
-                              <span className="text-sm">{formData.primary_color}</span>
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent 
-                            className="w-auto p-3 z-[9999]" 
-                            style={{ pointerEvents: 'auto' }}
-                            onOpenAutoFocus={(e) => e.preventDefault()}
-                          >
-                            <div style={{ touchAction: 'none', pointerEvents: 'auto' }}>
-                              <HexColorPicker
-                                color={formData.primary_color}
-                                onChange={(color) => setFormData(prev => ({...prev, primary_color: color}))}
-                              />
-                            </div>
-                          </PopoverContent>
-                        </Popover>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={formData.primary_color}
+                            onChange={(e) => setFormData(prev => ({...prev, primary_color: e.target.value}))}
+                            className="w-10 h-10 rounded border border-border cursor-pointer"
+                          />
+                          <Input
+                            value={formData.primary_color}
+                            onChange={(e) => setFormData(prev => ({...prev, primary_color: e.target.value}))}
+                            placeholder="#000000"
+                            className="flex-1"
+                          />
+                        </div>
                       </div>
                       <div className="grid gap-2">
                         <Label className="text-sm">Cor Secundária</Label>
-                        <Popover open={showSecondaryColorPicker} onOpenChange={setShowSecondaryColorPicker}>
-                          <PopoverTrigger asChild>
-                            <Button variant="outline" className="w-full justify-start gap-2">
-                              <div 
-                                className="w-5 h-5 rounded border border-border" 
-                                style={{ backgroundColor: formData.secondary_color }}
-                              />
-                              <span className="text-sm">{formData.secondary_color}</span>
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent 
-                            className="w-auto p-3 z-[9999]" 
-                            style={{ pointerEvents: 'auto' }}
-                            onOpenAutoFocus={(e) => e.preventDefault()}
-                          >
-                            <div style={{ touchAction: 'none', pointerEvents: 'auto' }}>
-                              <HexColorPicker
-                                color={formData.secondary_color}
-                                onChange={(color) => setFormData(prev => ({...prev, secondary_color: color}))}
-                              />
-                            </div>
-                          </PopoverContent>
-                        </Popover>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={formData.secondary_color}
+                            onChange={(e) => setFormData(prev => ({...prev, secondary_color: e.target.value}))}
+                            className="w-10 h-10 rounded border border-border cursor-pointer"
+                          />
+                          <Input
+                            value={formData.secondary_color}
+                            onChange={(e) => setFormData(prev => ({...prev, secondary_color: e.target.value}))}
+                            placeholder="#000000"
+                            className="flex-1"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
