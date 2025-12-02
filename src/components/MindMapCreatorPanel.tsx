@@ -199,28 +199,7 @@ export const MindMapCreatorPanel = () => {
     setEditingNode(null);
   };
 
-  const handleMouseDown = (e: React.MouseEvent, nodeId?: string) => {
-    e.preventDefault();
-    if (nodeId) {
-      if (connectingFrom) {
-        // Complete connection
-        if (connectingFrom !== nodeId) {
-          setNodes(nodes.map(n => 
-            n.id === nodeId ? { ...n, parentId: connectingFrom } : n
-          ));
-          toast.success('Nós conectados!');
-        }
-        setConnectingFrom(null);
-      } else {
-        setDraggedNode(nodeId);
-      }
-    } else {
-      setIsPanning(true);
-    }
-    setLastMousePos({ x: e.clientX, y: e.clientY });
-  };
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (draggedNode) {
       const dx = (e.clientX - lastMousePos.x) / scale;
       const dy = (e.clientY - lastMousePos.y) / scale;
@@ -236,16 +215,37 @@ export const MindMapCreatorPanel = () => {
     }
   }, [draggedNode, isPanning, lastMousePos, scale]);
 
-  const handleMouseUp = () => {
+  const handlePointerUp = useCallback(() => {
     setDraggedNode(null);
     setIsPanning(false);
-  };
+  }, []);
 
-  const handleWheel = (e: React.WheelEvent) => {
+  const handlePointerDown = useCallback((e: React.PointerEvent, nodeId?: string) => {
     e.preventDefault();
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+    
+    if (nodeId) {
+      if (connectingFrom) {
+        if (connectingFrom !== nodeId) {
+          setNodes(prev => prev.map(n => 
+            n.id === nodeId ? { ...n, parentId: connectingFrom } : n
+          ));
+          toast.success('Nós conectados!');
+        }
+        setConnectingFrom(null);
+      } else {
+        setDraggedNode(nodeId);
+      }
+    } else {
+      setIsPanning(true);
+    }
+    setLastMousePos({ x: e.clientX, y: e.clientY });
+  }, [connectingFrom]);
+
+  const handleWheel = useCallback((e: React.WheelEvent) => {
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
     setScale(prev => Math.max(0.3, Math.min(2, prev + delta)));
-  };
+  }, []);
 
   const startConnecting = (nodeId: string) => {
     setConnectingFrom(nodeId);
@@ -579,19 +579,20 @@ export const MindMapCreatorPanel = () => {
         {/* Canvas */}
         <div
           ref={canvasRef}
-          className="relative w-full h-[500px] rounded-xl border-2 border-border overflow-hidden select-none"
+          className="relative w-full h-[500px] rounded-xl border-2 border-border overflow-hidden touch-none"
           style={{ 
             backgroundColor: theme.bg,
             cursor: isPanning ? 'grabbing' : draggedNode ? 'move' : 'grab',
           }}
-          onMouseDown={(e) => {
+          onPointerDown={(e) => {
             if (e.target === canvasRef.current || (e.target as HTMLElement).classList.contains('canvas-area')) {
-              handleMouseDown(e);
+              handlePointerDown(e);
             }
           }}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerLeave={handlePointerUp}
+          onPointerCancel={handlePointerUp}
           onWheel={handleWheel}
         >
           {/* Grid pattern */}
@@ -629,10 +630,11 @@ export const MindMapCreatorPanel = () => {
                 style={{
                   left: node.x,
                   top: node.y,
+                  touchAction: 'none',
                 }}
-                onMouseDown={(e) => {
+                onPointerDown={(e) => {
                   e.stopPropagation();
-                  handleMouseDown(e, node.id);
+                  handlePointerDown(e, node.id);
                 }}
                 onDoubleClick={() => openEditDialog(node)}
               >
