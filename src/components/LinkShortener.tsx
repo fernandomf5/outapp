@@ -142,22 +142,13 @@ export const LinkShortener = () => {
   };
 
   const selectChatLink = (id: string, name?: string) => {
-    const baseUrl = window.location.origin;
-    // Usar o mesmo formato de URL que "Meus Chats"
-    const slug = (name || '')
-      .normalize('NFD').replace(/\p{Diacritic}/gu, '')
-      .toLowerCase().trim()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-');
-    const url = `${baseUrl}/chat/${id}/${slug || 'chat'}`;
+    // Usar o mesmo formato de URL que "Meus Chats" no Dashboard
+    const url = `${window.location.origin}/chat/${id}`;
     
     setOriginalUrl(url);
     
-    const chat = chats.find(c => c.id === id);
-    
-    if (chat && !customName) {
-      setCustomName(chat.name);
+    if (name && !customName) {
+      setCustomName(name);
     }
   };
 
