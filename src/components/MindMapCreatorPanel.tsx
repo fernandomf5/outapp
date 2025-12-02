@@ -252,7 +252,7 @@ export const MindMapCreatorPanel = () => {
     ));
   };
 
-  const getChildCount = (nodeId: string): number => {
+  const getDirectChildCount = (nodeId: string): number => {
     return nodes.filter(n => n.parentId === nodeId).length;
   };
 
@@ -924,7 +924,7 @@ export const MindMapCreatorPanel = () => {
 
             {/* Nodes */}
             {nodes.filter(node => isNodeVisible(node)).map(node => {
-              const childCount = getChildCount(node.id);
+              const childCount = getDirectChildCount(node.id);
               const sizeClasses = getNodeSizeClasses(node.size, node.isRoot);
               return (
                 <div
@@ -958,7 +958,10 @@ export const MindMapCreatorPanel = () => {
                         {node.text}
                       </p>
                       {node.description && (
-                        <p className={`text-white/80 mt-1 ${sizeClasses.descSize}`}>
+                        <p 
+                          className={`text-white/80 mt-1 ${sizeClasses.descSize} whitespace-pre-wrap break-words`}
+                          style={{ maxWidth: '120px' }}
+                        >
                           {node.description}
                         </p>
                       )}

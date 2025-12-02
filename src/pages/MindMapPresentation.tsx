@@ -355,7 +355,10 @@ export default function MindMapPresentation() {
                       {node.text}
                     </p>
                     {node.description && (
-                      <p className={`text-white/80 mt-1 ${sizeClasses.descSize}`}>
+                      <p 
+                        className={`text-white/80 mt-1 ${sizeClasses.descSize} whitespace-pre-wrap break-words`}
+                        style={{ maxWidth: '120px' }}
+                      >
                         {node.description}
                       </p>
                     )}
