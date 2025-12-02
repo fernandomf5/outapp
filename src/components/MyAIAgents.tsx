@@ -306,7 +306,7 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
                   onClick={() => onManage({ id: agent.id, name: agent.name, niche: agent.niche })}
                 >
                   <Settings className="w-3 h-3 mr-2" />
-                  Gerenciar Agente
+                  Gerenciar
                 </Button>
               )}
             </div>
