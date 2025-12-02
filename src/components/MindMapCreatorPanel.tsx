@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Plus, Save, FolderOpen, Trash2, Edit3, ZoomIn, ZoomOut, RotateCcw, Brain, Sparkles, LayoutGrid, Move, Link2, Copy, ChevronDown, GitBranch, ArrowRight, Circle, TreePine, Unlink, ChevronRight, ChevronUp } from 'lucide-react';
+import { Plus, Save, FolderOpen, Trash2, Edit3, ZoomIn, ZoomOut, RotateCcw, Brain, Sparkles, LayoutGrid, Move, Link2, Copy, ChevronDown, GitBranch, ArrowRight, Circle, TreePine, Unlink, ChevronRight, ChevronUp, Focus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -441,6 +441,31 @@ export const MindMapCreatorPanel = () => {
     })));
   };
 
+  const centerView = () => {
+    if (nodes.length === 0) {
+      setOffset({ x: 0, y: 0 });
+      setScale(1);
+      return;
+    }
+    
+    const canvasWidth = canvasRef.current?.clientWidth || 1000;
+    const canvasHeight = canvasRef.current?.clientHeight || 700;
+    
+    const minX = Math.min(...nodes.map(n => n.x));
+    const maxX = Math.max(...nodes.map(n => n.x));
+    const minY = Math.min(...nodes.map(n => n.y));
+    const maxY = Math.max(...nodes.map(n => n.y));
+    
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    
+    const newOffsetX = (canvasWidth / 2) - (centerX * scale);
+    const newOffsetY = (canvasHeight / 2) - (centerY * scale);
+    
+    setOffset({ x: newOffsetX, y: newOffsetY });
+    toast.success('Visualização centralizada!');
+  };
+
   const organizeRadial = () => {
     const root = nodes.find(n => n.isRoot);
     if (!root) {
@@ -868,8 +893,17 @@ export const MindMapCreatorPanel = () => {
             variant="outline" 
             size="sm" 
             onClick={() => { setScale(1); setOffset({ x: 0, y: 0 }); }}
+            title="Resetar zoom"
           >
             <RotateCcw className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={centerView}
+            title="Centralizar visualização"
+          >
+            <Focus className="h-4 w-4" />
           </Button>
           {connectingFrom && (
             <Badge variant="secondary" className="ml-2">
