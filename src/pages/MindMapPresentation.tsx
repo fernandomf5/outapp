@@ -7,13 +7,25 @@ import { Button } from '@/components/ui/button';
 interface MindMapNode {
   id: string;
   text: string;
+  description?: string;
   x: number;
   y: number;
   color: string;
   parentId: string | null;
   isRoot: boolean;
   icon?: string;
+  collapsed?: boolean;
+  size?: 'small' | 'medium' | 'large';
 }
+
+const getNodeSizeClasses = (size: 'small' | 'medium' | 'large' | undefined, isRoot: boolean) => {
+  const sizeConfig = {
+    small: { minWidth: isRoot ? 'min-w-[120px]' : 'min-w-[100px]', padding: 'px-3 py-3', iconSize: 'text-lg', textSize: 'text-sm', descSize: 'text-xs' },
+    medium: { minWidth: isRoot ? 'min-w-[160px]' : 'min-w-[120px]', padding: 'px-5 py-4', iconSize: 'text-2xl', textSize: isRoot ? 'text-lg' : 'text-base', descSize: 'text-sm' },
+    large: { minWidth: isRoot ? 'min-w-[220px]' : 'min-w-[180px]', padding: 'px-7 py-5', iconSize: 'text-4xl', textSize: isRoot ? 'text-xl' : 'text-lg', descSize: 'text-base' },
+  };
+  return sizeConfig[size || 'medium'];
+};
 
 interface MindMap {
   id: string;
@@ -26,33 +38,51 @@ interface MindMap {
 const THEMES = {
   default: {
     name: 'Padrão',
-    colors: ['#8B5CF6', '#EC4899', '#10B981', '#F59E0B', '#3B82F6', '#EF4444'],
+    colors: ['#8B5CF6', '#EC4899', '#10B981', '#F59E0B', '#3B82F6', '#EF4444', '#06B6D4', '#84CC16'],
     bg: '#1a1a2e',
     line: '#a78bfa',
   },
   ocean: { 
     name: 'Oceano', 
-    colors: ['#0EA5E9', '#06B6D4', '#14B8A6', '#10B981', '#22C55E', '#38BDF8'],
+    colors: ['#0EA5E9', '#06B6D4', '#14B8A6', '#10B981', '#22C55E', '#38BDF8', '#0284C7', '#0891B2'],
     bg: '#0c1929',
     line: '#0EA5E9'
   },
   sunset: { 
     name: 'Pôr do Sol', 
-    colors: ['#F97316', '#FB923C', '#FBBF24', '#F59E0B', '#EAB308', '#FCD34D'],
+    colors: ['#F97316', '#FB923C', '#FBBF24', '#F59E0B', '#EAB308', '#FCD34D', '#DC2626', '#EA580C'],
     bg: '#1f1410',
     line: '#F97316'
   },
   forest: { 
     name: 'Floresta', 
-    colors: ['#22C55E', '#16A34A', '#15803D', '#84CC16', '#4ADE80', '#A3E635'],
+    colors: ['#22C55E', '#16A34A', '#15803D', '#84CC16', '#4ADE80', '#A3E635', '#059669', '#10B981'],
     bg: '#0f1f14',
     line: '#22C55E'
   },
   purple: { 
     name: 'Roxo', 
-    colors: ['#A855F7', '#9333EA', '#7C3AED', '#C084FC', '#D946EF', '#E879F9'],
+    colors: ['#A855F7', '#9333EA', '#7C3AED', '#C084FC', '#D946EF', '#E879F9', '#6366F1', '#8B5CF6'],
     bg: '#1a0f29',
     line: '#A855F7'
+  },
+  neon: { 
+    name: 'Neon', 
+    colors: ['#F0ABFC', '#22D3EE', '#A3E635', '#FACC15', '#FB7185', '#34D399', '#60A5FA', '#C084FC'],
+    bg: '#0f0f23',
+    line: '#22D3EE'
+  },
+  warm: { 
+    name: 'Quente', 
+    colors: ['#EF4444', '#F97316', '#F59E0B', '#FBBF24', '#EC4899', '#F43F5E', '#FB923C', '#FCD34D'],
+    bg: '#1f1414',
+    line: '#EF4444'
+  },
+  cool: { 
+    name: 'Frio', 
+    colors: ['#3B82F6', '#6366F1', '#8B5CF6', '#06B6D4', '#0EA5E9', '#14B8A6', '#0284C7', '#7C3AED'],
+    bg: '#0f1421',
+    line: '#3B82F6'
   },
 };
 
@@ -285,34 +315,55 @@ export default function MindMapPresentation() {
           </svg>
 
           {/* Nodes */}
-          {nodes.map(node => (
-            <div
-              key={node.id}
-              className="absolute transform -translate-x-1/2 -translate-y-1/2"
-              style={{
-                left: node.x,
-                top: node.y,
-              }}
-            >
+          {nodes.filter(node => {
+            // Check if node is visible (not collapsed by parent)
+            if (!node.parentId) return true;
+            const parent = nodes.find(n => n.id === node.parentId);
+            if (!parent) return true;
+            if (parent.collapsed) return false;
+            // Check recursively up the tree
+            const checkParent = (parentNode: MindMapNode): boolean => {
+              if (!parentNode.parentId) return true;
+              const grandParent = nodes.find(n => n.id === parentNode.parentId);
+              if (!grandParent) return true;
+              if (grandParent.collapsed) return false;
+              return checkParent(grandParent);
+            };
+            return checkParent(parent);
+          }).map(node => {
+            const sizeClasses = getNodeSizeClasses(node.size, node.isRoot);
+            return (
               <div
-                className={`relative rounded-2xl shadow-lg ${
-                  node.isRoot ? 'min-w-[160px]' : 'min-w-[120px]'
-                }`}
+                key={node.id}
+                className="absolute transform -translate-x-1/2 -translate-y-1/2"
                 style={{
-                  backgroundColor: node.color,
-                  boxShadow: `0 4px 20px ${node.color}60, 0 0 40px ${node.color}30`,
-                  border: '2px solid rgba(255,255,255,0.3)',
+                  left: node.x,
+                  top: node.y,
                 }}
               >
-                <div className={`px-5 ${node.isRoot ? 'py-5' : 'py-4'} text-center`}>
-                  {node.icon && <span className="text-2xl mb-1 block">{node.icon}</span>}
-                  <p className={`text-white font-semibold ${node.isRoot ? 'text-lg' : 'text-base'}`}>
-                    {node.text}
-                  </p>
+                <div
+                  className={`relative rounded-2xl shadow-lg ${sizeClasses.minWidth}`}
+                  style={{
+                    backgroundColor: node.color,
+                    boxShadow: `0 4px 20px ${node.color}60, 0 0 40px ${node.color}30`,
+                    border: '2px solid rgba(255,255,255,0.3)',
+                  }}
+                >
+                  <div className={`${sizeClasses.padding} text-center`}>
+                    {node.icon && <span className={`${sizeClasses.iconSize} mb-1 block`}>{node.icon}</span>}
+                    <p className={`text-white font-semibold ${sizeClasses.textSize}`}>
+                      {node.text}
+                    </p>
+                    {node.description && (
+                      <p className={`text-white/80 mt-1 ${sizeClasses.descSize}`}>
+                        {node.description}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 interface MindMapNode {
   id: string;
   text: string;
+  description?: string;
   x: number;
   y: number;
   color: string;
@@ -22,6 +23,7 @@ interface MindMapNode {
   isRoot: boolean;
   icon?: string;
   collapsed?: boolean;
+  size?: 'small' | 'medium' | 'large';
 }
 
 interface MindMap {
@@ -37,37 +39,68 @@ interface MindMap {
 const THEMES = {
   default: {
     name: 'Padrão',
-    colors: ['#8B5CF6', '#EC4899', '#10B981', '#F59E0B', '#3B82F6', '#EF4444'],
+    colors: ['#8B5CF6', '#EC4899', '#10B981', '#F59E0B', '#3B82F6', '#EF4444', '#06B6D4', '#84CC16'],
     bg: '#1a1a2e',
     line: '#a78bfa',
   },
   ocean: { 
     name: 'Oceano', 
-    colors: ['#0EA5E9', '#06B6D4', '#14B8A6', '#10B981', '#22C55E', '#38BDF8'],
+    colors: ['#0EA5E9', '#06B6D4', '#14B8A6', '#10B981', '#22C55E', '#38BDF8', '#0284C7', '#0891B2'],
     bg: '#0c1929',
     line: '#0EA5E9'
   },
   sunset: { 
     name: 'Pôr do Sol', 
-    colors: ['#F97316', '#FB923C', '#FBBF24', '#F59E0B', '#EAB308', '#FCD34D'],
+    colors: ['#F97316', '#FB923C', '#FBBF24', '#F59E0B', '#EAB308', '#FCD34D', '#DC2626', '#EA580C'],
     bg: '#1f1410',
     line: '#F97316'
   },
   forest: { 
     name: 'Floresta', 
-    colors: ['#22C55E', '#16A34A', '#15803D', '#84CC16', '#4ADE80', '#A3E635'],
+    colors: ['#22C55E', '#16A34A', '#15803D', '#84CC16', '#4ADE80', '#A3E635', '#059669', '#10B981'],
     bg: '#0f1f14',
     line: '#22C55E'
   },
   purple: { 
     name: 'Roxo', 
-    colors: ['#A855F7', '#9333EA', '#7C3AED', '#C084FC', '#D946EF', '#E879F9'],
+    colors: ['#A855F7', '#9333EA', '#7C3AED', '#C084FC', '#D946EF', '#E879F9', '#6366F1', '#8B5CF6'],
     bg: '#1a0f29',
     line: '#A855F7'
   },
+  neon: { 
+    name: 'Neon', 
+    colors: ['#F0ABFC', '#22D3EE', '#A3E635', '#FACC15', '#FB7185', '#34D399', '#60A5FA', '#C084FC'],
+    bg: '#0f0f23',
+    line: '#22D3EE'
+  },
+  warm: { 
+    name: 'Quente', 
+    colors: ['#EF4444', '#F97316', '#F59E0B', '#FBBF24', '#EC4899', '#F43F5E', '#FB923C', '#FCD34D'],
+    bg: '#1f1414',
+    line: '#EF4444'
+  },
+  cool: { 
+    name: 'Frio', 
+    colors: ['#3B82F6', '#6366F1', '#8B5CF6', '#06B6D4', '#0EA5E9', '#14B8A6', '#0284C7', '#7C3AED'],
+    bg: '#0f1421',
+    line: '#3B82F6'
+  },
 };
 
-const ICONS = ['🎯', '💡', '⭐', '🚀', '📌', '🔥', '💎', '🎨', '📊', '🔗', '✨', '🏆', '📝', '🎪', '🌟'];
+const ICONS = [
+  '🎯', '💡', '⭐', '🚀', '📌', '🔥', '💎', '🎨', '📊', '🔗', 
+  '✨', '🏆', '📝', '🎪', '🌟', '💼', '📱', '💻', '🎬', '🎵',
+  '📚', '🔧', '⚡', '🌈', '🎁', '❤️', '💰', '🔒', '📈', '🎉',
+  '🧠', '💬', '📣', '🛠️', '🌍', '🏠', '✅', '❌', '⚠️', '💪',
+  '🤝', '👍', '👎', '🔍', '📅', '⏰', '🎓', '🏅', '🥇', '🌱'
+];
+
+const CUSTOM_COLORS = [
+  '#EF4444', '#F97316', '#F59E0B', '#FBBF24', '#84CC16', '#22C55E',
+  '#10B981', '#14B8A6', '#06B6D4', '#0EA5E9', '#3B82F6', '#6366F1',
+  '#8B5CF6', '#A855F7', '#D946EF', '#EC4899', '#F43F5E', '#78716C',
+  '#1E293B', '#334155', '#475569', '#64748B', '#94A3B8', '#FFFFFF'
+];
 
 type OrganizationType = 'radial' | 'horizontal' | 'vertical' | 'tree' | 'mindmap';
 
@@ -84,8 +117,10 @@ export const MindMapCreatorPanel = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingNode, setEditingNode] = useState<MindMapNode | null>(null);
   const [editText, setEditText] = useState('');
+  const [editDescription, setEditDescription] = useState('');
   const [editIcon, setEditIcon] = useState('');
   const [editColor, setEditColor] = useState('');
+  const [editSize, setEditSize] = useState<'small' | 'medium' | 'large'>('medium');
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [draggedNode, setDraggedNode] = useState<string | null>(null);
@@ -232,8 +267,10 @@ export const MindMapCreatorPanel = () => {
   const openEditDialog = (node: MindMapNode) => {
     setEditingNode(node);
     setEditText(node.text);
+    setEditDescription(node.description || '');
     setEditIcon(node.icon || '');
     setEditColor(node.color);
+    setEditSize(node.size || 'medium');
     setIsEditDialogOpen(true);
   };
 
@@ -241,11 +278,20 @@ export const MindMapCreatorPanel = () => {
     if (!editingNode) return;
     setNodes(nodes.map(n => 
       n.id === editingNode.id 
-        ? { ...n, text: editText, icon: editIcon, color: editColor } 
+        ? { ...n, text: editText, description: editDescription, icon: editIcon, color: editColor, size: editSize } 
         : n
     ));
     setIsEditDialogOpen(false);
     setEditingNode(null);
+  };
+
+  const getNodeSizeClasses = (size: 'small' | 'medium' | 'large' | undefined, isRoot: boolean) => {
+    const sizeConfig = {
+      small: { minWidth: isRoot ? 'min-w-[100px]' : 'min-w-[80px]', padding: 'px-2 py-2', iconSize: 'text-sm', textSize: 'text-xs', descSize: 'text-[10px]' },
+      medium: { minWidth: isRoot ? 'min-w-[140px]' : 'min-w-[100px]', padding: 'px-4 py-3', iconSize: 'text-xl', textSize: isRoot ? 'text-base' : 'text-sm', descSize: 'text-xs' },
+      large: { minWidth: isRoot ? 'min-w-[200px]' : 'min-w-[160px]', padding: 'px-6 py-4', iconSize: 'text-3xl', textSize: isRoot ? 'text-lg' : 'text-base', descSize: 'text-sm' },
+    };
+    return sizeConfig[size || 'medium'];
   };
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
@@ -879,6 +925,7 @@ export const MindMapCreatorPanel = () => {
             {/* Nodes */}
             {nodes.filter(node => isNodeVisible(node)).map(node => {
               const childCount = getChildCount(node.id);
+              const sizeClasses = getNodeSizeClasses(node.size, node.isRoot);
               return (
                 <div
                   key={node.id}
@@ -898,20 +945,23 @@ export const MindMapCreatorPanel = () => {
                 >
                   {/* Node card */}
                   <div
-                    className={`relative rounded-2xl shadow-lg cursor-move transition-all duration-200 hover:scale-105 ${
-                      node.isRoot ? 'min-w-[140px]' : 'min-w-[100px]'
-                    }`}
+                    className={`relative rounded-2xl shadow-lg cursor-move transition-all duration-200 hover:scale-105 ${sizeClasses.minWidth}`}
                     style={{
                       backgroundColor: node.color,
                       boxShadow: `0 4px 20px ${node.color}60, 0 0 40px ${node.color}30`,
                       border: connectingFrom === node.id ? '3px solid white' : '2px solid rgba(255,255,255,0.3)',
                     }}
                   >
-                    <div className={`px-4 ${node.isRoot ? 'py-4' : 'py-3'} text-center`}>
-                      {node.icon && <span className="text-xl mb-1 block">{node.icon}</span>}
-                      <p className={`text-white font-semibold ${node.isRoot ? 'text-base' : 'text-sm'}`}>
+                    <div className={`${sizeClasses.padding} text-center`}>
+                      {node.icon && <span className={`${sizeClasses.iconSize} mb-1 block`}>{node.icon}</span>}
+                      <p className={`text-white font-semibold ${sizeClasses.textSize}`}>
                         {node.text}
                       </p>
+                      {node.description && (
+                        <p className={`text-white/80 mt-1 ${sizeClasses.descSize}`}>
+                          {node.description}
+                        </p>
+                      )}
                       {/* Collapse indicator */}
                       {childCount > 0 && node.collapsed && (
                         <span className="text-xs text-white/70 mt-1 block">
@@ -1030,25 +1080,48 @@ export const MindMapCreatorPanel = () => {
 
       {/* Edit Node Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Nó</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Texto</Label>
+              <Label>Título</Label>
               <Input 
                 value={editText} 
                 onChange={(e) => setEditText(e.target.value)}
-                placeholder="Digite o texto do nó"
+                placeholder="Digite o título do nó"
               />
             </div>
             <div>
+              <Label>Descrição</Label>
+              <textarea 
+                value={editDescription} 
+                onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="Descrição adicional (opcional)"
+                className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm min-h-[60px] resize-none"
+              />
+            </div>
+            <div>
+              <Label>Tamanho</Label>
+              <div className="flex gap-2 mt-2">
+                {(['small', 'medium', 'large'] as const).map(size => (
+                  <button
+                    key={size}
+                    onClick={() => setEditSize(size)}
+                    className={`flex-1 px-3 py-2 rounded-md border text-sm ${editSize === size ? 'border-primary bg-primary/10 text-primary' : 'border-border'}`}
+                  >
+                    {size === 'small' ? 'Pequeno' : size === 'medium' ? 'Médio' : 'Grande'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
               <Label>Ícone</Label>
-              <div className="flex flex-wrap gap-2 mt-2">
+              <div className="flex flex-wrap gap-1.5 mt-2 max-h-[120px] overflow-y-auto p-1">
                 <button
                   onClick={() => setEditIcon('')}
-                  className={`w-8 h-8 rounded border flex items-center justify-center ${!editIcon ? 'border-primary bg-primary/10' : 'border-border'}`}
+                  className={`w-7 h-7 rounded border flex items-center justify-center ${!editIcon ? 'border-primary bg-primary/10' : 'border-border'}`}
                 >
                   <span className="text-xs">∅</span>
                 </button>
@@ -1056,7 +1129,7 @@ export const MindMapCreatorPanel = () => {
                   <button
                     key={icon}
                     onClick={() => setEditIcon(icon)}
-                    className={`w-8 h-8 rounded border flex items-center justify-center text-lg ${editIcon === icon ? 'border-primary bg-primary/10' : 'border-border'}`}
+                    className={`w-7 h-7 rounded border flex items-center justify-center text-base ${editIcon === icon ? 'border-primary bg-primary/10' : 'border-border'}`}
                   >
                     {icon}
                   </button>
@@ -1064,14 +1137,27 @@ export const MindMapCreatorPanel = () => {
               </div>
             </div>
             <div>
-              <Label>Cor</Label>
+              <Label>Cor do Tema</Label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {THEMES[currentTheme].colors.map(color => (
                   <button
                     key={color}
                     onClick={() => setEditColor(color)}
-                    className={`w-8 h-8 rounded-full ${editColor === color ? 'ring-2 ring-white ring-offset-2 ring-offset-background' : ''}`}
+                    className={`w-7 h-7 rounded-full ${editColor === color ? 'ring-2 ring-white ring-offset-2 ring-offset-background' : ''}`}
                     style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label>Todas as Cores</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {CUSTOM_COLORS.map(color => (
+                  <button
+                    key={color}
+                    onClick={() => setEditColor(color)}
+                    className={`w-7 h-7 rounded-full ${editColor === color ? 'ring-2 ring-white ring-offset-2 ring-offset-background' : ''}`}
+                    style={{ backgroundColor: color, border: color === '#FFFFFF' ? '1px solid #ccc' : 'none' }}
                   />
                 ))}
               </div>
