@@ -45,6 +45,7 @@ export const FloatingMultiButtonGenerator = () => {
   const [savedButtons, setSavedButtons] = useState<SavedButton[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -79,6 +80,7 @@ export const FloatingMultiButtonGenerator = () => {
     setPosition("bottom-right");
     setSubButtons([{ id: '1', text: 'WhatsApp', link: '', icon: 'whatsapp', imageUrl: undefined }]);
     setEditingId(null);
+    setShowForm(false);
   };
 
   const loadConfig = (config: SavedButton) => {
@@ -89,6 +91,7 @@ export const FloatingMultiButtonGenerator = () => {
     setPosition(config.position as any);
     setSubButtons(config.sub_buttons);
     setEditingId(config.id);
+    setShowForm(true);
   };
 
   const saveConfig = async () => {
@@ -459,7 +462,18 @@ function toggleFloatingButtons() {
         </div>
       )}
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      {/* Botão para criar novo */}
+      {!showForm && (
+        <Button 
+          onClick={() => setShowForm(true)} 
+          className="mb-6"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Criar novo botão flutuante
+        </Button>
+      )}
+
+      {showForm && <div className="grid lg:grid-cols-2 gap-6">
         {/* Configuração */}
         <div className="space-y-4">
           {/* Nome da configuração */}
@@ -697,7 +711,7 @@ function toggleFloatingButtons() {
             </Button>
           </div>
         </div>
-      </div>
+      </div>}
     </Card>
   );
 };
