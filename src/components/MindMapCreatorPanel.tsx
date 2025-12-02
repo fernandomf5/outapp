@@ -205,6 +205,9 @@ const MindMapCreatorContent = () => {
         icon: isRoot ? '🎯' : '',
         isRoot,
       },
+      draggable: true,
+      selectable: true,
+      connectable: true,
     };
     
     if (isRoot) {
@@ -269,11 +272,21 @@ const MindMapCreatorContent = () => {
   };
 
   const loadMap = (map: MindMap) => {
+    console.log('Loading map:', map);
     setCurrentMap(map);
     setMapName(map.name);
     setMapDescription(map.description || '');
     setSelectedTheme(map.theme as keyof typeof themes || 'default');
-    setNodes(map.nodes || []);
+    
+    // Ensure nodes have draggable property
+    const loadedNodes = (map.nodes || []).map(node => ({
+      ...node,
+      draggable: true,
+      selectable: true,
+      connectable: true,
+    }));
+    
+    setNodes(loadedNodes);
     setEdges(map.edges || []);
     setIsListDialogOpen(false);
   };
@@ -373,7 +386,7 @@ const MindMapCreatorContent = () => {
           </div>
         </div>
 
-        <div className="rounded-xl overflow-hidden border-2 border-border" style={{ height: 500, backgroundColor: theme.background }}>
+        <div style={{ height: 500, width: '100%', backgroundColor: theme.background, borderRadius: '12px', border: '2px solid hsl(var(--border))' }}>
           <ReactFlow
             nodes={nodes}
             edges={edges}
