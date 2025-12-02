@@ -40,6 +40,7 @@ import MembersAreaAuth from "./pages/MembersAreaAuth";
 import MembersAreaPublic from "./pages/MembersAreaPublic";
 import ChatbotResetPassword from "./pages/ChatbotResetPassword";
 import AgentResetPassword from "./pages/AgentResetPassword";
+import MindMapPresentation from "./pages/MindMapPresentation";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient();
@@ -86,6 +87,7 @@ const AppContent = () => {
           <Route path="/members-area-auth/:areaId" element={<MembersAreaAuth />} />
           <Route path="/members/:slug" element={<MembersAreaPublic />} />
           <Route path="/briefing/:briefingId" element={<BriefingPublicPage />} />
+          <Route path="/mindmap/:id" element={<MindMapPresentation />} />
                
               <Route path="/bot-builder" element={
                 <ProtectedRoute>

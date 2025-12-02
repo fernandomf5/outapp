@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Save, FolderOpen, Trash2, Edit3, Palette, ZoomIn, ZoomOut, RotateCcw, Download, Brain, Sparkles, LayoutGrid, Move, MousePointer } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Plus, Save, FolderOpen, Trash2, Edit3, ZoomIn, ZoomOut, RotateCcw, Brain, Sparkles, LayoutGrid, Move, Link2, Copy, ChevronDown, GitBranch, ArrowRight, Circle, TreePine } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -67,6 +68,8 @@ const THEMES = {
 
 const ICONS = ['🎯', '💡', '⭐', '🚀', '📌', '🔥', '💎', '🎨', '📊', '🔗', '✨', '🏆', '📝', '🎪', '🌟'];
 
+type OrganizationType = 'radial' | 'horizontal' | 'vertical' | 'tree' | 'mindmap';
+
 export const MindMapCreatorPanel = () => {
   const { user } = useAuth();
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -109,13 +112,28 @@ export const MindMapCreatorPanel = () => {
     }
   };
 
+  const getPresentationLink = () => {
+    if (!currentMapId) return null;
+    return `${window.location.origin}/mindmap/${currentMapId}`;
+  };
+
+  const copyPresentationLink = () => {
+    const link = getPresentationLink();
+    if (link) {
+      navigator.clipboard.writeText(link);
+      toast.success('Link copiado para a área de transferência!');
+    } else {
+      toast.error('Salve o mapa primeiro para gerar o link');
+    }
+  };
+
   const createRootNode = () => {
     const theme = THEMES[currentTheme];
     const newNode: MindMapNode = {
       id: `node-${Date.now()}`,
       text: 'Ideia Central',
-      x: 400,
-      y: 250,
+      x: 500,
+      y: 350,
       color: theme.colors[0],
       parentId: null,
       isRoot: true,
@@ -346,16 +364,16 @@ export const MindMapCreatorPanel = () => {
     })));
   };
 
-  const autoOrganize = () => {
+  const organizeRadial = () => {
     const root = nodes.find(n => n.isRoot);
     if (!root) {
       toast.error('Adicione um nó central primeiro');
       return;
     }
 
-    const centerX = 400;
-    const centerY = 250;
-    const radius = 180;
+    const centerX = 500;
+    const centerY = 350;
+    const radius = 220;
 
     const organizedNodes = nodes.map(node => {
       if (node.isRoot) {
@@ -375,7 +393,176 @@ export const MindMapCreatorPanel = () => {
     });
 
     setNodes(organizedNodes);
-    toast.success('Mapa organizado!');
+    toast.success('Organização radial aplicada!');
+  };
+
+  const organizeHorizontal = () => {
+    const root = nodes.find(n => n.isRoot);
+    if (!root) {
+      toast.error('Adicione um nó central primeiro');
+      return;
+    }
+
+    const startX = 100;
+    const centerY = 350;
+    const spacing = 200;
+
+    const organizedNodes = nodes.map((node, index) => {
+      if (node.isRoot) {
+        return { ...node, x: startX, y: centerY };
+      }
+      
+      const siblings = nodes.filter(n => !n.isRoot);
+      const idx = siblings.findIndex(s => s.id === node.id);
+      
+      return {
+        ...node,
+        x: startX + (idx + 1) * spacing,
+        y: centerY,
+        parentId: node.parentId || root.id,
+      };
+    });
+
+    setNodes(organizedNodes);
+    toast.success('Organização horizontal aplicada!');
+  };
+
+  const organizeVertical = () => {
+    const root = nodes.find(n => n.isRoot);
+    if (!root) {
+      toast.error('Adicione um nó central primeiro');
+      return;
+    }
+
+    const centerX = 500;
+    const startY = 80;
+    const spacing = 120;
+
+    const organizedNodes = nodes.map((node, index) => {
+      if (node.isRoot) {
+        return { ...node, x: centerX, y: startY };
+      }
+      
+      const siblings = nodes.filter(n => !n.isRoot);
+      const idx = siblings.findIndex(s => s.id === node.id);
+      
+      return {
+        ...node,
+        x: centerX,
+        y: startY + (idx + 1) * spacing,
+        parentId: node.parentId || root.id,
+      };
+    });
+
+    setNodes(organizedNodes);
+    toast.success('Organização vertical aplicada!');
+  };
+
+  const organizeTree = () => {
+    const root = nodes.find(n => n.isRoot);
+    if (!root) {
+      toast.error('Adicione um nó central primeiro');
+      return;
+    }
+
+    const centerX = 500;
+    const startY = 80;
+    const levelSpacing = 150;
+    const nodeSpacing = 180;
+
+    // Group nodes by level
+    const getLevel = (node: MindMapNode, level = 0): number => {
+      if (node.isRoot) return 0;
+      const parent = nodes.find(n => n.id === node.parentId);
+      if (!parent) return 1;
+      return getLevel(parent, level + 1) + 1;
+    };
+
+    const nodesByLevel: Map<number, MindMapNode[]> = new Map();
+    nodes.forEach(node => {
+      const level = getLevel(node);
+      if (!nodesByLevel.has(level)) nodesByLevel.set(level, []);
+      nodesByLevel.get(level)!.push(node);
+    });
+
+    const organizedNodes = nodes.map(node => {
+      const level = getLevel(node);
+      const levelNodes = nodesByLevel.get(level) || [];
+      const idx = levelNodes.findIndex(n => n.id === node.id);
+      const totalInLevel = levelNodes.length;
+      const levelWidth = (totalInLevel - 1) * nodeSpacing;
+      const startX = centerX - levelWidth / 2;
+
+      return {
+        ...node,
+        x: startX + idx * nodeSpacing,
+        y: startY + level * levelSpacing,
+        parentId: node.isRoot ? null : (node.parentId || root.id),
+      };
+    });
+
+    setNodes(organizedNodes);
+    toast.success('Organização em árvore aplicada!');
+  };
+
+  const organizeMindMap = () => {
+    const root = nodes.find(n => n.isRoot);
+    if (!root) {
+      toast.error('Adicione um nó central primeiro');
+      return;
+    }
+
+    const centerX = 500;
+    const centerY = 350;
+
+    // Organize children on left and right sides
+    const children = nodes.filter(n => !n.isRoot);
+    const leftChildren = children.slice(0, Math.ceil(children.length / 2));
+    const rightChildren = children.slice(Math.ceil(children.length / 2));
+
+    const organizedNodes = nodes.map(node => {
+      if (node.isRoot) {
+        return { ...node, x: centerX, y: centerY };
+      }
+
+      const isLeft = leftChildren.includes(node);
+      const arr = isLeft ? leftChildren : rightChildren;
+      const idx = arr.findIndex(n => n.id === node.id);
+      const spacing = 100;
+      const horizontalOffset = 250;
+      const totalHeight = (arr.length - 1) * spacing;
+      const startY = centerY - totalHeight / 2;
+
+      return {
+        ...node,
+        x: isLeft ? centerX - horizontalOffset : centerX + horizontalOffset,
+        y: startY + idx * spacing,
+        parentId: node.parentId || root.id,
+      };
+    });
+
+    setNodes(organizedNodes);
+    toast.success('Organização mapa mental aplicada!');
+  };
+
+  const applyOrganization = (type: OrganizationType) => {
+    switch (type) {
+      case 'radial':
+        organizeRadial();
+        break;
+      case 'horizontal':
+        organizeHorizontal();
+        break;
+      case 'vertical':
+        organizeVertical();
+        break;
+      case 'tree':
+        organizeTree();
+        break;
+      case 'mindmap':
+        organizeMindMap();
+        break;
+    }
   };
 
   const theme = THEMES[currentTheme];
@@ -542,14 +729,52 @@ export const MindMapCreatorPanel = () => {
               <Plus className="w-4 h-4 mr-1" />
               Nó
             </Button>
-            <Button onClick={autoOrganize} size="sm" variant="outline">
-              <LayoutGrid className="w-4 h-4 mr-2" />
-              Organizar
-            </Button>
+            
+            {/* Organization Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline">
+                  <LayoutGrid className="w-4 h-4 mr-2" />
+                  Organizar
+                  <ChevronDown className="w-3 h-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={() => applyOrganization('radial')}>
+                  <Circle className="w-4 h-4 mr-2" />
+                  Radial (Circular)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => applyOrganization('horizontal')}>
+                  <ArrowRight className="w-4 h-4 mr-2" />
+                  Horizontal
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => applyOrganization('vertical')}>
+                  <GitBranch className="w-4 h-4 mr-2 rotate-180" />
+                  Vertical
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => applyOrganization('tree')}>
+                  <TreePine className="w-4 h-4 mr-2" />
+                  Árvore
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => applyOrganization('mindmap')}>
+                  <Brain className="w-4 h-4 mr-2" />
+                  Mapa Mental
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Button onClick={saveMap} size="sm" variant="secondary">
               <Save className="w-4 h-4 mr-2" />
               Salvar
             </Button>
+            
+            {currentMapId && (
+              <Button onClick={copyPresentationLink} size="sm" variant="outline" className="bg-green-500/10 border-green-500/30 text-green-500 hover:bg-green-500/20">
+                <Link2 className="w-4 h-4 mr-2" />
+                Link Apresentação
+                <Copy className="w-3 h-3 ml-1" />
+              </Button>
+            )}
           </div>
         </div>
 
@@ -579,7 +804,7 @@ export const MindMapCreatorPanel = () => {
         {/* Canvas */}
         <div
           ref={canvasRef}
-          className="relative w-full h-[500px] rounded-xl border-2 border-border overflow-hidden touch-none"
+          className="relative w-full h-[700px] rounded-xl border-2 border-border overflow-hidden touch-none"
           style={{ 
             backgroundColor: theme.bg,
             cursor: isPanning ? 'grabbing' : draggedNode ? 'move' : 'grab',
