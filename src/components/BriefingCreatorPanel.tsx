@@ -304,6 +304,8 @@ export function BriefingCreatorPanel() {
       setIsCreateDialogOpen(false);
       setEditingBriefing(null);
       setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', fields: [] });
+      setShowPrimaryColorPicker(false);
+      setShowSecondaryColorPicker(false);
       loadBriefings();
     } catch (error: any) {
       toast.error("Erro ao salvar briefing");
@@ -320,10 +322,14 @@ export function BriefingCreatorPanel() {
       secondary_color: (briefing as any).secondary_color || '#EC4899',
       fields: briefing.fields
     });
+    setShowPrimaryColorPicker(false);
+    setShowSecondaryColorPicker(false);
     setIsCreateDialogOpen(true);
   };
 
   const [deleteBriefingId, setDeleteBriefingId] = useState<string | null>(null);
+  const [showPrimaryColorPicker, setShowPrimaryColorPicker] = useState(false);
+  const [showSecondaryColorPicker, setShowSecondaryColorPicker] = useState(false);
 
   const handleDeleteBriefing = async () => {
     if (!deleteBriefingId) return;
@@ -398,6 +404,8 @@ export function BriefingCreatorPanel() {
             <Button className="gradient-primary shadow-glow" onClick={() => {
               setEditingBriefing(null);
               setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', fields: [] });
+              setShowPrimaryColorPicker(false);
+              setShowSecondaryColorPicker(false);
             }}>
               <Plus className="mr-2 h-4 w-4" />
               Criar Briefing
@@ -441,14 +449,14 @@ export function BriefingCreatorPanel() {
                       label="Logo da empresa"
                     />
                   </div>
-                  <div className="space-y-3">
+                    <div className="space-y-3">
                     <Label>Cores Personalizadas</Label>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="grid gap-2">
                         <Label className="text-sm">Cor Primária</Label>
-                        <Popover>
+                        <Popover open={showPrimaryColorPicker} onOpenChange={setShowPrimaryColorPicker}>
                           <PopoverTrigger asChild>
-                            <Button variant="outline" className="justify-start gap-2">
+                            <Button variant="outline" className="w-full justify-start gap-2">
                               <div 
                                 className="w-5 h-5 rounded border border-border" 
                                 style={{ backgroundColor: formData.primary_color }}
@@ -466,9 +474,9 @@ export function BriefingCreatorPanel() {
                       </div>
                       <div className="grid gap-2">
                         <Label className="text-sm">Cor Secundária</Label>
-                        <Popover>
+                        <Popover open={showSecondaryColorPicker} onOpenChange={setShowSecondaryColorPicker}>
                           <PopoverTrigger asChild>
-                            <Button variant="outline" className="justify-start gap-2">
+                            <Button variant="outline" className="w-full justify-start gap-2">
                               <div 
                                 className="w-5 h-5 rounded border border-border" 
                                 style={{ backgroundColor: formData.secondary_color }}
