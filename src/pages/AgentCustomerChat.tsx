@@ -20,6 +20,7 @@ import AgentOrderDialog from "@/components/AgentOrderDialog";
 import { chatSounds } from "@/utils/chatSounds";
 import { linkifyText } from "@/utils/linkify";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Message {
   id: string;
@@ -35,6 +36,7 @@ export default function AgentCustomerChat() {
   const { agentId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -914,7 +916,7 @@ export default function AgentCustomerChat() {
                   handleSendMessage();
                 }
               }}
-              className="flex items-end gap-2"
+              className={isMobile ? "flex flex-col gap-2" : "flex items-end gap-2"}
             >
               <input
                 ref={fileInputRef}
@@ -931,76 +933,82 @@ export default function AgentCustomerChat() {
                 onChange={handleDocumentSelect}
               />
               
-              <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="icon" type="button" className="h-11 w-11 md:h-10 md:w-10">
-                    <Smile className="w-5 h-5" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="start">
-                  <Picker 
-                    data={data} 
-                    onEmojiSelect={onEmojiSelect}
-                    theme="light"
-                    locale="pt"
-                  />
-                </PopoverContent>
-              </Popover>
+              {/* Primeira linha no mobile: Emoji, Imagem, Documento */}
+              <div className={isMobile ? "flex gap-2" : "contents"}>
+                <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="icon" type="button" className="h-11 w-11 md:h-10 md:w-10">
+                      <Smile className="w-5 h-5" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0" align="start">
+                    <Picker 
+                      data={data} 
+                      onEmojiSelect={onEmojiSelect}
+                      theme="light"
+                      locale="pt"
+                    />
+                  </PopoverContent>
+                </Popover>
 
-              <Button
-                variant="outline"
-                size="icon"
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadingMedia || !!selectedDocument}
-                className="h-11 w-11 md:h-10 md:w-10"
-              >
-                <ImagePlus className="w-5 h-5" />
-              </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingMedia || !!selectedDocument}
+                  className="h-11 w-11 md:h-10 md:w-10"
+                >
+                  <ImagePlus className="w-5 h-5" />
+                </Button>
 
-              <Button
-                variant="outline"
-                size="icon"
-                type="button"
-                onClick={() => docInputRef.current?.click()}
-                disabled={uploadingMedia || !!selectedImage}
-                className="h-11 w-11 md:h-10 md:w-10"
-              >
-                <FileText className="w-5 h-5" />
-              </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  type="button"
+                  onClick={() => docInputRef.current?.click()}
+                  disabled={uploadingMedia || !!selectedImage}
+                  className="h-11 w-11 md:h-10 md:w-10"
+                >
+                  <FileText className="w-5 h-5" />
+                </Button>
+              </div>
 
-              <textarea
-                value={input}
-                onChange={(e) => {
-                  const el = e.currentTarget;
-                  setInput(el.value);
-                  el.style.height = 'auto';
-                  el.style.height = Math.min(el.scrollHeight, 160) + 'px';
-                  if (el.value.length > input.length) {
-                    chatSounds.playTypingSound();
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if ((e.key === 'Enter' || e.key === 'NumpadEnter') && !e.shiftKey && !loading) {
-                    e.preventDefault();
-                    if (!uploadingMedia && (input.trim() || selectedImage || selectedDocument)) {
-                      handleSendMessage();
+              {/* Segunda linha no mobile: Textarea e Botão Enviar */}
+              <div className={isMobile ? "flex items-end gap-2" : "contents"}>
+                <textarea
+                  value={input}
+                  onChange={(e) => {
+                    const el = e.currentTarget;
+                    setInput(el.value);
+                    el.style.height = 'auto';
+                    el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+                    if (el.value.length > input.length) {
+                      chatSounds.playTypingSound();
                     }
-                  }
-                }}
-                placeholder="Digite sua mensagem..."
-                disabled={loading || uploadingMedia}
-                rows={1}
-                className="flex-1 resize-none rounded-md border border-input bg-background text-foreground px-4 py-3 md:py-2 leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/30 max-h-40"
-              />
+                  }}
+                  onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === 'NumpadEnter') && !e.shiftKey && !loading) {
+                      e.preventDefault();
+                      if (!uploadingMedia && (input.trim() || selectedImage || selectedDocument)) {
+                        handleSendMessage();
+                      }
+                    }
+                  }}
+                  placeholder="Digite sua mensagem..."
+                  disabled={loading || uploadingMedia}
+                  rows={1}
+                  className="flex-1 resize-none rounded-md border border-input bg-background text-foreground px-4 py-3 md:py-2 leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/30 max-h-40"
+                />
 
-              <Button 
-                type="submit"
-                disabled={loading || uploadingMedia || (!input.trim() && !selectedImage && !selectedDocument)}
-                className="h-11 w-11 md:h-10 md:w-10"
-              >
-                <Send className="w-5 h-5" />
-              </Button>
+                <Button 
+                  type="submit"
+                  disabled={loading || uploadingMedia || (!input.trim() && !selectedImage && !selectedDocument)}
+                  className="h-11 w-11 md:h-10 md:w-10"
+                >
+                  <Send className="w-5 h-5" />
+                </Button>
+              </div>
             </form>
           </div>
         </Card>
