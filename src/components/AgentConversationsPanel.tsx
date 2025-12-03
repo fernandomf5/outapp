@@ -37,6 +37,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   const [searchTerm, setSearchTerm] = useState("");
   const [newMessage, setNewMessage] = useState("");
   const [senderName, setSenderName] = useState("");
+  const [attendantStatus, setAttendantStatus] = useState<'online' | 'offline' | 'busy'>('offline');
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
@@ -53,11 +54,68 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Carregar nome salvo do localStorage
+  // Carregar nome e status salvos do localStorage e do banco
   useEffect(() => {
     const savedName = localStorage.getItem(`agent_sender_name_${agentId}`);
     if (savedName) setSenderName(savedName);
+    
+    // Carregar status do atendente do banco de dados
+    const loadAttendantStatus = async () => {
+      const { data: agent } = await supabase
+        .from('ai_agents')
+        .select('attendant_status, attendant_name')
+        .eq('id', agentId)
+        .single();
+      
+      if (agent) {
+        setAttendantStatus((agent.attendant_status as 'online' | 'offline' | 'busy') || 'offline');
+        if (agent.attendant_name && !savedName) {
+          setSenderName(agent.attendant_name);
+        }
+      }
+    };
+    
+    loadAttendantStatus();
   }, [agentId]);
+
+  // Função para atualizar status do atendente
+  const updateAttendantStatus = async (status: 'online' | 'offline' | 'busy') => {
+    setAttendantStatus(status);
+    
+    const { error } = await supabase
+      .from('ai_agents')
+      .update({ 
+        attendant_status: status,
+        attendant_name: senderName || null
+      })
+      .eq('id', agentId);
+    
+    if (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Status atualizado",
+        description: `Você está ${status === 'online' ? 'Online' : status === 'busy' ? 'Em Atendimento' : 'Offline'}`,
+      });
+    }
+  };
+
+  // Atualizar nome do atendente quando mudar
+  const handleSenderNameChange = (name: string) => {
+    setSenderName(name);
+    localStorage.setItem(`agent_sender_name_${agentId}`, name);
+    
+    // Atualizar no banco também
+    supabase
+      .from('ai_agents')
+      .update({ attendant_name: name || null })
+      .eq('id', agentId)
+      .then();
+  };
 
   useEffect(() => {
     loadConversations();
@@ -573,9 +631,39 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
   return (
     <>
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h3 className="text-2xl font-bold">Conversas</h3>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Status do Atendente */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Seu status:</span>
+              <Select value={attendantStatus} onValueChange={(v) => updateAttendantStatus(v as 'online' | 'offline' | 'busy')}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="online">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-green-500" />
+                      Online
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="busy">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-yellow-500" />
+                      Em Atendimento
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="offline">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-gray-400" />
+                      Offline
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
             {unreadCount > 0 && (
               <Badge variant="destructive" className="rounded-full">
                 {unreadCount} novas
@@ -831,7 +919,7 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                   <Input
                     placeholder="Seu nome"
                     value={senderName}
-                    onChange={(e) => setSenderName(e.target.value)}
+                    onChange={(e) => handleSenderNameChange(e.target.value)}
                     className="w-[200px]"
                   />
                 </div>

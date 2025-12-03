@@ -1218,6 +1218,8 @@ export type Database = {
       ai_agents: {
         Row: {
           access_type: string
+          attendant_name: string | null
+          attendant_status: string
           config: Json
           created_at: string
           description: string | null
@@ -1232,6 +1234,8 @@ export type Database = {
         }
         Insert: {
           access_type?: string
+          attendant_name?: string | null
+          attendant_status?: string
           config?: Json
           created_at?: string
           description?: string | null
@@ -1246,6 +1250,8 @@ export type Database = {
         }
         Update: {
           access_type?: string
+          attendant_name?: string | null
+          attendant_status?: string
           config?: Json
           created_at?: string
           description?: string | null
