@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Bot } from "lucide-react";
 import { SocialLinks } from "@/components/SocialLinks";
 import { useTheme } from "next-themes";
 
@@ -71,20 +70,19 @@ export const LandingFooter = ({ hideCustomPages = false }: { hideCustomPages?: b
     fetchData();
   }, []);
 
-  const currentLogo = resolvedTheme === 'dark' ? logoDarkUrl : logoLightUrl;
+  // Use dark logo as default (since defaultTheme is dark), then switch based on resolved theme
+  const currentLogo = resolvedTheme === 'light' ? logoLightUrl : logoDarkUrl;
+  const hasLogo = logoLightUrl || logoDarkUrl;
 
   return (
     <footer className="bg-muted/50 border-t">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="space-y-4">
-            {currentLogo ? (
-              <img src={currentLogo} alt={siteTitle} className="h-12 w-auto mb-4" />
+            {hasLogo ? (
+              <img src={currentLogo || logoDarkUrl || logoLightUrl} alt={siteTitle} className="h-12 w-auto mb-4" />
             ) : (
-              <div className="flex items-center gap-2 mb-4">
-                <Bot className="h-8 w-8 text-primary" />
-                <span className="font-bold text-xl">{siteTitle || "Automação"}</span>
-              </div>
+              <span className="font-bold text-xl">{siteTitle || "Automação"}</span>
             )}
             {footerText && (
               <p className="text-sm text-muted-foreground">{footerText}</p>
