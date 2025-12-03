@@ -209,6 +209,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const { agentId, customerId, conversationId, message } = await req.json();
@@ -308,29 +309,24 @@ REGRAS (siga rigorosamente):
 - Se não souber algo, diga "não tenho essa info" de forma natural
 - Para agendar/pedir: mencione os botões disponíveis no chat`;
 
-    console.log('Calling ChatGPT with system prompt length:', systemPrompt.length);
+    console.log('Calling AI with system prompt length:', systemPrompt.length);
 
-    // Call OpenAI ChatGPT
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      throw new Error('OPENAI_API_KEY não configurada');
-    }
-
-    const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call Lovable AI Gateway
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           ...conversationHistory,
           { role: 'user', content: message }
         ],
-        temperature: 0.9,
-        max_tokens: 100,
+        temperature: 0.8,
+        max_tokens: 150,
       }),
     });
 
