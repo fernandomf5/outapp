@@ -230,21 +230,14 @@ serve(async (req) => {
 
     console.log('Agent found:', agent.name, 'Niche:', agent.niche);
 
-    // Check if AI is enabled for this conversation
-    const { data: conversation } = await supabase
-      .from('agent_conversations')
-      .select('ai_enabled')
-      .eq('id', conversationId)
-      .single();
+    // Chat Online apenas - sem processamento de IA
+    // Mensagens são gerenciadas manualmente pelo atendente humano
+    console.log('Chat Online mode - AI processing disabled');
 
-    // If AI is disabled (human attendant is handling), skip AI processing
-    if (conversation && !conversation.ai_enabled) {
-      console.log('AI disabled for this conversation, skipping');
-      return new Response(
-        JSON.stringify({ response: '' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    return new Response(
+      JSON.stringify({ response: '' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
 
     // Get customer info
     const { data: customerRecord } = await supabase

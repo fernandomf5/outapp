@@ -100,8 +100,8 @@ serve(async (req) => {
     if (activeConv) {
       conversationId = activeConv.id;
     } else {
-      // Check if AI is enabled in agent config
-      const aiEnabled = agent.config?.aiEnabled !== false;
+      // Check if AI is enabled in agent config - always disabled now (chat only mode)
+      const aiEnabled = false;
       
       const { data: newConv, error: newConvError } = await supabase
         .from('agent_conversations')
