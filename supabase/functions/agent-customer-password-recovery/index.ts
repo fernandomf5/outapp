@@ -58,11 +58,11 @@ const handler = async (req: Request): Promise<Response> => {
         .eq("id", agentId)
         .single();
 
-      const resetUrl = `https://botrealszapp.com.br/agent-reset-password/${token}`;
+      const resetUrl = `https://outapp.com.br/agent-reset-password/${token}`;
 
       // Enviar email com link
       await resend.emails.send({
-        from: "Bot Reals Zapp <noreply@botrealszapp.com.br>",
+        from: "Out App <noreply@outapp.com.br>",
         to: [email],
         subject: `Redefinir senha - ${agent?.name || "Chat do Agente IA"}`,
         html: `

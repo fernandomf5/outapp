@@ -306,7 +306,7 @@ export default function Blog() {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>{settings?.site_name || 'Blog Bot Reals Zapp'}</title>
+        <title>{settings?.site_name || 'Blog Out App'}</title>
         <meta name="description" content={settings?.site_description || 'Notícias, atualizações e novidades'} />
       </Helmet>
 

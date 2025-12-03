@@ -31,15 +31,15 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
       'top-left': 'top: 20px; left: 20px;',
     };
 
-    return `<!-- Bot Reals Zap - Widget de Chat Online -->
-<div id="bot-reals-zap-widget">
+    return `<!-- Out App - Widget de Chat Online -->
+<div id="out-app-widget">
   <style>
-    #bot-reals-zap-widget * {
+    #out-app-widget * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
-    #bot-reals-zap-button {
+    #out-app-button {
       position: fixed !important;
       ${positionStyles[position]}
       width: 60px !important;
@@ -62,7 +62,7 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
       outline: none !important;
     }
     @media (max-width: 768px) {
-      #bot-reals-zap-button {
+      #out-app-button {
         width: 56px !important;
         height: 56px !important;
         min-width: 56px !important;
@@ -73,16 +73,16 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
         left: ${position.includes('left') ? '16px' : 'auto'} !important;
       }
     }
-    #bot-reals-zap-button:hover {
+    #out-app-button:hover {
       transform: scale(1.1) !important;
       box-shadow: 0 6px 20px rgba(0,0,0,0.2) !important;
     }
-    #bot-reals-zap-button svg {
+    #out-app-button svg {
       width: 30px !important;
       height: 30px !important;
       pointer-events: none !important;
     }
-    #bot-reals-zap-tooltip {
+    #out-app-tooltip {
       position: fixed !important;
       ${positionStyles[position]}
       ${position.includes('right') ? 'right: 90px !important;' : 'left: 90px !important;'}
@@ -100,15 +100,15 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
       transition: opacity 0.3s ease !important;
       max-width: calc(100vw - 120px) !important;
     }
-    #bot-reals-zap-button:hover + #bot-reals-zap-tooltip {
+    #out-app-button:hover + #out-app-tooltip {
       opacity: 1 !important;
     }
     @media (max-width: 768px) {
-      #bot-reals-zap-tooltip {
+      #out-app-tooltip {
         display: none !important;
       }
     }
-    #bot-reals-zap-iframe-container {
+    #out-app-iframe-container {
       display: none !important;
       position: fixed !important;
       ${positionStyles[position]}
@@ -122,11 +122,11 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
       overflow: hidden !important;
       background: white !important;
     }
-    #bot-reals-zap-iframe-container.open {
+    #out-app-iframe-container.open {
       display: block !important;
-      animation: botRealsZapSlideUp 0.3s ease !important;
+      animation: outAppSlideUp 0.3s ease !important;
     }
-    @keyframes botRealsZapSlideUp {
+    @keyframes outAppSlideUp {
       from {
         opacity: 0;
         transform: translateY(20px);
@@ -136,13 +136,13 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
         transform: translateY(0);
       }
     }
-    #bot-reals-zap-iframe {
+    #out-app-iframe {
       width: 100% !important;
       height: 100% !important;
       border: none !important;
       display: block !important;
     }
-    #bot-reals-zap-close {
+    #out-app-close {
       position: absolute !important;
       top: 10px !important;
       right: 10px !important;
@@ -161,14 +161,14 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
       font-family: inherit !important;
       outline: none !important;
     }
-    #bot-reals-zap-close:hover {
+    #out-app-close:hover {
       background: rgba(0,0,0,0.7) !important;
     }
-    #bot-reals-zap-close svg {
+    #out-app-close svg {
       pointer-events: none !important;
     }
     @media (max-width: 768px) {
-      #bot-reals-zap-iframe-container {
+      #out-app-iframe-container {
         width: 100vw !important;
         height: 100vh !important;
         max-width: 100vw !important;
@@ -182,13 +182,13 @@ export const ChatWidgetGenerator = ({ botId, type = 'chatbot' }: ChatWidgetGener
     }
   </style>
 
-  <a id="bot-reals-zap-button" href="${chatUrl}" target="_blank" rel="noopener noreferrer" aria-label="Abrir chat online">
+  <a id="out-app-button" href="${chatUrl}" target="_blank" rel="noopener noreferrer" aria-label="Abrir chat online">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
     </svg>
   </a>
   
-  <div id="bot-reals-zap-tooltip">${buttonText}</div>
+  <div id="out-app-tooltip">${buttonText}</div>
 
 
 </div>`;
