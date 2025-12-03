@@ -188,10 +188,6 @@ export const QuizCreatorPanel = () => {
 
       toast.success("Quiz criado com sucesso!");
       setIsAddDialogOpen(false);
-      // Abrir o quiz recém-criado para visualização
-      if (data?.id) {
-        navigate(`/quiz/${data.id}`);
-      }
       loadQuizzes();
       
       setFormData({
