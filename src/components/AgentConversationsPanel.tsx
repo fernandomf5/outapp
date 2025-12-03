@@ -21,7 +21,6 @@ interface Conversation {
   status: string;
   created_at: string;
   last_message_at: string;
-  ai_enabled?: boolean;
   agent_customers: {
     id: string;
     name: string;
@@ -422,9 +421,6 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
       // Salvar nome no localStorage
       localStorage.setItem(`agent_sender_name_${agentId}`, senderName);
 
-      // Verificar se AI está habilitada
-      const needsDisableAI = selectedConversation.ai_enabled;
-
       let mediaUrl = null;
       let mediaType = null;
 
@@ -471,28 +467,6 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
 
       if (msgError) throw msgError;
 
-      // Desabilitar IA automaticamente quando humano responde (apenas se ainda estiver habilitada)
-      if (needsDisableAI) {
-        const { error: convError } = await supabase
-          .from('agent_conversations')
-          .update({ ai_enabled: false })
-          .eq('id', selectedConversation.id);
-
-        if (convError) throw convError;
-
-        // Inserir mensagem de sistema informando "atendente humano" apenas 1 vez
-        await supabase
-          .from('agent_messages')
-          .insert({
-            conversation_id: selectedConversation.id,
-            role: 'agent',
-            content: '👤 Atendente humano assumiu a conversa',
-            sender_name: 'Sistema',
-          });
-
-        setSelectedConversation({ ...selectedConversation, ai_enabled: false });
-      }
-
       // Recarregar mensagens após insert para obter IDs corretos
       await loadMessages(selectedConversation.id);
 
@@ -501,7 +475,6 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
 
       toast({
         title: "Mensagem enviada",
-        description: needsDisableAI ? "Você assumiu o atendimento desta conversa. A IA foi desabilitada." : "Mensagem enviada com sucesso.",
       });
     } catch (error: any) {
       // Em caso de erro, recarregar mensagens para remover a temporária
@@ -515,49 +488,6 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
       });
     } finally {
       setUploadingMedia(false);
-    }
-  };
-
-  const handleToggleAI = async () => {
-    if (!selectedConversation) return;
-
-    try {
-      const newAiEnabled = !selectedConversation.ai_enabled;
-      
-      const { error } = await supabase
-        .from('agent_conversations')
-        .update({ ai_enabled: newAiEnabled })
-        .eq('id', selectedConversation.id);
-
-      if (error) throw error;
-
-      // Inserir mensagem de sistema
-      await supabase
-        .from('agent_messages')
-        .insert({
-          conversation_id: selectedConversation.id,
-          role: 'agent',
-          content: newAiEnabled 
-            ? '🤖 IA reativada. Respostas automáticas foram habilitadas novamente.' 
-            : '👤 IA desativada. Apenas atendimento humano.',
-          sender_name: 'Sistema',
-        });
-
-      setSelectedConversation({ ...selectedConversation, ai_enabled: newAiEnabled });
-      loadConversations();
-      
-      toast({
-        title: newAiEnabled ? "IA reativada" : "IA desativada",
-        description: newAiEnabled 
-          ? "O agente IA voltará a responder automaticamente." 
-          : "Apenas você poderá responder nesta conversa.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
     }
   };
 
@@ -780,25 +710,16 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                       <p className="text-sm text-muted-foreground">{selectedConversation.agent_customers.email}</p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant={selectedConversation.ai_enabled ? "destructive" : "default"}
-                      size="sm"
-                      onClick={handleToggleAI}
-                    >
-                      {selectedConversation.ai_enabled ? "🤖 Desativar IA" : "🤖 Ativar IA"}
-                    </Button>
-                    <Select value={selectedConversation.status} onValueChange={updateStatus}>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">Ativa</SelectItem>
-                        <SelectItem value="closed">Fechada</SelectItem>
-                        <SelectItem value="resolved">Resolvida</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <Select value={selectedConversation.status} onValueChange={updateStatus}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Ativa</SelectItem>
+                      <SelectItem value="closed">Fechada</SelectItem>
+                      <SelectItem value="resolved">Resolvida</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardHeader>
 
