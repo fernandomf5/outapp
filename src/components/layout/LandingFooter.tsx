@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Bot } from "lucide-react";
 import { SocialLinks } from "@/components/SocialLinks";
+import { useTheme } from "next-themes";
 
 
 interface CustomPageItem {
@@ -12,8 +13,10 @@ interface CustomPageItem {
 }
 
 export const LandingFooter = ({ hideCustomPages = false }: { hideCustomPages?: boolean }) => {
+  const { resolvedTheme } = useTheme();
   const [siteTitle, setSiteTitle] = useState("");
-  const [logoUrl, setLogoUrl] = useState("");
+  const [logoLightUrl, setLogoLightUrl] = useState("");
+  const [logoDarkUrl, setLogoDarkUrl] = useState("");
   const [footerText, setFooterText] = useState("");
   const [footerMenus, setFooterMenus] = useState<any[]>([]);
   const [footerImages, setFooterImages] = useState<string[]>([]);
@@ -31,7 +34,7 @@ export const LandingFooter = ({ hideCustomPages = false }: { hideCustomPages?: b
         supabase
           .from('site_settings')
           .select('key, value')
-          .in('key', ['site_title', 'site_logo_url', 'footer_text', 'footer_menus', 'footer_images', 'social_links'])
+          .in('key', ['site_title', 'site_logo_light_url', 'site_logo_dark_url', 'footer_text', 'footer_menus', 'footer_images', 'social_links'])
       ]);
 
       if (pagesRes.data) setFooterPages(pagesRes.data as CustomPageItem[]);
@@ -42,8 +45,11 @@ export const LandingFooter = ({ hideCustomPages = false }: { hideCustomPages?: b
             case 'site_title':
               setSiteTitle(item.value || 'Automação');
               break;
-            case 'site_logo_url':
-              setLogoUrl(item.value || '');
+            case 'site_logo_light_url':
+              setLogoLightUrl(item.value || '');
+              break;
+            case 'site_logo_dark_url':
+              setLogoDarkUrl(item.value || '');
               break;
             case 'footer_text':
               setFooterText(item.value || '');
@@ -65,13 +71,15 @@ export const LandingFooter = ({ hideCustomPages = false }: { hideCustomPages?: b
     fetchData();
   }, []);
 
+  const currentLogo = resolvedTheme === 'dark' ? logoDarkUrl : logoLightUrl;
+
   return (
     <footer className="bg-muted/50 border-t">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="space-y-4">
-            {logoUrl ? (
-              <img src={logoUrl} alt={siteTitle} className="h-12 w-auto mb-4" />
+            {currentLogo ? (
+              <img src={currentLogo} alt={siteTitle} className="h-12 w-auto mb-4" />
             ) : (
               <div className="flex items-center gap-2 mb-4">
                 <Bot className="h-8 w-8 text-primary" />
