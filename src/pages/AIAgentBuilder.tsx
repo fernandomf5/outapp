@@ -11,22 +11,13 @@ import { useAIAgent } from "@/hooks/useAIAgent";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft,
-  Sparkles,
+  MessageSquare,
   Save,
   Play,
-  Target,
-  Settings2,
-  Code2,
   Link2,
   Power,
-  Brain,
-  BookOpen,
 } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { nicheConfigs } from "@/data/nicheConfigs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
@@ -39,44 +30,21 @@ const AIAgentBuilder = () => {
   
   const { saveAgent, loadAgent } = useAIAgent();
   
-  const [agentName, setAgentName] = useState("Novo Agente IA");
-  const [selectedNiche, setSelectedNiche] = useState<string>("");
-  const [nicheData, setNicheData] = useState<Record<string, string>>({});
-  const [personality, setPersonality] = useState({
-    tone: "friendly",
-    formality: 50,
-    proactivity: 70,
-    empathy: 80,
-  });
-  const [knowledge, setKnowledge] = useState("");
+  const [agentName, setAgentName] = useState("Novo Chat");
   const [welcomeMessage, setWelcomeMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isActive, setIsActive] = useState(true);
-  const [aiEnabled, setAiEnabled] = useState(true);
-  const [nicheSearch, setNicheSearch] = useState("");
   const [accessType, setAccessType] = useState<'public' | 'private' | 'anonymous'>('public');
   const [originalAccessType, setOriginalAccessType] = useState<'public' | 'private' | 'anonymous'>('public');
   const [showAccessChangeDialog, setShowAccessChangeDialog] = useState(false);
   const [pendingAccessType, setPendingAccessType] = useState<'public' | 'private' | 'anonymous' | null>(null);
 
-  const currentNiche = nicheConfigs.find(n => n.id === selectedNiche);
-  const filteredNiches = nicheSearch
-    ? nicheConfigs.filter(n => 
-        n.name.toLowerCase().includes(nicheSearch.toLowerCase())
-      )
-    : nicheConfigs;
-
   useEffect(() => {
     if (agentId && user) {
       loadAgent(agentId).then(agent => {
         setAgentName(agent.name);
-        setSelectedNiche(agent.niche);
-        setNicheData(agent.training_data?.nicheData || {});
-        setPersonality(agent.config?.personality || personality);
-        setKnowledge(agent.training_data?.knowledge || "");
-        setWelcomeMessage(agent.config?.welcomeMessage || welcomeMessage);
+        setWelcomeMessage(agent.config?.welcomeMessage || "");
         setIsActive(agent.is_active);
-        setAiEnabled(agent.config?.aiEnabled !== undefined ? agent.config.aiEnabled : true);
         const at = (agent as any).access_type || 'public';
         const normalizedAt = at === 'restricted' ? 'private' : at;
         setAccessType(normalizedAt);
@@ -84,10 +52,6 @@ const AIAgentBuilder = () => {
       }).catch(console.error);
     }
   }, [agentId, user]);
-
-  const handleNicheDataChange = (field: string, value: string) => {
-    setNicheData({ ...nicheData, [field]: value });
-  };
 
   const handleAccessTypeChange = (value: 'public' | 'private' | 'anonymous') => {
     if (agentId && value !== originalAccessType) {
@@ -102,13 +66,11 @@ const AIAgentBuilder = () => {
     if (!pendingAccessType || !agentId) return;
 
     try {
-      // Excluir todos os customers
       await supabase
         .from('agent_customers')
         .delete()
         .eq('agent_id', agentId);
 
-      // Excluir todos os access requests
       await supabase
         .from('agent_access_requests')
         .delete()
@@ -141,31 +103,17 @@ const AIAgentBuilder = () => {
   const handleSave = async () => {
     if (!user) return;
     
-    // Validar nicho apenas se o agente IA estiver ativo
-    if (aiEnabled && !selectedNiche) {
-      toast({
-        title: "Nicho obrigatório",
-        description: "Selecione um nicho para seu agente IA.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     setIsSaving(true);
     try {
       const agentData = {
         id: agentId || undefined,
         name: agentName,
-        niche: selectedNiche,
+        niche: 'chat', // default niche for chat only
         config: {
-          personality,
           welcomeMessage,
-          aiEnabled,
+          aiEnabled: false, // AI always disabled
         },
-        training_data: {
-          nicheData,
-          knowledge,
-        },
+        training_data: {},
         is_active: isActive,
         access_type: accessType,
       };
@@ -186,7 +134,7 @@ const AIAgentBuilder = () => {
     if (!agentId) {
       toast({
         title: "Salve primeiro! 💾",
-        description: "Você precisa salvar o agente antes de gerar o link.",
+        description: "Você precisa salvar o chat antes de gerar o link.",
         variant: "destructive",
       });
       return;
@@ -196,7 +144,7 @@ const AIAgentBuilder = () => {
     navigator.clipboard.writeText(link);
     toast({
       title: "Link copiado! 🔗",
-      description: "O link do agente foi copiado para a área de transferência.",
+      description: "O link do chat foi copiado para a área de transferência.",
     });
   };
 
@@ -204,7 +152,7 @@ const AIAgentBuilder = () => {
     if (!agentId) {
       toast({
         title: "Salve primeiro! 💾",
-        description: "Você precisa salvar o agente antes de testar.",
+        description: "Você precisa salvar o chat antes de testar.",
         variant: "destructive",
       });
       return;
@@ -224,8 +172,8 @@ const AIAgentBuilder = () => {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="bg-primary/10 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium text-primary flex items-center gap-2">
-              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
-              Agente IA
+              <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
+              Chat Online
             </div>
           </div>
 
@@ -268,11 +216,11 @@ const AIAgentBuilder = () => {
             <Button 
               onClick={handleSave} 
               className="bg-primary hover:bg-primary/90 shrink-0"
-              disabled={isSaving || (aiEnabled && !selectedNiche) || !agentName.trim()}
+              disabled={isSaving || !agentName.trim()}
               size="sm"
             >
               <Save className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
-              {isSaving ? "Salvando..." : agentId ? "Salvar" : "Salvar"}
+              {isSaving ? "Salvando..." : "Salvar"}
             </Button>
           </div>
         </div>
@@ -280,19 +228,19 @@ const AIAgentBuilder = () => {
 
       <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
         <div className="space-y-4 sm:space-y-6">
-          {/* Nome do Agente - Destaque */}
+          {/* Nome do Chat - Destaque */}
           <Card className="p-4 sm:p-8 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
             <div className="max-w-2xl space-y-6">
               <div>
-                <Label className="text-base sm:text-lg font-semibold mb-3 block">Nome do Atendente ou Agente</Label>
+                <Label className="text-base sm:text-lg font-semibold mb-3 block">Nome do Chat</Label>
                 <Input
                   value={agentName}
                   onChange={(e) => setAgentName(e.target.value)}
-                  placeholder="Digite o nome do seu agente IA..."
+                  placeholder="Digite o nome do seu chat online..."
                   className="text-lg sm:text-2xl font-bold h-12 sm:h-14 bg-background"
                 />
                 <p className="text-xs sm:text-sm text-muted-foreground mt-2">
-                  Escolha um nome que represente bem o seu agente de atendimento
+                  Escolha um nome que represente bem o seu chat de atendimento
                 </p>
               </div>
 
@@ -307,29 +255,6 @@ const AIAgentBuilder = () => {
                 />
                 <p className="text-xs sm:text-sm text-muted-foreground mt-2">
                   Esta mensagem será exibida quando o cliente iniciar uma conversa
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          {/* Modo de Operação */}
-          <Card className="p-4 sm:p-6 border-primary/20">
-            <div className="max-w-2xl">
-              <Label className="text-base sm:text-lg font-semibold mb-3 block">Modo de Operação</Label>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <p className="font-semibold">🤖 Ativar Agente IA</p>
-                    <p className="text-sm text-muted-foreground">Respostas automáticas com inteligência artificial</p>
-                  </div>
-                  <Switch
-                    id="ai-agent-switch"
-                    checked={aiEnabled}
-                    onCheckedChange={setAiEnabled}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground px-4">
-                  Ao desativar o Agente IA, o sistema funcionará apenas como Chat Online
                 </p>
               </div>
             </div>
@@ -368,282 +293,11 @@ const AIAgentBuilder = () => {
                 {accessType === 'anonymous' 
                   ? '⚡ Usuários entram direto no chat sem precisar se cadastrar ou fazer login'
                   : accessType === 'public' 
-                    ? '✓ Usuários podem se cadastrar e usar o agente livremente'
-                    : '🔐 Você precisará aprovar cada solicitação de acesso individualmente (ideal para produtos digitais)'}
+                    ? '✓ Usuários podem se cadastrar e usar o chat livremente'
+                    : '🔐 Você precisará aprovar cada solicitação de acesso individualmente'}
               </p>
             </div>
           </Card>
-
-          {!agentId ? (
-            /* Seleção de Nicho - Criação inicial */
-            <Card className="p-4 sm:p-6">
-              <h2 className="text-xl sm:text-2xl font-bold mb-4 flex items-center gap-2">
-                <Target className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-                Escolha o Nicho do seu Agente IA
-              </h2>
-              <p className="text-sm sm:text-base text-muted-foreground mb-6">
-                Selecione o segmento do seu negócio para personalizar o agente com perguntas específicas
-              </p>
-
-              <div className="mb-6">
-                <Input
-                  placeholder="🔍 Pesquisar nichos..."
-                  value={nicheSearch}
-                  onChange={(e) => setNicheSearch(e.target.value)}
-                  className="max-w-md"
-                />
-              </div>
-
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                {filteredNiches.map((niche) => {
-                  const Icon = niche.icon;
-                  return (
-                    <Card
-                      key={niche.id}
-                      className={`p-4 cursor-pointer transition-all hover:shadow-lg ${
-                        selectedNiche === niche.id
-                          ? "border-primary bg-primary/5"
-                          : "hover:border-primary/50"
-                      }`}
-                      onClick={() => setSelectedNiche(niche.id)}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="bg-primary/10 p-3 rounded-xl">
-                          <Icon className="w-6 h-6 text-primary" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold mb-1">{niche.name}</h3>
-                          <p className="text-xs text-muted-foreground">
-                            {niche.questions.length} perguntas personalizadas
-                          </p>
-                        </div>
-                      </div>
-                    </Card>
-                  );
-                })}
-              </div>
-
-              {currentNiche && (
-                <div className="space-y-6 animate-fade-in">
-                  <div className="bg-primary/5 p-6 rounded-xl border border-primary/20">
-                    <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                      <Settings2 className="w-5 h-5 text-primary" />
-                      Configuração: {currentNiche.name}
-                    </h3>
-                    <div className="space-y-4">
-                      {currentNiche.questions.map((q) => (
-                        <div key={q.field}>
-                          <Label className="mb-2">{q.label}</Label>
-                          <Textarea
-                            placeholder={q.placeholder}
-                            value={nicheData[q.field] || ""}
-                            onChange={(e) => handleNicheDataChange(q.field, e.target.value)}
-                            rows={3}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </Card>
-          ) : (
-            /* Tabs para agente já salvo - Treinar e Base de Conhecimento */
-            <Tabs defaultValue="niche" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="niche" className="flex items-center gap-2">
-                  <Target className="w-4 h-4" />
-                  Nicho
-                </TabsTrigger>
-                <TabsTrigger value="personality" className="flex items-center gap-2">
-                  <Brain className="w-4 h-4" />
-                  Treinar Agente
-                </TabsTrigger>
-                <TabsTrigger value="knowledge" className="flex items-center gap-2">
-                  <BookOpen className="w-4 h-4" />
-                  Base de Conhecimento
-                </TabsTrigger>
-              </TabsList>
-
-              {/* Nicho */}
-              <TabsContent value="niche" className="space-y-6">
-                <Card className="p-6">
-                  <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                    <Target className="w-6 h-6 text-primary" />
-                    Nicho do Agente
-                  </h2>
-                  <p className="text-muted-foreground mb-6">
-                    Segmento do seu negócio
-                  </p>
-
-                  <div className="mb-6">
-                    <Input
-                      placeholder="🔍 Pesquisar nichos..."
-                      value={nicheSearch}
-                      onChange={(e) => setNicheSearch(e.target.value)}
-                      className="max-w-md"
-                    />
-                  </div>
-
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                    {filteredNiches.map((niche) => {
-                      const Icon = niche.icon;
-                      return (
-                        <Card
-                          key={niche.id}
-                          className={`p-4 cursor-pointer transition-all hover:shadow-lg ${
-                            selectedNiche === niche.id
-                              ? "border-primary bg-primary/5"
-                              : "hover:border-primary/50"
-                          }`}
-                          onClick={() => setSelectedNiche(niche.id)}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="bg-primary/10 p-3 rounded-xl">
-                              <Icon className="w-6 h-6 text-primary" />
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-semibold mb-1">{niche.name}</h3>
-                              <p className="text-xs text-muted-foreground">
-                                {niche.questions.length} perguntas personalizadas
-                              </p>
-                            </div>
-                          </div>
-                        </Card>
-                      );
-                    })}
-                  </div>
-
-                  {currentNiche && (
-                    <div className="space-y-6 animate-fade-in">
-                      <div className="bg-primary/5 p-6 rounded-xl border border-primary/20">
-                        <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                          <Settings2 className="w-5 h-5 text-primary" />
-                          Configuração: {currentNiche.name}
-                        </h3>
-                        <div className="space-y-4">
-                          {currentNiche.questions.map((q) => (
-                            <div key={q.field}>
-                              <Label className="mb-2">{q.label}</Label>
-                              <Textarea
-                                placeholder={q.placeholder}
-                                value={nicheData[q.field] || ""}
-                                onChange={(e) => handleNicheDataChange(q.field, e.target.value)}
-                                rows={3}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </Card>
-              </TabsContent>
-
-              {/* Treinar Agente (Personalidade) */}
-              <TabsContent value="personality" className="space-y-6">
-                <Card className="p-6">
-                  <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                    <Brain className="w-6 h-6 text-primary" />
-                    Treinar a Personalidade do Agente
-                  </h2>
-                  <p className="text-muted-foreground mb-6">
-                    Defina como seu agente IA deve se comunicar com os clientes
-                  </p>
-
-                  <div className="space-y-8">
-                    <div>
-                      <Label className="mb-3 block">Tom de Voz</Label>
-                      <Select value={personality.tone} onValueChange={(v) => setPersonality({...personality, tone: v})}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="friendly">Amigável e Casual</SelectItem>
-                          <SelectItem value="professional">Profissional</SelectItem>
-                          <SelectItem value="enthusiastic">Entusiasmado</SelectItem>
-                          <SelectItem value="calm">Calmo e Sereno</SelectItem>
-                          <SelectItem value="humorous">Com Humor</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label className="mb-3 block">Nível de Formalidade: {personality.formality}%</Label>
-                      <Slider
-                        value={[personality.formality]}
-                        onValueChange={(v) => setPersonality({...personality, formality: v[0]})}
-                        max={100}
-                        step={10}
-                        className="mb-2"
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>Informal</span>
-                        <span>Formal</span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label className="mb-3 block">Proatividade: {personality.proactivity}%</Label>
-                      <Slider
-                        value={[personality.proactivity]}
-                        onValueChange={(v) => setPersonality({...personality, proactivity: v[0]})}
-                        max={100}
-                        step={10}
-                        className="mb-2"
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>Aguarda perguntas</span>
-                        <span>Oferece ajuda ativamente</span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label className="mb-3 block">Empatia: {personality.empathy}%</Label>
-                      <Slider
-                        value={[personality.empathy]}
-                        onValueChange={(v) => setPersonality({...personality, empathy: v[0]})}
-                        max={100}
-                        step={10}
-                        className="mb-2"
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>Objetivo</span>
-                        <span>Empático</span>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              </TabsContent>
-
-              {/* Base de Conhecimento */}
-              <TabsContent value="knowledge" className="space-y-6">
-                <Card className="p-6">
-                  <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                    <BookOpen className="w-6 h-6 text-primary" />
-                    Base de Conhecimento do Agente
-                  </h2>
-                  <p className="text-muted-foreground mb-6">
-                    Adicione informações detalhadas que o agente deve conhecer para responder melhor
-                  </p>
-
-                  <div>
-                    <Label className="mb-3 block">Conhecimento Especializado</Label>
-                    <Textarea
-                      placeholder="Adicione aqui informações detalhadas sobre seus produtos, serviços, políticas, FAQs, etc. Quanto mais informação você fornecer, mais preciso será o agente."
-                      value={knowledge}
-                      onChange={(e) => setKnowledge(e.target.value)}
-                      rows={15}
-                      className="font-mono text-sm"
-                    />
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Dica: Forneça informações em formato de perguntas e respostas, listas ou parágrafos descritivos.
-                    </p>
-                  </div>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          )}
         </div>
       </div>
 

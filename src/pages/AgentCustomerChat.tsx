@@ -530,42 +530,7 @@ export default function AgentCustomerChat() {
         media_type: mediaType,
       });
 
-      // Process message via edge function (handles AI response) if there's text
-      if (originalInput.trim()) {
-        const { data, error } = await supabase.functions.invoke('process-agent-customer-message', {
-          body: {
-            agentId,
-            customerId: customer.id,
-            conversationId,
-            message: originalInput,
-          }
-        });
-
-        if (error) {
-          let errorMessage = "Não foi possível processar sua mensagem";
-          if (error.message) {
-            errorMessage = error.message.includes("non-2xx") 
-              ? "Serviço temporariamente indisponível. Tente novamente em alguns instantes."
-              : error.message;
-          }
-          throw new Error(errorMessage);
-        }
-
-        // Show notifications for appointments/orders
-        if (data?.appointment) {
-          toast({
-            title: "Agendamento criado! 📅",
-            description: `${data.appointment.service_name} - ${new Date(data.appointment.scheduled_date).toLocaleString()}`,
-          });
-        }
-
-        if (data?.order) {
-          toast({
-            title: "Pedido criado! 🛍️",
-            description: `Pedido #${data.order.order_number} - R$ ${data.order.total_amount}`,
-          });
-        }
-      }
+      // Mensagem enviada com sucesso (sem processamento de IA)
     } catch (error: any) {
       toast({
         title: "Erro",
