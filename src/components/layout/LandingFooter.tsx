@@ -120,18 +120,6 @@ export const LandingFooter = ({ hideCustomPages = false }: { hideCustomPages?: b
             </div>
           ))}
         </div>
-        {footerImages.length > 0 && (
-          <div className="flex items-center justify-center gap-8 py-6 border-t">
-            {footerImages.map((img, index) => (
-              <img 
-                key={index} 
-                src={img} 
-                alt={`Partner ${index + 1}`}
-                className="h-12 w-auto opacity-70 hover:opacity-100 transition-opacity"
-              />
-            ))}
-          </div>
-        )}
         <div className="pt-8 border-t text-center">
           <p className="text-sm text-muted-foreground">
             {footerText || `© ${new Date().getFullYear()} ${siteTitle || 'Automação'}. Todos os direitos reservados.`}
