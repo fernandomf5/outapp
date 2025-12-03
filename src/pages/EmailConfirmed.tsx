@@ -8,7 +8,7 @@ const EmailConfirmed = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = "Email confirmado | Bot Reals Zapp";
+    document.title = "Email confirmado | Out App";
     const meta = document.querySelector('meta[name="description"]');
     if (meta) meta.setAttribute('content', 'Confirmação de email concluída. Você já pode fazer login na sua conta.');
   }, []);
