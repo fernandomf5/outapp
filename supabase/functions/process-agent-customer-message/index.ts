@@ -78,19 +78,18 @@ serve(async (req) => {
       content: m.content
     }));
 
-    // Enhanced system prompt
+    // Enhanced system prompt - RESPOSTAS CURTAS E DIRETAS
     const systemPrompt = `Você é um assistente virtual especializado em ${agent.niche}.
 Nome do cliente: ${customerSafe.name}
-Email: ${customerSafe.email}
-${customerSafe.phone ? `Telefone: ${customerSafe.phone}` : ''}
 
 ${agent.training_data?.knowledge || ''}
 
-IMPORTANTE:
-O cliente pode fazer agendamentos e pedidos através de botões específicos no chat.
-Quando o cliente perguntar sobre serviços, produtos, agendamentos ou pedidos, informe de forma amigável que ele pode usar os botões "Agendar" ou "Fazer Pedido" disponíveis no chat.
-
-Seja profissional, atencioso e eficiente nas respostas.`;
+REGRAS OBRIGATÓRIAS:
+1. RESPOSTAS CURTAS: Máximo 2-3 frases por resposta. Seja direto e objetivo.
+2. NÃO use textos longos ou explicações extensas.
+3. Para agendamentos/pedidos: informe sobre os botões "Agendar" ou "Fazer Pedido" no chat.
+4. Seja simpático mas conciso.
+5. NUNCA escreva parágrafos longos.`;
 
     // Call AI
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
