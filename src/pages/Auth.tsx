@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Bot, Zap, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Bot, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
@@ -65,12 +65,13 @@ const Auth = () => {
     const loadLogo = async () => {
       const { data } = await supabase
         .from('site_settings')
-        .select('value')
-        .eq('key', 'site_logo_url')
-        .maybeSingle();
+        .select('key, value')
+        .in('key', ['site_logo_dark_url', 'site_logo_url'])
       
-      if (data?.value) {
-        setLogoUrl(data.value);
+      if (data) {
+        const darkLogo = data.find(d => d.key === 'site_logo_dark_url')?.value;
+        const defaultLogo = data.find(d => d.key === 'site_logo_url')?.value;
+        setLogoUrl(darkLogo || defaultLogo || '');
       }
     };
     loadLogo();
@@ -257,70 +258,21 @@ const Auth = () => {
         <div className="absolute bottom-20 right-10 w-72 h-72 sm:w-96 sm:h-96 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
       </div>
 
-      <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 items-center relative z-10">
-        {/* Logo e Descrição - Apenas Desktop */}
-        <div className="hidden md:block text-white space-y-6 px-0">
-          <div className="flex items-center gap-3 mb-8 animate-fade-in">
-            <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl shadow-glow">
-              {logoUrl ? (
-                <img src={logoUrl} alt="Logo" className="w-12 h-12 object-contain" />
-              ) : (
-                <Bot className="w-12 h-12" />
-              )}
-            </div>
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold">Out App</h1>
-              <p className="text-lg md:text-xl text-white/90">Marketing Inteligente</p>
-            </div>
+      <div className="w-full max-w-md flex flex-col items-center relative z-10">
+        {/* Logo no topo */}
+        <div className="flex flex-col items-center gap-3 mb-8 animate-fade-in">
+          <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl shadow-glow">
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" className="w-16 h-16 object-contain" />
+            ) : (
+              <Bot className="w-16 h-16 text-white" />
+            )}
           </div>
-          
-          <div className="space-y-4">
-            <div className="flex items-start gap-3 glass p-5 rounded-xl hover-scale transition-smooth animate-fade-in bg-white/90">
-              <div className="bg-primary/20 p-2 rounded-lg">
-                <Bot className="w-6 h-6 flex-shrink-0 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-1 text-gray-900">Chatbots e Agentes IA</h3>
-                <p className="text-gray-800 text-sm">Crie assistentes virtuais inteligentes e automatizados</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3 glass p-5 rounded-xl hover-scale transition-smooth animate-fade-in bg-white/90" style={{ animationDelay: '0.1s' }}>
-              <div className="bg-primary/20 p-2 rounded-lg">
-                <Zap className="w-6 h-6 flex-shrink-0 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-1 text-gray-900">CRM e Automação Completa</h3>
-                <p className="text-gray-800 text-sm">Gerencie leads, afiliados, pixels e muito mais</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3 glass p-5 rounded-xl hover-scale transition-smooth animate-fade-in bg-white/90" style={{ animationDelay: '0.2s' }}>
-              <div className="bg-primary/20 p-2 rounded-lg">
-                <Zap className="w-6 h-6 flex-shrink-0 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-1 text-gray-900">3 Dias Grátis</h3>
-                <p className="text-gray-800 text-sm">Teste todas as funcionalidades sem compromisso</p>
-              </div>
-            </div>
-          </div>
+          <h1 className="text-3xl md:text-4xl font-bold text-white">Out App</h1>
         </div>
 
         {/* Formulário de Auth */}
         <Card className="w-full p-6 sm:p-8 md:p-10 shadow-2xl backdrop-blur-sm bg-card/95 border-white/10 animate-scale-in">
-          {/* Logo Mobile - Aparece apenas no mobile */}
-          <div className="md:hidden flex items-center justify-center gap-2 mb-6">
-            <div className="bg-primary/10 p-2 rounded-lg">
-              {logoUrl ? (
-                <img src={logoUrl} alt="Logo" className="w-8 h-8 object-contain" />
-              ) : (
-                <Bot className="w-8 h-8 text-primary" />
-              )}
-            </div>
-            <span className="text-xl font-bold">Out App</span>
-          </div>
-          
           <div className="mb-6 sm:mb-8 text-center">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2">
               {isLogin ? "Bem-vindo de volta!" : "Crie sua conta"}
