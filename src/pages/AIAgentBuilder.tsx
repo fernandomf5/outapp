@@ -15,10 +15,9 @@ import {
   Save,
   Play,
   Link2,
-  Power,
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const AIAgentBuilder = () => {
@@ -33,7 +32,6 @@ const AIAgentBuilder = () => {
   const [agentName, setAgentName] = useState("Novo Chat");
   const [welcomeMessage, setWelcomeMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const [isActive, setIsActive] = useState(true);
   const [accessType, setAccessType] = useState<'public' | 'anonymous'>('public');
   const [originalAccessType, setOriginalAccessType] = useState<'public' | 'anonymous'>('public');
   const [showAccessChangeDialog, setShowAccessChangeDialog] = useState(false);
@@ -44,7 +42,6 @@ const AIAgentBuilder = () => {
       loadAgent(agentId).then(agent => {
         setAgentName(agent.name);
         setWelcomeMessage(agent.config?.welcomeMessage || "");
-        setIsActive(agent.is_active);
         const at = (agent as any).access_type || 'public';
         const normalizedAt = at === 'restricted' ? 'private' : at;
         setAccessType(normalizedAt);
@@ -114,7 +111,7 @@ const AIAgentBuilder = () => {
           aiEnabled: false, // AI always disabled
         },
         training_data: {},
-        is_active: isActive,
+        is_active: true,
         access_type: accessType,
       };
 
@@ -180,19 +177,6 @@ const AIAgentBuilder = () => {
           <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
             {agentId && (
               <>
-                <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-border bg-card shrink-0">
-                  <Label htmlFor="active-switch" className="">
-                    <Power className="w-3 h-3 sm:w-4 sm:h-4" />
-                  </Label>
-                  <Switch
-                    id="active-switch"
-                    checked={isActive}
-                    onCheckedChange={setIsActive}
-                  />
-                  <span className="text-xs sm:text-sm font-medium hidden sm:inline">
-                    {isActive ? 'Ativo' : 'Inativo'}
-                  </span>
-                </div>
                 <Button 
                   variant="outline" 
                   onClick={handleCopyLink}

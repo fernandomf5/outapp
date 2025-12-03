@@ -263,10 +263,7 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
               </p>
             )}
 
-            <div className="flex items-center justify-between text-sm mb-4">
-              <span className={`px-2 py-1 rounded-full ${agent.is_active ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}`}>
-                {agent.is_active ? t('chatbot_active') : t('chatbot_inactive')}
-              </span>
+            <div className="flex items-center justify-end text-sm mb-4">
               <span className="text-muted-foreground">
                 {new Date(agent.created_at).toLocaleDateString('pt-BR')}
               </span>
