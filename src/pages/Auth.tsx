@@ -181,7 +181,7 @@ const Auth = () => {
         return;
       }
 
-      showMessage("Login realizado! ✅", "Bem-vindo de volta ao Bot Reals Zapp.", "success");
+      showMessage("Login realizado! ✅", "Bem-vindo de volta ao Out App.", "success");
     }
   };
 
@@ -209,7 +209,7 @@ const Auth = () => {
           setShow2FA(false);
           toast({
             title: "Login realizado com sucesso! 🎉",
-            description: "Bem-vindo ao Bot Reals Zapp.",
+            description: "Bem-vindo ao Out App.",
           });
           navigate("/dashboard");
         }}
@@ -269,7 +269,7 @@ const Auth = () => {
               )}
             </div>
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold">Bot Reals Zapp</h1>
+              <h1 className="text-4xl md:text-5xl font-bold">Out App</h1>
               <p className="text-lg md:text-xl text-white/90">Marketing Inteligente</p>
             </div>
           </div>
@@ -318,7 +318,7 @@ const Auth = () => {
                 <Bot className="w-8 h-8 text-primary" />
               )}
             </div>
-            <span className="text-xl font-bold">Bot Reals Zapp</span>
+            <span className="text-xl font-bold">Out App</span>
           </div>
           
           <div className="mb-6 sm:mb-8 text-center">

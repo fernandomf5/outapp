@@ -106,7 +106,7 @@ export function UserSidebar() {
       <div className="flex items-center justify-center p-4 border-b border-border">
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <Bot className="w-8 h-8 text-primary" />
-          {!collapsed && <span className="font-bold text-lg">Bot Reals Zapp</span>}
+          {!collapsed && <span className="font-bold text-lg">Out App</span>}
         </Link>
       </div>
       
