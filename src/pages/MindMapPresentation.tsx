@@ -205,10 +205,22 @@ export default function MindMapPresentation() {
 
   const theme = THEMES[map.theme as keyof typeof THEMES] || THEMES.default;
 
+  // Check if a node is visible (not hidden by collapsed parent)
+  const isNodeVisible = (node: MindMapNode): boolean => {
+    if (!node.parentId) return true;
+    const parent = nodes.find(n => n.id === node.parentId);
+    if (!parent) return true;
+    if (parent.collapsed) return false;
+    return isNodeVisible(parent);
+  };
+
   const renderConnections = () => {
     return nodes.filter(n => n.parentId).map(node => {
       const parent = nodes.find(p => p.id === node.parentId);
       if (!parent) return null;
+
+      // Hide connection if child node is not visible (parent is collapsed)
+      if (!isNodeVisible(node)) return null;
 
       const x1 = parent.x;
       const y1 = parent.y;
@@ -327,22 +339,7 @@ export default function MindMapPresentation() {
           </svg>
 
           {/* Nodes */}
-          {nodes.filter(node => {
-            // Check if node is visible (not collapsed by parent)
-            if (!node.parentId) return true;
-            const parent = nodes.find(n => n.id === node.parentId);
-            if (!parent) return true;
-            if (parent.collapsed) return false;
-            // Check recursively up the tree
-            const checkParent = (parentNode: MindMapNode): boolean => {
-              if (!parentNode.parentId) return true;
-              const grandParent = nodes.find(n => n.id === parentNode.parentId);
-              if (!grandParent) return true;
-              if (grandParent.collapsed) return false;
-              return checkParent(grandParent);
-            };
-            return checkParent(parent);
-          }).map(node => {
+          {nodes.filter(node => isNodeVisible(node)).map(node => {
             const sizeClasses = getNodeSizeClasses(node.size, node.isRoot);
             const childCount = getDirectChildCount(node.id);
             return (
