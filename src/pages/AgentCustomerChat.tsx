@@ -68,6 +68,8 @@ export default function AgentCustomerChat() {
   const [selectedDocument, setSelectedDocument] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [attendantStatus, setAttendantStatus] = useState<'online' | 'offline' | 'busy'>('offline');
+  const [attendantName, setAttendantName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
 
@@ -130,6 +132,37 @@ export default function AgentCustomerChat() {
       };
     }
   }, [conversationId]);
+
+  // Subscribe to attendant status changes
+  useEffect(() => {
+    if (!agentId) return;
+
+    const channel = supabase
+      .channel(`agent-status-${agentId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'ai_agents',
+          filter: `id=eq.${agentId}`,
+        },
+        (payload) => {
+          const agent = payload.new as any;
+          if (agent.attendant_status) {
+            setAttendantStatus(agent.attendant_status);
+          }
+          if (agent.attendant_name !== undefined) {
+            setAttendantName(agent.attendant_name);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [agentId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -261,6 +294,14 @@ export default function AgentCustomerChat() {
       setAgentInfo(data.agent);
       setConversationId(data.conversationId);
       setMessages(data.messages || []);
+      
+      // Set attendant status from agent data
+      if (data.agent?.attendant_status) {
+        setAttendantStatus(data.agent.attendant_status);
+      }
+      if (data.agent?.attendant_name) {
+        setAttendantName(data.agent.attendant_name);
+      }
 
       // Para acesso privado, buscar informações de expiração
       if (data.agent?.access_type === 'private') {
@@ -659,8 +700,33 @@ export default function AgentCustomerChat() {
         <Card className="flex-1 flex flex-col">
           <div className="p-4 border-b flex items-center justify-between">
             <div className="flex-1">
-              <h2 className="text-xl font-bold">{agentInfo?.name || 'Atendimento'}</h2>
-              <p className="text-sm text-muted-foreground">Olá, {customer?.name}!</p>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-bold">{agentInfo?.name || 'Atendimento'}</h2>
+                {/* Status do Atendente */}
+                <Badge 
+                  variant="outline" 
+                  className={`text-xs ${
+                    attendantStatus === 'online' 
+                      ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400' 
+                      : attendantStatus === 'busy'
+                        ? 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400'
+                        : 'bg-gray-50 text-gray-600 dark:bg-gray-900/20 dark:text-gray-400'
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full mr-1 ${
+                    attendantStatus === 'online' ? 'bg-green-500' :
+                    attendantStatus === 'busy' ? 'bg-yellow-500' : 'bg-gray-400'
+                  }`} />
+                  {attendantStatus === 'online' ? 'Atendente Online' : 
+                   attendantStatus === 'busy' ? 'Em Atendimento' : 'Atendente Offline'}
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Olá, {customer?.name}!
+                {attendantName && attendantStatus !== 'offline' && (
+                  <span className="ml-1">• Atendido por {attendantName}</span>
+                )}
+              </p>
               
               {/* Informação de acesso privado */}
               {agentInfo?.access_type === 'private' && accessInfo && (

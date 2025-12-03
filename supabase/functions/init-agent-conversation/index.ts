@@ -21,7 +21,7 @@ serve(async (req) => {
     // Load agent (server-side to bypass RLS for public access)
     const { data: agent, error: agentError } = await supabase
       .from('ai_agents')
-      .select('id, name, config, is_active, access_type')
+      .select('id, name, config, is_active, access_type, attendant_status, attendant_name')
       .eq('id', agentId)
       .single();
 
@@ -130,7 +130,14 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        agent: { id: agent.id, name: agent.name, config: agent.config },
+        agent: { 
+          id: agent.id, 
+          name: agent.name, 
+          config: agent.config,
+          access_type: agent.access_type,
+          attendant_status: agent.attendant_status || 'offline',
+          attendant_name: agent.attendant_name
+        },
         conversationId,
         messages: messages || [],
       }),
