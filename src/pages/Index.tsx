@@ -513,12 +513,12 @@ const Index = () => {
                   className="h-8 sm:h-10 w-auto object-contain"
                 />
               ) : (
-                <>
-                  <img src={outAppLogo} alt="Out App" className="h-8 sm:h-10 w-auto" />
-                  <span className="text-base sm:text-lg md:text-xl font-bold">
-                    {siteTitle || "Out App"}
-                  </span>
-                </>
+                <img src={outAppLogo} alt="Out App" className="h-8 sm:h-10 w-auto" />
+              )}
+              {siteTitle && (
+                <span className="text-base sm:text-lg md:text-xl font-bold">
+                  {siteTitle}
+                </span>
               )}
             </div>
             
