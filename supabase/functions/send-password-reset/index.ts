@@ -53,9 +53,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email via Resend
     const emailResponse = await resend.emails.send({
-      from: "Bot Reals Zap <noreply@botrealszapp.com.br>",
+      from: "Out App <noreply@outapp.com.br>",
       to: [email],
-      subject: "Recuperação de Senha - Bot Reals Zap",
+      subject: "Recuperação de Senha - Out App",
       html: `
         <!DOCTYPE html>
         <html>
@@ -65,7 +65,7 @@ const handler = async (req: Request): Promise<Response> => {
           </head>
           <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-              <h1 style="color: white; margin: 0; font-size: 28px;">🔐 Bot Reals Zap</h1>
+              <h1 style="color: white; margin: 0; font-size: 28px;">🔐 Out App</h1>
             </div>
             
             <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
@@ -107,7 +107,7 @@ const handler = async (req: Request): Promise<Response> => {
               <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
               
               <p style="font-size: 12px; color: #999; text-align: center; margin: 0;">
-                © ${new Date().getFullYear()} Bot Reals Zap. Todos os direitos reservados.
+                © ${new Date().getFullYear()} Out App. Todos os direitos reservados.
               </p>
             </div>
           </body>

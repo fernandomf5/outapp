@@ -162,7 +162,7 @@ serve(async (req) => {
               email: profile.email,
               name: profile.full_name,
               code: verificationCode,
-              chatbotName: 'Bot Reals Zapp',
+            chatbotName: 'Out App',
             }
           });
           if (emailError) console.error('[REGISTER] Email error:', emailError);
@@ -359,7 +359,7 @@ serve(async (req) => {
                 email: profile.email,
                 name: profile.full_name,
                 code: twoFACode,
-                chatbotName: 'Bot Reals Zapp - Verificação de Duas Etapas',
+                chatbotName: 'Out App - Verificação de Duas Etapas',
               }
             });
           } catch (emailError) {
@@ -504,7 +504,7 @@ serve(async (req) => {
             email: profile.email,
             name: profile.full_name,
             code: verificationCode,
-            chatbotName: 'Bot Reals Zapp',
+            chatbotName: 'Out App',
           }
         });
       } catch (emailError) {
@@ -582,7 +582,7 @@ serve(async (req) => {
             email: profile?.email,
             name: profile?.full_name,
             code: twoFACode,
-            chatbotName: 'Bot Reals Zapp - Verificação de Duas Etapas',
+            chatbotName: 'Out App - Verificação de Duas Etapas',
           }
         });
       } catch (emailError) {
@@ -681,7 +681,7 @@ serve(async (req) => {
             email: profile.email,
             name: profile.full_name,
             code: twoFACode,
-            chatbotName: 'Bot Reals Zapp - Verificação de Duas Etapas',
+            chatbotName: 'Out App - Verificação de Duas Etapas',
           }
         });
       } catch (emailError) {

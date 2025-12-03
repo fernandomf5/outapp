@@ -134,7 +134,7 @@ export const BlogSettingsManager = () => {
               <Input
                 value={formData.site_name}
                 onChange={(e) => setFormData({ ...formData, site_name: e.target.value })}
-                placeholder="Ex: Blog Bot Reals Zapp"
+                placeholder="Ex: Blog Out App"
               />
             </div>
             <div className="grid gap-2">
@@ -229,7 +229,7 @@ export const BlogSettingsManager = () => {
               <Textarea
                 value={formData.footer_content}
                 onChange={(e) => setFormData({ ...formData, footer_content: e.target.value })}
-                placeholder="Ex: © 2024 Bot Reals Zapp. Todos os direitos reservados."
+                placeholder="Ex: © 2024 Out App. Todos os direitos reservados."
                 rows={3}
               />
             </div>

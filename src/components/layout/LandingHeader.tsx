@@ -163,7 +163,7 @@ export const LandingHeader = () => {
                   <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 </div>
                 <span className="text-base sm:text-lg md:text-xl font-bold">
-                  {siteTitle || "Bot Reals Zapp"}
+                  {siteTitle || "Out App"}
                 </span>
               </>
             )}

@@ -1099,7 +1099,7 @@ const handleSendMessage = async (messageText?: string, originNodeId?: string) =>
           </Button>
         </div>
         <p className="text-xs text-center text-muted-foreground mt-2">
-          Powered by Bot Reals Zapp
+          Powered by Out App
         </p>
       </footer>
     </div>
