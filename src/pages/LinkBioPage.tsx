@@ -259,13 +259,13 @@ export default function LinkBioPage() {
           )}
         </div>
 
-        <div className="max-w-md mx-auto px-4" style={{ display: 'flex', flexDirection: 'column', gap: `${bio.button_spacing || 12}px` }}>
+        <div className="max-w-2xl mx-auto px-4" style={{ display: 'flex', flexDirection: 'column', gap: `${bio.button_spacing || 12}px`, alignItems: 'center' }}>
           {links.map((link) => (
             link.image_url ? (
               <div
                 key={link.id}
                 onClick={() => handleLinkClick(link)}
-                className={`cursor-pointer transition-all hover:shadow-lg active:scale-95 mx-auto
+                className={`cursor-pointer transition-all hover:shadow-lg active:scale-95
                   ${bio.border_animation !== 'rgb' ? 'overflow-hidden' : ''}
                   ${bio.border_animation === 'rgb' ? 'bio-border-rgb' : ''} 
                   ${bio.border_animation === 'pulse' ? 'bio-border-pulse' : ''}
@@ -277,6 +277,7 @@ export default function LinkBioPage() {
                 `}
                 style={{ 
                   borderRadius: bio.border_style === 'none' ? '0px' : `${bio.border_radius || 12}px`,
+                  display: 'inline-block',
                   ...(bio.border_animation === 'rgb' && bio.border_style !== 'none' && {
                     '--border-width': `${bio.border_width || 2}px`
                   }),
@@ -288,11 +289,11 @@ export default function LinkBioPage() {
                 <img 
                   src={link.image_url} 
                   alt={link.title}
-                  className="max-w-full h-auto object-contain"
+                  className="h-auto block"
                   style={{
                     borderRadius: bio.border_style === 'none' ? '0px' : `${bio.border_radius || 12}px`,
+                    maxWidth: '100vw',
                     width: 'auto',
-                    maxWidth: '100%',
                   }}
                 />
               </div>
@@ -300,7 +301,7 @@ export default function LinkBioPage() {
               <button
                 key={link.id}
                 onClick={() => handleLinkClick(link)}
-                className={`w-full px-4 sm:px-6 py-3 sm:py-4 font-medium transition-all hover:shadow-lg active:scale-95 flex items-center justify-center gap-2 sm:gap-3 group text-sm sm:text-base
+                className={`w-full max-w-md px-4 sm:px-6 py-3 sm:py-4 font-medium transition-all hover:shadow-lg active:scale-95 flex items-center justify-center gap-2 sm:gap-3 group text-sm sm:text-base
                   ${bio.border_animation === 'rgb' ? 'bio-border-rgb' : ''} 
                   ${bio.border_animation === 'pulse' ? 'bio-border-pulse' : ''}
                   ${bio.border_animation === 'glow' ? 'bio-border-glow' : ''}
