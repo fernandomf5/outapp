@@ -27,7 +27,8 @@ import {
   Globe,
   Pipette,
   Upload,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Pencil
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -143,6 +144,15 @@ export function LinkBioCreator() {
   const [previewDevice, setPreviewDevice] = useState<"mobile" | "tablet" | "desktop">("mobile");
   const [uploadingBackground, setUploadingBackground] = useState(false);
   const [uploadingLinkImage, setUploadingLinkImage] = useState(false);
+  
+  // Edit link states
+  const [editingLink, setEditingLink] = useState<BioLink | null>(null);
+  const [editLinkTitle, setEditLinkTitle] = useState("");
+  const [editLinkUrl, setEditLinkUrl] = useState("");
+  const [editLinkIcon, setEditLinkIcon] = useState("link");
+  const [editLinkImage, setEditLinkImage] = useState("");
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [uploadingEditLinkImage, setUploadingEditLinkImage] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -466,6 +476,79 @@ export function LinkBioCreator() {
     } else {
       if (selectedBio) fetchLinks(selectedBio.id);
     }
+  };
+
+  const startEditLink = (link: BioLink) => {
+    setEditingLink(link);
+    setEditLinkTitle(link.title);
+    setEditLinkUrl(link.url);
+    setEditLinkIcon(link.icon);
+    setEditLinkImage(link.image_url || "");
+    setShowEditDialog(true);
+  };
+
+  const updateLink = async () => {
+    if (!editingLink || !editLinkTitle || !editLinkUrl) {
+      toast({
+        title: "Preencha todos os campos",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from('link_bio_links')
+      .update({
+        title: editLinkTitle,
+        url: editLinkUrl,
+        icon: editLinkIcon,
+        image_url: editLinkImage || null,
+      })
+      .eq('id', editingLink.id);
+
+    if (error) {
+      toast({
+        title: "Erro ao atualizar link",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Link atualizado!",
+      });
+      setShowEditDialog(false);
+      setEditingLink(null);
+      if (selectedBio) fetchLinks(selectedBio.id);
+    }
+  };
+
+  const uploadEditLinkImage = async (file: File) => {
+    if (!user) return;
+    
+    setUploadingEditLinkImage(true);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user.id}/link-${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('chatbot-media')
+      .upload(fileName, file);
+
+    if (uploadError) {
+      toast({
+        title: "Erro ao enviar imagem",
+        description: uploadError.message,
+        variant: "destructive",
+      });
+      setUploadingEditLinkImage(false);
+      return;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('chatbot-media')
+      .getPublicUrl(fileName);
+
+    setEditLinkImage(publicUrl);
+    setUploadingEditLinkImage(false);
   };
 
   const applyTheme = (themeValue: string) => {
@@ -952,6 +1035,13 @@ export function LinkBioCreator() {
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => startEditLink(link)}
+                            >
+                              <Pencil className="w-4 h-4 text-muted-foreground" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => deleteLink(link.id)}
                             >
                               <Trash2 className="w-4 h-4 text-destructive" />
@@ -962,6 +1052,96 @@ export function LinkBioCreator() {
                     ))
                   )}
                 </div>
+
+                {/* Dialog de Edição de Link */}
+                <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Editar Link</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="editLinkTitle">Título do Link</Label>
+                        <Input
+                          id="editLinkTitle"
+                          value={editLinkTitle}
+                          onChange={(e) => setEditLinkTitle(e.target.value)}
+                          placeholder="Meu Instagram"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="editLinkUrl">URL</Label>
+                        <Input
+                          id="editLinkUrl"
+                          value={editLinkUrl}
+                          onChange={(e) => setEditLinkUrl(e.target.value)}
+                          placeholder="https://instagram.com/..."
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="editLinkIcon">Ícone</Label>
+                        <Select value={editLinkIcon} onValueChange={setEditLinkIcon}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {iconOptions.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                <div className="flex items-center gap-2">
+                                  <opt.icon className="w-4 h-4" />
+                                  {opt.label}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="editLinkImage">Imagem do Link (opcional)</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) uploadEditLinkImage(file);
+                            }}
+                            className="flex-1"
+                            disabled={uploadingEditLinkImage}
+                          />
+                          {editLinkImage && (
+                            <div className="relative w-20 h-20 border rounded overflow-hidden">
+                              <img 
+                                src={editLinkImage} 
+                                alt="Preview" 
+                                className="w-full h-full object-cover"
+                              />
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                className="absolute top-0 right-0 h-6 w-6 p-0"
+                                onClick={() => setEditLinkImage("")}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {uploadingEditLinkImage ? "Enviando imagem..." : "Se adicionar uma imagem, ela substituirá o botão"}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => setShowEditDialog(false)} className="flex-1">
+                          Cancelar
+                        </Button>
+                        <Button onClick={updateLink} className="flex-1">
+                          Salvar
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </>
             )}
           </TabsContent>
