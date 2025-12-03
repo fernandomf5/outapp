@@ -60,18 +60,18 @@ const Auth = () => {
     setMessageDialog({ open: true, title, description, type });
   };
 
-  // Carregar logo do site
+  // Carregar logo do site (branca para fundo colorido)
   useEffect(() => {
     const loadLogo = async () => {
       const { data } = await supabase
         .from('site_settings')
         .select('key, value')
-        .in('key', ['site_logo_dark_url', 'site_logo_url'])
+        .in('key', ['site_logo_light_url', 'site_logo_url'])
       
       if (data) {
-        const darkLogo = data.find(d => d.key === 'site_logo_dark_url')?.value;
+        const lightLogo = data.find(d => d.key === 'site_logo_light_url')?.value;
         const defaultLogo = data.find(d => d.key === 'site_logo_url')?.value;
-        setLogoUrl(darkLogo || defaultLogo || '');
+        setLogoUrl(lightLogo || defaultLogo || '');
       }
     };
     loadLogo();
