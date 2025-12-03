@@ -18,6 +18,7 @@ import { SocialLinks } from "@/components/SocialLinks";
 import { useTheme } from "next-themes";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import outAppLogo from "@/assets/out-app-logo.png";
+import heroIcon from "@/assets/hero-icon.png";
 
 interface Plan {
   id: string;
@@ -573,7 +574,7 @@ const Index = () => {
         
         <div className="container mx-auto text-center text-white relative z-10 max-w-5xl">
           <div className="inline-block mb-6 sm:mb-8 p-3 sm:p-4 bg-white/10 backdrop-blur-sm rounded-xl">
-            <img src={outAppLogo} alt="Out App" className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20" />
+            <img src={heroIcon} alt="Out App" className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20" />
           </div>
           
           <h1 
