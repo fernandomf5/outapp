@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SocialLinks } from "@/components/SocialLinks";
-import { useTheme } from "next-themes";
-
 
 interface CustomPageItem {
   id: string;
@@ -12,13 +10,9 @@ interface CustomPageItem {
 }
 
 export const LandingFooter = ({ hideCustomPages = false }: { hideCustomPages?: boolean }) => {
-  const { resolvedTheme } = useTheme();
   const [siteTitle, setSiteTitle] = useState("");
-  const [logoLightUrl, setLogoLightUrl] = useState("");
-  const [logoDarkUrl, setLogoDarkUrl] = useState("");
   const [footerText, setFooterText] = useState("");
   const [footerMenus, setFooterMenus] = useState<any[]>([]);
-  const [footerImages, setFooterImages] = useState<string[]>([]);
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
   const [footerPages, setFooterPages] = useState<CustomPageItem[]>([]);
 
@@ -33,7 +27,7 @@ export const LandingFooter = ({ hideCustomPages = false }: { hideCustomPages?: b
         supabase
           .from('site_settings')
           .select('key, value')
-          .in('key', ['site_title', 'site_logo_light_url', 'site_logo_dark_url', 'footer_text', 'footer_menus', 'footer_images', 'social_links'])
+          .in('key', ['site_title', 'footer_text', 'footer_menus', 'social_links'])
       ]);
 
       if (pagesRes.data) setFooterPages(pagesRes.data as CustomPageItem[]);
@@ -44,20 +38,11 @@ export const LandingFooter = ({ hideCustomPages = false }: { hideCustomPages?: b
             case 'site_title':
               setSiteTitle(item.value || 'Automação');
               break;
-            case 'site_logo_light_url':
-              setLogoLightUrl(item.value || '');
-              break;
-            case 'site_logo_dark_url':
-              setLogoDarkUrl(item.value || '');
-              break;
             case 'footer_text':
               setFooterText(item.value || '');
               break;
             case 'footer_menus':
               try { setFooterMenus(JSON.parse(item.value || '[]')); } catch {}
-              break;
-            case 'footer_images':
-              try { setFooterImages(JSON.parse(item.value || '[]')); } catch {}
               break;
             case 'social_links':
               try { setSocialLinks(JSON.parse(item.value || '[]')); } catch {}
@@ -69,10 +54,6 @@ export const LandingFooter = ({ hideCustomPages = false }: { hideCustomPages?: b
 
     fetchData();
   }, []);
-
-  // Use dark logo as default (since defaultTheme is dark), then switch based on resolved theme
-  const currentLogo = resolvedTheme === 'light' ? logoLightUrl : logoDarkUrl;
-  const hasLogo = logoLightUrl || logoDarkUrl;
 
   return (
     <footer className="bg-muted/50 border-t">
