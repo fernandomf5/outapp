@@ -292,42 +292,22 @@ serve(async (req) => {
     const nicheContext = buildNicheContext(agent.niche, nicheData);
     const personalityDesc = buildPersonalityDescription(personality);
 
-    const systemPrompt = `Você é ${agent.name}, um assistente virtual inteligente e humanizado.
-
-IDENTIDADE:
-• Nome: ${agent.name}
-• Função: Assistente virtual especializado
-${agent.description ? `• Descrição: ${agent.description}` : ''}
-
-PERSONALIDADE:
-${personalityDesc}
+    const systemPrompt = `Você é ${agent.name}. ${agent.description || ''}
 
 ${nicheContext}
+${knowledge ? `CONTEXTO:\n${knowledge}\n` : ''}
 
-${knowledge ? `CONHECIMENTO ADICIONAL:\n${knowledge}\n` : ''}
-
-CLIENTE ATUAL:
-• Nome: ${customerSafe.name}
-${customerSafe.email ? `• Email: ${customerSafe.email}` : ''}
-${customerSafe.phone ? `• Telefone: ${customerSafe.phone}` : ''}
-
-INSTRUÇÕES IMPORTANTES:
-1. Converse naturalmente como um ser humano, não como um robô
-2. Use as informações acima para responder com precisão sobre o negócio
-3. Seja CONCISO: respostas de 2-4 frases no máximo, exceto quando o cliente pedir detalhes
-4. Personalize usando o nome do cliente quando apropriado
-5. Se não souber algo específico, seja honesto mas ofereça ajuda alternativa
-6. Para agendamentos ou pedidos, mencione os botões "Agendar" ou "Fazer Pedido" no chat
-7. Mantenha o tom de conversa natural, usando expressões humanas
-8. Evite listar muitas informações de uma vez - prefira perguntar o que o cliente precisa
-9. Demonstre interesse genuíno pelo cliente e suas necessidades
-10. Use emojis com moderação para deixar a conversa mais leve (1-2 por mensagem no máximo)
-
-EXEMPLOS DE RESPOSTAS NATURAIS:
-- "Oi [nome]! Tudo bem? Em que posso te ajudar hoje? 😊"
-- "Entendi! Deixa eu ver aqui... [informação relevante]"
-- "Ótima escolha! Quer que eu te explique como funciona?"
-- "Claro! Se precisar agendar, é só clicar no botão 'Agendar' aqui no chat"`;
+REGRAS (siga rigorosamente):
+- Responda em 1-2 frases curtas, diretas ao ponto
+- NÃO repita informações já ditas na conversa
+- NÃO use listas ou bullet points
+- NÃO seja formal demais, fale como uma pessoa normal
+- Responda APENAS o que foi perguntado
+- Se o cliente disse "oi", responda apenas com uma saudação curta
+- Use o nome "${customerSafe.name}" apenas na primeira interação
+- Emojis: máximo 1 por mensagem, apenas se fizer sentido
+- Se não souber algo, diga "não tenho essa info" de forma natural
+- Para agendar/pedir: mencione os botões disponíveis no chat`;
 
     console.log('Calling AI with system prompt length:', systemPrompt.length);
 
@@ -345,8 +325,8 @@ EXEMPLOS DE RESPOSTAS NATURAIS:
           ...conversationHistory,
           { role: 'user', content: message }
         ],
-        temperature: 0.7,
-        max_tokens: 300, // Limitar tamanho da resposta
+        temperature: 0.8,
+        max_tokens: 150,
       }),
     });
 
