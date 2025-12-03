@@ -133,6 +133,13 @@ export default function AgentCustomerAuth() {
         }
       });
 
+      // Check for error in response data first (edge function returns error in body)
+      if (data?.error) {
+        showError(authMode === 'login' ? "Erro no login" : "Erro", data.error);
+        setLoading(false);
+        return;
+      }
+
       if (error) throw error;
 
       // If needs verification, show verification screen
