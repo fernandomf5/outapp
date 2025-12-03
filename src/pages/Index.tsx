@@ -573,8 +573,8 @@ const Index = () => {
         </div>
         
         <div className="container mx-auto text-center text-white relative z-10 max-w-5xl">
-          <div className="inline-block mb-6 sm:mb-8 p-3 sm:p-4 bg-white/10 backdrop-blur-sm rounded-xl">
-            <img src={heroIcon} alt="Out App" className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20" />
+          <div className="inline-block mb-6 sm:mb-8">
+            <img src={heroIcon} alt="Out App" className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40" />
           </div>
           
           <h1 
