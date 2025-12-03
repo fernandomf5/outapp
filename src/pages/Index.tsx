@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
-  Bot, Zap, MessageSquare, Clock, CheckCircle2, Shield, TrendingUp, Sparkles, Menu,
+  Zap, MessageSquare, Clock, CheckCircle2, Shield, TrendingUp, Sparkles, Menu,
   Users, Ticket, Link2, Gift, BarChart3, Workflow, Brain, Video, UserPlus, DollarSign
 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
@@ -17,6 +17,7 @@ import { CookieNotice } from "@/components/CookieNotice";
 import { SocialLinks } from "@/components/SocialLinks";
 import { useTheme } from "next-themes";
 import { CountdownTimer } from "@/components/CountdownTimer";
+import outAppLogo from "@/assets/out-app-logo.png";
 
 interface Plan {
   id: string;
@@ -335,7 +336,7 @@ const Index = () => {
     const iconMap: Record<string, any> = {
       Workflow, Brain, Users, UserPlus, BarChart3, Link2,
       Gift, Ticket, Video, DollarSign, Shield, TrendingUp,
-      Bot, Zap, MessageSquare, Clock, CheckCircle2, Sparkles
+      Zap, MessageSquare, Clock, CheckCircle2, Sparkles
     };
     const IconComponent = iconMap[iconName] || Sparkles;
     return IconComponent;
@@ -353,7 +354,7 @@ const Index = () => {
       <SheetContent side="right" className="w-[280px] sm:w-[320px] p-0 flex flex-col">
         <SheetHeader className="px-6 py-4 border-b border-border">
           <SheetTitle className="flex items-center gap-2">
-            <Bot className="w-5 h-5 text-primary" />
+            <img src={outAppLogo} alt="Out App" className="w-5 h-5" />
             {t('menu')}
           </SheetTitle>
         </SheetHeader>
@@ -512,9 +513,7 @@ const Index = () => {
                 />
               ) : (
                 <>
-                  <div className="bg-primary/10 p-1.5 sm:p-2 rounded-lg">
-                    <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-                  </div>
+                  <img src={outAppLogo} alt="Out App" className="h-8 sm:h-10 w-auto" />
                   <span className="text-base sm:text-lg md:text-xl font-bold">
                     {siteTitle || "Out App"}
                   </span>
@@ -574,7 +573,7 @@ const Index = () => {
         
         <div className="container mx-auto text-center text-white relative z-10 max-w-5xl">
           <div className="inline-block mb-6 sm:mb-8 p-3 sm:p-4 bg-white/10 backdrop-blur-sm rounded-xl">
-            <Bot className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20" />
+            <img src={outAppLogo} alt="Out App" className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20" />
           </div>
           
           <h1 
@@ -814,8 +813,8 @@ const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Da
                 <img src={logoUrl} alt={siteTitle} className="h-12 w-auto mb-4" />
               ) : (
                 <div className="flex items-center gap-2 mb-4">
-                  <Bot className="h-8 w-8 text-primary" />
-                  <span className="font-bold text-xl">{siteTitle || "Automação"}</span>
+                  <img src={outAppLogo} alt="Out App" className="h-8 w-8" />
+                  <span className="font-bold text-xl">{siteTitle || "Out App"}</span>
                 </div>
               )}
               {footerText && (
