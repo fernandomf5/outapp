@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp, X, Clock, Smile, ImagePlus, FileText } from "lucide-react";
+import { Send, LogOut, Calendar, ShoppingBag, ChevronDown, ChevronUp, X, Clock, Smile, ImagePlus, FileText, ArrowDown } from "lucide-react";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -72,6 +72,10 @@ export default function AgentCustomerChat() {
   const [attendantName, setAttendantName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const [visibleMessagesCount, setVisibleMessagesCount] = useState(20);
+  const MAX_VISIBLE_MESSAGES = 20;
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -165,8 +169,25 @@ export default function AgentCustomerChat() {
   }, [agentId]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    scrollToBottom();
   }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLDivElement;
+    const isAtBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 100;
+    setShowScrollButton(!isAtBottom);
+  };
+
+  const loadMoreMessages = () => {
+    setVisibleMessagesCount(prev => prev + 20);
+  };
+
+  const visibleMessages = messages.slice(-visibleMessagesCount);
+  const hasHiddenMessages = messages.length > visibleMessagesCount;
 
   // Check if agent has services and products
   useEffect(() => {
@@ -697,8 +718,9 @@ export default function AgentCustomerChat() {
   return (
     <div className="min-h-dvh gradient-primary">
       <div className="container mx-auto max-w-4xl h-dvh flex flex-col p-4">
-        <Card className="flex-1 flex flex-col">
-          <div className="p-4 border-b flex items-center justify-between">
+        <Card className="flex-1 flex flex-col relative">
+          {/* Header fixo */}
+          <div className="sticky top-0 z-10 bg-card p-4 border-b flex items-center justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <h2 className="text-xl font-bold">{agentInfo?.name || 'Atendimento'}</h2>
@@ -750,8 +772,27 @@ export default function AgentCustomerChat() {
             </Button>
           </div>
 
-          <ScrollArea className="flex-1 p-4 pb-28">
+          <div 
+            ref={scrollAreaRef}
+            onScroll={handleScroll}
+            className="flex-1 overflow-y-auto p-4 pb-28"
+          >
             <div className="space-y-4">
+              {/* Botão para carregar mensagens antigas */}
+              {hasHiddenMessages && (
+                <div className="flex justify-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={loadMoreMessages}
+                    className="text-muted-foreground"
+                  >
+                    <ChevronUp className="w-4 h-4 mr-1" />
+                    Carregar mensagens anteriores ({messages.length - visibleMessagesCount} ocultas)
+                  </Button>
+                </div>
+              )}
+              
               {/* Mensagem de boas-vindas do agente (sempre visível) */}
               {agentInfo?.config?.welcomeMessage && (
                 <div className="flex flex-col items-start">
@@ -764,7 +805,7 @@ export default function AgentCustomerChat() {
                 </div>
               )}
               
-              {messages.map((message) => (
+              {visibleMessages.map((message) => (
                 <div
                   key={message.id}
                   className={`flex flex-col ${message.role === 'customer' ? 'items-end' : 'items-start'}`}
@@ -806,7 +847,19 @@ export default function AgentCustomerChat() {
               ))}
               <div ref={messagesEndRef} />
             </div>
-          </ScrollArea>
+          </div>
+
+          {/* Botão para descer */}
+          {showScrollButton && (
+            <Button
+              variant="secondary"
+              size="icon"
+              className="absolute bottom-32 right-4 rounded-full shadow-lg z-10"
+              onClick={scrollToBottom}
+            >
+              <ArrowDown className="w-5 h-5" />
+            </Button>
+          )}
 
           <div className="p-4 border-t space-y-2">
             {(hasServices || hasProducts) && (
