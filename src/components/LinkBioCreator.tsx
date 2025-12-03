@@ -1309,6 +1309,7 @@ export function LinkBioCreator() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="none">Nenhuma</SelectItem>
                         <SelectItem value="solid">Sólida</SelectItem>
                         <SelectItem value="dashed">Tracejada</SelectItem>
                         <SelectItem value="dotted">Pontilhada</SelectItem>
@@ -1541,11 +1542,11 @@ export function LinkBioCreator() {
                                     ${hoverAnimation === 'rotate' ? 'bio-hover-rotate' : ''}
                                   `}
                                   style={{ 
-                                    borderRadius: `${borderRadius}px`,
-                                    ...(borderAnimation === 'rgb' && {
+                                    borderRadius: borderStyle === 'none' ? '0px' : `${borderRadius}px`,
+                                    ...(borderAnimation === 'rgb' && borderStyle !== 'none' && {
                                       '--border-width': `${borderWidth}px`
                                     }),
-                                    ...(borderAnimation !== 'rgb' && {
+                                    ...(borderAnimation !== 'rgb' && borderStyle !== 'none' && {
                                       border: `${borderWidth}px ${borderStyle} ${borderColor}`
                                     })
                                   } as React.CSSProperties}
@@ -1553,9 +1554,11 @@ export function LinkBioCreator() {
                                   <img 
                                     src={link.image_url} 
                                     alt={link.title}
-                                    className="w-full h-auto object-cover"
+                                    className="max-w-full h-auto object-contain"
                                     style={{
-                                      borderRadius: `${borderRadius}px`,
+                                      borderRadius: borderStyle === 'none' ? '0px' : `${borderRadius}px`,
+                                      width: 'auto',
+                                      maxWidth: '100%',
                                     }}
                                   />
                                 </div>
@@ -1575,10 +1578,10 @@ export function LinkBioCreator() {
                                     borderRadius: `${borderRadius}px`,
                                     backgroundColor: buttonColor,
                                     color: buttonTextColor,
-                                    ...(borderAnimation === 'rgb' && {
+                                    ...(borderAnimation === 'rgb' && borderStyle !== 'none' && {
                                       '--border-width': `${borderWidth}px`
                                     }),
-                                    ...(borderAnimation !== 'rgb' && {
+                                    ...(borderAnimation !== 'rgb' && borderStyle !== 'none' && {
                                       border: `${borderWidth}px ${borderStyle} ${borderColor}`
                                     })
                                   } as React.CSSProperties}

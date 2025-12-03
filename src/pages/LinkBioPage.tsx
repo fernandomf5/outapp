@@ -265,7 +265,7 @@ export default function LinkBioPage() {
               <div
                 key={link.id}
                 onClick={() => handleLinkClick(link)}
-                className={`cursor-pointer transition-all hover:shadow-lg active:scale-95
+                className={`cursor-pointer transition-all hover:shadow-lg active:scale-95 mx-auto
                   ${bio.border_animation !== 'rgb' ? 'overflow-hidden' : ''}
                   ${bio.border_animation === 'rgb' ? 'bio-border-rgb' : ''} 
                   ${bio.border_animation === 'pulse' ? 'bio-border-pulse' : ''}
@@ -276,11 +276,11 @@ export default function LinkBioPage() {
                   ${bio.hover_animation === 'rotate' ? 'bio-hover-rotate' : ''}
                 `}
                 style={{ 
-                  borderRadius: `${bio.border_radius || 12}px`,
-                  ...(bio.border_animation === 'rgb' && {
+                  borderRadius: bio.border_style === 'none' ? '0px' : `${bio.border_radius || 12}px`,
+                  ...(bio.border_animation === 'rgb' && bio.border_style !== 'none' && {
                     '--border-width': `${bio.border_width || 2}px`
                   }),
-                  ...(bio.border_animation !== 'rgb' && {
+                  ...(bio.border_animation !== 'rgb' && bio.border_style !== 'none' && {
                     border: `${bio.border_width || 2}px ${bio.border_style || 'solid'} ${bio.border_color || '#000000'}`
                   })
                 } as React.CSSProperties}
@@ -288,9 +288,11 @@ export default function LinkBioPage() {
                 <img 
                   src={link.image_url} 
                   alt={link.title}
-                  className="w-full h-auto object-cover"
+                  className="max-w-full h-auto object-contain"
                   style={{
-                    borderRadius: `${bio.border_radius || 12}px`,
+                    borderRadius: bio.border_style === 'none' ? '0px' : `${bio.border_radius || 12}px`,
+                    width: 'auto',
+                    maxWidth: '100%',
                   }}
                 />
               </div>
@@ -311,10 +313,10 @@ export default function LinkBioPage() {
                   borderRadius: `${bio.border_radius || 12}px`,
                   backgroundColor: bio.button_color,
                   color: bio.button_text_color,
-                  ...(bio.border_animation === 'rgb' && {
+                  ...(bio.border_animation === 'rgb' && bio.border_style !== 'none' && {
                     '--border-width': `${bio.border_width || 2}px`
                   }),
-                  ...(bio.border_animation !== 'rgb' && {
+                  ...(bio.border_animation !== 'rgb' && bio.border_style !== 'none' && {
                     border: `${bio.border_width || 2}px ${bio.border_style || 'solid'} ${bio.border_color || '#000000'}`
                   })
                 } as React.CSSProperties}
