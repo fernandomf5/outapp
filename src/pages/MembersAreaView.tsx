@@ -6,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Helmet } from "react-helmet-async";
 import { Play, Loader2, LogOut } from "lucide-react";
 import { ContentPlayer } from "@/components/members-area/ContentPlayer";
-import { normalizeDomain } from "@/utils/domainUtils";
 import { NetflixStyleCarousel } from "@/components/members-area/NetflixStyleCarousel";
 import { toast } from "sonner";
 
@@ -64,9 +63,6 @@ export default function MembersAreaView() {
   useEffect(() => {
     const load = async () => {
       try {
-        const hostname = window.location.hostname;
-        const normalizedHostname = normalizeDomain(hostname);
-        
         // Primeiro, carregar dados da área para verificar se requer aprovação
         const { data: areaData, error: areaError } = await supabase
           .from('members_areas' as any)
@@ -86,21 +82,7 @@ export default function MembersAreaView() {
         if (requiresAuth) {
           const sessionData = localStorage.getItem(`member_session_${areaId}`);
           if (!sessionData) {
-            // Verifica se está usando domínio customizado (com normalização)
-            const { data: customDomain } = await supabase
-              .from('user_domains')
-              .select('domain')
-              .eq('domain', normalizedHostname)
-              .eq('is_verified', true)
-              .eq('is_active', true)
-              .maybeSingle();
-
-            if (customDomain) {
-              // Redireciona mantendo o domínio customizado
-              window.location.href = `/members-area-auth?area=${areaId}`;
-            } else {
-              navigate(`/members-area-auth?area=${areaId}`);
-            }
+            navigate(`/members-area-auth?area=${areaId}`);
             return;
           }
 
@@ -157,13 +139,9 @@ export default function MembersAreaView() {
     load();
   }, [areaId, navigate]);
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     localStorage.removeItem(`member_session_${areaId}`);
     navigate(`/members-area-auth?area=${areaId}`);
-      window.location.href = `/members-area-auth?area=${areaId}`;
-    } else {
-      navigate(`/members-area-auth?area=${areaId}`);
-    }
   };
 
   const handleBuyProduct = (product: Product) => {

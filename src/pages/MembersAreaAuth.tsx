@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { normalizeDomain } from "@/utils/domainUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,22 +40,7 @@ export default function MembersAreaAuth() {
           
           // Se a área é liberada (não requer aprovação), redireciona direto
           if (!(data as any).require_approval) {
-            const hostname = window.location.hostname;
-            const normalizedHostname = normalizeDomain(hostname);
-            
-            const { data: customDomain } = await supabase
-              .from('user_domains')
-              .select('domain')
-              .eq('domain', normalizedHostname)
-              .eq('is_verified', true)
-              .eq('is_active', true)
-              .maybeSingle();
-
-            if (customDomain) {
-              window.location.href = `/members-area/${areaId}`;
-            } else {
-              navigate(`/members-area/${areaId}`);
-            }
+            navigate(`/members-area/${areaId}`);
             return;
           }
         }
@@ -124,23 +108,7 @@ export default function MembersAreaAuth() {
       }));
 
       toast.success("Login realizado com sucesso!");
-      
-      // Verifica se está usando domínio customizado (com normalização)
-      const hostname = window.location.hostname;
-      const normalizedHostname = normalizeDomain(hostname);
-      const { data: customDomain } = await supabase
-        .from('user_domains')
-        .select('domain')
-        .eq('domain', normalizedHostname)
-        .eq('is_verified', true)
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (customDomain) {
-        window.location.href = `/members-area/${areaId}`;
-      } else {
-        navigate(`/members-area/${areaId}`);
-      }
+      navigate(`/members-area/${areaId}`);
     } catch (error: any) {
       console.error('Login error:', error);
       toast.error("Erro ao fazer login: " + error.message);

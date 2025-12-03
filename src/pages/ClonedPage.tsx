@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
-import { normalizeDomain } from "@/utils/domainUtils";
 
 export default function ClonedPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -23,37 +22,21 @@ export default function ClonedPage() {
       console.log('Loading cloned page with slug:', slug);
 
       try {
-        const hostname = window.location.hostname;
-        const normalizedHostname = normalizeDomain(hostname);
         const pathSegment = window.location.pathname.split('/')[1];
         
         let searchDomain = '';
         let page = null;
         
-        // Primeiro verifica se é um domínio personalizado cadastrado (com normalização)
-        const { data: customDomain } = await supabase
-          .from('user_domains')
-          .select('domain')
-          .eq('domain', normalizedHostname)
-          .eq('is_verified', true)
-          .eq('is_active', true)
-          .maybeSingle();
-
-        if (customDomain) {
-          searchDomain = normalizedHostname;
-          console.log('Custom domain detected:', searchDomain);
-        } else {
-          // Verifica se é um page path (page1, page2, etc)
-          const pagePathPattern = /^page[1-5]$/;
-          if (pagePathPattern.test(pathSegment)) {
-            searchDomain = pathSegment;
-            console.log('Page path detected:', searchDomain);
-          }
+        // Verifica se é um page path (page1, page2, etc)
+        const pagePathPattern = /^page[1-5]$/;
+        if (pagePathPattern.test(pathSegment)) {
+          searchDomain = pathSegment;
+          console.log('Page path detected:', searchDomain);
         }
         
         // Se encontrou um domínio válido, busca a página
         if (searchDomain) {
-          console.log('Search params:', { slug, searchDomain, hostname, pathSegment });
+          console.log('Search params:', { slug, searchDomain, pathSegment });
 
           const { data: pageData, error: pageError } = await supabase
             .from('cloned_pages')
