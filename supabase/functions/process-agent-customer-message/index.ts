@@ -7,6 +7,200 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Função para construir contexto do nicho baseado nos dados preenchidos
+function buildNicheContext(niche: string, nicheData: Record<string, string>): string {
+  if (!nicheData || Object.keys(nicheData).length === 0) {
+    return '';
+  }
+
+  const nicheLabels: Record<string, Record<string, string>> = {
+    ecommerce: {
+      storeName: "Nome da loja",
+      categories: "Categorias de produtos",
+      bestsellers: "Produtos mais vendidos",
+      priceRange: "Faixa de preço",
+      purchaseProcess: "Processo de compra",
+      payment: "Formas de pagamento",
+      shipping: "Política de frete",
+      returns: "Política de troca/devolução",
+      warranty: "Garantia",
+      loyalty: "Programa de fidelidade",
+      support: "Atendimento",
+      tracking: "Rastreamento",
+      promotions: "Promoções atuais",
+      sizeGuide: "Guia de medidas",
+      privacy: "Privacidade"
+    },
+    health: {
+      clinicName: "Nome da clínica",
+      specialties: "Especialidades",
+      doctors: "Médicos",
+      schedule: "Horário de funcionamento",
+      booking: "Como agendar",
+      insurance: "Convênios aceitos",
+      prices: "Valores",
+      exams: "Exames realizados",
+      waitTime: "Tempo de espera",
+      location: "Localização",
+      telemedicine: "Telemedicina",
+      documents: "Documentos necessários",
+      cancellation: "Cancelamento",
+      safety: "Segurança",
+      emergency: "Emergências"
+    },
+    restaurant: {
+      restaurantName: "Nome do restaurante",
+      cuisine: "Tipo de cozinha",
+      signature: "Pratos principais",
+      menu: "Cardápio",
+      priceRange: "Faixa de preço",
+      hours: "Horário",
+      delivery: "Delivery",
+      takeout: "Retirada",
+      reservations: "Reservas",
+      capacity: "Capacidade",
+      dietary: "Opções dietéticas",
+      drinks: "Bebidas",
+      promotions: "Promoções",
+      location: "Localização",
+      events: "Eventos"
+    },
+    realestate: {
+      companyName: "Nome da imobiliária",
+      propertyTypes: "Tipos de imóveis",
+      locations: "Regiões de atuação",
+      services: "Serviços",
+      salesRange: "Valores de venda",
+      rentalRange: "Valores de aluguel",
+      rentalProcess: "Processo de locação",
+      purchaseProcess: "Processo de compra",
+      financing: "Financiamento",
+      fees: "Taxas",
+      visitSchedule: "Agendamento de visitas",
+      trending: "Imóveis populares",
+      timeline: "Tempo de negociação",
+      differentials: "Diferenciais",
+      support: "Suporte"
+    },
+    beauty: {
+      salonName: "Nome do salão",
+      services: "Serviços",
+      prices: "Tabela de preços",
+      schedule: "Horário",
+      booking: "Agendamento",
+      professionals: "Profissionais",
+      products: "Produtos usados",
+      location: "Localização",
+      parking: "Estacionamento",
+      packages: "Pacotes",
+      specialties: "Especialidades",
+      promotions: "Promoções"
+    },
+    fitness: {
+      gymName: "Nome da academia",
+      modalities: "Modalidades",
+      facilities: "Estrutura",
+      hours: "Horário",
+      plans: "Planos e valores",
+      classes: "Aulas",
+      personal: "Personal trainer",
+      assessment: "Avaliação física",
+      differentials: "Diferenciais",
+      locations: "Localizações",
+      enrollment: "Matrícula",
+      cancellation: "Cancelamento",
+      locker: "Vestiário",
+      parking: "Estacionamento",
+      trial: "Aula experimental"
+    },
+    education: {
+      institutionName: "Nome da instituição",
+      courses: "Cursos",
+      targetAudience: "Público-alvo",
+      duration: "Duração",
+      format: "Formato",
+      schedule: "Horários",
+      pricing: "Valores",
+      certification: "Certificação",
+      faculty: "Professores",
+      methodology: "Metodologia",
+      materials: "Material didático",
+      support: "Suporte ao aluno",
+      successRate: "Taxa de sucesso",
+      requirements: "Requisitos",
+      enrollment: "Matrícula",
+      refund: "Reembolso"
+    },
+    business: {
+      businessName: "Nome da empresa",
+      industry: "Área de atuação",
+      services: "Serviços",
+      target: "Público-alvo",
+      hiring: "Processo de contratação",
+      quote: "Orçamento",
+      experience: "Experiência",
+      cases: "Casos de sucesso",
+      team: "Equipe",
+      differentials: "Diferenciais",
+      pricing: "Valores",
+      deadline: "Prazos",
+      warranty: "Garantias",
+      credentials: "Certificações",
+      support: "Atendimento"
+    },
+    automotive: {
+      shopName: "Nome da oficina",
+      services: "Serviços",
+      brands: "Marcas atendidas",
+      hours: "Horário",
+      booking: "Agendamento",
+      diagnostic: "Diagnóstico",
+      warranty: "Garantia",
+      payment: "Pagamento",
+      parts: "Peças",
+      emergency: "Emergência",
+      prices: "Valores",
+      location: "Localização",
+      perks: "Cortesias",
+      inspection: "Inspeção"
+    }
+  };
+
+  const labels = nicheLabels[niche] || {};
+  let context = "INFORMAÇÕES DO NEGÓCIO:\n";
+  
+  for (const [key, value] of Object.entries(nicheData)) {
+    if (value && value.trim()) {
+      const label = labels[key] || key;
+      context += `• ${label}: ${value}\n`;
+    }
+  }
+  
+  return context;
+}
+
+// Função para descrever personalidade
+function buildPersonalityDescription(personality: any): string {
+  const tones: Record<string, string> = {
+    friendly: "amigável e acolhedor",
+    professional: "profissional e formal",
+    casual: "descontraído e informal",
+    enthusiastic: "entusiasmado e animado",
+    empathetic: "empático e compreensivo"
+  };
+
+  const tone = tones[personality?.tone] || "amigável";
+  const formality = personality?.formality || 50;
+  const proactivity = personality?.proactivity || 70;
+  const empathy = personality?.empathy || 80;
+
+  let formalityDesc = formality > 70 ? "bastante formal" : formality < 30 ? "bem informal" : "equilibrado entre formal e informal";
+  let proactivityDesc = proactivity > 70 ? "proativo em oferecer ajuda e sugestões" : proactivity < 30 ? "mais reservado, aguardando perguntas" : "moderadamente proativo";
+  let empathyDesc = empathy > 70 ? "muito empático e compreensivo" : empathy < 30 ? "mais direto e objetivo" : "equilibrado entre empatia e objetividade";
+
+  return `Sua personalidade é ${tone}, ${formalityDesc}. Você é ${proactivityDesc} e ${empathyDesc}.`;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -20,16 +214,21 @@ serve(async (req) => {
 
     const { agentId, customerId, conversationId, message } = await req.json();
 
-    // Get agent config
-    const { data: agent } = await supabase
+    console.log('Processing message for agent:', agentId);
+
+    // Get agent config with all details
+    const { data: agent, error: agentError } = await supabase
       .from('ai_agents')
       .select('*')
       .eq('id', agentId)
       .single();
 
-    if (!agent) {
+    if (agentError || !agent) {
+      console.error('Agent not found:', agentError);
       throw new Error('Agente não encontrado');
     }
+
+    console.log('Agent found:', agent.name, 'Niche:', agent.niche);
 
     // Check if AI is enabled for this conversation
     const { data: conversation } = await supabase
@@ -40,13 +239,14 @@ serve(async (req) => {
 
     // If AI is disabled (human attendant is handling), skip AI processing
     if (conversation && !conversation.ai_enabled) {
+      console.log('AI disabled for this conversation, skipping');
       return new Response(
         JSON.stringify({ response: '' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Get customer info (tolerate anonymous/no-record sessions)
+    // Get customer info
     const { data: customerRecord } = await supabase
       .from('agent_customers')
       .select('*')
@@ -56,40 +256,80 @@ serve(async (req) => {
     const customerSafe = customerRecord || {
       id: customerId,
       name: 'Visitante',
-      email: 'anon@temp.local',
+      email: null,
       phone: null
     };
 
-    // Get conversation history (user message already saved by frontend)
+    console.log('Customer:', customerSafe.name);
+
+    // Get conversation history
     const { data: prevMessages } = await supabase
       .from('agent_messages')
       .select('*')
       .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: true })
+      .limit(20); // Limitar histórico para performance
 
     await supabase
       .from('agent_conversations')
       .update({ last_message_at: new Date().toISOString() })
       .eq('id', conversationId);
 
-    // Build context for AI including latest user message
+    // Build context for AI
     const conversationHistory = (prevMessages || []).map((m: any) => ({
       role: m.role === 'customer' ? 'user' : 'assistant',
       content: m.content
     }));
 
-    // Enhanced system prompt - RESPOSTAS CURTAS E DIRETAS
-    const systemPrompt = `Você é um assistente virtual especializado em ${agent.niche}.
-Nome do cliente: ${customerSafe.name}
+    // Extract agent configuration
+    const agentConfig = agent.config || {};
+    const trainingData = agent.training_data || {};
+    const nicheData = trainingData.nicheData || {};
+    const knowledge = trainingData.knowledge || '';
+    const personality = agentConfig.personality || {};
 
-${agent.training_data?.knowledge || ''}
+    // Build comprehensive system prompt
+    const nicheContext = buildNicheContext(agent.niche, nicheData);
+    const personalityDesc = buildPersonalityDescription(personality);
 
-REGRAS OBRIGATÓRIAS:
-1. RESPOSTAS CURTAS: Máximo 2-3 frases por resposta. Seja direto e objetivo.
-2. NÃO use textos longos ou explicações extensas.
-3. Para agendamentos/pedidos: informe sobre os botões "Agendar" ou "Fazer Pedido" no chat.
-4. Seja simpático mas conciso.
-5. NUNCA escreva parágrafos longos.`;
+    const systemPrompt = `Você é ${agent.name}, um assistente virtual inteligente e humanizado.
+
+IDENTIDADE:
+• Nome: ${agent.name}
+• Função: Assistente virtual especializado
+${agent.description ? `• Descrição: ${agent.description}` : ''}
+
+PERSONALIDADE:
+${personalityDesc}
+
+${nicheContext}
+
+${knowledge ? `CONHECIMENTO ADICIONAL:\n${knowledge}\n` : ''}
+
+CLIENTE ATUAL:
+• Nome: ${customerSafe.name}
+${customerSafe.email ? `• Email: ${customerSafe.email}` : ''}
+${customerSafe.phone ? `• Telefone: ${customerSafe.phone}` : ''}
+
+INSTRUÇÕES IMPORTANTES:
+1. Converse naturalmente como um ser humano, não como um robô
+2. Use as informações acima para responder com precisão sobre o negócio
+3. Seja CONCISO: respostas de 2-4 frases no máximo, exceto quando o cliente pedir detalhes
+4. Personalize usando o nome do cliente quando apropriado
+5. Se não souber algo específico, seja honesto mas ofereça ajuda alternativa
+6. Para agendamentos ou pedidos, mencione os botões "Agendar" ou "Fazer Pedido" no chat
+7. Mantenha o tom de conversa natural, usando expressões humanas
+8. Evite listar muitas informações de uma vez - prefira perguntar o que o cliente precisa
+9. Demonstre interesse genuíno pelo cliente e suas necessidades
+10. Use emojis com moderação para deixar a conversa mais leve (1-2 por mensagem no máximo)
+
+EXEMPLOS DE RESPOSTAS NATURAIS:
+- "Oi [nome]! Tudo bem? Em que posso te ajudar hoje? 😊"
+- "Entendi! Deixa eu ver aqui... [informação relevante]"
+- "Ótima escolha! Quer que eu te explique como funciona?"
+- "Claro! Se precisar agendar, é só clicar no botão 'Agendar' aqui no chat"`;
+
+    console.log('Calling AI with system prompt length:', systemPrompt.length);
 
     // Call AI
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -105,13 +345,23 @@ REGRAS OBRIGATÓRIAS:
           ...conversationHistory,
           { role: 'user', content: message }
         ],
+        temperature: 0.7,
+        max_tokens: 300, // Limitar tamanho da resposta
       }),
     });
 
-    const aiData = await aiResponse.json();
-    const responseText = aiData.choices[0].message.content;
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error('AI API error:', aiResponse.status, errorText);
+      throw new Error('Erro ao processar mensagem com IA');
+    }
 
-    // Save AI response to database directly (no more automatic processing)
+    const aiData = await aiResponse.json();
+    const responseText = aiData.choices?.[0]?.message?.content || '';
+
+    console.log('AI response received, length:', responseText.length);
+
+    // Save AI response to database
     if (responseText.trim()) {
       await supabase.from('agent_messages').insert({
         conversation_id: conversationId,
@@ -128,7 +378,7 @@ REGRAS OBRIGATÓRIAS:
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error processing message:', error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Erro desconhecido' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
