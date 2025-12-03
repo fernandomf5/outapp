@@ -477,6 +477,25 @@ export default function AgentCustomerChat() {
     setSelectedDocument(null);
     setImagePreview(null);
 
+    // Adicionar mensagem do cliente otimisticamente na UI
+    const messageContent = originalInput || (imageFile ? '📷 Imagem' : '📄 Documento');
+    const optimisticKey = `customer:${messageContent}`;
+    sentMessagesRef.current.add(optimisticKey);
+    
+    const optimisticMessage: Message = {
+      id: crypto.randomUUID(),
+      role: 'customer',
+      content: messageContent,
+      created_at: new Date().toISOString(),
+      sender_name: customer.name,
+      media_url: null,
+      media_type: null,
+    };
+    setMessages(prev => [...prev, optimisticMessage]);
+
+    // Tocar som de envio
+    chatSounds.playSendSound();
+
     try {
       let mediaUrl = null;
       let mediaType = null;
@@ -485,23 +504,31 @@ export default function AgentCustomerChat() {
       if (imageFile) {
         mediaUrl = await uploadFile(imageFile, 'image');
         mediaType = 'image';
+        // Atualizar a mensagem otimística com a URL da mídia
+        setMessages(prev => prev.map(m => 
+          m.id === optimisticMessage.id 
+            ? { ...m, media_url: mediaUrl, media_type: mediaType }
+            : m
+        ));
       } else if (docFile) {
         mediaUrl = await uploadFile(docFile, 'document');
         mediaType = 'document';
+        setMessages(prev => prev.map(m => 
+          m.id === optimisticMessage.id 
+            ? { ...m, media_url: mediaUrl, media_type: mediaType }
+            : m
+        ));
       }
 
       // Save customer message with media
       await supabase.from('agent_messages').insert({
         conversation_id: conversationId,
         role: 'customer',
-        content: originalInput || (mediaType === 'image' ? '📷 Imagem' : '📄 Documento'),
+        content: messageContent,
         sender_name: customer.name,
         media_url: mediaUrl,
         media_type: mediaType,
       });
-
-      // Tocar som de envio
-      chatSounds.playSendSound();
 
       // Process message via edge function (handles AI response) if there's text
       if (originalInput.trim()) {
