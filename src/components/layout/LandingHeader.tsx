@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bot, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
@@ -10,6 +10,7 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import { SocialLinks } from "@/components/SocialLinks";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/contexts/LanguageContext";
+import outAppLogo from "@/assets/out-app-logo.png";
 
 interface CustomPageItem {
   id: string;
@@ -88,7 +89,7 @@ export const LandingHeader = () => {
       <SheetContent side="right" className="w-[280px] sm:w-[320px] p-0 flex flex-col">
         <SheetHeader className="px-6 py-4 border-b border-border">
           <SheetTitle className="flex items-center gap-2">
-            <Bot className="w-5 h-5 text-primary" />
+            <img src={outAppLogo} alt="Out App" className="w-5 h-5" />
             {t('menu')}
           </SheetTitle>
         </SheetHeader>
@@ -159,9 +160,7 @@ export const LandingHeader = () => {
               />
             ) : (
               <>
-                <div className="bg-primary/10 p-1.5 sm:p-2 rounded-lg">
-                  <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-                </div>
+                <img src={outAppLogo} alt="Out App" className="h-8 sm:h-10 w-auto" />
                 <span className="text-base sm:text-lg md:text-xl font-bold">
                   {siteTitle || "Out App"}
                 </span>
