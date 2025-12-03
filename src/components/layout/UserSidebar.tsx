@@ -60,7 +60,6 @@ export function UserSidebar() {
 
   const mainItems: MenuItem[] = [
     { title: t('overview'), icon: TrendingUp, path: "/dashboard", tab: "overview" },
-    { title: "Gerenciador de Domínios", icon: Globe, path: "/dashboard", tab: "dominios" },
     { title: "Blog", icon: FileText, path: "/blog" },
   ];
 

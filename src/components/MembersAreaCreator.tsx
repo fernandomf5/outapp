@@ -84,8 +84,6 @@ export function MembersAreaCreator() {
     primary_color: '#8B5CF6',
     secondary_color: '#EC4899'
   });
-  const [customDomains, setCustomDomains] = useState<Array<{id: string; domain: string; is_verified: boolean}>>([]);
-  const [selectedDomain, setSelectedDomain] = useState<string>("");
   const [isModuleEditorOpen, setIsModuleEditorOpen] = useState(false);
   const [editingModule, setEditingModule] = useState<Module | null>(null);
   const [selectedModuleForContents, setSelectedModuleForContents] = useState<Module | null>(null);
@@ -100,7 +98,6 @@ export function MembersAreaCreator() {
 
   useEffect(() => {
     loadMembersAreas();
-    fetchCustomDomains();
   }, []);
 
   const loadMembersAreas = async () => {
@@ -120,20 +117,6 @@ export function MembersAreaCreator() {
       toast.error(`Erro ao carregar áreas de membros: ${error?.message || ''}`);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchCustomDomains = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { data } = await supabase
-      .from('user_domains')
-      .select('id, domain, is_verified')
-      .eq('user_id', user.id)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
-    if (data) {
-      setCustomDomains(data as any);
     }
   };
 
@@ -1149,65 +1132,6 @@ export function MembersAreaCreator() {
                       <p className="text-xs text-muted-foreground">Cor secundária (acentos, detalhes)</p>
                     </div>
                   </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h4 className="font-semibold">Domínio Customizado</h4>
-                  <div className="grid gap-2">
-                    <Label>Selecione um domínio</Label>
-                    <Select 
-                      value={editedArea?.custom_domain || selectedArea.custom_domain || 'none'}
-                      onValueChange={(value) => {
-                        setEditedArea({...selectedArea, custom_domain: value === 'none' ? undefined : value});
-                        setHasUnsavedChanges(true);
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Nenhum domínio selecionado" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Nenhum</SelectItem>
-                        {customDomains.filter(d => d.is_verified).map(domain => (
-                          <SelectItem key={domain.id} value={domain.domain}>
-                            {domain.domain}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {customDomains.filter(d => d.is_verified).length === 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        Nenhum domínio verificado. Adicione um domínio em "Meus Domínios".
-                      </p>
-                    )}
-                  </div>
-                  
-                  {(editedArea?.custom_domain || selectedArea.custom_domain) && (
-                    <div className="grid gap-2">
-                      <Label>Slug da Área (opcional)</Label>
-                      <Input
-                        value={editedArea?.slug || selectedArea.slug || ''}
-                        onChange={(e) => {
-                          const slug = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
-                          setEditedArea({...(editedArea || selectedArea), slug});
-                          setHasUnsavedChanges(true);
-                        }}
-                        placeholder="minha-area"
-                        maxLength={50}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Use apenas letras minúsculas, números e hífens. Deixe em branco para usar o ID.
-                      </p>
-                      {(editedArea?.slug || selectedArea.slug) ? (
-                        <p className="text-sm text-primary">
-                          Área acessível em: https://{editedArea?.custom_domain || selectedArea.custom_domain}/members/{editedArea?.slug || selectedArea.slug}
-                        </p>
-                      ) : selectedArea.custom_domain && (
-                        <p className="text-sm text-primary">
-                          Área acessível em: https://{selectedArea.custom_domain}/members/{selectedArea.id}
-                        </p>
-                      )}
-                    </div>
-                  )}
                 </div>
               </div>
             </TabsContent>

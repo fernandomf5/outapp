@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import ClonedPage from "./ClonedPage";
 import CustomPage from "./CustomPage";
 import { Loader2 } from "lucide-react";
-import { normalizeDomain } from "@/utils/domainUtils";
 
 export default function ClonedOrCustomPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -17,34 +16,7 @@ export default function ClonedOrCustomPage() {
         return;
       }
 
-      const hostname = window.location.hostname;
-      const normalizedHostname = normalizeDomain(hostname);
       const pathSegment = window.location.pathname.split('/')[1];
-      
-      // Verifica se é um domínio personalizado cadastrado (com normalização)
-      const { data: customDomain } = await supabase
-        .from('user_domains')
-        .select('domain')
-        .eq('domain', normalizedHostname)
-        .eq('is_verified', true)
-        .eq('is_active', true)
-        .maybeSingle();
-
-      // Se é um domínio customizado cadastrado, busca pela cloned page
-      if (customDomain) {
-        const { data: clonedPage } = await supabase
-          .from('cloned_pages')
-          .select('id')
-          .eq('slug', slug)
-          .eq('custom_domain', normalizedHostname)
-          .eq('is_active', true)
-          .maybeSingle();
-
-        if (clonedPage) {
-          setPageType('cloned');
-          return;
-        }
-      }
 
       // Verifica se é uma página com page path (page1, page2, etc)
       const pagePathPattern = /^page[1-5]$/;
@@ -63,7 +35,7 @@ export default function ClonedOrCustomPage() {
         }
       }
 
-      // Fallback: busca pelo slug diretamente para encontrar páginas com domínio customizado
+      // Fallback: busca pelo slug diretamente para encontrar páginas com page path
       const { data: fallbackPage } = await supabase
         .from('cloned_pages')
         .select('id, custom_domain')
@@ -73,22 +45,7 @@ export default function ClonedOrCustomPage() {
 
       if (fallbackPage && fallbackPage.custom_domain) {
         // Se for um page path, aceita
-        const pagePathPattern = /^page[1-5]$/;
         if (pagePathPattern.test(fallbackPage.custom_domain)) {
-          setPageType('cloned');
-          return;
-        }
-        
-        // Verifica se o domínio está verificado
-        const { data: domainCheck } = await supabase
-          .from('user_domains')
-          .select('domain')
-          .eq('domain', fallbackPage.custom_domain)
-          .eq('is_verified', true)
-          .eq('is_active', true)
-          .maybeSingle();
-
-        if (domainCheck) {
           setPageType('cloned');
           return;
         }

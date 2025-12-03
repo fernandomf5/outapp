@@ -35,7 +35,6 @@ import { QRCodeGenerator } from "@/components/QRCodeGenerator";
 import { GeneralCRMPanel } from "@/components/GeneralCRMPanel";
 import { ClientsManagementPanel } from "@/components/ClientsManagementPanel";
 import AgentManagementPanel from "@/components/AgentManagementPanel";
-import { MyDomainsPanel } from "@/components/MyDomainsPanel";
 import { FloatingMultiButtonGenerator } from "@/components/FloatingMultiButtonGenerator";
 import { FinancialManagementPanel } from "@/components/FinancialManagementPanel";
 import { TeamManagementPanel } from "@/components/TeamManagementPanel";
@@ -628,21 +627,6 @@ const Dashboard = () => {
               </CardHeader>
             </Card>
 
-            {/* Meus Domínios */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("dominios")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Globe className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Meus Domínios</CardTitle>
-                    <p className="text-xs text-muted-foreground">Gerenciar domínios</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
             {/* Gerador de Link para WhatsApp */}
             <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("tools")}>
               <CardHeader>
@@ -900,12 +884,6 @@ const Dashboard = () => {
 
           <TabsContent value="clientes">
             <ClientsManagementPanel />
-          </TabsContent>
-
-          <TabsContent value="dominios">
-            <FeatureGate featureKey="domain_manager">
-              <MyDomainsPanel />
-            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="floating-button">

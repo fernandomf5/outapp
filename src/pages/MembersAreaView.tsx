@@ -158,21 +158,8 @@ export default function MembersAreaView() {
   }, [areaId, navigate]);
 
   const handleLogout = async () => {
-    const hostname = window.location.hostname;
-    const normalizedHostname = normalizeDomain(hostname);
-    
-    // Verifica se está usando domínio customizado (com normalização)
-    const { data: customDomain } = await supabase
-      .from('user_domains')
-      .select('domain')
-      .eq('domain', normalizedHostname)
-      .eq('is_verified', true)
-      .eq('is_active', true)
-      .maybeSingle();
-
     localStorage.removeItem(`member_session_${areaId}`);
-    
-    if (customDomain) {
+    navigate(`/members-area-auth?area=${areaId}`);
       window.location.href = `/members-area-auth?area=${areaId}`;
     } else {
       navigate(`/members-area-auth?area=${areaId}`);

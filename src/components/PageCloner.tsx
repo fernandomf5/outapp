@@ -29,14 +29,6 @@ interface ClonedPage {
   created_at: string;
 }
 
-interface CustomDomain {
-  id: string;
-  domain: string;
-  is_verified: boolean;
-  is_active: boolean;
-  created_at: string;
-}
-
 // Páginas disponíveis para clonagem
 const AVAILABLE_PAGE_PATHS = [
   "page1",
@@ -50,16 +42,12 @@ export const PageCloner = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [clonedPages, setClonedPages] = useState<ClonedPage[]>([]);
-  const [customDomains, setCustomDomains] = useState<CustomDomain[]>([]);
   const [isCloneDialogOpen, setIsCloneDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDomainDialogOpen, setIsDomainDialogOpen] = useState(false);
-  const [isDomainTutorialOpen, setIsDomainTutorialOpen] = useState(false);
   const [isAnalyticsDialogOpen, setIsAnalyticsDialogOpen] = useState(false);
   const [isLeadsDialogOpen, setIsLeadsDialogOpen] = useState(false);
   const [selectedPage, setSelectedPage] = useState<ClonedPage | null>(null);
   const [isCloning, setIsCloning] = useState(false);
-  const [newDomain, setNewDomain] = useState("");
   const [cloneData, setCloneData] = useState({
     original_url: "",
     custom_slug: "",
@@ -115,7 +103,6 @@ export const PageCloner = () => {
   useEffect(() => {
     if (user) {
       fetchClonedPages();
-      fetchCustomDomains();
     }
   }, [user]);
 
@@ -130,89 +117,6 @@ export const PageCloner = () => {
       setClonedPages(data);
       setTotalClicks(data.reduce((sum, page) => sum + (page.clicks || 0), 0));
     }
-  };
-
-  const fetchCustomDomains = async () => {
-    const { data, error } = await supabase
-      .from('user_domains')
-      .select('*')
-      .eq('user_id', user!.id)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
-
-    if (!error && data) {
-      setCustomDomains(data);
-    }
-  };
-
-  const handleAddDomain = async () => {
-    if (!newDomain.trim()) {
-      toast({
-        title: "Erro",
-        description: "Por favor, insira um domínio válido",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validar formato do domínio
-    const domainRegex = /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,}$/i;
-    if (!domainRegex.test(newDomain.trim())) {
-      toast({
-        title: "Erro",
-        description: "Formato de domínio inválido. Use algo como: seudominio.com",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const { error } = await supabase
-      .from("user_domains")
-      .insert({
-        user_id: user!.id,
-        domain: newDomain.trim().toLowerCase(),
-        is_verified: false,
-        is_active: true,
-      });
-
-    if (error) {
-      toast({
-        title: "Erro ao adicionar domínio",
-        description: error.message,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    toast({
-      title: "Domínio adicionado!",
-      description: "Configure os registros DNS conforme as instruções.",
-    });
-
-    setNewDomain("");
-    fetchCustomDomains();
-  };
-
-  const handleDeleteDomain = async (domainId: string) => {
-    const { error } = await supabase
-      .from("user_domains")
-      .delete()
-      .eq("id", domainId);
-
-    if (error) {
-      toast({
-        title: "Erro ao remover domínio",
-        description: error.message,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    toast({
-      title: "Domínio removido com sucesso",
-    });
-
-    fetchCustomDomains();
   };
 
   const handleClonePage = async () => {
@@ -514,7 +418,7 @@ export const PageCloner = () => {
                   </p>
                 </div>
                 <div>
-                  <Label>Selecione o Domínio *</Label>
+                  <Label>Selecione a Página *</Label>
                   <Select
                     value={cloneData.selected_page_path}
                     onValueChange={(value) => setCloneData({ ...cloneData, selected_page_path: value })}
@@ -524,13 +428,6 @@ export const PageCloner = () => {
                       <SelectValue placeholder="Escolha uma página" />
                     </SelectTrigger>
                     <SelectContent>
-                      {customDomains
-                        .filter(d => d.is_verified && d.is_active)
-                        .map((domain) => (
-                          <SelectItem key={domain.id} value={domain.domain}>
-                            🌐 {domain.domain} (Domínio Próprio)
-                          </SelectItem>
-                        ))}
                       {AVAILABLE_PAGE_PATHS.map((pagePath) => (
                         <SelectItem key={pagePath} value={pagePath}>
                           {window.location.host}/{pagePath}/sua-slug
@@ -539,25 +436,11 @@ export const PageCloner = () => {
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {customDomains.filter(d => d.is_verified && d.is_active).length > 0 
-                      ? "Seus domínios próprios aparecem primeiro na lista"
-                      : "Selecione qual página usar para clonar"}
+                    Selecione qual página usar para clonar
                   </p>
                 </div>
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <Label>Slug Personalizada (Opcional)</Label>
-                    <Button
-                      type="button"
-                      variant="link"
-                      size="sm"
-                      className="h-auto p-0 text-xs"
-                      onClick={() => setIsDomainTutorialOpen(true)}
-                    >
-                      <Globe className="h-3 w-3 mr-1" />
-                      Como usar domínio próprio?
-                    </Button>
-                  </div>
+                  <Label>Slug Personalizada (Opcional)</Label>
                   <Input
                     value={cloneData.custom_slug}
                     onChange={(e) => setCloneData({ ...cloneData, custom_slug: e.target.value })}
@@ -565,11 +448,7 @@ export const PageCloner = () => {
                     disabled={isCloning}
                   />
                    <p className="text-xs text-muted-foreground mt-1">
-                    URL final: {
-                      cloneData.selected_page_path?.includes('.') 
-                        ? `https://${cloneData.selected_page_path}/${cloneData.custom_slug || 'sua-slug'}`
-                        : `${window.location.host}/${cloneData.selected_page_path || 'page1'}/${cloneData.custom_slug || 'sua-slug'}`
-                    }
+                    URL final: {`${window.location.host}/${cloneData.selected_page_path || 'page1'}/${cloneData.custom_slug || 'sua-slug'}`}
                   </p>
                 </div>
                 <Button 
@@ -589,11 +468,6 @@ export const PageCloner = () => {
               </div>
             </DialogContent>
           </Dialog>
-          
-          <Button variant="outline" onClick={() => setIsDomainTutorialOpen(true)}>
-            <Settings className="w-4 h-4 mr-2" />
-            Configurar Domínio Próprio
-          </Button>
         </div>
       </div>
 
@@ -1341,204 +1215,6 @@ export const PageCloner = () => {
             </Button>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="py-6">
               Cancelar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog de Configuração de Domínio Próprio */}
-      <Dialog open={isDomainDialogOpen} onOpenChange={setIsDomainDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Configurar Domínio Próprio</DialogTitle>
-            <DialogDescription>
-              Adicione seus próprios domínios para usar nas páginas clonadas
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-6">
-            {/* Instruções de DNS */}
-            <div className="bg-muted p-4 rounded-lg space-y-3">
-              <h3 className="font-semibold text-sm">Como Configurar o DNS:</h3>
-              <ol className="list-decimal list-inside space-y-2 text-sm">
-                <li>Acesse o painel de controle do seu provedor de domínio</li>
-                <li>Adicione um registro do tipo <strong>A</strong></li>
-                <li>Configure os seguintes valores:
-                  <div className="bg-background p-2 rounded mt-2 ml-4">
-                    <div><strong>Tipo:</strong> A</div>
-                    <div><strong>Nome:</strong> @ (para domínio raiz) ou www</div>
-                    <div><strong>Valor:</strong> 185.158.133.1</div>
-                    <div><strong>TTL:</strong> 3600 (ou automático)</div>
-                  </div>
-                </li>
-                <li>Aguarde a propagação do DNS (pode levar até 24-48 horas)</li>
-                <li>O SSL (HTTPS) será provisionado automaticamente</li>
-              </ol>
-            </div>
-
-            {/* Adicionar novo domínio */}
-            <div className="space-y-2">
-              <Label htmlFor="new-domain">Adicionar Novo Domínio</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="new-domain"
-                  placeholder="exemplo.com"
-                  value={newDomain}
-                  onChange={(e) => setNewDomain(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddDomain()}
-                />
-                <Button onClick={handleAddDomain}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Digite apenas o domínio sem http:// ou https://
-              </p>
-            </div>
-
-            {/* Lista de domínios cadastrados */}
-            {customDomains.length > 0 && (
-              <div className="space-y-2">
-                <Label>Seus Domínios Cadastrados</Label>
-                <div className="space-y-2">
-                  {customDomains.map((domain) => (
-                    <div
-                      key={domain.id}
-                      className="flex items-center justify-between p-3 border rounded-lg"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Globe className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-mono text-sm">{domain.domain}</span>
-                        {domain.is_verified && (
-                          <Badge variant="default" className="text-xs">
-                            Verificado
-                          </Badge>
-                        )}
-                        {!domain.is_verified && (
-                          <Badge variant="secondary" className="text-xs">
-                            Aguardando DNS
-                          </Badge>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteDomain(domain.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Dicas */}
-            <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
-              <h4 className="font-semibold text-sm mb-2">💡 Dicas Importantes:</h4>
-              <ul className="text-sm space-y-1 list-disc list-inside">
-                <li>Remova qualquer registro A, AAAA ou CNAME existente antes de adicionar o novo</li>
-                <li>Use ferramentas como DNSChecker.org para verificar a propagação</li>
-                <li>Se o domínio já estava em outro projeto, remova-o de lá primeiro</li>
-                <li>Domínios só podem estar conectados a um projeto por vez</li>
-              </ul>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Domain Tutorial Dialog */}
-      <Dialog open={isDomainTutorialOpen} onOpenChange={setIsDomainTutorialOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5" />
-              Como Configurar Domínio Próprio
-            </DialogTitle>
-            <DialogDescription>
-              Siga os passos abaixo para usar seu próprio domínio
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="flex gap-3">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                1
-              </div>
-              <div>
-                <h4 className="font-semibold mb-1">Acesse o Gerenciador de Domínios</h4>
-                <p className="text-sm text-muted-foreground">
-                  Vá para a aba <strong>"Meus Domínios"</strong> no menu lateral
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                2
-              </div>
-              <div>
-                <h4 className="font-semibold mb-1">Adicione seu Domínio</h4>
-                <p className="text-sm text-muted-foreground">
-                  Clique em "Adicionar Domínio" e insira seu domínio (ex: meusite.com.br)
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                3
-              </div>
-              <div>
-                <h4 className="font-semibold mb-1">Configure os Registros DNS</h4>
-                <p className="text-sm text-muted-foreground">
-                  No painel do seu provedor de domínio, adicione o registro A apontando para: <strong>185.158.133.1</strong>
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                4
-              </div>
-              <div>
-                <h4 className="font-semibold mb-1">Aguarde a Verificação</h4>
-                <p className="text-sm text-muted-foreground">
-                  Após a propagação DNS (pode levar até 48h), clique em "Verificar Agora" no gerenciador
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                5
-              </div>
-              <div>
-                <h4 className="font-semibold mb-1">Use no Clonador</h4>
-                <p className="text-sm text-muted-foreground">
-                  Quando o domínio estiver ativo, ele aparecerá automaticamente na lista de seleção acima
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => {
-                setIsDomainTutorialOpen(false);
-                window.location.href = '/dashboard?tab=dominios';
-              }}
-            >
-              Ir para Gerenciador de Domínios
-            </Button>
-            <Button 
-              className="flex-1"
-              onClick={() => setIsDomainTutorialOpen(false)}
-            >
-              Entendi
             </Button>
           </div>
         </DialogContent>
