@@ -63,6 +63,37 @@ export default function ClonedOrCustomPage() {
         }
       }
 
+      // Fallback: busca pelo slug diretamente para encontrar páginas com domínio customizado
+      const { data: fallbackPage } = await supabase
+        .from('cloned_pages')
+        .select('id, custom_domain')
+        .eq('slug', slug)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (fallbackPage && fallbackPage.custom_domain) {
+        // Se for um page path, aceita
+        const pagePathPattern = /^page[1-5]$/;
+        if (pagePathPattern.test(fallbackPage.custom_domain)) {
+          setPageType('cloned');
+          return;
+        }
+        
+        // Verifica se o domínio está verificado
+        const { data: domainCheck } = await supabase
+          .from('user_domains')
+          .select('domain')
+          .eq('domain', fallbackPage.custom_domain)
+          .eq('is_verified', true)
+          .eq('is_active', true)
+          .maybeSingle();
+
+        if (domainCheck) {
+          setPageType('cloned');
+          return;
+        }
+      }
+
       // Se não encontrou página clonada, assume que é custom page
       setPageType('custom');
     };

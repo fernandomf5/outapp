@@ -28,6 +28,7 @@ export default function ClonedPage() {
         const pathSegment = window.location.pathname.split('/')[1];
         
         let searchDomain = '';
+        let page = null;
         
         // Primeiro verifica se é um domínio personalizado cadastrado (com normalização)
         const { data: customDomain } = await supabase
@@ -40,38 +41,78 @@ export default function ClonedPage() {
 
         if (customDomain) {
           searchDomain = normalizedHostname;
+          console.log('Custom domain detected:', searchDomain);
         } else {
           // Verifica se é um page path (page1, page2, etc)
           const pagePathPattern = /^page[1-5]$/;
           if (pagePathPattern.test(pathSegment)) {
             searchDomain = pathSegment;
+            console.log('Page path detected:', searchDomain);
           }
         }
         
-        if (!searchDomain) {
-          console.error('Invalid domain or page path');
-          setError('Domínio não configurado');
-          setLoading(false);
-          return;
+        // Se encontrou um domínio válido, busca a página
+        if (searchDomain) {
+          console.log('Search params:', { slug, searchDomain, hostname, pathSegment });
+
+          const { data: pageData, error: pageError } = await supabase
+            .from('cloned_pages')
+            .select('*')
+            .eq('slug', slug)
+            .eq('custom_domain', searchDomain)
+            .eq('is_active', true)
+            .maybeSingle();
+
+          if (pageError) {
+            console.error('Supabase error:', pageError);
+            throw pageError;
+          }
+          
+          page = pageData;
         }
         
-        console.log('Search params:', { slug, searchDomain, hostname, pathSegment });
-
-        // Fetch page data - buscar por slug E custom_domain
-        const { data: page, error: pageError } = await supabase
-          .from('cloned_pages')
-          .select('*')
-          .eq('slug', slug)
-          .eq('custom_domain', searchDomain)
-          .eq('is_active', true)
-          .maybeSingle();
-
-        console.log('Page query result:', { page, pageError });
-
-        if (pageError) {
-          console.error('Supabase error:', pageError);
-          throw pageError;
+        // Se não encontrou, tenta buscar por qualquer domínio personalizado associado ao slug
+        // Isso resolve o problema quando o domínio está configurado na página mas não é detectado pelo hostname
+        if (!page) {
+          console.log('Trying fallback search by slug only:', slug);
+          
+          const { data: fallbackPage, error: fallbackError } = await supabase
+            .from('cloned_pages')
+            .select('*')
+            .eq('slug', slug)
+            .eq('is_active', true)
+            .maybeSingle();
+          
+          if (fallbackError) {
+            console.error('Fallback search error:', fallbackError);
+          }
+          
+          // Se encontrou uma página, verifica se o domínio personalizado está verificado
+          if (fallbackPage && fallbackPage.custom_domain) {
+            // Se for um page path, aceita direto
+            const pagePathPattern = /^page[1-5]$/;
+            if (pagePathPattern.test(fallbackPage.custom_domain)) {
+              page = fallbackPage;
+              console.log('Found page with page path:', fallbackPage.custom_domain);
+            } else {
+              // Verifica se o domínio está verificado e ativo
+              const { data: domainCheck } = await supabase
+                .from('user_domains')
+                .select('domain')
+                .eq('domain', fallbackPage.custom_domain)
+                .eq('is_verified', true)
+                .eq('is_active', true)
+                .maybeSingle();
+              
+              if (domainCheck) {
+                page = fallbackPage;
+                console.log('Found page with verified custom domain:', fallbackPage.custom_domain);
+              }
+            }
+          }
         }
+
+        console.log('Page query result:', { page });
 
         if (!page) {
           console.error('Page not found for slug:', slug);
