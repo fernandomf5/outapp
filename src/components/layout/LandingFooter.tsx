@@ -79,11 +79,7 @@ export const LandingFooter = ({ hideCustomPages = false }: { hideCustomPages?: b
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="space-y-4">
-            {hasLogo ? (
-              <img src={currentLogo || logoDarkUrl || logoLightUrl} alt={siteTitle} className="h-12 w-auto mb-4" />
-            ) : (
-              <span className="font-bold text-xl">{siteTitle || "Automação"}</span>
-            )}
+            <span className="font-bold text-xl">{siteTitle || "Automação"}</span>
             {footerText && (
               <p className="text-sm text-muted-foreground">{footerText}</p>
             )}
