@@ -321,7 +321,7 @@ export function LinkBioCreator() {
       music_autoplay: musicAutoplay,
       background_overlay_color: backgroundOverlayColor,
       background_overlay_opacity: backgroundOverlayOpacity,
-      custom_domain: selectedCustomDomain,
+      custom_domain: selectedCustomDomain && selectedCustomDomain !== 'default' ? selectedCustomDomain : null,
       is_active: true,
     };
 
