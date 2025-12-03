@@ -106,8 +106,6 @@ export function LinkBioCreator() {
   const [links, setLinks] = useState<BioLink[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
-  const [customDomains, setCustomDomains] = useState<Array<{id: string; domain: string; is_verified: boolean}>>([]);
-  const [selectedCustomDomain, setSelectedCustomDomain] = useState("");
   
   const selectedBio = bios.find(b => b.id === selectedBioId) || null;
   
@@ -157,24 +155,8 @@ export function LinkBioCreator() {
   useEffect(() => {
     if (user) {
       fetchBios();
-      fetchCustomDomains();
     }
   }, [user]);
-  
-  const fetchCustomDomains = async () => {
-    if (!user) return;
-    
-    const { data } = await supabase
-      .from('user_domains')
-      .select('id, domain, is_verified')
-      .eq('user_id', user.id)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
-
-    if (data) {
-      setCustomDomains(data);
-    }
-  };
 
   useEffect(() => {
     if (selectedBio) {
@@ -201,7 +183,6 @@ export function LinkBioCreator() {
       setMusicAutoplay(selectedBio.music_autoplay || false);
       setBackgroundOverlayColor(selectedBio.background_overlay_color || '#000000');
       setBackgroundOverlayOpacity(selectedBio.background_overlay_opacity || 0);
-      setSelectedCustomDomain(selectedBio.custom_domain || '');
       fetchLinks(selectedBio.id);
     }
   }, [selectedBio]);
@@ -321,7 +302,6 @@ export function LinkBioCreator() {
       music_autoplay: musicAutoplay,
       background_overlay_color: backgroundOverlayColor,
       background_overlay_opacity: backgroundOverlayOpacity,
-      custom_domain: selectedCustomDomain && selectedCustomDomain !== 'default' ? selectedCustomDomain : null,
       is_active: true,
     };
 
@@ -879,37 +859,10 @@ export function LinkBioCreator() {
                 </div>
               )}
 
-              <div>
-                <Label htmlFor="customDomain">Domínio Customizado (Opcional)</Label>
-                <Select
-                  value={selectedCustomDomain}
-                  onValueChange={setSelectedCustomDomain}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Usar domínio padrão" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="default">
-                      {window.location.host} (padrão)
-                    </SelectItem>
-                    {customDomains.filter(d => d.is_verified).map((domain) => (
-                      <SelectItem key={domain.id} value={domain.domain}>
-                        ✓ {domain.domain}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {customDomains.filter(d => d.is_verified).length === 0 
-                    ? "Adicione e verifique um domínio em 'Gerenciador de Domínios'" 
-                    : "Selecione um domínio verificado para usar"}
-                </p>
-              </div>
-
               <div className="p-4 bg-muted rounded-lg">
                 <p className="text-sm font-medium mb-1">🔗 Seu Link:</p>
                 <code className="text-xs bg-background p-2 rounded block">
-                  {selectedCustomDomain ? `${selectedCustomDomain}/bio/${username || 'seuusername'}` : `${window.location.origin}/bio/${username || 'seuusername'}`}
+                  {`${window.location.origin}/bio/${username || 'seuusername'}`}
                 </code>
               </div>
 
