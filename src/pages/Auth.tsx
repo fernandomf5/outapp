@@ -252,23 +252,52 @@ const Auth = () => {
         Voltar para o Início
       </Button>
 
-      {/* Animated Background Elements */}
+      {/* Animated Tech Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Glowing orbs */}
         <div className="absolute top-20 left-10 w-48 h-48 sm:w-64 sm:h-64 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-20 right-10 w-72 h-72 sm:w-96 sm:h-96 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        
+        {/* Floating tech icons */}
+        <div className="absolute top-[15%] left-[10%] text-white/10 animate-float-slow">
+          <svg className="w-12 h-12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div className="absolute top-[25%] right-[15%] text-white/10 animate-float-medium">
+          <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        </div>
+        <div className="absolute bottom-[30%] left-[8%] text-white/10 animate-float-fast">
+          <svg className="w-10 h-10" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        </div>
+        <div className="absolute top-[60%] right-[10%] text-white/10 animate-float-slow" style={{ animationDelay: '0.5s' }}>
+          <svg className="w-14 h-14" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+        </div>
+        <div className="absolute top-[40%] left-[20%] text-white/10 animate-float-medium" style={{ animationDelay: '0.3s' }}>
+          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+        </div>
+        <div className="absolute bottom-[15%] right-[25%] text-white/10 animate-float-fast" style={{ animationDelay: '0.7s' }}>
+          <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div className="absolute top-[10%] left-[50%] text-white/10 animate-float-slow" style={{ animationDelay: '1.2s' }}>
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div className="absolute bottom-[40%] left-[5%] text-white/10 animate-float-medium" style={{ animationDelay: '0.8s' }}>
+          <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        
+        {/* Moving lines */}
+        <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-white/10 to-transparent animate-move-down"></div>
+        <div className="absolute top-0 right-1/3 w-px h-full bg-gradient-to-b from-transparent via-white/10 to-transparent animate-move-down" style={{ animationDelay: '2s' }}></div>
       </div>
 
       <div className="w-full max-w-md flex flex-col items-center relative z-10">
-        {/* Logo no topo */}
-        <div className="flex flex-col items-center gap-3 mb-8 animate-fade-in">
-          <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl shadow-glow">
-            {logoUrl ? (
-              <img src={logoUrl} alt="Logo" className="w-16 h-16 object-contain" />
-            ) : (
-              <Bot className="w-16 h-16 text-white" />
-            )}
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-white">Out App</h1>
+        {/* Logo no topo - sem fundo */}
+        <div className="flex flex-col items-center gap-4 mb-8 animate-fade-in">
+          {logoUrl ? (
+            <img src={logoUrl} alt="Logo" className="w-28 h-28 sm:w-32 sm:h-32 object-contain drop-shadow-2xl" />
+          ) : (
+            <Bot className="w-28 h-28 sm:w-32 sm:h-32 text-white drop-shadow-2xl" />
+          )}
+          <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">Out App</h1>
         </div>
 
         {/* Formulário de Auth */}
