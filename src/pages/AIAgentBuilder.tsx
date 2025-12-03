@@ -34,10 +34,10 @@ const AIAgentBuilder = () => {
   const [welcomeMessage, setWelcomeMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isActive, setIsActive] = useState(true);
-  const [accessType, setAccessType] = useState<'public' | 'private' | 'anonymous'>('public');
-  const [originalAccessType, setOriginalAccessType] = useState<'public' | 'private' | 'anonymous'>('public');
+  const [accessType, setAccessType] = useState<'public' | 'anonymous'>('public');
+  const [originalAccessType, setOriginalAccessType] = useState<'public' | 'anonymous'>('public');
   const [showAccessChangeDialog, setShowAccessChangeDialog] = useState(false);
-  const [pendingAccessType, setPendingAccessType] = useState<'public' | 'private' | 'anonymous' | null>(null);
+  const [pendingAccessType, setPendingAccessType] = useState<'public' | 'anonymous' | null>(null);
 
   useEffect(() => {
     if (agentId && user) {
@@ -53,7 +53,7 @@ const AIAgentBuilder = () => {
     }
   }, [agentId, user]);
 
-  const handleAccessTypeChange = (value: 'public' | 'private' | 'anonymous') => {
+  const handleAccessTypeChange = (value: 'public' | 'anonymous') => {
     if (agentId && value !== originalAccessType) {
       setPendingAccessType(value);
       setShowAccessChangeDialog(true);
@@ -281,20 +281,12 @@ const AIAgentBuilder = () => {
                       <span className="text-xs text-muted-foreground">Qualquer pessoa pode se cadastrar e usar</span>
                     </div>
                   </SelectItem>
-                  <SelectItem value="private">
-                    <div className="flex flex-col items-start">
-                      <span className="font-semibold text-sm">🔒 Acesso Privado (Com Aprovação)</span>
-                      <span className="text-xs text-muted-foreground">Requer aprovação para acessar</span>
-                    </div>
-                  </SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs sm:text-sm text-muted-foreground mt-2">
                 {accessType === 'anonymous' 
                   ? '⚡ Usuários entram direto no chat sem precisar se cadastrar ou fazer login'
-                  : accessType === 'public' 
-                    ? '✓ Usuários podem se cadastrar e usar o chat livremente'
-                    : '🔐 Você precisará aprovar cada solicitação de acesso individualmente'}
+                  : '✓ Usuários podem se cadastrar e usar o chat livremente'}
               </p>
             </div>
           </Card>
