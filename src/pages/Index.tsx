@@ -598,7 +598,7 @@ const Index = () => {
             <Button 
               size="lg" 
               variant="outline"
-              className="w-full sm:w-auto bg-green-400/20 border-white text-white hover:bg-green-400/30 text-base sm:text-lg md:text-xl px-8 sm:px-10 py-6 sm:py-7 active:scale-95 transition-transform font-semibold"
+              className="w-full sm:w-auto bg-transparent border-white text-white hover:bg-white hover:text-primary text-base sm:text-lg md:text-xl px-8 sm:px-10 py-6 sm:py-7 active:scale-95 transition-all font-semibold"
               onClick={() => document.getElementById('recursos')?.scrollIntoView({ behavior: 'smooth' })}
             >
               Ver Recursos
