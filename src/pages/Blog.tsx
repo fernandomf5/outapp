@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Helmet } from "react-helmet-async";
 import { linkifyText } from "@/utils/linkify";
+import lionLogo from "@/assets/logo-lion.png";
 
 interface BlogPost {
   id: string;
@@ -145,7 +146,7 @@ export default function Blog() {
     return (
       <div className="min-h-screen bg-background">
         <Helmet>
-          <title>{selectedPost.title} | {settings?.site_name || 'Blog'}</title>
+          <title>{selectedPost.title} | Out App Blog</title>
           <meta name="description" content={selectedPost.excerpt || selectedPost.content.substring(0, 160)} />
         </Helmet>
 
@@ -163,36 +164,32 @@ export default function Blog() {
         )}
 
       {/* Header */}
-      {settings && (
-        <header className="border-b border-primary/20 bg-card shadow-md">
-          <div className="container max-w-6xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                {settings.logo_url && (
-                  <img src={settings.logo_url} alt="Logo" className="h-10 w-auto border-2 border-primary/30 rounded-lg p-1" />
-                )}
-                <div>
-                  <h1 className="text-xl font-bold text-primary">{settings.site_name}</h1>
-                  <p className="text-sm text-muted-foreground">{settings.site_description}</p>
-                </div>
+      <header className="border-b border-primary/20 bg-card shadow-md">
+        <div className="container max-w-6xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <img src={settings?.logo_url || lionLogo} alt="Logo" className="h-10 w-auto border-2 border-primary/30 rounded-lg p-1" />
+              <div>
+                <h1 className="text-xl font-bold text-primary">Out App Blog</h1>
+                <p className="text-sm text-muted-foreground">{settings?.site_description || 'Notícias, atualizações e novidades'}</p>
               </div>
-              {settings.header_menu.length > 0 && (
-                <nav className="hidden md:flex gap-6">
-                  {settings.header_menu.map((item, index) => (
-                    <a
-                      key={index}
-                      href={item.url}
-                      className="text-sm hover:text-primary transition-colors font-medium border-b-2 border-transparent hover:border-primary pb-1"
-                    >
-                      {item.label}
-                    </a>
-                  ))}
-                </nav>
-              )}
             </div>
+            {settings && settings.header_menu.length > 0 && (
+              <nav className="hidden md:flex gap-6">
+                {settings.header_menu.map((item, index) => (
+                  <a
+                    key={index}
+                    href={item.url}
+                    className="text-sm hover:text-primary transition-colors font-medium border-b-2 border-transparent hover:border-primary pb-1"
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </nav>
+            )}
           </div>
-        </header>
-      )}
+        </div>
+      </header>
 
         <div className="container max-w-4xl mx-auto px-4 py-8">
           <Button
@@ -306,7 +303,7 @@ export default function Blog() {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>{settings?.site_name || 'Blog Out App'}</title>
+        <title>Out App Blog</title>
         <meta name="description" content={settings?.site_description || 'Notícias, atualizações e novidades'} />
       </Helmet>
 
@@ -324,36 +321,32 @@ export default function Blog() {
       )}
 
       {/* Header */}
-      {settings && (
-        <header className="border-b border-primary/20 bg-card shadow-md">
-          <div className="container max-w-6xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                {settings.logo_url && (
-                  <img src={settings.logo_url} alt="Logo" className="h-10 w-auto border-2 border-primary/30 rounded-lg p-1" />
-                )}
-                <div>
-                  <h1 className="text-xl font-bold text-primary">{settings.site_name}</h1>
-                  <p className="text-sm text-muted-foreground">{settings.site_description}</p>
-                </div>
+      <header className="border-b border-primary/20 bg-card shadow-md">
+        <div className="container max-w-6xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <img src={settings?.logo_url || lionLogo} alt="Logo" className="h-10 w-auto border-2 border-primary/30 rounded-lg p-1" />
+              <div>
+                <h1 className="text-xl font-bold text-primary">Out App Blog</h1>
+                <p className="text-sm text-muted-foreground">{settings?.site_description || 'Notícias, atualizações e novidades'}</p>
               </div>
-              {settings.header_menu.length > 0 && (
-                <nav className="hidden md:flex gap-6">
-                  {settings.header_menu.map((item, index) => (
-                    <a
-                      key={index}
-                      href={item.url}
-                      className="text-sm hover:text-primary transition-colors font-medium border-b-2 border-transparent hover:border-primary pb-1"
-                    >
-                      {item.label}
-                    </a>
-                  ))}
-                </nav>
-              )}
             </div>
+            {settings && settings.header_menu.length > 0 && (
+              <nav className="hidden md:flex gap-6">
+                {settings.header_menu.map((item, index) => (
+                  <a
+                    key={index}
+                    href={item.url}
+                    className="text-sm hover:text-primary transition-colors font-medium border-b-2 border-transparent hover:border-primary pb-1"
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </nav>
+            )}
           </div>
-        </header>
-      )}
+        </div>
+      </header>
 
       <div className="container max-w-6xl mx-auto px-4 py-8">
         <div className="mb-6 space-y-4">
