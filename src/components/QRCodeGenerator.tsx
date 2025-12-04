@@ -37,6 +37,7 @@ export function QRCodeGenerator() {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [qrName, setQrName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -132,9 +133,53 @@ export function QRCodeGenerator() {
       });
       return;
     }
-    setQrName('');
+    
+    // If already editing an existing QR code, save directly
+    if (editingId) {
+      saveExistingQRCode();
+    } else {
+      // New QR code - show dialog to enter name
+      setQrName('');
+      setShowSaveDialog(true);
+    }
+  };
+
+  const saveExistingQRCode = async () => {
+    if (!user || !editingId) return;
+
+    const { error } = await supabase
+      .from('saved_qr_codes')
+      .update({
+        content: text,
+        size,
+        fg_color: fgColor,
+        bg_color: bgColor,
+      })
+      .eq('id', editingId);
+
+    if (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível atualizar o QR Code',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    toast({
+      title: 'Sucesso',
+      description: 'QR Code atualizado com sucesso',
+    });
+    fetchSavedQRCodes();
+  };
+
+  const clearEditing = () => {
+    setText('');
+    setSize(256);
+    setFgColor('#000000');
+    setBgColor('#ffffff');
     setEditingId(null);
-    setShowSaveDialog(true);
+    setEditingName(null);
   };
 
   const saveQRCode = async () => {
@@ -156,61 +201,40 @@ export function QRCodeGenerator() {
       return;
     }
 
-    if (editingId) {
-      const { error } = await supabase
-        .from('saved_qr_codes')
-        .update({
-          name: qrName,
-          content: text,
-          size,
-          fg_color: fgColor,
-          bg_color: bgColor,
-        })
-        .eq('id', editingId);
+    // Save new QR code
+    const { data, error } = await supabase
+      .from('saved_qr_codes')
+      .insert({
+        user_id: user.id,
+        name: qrName,
+        content: text,
+        size,
+        fg_color: fgColor,
+        bg_color: bgColor,
+      })
+      .select()
+      .single();
 
-      if (error) {
-        toast({
-          title: 'Erro',
-          description: 'Não foi possível atualizar o QR Code',
-          variant: 'destructive',
-        });
-        return;
-      }
-
+    if (error) {
       toast({
-        title: 'Sucesso',
-        description: 'QR Code atualizado com sucesso',
+        title: 'Erro',
+        description: 'Não foi possível salvar o QR Code',
+        variant: 'destructive',
       });
-    } else {
-      const { error } = await supabase
-        .from('saved_qr_codes')
-        .insert({
-          user_id: user.id,
-          name: qrName,
-          content: text,
-          size,
-          fg_color: fgColor,
-          bg_color: bgColor,
-        });
-
-      if (error) {
-        toast({
-          title: 'Erro',
-          description: 'Não foi possível salvar o QR Code',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      toast({
-        title: 'Sucesso',
-        description: 'QR Code salvo com sucesso',
-      });
+      return;
     }
+
+    // Keep editing the newly saved QR code
+    setEditingId(data.id);
+    setEditingName(qrName);
+    
+    toast({
+      title: 'Sucesso',
+      description: 'QR Code salvo com sucesso',
+    });
 
     setShowSaveDialog(false);
     setQrName('');
-    setEditingId(null);
     fetchSavedQRCodes();
   };
 
@@ -219,20 +243,12 @@ export function QRCodeGenerator() {
     setSize(qr.size);
     setFgColor(qr.fg_color);
     setBgColor(qr.bg_color);
+    setEditingId(qr.id);
+    setEditingName(qr.name);
     toast({
       title: 'QR Code carregado',
-      description: `"${qr.name}" foi carregado`,
+      description: `"${qr.name}" foi carregado para edição`,
     });
-  };
-
-  const editQRCode = (qr: SavedQRCode) => {
-    setText(qr.content);
-    setSize(qr.size);
-    setFgColor(qr.fg_color);
-    setBgColor(qr.bg_color);
-    setQrName(qr.name);
-    setEditingId(qr.id);
-    setShowSaveDialog(true);
   };
 
   const deleteQRCode = async (id: string) => {
@@ -248,6 +264,11 @@ export function QRCodeGenerator() {
         variant: 'destructive',
       });
       return;
+    }
+
+    // If deleting the currently editing QR code, clear editing state
+    if (editingId === id) {
+      clearEditing();
     }
 
     toast({
@@ -401,6 +422,22 @@ export function QRCodeGenerator() {
                 </Button>
               </div>
 
+              {/* Editing indicator */}
+              {editingId && editingName && (
+                <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg border border-primary/20">
+                  <span className="text-sm">
+                    Editando: <strong>{editingName}</strong>
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={clearEditing}
+                  >
+                    Novo QR Code
+                  </Button>
+                </div>
+              )}
+
               <div className="flex gap-2">
                 <Button
                   onClick={copyToClipboard}
@@ -427,7 +464,7 @@ export function QRCodeGenerator() {
                   className="flex-1"
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  Salvar
+                  {editingId ? 'Atualizar' : 'Salvar'}
                 </Button>
               </div>
             </div>
@@ -495,7 +532,7 @@ export function QRCodeGenerator() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => editQRCode(qr)}
+                      onClick={() => loadQRCode(qr)}
                     >
                       <Edit2 className="w-3 h-3" />
                     </Button>
