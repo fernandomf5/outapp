@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Brain, ZoomIn, ZoomOut, RotateCcw, Save, Plus, Trash2, Link2, Unlink, ChevronRight, ChevronUp, Focus, Palette, ArrowLeft, ExternalLink, LayoutGrid, ChevronDown, Circle, ArrowRight, GitBranch, TreePine } from 'lucide-react';
+import { Brain, ZoomIn, ZoomOut, RotateCcw, Save, Plus, Trash2, Link2, Unlink, ChevronRight, ChevronUp, Focus, Palette, ArrowLeft, ExternalLink, LayoutGrid, ChevronDown, Circle, ArrowRight, GitBranch, TreePine, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -135,6 +135,26 @@ export default function MindMapFullEditor() {
   };
 
   const theme = THEMES[currentTheme as keyof typeof THEMES] || THEMES.default;
+
+  const createRootNode = () => {
+    if (nodes.some(n => n.isRoot)) {
+      toast.error('Já existe um nó central');
+      return;
+    }
+    const newNode: MindMapNode = {
+      id: crypto.randomUUID(),
+      text: 'Ideia Central',
+      x: 500,
+      y: 350,
+      color: theme.colors[0],
+      parentId: null,
+      isRoot: true,
+      icon: '🎯',
+      size: 'medium',
+    };
+    setNodes(prev => [...prev, newNode]);
+    toast.success('Nó central criado!');
+  };
 
   const addNode = () => {
     const parentNode = selectedNode || nodes.find(n => n.isRoot);
@@ -687,6 +707,9 @@ export default function MindMapFullEditor() {
             </SelectContent>
           </Select>
           
+          <Button variant="outline" size="sm" onClick={createRootNode} disabled={nodes.some(n => n.isRoot)} className="bg-white/10 border-white/20 text-white hover:bg-white/20 disabled:opacity-50">
+            <Sparkles className="h-4 w-4 mr-1" /> Central
+          </Button>
           <Button variant="outline" size="sm" onClick={addNode} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
             <Plus className="h-4 w-4 mr-1" /> Filho
           </Button>
