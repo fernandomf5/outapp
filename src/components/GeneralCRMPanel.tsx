@@ -280,7 +280,7 @@ export function GeneralCRMPanel() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>CRM Geral</CardTitle>
+          <CardTitle>Controle de Leads</CardTitle>
           <CardDescription>
             Todos os leads capturados de chatbots, agentes IA e páginas clonadas
           </CardDescription>
