@@ -65,6 +65,7 @@ export default function MindMapFullEditor() {
   
   const [map, setMap] = useState<MindMap | null>(null);
   const [nodes, setNodes] = useState<MindMapNode[]>([]);
+  const [savedNodes, setSavedNodes] = useState<MindMapNode[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -91,8 +92,10 @@ export default function MindMapFullEditor() {
       return;
     }
 
-    setMap({ ...data, nodes: (data.nodes as any) || [] });
-    setNodes((data.nodes as any) || []);
+    const mapNodes = (data.nodes as any) || [];
+    setMap({ ...data, nodes: mapNodes });
+    setNodes(mapNodes);
+    setSavedNodes(JSON.parse(JSON.stringify(mapNodes)));
     setCurrentTheme(data.theme || 'default');
     setLoading(false);
     
@@ -117,7 +120,17 @@ export default function MindMapFullEditor() {
     if (error) {
       toast.error('Erro ao salvar');
     } else {
+      setSavedNodes(JSON.parse(JSON.stringify(nodes)));
       toast.success('Salvo com sucesso!');
+    }
+  };
+
+  const restoreToSaved = () => {
+    if (savedNodes) {
+      setNodes(JSON.parse(JSON.stringify(savedNodes)));
+      toast.success('Organização restaurada!');
+    } else {
+      toast.error('Nenhuma versão salva disponível');
     }
   };
 
@@ -712,6 +725,13 @@ export default function MindMapFullEditor() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {savedNodes && (
+            <Button onClick={restoreToSaved} size="sm" variant="outline" className="bg-orange-500/20 border-orange-500/30 text-orange-400 hover:bg-orange-500/30">
+              <RotateCcw className="w-4 h-4 mr-1" />
+              Restaurar
+            </Button>
+          )}
           
           <Button variant="outline" size="sm" onClick={() => setScale(s => Math.max(0.3, s - 0.2))} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
             <ZoomOut className="h-4 w-4" />
