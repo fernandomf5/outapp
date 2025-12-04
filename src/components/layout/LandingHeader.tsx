@@ -74,27 +74,34 @@ export const LandingHeader = () => {
   }, []);
 
   const currentLogo = () => {
-    if (theme === 'dark' && (logoDarkUrl || logoUrl)) return logoDarkUrl || logoUrl;
-    if (theme === 'light' && (logoLightUrl || logoUrl)) return logoLightUrl || logoUrl;
+    if (theme === 'dark' && logoDarkUrl) return logoDarkUrl;
+    if (theme === 'dark' && logoUrl) return logoUrl;
+    if (theme === 'light' && logoLightUrl) return logoLightUrl;
+    if (theme === 'light' && logoUrl) return logoUrl;
+    if (logoDarkUrl) return logoDarkUrl;
+    if (logoLightUrl) return logoLightUrl;
     return logoUrl;
   };
 
-  const MobileMenu = ({ headerPages }: { headerPages: CustomPageItem[] }) => (
-    <Sheet>
-      <SheetTrigger asChild className="lg:hidden">
-        <Button variant="ghost" size="sm" className="px-2">
-          <Menu className="w-5 h-5" />
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="right" className="w-[280px] sm:w-[320px] p-0 flex flex-col">
-        <SheetHeader className="px-6 py-4 border-b border-border">
-          <div className="flex flex-col items-center gap-2">
-            {currentLogo() && (
-              <img src={currentLogo()} alt="Logo" className="h-10 w-auto object-contain" />
-            )}
-            <SheetTitle>{t('menu')}</SheetTitle>
-          </div>
-        </SheetHeader>
+  const MobileMenu = ({ headerPages }: { headerPages: CustomPageItem[] }) => {
+    const logoSrc = currentLogo();
+    
+    return (
+      <Sheet>
+        <SheetTrigger asChild className="lg:hidden">
+          <Button variant="ghost" size="sm" className="px-2">
+            <Menu className="w-5 h-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-[280px] sm:w-[320px] p-0 flex flex-col">
+          <SheetHeader className="px-6 py-4 border-b border-border">
+            <div className="flex flex-col items-center gap-3">
+              {logoSrc ? (
+                <img src={logoSrc} alt="Logo" className="h-12 w-auto object-contain" />
+              ) : null}
+              <SheetTitle className="text-lg">{t('menu')}</SheetTitle>
+            </div>
+          </SheetHeader>
         <ScrollArea className="flex-1 px-6">
           <nav className="flex flex-col gap-4 py-6">
             <a href="/" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
@@ -140,7 +147,8 @@ export const LandingHeader = () => {
         </ScrollArea>
       </SheetContent>
     </Sheet>
-  );
+    );
+  };
 
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
