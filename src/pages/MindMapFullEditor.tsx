@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Brain, ZoomIn, ZoomOut, RotateCcw, Maximize, Minimize, ChevronRight, ChevronUp, Focus, Edit3, Eye, Plus, Trash2, Link2, Unlink } from 'lucide-react';
+import { Brain, ZoomIn, ZoomOut, RotateCcw, Save, Plus, Trash2, Link2, Unlink, ChevronRight, ChevronUp, Focus, Palette, ArrowLeft, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface MindMapNode {
   id: string;
@@ -22,15 +24,6 @@ interface MindMapNode {
   collapsed?: boolean;
   size?: 'small' | 'medium' | 'large';
 }
-
-const getNodeSizeClasses = (size: 'small' | 'medium' | 'large' | undefined, isRoot: boolean) => {
-  const sizeConfig = {
-    small: { minWidth: isRoot ? 'min-w-[120px]' : 'min-w-[100px]', padding: 'px-3 py-3', iconSize: 'text-lg', textSize: 'text-sm', descSize: 'text-xs' },
-    medium: { minWidth: isRoot ? 'min-w-[160px]' : 'min-w-[120px]', padding: 'px-5 py-4', iconSize: 'text-2xl', textSize: isRoot ? 'text-lg' : 'text-base', descSize: 'text-sm' },
-    large: { minWidth: isRoot ? 'min-w-[220px]' : 'min-w-[180px]', padding: 'px-7 py-5', iconSize: 'text-4xl', textSize: isRoot ? 'text-xl' : 'text-lg', descSize: 'text-base' },
-  };
-  return sizeConfig[size || 'medium'];
-};
 
 interface MindMap {
   id: string;
@@ -51,66 +44,82 @@ const THEMES = {
   cool: { name: 'Frio', colors: ['#3B82F6', '#6366F1', '#8B5CF6', '#06B6D4', '#0EA5E9', '#14B8A6', '#0284C7', '#7C3AED'], bg: '#0f1421', line: '#3B82F6' },
 };
 
-const ICONS = ['🎯', '💡', '⭐', '🚀', '📌', '🔥', '💎', '🎨', '📊', '🔗', '✨', '🏆', '📝', '🎪', '🌟', '💼', '📱', '💻', '🎬', '🎵'];
+const ICONS = ['🎯', '💡', '⭐', '🚀', '📌', '🔥', '💎', '🎨', '📊', '🔗', '✨', '🏆', '📝', '🎪', '🌟', '💼', '📱', '💻', '🎬', '🎵', '📚', '🔧', '⚡', '🌈', '🎁', '❤️', '💰', '🔒', '📈', '🎉', '🧠', '💬', '📣', '🛠️', '🌍', '🏠', '✅', '❌', '⚠️', '💪', '🤝', '👍', '👎', '🔍', '📅', '⏰', '🎓', '🏅', '🥇', '🌱'];
 
-export default function MindMapPresentation() {
+const getNodeSizeClasses = (size: 'small' | 'medium' | 'large' | undefined, isRoot: boolean) => {
+  const sizeConfig = {
+    small: { minWidth: isRoot ? 'min-w-[120px]' : 'min-w-[100px]', padding: 'px-3 py-3', iconSize: 'text-lg', textSize: 'text-sm', descSize: 'text-xs' },
+    medium: { minWidth: isRoot ? 'min-w-[160px]' : 'min-w-[120px]', padding: 'px-5 py-4', iconSize: 'text-2xl', textSize: isRoot ? 'text-lg' : 'text-base', descSize: 'text-sm' },
+    large: { minWidth: isRoot ? 'min-w-[220px]' : 'min-w-[180px]', padding: 'px-7 py-5', iconSize: 'text-4xl', textSize: isRoot ? 'text-xl' : 'text-lg', descSize: 'text-base' },
+  };
+  return sizeConfig[size || 'medium'];
+};
+
+export default function MindMapFullEditor() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const canvasRef = useRef<HTMLDivElement>(null);
+  
   const [map, setMap] = useState<MindMap | null>(null);
   const [nodes, setNodes] = useState<MindMapNode[]>([]);
-  const [originalNodes, setOriginalNodes] = useState<MindMapNode[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
   const [selectedNode, setSelectedNode] = useState<MindMapNode | null>(null);
   const [draggedNode, setDraggedNode] = useState<string | null>(null);
   const [connectingFrom, setConnectingFrom] = useState<string | null>(null);
+  const [currentTheme, setCurrentTheme] = useState('default');
 
   useEffect(() => {
-    fetchMap();
+    if (id) fetchMap();
   }, [id]);
 
   const fetchMap = async () => {
-    if (!id) {
-      setError('ID do mapa não fornecido');
-      setLoading(false);
-      return;
-    }
-
-    const { data, error: fetchError } = await supabase
+    const { data, error } = await supabase
       .from('mind_maps')
       .select('*')
       .eq('id', id)
       .single();
 
-    if (fetchError || !data) {
-      setError('Mapa mental não encontrado');
-    } else {
-      setMap({ ...data, nodes: (data.nodes as any) || [] });
-      setNodes((data.nodes as any) || []);
-      setOriginalNodes((data.nodes as any) || []);
+    if (error || !data) {
+      toast.error('Mapa não encontrado');
+      return;
     }
+
+    setMap({ ...data, nodes: (data.nodes as any) || [] });
+    setNodes((data.nodes as any) || []);
+    setCurrentTheme(data.theme || 'default');
     setLoading(false);
+    
+    // Center on root node after loading
+    setTimeout(() => {
+      const rootNode = ((data.nodes as any) || []).find((n: MindMapNode) => n.isRoot);
+      if (rootNode && canvasRef.current) {
+        const rect = canvasRef.current.getBoundingClientRect();
+        setOffset({ x: rect.width / 2 - rootNode.x, y: rect.height / 2 - rootNode.y });
+      }
+    }, 100);
   };
 
-  const theme = map ? THEMES[map.theme as keyof typeof THEMES] || THEMES.default : THEMES.default;
+  const saveMap = async () => {
+    if (!map || !user) return;
+    
+    const { error } = await supabase
+      .from('mind_maps')
+      .update({ nodes: nodes as any, theme: currentTheme, updated_at: new Date().toISOString() })
+      .eq('id', map.id);
 
-  const toggleEditMode = () => {
-    if (isEditMode) {
-      // Exiting edit mode - restore original nodes
-      setNodes(originalNodes);
-      setSelectedNode(null);
-      toast.info('Alterações descartadas');
+    if (error) {
+      toast.error('Erro ao salvar');
     } else {
-      toast.info('Modo edição temporária - alterações não serão salvas');
+      toast.success('Salvo com sucesso!');
     }
-    setIsEditMode(!isEditMode);
   };
+
+  const theme = THEMES[currentTheme as keyof typeof THEMES] || THEMES.default;
 
   const addNode = () => {
     const rootNode = nodes.find(n => n.isRoot);
@@ -129,7 +138,10 @@ export default function MindMapPresentation() {
 
   const deleteNode = (nodeId: string) => {
     const node = nodes.find(n => n.id === nodeId);
-    if (node?.isRoot) return;
+    if (node?.isRoot) {
+      toast.error('Não é possível deletar o nó central');
+      return;
+    }
     setNodes(prev => prev.filter(n => n.id !== nodeId && n.parentId !== nodeId));
     if (selectedNode?.id === nodeId) setSelectedNode(null);
   };
@@ -141,15 +153,24 @@ export default function MindMapPresentation() {
     }
   };
 
+  const toggleCollapse = (nodeId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, collapsed: !n.collapsed } : n));
+  };
+
   const disconnectNode = (nodeId: string) => {
     setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, parentId: null } : n));
+    toast.success('Nó desconectado');
   };
 
   const getDirectChildCount = (nodeId: string): number => nodes.filter(n => n.parentId === nodeId).length;
 
-  const toggleCollapse = (nodeId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, collapsed: !n.collapsed } : n));
+  const isNodeVisible = (node: MindMapNode): boolean => {
+    if (!node.parentId) return true;
+    const parent = nodes.find(n => n.id === node.parentId);
+    if (!parent) return true;
+    if (parent.collapsed) return false;
+    return isNodeVisible(parent);
   };
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
@@ -159,7 +180,7 @@ export default function MindMapPresentation() {
   }, []);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (draggedNode && isEditMode) {
+    if (draggedNode) {
       const dx = (e.clientX - lastMousePos.x) / scale;
       const dy = (e.clientY - lastMousePos.y) / scale;
       setNodes(prev => prev.map(n => n.id === draggedNode ? { ...n, x: n.x + dx, y: n.y + dy } : n));
@@ -170,7 +191,7 @@ export default function MindMapPresentation() {
       setOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
       setLastMousePos({ x: e.clientX, y: e.clientY });
     }
-  }, [isPanning, draggedNode, lastMousePos, scale, isEditMode]);
+  }, [isPanning, draggedNode, lastMousePos, scale]);
 
   const handlePointerUp = useCallback(() => {
     setIsPanning(false);
@@ -184,11 +205,10 @@ export default function MindMapPresentation() {
 
   const handleNodePointerDown = (e: React.PointerEvent, nodeId: string) => {
     e.stopPropagation();
-    if (!isEditMode) return;
-    
     if (connectingFrom) {
       if (connectingFrom !== nodeId) {
         setNodes(prev => prev.map(n => n.id === connectingFrom ? { ...n, parentId: nodeId } : n));
+        toast.success('Conexão criada!');
       }
       setConnectingFrom(null);
     } else {
@@ -196,30 +216,6 @@ export default function MindMapPresentation() {
       setLastMousePos({ x: e.clientX, y: e.clientY });
       setSelectedNode(nodes.find(n => n.id === nodeId) || null);
     }
-  };
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
-
-  useEffect(() => {
-    const handleFullscreenChange = () => setIsFullscreen(!!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
-
-  const isNodeVisible = (node: MindMapNode): boolean => {
-    if (!node.parentId) return true;
-    const parent = nodes.find(n => n.id === node.parentId);
-    if (!parent) return true;
-    if (parent.collapsed) return false;
-    return isNodeVisible(parent);
   };
 
   const renderConnections = () => {
@@ -241,22 +237,16 @@ export default function MindMapPresentation() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <Brain className="w-12 h-12 text-primary animate-pulse mx-auto mb-4" />
-          <p className="text-muted-foreground">Carregando mapa mental...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: theme.bg }}>
+        <Brain className="w-12 h-12 text-primary animate-pulse" />
       </div>
     );
   }
 
-  if (error || !map) {
+  if (!map) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <Brain className="w-12 h-12 text-destructive mx-auto mb-4" />
-          <p className="text-destructive">{error || 'Erro ao carregar'}</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: theme.bg }}>
+        <p className="text-white">Mapa não encontrado</p>
       </div>
     );
   }
@@ -264,42 +254,46 @@ export default function MindMapPresentation() {
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: theme.bg }}>
       {/* Header */}
-      <header className="flex items-center justify-between p-4 bg-black/30 backdrop-blur-sm border-b border-white/10">
+      <header className="flex items-center justify-between p-3 bg-black/30 backdrop-blur-sm border-b border-white/10">
         <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={() => window.close()} className="text-white hover:bg-white/10">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Fechar
+          </Button>
           <div className="p-2 bg-primary/20 rounded-xl">
-            <Brain className="w-6 h-6 text-primary" />
+            <Brain className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white">{map.name}</h1>
-            {map.description && <p className="text-sm text-white/60">{map.description}</p>}
+            <h1 className="text-base font-bold text-white">{map.name}</h1>
+            <p className="text-xs text-white/60">Editor em tela cheia</p>
           </div>
-          {isEditMode && (
-            <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
-              Modo Edição Temporária
-            </Badge>
-          )}
         </div>
         
         <div className="flex items-center gap-2">
-          {isEditMode && (
-            <>
-              <Button variant="outline" size="sm" onClick={addNode} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                <Plus className="h-4 w-4 mr-1" /> Adicionar
-              </Button>
-              {connectingFrom && (
-                <Badge variant="secondary" className="text-xs">🔗 Conectando...</Badge>
-              )}
-            </>
-          )}
+          <Select value={currentTheme} onValueChange={setCurrentTheme}>
+            <SelectTrigger className="w-[130px] bg-white/10 border-white/20 text-white text-xs">
+              <Palette className="w-3 h-3 mr-1" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(THEMES).map(([key, t]) => (
+                <SelectItem key={key} value={key}>{t.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          <Button variant="outline" size="sm" onClick={addNode} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+            <Plus className="h-4 w-4 mr-1" /> Adicionar
+          </Button>
           
           <Button variant="outline" size="sm" onClick={() => setScale(s => Math.max(0.3, s - 0.2))} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
             <ZoomOut className="h-4 w-4" />
           </Button>
-          <span className="text-xs text-white/60 w-12 text-center">{Math.round(scale * 100)}%</span>
+          <span className="text-xs text-white/60 w-10 text-center">{Math.round(scale * 100)}%</span>
           <Button variant="outline" size="sm" onClick={() => setScale(s => Math.min(3, s + 0.2))} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
             <ZoomIn className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={() => { 
+          <Button variant="outline" size="sm" onClick={() => {
             const rootNode = nodes.find(n => n.isRoot);
             if (rootNode && canvasRef.current) {
               const rect = canvasRef.current.getBoundingClientRect();
@@ -309,17 +303,17 @@ export default function MindMapPresentation() {
           }} className="bg-white/10 border-white/20 text-white hover:bg-white/20" title="Centralizar">
             <Focus className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={toggleFullscreen} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+          
+          {connectingFrom && (
+            <Badge variant="secondary" className="text-xs">🔗 Conectando...</Badge>
+          )}
+          
+          <Button onClick={saveMap} size="sm" className="bg-green-500 hover:bg-green-600 text-white">
+            <Save className="h-4 w-4 mr-1" /> Salvar
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={toggleEditMode}
-            className={`${isEditMode ? 'bg-yellow-500/20 border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/30' : 'bg-white/10 border-white/20 text-white hover:bg-white/20'}`}
-          >
-            {isEditMode ? <Eye className="h-4 w-4 mr-1" /> : <Edit3 className="h-4 w-4 mr-1" />}
-            {isEditMode ? 'Visualizar' : 'Editar'}
+          
+          <Button variant="outline" size="sm" onClick={() => window.open(`/mindmap/${map.id}`, '_blank')} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+            <ExternalLink className="h-4 w-4" />
           </Button>
         </div>
       </header>
@@ -329,16 +323,15 @@ export default function MindMapPresentation() {
         <div
           ref={canvasRef}
           className="flex-1 relative overflow-hidden touch-none"
-          style={{ cursor: isPanning ? 'grabbing' : (draggedNode && isEditMode) ? 'move' : 'grab' }}
+          style={{ cursor: isPanning ? 'grabbing' : draggedNode ? 'move' : 'grab' }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
-          onPointerCancel={handlePointerUp}
           onWheel={handleWheel}
         >
           <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: `radial-gradient(circle, ${theme.line}33 1px, transparent 1px)`, backgroundSize: '30px 30px' }} />
-
+          
           <div className="absolute inset-0" style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`, transformOrigin: 'center center' }}>
             <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ overflow: 'visible' }}>
               {renderConnections()}
@@ -355,8 +348,8 @@ export default function MindMapPresentation() {
                   onPointerDown={(e) => handleNodePointerDown(e, node.id)}
                 >
                   <div
-                    className={`relative rounded-2xl shadow-lg ${sizeClasses.minWidth} ${isEditMode && selectedNode?.id === node.id ? 'ring-4 ring-white/50' : ''}`}
-                    style={{ backgroundColor: node.color, boxShadow: `0 4px 20px ${node.color}60, 0 0 40px ${node.color}30`, border: '2px solid rgba(255,255,255,0.3)' }}
+                    className={`relative rounded-2xl shadow-lg ${sizeClasses.minWidth} ${selectedNode?.id === node.id ? 'ring-4 ring-white/50' : ''}`}
+                    style={{ backgroundColor: node.color, boxShadow: `0 4px 20px ${node.color}60`, border: '2px solid rgba(255,255,255,0.3)' }}
                   >
                     <div className={`${sizeClasses.padding} text-center`}>
                       {node.icon && <span className={`${sizeClasses.iconSize} mb-1 block`}>{node.icon}</span>}
@@ -375,12 +368,12 @@ export default function MindMapPresentation() {
           </div>
         </div>
 
-        {/* Edit Panel - only in edit mode */}
-        {isEditMode && selectedNode && (
-          <div className="w-64 bg-black/40 backdrop-blur-sm border-l border-white/10 p-4 overflow-y-auto">
-            <h3 className="text-white font-semibold mb-4 text-sm">Editar Bloco (temporário)</h3>
+        {/* Side Panel */}
+        {selectedNode && (
+          <div className="w-72 bg-black/40 backdrop-blur-sm border-l border-white/10 p-4 overflow-y-auto">
+            <h3 className="text-white font-semibold mb-4">Editar Bloco</h3>
             
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
                 <Label className="text-white/80 text-xs">Texto</Label>
                 <Input value={selectedNode.text} onChange={(e) => updateNode(selectedNode.id, { text: e.target.value })} className="bg-white/10 border-white/20 text-white text-sm" />
@@ -388,13 +381,13 @@ export default function MindMapPresentation() {
               
               <div>
                 <Label className="text-white/80 text-xs">Descrição</Label>
-                <Input value={selectedNode.description || ''} onChange={(e) => updateNode(selectedNode.id, { description: e.target.value })} className="bg-white/10 border-white/20 text-white text-sm" />
+                <Input value={selectedNode.description || ''} onChange={(e) => updateNode(selectedNode.id, { description: e.target.value })} className="bg-white/10 border-white/20 text-white text-sm" placeholder="Descrição opcional" />
               </div>
               
               <div>
                 <Label className="text-white/80 text-xs">Tamanho</Label>
                 <Select value={selectedNode.size || 'medium'} onValueChange={(v) => updateNode(selectedNode.id, { size: v as any })}>
-                  <SelectTrigger className="bg-white/10 border-white/20 text-white text-xs">
+                  <SelectTrigger className="bg-white/10 border-white/20 text-white text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -407,7 +400,7 @@ export default function MindMapPresentation() {
               
               <div>
                 <Label className="text-white/80 text-xs">Ícone</Label>
-                <div className="grid grid-cols-5 gap-1 mt-1">
+                <div className="grid grid-cols-8 gap-1 mt-1 max-h-24 overflow-y-auto">
                   <button onClick={() => updateNode(selectedNode.id, { icon: undefined })} className="w-6 h-6 rounded bg-white/10 hover:bg-white/20 text-xs text-white/60">✕</button>
                   {ICONS.map((icon) => (
                     <button key={icon} onClick={() => updateNode(selectedNode.id, { icon })} className={`w-6 h-6 rounded text-sm ${selectedNode.icon === icon ? 'bg-white/30' : 'bg-white/10 hover:bg-white/20'}`}>{icon}</button>
@@ -417,7 +410,7 @@ export default function MindMapPresentation() {
               
               <div>
                 <Label className="text-white/80 text-xs">Cor</Label>
-                <div className="grid grid-cols-4 gap-1 mt-1">
+                <div className="grid grid-cols-8 gap-1 mt-1">
                   {theme.colors.map((color) => (
                     <button key={color} onClick={() => updateNode(selectedNode.id, { color })} className={`w-6 h-6 rounded ${selectedNode.color === color ? 'ring-2 ring-white' : ''}`} style={{ backgroundColor: color }} />
                   ))}
@@ -443,14 +436,6 @@ export default function MindMapPresentation() {
           </div>
         )}
       </div>
-
-      {/* Footer */}
-      <footer className="p-3 bg-black/30 backdrop-blur-sm border-t border-white/10 text-center">
-        <p className="text-xs text-white/40">
-          {nodes.length} nós • Tema: {theme.name}
-          {isEditMode && ' • Alterações não serão salvas'}
-        </p>
-      </footer>
     </div>
   );
 }

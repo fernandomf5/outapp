@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Plus, Save, FolderOpen, Trash2, Edit3, ZoomIn, ZoomOut, RotateCcw, Brain, Sparkles, LayoutGrid, Move, Link2, Copy, ChevronDown, GitBranch, ArrowRight, Circle, TreePine, Unlink, ChevronRight, ChevronUp, Focus } from 'lucide-react';
+import { Plus, Save, FolderOpen, Trash2, Edit3, ZoomIn, ZoomOut, RotateCcw, Brain, Sparkles, LayoutGrid, Move, Link2, Copy, ChevronDown, GitBranch, ArrowRight, Circle, TreePine, Unlink, ChevronRight, ChevronUp, Focus, Maximize2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -871,11 +871,17 @@ export const MindMapCreatorPanel = () => {
             </Button>
             
             {currentMapId && (
-              <Button onClick={copyPresentationLink} size="sm" variant="outline" className="bg-green-500/10 border-green-500/30 text-green-500 hover:bg-green-500/20">
-                <Link2 className="w-4 h-4 mr-2" />
-                Link Apresentação
-                <Copy className="w-3 h-3 ml-1" />
-              </Button>
+              <>
+                <Button onClick={() => window.open(`/mindmap-editor/${currentMapId}`, '_blank')} size="sm" variant="outline" className="bg-blue-500/10 border-blue-500/30 text-blue-500 hover:bg-blue-500/20">
+                  <Maximize2 className="w-4 h-4 mr-2" />
+                  Editor Full
+                </Button>
+                <Button onClick={copyPresentationLink} size="sm" variant="outline" className="bg-green-500/10 border-green-500/30 text-green-500 hover:bg-green-500/20">
+                  <Link2 className="w-4 h-4 mr-2" />
+                  Link Apresentação
+                  <Copy className="w-3 h-3 ml-1" />
+                </Button>
+              </>
             )}
           </div>
         </div>
