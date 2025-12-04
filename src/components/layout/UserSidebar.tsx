@@ -64,12 +64,12 @@ export function UserSidebar() {
   ];
 
   const managementItems: MenuItem[] = [
+    { title: "Agenda", icon: Calendar, path: "/dashboard", tab: "agenda" },
     { title: "Gestão de Clientes", icon: Users, path: "/dashboard", tab: "clientes" },
     { title: "Gestão Financeira", icon: DollarSign, path: "/dashboard", tab: "financeiro" },
     { title: "Gestão de Equipe", icon: UserCog, path: "/dashboard", tab: "equipe" },
     { title: "Gestão de Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios" },
     { title: "Organizador de Tarefas", icon: Target, path: "/dashboard", tab: "tarefas" },
-    { title: "Agenda", icon: Calendar, path: "/dashboard", tab: "agenda" },
   ];
 
   const crmItems: MenuItem[] = [
