@@ -1,12 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, Copy, Check } from 'lucide-react';
+import { Download, Copy, Check, Save, Trash2, Edit2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+
+interface SavedQRCode {
+  id: string;
+  name: string;
+  content: string;
+  size: number;
+  fg_color: string;
+  bg_color: string;
+  created_at: string;
+}
 
 export function QRCodeGenerator() {
   const [text, setText] = useState('');
@@ -14,7 +33,29 @@ export function QRCodeGenerator() {
   const [fgColor, setFgColor] = useState('#000000');
   const [bgColor, setBgColor] = useState('#ffffff');
   const [copied, setCopied] = useState(false);
+  const [savedQRCodes, setSavedQRCodes] = useState<SavedQRCode[]>([]);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [qrName, setQrName] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      fetchSavedQRCodes();
+    }
+  }, [user]);
+
+  const fetchSavedQRCodes = async () => {
+    const { data, error } = await supabase
+      .from('saved_qr_codes')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      setSavedQRCodes(data);
+    }
+  };
 
   const downloadQRCode = (format: 'svg' | 'png') => {
     const svg = document.getElementById('qr-code-svg');
@@ -80,6 +121,140 @@ export function QRCodeGenerator() {
         variant: 'destructive',
       });
     }
+  };
+
+  const handleSaveClick = () => {
+    if (!text) {
+      toast({
+        title: 'Erro',
+        description: 'Digite um conteúdo para o QR Code',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setQrName('');
+    setEditingId(null);
+    setShowSaveDialog(true);
+  };
+
+  const saveQRCode = async () => {
+    if (!user) {
+      toast({
+        title: 'Erro',
+        description: 'Você precisa estar logado para salvar QR Codes',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!qrName.trim()) {
+      toast({
+        title: 'Erro',
+        description: 'Digite um nome para o QR Code',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (editingId) {
+      const { error } = await supabase
+        .from('saved_qr_codes')
+        .update({
+          name: qrName,
+          content: text,
+          size,
+          fg_color: fgColor,
+          bg_color: bgColor,
+        })
+        .eq('id', editingId);
+
+      if (error) {
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível atualizar o QR Code',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      toast({
+        title: 'Sucesso',
+        description: 'QR Code atualizado com sucesso',
+      });
+    } else {
+      const { error } = await supabase
+        .from('saved_qr_codes')
+        .insert({
+          user_id: user.id,
+          name: qrName,
+          content: text,
+          size,
+          fg_color: fgColor,
+          bg_color: bgColor,
+        });
+
+      if (error) {
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível salvar o QR Code',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      toast({
+        title: 'Sucesso',
+        description: 'QR Code salvo com sucesso',
+      });
+    }
+
+    setShowSaveDialog(false);
+    setQrName('');
+    setEditingId(null);
+    fetchSavedQRCodes();
+  };
+
+  const loadQRCode = (qr: SavedQRCode) => {
+    setText(qr.content);
+    setSize(qr.size);
+    setFgColor(qr.fg_color);
+    setBgColor(qr.bg_color);
+    toast({
+      title: 'QR Code carregado',
+      description: `"${qr.name}" foi carregado`,
+    });
+  };
+
+  const editQRCode = (qr: SavedQRCode) => {
+    setText(qr.content);
+    setSize(qr.size);
+    setFgColor(qr.fg_color);
+    setBgColor(qr.bg_color);
+    setQrName(qr.name);
+    setEditingId(qr.id);
+    setShowSaveDialog(true);
+  };
+
+  const deleteQRCode = async (id: string) => {
+    const { error } = await supabase
+      .from('saved_qr_codes')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível excluir o QR Code',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    toast({
+      title: 'Sucesso',
+      description: 'QR Code excluído com sucesso',
+    });
+    fetchSavedQRCodes();
   };
 
   return (
@@ -226,24 +401,35 @@ export function QRCodeGenerator() {
                 </Button>
               </div>
 
-              <Button
-                onClick={copyToClipboard}
-                disabled={!text}
-                variant="secondary"
-                className="w-full"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-4 h-4 mr-2" />
-                    Copiado!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copiar Texto
-                  </>
-                )}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={copyToClipboard}
+                  disabled={!text}
+                  variant="secondary"
+                  className="flex-1"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-4 h-4 mr-2" />
+                      Copiado!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copiar Texto
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={handleSaveClick}
+                  disabled={!text || !user}
+                  variant="default"
+                  className="flex-1"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Salvar
+                </Button>
+              </div>
             </div>
 
             {/* Preview */}
@@ -275,6 +461,88 @@ export function QRCodeGenerator() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Saved QR Codes */}
+      {user && savedQRCodes.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>QR Codes Salvos</CardTitle>
+            <CardDescription>
+              Clique em um QR Code para carregar
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {savedQRCodes.map((qr) => (
+                <div
+                  key={qr.id}
+                  className="border rounded-lg p-4 space-y-3 hover:border-primary transition-colors"
+                >
+                  <div
+                    className="cursor-pointer flex justify-center"
+                    onClick={() => loadQRCode(qr)}
+                  >
+                    <QRCodeSVG
+                      value={qr.content}
+                      size={100}
+                      fgColor={qr.fg_color}
+                      bgColor={qr.bg_color}
+                      level="H"
+                    />
+                  </div>
+                  <p className="text-sm font-medium text-center truncate">{qr.name}</p>
+                  <div className="flex gap-2 justify-center">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => editQRCode(qr)}
+                    >
+                      <Edit2 className="w-3 h-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => deleteQRCode(qr.id)}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Save Dialog */}
+      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingId ? 'Editar QR Code' : 'Salvar QR Code'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="qr-name">Nome do QR Code</Label>
+              <Input
+                id="qr-name"
+                placeholder="Ex: Link do meu site"
+                value={qrName}
+                onChange={(e) => setQrName(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={saveQRCode}>
+              {editingId ? 'Atualizar' : 'Salvar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

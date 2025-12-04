@@ -4794,6 +4794,42 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_qr_codes: {
+        Row: {
+          bg_color: string | null
+          content: string
+          created_at: string
+          fg_color: string | null
+          id: string
+          name: string
+          size: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bg_color?: string | null
+          content: string
+          created_at?: string
+          fg_color?: string | null
+          id?: string
+          name: string
+          size?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bg_color?: string | null
+          content?: string
+          created_at?: string
+          fg_color?: string | null
+          id?: string
+          name?: string
+          size?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           created_at: string | null
