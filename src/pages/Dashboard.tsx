@@ -52,6 +52,7 @@ import { QuickNotesPanel } from "@/components/QuickNotesPanel";
 import { TaskReminder } from "@/components/TaskReminder";
 import { FeatureGate } from "@/components/FeatureGate";
 import { MindMapCreatorPanel } from "@/components/MindMapCreatorPanel";
+import { ProposalCreatorPanel } from "@/components/proposal/ProposalCreatorPanel";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -1147,6 +1148,10 @@ const Dashboard = () => {
 
           <TabsContent value="mapa-mental">
             <MindMapCreatorPanel />
+          </TabsContent>
+
+          <TabsContent value="propostas">
+            <ProposalCreatorPanel />
           </TabsContent>
         </Tabs>
       </main>
