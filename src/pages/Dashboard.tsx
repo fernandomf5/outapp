@@ -372,7 +372,7 @@ const Dashboard = () => {
         <QuickNotesPanel />
         
         {/* Stats Summary */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Chats</CardTitle>
@@ -380,15 +380,6 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalAgents}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Sites</CardTitle>
-              <Globe className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalWebsites}</div>
             </CardContent>
           </Card>
           <Card>
@@ -402,11 +393,38 @@ const Dashboard = () => {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Links</CardTitle>
+              <Link2 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalShortLinks}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Briefings</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalBriefings}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Quiz</CardTitle>
               <HelpCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalQuizzes}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Páginas</CardTitle>
+              <Copy className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalClonedPages}</div>
             </CardContent>
           </Card>
         </div>
@@ -683,6 +701,21 @@ const Dashboard = () => {
                   <div>
                     <CardTitle className="text-base">Criador de Mapa Mental</CardTitle>
                     <p className="text-xs text-muted-foreground">Organize suas ideias</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Criador de Propostas */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("propostas")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <FileCheck className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Criador de Propostas</CardTitle>
+                    <p className="text-xs text-muted-foreground">Propostas comerciais</p>
                   </div>
                 </div>
               </CardHeader>
