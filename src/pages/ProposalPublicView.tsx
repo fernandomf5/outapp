@@ -12,11 +12,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { 
   Building2, User, Mail, Phone, MapPin, Calendar, CheckCircle, XCircle, 
   Download, Loader2, FileText, Clock, Target, DollarSign, FileCheck,
-  ChevronLeft, ChevronRight, Sparkles
+  ChevronLeft, ChevronRight, Sparkles, Image
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+import html2canvas from 'html2canvas';
 
 interface Service {
   id: string;
@@ -67,7 +68,9 @@ export default function ProposalPublicView() {
   const [rejectReason, setRejectReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [activeServiceImage, setActiveServiceImage] = useState(0);
+  const [downloadingPng, setDownloadingPng] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const proposalRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
   useEffect(() => {
@@ -254,8 +257,33 @@ export default function ProposalPublicView() {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handleDownloadPng = async () => {
+    if (!proposalRef.current) return;
+    
+    try {
+      setDownloadingPng(true);
+      
+      const canvas = await html2canvas(proposalRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        scrollY: -window.scrollY,
+        windowHeight: document.documentElement.scrollHeight,
+      });
+      
+      const link = document.createElement('a');
+      link.download = `proposta-${proposal?.title?.replace(/\s+/g, '-').toLowerCase() || 'comercial'}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+      toast.success('Proposta baixada com sucesso!');
+    } catch (error) {
+      console.error('Error generating PNG:', error);
+      toast.error('Erro ao gerar imagem da proposta');
+    } finally {
+      setDownloadingPng(false);
+    }
   };
 
   // Get services with images for carousel
@@ -306,7 +334,7 @@ export default function ProposalPublicView() {
   const canRespond = proposal.status === 'sent' || proposal.status === 'viewed';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-background dark:to-slate-900 print:bg-white">
+    <div ref={proposalRef} className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-background dark:to-slate-900 print:bg-white">
       <style>{`
         @media print {
           .no-print { display: none !important; }
@@ -356,9 +384,13 @@ export default function ProposalPublicView() {
             </div>
             
             <div className="flex items-center gap-3 no-print">
-              <Button variant="outline" onClick={handlePrint} className="shadow-sm">
-                <Download className="h-4 w-4 mr-2" />
-                Salvar PDF
+              <Button variant="outline" onClick={handleDownloadPng} disabled={downloadingPng} className="shadow-sm">
+                {downloadingPng ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Image className="h-4 w-4 mr-2" />
+                )}
+                Baixar PNG
               </Button>
             </div>
           </div>
