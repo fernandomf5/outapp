@@ -257,12 +257,14 @@ export const MindMapCreatorPanel = () => {
     return nodes.filter(n => n.parentId === nodeId).length;
   };
 
-  const isNodeVisible = (node: MindMapNode): boolean => {
+  const isNodeVisible = (node: MindMapNode, visited: Set<string> = new Set()): boolean => {
     if (!node.parentId) return true;
+    if (visited.has(node.id)) return true; // Prevent infinite loop on cycles
+    visited.add(node.id);
     const parent = nodes.find(n => n.id === node.parentId);
     if (!parent) return true;
     if (parent.collapsed) return false;
-    return isNodeVisible(parent);
+    return isNodeVisible(parent, visited);
   };
 
   const openEditDialog = (node: MindMapNode) => {
@@ -323,10 +325,31 @@ export const MindMapCreatorPanel = () => {
     if (nodeId) {
       if (connectingFrom) {
         if (connectingFrom !== nodeId) {
-          setNodes(prev => prev.map(n => 
-            n.id === nodeId ? { ...n, parentId: connectingFrom } : n
-          ));
-          toast.success('Nós conectados!');
+          // Check for circular reference - ensure the target node isn't an ancestor of the source
+          const wouldCreateCycle = (targetId: string, sourceId: string, nodesList: MindMapNode[]): boolean => {
+            let current = nodesList.find(n => n.id === sourceId);
+            const visited = new Set<string>();
+            while (current && current.parentId) {
+              if (visited.has(current.id)) return true; // Already visited, cycle detected
+              if (current.parentId === targetId) return true;
+              visited.add(current.id);
+              current = nodesList.find(n => n.id === current!.parentId);
+            }
+            return false;
+          };
+          
+          setNodes(prev => {
+            if (wouldCreateCycle(nodeId, connectingFrom, prev)) {
+              toast.error('Conexão criaria um ciclo!');
+              return prev;
+            }
+            return prev.map(n => 
+              n.id === nodeId ? { ...n, parentId: connectingFrom } : n
+            );
+          });
+          if (!wouldCreateCycle(nodeId, connectingFrom, nodes)) {
+            toast.success('Nós conectados!');
+          }
         }
         setConnectingFrom(null);
       } else {
@@ -336,7 +359,7 @@ export const MindMapCreatorPanel = () => {
       setIsPanning(true);
     }
     setLastMousePos({ x: e.clientX, y: e.clientY });
-  }, [connectingFrom]);
+  }, [connectingFrom, nodes]);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
