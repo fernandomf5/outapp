@@ -9,10 +9,21 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Building2, User, Mail, Phone, MapPin, Calendar, CheckCircle, XCircle, Download, Loader2, FileText } from 'lucide-react';
+import { 
+  Building2, User, Mail, Phone, MapPin, Calendar, CheckCircle, XCircle, 
+  Download, Loader2, FileText, Clock, Target, DollarSign, FileCheck,
+  ChevronLeft, ChevronRight, Sparkles
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+
+interface Service {
+  id: string;
+  name: string;
+  description: string;
+  image_url?: string;
+}
 
 interface Proposal {
   id: string;
@@ -22,6 +33,7 @@ interface Proposal {
   company_phone: string;
   company_address: string;
   company_cnpj: string;
+  company_description: string | null;
   client_name: string;
   client_email: string;
   client_phone: string;
@@ -30,7 +42,8 @@ interface Proposal {
   client_address: string;
   title: string;
   introduction: string;
-  services: { id: string; name: string; description: string }[];
+  introduction_image_url: string | null;
+  services: Service[];
   timeline: { id: string; phase: string; duration: string; deliverables: string }[];
   pricing: { items: { id: string; description: string; quantity: number; unit_price: number }[]; discount: number; total: number };
   conditions: string;
@@ -40,6 +53,7 @@ interface Proposal {
   client_accepted_name: string | null;
   client_accepted_at: string | null;
   client_signature_url: string | null;
+  created_at: string;
 }
 
 export default function ProposalPublicView() {
@@ -51,6 +65,7 @@ export default function ProposalPublicView() {
   const [acceptName, setAcceptName] = useState('');
   const [rejectReason, setRejectReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [activeServiceImage, setActiveServiceImage] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
@@ -134,6 +149,36 @@ export default function ProposalPublicView() {
     setIsDrawing(false);
   };
 
+  const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    setIsDrawing(true);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    ctx.beginPath();
+    ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+    ctx.stroke();
+  };
+
+  const handleTouchEnd = () => {
+    setIsDrawing(false);
+  };
+
   const clearSignature = () => {
     initCanvas();
   };
@@ -147,7 +192,6 @@ export default function ProposalPublicView() {
     try {
       setSubmitting(true);
       
-      // Get signature as base64
       let signatureUrl = null;
       const canvas = canvasRef.current;
       if (canvas) {
@@ -211,21 +255,29 @@ export default function ProposalPublicView() {
     window.print();
   };
 
+  // Get services with images for carousel
+  const servicesWithImages = proposal?.services?.filter(s => s.image_url) || [];
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Carregando proposta...</p>
+        </div>
       </div>
     );
   }
 
   if (!proposal) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Card className="max-w-md">
-          <CardContent className="pt-6 text-center">
-            <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Proposta não encontrada</h2>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted">
+        <Card className="max-w-md shadow-2xl border-0">
+          <CardContent className="pt-8 pb-8 text-center">
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              <FileText className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h2 className="text-2xl font-bold mb-2">Proposta não encontrada</h2>
             <p className="text-muted-foreground">O link pode estar incorreto ou a proposta foi removida.</p>
           </CardContent>
         </Card>
@@ -238,155 +290,363 @@ export default function ProposalPublicView() {
   const canRespond = proposal.status === 'sent' || proposal.status === 'viewed';
 
   return (
-    <div className="min-h-screen bg-background print:bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-background dark:to-slate-900 print:bg-white">
       <style>{`
         @media print {
           .no-print { display: none !important; }
           body { background: white !important; }
+          .print-break { page-break-before: always; }
         }
       `}</style>
 
-      {/* Header */}
-      <header className="border-b py-6 px-4" style={{ borderColor: primaryColor }}>
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            {proposal.company_logo_url && (
-              <img src={proposal.company_logo_url} alt="Logo" className="h-16 w-auto object-contain" />
-            )}
-            <div>
-              <h1 className="text-xl font-bold">{proposal.company_name}</h1>
-              {proposal.company_email && <p className="text-sm text-muted-foreground">{proposal.company_email}</p>}
+      {/* Hero Header */}
+      <header className="relative overflow-hidden">
+        <div 
+          className="absolute inset-0 opacity-10"
+          style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, transparent 70%)` }}
+        />
+        <div className="relative max-w-5xl mx-auto px-4 py-12 md:py-16">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="flex items-center gap-5">
+              {proposal.company_logo_url ? (
+                <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-xl bg-white p-2 flex items-center justify-center">
+                  <img src={proposal.company_logo_url} alt="Logo" className="max-h-full max-w-full object-contain" />
+                </div>
+              ) : (
+                <div 
+                  className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-xl"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  <Building2 className="h-10 w-10 text-white" />
+                </div>
+              )}
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold">{proposal.company_name}</h1>
+                <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-muted-foreground">
+                  {proposal.company_email && (
+                    <span className="flex items-center gap-1">
+                      <Mail className="h-3.5 w-3.5" />
+                      {proposal.company_email}
+                    </span>
+                  )}
+                  {proposal.company_phone && (
+                    <span className="flex items-center gap-1">
+                      <Phone className="h-3.5 w-3.5" />
+                      {proposal.company_phone}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-          
-          <div className="flex items-center gap-2 no-print">
-            <Button variant="outline" onClick={handlePrint}>
-              <Download className="h-4 w-4 mr-2" />
-              PDF
-            </Button>
+            
+            <div className="flex items-center gap-3 no-print">
+              <Button variant="outline" onClick={handlePrint} className="shadow-sm">
+                <Download className="h-4 w-4 mr-2" />
+                Salvar PDF
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto py-8 px-4 space-y-8">
+      <main className="max-w-5xl mx-auto px-4 pb-16 space-y-8">
         {/* Status Banner */}
         {(proposal.status === 'accepted' || proposal.status === 'rejected' || isExpired) && (
-          <Card className={`${proposal.status === 'accepted' ? 'bg-green-50 border-green-200' : proposal.status === 'rejected' ? 'bg-red-50 border-red-200' : 'bg-yellow-50 border-yellow-200'}`}>
-            <CardContent className="py-4 flex items-center gap-3">
-              {proposal.status === 'accepted' ? (
-                <>
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                  <div>
-                    <p className="font-medium text-green-800">Proposta Aceita</p>
-                    <p className="text-sm text-green-600">
-                      Aceita por {proposal.client_accepted_name} em {proposal.client_accepted_at && format(new Date(proposal.client_accepted_at), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
-                    </p>
-                  </div>
-                </>
-              ) : proposal.status === 'rejected' ? (
-                <>
-                  <XCircle className="h-6 w-6 text-red-600" />
-                  <div>
-                    <p className="font-medium text-red-800">Proposta Recusada</p>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <Calendar className="h-6 w-6 text-yellow-600" />
-                  <div>
-                    <p className="font-medium text-yellow-800">Proposta Expirada</p>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
+          <div 
+            className={`rounded-2xl p-5 flex items-center gap-4 shadow-lg ${
+              proposal.status === 'accepted' 
+                ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white' 
+                : proposal.status === 'rejected' 
+                  ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white' 
+                  : 'bg-gradient-to-r from-yellow-500 to-amber-600 text-white'
+            }`}
+          >
+            {proposal.status === 'accepted' ? (
+              <>
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                  <CheckCircle className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="font-bold text-lg">Proposta Aceita</p>
+                  <p className="text-sm opacity-90">
+                    Aceita por {proposal.client_accepted_name} em {proposal.client_accepted_at && format(new Date(proposal.client_accepted_at), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
+                  </p>
+                </div>
+              </>
+            ) : proposal.status === 'rejected' ? (
+              <>
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                  <XCircle className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="font-bold text-lg">Proposta Recusada</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                  <Clock className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="font-bold text-lg">Proposta Expirada</p>
+                  <p className="text-sm opacity-90">Esta proposta não está mais válida</p>
+                </div>
+              </>
+            )}
+          </div>
         )}
 
-        {/* Title */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-2">{proposal.title}</h1>
-          {proposal.valid_until && (
-            <Badge variant="outline" className="text-sm">
-              Válida até {format(new Date(proposal.valid_until), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+        {/* Title Card */}
+        <Card className="border-0 shadow-xl overflow-hidden">
+          <div 
+            className="h-2"
+            style={{ backgroundColor: primaryColor }}
+          />
+          <CardContent className="p-8 text-center">
+            <Badge 
+              variant="secondary" 
+              className="mb-4 px-4 py-1 text-xs font-medium"
+              style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}
+            >
+              PROPOSTA COMERCIAL
             </Badge>
-          )}
-        </div>
-
-        {/* Client Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <User className="h-5 w-5" style={{ color: primaryColor }} />
-              Para
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="font-semibold text-lg">{proposal.client_name}</p>
-                {proposal.client_company && <p className="text-muted-foreground">{proposal.client_company}</p>}
-              </div>
-              <div className="space-y-1 text-sm">
-                {proposal.client_email && (
-                  <p className="flex items-center gap-2"><Mail className="h-4 w-4" /> {proposal.client_email}</p>
-                )}
-                {proposal.client_phone && (
-                  <p className="flex items-center gap-2"><Phone className="h-4 w-4" /> {proposal.client_phone}</p>
-                )}
+            <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight">{proposal.title}</h1>
+            <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
+              {proposal.valid_until && (
+                <div className="flex items-center gap-2 bg-muted/50 px-4 py-2 rounded-full">
+                  <Calendar className="h-4 w-4" />
+                  <span>Válida até {format(new Date(proposal.valid_until), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2 bg-muted/50 px-4 py-2 rounded-full">
+                <Clock className="h-4 w-4" />
+                <span>Criada em {format(new Date(proposal.created_at), "dd/MM/yyyy", { locale: ptBR })}</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Introduction */}
-        {proposal.introduction && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg" style={{ color: primaryColor }}>Apresentação</CardTitle>
+        {/* Client & Company Info Grid */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* From Company */}
+          <Card className="border-0 shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base font-medium text-muted-foreground">
+                <Building2 className="h-4 w-4" style={{ color: primaryColor }} />
+                DE
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="whitespace-pre-wrap">{proposal.introduction}</p>
+              <p className="font-bold text-xl mb-1">{proposal.company_name}</p>
+              {proposal.company_cnpj && <p className="text-sm text-muted-foreground mb-3">CNPJ: {proposal.company_cnpj}</p>}
+              <div className="space-y-2 text-sm">
+                {proposal.company_address && (
+                  <p className="flex items-start gap-2">
+                    <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
+                    <span>{proposal.company_address}</span>
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* To Client */}
+          <Card className="border-0 shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base font-medium text-muted-foreground">
+                <User className="h-4 w-4" style={{ color: primaryColor }} />
+                PARA
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="font-bold text-xl mb-1">{proposal.client_name}</p>
+              {proposal.client_company && <p className="text-muted-foreground mb-1">{proposal.client_company}</p>}
+              {proposal.client_cnpj && <p className="text-sm text-muted-foreground mb-3">CNPJ: {proposal.client_cnpj}</p>}
+              <div className="space-y-2 text-sm">
+                {proposal.client_email && (
+                  <p className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span>{proposal.client_email}</span>
+                  </p>
+                )}
+                {proposal.client_phone && (
+                  <p className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span>{proposal.client_phone}</span>
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Introduction */}
+        {proposal.introduction && (
+          <Card className="border-0 shadow-lg overflow-hidden">
+            <CardHeader className="border-b bg-muted/30">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <div 
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ backgroundColor: `${primaryColor}20` }}
+                >
+                  <Sparkles className="h-5 w-5" style={{ color: primaryColor }} />
+                </div>
+                Apresentação
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className={`grid gap-6 ${proposal.introduction_image_url ? 'md:grid-cols-2' : ''}`}>
+                <div className="prose prose-sm dark:prose-invert max-w-none">
+                  <p className="whitespace-pre-wrap text-base leading-relaxed">{proposal.introduction}</p>
+                </div>
+                {proposal.introduction_image_url && (
+                  <div className="relative">
+                    <img 
+                      src={proposal.introduction_image_url} 
+                      alt="Apresentação" 
+                      className="w-full h-64 md:h-full object-cover rounded-xl shadow-md"
+                    />
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         )}
 
         {/* Services */}
         {proposal.services?.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg" style={{ color: primaryColor }}>Serviços</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {proposal.services.map((service, index) => (
-                <div key={service.id} className="border-l-4 pl-4" style={{ borderColor: primaryColor }}>
-                  <h4 className="font-semibold">{index + 1}. {service.name}</h4>
-                  <p className="text-muted-foreground text-sm mt-1">{service.description}</p>
+          <Card className="border-0 shadow-lg overflow-hidden">
+            <CardHeader className="border-b bg-muted/30">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <div 
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ backgroundColor: `${primaryColor}20` }}
+                >
+                  <Target className="h-5 w-5" style={{ color: primaryColor }} />
                 </div>
-              ))}
+                Serviços Incluídos
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              {/* Services Image Carousel */}
+              {servicesWithImages.length > 0 && (
+                <div className="relative mb-8 rounded-2xl overflow-hidden shadow-lg">
+                  <div className="relative h-64 md:h-80 bg-muted">
+                    <img 
+                      src={servicesWithImages[activeServiceImage]?.image_url} 
+                      alt={servicesWithImages[activeServiceImage]?.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute bottom-4 left-4 right-4 text-white">
+                      <p className="font-bold text-lg">{servicesWithImages[activeServiceImage]?.name}</p>
+                    </div>
+                  </div>
+                  
+                  {servicesWithImages.length > 1 && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg"
+                        onClick={() => setActiveServiceImage(prev => prev === 0 ? servicesWithImages.length - 1 : prev - 1)}
+                      >
+                        <ChevronLeft className="h-5 w-5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg"
+                        onClick={() => setActiveServiceImage(prev => prev === servicesWithImages.length - 1 ? 0 : prev + 1)}
+                      >
+                        <ChevronRight className="h-5 w-5" />
+                      </Button>
+                      <div className="absolute bottom-4 right-4 flex gap-1.5">
+                        {servicesWithImages.map((_, idx) => (
+                          <button
+                            key={idx}
+                            className={`w-2 h-2 rounded-full transition-all ${idx === activeServiceImage ? 'bg-white w-6' : 'bg-white/50'}`}
+                            onClick={() => setActiveServiceImage(idx)}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Services List */}
+              <div className="grid gap-4">
+                {proposal.services.map((service, index) => (
+                  <div 
+                    key={service.id} 
+                    className="group relative p-5 rounded-xl border bg-card hover:shadow-md transition-all"
+                  >
+                    <div className="flex gap-4">
+                      <div 
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
+                        style={{ backgroundColor: primaryColor }}
+                      >
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-lg mb-1">{service.name}</h4>
+                        <p className="text-muted-foreground text-sm leading-relaxed">{service.description}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         )}
 
         {/* Timeline */}
         {proposal.timeline?.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg" style={{ color: primaryColor }}>Cronograma</CardTitle>
+          <Card className="border-0 shadow-lg overflow-hidden print-break">
+            <CardHeader className="border-b bg-muted/30">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <div 
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ backgroundColor: `${primaryColor}20` }}
+                >
+                  <Clock className="h-5 w-5" style={{ color: primaryColor }} />
+                </div>
+                Cronograma de Execução
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="p-6">
+              <div className="relative">
                 {proposal.timeline.map((item, index) => (
-                  <div key={item.id} className="flex gap-4">
+                  <div key={item.id} className="flex gap-4 pb-8 last:pb-0">
                     <div className="flex flex-col items-center">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white" style={{ backgroundColor: primaryColor }}>
+                      <div 
+                        className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-lg"
+                        style={{ backgroundColor: primaryColor }}
+                      >
                         {index + 1}
                       </div>
-                      {index < proposal.timeline.length - 1 && <div className="w-0.5 flex-1 bg-border mt-2" />}
+                      {index < proposal.timeline.length - 1 && (
+                        <div 
+                          className="w-0.5 flex-1 mt-3"
+                          style={{ backgroundColor: `${primaryColor}30` }}
+                        />
+                      )}
                     </div>
-                    <div className="flex-1 pb-4">
-                      <h4 className="font-semibold">{item.phase}</h4>
-                      <p className="text-sm text-muted-foreground">{item.duration}</p>
-                      {item.deliverables && <p className="text-sm mt-1">Entregáveis: {item.deliverables}</p>}
+                    <div className="flex-1 pt-1.5">
+                      <div className="bg-muted/50 rounded-xl p-4">
+                        <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
+                          <h4 className="font-bold text-lg">{item.phase}</h4>
+                          <Badge variant="outline" className="font-medium">
+                            {item.duration}
+                          </Badge>
+                        </div>
+                        {item.deliverables && (
+                          <p className="text-sm text-muted-foreground">
+                            <span className="font-medium">Entregáveis:</span> {item.deliverables}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -396,73 +656,119 @@ export default function ProposalPublicView() {
         )}
 
         {/* Pricing */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg" style={{ color: primaryColor }}>Investimento</CardTitle>
+        <Card className="border-0 shadow-xl overflow-hidden">
+          <CardHeader className="border-b" style={{ backgroundColor: `${primaryColor}10` }}>
+            <CardTitle className="flex items-center gap-3 text-xl">
+              <div 
+                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ backgroundColor: primaryColor }}
+              >
+                <DollarSign className="h-5 w-5 text-white" />
+              </div>
+              Investimento
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {proposal.pricing?.items?.map(item => (
-                <div key={item.id} className="flex justify-between py-2 border-b">
+          <CardContent className="p-0">
+            <div className="divide-y">
+              {proposal.pricing?.items?.map((item, idx) => (
+                <div key={item.id} className={`flex justify-between items-center p-5 ${idx % 2 === 0 ? 'bg-muted/20' : ''}`}>
                   <div>
-                    <p>{item.description}</p>
+                    <p className="font-medium">{item.description}</p>
                     <p className="text-sm text-muted-foreground">{item.quantity} x {formatCurrency(item.unit_price)}</p>
                   </div>
-                  <p className="font-medium">{formatCurrency(item.quantity * item.unit_price)}</p>
+                  <p className="font-semibold text-lg">{formatCurrency(item.quantity * item.unit_price)}</p>
                 </div>
               ))}
               {proposal.pricing?.discount > 0 && (
-                <div className="flex justify-between py-2 text-green-600">
-                  <p>Desconto</p>
-                  <p>-{formatCurrency(proposal.pricing.discount)}</p>
+                <div className="flex justify-between items-center p-5 bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400">
+                  <p className="font-medium">Desconto Aplicado</p>
+                  <p className="font-semibold text-lg">-{formatCurrency(proposal.pricing.discount)}</p>
                 </div>
               )}
-              <Separator />
-              <div className="flex justify-between py-2 text-xl font-bold">
-                <p>Total</p>
-                <p style={{ color: primaryColor }}>{formatCurrency(proposal.pricing?.total || 0)}</p>
-              </div>
+            </div>
+            <div 
+              className="p-6 flex justify-between items-center"
+              style={{ backgroundColor: primaryColor }}
+            >
+              <p className="text-white font-bold text-xl">TOTAL</p>
+              <p className="text-white font-bold text-3xl">{formatCurrency(proposal.pricing?.total || 0)}</p>
             </div>
           </CardContent>
         </Card>
 
         {/* Conditions */}
         {proposal.conditions && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg" style={{ color: primaryColor }}>Termos e Condições</CardTitle>
+          <Card className="border-0 shadow-lg">
+            <CardHeader className="border-b bg-muted/30">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <div 
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ backgroundColor: `${primaryColor}20` }}
+                >
+                  <FileCheck className="h-5 w-5" style={{ color: primaryColor }} />
+                </div>
+                Termos e Condições
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="whitespace-pre-wrap text-sm">{proposal.conditions}</p>
+            <CardContent className="p-6">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">{proposal.conditions}</p>
             </CardContent>
           </Card>
         )}
 
         {/* Signature Area */}
         {proposal.client_signature_url && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Assinatura do Cliente</CardTitle>
+          <Card className="border-0 shadow-lg">
+            <CardHeader className="border-b bg-muted/30">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <CheckCircle className="h-5 w-5" style={{ color: primaryColor }} />
+                Assinatura do Cliente
+              </CardTitle>
             </CardHeader>
-            <CardContent className="text-center">
-              <img src={proposal.client_signature_url} alt="Assinatura" className="max-w-xs mx-auto border rounded" />
-              <p className="mt-2 font-medium">{proposal.client_accepted_name}</p>
+            <CardContent className="p-6 text-center">
+              <div className="inline-block p-4 bg-white rounded-xl border shadow-sm">
+                <img src={proposal.client_signature_url} alt="Assinatura" className="max-w-xs mx-auto" />
+              </div>
+              <p className="mt-4 font-bold text-lg">{proposal.client_accepted_name}</p>
+              {proposal.client_accepted_at && (
+                <p className="text-sm text-muted-foreground">
+                  {format(new Date(proposal.client_accepted_at), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
+                </p>
+              )}
             </CardContent>
           </Card>
         )}
 
         {/* Action Buttons */}
         {canRespond && !isExpired && (
-          <Card className="no-print">
-            <CardContent className="py-6">
+          <Card className="border-0 shadow-xl no-print overflow-hidden">
+            <div 
+              className="h-1"
+              style={{ backgroundColor: primaryColor }}
+            />
+            <CardContent className="p-8">
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-bold mb-2">Pronto para fechar negócio?</h3>
+                <p className="text-muted-foreground">Aceite ou recuse esta proposta comercial</p>
+              </div>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" onClick={() => setShowAcceptDialog(true)} className="gap-2" style={{ backgroundColor: primaryColor }}>
+                <Button 
+                  size="lg" 
+                  onClick={() => setShowAcceptDialog(true)} 
+                  className="gap-3 px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all" 
+                  style={{ backgroundColor: primaryColor }}
+                >
                   <CheckCircle className="h-5 w-5" />
                   Aceitar Proposta
                 </Button>
-                <Button size="lg" variant="outline" onClick={() => setShowRejectDialog(true)} className="gap-2">
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  onClick={() => setShowRejectDialog(true)} 
+                  className="gap-3 px-8 py-6 text-lg"
+                >
                   <XCircle className="h-5 w-5" />
-                  Recusar Proposta
+                  Recusar
                 </Button>
               </div>
             </CardContent>
@@ -470,49 +776,74 @@ export default function ProposalPublicView() {
         )}
 
         {/* Footer */}
-        <footer className="text-center text-sm text-muted-foreground py-8 border-t">
-          <p>{proposal.company_name}</p>
-          {proposal.company_address && <p>{proposal.company_address}</p>}
-          {proposal.company_phone && <p>{proposal.company_phone}</p>}
+        <footer className="text-center py-8 border-t">
+          <div className="flex items-center justify-center gap-3 mb-3">
+            {proposal.company_logo_url && (
+              <img src={proposal.company_logo_url} alt="Logo" className="h-8 object-contain" />
+            )}
+            <span className="font-bold text-lg">{proposal.company_name}</span>
+          </div>
+          <div className="text-sm text-muted-foreground space-y-1">
+            {proposal.company_address && <p>{proposal.company_address}</p>}
+            <p>{[proposal.company_email, proposal.company_phone].filter(Boolean).join(' • ')}</p>
+          </div>
         </footer>
       </main>
 
       {/* Accept Dialog */}
       <Dialog open={showAcceptDialog} onOpenChange={setShowAcceptDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Aceitar Proposta</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Aceitar Proposta
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-6 py-4">
             <div className="space-y-2">
-              <Label>Seu nome completo *</Label>
+              <Label htmlFor="acceptName">Nome Completo *</Label>
               <Input
+                id="acceptName"
                 value={acceptName}
                 onChange={(e) => setAcceptName(e.target.value)}
-                placeholder="Digite seu nome"
+                placeholder="Digite seu nome completo"
               />
             </div>
             <div className="space-y-2">
-              <Label>Assinatura (opcional)</Label>
-              <canvas
-                ref={canvasRef}
-                width={350}
-                height={150}
-                className="border rounded cursor-crosshair w-full"
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
-              />
-              <Button variant="ghost" size="sm" onClick={clearSignature}>
+              <Label>Assinatura Digital</Label>
+              <p className="text-xs text-muted-foreground mb-2">Desenhe sua assinatura abaixo usando o mouse ou dedo</p>
+              <div className="border rounded-lg overflow-hidden bg-white">
+                <canvas
+                  ref={canvasRef}
+                  width={400}
+                  height={150}
+                  className="w-full touch-none cursor-crosshair"
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
+                />
+              </div>
+              <Button variant="ghost" size="sm" onClick={clearSignature} className="text-xs">
                 Limpar assinatura
               </Button>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAcceptDialog(false)}>Cancelar</Button>
-            <Button onClick={handleAccept} disabled={submitting}>
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirmar Aceite'}
+            <Button variant="outline" onClick={() => setShowAcceptDialog(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleAccept} 
+              disabled={submitting} 
+              className="gap-2"
+              style={{ backgroundColor: primaryColor }}
+            >
+              {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+              Confirmar Aceite
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -520,25 +851,32 @@ export default function ProposalPublicView() {
 
       {/* Reject Dialog */}
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Recusar Proposta</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <XCircle className="h-5 w-5 text-red-600" />
+              Recusar Proposta
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Motivo (opcional)</Label>
+              <Label htmlFor="rejectReason">Motivo da Recusa (opcional)</Label>
               <Textarea
+                id="rejectReason"
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="Informe o motivo da recusa..."
+                placeholder="Conte-nos o motivo da recusa para podermos melhorar..."
                 rows={4}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRejectDialog(false)}>Cancelar</Button>
-            <Button variant="destructive" onClick={handleReject} disabled={submitting}>
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirmar Recusa'}
+            <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleReject} disabled={submitting} variant="destructive" className="gap-2">
+              {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+              Confirmar Recusa
             </Button>
           </DialogFooter>
         </DialogContent>

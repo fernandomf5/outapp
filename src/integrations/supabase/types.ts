@@ -2579,6 +2579,7 @@ export type Database = {
           client_signature_url: string | null
           company_address: string | null
           company_cnpj: string | null
+          company_description: string | null
           company_email: string | null
           company_logo_url: string | null
           company_name: string | null
@@ -2587,6 +2588,7 @@ export type Database = {
           created_at: string
           id: string
           introduction: string | null
+          introduction_image_url: string | null
           is_private: boolean | null
           pricing: Json | null
           primary_color: string | null
@@ -2595,9 +2597,11 @@ export type Database = {
           rejection_reason: string | null
           sent_at: string | null
           services: Json | null
+          services_images: Json | null
           slug: string | null
           status: string
           timeline: Json | null
+          timeline_image_url: string | null
           title: string
           updated_at: string
           user_id: string
@@ -2617,6 +2621,7 @@ export type Database = {
           client_signature_url?: string | null
           company_address?: string | null
           company_cnpj?: string | null
+          company_description?: string | null
           company_email?: string | null
           company_logo_url?: string | null
           company_name?: string | null
@@ -2625,6 +2630,7 @@ export type Database = {
           created_at?: string
           id?: string
           introduction?: string | null
+          introduction_image_url?: string | null
           is_private?: boolean | null
           pricing?: Json | null
           primary_color?: string | null
@@ -2633,9 +2639,11 @@ export type Database = {
           rejection_reason?: string | null
           sent_at?: string | null
           services?: Json | null
+          services_images?: Json | null
           slug?: string | null
           status?: string
           timeline?: Json | null
+          timeline_image_url?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -2655,6 +2663,7 @@ export type Database = {
           client_signature_url?: string | null
           company_address?: string | null
           company_cnpj?: string | null
+          company_description?: string | null
           company_email?: string | null
           company_logo_url?: string | null
           company_name?: string | null
@@ -2663,6 +2672,7 @@ export type Database = {
           created_at?: string
           id?: string
           introduction?: string | null
+          introduction_image_url?: string | null
           is_private?: boolean | null
           pricing?: Json | null
           primary_color?: string | null
@@ -2671,9 +2681,11 @@ export type Database = {
           rejection_reason?: string | null
           sent_at?: string | null
           services?: Json | null
+          services_images?: Json | null
           slug?: string | null
           status?: string
           timeline?: Json | null
+          timeline_image_url?: string | null
           title?: string
           updated_at?: string
           user_id?: string
