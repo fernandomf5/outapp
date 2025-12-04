@@ -73,7 +73,7 @@ export function UserSidebar() {
   ];
 
   const crmItems: MenuItem[] = [
-    { title: "CRM Geral", icon: Database, path: "/dashboard", tab: "crm-geral" },
+    { title: "Controle de Leads", icon: Database, path: "/dashboard", tab: "crm-geral" },
   ];
 
   const basicResourcesItems: MenuItem[] = [
