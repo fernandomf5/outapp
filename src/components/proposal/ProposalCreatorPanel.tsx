@@ -68,6 +68,7 @@ const initialProposalData = {
   conditions: '',
   valid_until: '',
   primary_color: '#6366f1',
+  auto_carousel: false,
 };
 
 export function ProposalCreatorPanel() {
@@ -256,6 +257,7 @@ export function ProposalCreatorPanel() {
         conditions: data.conditions || '',
         valid_until: data.valid_until || '',
         primary_color: data.primary_color || '#6366f1',
+        auto_carousel: data.auto_carousel ?? false,
       });
       setEditingProposal(id);
       setCurrentStep(0);
@@ -299,7 +301,7 @@ export function ProposalCreatorPanel() {
       case 2:
         return <IntroductionStep title={proposalData.title} introduction={proposalData.introduction} introductionImageUrl={proposalData.introduction_image_url} onChange={updateProposalData} />;
       case 3:
-        return <ServicesStep services={proposalData.services} onChange={(services) => updateProposalData({ services })} />;
+        return <ServicesStep services={proposalData.services} autoCarousel={proposalData.auto_carousel} onChange={(services, autoCarousel) => updateProposalData({ services, auto_carousel: autoCarousel })} />;
       case 4:
         return <TimelineStep timeline={proposalData.timeline} onChange={(timeline) => updateProposalData({ timeline })} />;
       case 5:

@@ -49,6 +49,7 @@ interface Proposal {
   conditions: string;
   valid_until: string;
   primary_color: string;
+  auto_carousel: boolean;
   status: string;
   client_accepted_name: string | null;
   client_accepted_at: string | null;
@@ -75,6 +76,7 @@ export default function ProposalPublicView() {
     }
   }, [slug]);
 
+
   const fetchProposal = async () => {
     try {
       const { data, error } = await supabase
@@ -89,6 +91,7 @@ export default function ProposalPublicView() {
         services: (data.services || []) as any[],
         timeline: (data.timeline || []) as any[],
         pricing: (data.pricing || { items: [], discount: 0, total: 0 }) as any,
+        auto_carousel: data.auto_carousel ?? false,
       });
 
       // Mark as viewed
@@ -257,6 +260,19 @@ export default function ProposalPublicView() {
 
   // Get services with images for carousel
   const servicesWithImages = proposal?.services?.filter(s => s.image_url) || [];
+
+  // Auto-carousel effect
+  useEffect(() => {
+    if (!proposal?.auto_carousel || servicesWithImages.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setActiveServiceImage(prev => 
+        prev === servicesWithImages.length - 1 ? 0 : prev + 1
+      );
+    }, 4000);
+    
+    return () => clearInterval(interval);
+  }, [proposal?.auto_carousel, servicesWithImages.length]);
 
   if (loading) {
     return (
@@ -548,7 +564,8 @@ export default function ProposalPublicView() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 shadow-lg text-white hover:text-white"
+                        style={{ backgroundColor: primaryColor, opacity: 0.9 }}
                         onClick={() => setActiveServiceImage(prev => prev === 0 ? servicesWithImages.length - 1 : prev - 1)}
                       >
                         <ChevronLeft className="h-5 w-5" />
@@ -556,7 +573,8 @@ export default function ProposalPublicView() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 shadow-lg text-white hover:text-white"
+                        style={{ backgroundColor: primaryColor, opacity: 0.9 }}
                         onClick={() => setActiveServiceImage(prev => prev === servicesWithImages.length - 1 ? 0 : prev + 1)}
                       >
                         <ChevronRight className="h-5 w-5" />
@@ -565,7 +583,8 @@ export default function ProposalPublicView() {
                         {servicesWithImages.map((_, idx) => (
                           <button
                             key={idx}
-                            className={`w-2 h-2 rounded-full transition-all ${idx === activeServiceImage ? 'bg-white w-6' : 'bg-white/50'}`}
+                            className={`w-2 h-2 rounded-full transition-all ${idx === activeServiceImage ? 'w-6' : ''}`}
+                            style={{ backgroundColor: idx === activeServiceImage ? primaryColor : 'rgba(255,255,255,0.5)' }}
                             onClick={() => setActiveServiceImage(idx)}
                           />
                         ))}

@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Trash2, GripVertical, Image, X } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Plus, Trash2, GripVertical, Image, X, Play } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -19,7 +20,8 @@ interface Service {
 
 interface ServicesStepProps {
   services: Service[];
-  onChange: (services: Service[]) => void;
+  autoCarousel?: boolean;
+  onChange: (services: Service[], autoCarousel?: boolean) => void;
 }
 
 function SortableServiceItem({ 
@@ -130,7 +132,7 @@ function SortableServiceItem({
   );
 }
 
-export function ServicesStep({ services, onChange }: ServicesStepProps) {
+export function ServicesStep({ services, autoCarousel = false, onChange }: ServicesStepProps) {
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -144,15 +146,15 @@ export function ServicesStep({ services, onChange }: ServicesStepProps) {
       name: '',
       description: '',
     };
-    onChange([...services, newService]);
+    onChange([...services, newService], autoCarousel);
   };
 
   const updateService = (id: string, data: Partial<Service>) => {
-    onChange(services.map(s => s.id === id ? { ...s, ...data } : s));
+    onChange(services.map(s => s.id === id ? { ...s, ...data } : s), autoCarousel);
   };
 
   const removeService = (id: string) => {
-    onChange(services.filter(s => s.id !== id));
+    onChange(services.filter(s => s.id !== id), autoCarousel);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -160,9 +162,11 @@ export function ServicesStep({ services, onChange }: ServicesStepProps) {
     if (over && active.id !== over.id) {
       const oldIndex = services.findIndex(s => s.id === active.id);
       const newIndex = services.findIndex(s => s.id === over.id);
-      onChange(arrayMove(services, oldIndex, newIndex));
+      onChange(arrayMove(services, oldIndex, newIndex), autoCarousel);
     }
   };
+
+  const servicesWithImages = services.filter(s => s.image_url);
 
   return (
     <div className="space-y-6">
@@ -170,6 +174,27 @@ export function ServicesStep({ services, onChange }: ServicesStepProps) {
         <h2 className="text-xl font-semibold">Serviços</h2>
         <p className="text-muted-foreground">Liste os serviços que serão prestados (você pode adicionar imagens)</p>
       </div>
+
+      {servicesWithImages.length > 1 && (
+        <Card className="border-dashed">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Play className="h-5 w-5 text-primary" />
+                <div>
+                  <Label htmlFor="auto-carousel" className="font-medium">Carrossel Automático</Label>
+                  <p className="text-sm text-muted-foreground">Passar imagens automaticamente na apresentação</p>
+                </div>
+              </div>
+              <Switch
+                id="auto-carousel"
+                checked={autoCarousel}
+                onCheckedChange={(checked) => onChange(services, checked)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={services.map(s => s.id)} strategy={verticalListSortingStrategy}>
