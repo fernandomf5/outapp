@@ -122,14 +122,14 @@ export default function MindMapFullEditor() {
   const theme = THEMES[currentTheme as keyof typeof THEMES] || THEMES.default;
 
   const addNode = () => {
-    const rootNode = nodes.find(n => n.isRoot);
+    const parentNode = selectedNode || nodes.find(n => n.isRoot);
     const newNode: MindMapNode = {
       id: crypto.randomUUID(),
       text: 'Novo bloco',
-      x: rootNode ? rootNode.x + 200 : 400,
-      y: rootNode ? rootNode.y : 300,
+      x: parentNode ? parentNode.x + 200 : 400,
+      y: parentNode ? parentNode.y + (Math.random() - 0.5) * 100 : 300,
       color: theme.colors[nodes.length % theme.colors.length],
-      parentId: rootNode?.id || null,
+      parentId: parentNode?.id || null,
       isRoot: false,
       size: 'medium',
     };
