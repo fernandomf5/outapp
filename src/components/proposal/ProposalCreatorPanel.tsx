@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Plus, History, Eye, Copy, Trash2, ExternalLink, Send, CheckCircle, XCircle, Clock, Filter } from 'lucide-react';
+import { FileText, Plus, History, Eye, Copy, Trash2, ExternalLink, Send, CheckCircle, XCircle, Clock, Filter, Pencil } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -437,8 +437,8 @@ export function ProposalCreatorPanel() {
                                 </Button>
                               </>
                             )}
-                            <Button variant="ghost" size="icon" onClick={() => loadProposalForEdit(proposal.id)}>
-                              <FileText className="h-4 w-4" />
+                            <Button variant="ghost" size="icon" onClick={() => loadProposalForEdit(proposal.id)} title="Editar proposta">
+                              <Pencil className="h-4 w-4" />
                             </Button>
                             <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteProposal(proposal)}>
                               <Trash2 className="h-4 w-4" />
