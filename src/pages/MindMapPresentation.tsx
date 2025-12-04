@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Brain, ZoomIn, ZoomOut, RotateCcw, Maximize, Minimize, ChevronRight, ChevronUp } from 'lucide-react';
+import { Brain, ZoomIn, ZoomOut, RotateCcw, Maximize, Minimize, ChevronRight, ChevronUp, Focus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface MindMapNode {
@@ -283,10 +283,40 @@ export default function MindMapPresentation() {
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => { setScale(1); setOffset({ x: 0, y: 0 }); }}
+            onClick={() => { 
+              const rootNode = nodes.find(n => n.isRoot);
+              if (rootNode && canvasRef.current) {
+                const rect = canvasRef.current.getBoundingClientRect();
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                setScale(1);
+                setOffset({ x: centerX - rootNode.x, y: centerY - rootNode.y });
+              } else {
+                setScale(1); 
+                setOffset({ x: 0, y: 0 }); 
+              }
+            }}
             className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+            title="Centralizar no nó central"
           >
             <RotateCcw className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => { 
+              const rootNode = nodes.find(n => n.isRoot);
+              if (rootNode && canvasRef.current) {
+                const rect = canvasRef.current.getBoundingClientRect();
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                setOffset({ x: centerX - rootNode.x, y: centerY - rootNode.y });
+              }
+            }}
+            className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+            title="Centralizar no nó central"
+          >
+            <Focus className="h-4 w-4" />
           </Button>
           <Button 
             variant="outline" 

@@ -892,8 +892,20 @@ export const MindMapCreatorPanel = () => {
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => { setScale(1); setOffset({ x: 0, y: 0 }); }}
-            title="Resetar zoom"
+            onClick={() => { 
+              const rootNode = nodes.find(n => n.isRoot);
+              if (rootNode && canvasRef.current) {
+                const rect = canvasRef.current.getBoundingClientRect();
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                setScale(1);
+                setOffset({ x: centerX - rootNode.x, y: centerY - rootNode.y });
+              } else {
+                setScale(1); 
+                setOffset({ x: 0, y: 0 }); 
+              }
+            }}
+            title="Centralizar no nó central"
           >
             <RotateCcw className="h-4 w-4" />
           </Button>
