@@ -257,7 +257,7 @@ export function ProposalCreatorPanel() {
         conditions: data.conditions || '',
         valid_until: data.valid_until || '',
         primary_color: data.primary_color || '#6366f1',
-        auto_carousel: data.auto_carousel ?? false,
+        auto_carousel: (data as any).auto_carousel ?? false,
       });
       setEditingProposal(id);
       setCurrentStep(0);

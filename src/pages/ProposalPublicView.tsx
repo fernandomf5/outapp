@@ -91,7 +91,7 @@ export default function ProposalPublicView() {
         services: (data.services || []) as any[],
         timeline: (data.timeline || []) as any[],
         pricing: (data.pricing || { items: [], discount: 0, total: 0 }) as any,
-        auto_carousel: data.auto_carousel ?? false,
+        auto_carousel: (data as any).auto_carousel ?? false,
       });
 
       // Mark as viewed
