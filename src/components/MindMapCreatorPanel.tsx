@@ -466,6 +466,26 @@ export const MindMapCreatorPanel = () => {
     toast.success('Visualização centralizada!');
   };
 
+  // Helper: Get all children of a node
+  const getChildren = (parentId: string): MindMapNode[] => {
+    return nodes.filter(n => n.parentId === parentId);
+  };
+
+  // Helper: Get all descendants count
+  const getDescendantsCount = (nodeId: string): number => {
+    const children = getChildren(nodeId);
+    if (children.length === 0) return 1;
+    return children.reduce((sum, child) => sum + getDescendantsCount(child.id), 0);
+  };
+
+  // Helper: Get node depth
+  const getNodeDepth = (node: MindMapNode): number => {
+    if (node.isRoot || !node.parentId) return 0;
+    const parent = nodes.find(n => n.id === node.parentId);
+    if (!parent) return 1;
+    return getNodeDepth(parent) + 1;
+  };
+
   const organizeRadial = () => {
     const root = nodes.find(n => n.isRoot);
     if (!root) {
@@ -475,26 +495,50 @@ export const MindMapCreatorPanel = () => {
 
     const centerX = 500;
     const centerY = 350;
-    const radius = 220;
+    const baseRadius = 180;
+    const radiusIncrement = 150;
 
-    const organizedNodes = nodes.map(node => {
+    const positionNode = (
+      node: MindMapNode,
+      startAngle: number,
+      endAngle: number,
+      depth: number
+    ): MindMapNode[] => {
+      const result: MindMapNode[] = [];
+      const children = getChildren(node.id);
+      
       if (node.isRoot) {
-        return { ...node, x: centerX, y: centerY };
+        result.push({ ...node, x: centerX, y: centerY });
       }
-      
-      const siblings = nodes.filter(n => !n.isRoot);
-      const index = siblings.findIndex(s => s.id === node.id);
-      const angle = (index / siblings.length) * 2 * Math.PI - Math.PI / 2;
-      
-      return {
-        ...node,
-        x: centerX + Math.cos(angle) * radius,
-        y: centerY + Math.sin(angle) * radius,
-        parentId: node.parentId || root.id,
-      };
-    });
 
-    setNodes(organizedNodes);
+      if (children.length === 0) return result;
+
+      const totalDescendants = children.reduce((sum, c) => sum + getDescendantsCount(c.id), 0);
+      let currentAngle = startAngle;
+
+      children.forEach(child => {
+        const childDescendants = getDescendantsCount(child.id);
+        const angleSpan = ((endAngle - startAngle) * childDescendants) / totalDescendants;
+        const childAngle = currentAngle + angleSpan / 2;
+        const radius = baseRadius + depth * radiusIncrement;
+
+        result.push({
+          ...child,
+          x: centerX + Math.cos(childAngle) * radius,
+          y: centerY + Math.sin(childAngle) * radius,
+        });
+
+        result.push(...positionNode(child, currentAngle, currentAngle + angleSpan, depth + 1));
+        currentAngle += angleSpan;
+      });
+
+      return result;
+    };
+
+    const positioned = positionNode(root, 0, 2 * Math.PI, 1);
+    const positionMap = new Map(positioned.map(n => [n.id, n]));
+    
+    setNodes(nodes.map(n => positionMap.get(n.id) || n));
     toast.success('Organização radial aplicada!');
   };
 
@@ -507,25 +551,48 @@ export const MindMapCreatorPanel = () => {
 
     const startX = 100;
     const centerY = 350;
-    const spacing = 200;
+    const horizontalSpacing = 220;
+    const verticalSpacing = 80;
 
-    const organizedNodes = nodes.map((node, index) => {
-      if (node.isRoot) {
-        return { ...node, x: startX, y: centerY };
-      }
-      
-      const siblings = nodes.filter(n => !n.isRoot);
-      const idx = siblings.findIndex(s => s.id === node.id);
-      
-      return {
-        ...node,
-        x: startX + (idx + 1) * spacing,
-        y: centerY,
-        parentId: node.parentId || root.id,
-      };
-    });
+    const positionNode = (
+      node: MindMapNode,
+      x: number,
+      yStart: number,
+      yEnd: number
+    ): MindMapNode[] => {
+      const result: MindMapNode[] = [];
+      const children = getChildren(node.id);
+      const y = (yStart + yEnd) / 2;
 
-    setNodes(organizedNodes);
+      result.push({ ...node, x, y });
+
+      if (children.length === 0) return result;
+
+      const totalDescendants = children.reduce((sum, c) => sum + Math.max(1, getDescendantsCount(c.id)), 0);
+      const totalHeight = totalDescendants * verticalSpacing;
+      let currentY = y - totalHeight / 2;
+
+      children.forEach(child => {
+        const childDescendants = Math.max(1, getDescendantsCount(child.id));
+        const childHeight = childDescendants * verticalSpacing;
+        
+        result.push(...positionNode(
+          child,
+          x + horizontalSpacing,
+          currentY,
+          currentY + childHeight
+        ));
+        
+        currentY += childHeight;
+      });
+
+      return result;
+    };
+
+    const positioned = positionNode(root, startX, 50, 650);
+    const positionMap = new Map(positioned.map(n => [n.id, n]));
+    
+    setNodes(nodes.map(n => positionMap.get(n.id) || n));
     toast.success('Organização horizontal aplicada!');
   };
 
@@ -538,25 +605,50 @@ export const MindMapCreatorPanel = () => {
 
     const centerX = 500;
     const startY = 80;
-    const spacing = 120;
+    const verticalSpacing = 120;
+    const horizontalSpacing = 160;
 
-    const organizedNodes = nodes.map((node, index) => {
-      if (node.isRoot) {
-        return { ...node, x: centerX, y: startY };
-      }
-      
-      const siblings = nodes.filter(n => !n.isRoot);
-      const idx = siblings.findIndex(s => s.id === node.id);
-      
-      return {
-        ...node,
-        x: centerX,
-        y: startY + (idx + 1) * spacing,
-        parentId: node.parentId || root.id,
-      };
-    });
+    const getSubtreeWidth = (nodeId: string): number => {
+      const children = getChildren(nodeId);
+      if (children.length === 0) return 1;
+      return children.reduce((sum, c) => sum + getSubtreeWidth(c.id), 0);
+    };
 
-    setNodes(organizedNodes);
+    const positionNode = (
+      node: MindMapNode,
+      depth: number,
+      xStart: number,
+      xEnd: number
+    ): MindMapNode[] => {
+      const result: MindMapNode[] = [];
+      const children = getChildren(node.id);
+      const x = (xStart + xEnd) / 2;
+      const y = startY + depth * verticalSpacing;
+
+      result.push({ ...node, x, y });
+
+      if (children.length === 0) return result;
+
+      const totalWidth = children.reduce((sum, c) => sum + getSubtreeWidth(c.id), 0);
+      const availableWidth = xEnd - xStart;
+      let currentX = xStart;
+
+      children.forEach(child => {
+        const childWidth = getSubtreeWidth(child.id);
+        const childSpan = (availableWidth * childWidth) / totalWidth;
+        
+        result.push(...positionNode(child, depth + 1, currentX, currentX + childSpan));
+        currentX += childSpan;
+      });
+
+      return result;
+    };
+
+    const totalWidth = Math.max(nodes.length * horizontalSpacing, 800);
+    const positioned = positionNode(root, 0, centerX - totalWidth / 2, centerX + totalWidth / 2);
+    const positionMap = new Map(positioned.map(n => [n.id, n]));
+    
+    setNodes(nodes.map(n => positionMap.get(n.id) || n));
     toast.success('Organização vertical aplicada!');
   };
 
@@ -569,41 +661,56 @@ export const MindMapCreatorPanel = () => {
 
     const centerX = 500;
     const startY = 80;
-    const levelSpacing = 150;
-    const nodeSpacing = 180;
+    const levelSpacing = 130;
+    const minNodeSpacing = 140;
 
-    // Group nodes by level
-    const getLevel = (node: MindMapNode, level = 0): number => {
-      if (node.isRoot) return 0;
-      const parent = nodes.find(n => n.id === node.parentId);
-      if (!parent) return 1;
-      return getLevel(parent, level + 1) + 1;
+    const getSubtreeWidth = (nodeId: string): number => {
+      const children = getChildren(nodeId);
+      if (children.length === 0) return minNodeSpacing;
+      return Math.max(
+        minNodeSpacing,
+        children.reduce((sum, c) => sum + getSubtreeWidth(c.id), 0)
+      );
     };
 
-    const nodesByLevel: Map<number, MindMapNode[]> = new Map();
-    nodes.forEach(node => {
-      const level = getLevel(node);
-      if (!nodesByLevel.has(level)) nodesByLevel.set(level, []);
-      nodesByLevel.get(level)!.push(node);
-    });
+    const positionNode = (
+      node: MindMapNode,
+      depth: number,
+      leftBound: number
+    ): { nodes: MindMapNode[], rightBound: number } => {
+      const children = getChildren(node.id);
+      const y = startY + depth * levelSpacing;
 
-    const organizedNodes = nodes.map(node => {
-      const level = getLevel(node);
-      const levelNodes = nodesByLevel.get(level) || [];
-      const idx = levelNodes.findIndex(n => n.id === node.id);
-      const totalInLevel = levelNodes.length;
-      const levelWidth = (totalInLevel - 1) * nodeSpacing;
-      const startX = centerX - levelWidth / 2;
+      if (children.length === 0) {
+        return {
+          nodes: [{ ...node, x: leftBound + minNodeSpacing / 2, y }],
+          rightBound: leftBound + minNodeSpacing
+        };
+      }
+
+      let currentLeft = leftBound;
+      const childResults: MindMapNode[] = [];
+
+      children.forEach(child => {
+        const result = positionNode(child, depth + 1, currentLeft);
+        childResults.push(...result.nodes);
+        currentLeft = result.rightBound;
+      });
+
+      const firstChild = childResults.find(n => n.id === children[0].id);
+      const lastChild = childResults.find(n => n.id === children[children.length - 1].id);
+      const x = firstChild && lastChild ? (firstChild.x + lastChild.x) / 2 : leftBound + minNodeSpacing / 2;
 
       return {
-        ...node,
-        x: startX + idx * nodeSpacing,
-        y: startY + level * levelSpacing,
-        parentId: node.isRoot ? null : (node.parentId || root.id),
+        nodes: [{ ...node, x, y }, ...childResults],
+        rightBound: currentLeft
       };
-    });
+    };
 
-    setNodes(organizedNodes);
+    const result = positionNode(root, 0, centerX - getSubtreeWidth(root.id) / 2);
+    const positionMap = new Map(result.nodes.map(n => [n.id, n]));
+    
+    setNodes(nodes.map(n => positionMap.get(n.id) || n));
     toast.success('Organização em árvore aplicada!');
   };
 
@@ -616,34 +723,91 @@ export const MindMapCreatorPanel = () => {
 
     const centerX = 500;
     const centerY = 350;
+    const horizontalSpacing = 200;
+    const verticalSpacing = 70;
 
-    // Organize children on left and right sides
-    const children = nodes.filter(n => !n.isRoot);
-    const leftChildren = children.slice(0, Math.ceil(children.length / 2));
-    const rightChildren = children.slice(Math.ceil(children.length / 2));
+    const directChildren = getChildren(root.id);
+    const leftChildren = directChildren.slice(0, Math.ceil(directChildren.length / 2));
+    const rightChildren = directChildren.slice(Math.ceil(directChildren.length / 2));
 
-    const organizedNodes = nodes.map(node => {
-      if (node.isRoot) {
-        return { ...node, x: centerX, y: centerY };
-      }
+    const getSubtreeHeight = (nodeId: string): number => {
+      const children = getChildren(nodeId);
+      if (children.length === 0) return verticalSpacing;
+      return children.reduce((sum, c) => sum + getSubtreeHeight(c.id), 0);
+    };
 
-      const isLeft = leftChildren.includes(node);
-      const arr = isLeft ? leftChildren : rightChildren;
-      const idx = arr.findIndex(n => n.id === node.id);
-      const spacing = 100;
-      const horizontalOffset = 250;
-      const totalHeight = (arr.length - 1) * spacing;
-      const startY = centerY - totalHeight / 2;
+    const positionBranch = (
+      node: MindMapNode,
+      x: number,
+      yStart: number,
+      yEnd: number,
+      direction: 'left' | 'right',
+      depth: number
+    ): MindMapNode[] => {
+      const result: MindMapNode[] = [];
+      const children = getChildren(node.id);
+      const y = (yStart + yEnd) / 2;
 
-      return {
-        ...node,
-        x: isLeft ? centerX - horizontalOffset : centerX + horizontalOffset,
-        y: startY + idx * spacing,
-        parentId: node.parentId || root.id,
-      };
+      result.push({ ...node, x, y });
+
+      if (children.length === 0) return result;
+
+      const totalHeight = children.reduce((sum, c) => sum + getSubtreeHeight(c.id), 0);
+      let currentY = y - totalHeight / 2;
+      const nextX = direction === 'left' ? x - horizontalSpacing : x + horizontalSpacing;
+
+      children.forEach(child => {
+        const childHeight = getSubtreeHeight(child.id);
+        result.push(...positionBranch(
+          child,
+          nextX,
+          currentY,
+          currentY + childHeight,
+          direction,
+          depth + 1
+        ));
+        currentY += childHeight;
+      });
+
+      return result;
+    };
+
+    const positioned: MindMapNode[] = [{ ...root, x: centerX, y: centerY }];
+
+    // Position left branches
+    const leftTotalHeight = leftChildren.reduce((sum, c) => sum + getSubtreeHeight(c.id), 0);
+    let leftY = centerY - leftTotalHeight / 2;
+    leftChildren.forEach(child => {
+      const childHeight = getSubtreeHeight(child.id);
+      positioned.push(...positionBranch(
+        child,
+        centerX - horizontalSpacing,
+        leftY,
+        leftY + childHeight,
+        'left',
+        1
+      ));
+      leftY += childHeight;
     });
 
-    setNodes(organizedNodes);
+    // Position right branches
+    const rightTotalHeight = rightChildren.reduce((sum, c) => sum + getSubtreeHeight(c.id), 0);
+    let rightY = centerY - rightTotalHeight / 2;
+    rightChildren.forEach(child => {
+      const childHeight = getSubtreeHeight(child.id);
+      positioned.push(...positionBranch(
+        child,
+        centerX + horizontalSpacing,
+        rightY,
+        rightY + childHeight,
+        'right',
+        1
+      ));
+      rightY += childHeight;
+    });
+
+    const positionMap = new Map(positioned.map(n => [n.id, n]));
+    setNodes(nodes.map(n => positionMap.get(n.id) || n));
     toast.success('Organização mapa mental aplicada!');
   };
 
