@@ -53,6 +53,7 @@ import { TaskReminder } from "@/components/TaskReminder";
 import { FeatureGate } from "@/components/FeatureGate";
 import { MindMapCreatorPanel } from "@/components/MindMapCreatorPanel";
 import { ProposalCreatorPanel } from "@/components/proposal/ProposalCreatorPanel";
+import { AgendaPanel } from "@/components/AgendaPanel";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -1185,6 +1186,10 @@ const Dashboard = () => {
 
           <TabsContent value="propostas">
             <ProposalCreatorPanel />
+          </TabsContent>
+
+          <TabsContent value="agenda">
+            <AgendaPanel />
           </TabsContent>
         </Tabs>
       </main>

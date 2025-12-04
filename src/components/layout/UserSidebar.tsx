@@ -69,6 +69,7 @@ export function UserSidebar() {
     { title: "Gestão de Equipe", icon: UserCog, path: "/dashboard", tab: "equipe" },
     { title: "Gestão de Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios" },
     { title: "Organizador de Tarefas", icon: Target, path: "/dashboard", tab: "tarefas" },
+    { title: "Agenda", icon: Calendar, path: "/dashboard", tab: "agenda" },
   ];
 
   const crmItems: MenuItem[] = [
