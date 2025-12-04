@@ -325,13 +325,13 @@ export const MindMapCreatorPanel = () => {
     if (nodeId) {
       if (connectingFrom) {
         if (connectingFrom !== nodeId) {
-          // Check for circular reference - ensure the target node isn't an ancestor of the source
-          const wouldCreateCycle = (targetId: string, sourceId: string, nodesList: MindMapNode[]): boolean => {
-            let current = nodesList.find(n => n.id === sourceId);
+          // Check for circular reference - ensure the target node isn't an ancestor of connectingFrom
+          const wouldCreateCycle = (childId: string, newParentId: string, nodesList: MindMapNode[]): boolean => {
+            let current = nodesList.find(n => n.id === newParentId);
             const visited = new Set<string>();
             while (current && current.parentId) {
-              if (visited.has(current.id)) return true; // Already visited, cycle detected
-              if (current.parentId === targetId) return true;
+              if (visited.has(current.id)) return true;
+              if (current.parentId === childId) return true;
               visited.add(current.id);
               current = nodesList.find(n => n.id === current!.parentId);
             }
@@ -339,15 +339,16 @@ export const MindMapCreatorPanel = () => {
           };
           
           setNodes(prev => {
-            if (wouldCreateCycle(nodeId, connectingFrom, prev)) {
+            if (wouldCreateCycle(connectingFrom, nodeId, prev)) {
               toast.error('Conexão criaria um ciclo!');
               return prev;
             }
+            // connectingFrom becomes child of nodeId
             return prev.map(n => 
-              n.id === nodeId ? { ...n, parentId: connectingFrom } : n
+              n.id === connectingFrom ? { ...n, parentId: nodeId } : n
             );
           });
-          if (!wouldCreateCycle(nodeId, connectingFrom, nodes)) {
+          if (!wouldCreateCycle(connectingFrom, nodeId, nodes)) {
             toast.success('Nós conectados!');
           }
         }
