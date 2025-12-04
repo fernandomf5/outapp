@@ -246,7 +246,7 @@ const Auth = () => {
         variant="ghost"
         size="sm"
         onClick={() => navigate("/")}
-        className="absolute top-4 left-4 text-white hover:bg-white/10 active:scale-95 transition-transform z-20"
+        className="absolute top-4 left-4 text-white hover:bg-white hover:text-primary active:scale-95 transition-all z-20"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
         Voltar para o Início
