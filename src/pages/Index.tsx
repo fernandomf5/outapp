@@ -818,9 +818,6 @@ const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Da
                   <span className="font-bold text-xl">{siteTitle || "Out App"}</span>
                 </div>
               )}
-              {footerText && (
-                <p className="text-sm text-muted-foreground">{footerText}</p>
-              )}
               <SocialLinks links={socialLinks} variant="footer" />
             </div>
             
