@@ -1019,10 +1019,7 @@ const Dashboard = () => {
                       Voltar para Agentes IA
                     </Button>
                   </div>
-                  <h2 className="text-2xl font-bold mb-4">
-                    Gestão: {selectedAgentForManagement.name}
-                  </h2>
-                  <AgentManagementPanel 
+                  <AgentManagementPanel
                     agentId={selectedAgentForManagement.id} 
                     agentName={selectedAgentForManagement.name}
                   />
