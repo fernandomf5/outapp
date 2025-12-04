@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, ShoppingBag, MessageSquare, Users, Package, Wrench, Clock, BarChart3, UserCheck } from "lucide-react";
+import { Calendar, ShoppingBag, MessageSquare, Users, Package, Wrench, Clock, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AgentAppointmentsPanel from "./AgentAppointmentsPanel";
 import AgentOrdersPanel from "./AgentOrdersPanel";
@@ -11,7 +11,6 @@ import AgentProductsPanel from "./AgentProductsPanel";
 import AgentServicesPanel from "./AgentServicesPanel";
 import AgentSchedulePanel from "./AgentSchedulePanel";
 import AgentAnalyticsPanel from "./AgentAnalyticsPanel";
-import { AgentAccessRequestsPanel } from "./AgentAccessRequestsPanel";
 
 interface AgentManagementPanelProps {
   agentId: string;
@@ -22,7 +21,6 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
   const [activeTab, setActiveTab] = useState("conversations");
   const [pendingAppointments, setPendingAppointments] = useState(0);
   const [pendingOrders, setPendingOrders] = useState(0);
-  const [pendingAccessRequests, setPendingAccessRequests] = useState(0);
 
   useEffect(() => {
     fetchNotifications();
@@ -74,16 +72,8 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
       .eq('agent_id', agentId)
       .eq('status', 'pending');
 
-    // Buscar solicitações de acesso pendentes
-    const { count: accessRequestsCount } = await supabase
-      .from('agent_access_requests')
-      .select('*', { count: 'exact', head: true })
-      .eq('agent_id', agentId)
-      .eq('status', 'pending');
-
     setPendingAppointments(appointmentsCount || 0);
     setPendingOrders(ordersCount || 0);
-    setPendingAccessRequests(accessRequestsCount || 0);
   };
 
   return (
@@ -96,7 +86,7 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-9 gap-2">
+        <TabsList className="grid w-full grid-cols-8 gap-2">
           <TabsTrigger value="conversations">
             <MessageSquare className="w-4 h-4 mr-2" />
             Conversas
@@ -128,15 +118,6 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
             {pendingOrders > 0 && (
               <Badge variant="destructive" className="ml-2 h-5 min-w-5 flex items-center justify-center rounded-full text-xs">
                 {pendingOrders}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="access" className="relative">
-            <UserCheck className="w-4 h-4 mr-2" />
-            Liberar Acesso
-            {pendingAccessRequests > 0 && (
-              <Badge variant="destructive" className="ml-2 h-5 min-w-5 flex items-center justify-center rounded-full text-xs">
-                {pendingAccessRequests}
               </Badge>
             )}
           </TabsTrigger>
@@ -172,10 +153,6 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
 
         <TabsContent value="orders">
           <AgentOrdersPanel agentId={agentId} />
-        </TabsContent>
-
-        <TabsContent value="access">
-          <AgentAccessRequestsPanel agentId={agentId} />
         </TabsContent>
 
         <TabsContent value="customers">
