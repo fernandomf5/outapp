@@ -61,7 +61,8 @@ const initialProposalData = {
   client_address: '',
   title: '',
   introduction: '',
-  services: [] as { id: string; name: string; description: string }[],
+  introduction_image_url: '',
+  services: [] as { id: string; name: string; description: string; image_url?: string }[],
   timeline: [] as { id: string; phase: string; duration: string; deliverables: string }[],
   pricing: { items: [] as { id: string; description: string; quantity: number; unit_price: number }[], discount: 0, total: 0 },
   conditions: '',
@@ -248,6 +249,7 @@ export function ProposalCreatorPanel() {
         client_address: data.client_address || '',
         title: data.title || '',
         introduction: data.introduction || '',
+        introduction_image_url: data.introduction_image_url || '',
         services: (data.services || []) as any[],
         timeline: (data.timeline || []) as any[],
         pricing: (data.pricing || { items: [], discount: 0, total: 0 }) as any,
@@ -295,7 +297,7 @@ export function ProposalCreatorPanel() {
       case 1:
         return <ClientDataStep data={proposalData} onChange={updateProposalData} />;
       case 2:
-        return <IntroductionStep title={proposalData.title} introduction={proposalData.introduction} onChange={updateProposalData} />;
+        return <IntroductionStep title={proposalData.title} introduction={proposalData.introduction} introductionImageUrl={proposalData.introduction_image_url} onChange={updateProposalData} />;
       case 3:
         return <ServicesStep services={proposalData.services} onChange={(services) => updateProposalData({ services })} />;
       case 4:

@@ -4,15 +4,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Trash2, GripVertical } from 'lucide-react';
+import { Plus, Trash2, GripVertical, Image, X } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { ImageUpload } from '@/components/ImageUpload';
 
 interface Service {
   id: string;
   name: string;
   description: string;
+  image_url?: string;
 }
 
 interface ServicesStepProps {
@@ -29,6 +31,7 @@ function SortableServiceItem({
   onUpdate: (id: string, data: Partial<Service>) => void;
   onRemove: (id: string) => void;
 }) {
+  const [showImageUpload, setShowImageUpload] = useState(false);
   const {
     attributes,
     listeners,
@@ -63,6 +66,54 @@ function SortableServiceItem({
               placeholder="Descreva o serviço em detalhes..."
               rows={3}
             />
+            
+            {/* Image Section */}
+            {service.image_url ? (
+              <div className="relative group">
+                <img 
+                  src={service.image_url} 
+                  alt={service.name} 
+                  className="w-full h-32 object-cover rounded-lg border"
+                />
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => onUpdate(service.id, { image_url: undefined })}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            ) : showImageUpload ? (
+              <div className="border border-dashed rounded-lg p-3">
+                <ImageUpload
+                  currentImage={null}
+                  onImageSelect={(url) => {
+                    onUpdate(service.id, { image_url: url });
+                    setShowImageUpload(false);
+                  }}
+                  bucketName="portfolio-images"
+                />
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="mt-2 w-full"
+                  onClick={() => setShowImageUpload(false)}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => setShowImageUpload(true)}
+              >
+                <Image className="h-4 w-4" />
+                Adicionar Imagem
+              </Button>
+            )}
           </div>
           
           <Button
@@ -117,7 +168,7 @@ export function ServicesStep({ services, onChange }: ServicesStepProps) {
     <div className="space-y-6">
       <div className="text-center mb-6">
         <h2 className="text-xl font-semibold">Serviços</h2>
-        <p className="text-muted-foreground">Liste os serviços que serão prestados</p>
+        <p className="text-muted-foreground">Liste os serviços que serão prestados (você pode adicionar imagens)</p>
       </div>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
