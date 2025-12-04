@@ -42,6 +42,7 @@ import ChatbotResetPassword from "./pages/ChatbotResetPassword";
 import AgentResetPassword from "./pages/AgentResetPassword";
 import MindMapPresentation from "./pages/MindMapPresentation";
 import MindMapFullEditor from "./pages/MindMapFullEditor";
+import ProposalPublicView from "./pages/ProposalPublicView";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient();
@@ -94,6 +95,7 @@ const AppContent = () => {
               <MindMapFullEditor />
             </ProtectedRoute>
           } />
+          <Route path="/proposta/:slug" element={<ProposalPublicView />} />
                
               <Route path="/bot-builder" element={
                 <ProtectedRoute>
