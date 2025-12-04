@@ -88,10 +88,12 @@ export const LandingHeader = () => {
       </SheetTrigger>
       <SheetContent side="right" className="w-[280px] sm:w-[320px] p-0 flex flex-col">
         <SheetHeader className="px-6 py-4 border-b border-border">
-          <SheetTitle className="flex items-center gap-2">
-            <img src={outAppLogo} alt="Out App" className="w-5 h-5" />
-            {t('menu')}
-          </SheetTitle>
+          <div className="flex flex-col items-center gap-2">
+            {currentLogo() && (
+              <img src={currentLogo()} alt="Logo" className="h-10 w-auto object-contain" />
+            )}
+            <SheetTitle>{t('menu')}</SheetTitle>
+          </div>
         </SheetHeader>
         <ScrollArea className="flex-1 px-6">
           <nav className="flex flex-col gap-4 py-6">
