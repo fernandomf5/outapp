@@ -108,6 +108,7 @@ export const MindMapCreatorPanel = () => {
   const { user } = useAuth();
   const canvasRef = useRef<HTMLDivElement>(null);
   const [nodes, setNodes] = useState<MindMapNode[]>([]);
+  const [savedNodes, setSavedNodes] = useState<MindMapNode[] | null>(null);
   const [currentTheme, setCurrentTheme] = useState<keyof typeof THEMES>('default');
   const [mapName, setMapName] = useState('');
   const [mapDescription, setMapDescription] = useState('');
@@ -376,6 +377,7 @@ export const MindMapCreatorPanel = () => {
       if (error) {
         toast.error('Erro ao atualizar');
       } else {
+        setSavedNodes(JSON.parse(JSON.stringify(nodes)));
         toast.success('Mapa atualizado!');
         fetchSavedMaps();
       }
@@ -390,6 +392,7 @@ export const MindMapCreatorPanel = () => {
         toast.error('Erro ao salvar');
       } else {
         setCurrentMapId(data.id);
+        setSavedNodes(JSON.parse(JSON.stringify(nodes)));
         toast.success('Mapa salvo!');
         fetchSavedMaps();
       }
@@ -397,7 +400,9 @@ export const MindMapCreatorPanel = () => {
   };
 
   const loadMap = (map: MindMap) => {
-    setNodes(map.nodes || []);
+    const mapNodes = map.nodes || [];
+    setNodes(mapNodes);
+    setSavedNodes(JSON.parse(JSON.stringify(mapNodes))); // Deep copy for saved state
     setMapName(map.name);
     setMapDescription(map.description || '');
     setCurrentTheme((map.theme as keyof typeof THEMES) || 'default');
@@ -406,6 +411,15 @@ export const MindMapCreatorPanel = () => {
     setScale(1);
     setOffset({ x: 0, y: 0 });
     toast.success('Mapa carregado!');
+  };
+
+  const restoreToSaved = () => {
+    if (savedNodes) {
+      setNodes(JSON.parse(JSON.stringify(savedNodes)));
+      toast.success('Organização restaurada!');
+    } else {
+      toast.error('Nenhuma versão salva disponível');
+    }
   };
 
   const deleteMap = async (mapId: string) => {
@@ -1029,6 +1043,13 @@ export const MindMapCreatorPanel = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {savedNodes && (
+              <Button onClick={restoreToSaved} size="sm" variant="outline" className="bg-orange-500/10 border-orange-500/30 text-orange-500 hover:bg-orange-500/20">
+                <RotateCcw className="w-4 h-4 mr-1" />
+                Restaurar
+              </Button>
+            )}
+
             <Button onClick={saveMap} size="sm" variant="secondary">
               <Save className="w-4 h-4 mr-2" />
               Salvar
@@ -1043,6 +1064,7 @@ export const MindMapCreatorPanel = () => {
                   setMapName('');
                   setMapDescription('');
                   setNodes([]);
+                  setSavedNodes(null);
                   setScale(1);
                   setOffset({ x: 0, y: 0 });
                 }} size="sm" variant="outline" className="bg-blue-500/10 border-blue-500/30 text-blue-500 hover:bg-blue-500/20">
