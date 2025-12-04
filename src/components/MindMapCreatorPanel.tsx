@@ -872,7 +872,16 @@ export const MindMapCreatorPanel = () => {
             
             {currentMapId && (
               <>
-                <Button onClick={() => window.open(`/mindmap-editor/${currentMapId}`, '_blank')} size="sm" variant="outline" className="bg-blue-500/10 border-blue-500/30 text-blue-500 hover:bg-blue-500/20">
+                <Button onClick={() => {
+                  window.open(`/mindmap-editor/${currentMapId}`, '_blank');
+                  // Sai do modo de edição no painel
+                  setCurrentMapId(null);
+                  setMapName('');
+                  setMapDescription('');
+                  setNodes([]);
+                  setScale(1);
+                  setOffset({ x: 0, y: 0 });
+                }} size="sm" variant="outline" className="bg-blue-500/10 border-blue-500/30 text-blue-500 hover:bg-blue-500/20">
                   <Maximize2 className="w-4 h-4 mr-2" />
                   Editor Full
                 </Button>
