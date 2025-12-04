@@ -136,6 +136,21 @@ export default function MindMapFullEditor() {
     setNodes(prev => [...prev, newNode]);
   };
 
+  const addIndependentNode = () => {
+    const newNode: MindMapNode = {
+      id: crypto.randomUUID(),
+      text: 'Nó Solto',
+      x: 100 + Math.random() * 200,
+      y: 100 + Math.random() * 200,
+      color: theme.colors[nodes.length % theme.colors.length],
+      parentId: null,
+      isRoot: false,
+      size: 'medium',
+    };
+    setNodes(prev => [...prev, newNode]);
+    toast.success('Nó independente criado! Use "Conectar" para vinculá-lo.');
+  };
+
   const deleteNode = (nodeId: string) => {
     const node = nodes.find(n => n.id === nodeId);
     if (node?.isRoot) {
@@ -303,7 +318,10 @@ export default function MindMapFullEditor() {
           </Select>
           
           <Button variant="outline" size="sm" onClick={addNode} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-            <Plus className="h-4 w-4 mr-1" /> Adicionar
+            <Plus className="h-4 w-4 mr-1" /> Filho
+          </Button>
+          <Button variant="outline" size="sm" onClick={addIndependentNode} className="bg-emerald-500/20 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/30">
+            <Plus className="h-4 w-4 mr-1" /> Independente
           </Button>
           
           <Button variant="outline" size="sm" onClick={() => setScale(s => Math.max(0.3, s - 0.2))} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
