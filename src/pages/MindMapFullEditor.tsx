@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Brain, ZoomIn, ZoomOut, RotateCcw, Save, Plus, Trash2, Link2, Unlink, ChevronRight, ChevronUp, Focus, Palette, ArrowLeft, ExternalLink } from 'lucide-react';
+import { Brain, ZoomIn, ZoomOut, RotateCcw, Save, Plus, Trash2, Link2, Unlink, ChevronRight, ChevronUp, Focus, Palette, ArrowLeft, ExternalLink, LayoutGrid, ChevronDown, Circle, ArrowRight, GitBranch, TreePine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
+type OrganizationType = 'radial' | 'horizontal' | 'vertical' | 'tree' | 'mindmap';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -180,6 +182,361 @@ export default function MindMapFullEditor() {
 
   const getDirectChildCount = (nodeId: string): number => nodes.filter(n => n.parentId === nodeId).length;
 
+  // Helper: Get all children of a node
+  const getChildren = (parentId: string): MindMapNode[] => {
+    return nodes.filter(n => n.parentId === parentId);
+  };
+
+  // Helper: Get all descendants count
+  const getDescendantsCount = (nodeId: string): number => {
+    const children = getChildren(nodeId);
+    if (children.length === 0) return 1;
+    return children.reduce((sum, child) => sum + getDescendantsCount(child.id), 0);
+  };
+
+  const organizeRadial = () => {
+    const root = nodes.find(n => n.isRoot);
+    if (!root) {
+      toast.error('Adicione um nó central primeiro');
+      return;
+    }
+
+    const centerX = 500;
+    const centerY = 350;
+    const baseRadius = 180;
+    const radiusIncrement = 150;
+
+    const positionNode = (
+      node: MindMapNode,
+      startAngle: number,
+      endAngle: number,
+      depth: number
+    ): MindMapNode[] => {
+      const result: MindMapNode[] = [];
+      const children = getChildren(node.id);
+      
+      if (node.isRoot) {
+        result.push({ ...node, x: centerX, y: centerY });
+      }
+
+      if (children.length === 0) return result;
+
+      const totalDescendants = children.reduce((sum, c) => sum + getDescendantsCount(c.id), 0);
+      let currentAngle = startAngle;
+
+      children.forEach(child => {
+        const childDescendants = getDescendantsCount(child.id);
+        const angleSpan = ((endAngle - startAngle) * childDescendants) / totalDescendants;
+        const childAngle = currentAngle + angleSpan / 2;
+        const radius = baseRadius + depth * radiusIncrement;
+
+        result.push({
+          ...child,
+          x: centerX + Math.cos(childAngle) * radius,
+          y: centerY + Math.sin(childAngle) * radius,
+        });
+
+        result.push(...positionNode(child, currentAngle, currentAngle + angleSpan, depth + 1));
+        currentAngle += angleSpan;
+      });
+
+      return result;
+    };
+
+    const positioned = positionNode(root, 0, 2 * Math.PI, 1);
+    const positionMap = new Map(positioned.map(n => [n.id, n]));
+    
+    setNodes(nodes.map(n => positionMap.get(n.id) || n));
+    toast.success('Organização radial aplicada!');
+  };
+
+  const organizeHorizontal = () => {
+    const root = nodes.find(n => n.isRoot);
+    if (!root) {
+      toast.error('Adicione um nó central primeiro');
+      return;
+    }
+
+    const startX = 100;
+    const centerY = 350;
+    const horizontalSpacing = 220;
+    const verticalSpacing = 80;
+
+    const positionNode = (
+      node: MindMapNode,
+      x: number,
+      yStart: number,
+      yEnd: number
+    ): MindMapNode[] => {
+      const result: MindMapNode[] = [];
+      const children = getChildren(node.id);
+      const y = (yStart + yEnd) / 2;
+
+      result.push({ ...node, x, y });
+
+      if (children.length === 0) return result;
+
+      const totalDescendants = children.reduce((sum, c) => sum + Math.max(1, getDescendantsCount(c.id)), 0);
+      const totalHeight = totalDescendants * verticalSpacing;
+      let currentY = y - totalHeight / 2;
+
+      children.forEach(child => {
+        const childDescendants = Math.max(1, getDescendantsCount(child.id));
+        const childHeight = childDescendants * verticalSpacing;
+        
+        result.push(...positionNode(
+          child,
+          x + horizontalSpacing,
+          currentY,
+          currentY + childHeight
+        ));
+        
+        currentY += childHeight;
+      });
+
+      return result;
+    };
+
+    const positioned = positionNode(root, startX, 50, 650);
+    const positionMap = new Map(positioned.map(n => [n.id, n]));
+    
+    setNodes(nodes.map(n => positionMap.get(n.id) || n));
+    toast.success('Organização horizontal aplicada!');
+  };
+
+  const organizeVertical = () => {
+    const root = nodes.find(n => n.isRoot);
+    if (!root) {
+      toast.error('Adicione um nó central primeiro');
+      return;
+    }
+
+    const centerX = 500;
+    const startY = 80;
+    const verticalSpacing = 120;
+    const horizontalSpacing = 160;
+
+    const getSubtreeWidth = (nodeId: string): number => {
+      const children = getChildren(nodeId);
+      if (children.length === 0) return 1;
+      return children.reduce((sum, c) => sum + getSubtreeWidth(c.id), 0);
+    };
+
+    const positionNode = (
+      node: MindMapNode,
+      depth: number,
+      xStart: number,
+      xEnd: number
+    ): MindMapNode[] => {
+      const result: MindMapNode[] = [];
+      const children = getChildren(node.id);
+      const x = (xStart + xEnd) / 2;
+      const y = startY + depth * verticalSpacing;
+
+      result.push({ ...node, x, y });
+
+      if (children.length === 0) return result;
+
+      const totalWidth = children.reduce((sum, c) => sum + getSubtreeWidth(c.id), 0);
+      const availableWidth = xEnd - xStart;
+      let currentX = xStart;
+
+      children.forEach(child => {
+        const childWidth = getSubtreeWidth(child.id);
+        const childSpan = (availableWidth * childWidth) / totalWidth;
+        
+        result.push(...positionNode(child, depth + 1, currentX, currentX + childSpan));
+        currentX += childSpan;
+      });
+
+      return result;
+    };
+
+    const totalWidth = Math.max(nodes.length * horizontalSpacing, 800);
+    const positioned = positionNode(root, 0, centerX - totalWidth / 2, centerX + totalWidth / 2);
+    const positionMap = new Map(positioned.map(n => [n.id, n]));
+    
+    setNodes(nodes.map(n => positionMap.get(n.id) || n));
+    toast.success('Organização vertical aplicada!');
+  };
+
+  const organizeTree = () => {
+    const root = nodes.find(n => n.isRoot);
+    if (!root) {
+      toast.error('Adicione um nó central primeiro');
+      return;
+    }
+
+    const centerX = 500;
+    const startY = 80;
+    const levelSpacing = 130;
+    const minNodeSpacing = 140;
+
+    const getSubtreeWidth = (nodeId: string): number => {
+      const children = getChildren(nodeId);
+      if (children.length === 0) return minNodeSpacing;
+      return Math.max(
+        minNodeSpacing,
+        children.reduce((sum, c) => sum + getSubtreeWidth(c.id), 0)
+      );
+    };
+
+    const positionNode = (
+      node: MindMapNode,
+      depth: number,
+      leftBound: number
+    ): { nodes: MindMapNode[], rightBound: number } => {
+      const children = getChildren(node.id);
+      const y = startY + depth * levelSpacing;
+
+      if (children.length === 0) {
+        return {
+          nodes: [{ ...node, x: leftBound + minNodeSpacing / 2, y }],
+          rightBound: leftBound + minNodeSpacing
+        };
+      }
+
+      let currentLeft = leftBound;
+      const childResults: MindMapNode[] = [];
+
+      children.forEach(child => {
+        const result = positionNode(child, depth + 1, currentLeft);
+        childResults.push(...result.nodes);
+        currentLeft = result.rightBound;
+      });
+
+      const firstChild = childResults.find(n => n.id === children[0].id);
+      const lastChild = childResults.find(n => n.id === children[children.length - 1].id);
+      const x = firstChild && lastChild ? (firstChild.x + lastChild.x) / 2 : leftBound + minNodeSpacing / 2;
+
+      return {
+        nodes: [{ ...node, x, y }, ...childResults],
+        rightBound: currentLeft
+      };
+    };
+
+    const result = positionNode(root, 0, centerX - getSubtreeWidth(root.id) / 2);
+    const positionMap = new Map(result.nodes.map(n => [n.id, n]));
+    
+    setNodes(nodes.map(n => positionMap.get(n.id) || n));
+    toast.success('Organização em árvore aplicada!');
+  };
+
+  const organizeMindMap = () => {
+    const root = nodes.find(n => n.isRoot);
+    if (!root) {
+      toast.error('Adicione um nó central primeiro');
+      return;
+    }
+
+    const centerX = 500;
+    const centerY = 350;
+    const horizontalSpacing = 200;
+    const verticalSpacing = 70;
+
+    const directChildren = getChildren(root.id);
+    const leftChildren = directChildren.slice(0, Math.ceil(directChildren.length / 2));
+    const rightChildren = directChildren.slice(Math.ceil(directChildren.length / 2));
+
+    const getSubtreeHeight = (nodeId: string): number => {
+      const children = getChildren(nodeId);
+      if (children.length === 0) return verticalSpacing;
+      return children.reduce((sum, c) => sum + getSubtreeHeight(c.id), 0);
+    };
+
+    const positionBranch = (
+      node: MindMapNode,
+      x: number,
+      yStart: number,
+      yEnd: number,
+      direction: 'left' | 'right',
+      depth: number
+    ): MindMapNode[] => {
+      const result: MindMapNode[] = [];
+      const children = getChildren(node.id);
+      const y = (yStart + yEnd) / 2;
+
+      result.push({ ...node, x, y });
+
+      if (children.length === 0) return result;
+
+      const totalHeight = children.reduce((sum, c) => sum + getSubtreeHeight(c.id), 0);
+      let currentY = y - totalHeight / 2;
+      const nextX = direction === 'left' ? x - horizontalSpacing : x + horizontalSpacing;
+
+      children.forEach(child => {
+        const childHeight = getSubtreeHeight(child.id);
+        result.push(...positionBranch(
+          child,
+          nextX,
+          currentY,
+          currentY + childHeight,
+          direction,
+          depth + 1
+        ));
+        currentY += childHeight;
+      });
+
+      return result;
+    };
+
+    const positioned: MindMapNode[] = [{ ...root, x: centerX, y: centerY }];
+
+    const leftTotalHeight = leftChildren.reduce((sum, c) => sum + getSubtreeHeight(c.id), 0);
+    let leftY = centerY - leftTotalHeight / 2;
+    leftChildren.forEach(child => {
+      const childHeight = getSubtreeHeight(child.id);
+      positioned.push(...positionBranch(
+        child,
+        centerX - horizontalSpacing,
+        leftY,
+        leftY + childHeight,
+        'left',
+        1
+      ));
+      leftY += childHeight;
+    });
+
+    const rightTotalHeight = rightChildren.reduce((sum, c) => sum + getSubtreeHeight(c.id), 0);
+    let rightY = centerY - rightTotalHeight / 2;
+    rightChildren.forEach(child => {
+      const childHeight = getSubtreeHeight(child.id);
+      positioned.push(...positionBranch(
+        child,
+        centerX + horizontalSpacing,
+        rightY,
+        rightY + childHeight,
+        'right',
+        1
+      ));
+      rightY += childHeight;
+    });
+
+    const positionMap = new Map(positioned.map(n => [n.id, n]));
+    setNodes(nodes.map(n => positionMap.get(n.id) || n));
+    toast.success('Organização mapa mental aplicada!');
+  };
+
+  const applyOrganization = (type: OrganizationType) => {
+    switch (type) {
+      case 'radial':
+        organizeRadial();
+        break;
+      case 'horizontal':
+        organizeHorizontal();
+        break;
+      case 'vertical':
+        organizeVertical();
+        break;
+      case 'tree':
+        organizeTree();
+        break;
+      case 'mindmap':
+        organizeMindMap();
+        break;
+    }
+  };
+
   const isNodeVisible = (node: MindMapNode, visited: Set<string> = new Set()): boolean => {
     if (!node.parentId) return true;
     if (visited.has(node.id)) return true; // Prevent infinite loop on cycles
@@ -323,6 +680,38 @@ export default function MindMapFullEditor() {
           <Button variant="outline" size="sm" onClick={addIndependentNode} className="bg-emerald-500/20 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/30">
             <Plus className="h-4 w-4 mr-1" /> Independente
           </Button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                <LayoutGrid className="w-4 h-4 mr-1" />
+                Organizar
+                <ChevronDown className="w-3 h-3 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem onClick={() => applyOrganization('radial')}>
+                <Circle className="w-4 h-4 mr-2" />
+                Radial (Circular)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => applyOrganization('horizontal')}>
+                <ArrowRight className="w-4 h-4 mr-2" />
+                Horizontal
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => applyOrganization('vertical')}>
+                <GitBranch className="w-4 h-4 mr-2 rotate-180" />
+                Vertical
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => applyOrganization('tree')}>
+                <TreePine className="w-4 h-4 mr-2" />
+                Árvore
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => applyOrganization('mindmap')}>
+                <Brain className="w-4 h-4 mr-2" />
+                Mapa Mental
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           
           <Button variant="outline" size="sm" onClick={() => setScale(s => Math.max(0.3, s - 0.2))} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
             <ZoomOut className="h-4 w-4" />
