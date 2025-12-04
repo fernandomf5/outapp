@@ -84,7 +84,7 @@ export const LandingHeader = () => {
   };
 
   const MobileMenu = ({ headerPages }: { headerPages: CustomPageItem[] }) => {
-    const logoSrc = currentLogo();
+    const logoSrc = currentLogo() || outAppLogo;
     
     return (
       <Sheet>
@@ -96,9 +96,7 @@ export const LandingHeader = () => {
         <SheetContent side="right" className="w-[280px] sm:w-[320px] p-0 flex flex-col">
           <SheetHeader className="px-6 py-4 border-b border-border">
             <div className="flex flex-col items-center gap-3">
-              {logoSrc ? (
-                <img src={logoSrc} alt="Logo" className="h-12 w-auto object-contain" />
-              ) : null}
+              <img src={logoSrc} alt="Logo" className="h-12 w-auto object-contain" />
               <SheetTitle className="text-lg">{t('menu')}</SheetTitle>
             </div>
           </SheetHeader>
