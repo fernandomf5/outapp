@@ -61,9 +61,6 @@ export const LandingFooter = ({ hideCustomPages = false }: { hideCustomPages?: b
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="space-y-4">
             <span className="font-bold text-xl">{siteTitle || "Automação"}</span>
-            {footerText && (
-              <p className="text-sm text-muted-foreground">{footerText}</p>
-            )}
             <SocialLinks links={socialLinks} variant="footer" />
           </div>
           {!hideCustomPages && footerPages.length > 0 && (
