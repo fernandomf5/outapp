@@ -188,7 +188,26 @@ export default function MindMapPresentation() {
     
     if (connectingFrom) {
       if (connectingFrom !== nodeId) {
-        setNodes(prev => prev.map(n => n.id === connectingFrom ? { ...n, parentId: nodeId } : n));
+        // Check for circular reference
+        const wouldCreateCycle = (targetId: string, sourceId: string, nodesList: MindMapNode[]): boolean => {
+          let current = nodesList.find(n => n.id === targetId);
+          const visited = new Set<string>();
+          while (current && current.parentId) {
+            if (visited.has(current.id)) return true;
+            if (current.parentId === sourceId) return true;
+            visited.add(current.id);
+            current = nodesList.find(n => n.id === current!.parentId);
+          }
+          return false;
+        };
+        
+        setNodes(prev => {
+          if (wouldCreateCycle(nodeId, connectingFrom, prev)) {
+            toast.error('Conexão criaria um ciclo!');
+            return prev;
+          }
+          return prev.map(n => n.id === connectingFrom ? { ...n, parentId: nodeId } : n);
+        });
       }
       setConnectingFrom(null);
     } else {
@@ -214,12 +233,14 @@ export default function MindMapPresentation() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
-  const isNodeVisible = (node: MindMapNode): boolean => {
+  const isNodeVisible = (node: MindMapNode, visited: Set<string> = new Set()): boolean => {
     if (!node.parentId) return true;
+    if (visited.has(node.id)) return true; // Prevent infinite loop on cycles
+    visited.add(node.id);
     const parent = nodes.find(n => n.id === node.parentId);
     if (!parent) return true;
     if (parent.collapsed) return false;
-    return isNodeVisible(parent);
+    return isNodeVisible(parent, visited);
   };
 
   const renderConnections = () => {
