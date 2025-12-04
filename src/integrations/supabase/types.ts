@@ -2565,6 +2565,123 @@ export type Database = {
         }
         Relationships: []
       }
+      commercial_proposals: {
+        Row: {
+          accepted_at: string | null
+          client_accepted_at: string | null
+          client_accepted_name: string | null
+          client_address: string | null
+          client_cnpj: string | null
+          client_company: string | null
+          client_email: string | null
+          client_name: string
+          client_phone: string | null
+          client_signature_url: string | null
+          company_address: string | null
+          company_cnpj: string | null
+          company_email: string | null
+          company_logo_url: string | null
+          company_name: string | null
+          company_phone: string | null
+          conditions: string | null
+          created_at: string
+          id: string
+          introduction: string | null
+          is_private: boolean | null
+          pricing: Json | null
+          primary_color: string | null
+          private_token: string | null
+          rejected_at: string | null
+          rejection_reason: string | null
+          sent_at: string | null
+          services: Json | null
+          slug: string | null
+          status: string
+          timeline: Json | null
+          title: string
+          updated_at: string
+          user_id: string
+          valid_until: string | null
+          viewed_at: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          client_accepted_at?: string | null
+          client_accepted_name?: string | null
+          client_address?: string | null
+          client_cnpj?: string | null
+          client_company?: string | null
+          client_email?: string | null
+          client_name: string
+          client_phone?: string | null
+          client_signature_url?: string | null
+          company_address?: string | null
+          company_cnpj?: string | null
+          company_email?: string | null
+          company_logo_url?: string | null
+          company_name?: string | null
+          company_phone?: string | null
+          conditions?: string | null
+          created_at?: string
+          id?: string
+          introduction?: string | null
+          is_private?: boolean | null
+          pricing?: Json | null
+          primary_color?: string | null
+          private_token?: string | null
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          sent_at?: string | null
+          services?: Json | null
+          slug?: string | null
+          status?: string
+          timeline?: Json | null
+          title: string
+          updated_at?: string
+          user_id: string
+          valid_until?: string | null
+          viewed_at?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          client_accepted_at?: string | null
+          client_accepted_name?: string | null
+          client_address?: string | null
+          client_cnpj?: string | null
+          client_company?: string | null
+          client_email?: string | null
+          client_name?: string
+          client_phone?: string | null
+          client_signature_url?: string | null
+          company_address?: string | null
+          company_cnpj?: string | null
+          company_email?: string | null
+          company_logo_url?: string | null
+          company_name?: string | null
+          company_phone?: string | null
+          conditions?: string | null
+          created_at?: string
+          id?: string
+          introduction?: string | null
+          is_private?: boolean | null
+          pricing?: Json | null
+          primary_color?: string | null
+          private_token?: string | null
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          sent_at?: string | null
+          services?: Json | null
+          slug?: string | null
+          status?: string
+          timeline?: Json | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          valid_until?: string | null
+          viewed_at?: string | null
+        }
+        Relationships: []
+      }
       contact_form_submissions: {
         Row: {
           created_at: string | null

@@ -91,6 +91,7 @@ export function UserSidebar() {
     { title: "Criador de Quiz", icon: HelpCircle, path: "/dashboard", tab: "criador-quizz" },
     { title: "Criador de Pop-ups", icon: Megaphone, path: "/dashboard", tab: "popups" },
     { title: "Criador de Mapa Mental", icon: Brain, path: "/dashboard", tab: "mapa-mental" },
+    { title: "Criador de Propostas", icon: FileCheck, path: "/dashboard", tab: "propostas" },
   ];
 
   const supportItems: MenuItem[] = [
