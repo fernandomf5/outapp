@@ -74,17 +74,20 @@ export const LandingHeader = () => {
   }, []);
 
   const currentLogo = () => {
-    if (theme === 'dark' && logoDarkUrl) return logoDarkUrl;
-    if (theme === 'dark' && logoUrl) return logoUrl;
-    if (theme === 'light' && logoLightUrl) return logoLightUrl;
-    if (theme === 'light' && logoUrl) return logoUrl;
-    if (logoDarkUrl) return logoDarkUrl;
-    if (logoLightUrl) return logoLightUrl;
-    return logoUrl;
+    // Prioriza as logos do banco de dados
+    if (theme === 'dark') {
+      return logoDarkUrl || logoUrl || logoLightUrl || null;
+    }
+    if (theme === 'light') {
+      return logoLightUrl || logoUrl || logoDarkUrl || null;
+    }
+    // Fallback: qualquer logo disponível
+    return logoUrl || logoDarkUrl || logoLightUrl || null;
   };
 
   const MobileMenu = ({ headerPages }: { headerPages: CustomPageItem[] }) => {
-    const logoSrc = currentLogo() || outAppLogo;
+    // Usa a logo do banco de dados diretamente, sem fallback para outAppLogo
+    const logoSrc = logoDarkUrl || logoLightUrl || logoUrl;
     
     return (
       <Sheet>
@@ -96,7 +99,9 @@ export const LandingHeader = () => {
         <SheetContent side="right" className="w-[280px] sm:w-[320px] p-0 flex flex-col">
           <SheetHeader className="px-6 py-4 border-b border-border">
             <div className="flex flex-col items-center gap-3">
-              <img src={logoSrc} alt="Logo" className="h-12 w-auto object-contain" />
+              {logoSrc && (
+                <img src={logoSrc} alt="Logo" className="h-14 w-auto object-contain" />
+              )}
               <SheetTitle className="text-lg">{t('menu')}</SheetTitle>
             </div>
           </SheetHeader>
