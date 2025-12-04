@@ -2568,6 +2568,7 @@ export type Database = {
       commercial_proposals: {
         Row: {
           accepted_at: string | null
+          auto_carousel: boolean | null
           client_accepted_at: string | null
           client_accepted_name: string | null
           client_address: string | null
@@ -2610,6 +2611,7 @@ export type Database = {
         }
         Insert: {
           accepted_at?: string | null
+          auto_carousel?: boolean | null
           client_accepted_at?: string | null
           client_accepted_name?: string | null
           client_address?: string | null
@@ -2652,6 +2654,7 @@ export type Database = {
         }
         Update: {
           accepted_at?: string | null
+          auto_carousel?: boolean | null
           client_accepted_at?: string | null
           client_accepted_name?: string | null
           client_address?: string | null
