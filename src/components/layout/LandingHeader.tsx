@@ -11,6 +11,7 @@ import { SocialLinks } from "@/components/SocialLinks";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/contexts/LanguageContext";
 import outAppLogo from "@/assets/out-app-logo.png";
+import logoLion from "@/assets/logo-lion.png";
 
 interface CustomPageItem {
   id: string;
@@ -85,8 +86,6 @@ export const LandingHeader = () => {
     return logoUrl || logoDarkUrl || logoLightUrl || null;
   };
 
-  // Logo para o menu mobile - usa diretamente as URLs do estado
-  const mobileLogo = logoDarkUrl || logoLightUrl || logoUrl;
 
   return (
     <>
@@ -156,10 +155,8 @@ export const LandingHeader = () => {
               <SheetContent side="right" className="w-[280px] sm:w-[320px] p-0 flex flex-col">
                 <SheetHeader className="px-6 py-6 border-b border-border">
                   <div className="flex flex-col items-center gap-4">
-                    {mobileLogo && (
-                      <img src={mobileLogo} alt="Logo" className="h-16 w-auto object-contain" />
-                    )}
-                    <SheetTitle>{t('menu')}</SheetTitle>
+                    <img src={logoLion} alt="Logo" className="h-20 w-auto object-contain" />
+                    <SheetTitle className="text-xl font-bold">{t('menu')}</SheetTitle>
                   </div>
                 </SheetHeader>
                 <ScrollArea className="flex-1 px-6">
