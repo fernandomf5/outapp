@@ -54,6 +54,7 @@ import { FeatureGate } from "@/components/FeatureGate";
 import { MindMapCreatorPanel } from "@/components/MindMapCreatorPanel";
 import { ProposalCreatorPanel } from "@/components/proposal/ProposalCreatorPanel";
 import { AgendaPanel } from "@/components/AgendaPanel";
+import { AgendaReminders } from "@/components/AgendaReminders";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -300,6 +301,7 @@ const Dashboard = () => {
 
   return (
     <>
+      <AgendaReminders />
       <DraggableCalculator isOpen={isCalculatorOpen} onClose={() => setIsCalculatorOpen(false)} />
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-background">

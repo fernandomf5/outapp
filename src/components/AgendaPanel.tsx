@@ -48,8 +48,6 @@ export function AgendaPanel() {
   const [editingEvent, setEditingEvent] = useState<AgendaEvent | null>(null);
   const [loading, setLoading] = useState(true);
   
-  // Reminder popup state
-  const [activeReminders, setActiveReminders] = useState<AgendaEvent[]>([]);
 
   // Form state
   const [formTitle, setFormTitle] = useState('');
@@ -86,62 +84,6 @@ export function AgendaPanel() {
   useEffect(() => {
     fetchEvents();
   }, [fetchEvents]);
-
-  // Reminder system - checks for events that need reminders
-  useEffect(() => {
-    const checkReminders = async () => {
-      if (!user || events.length === 0) return;
-
-      const now = new Date();
-      const newActiveReminders: AgendaEvent[] = [];
-      
-      for (const event of events) {
-        // Skip if already shown
-        if (event.reminder_shown) continue;
-        // Skip if no reminder set
-        if (event.reminder_minutes === 0) continue;
-
-        const eventDate = parseISO(event.start_date);
-        const reminderTime = addMinutes(eventDate, -event.reminder_minutes);
-
-        // Check if it's time to show the reminder (reminder time has passed)
-        if (isAfter(now, reminderTime)) {
-          newActiveReminders.push(event);
-        }
-      }
-      
-      // Add new reminders to active list (avoid duplicates)
-      if (newActiveReminders.length > 0) {
-        setActiveReminders(prev => {
-          const existingIds = new Set(prev.map(e => e.id));
-          const toAdd = newActiveReminders.filter(e => !existingIds.has(e.id));
-          return [...prev, ...toAdd];
-        });
-      }
-    };
-
-    const interval = setInterval(checkReminders, 10000); // Check every 10 seconds
-    checkReminders(); // Check immediately
-
-    return () => clearInterval(interval);
-  }, [user, events]);
-
-  // Function to mark reminder as seen
-  const markReminderAsSeen = async (eventId: string) => {
-    // Remove from active reminders
-    setActiveReminders(prev => prev.filter(e => e.id !== eventId));
-    
-    // Update database
-    await supabase
-      .from('agenda_events')
-      .update({ reminder_shown: true })
-      .eq('id', eventId);
-    
-    // Update local state
-    setEvents(prev => prev.map(e => 
-      e.id === eventId ? { ...e, reminder_shown: true } : e
-    ));
-  };
 
   const openCreateDialog = (date?: Date) => {
     setEditingEvent(null);
@@ -273,8 +215,6 @@ export function AgendaPanel() {
         title: 'Evento excluído',
         description: 'O evento foi removido da sua agenda.',
       });
-      // Remove from active reminders if present
-      setActiveReminders(prev => prev.filter(e => e.id !== eventId));
       fetchEvents();
     }
   };
@@ -479,69 +419,6 @@ export function AgendaPanel() {
 
   return (
     <>
-      {/* Persistent Reminder Popups */}
-      {activeReminders.map((event, index) => {
-        const eventDate = parseISO(event.start_date);
-        const isPast = isBefore(eventDate, new Date());
-        
-        return (
-          <div
-            key={event.id}
-            className="fixed z-[100] animate-in slide-in-from-top-5 fade-in duration-300"
-            style={{ 
-              top: `${80 + index * 120}px`, 
-              right: '20px',
-              maxWidth: '380px',
-              width: 'calc(100vw - 40px)'
-            }}
-          >
-            <div 
-              className="bg-card border-2 rounded-lg shadow-2xl p-4"
-              style={{ borderColor: event.color }}
-            >
-              <div className="flex items-start gap-3">
-                <div 
-                  className="p-2 rounded-full animate-pulse"
-                  style={{ backgroundColor: `${event.color}20` }}
-                >
-                  <Bell className="w-5 h-5" style={{ color: event.color }} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                      {isPast ? 'EVENTO AGORA!' : 'LEMBRETE'}
-                    </span>
-                  </div>
-                  <h4 className="font-semibold text-foreground truncate">{event.title}</h4>
-                  <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                    <CalendarIcon className="w-3 h-3" />
-                    {format(eventDate, "d 'de' MMMM", { locale: ptBR })}
-                    {!event.all_day && (
-                      <>
-                        <Clock className="w-3 h-3 ml-2" />
-                        {format(eventDate, 'HH:mm', { locale: ptBR })}
-                      </>
-                    )}
-                  </p>
-                  {event.description && (
-                    <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
-                      {event.description}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <Button 
-                className="w-full mt-3"
-                size="sm"
-                onClick={() => markReminderAsSeen(event.id)}
-              >
-                <Check className="w-4 h-4 mr-2" />
-                Marcar como visto
-              </Button>
-            </div>
-          </div>
-        );
-      })}
 
       <Card>
         <CardHeader>
