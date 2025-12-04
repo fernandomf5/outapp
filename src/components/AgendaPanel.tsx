@@ -16,8 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addDays, isSameDay, isWithinInterval, parseISO, startOfDay, addMinutes, isBefore, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Plus, Calendar as CalendarIcon, Clock, Trash2, Edit2, Bell, ChevronLeft, ChevronRight, X, AlertCircle } from 'lucide-react';
-import { toast as sonnerToast } from 'sonner';
+import { Plus, Calendar as CalendarIcon, Clock, Trash2, Edit2, Bell, ChevronLeft, ChevronRight, X, AlertCircle, Check } from 'lucide-react';
 
 interface AgendaEvent {
   id: string;
@@ -48,6 +47,9 @@ export function AgendaPanel() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<AgendaEvent | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Reminder popup state
+  const [activeReminders, setActiveReminders] = useState<AgendaEvent[]>([]);
 
   // Form state
   const [formTitle, setFormTitle] = useState('');
@@ -85,58 +87,61 @@ export function AgendaPanel() {
     fetchEvents();
   }, [fetchEvents]);
 
-  // Reminder system
+  // Reminder system - checks for events that need reminders
   useEffect(() => {
     const checkReminders = async () => {
       if (!user || events.length === 0) return;
 
       const now = new Date();
+      const newActiveReminders: AgendaEvent[] = [];
       
       for (const event of events) {
+        // Skip if already shown
         if (event.reminder_shown) continue;
+        // Skip if no reminder set
+        if (event.reminder_minutes === 0) continue;
 
         const eventDate = parseISO(event.start_date);
         const reminderTime = addMinutes(eventDate, -event.reminder_minutes);
 
-        if (isAfter(now, reminderTime) && isBefore(now, eventDate)) {
-          // Show reminder
-          sonnerToast(
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-primary mt-0.5" />
-              <div>
-                <p className="font-semibold">{event.title}</p>
-                <p className="text-sm text-muted-foreground">
-                  Em {event.reminder_minutes} minutos - {format(eventDate, "HH:mm", { locale: ptBR })}
-                </p>
-                {event.description && (
-                  <p className="text-xs text-muted-foreground mt-1">{event.description}</p>
-                )}
-              </div>
-            </div>,
-            {
-              duration: 10000,
-              style: { borderLeft: `4px solid ${event.color}` },
-            }
-          );
-
-          // Mark as shown
-          await supabase
-            .from('agenda_events')
-            .update({ reminder_shown: true })
-            .eq('id', event.id);
-          
-          setEvents(prev => prev.map(e => 
-            e.id === event.id ? { ...e, reminder_shown: true } : e
-          ));
+        // Check if it's time to show the reminder (reminder time has passed)
+        if (isAfter(now, reminderTime)) {
+          newActiveReminders.push(event);
         }
+      }
+      
+      // Add new reminders to active list (avoid duplicates)
+      if (newActiveReminders.length > 0) {
+        setActiveReminders(prev => {
+          const existingIds = new Set(prev.map(e => e.id));
+          const toAdd = newActiveReminders.filter(e => !existingIds.has(e.id));
+          return [...prev, ...toAdd];
+        });
       }
     };
 
-    const interval = setInterval(checkReminders, 30000); // Check every 30 seconds
+    const interval = setInterval(checkReminders, 10000); // Check every 10 seconds
     checkReminders(); // Check immediately
 
     return () => clearInterval(interval);
   }, [user, events]);
+
+  // Function to mark reminder as seen
+  const markReminderAsSeen = async (eventId: string) => {
+    // Remove from active reminders
+    setActiveReminders(prev => prev.filter(e => e.id !== eventId));
+    
+    // Update database
+    await supabase
+      .from('agenda_events')
+      .update({ reminder_shown: true })
+      .eq('id', eventId);
+    
+    // Update local state
+    setEvents(prev => prev.map(e => 
+      e.id === eventId ? { ...e, reminder_shown: true } : e
+    ));
+  };
 
   const openCreateDialog = (date?: Date) => {
     setEditingEvent(null);
@@ -180,13 +185,22 @@ export function AgendaPanel() {
       return;
     }
 
+    // Create proper ISO date strings with timezone
+    // Use the local timezone offset to create correct timestamps
+    const createLocalISOString = (dateStr: string, timeStr: string) => {
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      const date = new Date(year, month - 1, day, hours, minutes, 0);
+      return date.toISOString();
+    };
+
     const startDateTime = formAllDay 
-      ? `${formStartDate}T00:00:00`
-      : `${formStartDate}T${formStartTime}:00`;
+      ? createLocalISOString(formStartDate, '00:00')
+      : createLocalISOString(formStartDate, formStartTime);
     
     const endDateTime = formAllDay
-      ? `${formEndDate}T23:59:59`
-      : `${formEndDate}T${formEndTime}:00`;
+      ? createLocalISOString(formEndDate, '23:59')
+      : createLocalISOString(formEndDate, formEndTime);
 
     const eventData = {
       user_id: user.id,
@@ -259,6 +273,8 @@ export function AgendaPanel() {
         title: 'Evento excluído',
         description: 'O evento foi removido da sua agenda.',
       });
+      // Remove from active reminders if present
+      setActiveReminders(prev => prev.filter(e => e.id !== eventId));
       fetchEvents();
     }
   };
@@ -462,188 +478,254 @@ export function AgendaPanel() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarIcon className="w-5 h-5" />
-              Agenda Pessoal
-            </CardTitle>
-            <CardDescription>
-              Organize seus compromissos, reuniões e lembretes
-            </CardDescription>
-          </div>
-          <Button onClick={() => openCreateDialog()}>
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Evento
-          </Button>
-        </div>
-      </CardHeader>
-      
-      <CardContent>
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={() => navigateDate('prev')}>
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Button variant="outline" onClick={() => setSelectedDate(new Date())}>
-              Hoje
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => navigateDate('next')}>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-          
-          <Tabs value={view} onValueChange={(v) => setView(v as 'day' | 'week' | 'month')}>
-            <TabsList>
-              <TabsTrigger value="day">Dia</TabsTrigger>
-              <TabsTrigger value="week">Semana</TabsTrigger>
-              <TabsTrigger value="month">Mês</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-
-        {view === 'day' && renderDayView()}
-        {view === 'week' && renderWeekView()}
-        {view === 'month' && renderMonthView()}
-      </CardContent>
-
-      {/* Event Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {editingEvent ? 'Editar Evento' : 'Novo Evento'}
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="title">Título *</Label>
-              <Input
-                id="title"
-                value={formTitle}
-                onChange={(e) => setFormTitle(e.target.value)}
-                placeholder="Ex: Reunião com cliente"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="description">Descrição</Label>
-              <Textarea
-                id="description"
-                value={formDescription}
-                onChange={(e) => setFormDescription(e.target.value)}
-                placeholder="Detalhes do evento..."
-                rows={3}
-              />
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Switch
-                id="all-day"
-                checked={formAllDay}
-                onCheckedChange={setFormAllDay}
-              />
-              <Label htmlFor="all-day">Dia inteiro</Label>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="start-date">Data início</Label>
-                <Input
-                  id="start-date"
-                  type="date"
-                  value={formStartDate}
-                  onChange={(e) => setFormStartDate(e.target.value)}
-                />
-              </div>
-              {!formAllDay && (
-                <div>
-                  <Label htmlFor="start-time">Hora início</Label>
-                  <Input
-                    id="start-time"
-                    type="time"
-                    value={formStartTime}
-                    onChange={(e) => setFormStartTime(e.target.value)}
-                  />
+    <>
+      {/* Persistent Reminder Popups */}
+      {activeReminders.map((event, index) => {
+        const eventDate = parseISO(event.start_date);
+        const isPast = isBefore(eventDate, new Date());
+        
+        return (
+          <div
+            key={event.id}
+            className="fixed z-[100] animate-in slide-in-from-top-5 fade-in duration-300"
+            style={{ 
+              top: `${80 + index * 120}px`, 
+              right: '20px',
+              maxWidth: '380px',
+              width: 'calc(100vw - 40px)'
+            }}
+          >
+            <div 
+              className="bg-card border-2 rounded-lg shadow-2xl p-4"
+              style={{ borderColor: event.color }}
+            >
+              <div className="flex items-start gap-3">
+                <div 
+                  className="p-2 rounded-full animate-pulse"
+                  style={{ backgroundColor: `${event.color}20` }}
+                >
+                  <Bell className="w-5 h-5" style={{ color: event.color }} />
                 </div>
-              )}
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="end-date">Data fim</Label>
-                <Input
-                  id="end-date"
-                  type="date"
-                  value={formEndDate}
-                  onChange={(e) => setFormEndDate(e.target.value)}
-                />
-              </div>
-              {!formAllDay && (
-                <div>
-                  <Label htmlFor="end-time">Hora fim</Label>
-                  <Input
-                    id="end-time"
-                    type="time"
-                    value={formEndTime}
-                    onChange={(e) => setFormEndTime(e.target.value)}
-                  />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                      {isPast ? 'EVENTO AGORA!' : 'LEMBRETE'}
+                    </span>
+                  </div>
+                  <h4 className="font-semibold text-foreground truncate">{event.title}</h4>
+                  <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                    <CalendarIcon className="w-3 h-3" />
+                    {format(eventDate, "d 'de' MMMM", { locale: ptBR })}
+                    {!event.all_day && (
+                      <>
+                        <Clock className="w-3 h-3 ml-2" />
+                        {format(eventDate, 'HH:mm', { locale: ptBR })}
+                      </>
+                    )}
+                  </p>
+                  {event.description && (
+                    <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+                      {event.description}
+                    </p>
+                  )}
                 </div>
-              )}
-            </div>
-            
-            <div>
-              <Label>Lembrete</Label>
-              <Select 
-                value={formReminderMinutes.toString()} 
-                onValueChange={(v) => setFormReminderMinutes(parseInt(v))}
+              </div>
+              <Button 
+                className="w-full mt-3"
+                size="sm"
+                onClick={() => markReminderAsSeen(event.id)}
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">Sem lembrete</SelectItem>
-                  <SelectItem value="5">5 minutos antes</SelectItem>
-                  <SelectItem value="15">15 minutos antes</SelectItem>
-                  <SelectItem value="30">30 minutos antes</SelectItem>
-                  <SelectItem value="60">1 hora antes</SelectItem>
-                  <SelectItem value="1440">1 dia antes</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label>Cor</Label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {COLORS.map(color => (
-                  <button
-                    key={color}
-                    type="button"
-                    className={`w-8 h-8 rounded-full transition-transform ${
-                      formColor === color ? 'ring-2 ring-offset-2 ring-primary scale-110' : ''
-                    }`}
-                    style={{ backgroundColor: color }}
-                    onClick={() => setFormColor(color)}
-                  />
-                ))}
-              </div>
+                <Check className="w-4 h-4 mr-2" />
+                Marcar como visto
+              </Button>
             </div>
           </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Cancelar
+        );
+      })}
+
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <CalendarIcon className="w-5 h-5" />
+                Agenda Pessoal
+              </CardTitle>
+              <CardDescription>
+                Organize seus compromissos, reuniões e lembretes
+              </CardDescription>
+            </div>
+            <Button onClick={() => openCreateDialog()}>
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Evento
             </Button>
-            <Button onClick={handleSaveEvent}>
-              {editingEvent ? 'Salvar' : 'Criar'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </Card>
+          </div>
+        </CardHeader>
+        
+        <CardContent>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="icon" onClick={() => navigateDate('prev')}>
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <Button variant="outline" onClick={() => setSelectedDate(new Date())}>
+                Hoje
+              </Button>
+              <Button variant="outline" size="icon" onClick={() => navigateDate('next')}>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            <Tabs value={view} onValueChange={(v) => setView(v as 'day' | 'week' | 'month')}>
+              <TabsList>
+                <TabsTrigger value="day">Dia</TabsTrigger>
+                <TabsTrigger value="week">Semana</TabsTrigger>
+                <TabsTrigger value="month">Mês</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
+          {view === 'day' && renderDayView()}
+          {view === 'week' && renderWeekView()}
+          {view === 'month' && renderMonthView()}
+        </CardContent>
+
+        {/* Event Dialog */}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {editingEvent ? 'Editar Evento' : 'Novo Evento'}
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="title">Título *</Label>
+                <Input
+                  id="title"
+                  value={formTitle}
+                  onChange={(e) => setFormTitle(e.target.value)}
+                  placeholder="Ex: Reunião com cliente"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="description">Descrição</Label>
+                <Textarea
+                  id="description"
+                  value={formDescription}
+                  onChange={(e) => setFormDescription(e.target.value)}
+                  placeholder="Detalhes do evento..."
+                  rows={3}
+                />
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="all-day"
+                  checked={formAllDay}
+                  onCheckedChange={setFormAllDay}
+                />
+                <Label htmlFor="all-day">Dia inteiro</Label>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="start-date">Data início</Label>
+                  <Input
+                    id="start-date"
+                    type="date"
+                    value={formStartDate}
+                    onChange={(e) => setFormStartDate(e.target.value)}
+                  />
+                </div>
+                {!formAllDay && (
+                  <div>
+                    <Label htmlFor="start-time">Hora início</Label>
+                    <Input
+                      id="start-time"
+                      type="time"
+                      value={formStartTime}
+                      onChange={(e) => setFormStartTime(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="end-date">Data fim</Label>
+                  <Input
+                    id="end-date"
+                    type="date"
+                    value={formEndDate}
+                    onChange={(e) => setFormEndDate(e.target.value)}
+                  />
+                </div>
+                {!formAllDay && (
+                  <div>
+                    <Label htmlFor="end-time">Hora fim</Label>
+                    <Input
+                      id="end-time"
+                      type="time"
+                      value={formEndTime}
+                      onChange={(e) => setFormEndTime(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+              
+              <div>
+                <Label>Lembrete</Label>
+                <Select 
+                  value={formReminderMinutes.toString()} 
+                  onValueChange={(v) => setFormReminderMinutes(parseInt(v))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Sem lembrete</SelectItem>
+                    <SelectItem value="5">5 minutos antes</SelectItem>
+                    <SelectItem value="15">15 minutos antes</SelectItem>
+                    <SelectItem value="30">30 minutos antes</SelectItem>
+                    <SelectItem value="60">1 hora antes</SelectItem>
+                    <SelectItem value="1440">1 dia antes</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label>Cor</Label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {COLORS.map(color => (
+                    <button
+                      key={color}
+                      type="button"
+                      className={`w-8 h-8 rounded-full transition-transform ${
+                        formColor === color ? 'ring-2 ring-offset-2 ring-primary scale-110' : ''
+                      }`}
+                      style={{ backgroundColor: color }}
+                      onClick={() => setFormColor(color)}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSaveEvent}>
+                {editingEvent ? 'Salvar' : 'Criar'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </Card>
+    </>
   );
 }
 
@@ -681,7 +763,7 @@ function EventCard({
             {event.all_day && (
               <Badge variant="outline" className="text-xs">Dia inteiro</Badge>
             )}
-            {event.reminder_minutes > 0 && (
+            {event.reminder_minutes > 0 && !event.reminder_shown && (
               <Bell className="w-3 h-3 text-primary" />
             )}
           </div>
