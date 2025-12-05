@@ -76,7 +76,7 @@ export function UserSidebar() {
     { title: "Gestão de Equipe", icon: UserCog, path: "/dashboard", tab: "equipe" },
     { title: "Gestão de Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios" },
     { title: "Organizador de Tarefas", icon: Target, path: "/dashboard", tab: "tarefas" },
-    { title: "Aprova Job", icon: ClipboardCheck, path: "/dashboard", tab: "aprova-job" },
+    { title: "Aprova Job", icon: ClipboardCheck, path: "/dashboard", tab: "aprova-job", feature: "aprova_job" },
   ];
 
   const crmItems: MenuItem[] = [
@@ -153,17 +153,20 @@ export function UserSidebar() {
             <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1">Gestão</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {managementItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      onClick={() => handleNavigation(item.path, item.tab)}
-                      className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                {managementItems.map((item) => {
+                  if (item.feature && !hasFeature(item.feature)) return null;
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        onClick={() => handleNavigation(item.path, item.tab)}
+                        className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
