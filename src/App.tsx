@@ -45,6 +45,7 @@ import MindMapFullEditor from "./pages/MindMapFullEditor";
 import ProposalPublicView from "./pages/ProposalPublicView";
 import AprovaJobClient from "./pages/AprovaJobClient";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { CookieNotice } from "@/components/CookieNotice";
 
 const queryClient = new QueryClient();
 
@@ -143,6 +144,7 @@ const App = () => (
             <ErrorBoundary>
               <AppContent />
             </ErrorBoundary>
+            <CookieNotice />
           </TooltipProvider>
         </AuthProvider>
       </ThemeProvider>
