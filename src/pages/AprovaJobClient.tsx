@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, X, AlertCircle, Clock, MessageSquare, Send, LogOut, FileImage, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Check, X, AlertCircle, Clock, MessageSquare, Send, LogOut, FileImage, ChevronLeft, ChevronRight, Loader2, Undo2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -252,6 +252,37 @@ export default function AprovaJobClient() {
     });
 
     setShowApprovalDialog(false);
+    setSelectedJob(null);
+    if (client) fetchJobs(client.id);
+    setSubmitting(false);
+  };
+
+  const revertApproval = async () => {
+    if (!selectedJob) return;
+
+    setSubmitting(true);
+
+    const { error } = await supabase
+      .from('aprova_job_jobs')
+      .update({
+        status: 'pending',
+        approved_at: null,
+        revision_notes: null,
+        rejection_notes: null
+      })
+      .eq('id', selectedJob.id);
+
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      setSubmitting(false);
+      return;
+    }
+
+    toast({ 
+      title: "Revertido!", 
+      description: "O status do job foi revertido para pendente"
+    });
+
     setSelectedJob(null);
     if (client) fetchJobs(client.id);
     setSubmitting(false);
@@ -519,6 +550,24 @@ export default function AprovaJobClient() {
                     >
                       <X className="w-4 h-4 mr-2" /> Não Aprovar
                     </Button>
+                  </div>
+                )}
+
+                {/* Revert button for non-pending jobs */}
+                {selectedJob.status !== 'pending' && (
+                  <div className="pt-4 border-t">
+                    <Button 
+                      variant="outline"
+                      className="w-full"
+                      onClick={revertApproval}
+                      disabled={submitting}
+                    >
+                      {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Undo2 className="w-4 h-4 mr-2" />}
+                      Reverter para Pendente
+                    </Button>
+                    <p className="text-xs text-muted-foreground text-center mt-2">
+                      Use esta opção caso tenha confirmado por engano
+                    </p>
                   </div>
                 )}
               </div>
