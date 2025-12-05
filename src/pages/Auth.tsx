@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Bot, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Bot, ArrowLeft, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { z } from "zod";
 import { EmailVerification } from "@/components/EmailVerification";
 import { TwoFactorVerification } from "@/components/TwoFactorVerification";
@@ -34,7 +34,6 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [logoUrl, setLogoUrl] = useState<string>("");
   const [showVerification, setShowVerification] = useState(false);
   const [verificationUserId, setVerificationUserId] = useState("");
   const [verificationEmail, setVerificationEmail] = useState("");
@@ -55,27 +54,14 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, isAdmin, customSignUp, customSignIn, loading } = useAuth();
+  const { settings, isLoading: settingsLoading } = useSiteSettings();
 
   const showMessage = (title: string, description: string, type: 'success' | 'error') => {
     setMessageDialog({ open: true, title, description, type });
   };
 
-  // Carregar logo do site (branca para fundo colorido)
-  useEffect(() => {
-    const loadLogo = async () => {
-      const { data } = await supabase
-        .from('site_settings')
-        .select('key, value')
-        .in('key', ['site_logo_light_url', 'site_logo_url'])
-      
-      if (data) {
-        const lightLogo = data.find(d => d.key === 'site_logo_light_url')?.value;
-        const defaultLogo = data.find(d => d.key === 'site_logo_url')?.value;
-        setLogoUrl(lightLogo || defaultLogo || '');
-      }
-    };
-    loadLogo();
-  }, []);
+  // Use light logo for auth page (colored background)
+  const logoUrl = settings.siteLogoLightUrl || settings.siteLogoUrl || '';
 
   // Redirect if already logged in
   useEffect(() => {
@@ -216,6 +202,15 @@ const Auth = () => {
         }}
         onBack={() => setShow2FA(false)}
       />
+    );
+  }
+
+  // Show loading screen while settings are loading to prevent flash
+  if (settingsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center gradient-primary">
+        <Loader2 className="w-12 h-12 text-white animate-spin" />
+      </div>
     );
   }
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SocialLinks } from "@/components/SocialLinks";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 interface CustomPageItem {
   id: string;
@@ -10,58 +11,51 @@ interface CustomPageItem {
 }
 
 export const LandingFooter = ({ hideCustomPages = false }: { hideCustomPages?: boolean }) => {
-  const [siteTitle, setSiteTitle] = useState("");
-  const [footerText, setFooterText] = useState("");
-  const [footerMenus, setFooterMenus] = useState<any[]>([]);
-  const [socialLinks, setSocialLinks] = useState<any[]>([]);
+  const { settings, isLoading } = useSiteSettings();
   const [footerPages, setFooterPages] = useState<CustomPageItem[]>([]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const [pagesRes, settingsRes] = await Promise.all([
-        supabase
-          .from('custom_pages')
-          .select('id, title, slug, is_active')
-          .eq('is_active', true)
-          .order('order_index', { ascending: true }),
-        supabase
-          .from('site_settings')
-          .select('key, value')
-          .in('key', ['site_title', 'footer_text', 'footer_menus', 'social_links'])
-      ]);
+    const fetchPages = async () => {
+      const { data } = await supabase
+        .from('custom_pages')
+        .select('id, title, slug, is_active')
+        .eq('is_active', true)
+        .order('order_index', { ascending: true });
 
-      if (pagesRes.data) setFooterPages(pagesRes.data as CustomPageItem[]);
-
-      if (settingsRes.data) {
-        settingsRes.data.forEach(item => {
-          switch(item.key) {
-            case 'site_title':
-              setSiteTitle(item.value || 'Automação');
-              break;
-            case 'footer_text':
-              setFooterText(item.value || '');
-              break;
-            case 'footer_menus':
-              try { setFooterMenus(JSON.parse(item.value || '[]')); } catch {}
-              break;
-            case 'social_links':
-              try { setSocialLinks(JSON.parse(item.value || '[]')); } catch {}
-              break;
-          }
-        });
-      }
+      if (data) setFooterPages(data as CustomPageItem[]);
     };
 
-    fetchData();
+    fetchPages();
   }, []);
+
+  // Show skeleton while loading to prevent flash
+  if (isLoading) {
+    return (
+      <footer className="bg-muted/50 border-t">
+        <div className="container mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div className="space-y-4">
+              <div className="h-6 w-32 bg-muted animate-pulse rounded" />
+              <div className="flex gap-2">
+                {[1,2,3].map(i => <div key={i} className="h-8 w-8 bg-muted animate-pulse rounded" />)}
+              </div>
+            </div>
+          </div>
+          <div className="pt-8 border-t text-center">
+            <div className="h-4 w-64 bg-muted animate-pulse rounded mx-auto" />
+          </div>
+        </div>
+      </footer>
+    );
+  }
 
   return (
     <footer className="bg-muted/50 border-t">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="space-y-4">
-            <span className="font-bold text-xl">{siteTitle || "Automação"}</span>
-            <SocialLinks links={socialLinks} variant="footer" />
+            <span className="font-bold text-xl">{settings.siteTitle || "Automação"}</span>
+            <SocialLinks links={settings.socialLinks} variant="footer" />
           </div>
           {!hideCustomPages && footerPages.length > 0 && (
             <div>
@@ -80,7 +74,7 @@ export const LandingFooter = ({ hideCustomPages = false }: { hideCustomPages?: b
               </ul>
             </div>
           )}
-          {footerMenus.map((menu: any, index: number) => (
+          {settings.footerMenus.map((menu: any, index: number) => (
             <div key={index}>
               <h4 className="font-semibold mb-4">{menu.title}</h4>
               <ul className="space-y-2">
@@ -100,7 +94,7 @@ export const LandingFooter = ({ hideCustomPages = false }: { hideCustomPages?: b
         </div>
         <div className="pt-8 border-t text-center">
           <p className="text-sm text-muted-foreground">
-            {footerText || `© ${new Date().getFullYear()} ${siteTitle || 'Automação'}. Todos os direitos reservados.`}
+            {settings.footerText || `© ${new Date().getFullYear()} ${settings.siteTitle || 'Automação'}. Todos os direitos reservados.`}
           </p>
         </div>
       </div>
