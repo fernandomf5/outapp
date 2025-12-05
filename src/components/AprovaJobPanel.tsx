@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Plus, Users, FileImage, Bell, Copy, Send, Trash2, Eye, ExternalLink, Image, Video, X, Check, Clock, AlertCircle, MessageSquare } from "lucide-react";
+import { Plus, Users, FileImage, Bell, Copy, Send, Trash2, Eye, ExternalLink, Image, Video, X, Check, Clock, AlertCircle, MessageSquare, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -74,6 +74,7 @@ export const AprovaJobPanel = () => {
   
   // Job form state
   const [showJobDialog, setShowJobDialog] = useState(false);
+  const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [jobForm, setJobForm] = useState({ client_id: '', title: '', description: '', due_date: '', media_urls: [] as string[] });
   const [uploadingMedia, setUploadingMedia] = useState(false);
   
@@ -289,6 +290,53 @@ export const AprovaJobPanel = () => {
     fetchJobs();
   };
 
+  const updateJob = async () => {
+    if (!editingJob || !jobForm.title) {
+      toast({ title: "Erro", description: "Informe o título", variant: "destructive" });
+      return;
+    }
+
+    const { error } = await supabase
+      .from('aprova_job_jobs')
+      .update({
+        title: jobForm.title,
+        description: jobForm.description || null,
+        media_urls: jobForm.media_urls,
+        due_date: jobForm.due_date || null,
+        status: 'pending' // Reset status to pending when edited
+      })
+      .eq('id', editingJob.id);
+
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Sucesso", description: "Job atualizado com sucesso!" });
+    setShowJobDialog(false);
+    setEditingJob(null);
+    setJobForm({ client_id: '', title: '', description: '', due_date: '', media_urls: [] });
+    fetchJobs();
+  };
+
+  const openEditJob = (job: Job) => {
+    setEditingJob(job);
+    setJobForm({
+      client_id: job.client_id,
+      title: job.title,
+      description: job.description || '',
+      due_date: job.due_date || '',
+      media_urls: job.media_urls || []
+    });
+    setShowJobDialog(true);
+  };
+
+  const openNewJob = () => {
+    setEditingJob(null);
+    setJobForm({ client_id: '', title: '', description: '', due_date: '', media_urls: [] });
+    setShowJobDialog(true);
+  };
+
   const deleteJob = async (jobId: string) => {
     const { error } = await supabase
       .from('aprova_job_jobs')
@@ -413,19 +461,31 @@ export const AprovaJobPanel = () => {
         {/* Jobs Tab */}
         <TabsContent value="jobs" className="space-y-4">
           <div className="flex justify-end">
-            <Dialog open={showJobDialog} onOpenChange={setShowJobDialog}>
+            <Dialog open={showJobDialog} onOpenChange={(open) => {
+              setShowJobDialog(open);
+              if (!open) {
+                setEditingJob(null);
+                setJobForm({ client_id: '', title: '', description: '', due_date: '', media_urls: [] });
+              }
+            }}>
               <DialogTrigger asChild>
-                <Button><Plus className="w-4 h-4 mr-2" /> Novo Job</Button>
+                <Button onClick={openNewJob}><Plus className="w-4 h-4 mr-2" /> Novo Job</Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>Criar Novo Job</DialogTitle>
-                  <DialogDescription>Envie um criativo para aprovação do cliente</DialogDescription>
+                  <DialogTitle>{editingJob ? 'Editar Job' : 'Criar Novo Job'}</DialogTitle>
+                  <DialogDescription>
+                    {editingJob ? 'Atualize o criativo e envie novamente para aprovação' : 'Envie um criativo para aprovação do cliente'}
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
                     <Label>Cliente *</Label>
-                    <Select value={jobForm.client_id} onValueChange={(v) => setJobForm(prev => ({ ...prev, client_id: v }))}>
+                    <Select 
+                      value={jobForm.client_id} 
+                      onValueChange={(v) => setJobForm(prev => ({ ...prev, client_id: v }))}
+                      disabled={!!editingJob}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o cliente" />
                       </SelectTrigger>
@@ -492,8 +552,8 @@ export const AprovaJobPanel = () => {
                       )}
                     </div>
                   </div>
-                  <Button onClick={createJob} className="w-full">
-                    <Send className="w-4 h-4 mr-2" /> Enviar para Aprovação
+                  <Button onClick={editingJob ? updateJob : createJob} className="w-full">
+                    <Send className="w-4 h-4 mr-2" /> {editingJob ? 'Atualizar e Reenviar' : 'Enviar para Aprovação'}
                   </Button>
                 </div>
               </DialogContent>
@@ -571,6 +631,13 @@ export const AprovaJobPanel = () => {
                             }}
                           >
                             <Eye className="w-4 h-4 mr-1" /> Ver Detalhes
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openEditJob(job)}
+                          >
+                            <Pencil className="w-4 h-4 mr-1" /> Editar
                           </Button>
                           <Button
                             variant="outline"
