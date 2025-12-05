@@ -1,6 +1,9 @@
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Bot, Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain } from "lucide-react";
+import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
+import logoLight from "@/assets/logo-light.png";
+import logoDark from "@/assets/logo-dark.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ConversationNotificationBell } from "@/components/ConversationNotificationBell";
@@ -38,6 +41,9 @@ export function UserSidebar() {
   const { hasFeature } = useUserFeatures();
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { theme, resolvedTheme } = useTheme();
+  
+  const currentLogo = resolvedTheme === 'dark' ? logoDark : logoLight;
   const currentPath = location.pathname;
   const searchParams = new URLSearchParams(location.search);
   const currentTab = searchParams.get('tab') || 'overview';
@@ -106,7 +112,7 @@ export function UserSidebar() {
     <Sidebar className={collapsed ? "w-14" : "w-60"} collapsible="icon">
       <div className="flex items-center justify-center p-4 border-b border-border">
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <Bot className="w-8 h-8 text-primary" />
+          <img src={currentLogo} alt="Out App" className="w-8 h-8" />
           {!collapsed && <span className="font-bold text-lg">Out App</span>}
         </Link>
       </div>
