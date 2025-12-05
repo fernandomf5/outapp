@@ -1202,7 +1202,9 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="aprova-job">
-            <AprovaJobPanel />
+            <FeatureGate featureKey="aprova_job">
+              <AprovaJobPanel />
+            </FeatureGate>
           </TabsContent>
         </Tabs>
       </main>
