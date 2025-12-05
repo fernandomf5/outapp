@@ -98,7 +98,9 @@ serve(async (req) => {
       'https://botrealszapp.com.br',
       'https://www.botrealszapp.com.br',
       'http://botrealszapp.com.br',
-      'http://www.botrealszapp.com.br'
+      'http://www.botrealszapp.com.br',
+      'https://bot-reals-zapp.lovable.app',
+      'http://bot-reals-zapp.lovable.app'
     ];
     
     for (const oldDomain of oldDomains) {
