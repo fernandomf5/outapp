@@ -76,7 +76,7 @@ export function UserSidebar() {
     { title: "Gestão de Equipe", icon: UserCog, path: "/dashboard", tab: "equipe" },
     { title: "Gestão de Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios" },
     { title: "Organizador de Tarefas", icon: Target, path: "/dashboard", tab: "tarefas" },
-    { title: "Aprova Job", icon: ClipboardCheck, path: "/dashboard", tab: "aprova-job", feature: "aprova_job" },
+    { title: "Aprova Job", icon: ClipboardCheck, path: "/dashboard", tab: "aprova-job" },
   ];
 
   const crmItems: MenuItem[] = [
