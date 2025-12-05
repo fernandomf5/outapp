@@ -58,7 +58,10 @@ export const useUserFeatures = () => {
         .eq('id', subscription.plan_id)
         .single();
 
-      if (now > expirationDate) {
+      // Plano vitalício NUNCA expira
+      if (planData?.plan_type === 'lifetime') {
+        // Continua para buscar features - não verifica expiração
+      } else if (now > expirationDate) {
         // Se for free trial, bloquear imediatamente
         if (planData?.plan_type === 'free_trial') {
           setFeatures([]);
