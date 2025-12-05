@@ -85,6 +85,9 @@ export const AprovaJobPanel = () => {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [jobComments, setJobComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
+  
+  // Job filter state
+  const [clientFilter, setClientFilter] = useState<string>('all');
 
   useEffect(() => {
     if (user) {
@@ -519,7 +522,21 @@ export const AprovaJobPanel = () => {
 
         {/* Jobs Tab */}
         <TabsContent value="jobs" className="space-y-4">
-          <div className="flex justify-end">
+          <div className="flex flex-col sm:flex-row justify-between gap-4">
+            <div className="w-full sm:w-64">
+              <Select value={clientFilter} onValueChange={setClientFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filtrar por cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os clientes</SelectItem>
+                  {clients.map(client => (
+                    <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
             <Dialog open={showJobDialog} onOpenChange={(open) => {
               setShowJobDialog(open);
               if (!open) {
@@ -617,6 +634,7 @@ export const AprovaJobPanel = () => {
                 </div>
               </DialogContent>
             </Dialog>
+            </div>
           </div>
 
           {jobs.length === 0 ? (
@@ -631,7 +649,9 @@ export const AprovaJobPanel = () => {
             </Card>
           ) : (
             <div className="grid gap-4">
-              {jobs.map(job => (
+              {jobs
+                .filter(job => clientFilter === 'all' || job.client_id === clientFilter)
+                .map(job => (
                 <Card key={job.id} className="overflow-hidden">
                   <CardContent className="p-4">
                     <div className="flex flex-col sm:flex-row gap-4">
