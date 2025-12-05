@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Search, Mail, Calendar, Edit, Trash2, Key, LogIn, Ban } from "lucide-react";
+import { Users, Search, Mail, Calendar, Edit, Trash2, Key, LogIn, Ban, Crown } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -33,6 +33,7 @@ interface UserProfile {
   email: string;
   created_at: string;
   is_banned?: boolean;
+  plan_name?: string;
 }
 
 export const UsersPanel = () => {
@@ -76,7 +77,25 @@ export const UsersPanel = () => {
       .order('created_at', { ascending: false });
 
     if (!error && data) {
-      setUsers(data);
+      // Buscar planos de cada usuário
+      const usersWithPlans = await Promise.all(
+        data.map(async (user) => {
+          const { data: subscription } = await supabase
+            .from('subscriptions')
+            .select('plan_id, plans(name)')
+            .eq('user_id', user.user_id)
+            .eq('status', 'active')
+            .order('expires_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          return {
+            ...user,
+            plan_name: (subscription as any)?.plans?.name || 'Sem plano'
+          };
+        })
+      );
+      setUsers(usersWithPlans);
     }
     setLoading(false);
   };
@@ -408,6 +427,12 @@ export const UsersPanel = () => {
                     <Calendar className="w-3 h-3" />
                     <span>
                       Cadastrado em: {format(new Date(user.created_at), 'dd/MM/yyyy')}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs mt-2">
+                    <Crown className="w-3 h-3 text-yellow-500" />
+                    <span className={user.plan_name === 'Sem plano' ? 'text-muted-foreground' : 'text-primary font-medium'}>
+                      {user.plan_name}
                     </span>
                   </div>
                 </div>

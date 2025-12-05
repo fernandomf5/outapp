@@ -74,14 +74,14 @@ serve(async (req) => {
 
     console.log('Gerando magic link para o usuário:', userData.user.email);
 
-    const origin = req.headers.get('origin') || '';
+    const origin = req.headers.get('origin') || 'https://outapp.com.br';
 
     // Gerar magic link para o usuário alvo e redirecionar de volta ao app
     const { data: linkData, error: linkError } = await supabaseClient.auth.admin.generateLink({
       type: 'magiclink',
       email: userData.user.email!,
       options: {
-        redirectTo: origin ? `${origin}/dashboard` : undefined,
+        redirectTo: `${origin}/dashboard`,
       }
     });
 
@@ -90,7 +90,24 @@ serve(async (req) => {
       throw linkError;
     }
 
-    const actionLink = linkData.properties.action_link;
+    // Substituir o domínio antigo pelo domínio atual no magic link
+    let actionLink = linkData.properties.action_link;
+    
+    // Lista de domínios antigos para substituir
+    const oldDomains = [
+      'https://botrealszapp.com.br',
+      'https://www.botrealszapp.com.br',
+      'http://botrealszapp.com.br',
+      'http://www.botrealszapp.com.br'
+    ];
+    
+    for (const oldDomain of oldDomains) {
+      if (actionLink.includes(oldDomain)) {
+        actionLink = actionLink.replace(oldDomain, origin);
+        break;
+      }
+    }
+    
     console.log('Magic link gerado:', actionLink);
 
     console.log('=== Impersonation (magic link) pronta ===');
