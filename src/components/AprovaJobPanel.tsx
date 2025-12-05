@@ -360,13 +360,13 @@ export const AprovaJobPanel = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
-        return <Badge className="bg-green-500/20 text-green-500 border-green-500/30"><Check className="w-3 h-3 mr-1" /> Aprovado</Badge>;
+        return <Badge className="bg-green-500 text-white border-green-600 shadow-md shadow-green-500/30 px-3 py-1"><Check className="w-4 h-4 mr-1" /> Aprovado</Badge>;
       case 'revision':
-        return <Badge className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30"><AlertCircle className="w-3 h-3 mr-1" /> Revisão</Badge>;
+        return <Badge className="bg-yellow-500 text-white border-yellow-600 shadow-md shadow-yellow-500/30 px-3 py-1"><AlertCircle className="w-4 h-4 mr-1" /> Revisão</Badge>;
       case 'rejected':
-        return <Badge className="bg-red-500/20 text-red-500 border-red-500/30"><X className="w-3 h-3 mr-1" /> Não Aprovado</Badge>;
+        return <Badge className="bg-red-500 text-white border-red-600 shadow-md shadow-red-500/30 px-3 py-1"><X className="w-4 h-4 mr-1" /> Não Aprovado</Badge>;
       default:
-        return <Badge className="bg-blue-500/20 text-blue-500 border-blue-500/30"><Clock className="w-3 h-3 mr-1" /> Pendente</Badge>;
+        return <Badge className="bg-blue-500 text-white border-blue-600 shadow-md shadow-blue-500/30 px-3 py-1"><Clock className="w-4 h-4 mr-1" /> Pendente</Badge>;
     }
   };
 
