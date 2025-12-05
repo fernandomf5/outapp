@@ -72,6 +72,7 @@ export const AprovaJobPanel = () => {
   
   // Client form state
   const [showClientDialog, setShowClientDialog] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [clientForm, setClientForm] = useState({ name: '', username: '', password: '', primary_color: '#8B5CF6', secondary_color: '#6366F1' });
   
   // Job form state
@@ -182,6 +183,24 @@ export const AprovaJobPanel = () => {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   };
 
+  const openNewClient = () => {
+    setEditingClient(null);
+    setClientForm({ name: '', username: '', password: '', primary_color: '#8B5CF6', secondary_color: '#6366F1' });
+    setShowClientDialog(true);
+  };
+
+  const openEditClient = (client: Client) => {
+    setEditingClient(client);
+    setClientForm({
+      name: client.name,
+      username: client.username,
+      password: '',
+      primary_color: client.primary_color || '#8B5CF6',
+      secondary_color: client.secondary_color || '#6366F1'
+    });
+    setShowClientDialog(true);
+  };
+
   const createClient = async () => {
     if (!clientForm.name || !clientForm.username || !clientForm.password) {
       toast({ title: "Erro", description: "Preencha todos os campos", variant: "destructive" });
@@ -212,6 +231,42 @@ export const AprovaJobPanel = () => {
 
     toast({ title: "Sucesso", description: "Cliente criado com sucesso!" });
     setShowClientDialog(false);
+    setEditingClient(null);
+    setClientForm({ name: '', username: '', password: '', primary_color: '#8B5CF6', secondary_color: '#6366F1' });
+    fetchClients();
+  };
+
+  const updateClient = async () => {
+    if (!editingClient || !clientForm.name || !clientForm.username) {
+      toast({ title: "Erro", description: "Preencha nome e usuário", variant: "destructive" });
+      return;
+    }
+
+    const updateData: any = {
+      name: clientForm.name,
+      username: clientForm.username.toLowerCase().trim(),
+      primary_color: clientForm.primary_color,
+      secondary_color: clientForm.secondary_color
+    };
+
+    // Only update password if provided
+    if (clientForm.password) {
+      updateData.password_hash = await hashPassword(clientForm.password);
+    }
+
+    const { error } = await supabase
+      .from('aprova_job_clients')
+      .update(updateData)
+      .eq('id', editingClient.id);
+
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Sucesso", description: "Cliente atualizado!" });
+    setShowClientDialog(false);
+    setEditingClient(null);
     setClientForm({ name: '', username: '', password: '', primary_color: '#8B5CF6', secondary_color: '#6366F1' });
     fetchClients();
   };
@@ -664,14 +719,22 @@ export const AprovaJobPanel = () => {
         {/* Clients Tab */}
         <TabsContent value="clients" className="space-y-4">
           <div className="flex justify-end">
-            <Dialog open={showClientDialog} onOpenChange={setShowClientDialog}>
+            <Dialog open={showClientDialog} onOpenChange={(open) => {
+              setShowClientDialog(open);
+              if (!open) {
+                setEditingClient(null);
+                setClientForm({ name: '', username: '', password: '', primary_color: '#8B5CF6', secondary_color: '#6366F1' });
+              }
+            }}>
               <DialogTrigger asChild>
-                <Button><Plus className="w-4 h-4 mr-2" /> Novo Cliente</Button>
+                <Button onClick={openNewClient}><Plus className="w-4 h-4 mr-2" /> Novo Cliente</Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Criar Cliente</DialogTitle>
-                  <DialogDescription>Crie um acesso para seu cliente aprovar jobs</DialogDescription>
+                  <DialogTitle>{editingClient ? 'Editar Cliente' : 'Criar Cliente'}</DialogTitle>
+                  <DialogDescription>
+                    {editingClient ? 'Atualize os dados do cliente' : 'Crie um acesso para seu cliente aprovar jobs'}
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
@@ -692,7 +755,7 @@ export const AprovaJobPanel = () => {
                     <p className="text-xs text-muted-foreground mt-1">Sem espaços ou caracteres especiais</p>
                   </div>
                   <div>
-                    <Label>Senha *</Label>
+                    <Label>{editingClient ? 'Nova Senha (deixe vazio para manter)' : 'Senha *'}</Label>
                     <Input
                       type="password"
                       value={clientForm.password}
@@ -734,7 +797,9 @@ export const AprovaJobPanel = () => {
                       </div>
                     </div>
                   </div>
-                  <Button onClick={createClient} className="w-full">Criar Cliente</Button>
+                  <Button onClick={editingClient ? updateClient : createClient} className="w-full">
+                    {editingClient ? 'Atualizar Cliente' : 'Criar Cliente'}
+                  </Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -745,7 +810,7 @@ export const AprovaJobPanel = () => {
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Users className="w-12 h-12 text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">Nenhum cliente cadastrado</p>
-                <Button variant="outline" className="mt-4" onClick={() => setShowClientDialog(true)}>
+                <Button variant="outline" className="mt-4" onClick={openNewClient}>
                   <Plus className="w-4 h-4 mr-2" /> Adicionar primeiro cliente
                 </Button>
               </CardContent>
@@ -802,6 +867,14 @@ export const AprovaJobPanel = () => {
                             title="Abrir página do cliente"
                           >
                             <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openEditClient(client)}
+                            title="Editar cliente"
+                          >
+                            <Pencil className="w-4 h-4" />
                           </Button>
                           <Button
                             variant="outline"
