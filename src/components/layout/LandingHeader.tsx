@@ -9,6 +9,7 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import { SocialLinks } from "@/components/SocialLinks";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import logoLion from "@/assets/logo-lion.png";
 
 interface CustomPageItem {
@@ -23,65 +24,53 @@ export const LandingHeader = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { theme } = useTheme();
+  const { settings, isLoading } = useSiteSettings();
   const [headerPages, setHeaderPages] = useState<CustomPageItem[]>([]);
-  const [siteTitle, setSiteTitle] = useState("");
-  const [logoUrl, setLogoUrl] = useState("");
-  const [logoLightUrl, setLogoLightUrl] = useState("");
-  const [logoDarkUrl, setLogoDarkUrl] = useState("");
-  const [socialLinks, setSocialLinks] = useState<any[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const [pagesRes, settingsRes] = await Promise.all([
-        supabase
-          .from('custom_pages')
-          .select('id, title, slug, is_active, show_in_menu')
-          .eq('is_active', true)
-          .eq('show_in_menu', true)
-          .order('order_index', { ascending: true }),
-        supabase
-          .from('site_settings')
-          .select('key, value')
-          .in('key', ['site_title', 'site_logo_url', 'site_logo_light_url', 'site_logo_dark_url', 'social_links'])
-      ]);
+    const fetchPages = async () => {
+      const { data } = await supabase
+        .from('custom_pages')
+        .select('id, title, slug, is_active, show_in_menu')
+        .eq('is_active', true)
+        .eq('show_in_menu', true)
+        .order('order_index', { ascending: true });
 
-      if (pagesRes.data) setHeaderPages(pagesRes.data as CustomPageItem[]);
-      if (settingsRes.data) {
-        settingsRes.data.forEach(item => {
-          switch(item.key) {
-            case 'site_title':
-              setSiteTitle(item.value || 'Site');
-              break;
-            case 'site_logo_url':
-              setLogoUrl(item.value || '');
-              break;
-            case 'site_logo_light_url':
-              setLogoLightUrl(item.value || '');
-              break;
-            case 'site_logo_dark_url':
-              setLogoDarkUrl(item.value || '');
-              break;
-            case 'social_links':
-              try { setSocialLinks(JSON.parse(item.value || '[]')); } catch {}
-              break;
-          }
-        });
-      }
+      if (data) setHeaderPages(data as CustomPageItem[]);
     };
 
-    fetchData();
+    fetchPages();
   }, []);
 
   const currentLogo = () => {
     if (theme === 'dark') {
-      return logoDarkUrl || logoUrl || logoLightUrl || null;
+      return settings.siteLogoDarkUrl || settings.siteLogoUrl || settings.siteLogoLightUrl || null;
     }
     if (theme === 'light') {
-      return logoLightUrl || logoUrl || logoDarkUrl || null;
+      return settings.siteLogoLightUrl || settings.siteLogoUrl || settings.siteLogoDarkUrl || null;
     }
-    return logoUrl || logoDarkUrl || logoLightUrl || null;
+    return settings.siteLogoUrl || settings.siteLogoDarkUrl || settings.siteLogoLightUrl || null;
   };
+
+  // Show nothing until settings are loaded to prevent flash
+  if (isLoading) {
+    return (
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
+        <div className="container mx-auto px-6 sm:px-8 py-3 sm:py-4">
+          <div className="flex items-center justify-between">
+            <div className="h-8 sm:h-10 w-24 bg-muted/50 animate-pulse rounded" />
+            <div className="hidden lg:flex items-center gap-6">
+              {[1,2,3,4,5].map(i => (
+                <div key={i} className="h-4 w-16 bg-muted/50 animate-pulse rounded" />
+              ))}
+            </div>
+            <div className="lg:hidden h-8 w-8 bg-muted/50 animate-pulse rounded" />
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <>
@@ -92,8 +81,8 @@ export const LandingHeader = () => {
             <Link to="/" onClick={(e) => { e.preventDefault(); navigate('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-smooth">
               {currentLogo() ? (
                 <img 
-                  src={currentLogo()} 
-                  alt={siteTitle || "Logo"} 
+                  src={currentLogo()!} 
+                  alt={settings.siteTitle || "Logo"} 
                   className="h-8 sm:h-10 w-auto object-contain"
                 />
               ) : (
@@ -127,7 +116,7 @@ export const LandingHeader = () => {
                   {page.title}
                 </Link>
               ))}
-              <SocialLinks links={socialLinks} />
+              <SocialLinks links={settings.socialLinks} />
               <ThemeToggle />
               <LanguageSelector />
               <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} className="active:scale-95 transition-transform">
@@ -151,7 +140,7 @@ export const LandingHeader = () => {
         </div>
       </header>
 
-      {/* Mobile Off-Canvas Menu - Criado do Zero */}
+      {/* Mobile Off-Canvas Menu */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-[100] lg:hidden">
           {/* Overlay */}
@@ -235,7 +224,7 @@ export const LandingHeader = () => {
                 ))}
                 
                 <div className="mt-4 pt-4 border-t border-border">
-                  <SocialLinks links={socialLinks} horizontal />
+                  <SocialLinks links={settings.socialLinks} horizontal />
                 </div>
                 
                 <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-border">

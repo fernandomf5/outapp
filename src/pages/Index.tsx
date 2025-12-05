@@ -5,7 +5,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Zap, MessageSquare, Clock, CheckCircle2, Shield, TrendingUp, Sparkles, Menu,
-  Users, Ticket, Link2, Gift, BarChart3, Workflow, Brain, Video, UserPlus, DollarSign
+  Users, Ticket, Link2, Gift, BarChart3, Workflow, Brain, Video, UserPlus, DollarSign, Loader2
 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +17,7 @@ import { CookieNotice } from "@/components/CookieNotice";
 import { SocialLinks } from "@/components/SocialLinks";
 import { useTheme } from "next-themes";
 import { CountdownTimer } from "@/components/CountdownTimer";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import outAppLogo from "@/assets/out-app-logo.png";
 import heroIcon from "@/assets/hero-icon.png";
 import logoLion from "@/assets/logo-lion.png";
@@ -46,6 +47,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { theme } = useTheme();
+  const { settings: siteSettingsFromHook, isLoading: siteSettingsLoading } = useSiteSettings();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [customPages, setCustomPages] = useState<CustomPage[]>([]);
   const [videoUrl, setVideoUrl] = useState<string>("");
@@ -62,6 +64,7 @@ const Index = () => {
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
   const [headCode, setHeadCode] = useState("");
   const [footerCode, setFooterCode] = useState("");
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [landingSettings, setLandingSettings] = useState({
     landing_title: "A Solução Tudo em Um<br />para Empreendedores Digitais.",
     hero_title: "Plataforma Completa de Automação<br />e Marketing Digital com IA",
@@ -78,13 +81,32 @@ const Index = () => {
     cta_button_text: "Começar Agora - 3 Dias Grátis"
   });
 
+  // Sync from shared hook when loaded
   useEffect(() => {
-    fetchPlans();
-    fetchCustomPages();
-    fetchVideoUrl();
-    fetchLandingSettings();
-    fetchFeatures();
-    fetchSiteSettings();
+    if (!siteSettingsLoading && siteSettingsFromHook) {
+      setSiteTitle(siteSettingsFromHook.siteTitle);
+      setLogoUrl(siteSettingsFromHook.siteLogoUrl);
+      setLogoLightUrl(siteSettingsFromHook.siteLogoLightUrl);
+      setLogoDarkUrl(siteSettingsFromHook.siteLogoDarkUrl);
+      setFooterText(siteSettingsFromHook.footerText);
+      setFooterMenus(siteSettingsFromHook.footerMenus);
+      setSocialLinks(siteSettingsFromHook.socialLinks);
+    }
+  }, [siteSettingsLoading, siteSettingsFromHook]);
+
+  useEffect(() => {
+    const loadInitialData = async () => {
+      await Promise.all([
+        fetchPlans(),
+        fetchCustomPages(),
+        fetchVideoUrl(),
+        fetchLandingSettings(),
+        fetchFeatures(),
+        fetchSiteSettings()
+      ]);
+      setInitialLoadComplete(true);
+    };
+    loadInitialData();
   }, []);
 
   useEffect(() => {
@@ -492,6 +514,15 @@ const Index = () => {
       });
     };
   }, [headCode, footerCode]);
+
+  // Show loading screen while initial data is loading
+  if (siteSettingsLoading || !initialLoadComplete) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-primary animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
