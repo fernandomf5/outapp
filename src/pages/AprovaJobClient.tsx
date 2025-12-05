@@ -54,6 +54,7 @@ export default function AprovaJobClient() {
 
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [jobComments, setJobComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [mediaIndex, setMediaIndex] = useState(0);
@@ -392,9 +393,32 @@ export default function AprovaJobClient() {
 
       {/* Jobs list */}
       <main className="container mx-auto px-4 py-6">
-        <h2 className="text-xl font-semibold mb-4">Seus Jobs</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <h2 className="text-xl font-semibold">Seus Jobs</h2>
+          
+          {/* Status filter */}
+          <div className="flex flex-wrap gap-2">
+            {[
+              { value: 'all', label: 'Todos' },
+              { value: 'pending', label: 'Pendentes' },
+              { value: 'approved', label: 'Aprovados' },
+              { value: 'revision', label: 'Revisão' },
+              { value: 'rejected', label: 'Rejeitados' }
+            ].map(filter => (
+              <Button
+                key={filter.value}
+                variant={statusFilter === filter.value ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatusFilter(filter.value)}
+                style={statusFilter === filter.value ? { backgroundColor: primaryColor } : undefined}
+              >
+                {filter.label}
+              </Button>
+            ))}
+          </div>
+        </div>
 
-        {jobs.length === 0 ? (
+        {jobs.filter(job => statusFilter === 'all' || job.status === statusFilter).length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <FileImage className="w-12 h-12 text-muted-foreground mb-4" />
@@ -403,7 +427,7 @@ export default function AprovaJobClient() {
           </Card>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {jobs.map(job => (
+            {jobs.filter(job => statusFilter === 'all' || job.status === statusFilter).map(job => (
               <Card 
                 key={job.id} 
                 className="cursor-pointer hover:border-primary/50 transition-colors overflow-hidden"
