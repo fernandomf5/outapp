@@ -1328,6 +1328,8 @@ export type Database = {
           last_login_at: string | null
           name: string
           password_hash: string
+          primary_color: string | null
+          secondary_color: string | null
           updated_at: string | null
           user_id: string
           username: string
@@ -1340,6 +1342,8 @@ export type Database = {
           last_login_at?: string | null
           name: string
           password_hash: string
+          primary_color?: string | null
+          secondary_color?: string | null
           updated_at?: string | null
           user_id: string
           username: string
@@ -1352,6 +1356,8 @@ export type Database = {
           last_login_at?: string | null
           name?: string
           password_hash?: string
+          primary_color?: string | null
+          secondary_color?: string | null
           updated_at?: string | null
           user_id?: string
           username?: string

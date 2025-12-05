@@ -18,6 +18,8 @@ interface Client {
   name: string;
   username: string;
   access_token: string;
+  primary_color?: string;
+  secondary_color?: string;
 }
 
 interface Job {
@@ -84,7 +86,7 @@ export default function AprovaJobClient() {
     
     const { data, error } = await supabase
       .from('aprova_job_clients')
-      .select('id, name, username, access_token')
+      .select('id, name, username, access_token, primary_color, secondary_color')
       .eq('access_token', token)
       .eq('is_active', true)
       .single();
@@ -118,7 +120,7 @@ export default function AprovaJobClient() {
 
     const { data, error } = await supabase
       .from('aprova_job_clients')
-      .select('id, name, username, access_token')
+      .select('id, name, username, access_token, primary_color, secondary_color')
       .eq('access_token', token)
       .eq('username', loginForm.username.toLowerCase().trim())
       .eq('password_hash', passwordHash)
@@ -311,12 +313,18 @@ export default function AprovaJobClient() {
 
   // Login screen
   if (!isLoggedIn) {
+    const primaryColor = client?.primary_color || '#8B5CF6';
+    const secondaryColor = client?.secondary_color || '#6366F1';
+    
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FileImage className="w-8 h-8 text-primary" />
+            <div 
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+              style={{ backgroundColor: `${primaryColor}20` }}
+            >
+              <FileImage className="w-8 h-8" style={{ color: primaryColor }} />
             </div>
             <CardTitle>Aprova Job</CardTitle>
             <CardDescription>Entre para visualizar e aprovar seus jobs</CardDescription>
@@ -340,7 +348,12 @@ export default function AprovaJobClient() {
                 onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
               />
             </div>
-            <Button onClick={handleLogin} className="w-full" disabled={loginLoading}>
+            <Button 
+              onClick={handleLogin} 
+              className="w-full" 
+              disabled={loginLoading}
+              style={{ backgroundColor: primaryColor }}
+            >
               {loginLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Entrar
             </Button>
@@ -351,14 +364,20 @@ export default function AprovaJobClient() {
   }
 
   // Client dashboard
+  const primaryColor = client?.primary_color || '#8B5CF6';
+  const secondaryColor = client?.secondary_color || '#6366F1';
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-              <FileImage className="w-5 h-5 text-primary" />
+            <div 
+              className="w-10 h-10 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: `${primaryColor}20` }}
+            >
+              <FileImage className="w-5 h-5" style={{ color: primaryColor }} />
             </div>
             <div>
               <h1 className="font-semibold">Aprova Job</h1>
@@ -503,7 +522,8 @@ export default function AprovaJobClient() {
                       jobComments.map(comment => (
                         <div 
                           key={comment.id} 
-                          className={`p-3 rounded ${comment.is_from_client ? 'bg-primary/10 ml-4' : 'bg-muted mr-4'}`}
+                          className={`p-3 rounded ${comment.is_from_client ? 'ml-4' : 'bg-muted mr-4'}`}
+                          style={comment.is_from_client ? { backgroundColor: `${primaryColor}20` } : {}}
                         >
                           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
                             <span className="font-medium">{comment.is_from_client ? 'Você' : 'Equipe'}</span>
@@ -521,7 +541,7 @@ export default function AprovaJobClient() {
                       placeholder="Adicionar comentário..."
                       onKeyDown={(e) => e.key === 'Enter' && addComment()}
                     />
-                    <Button onClick={addComment} disabled={!newComment.trim()}>
+                    <Button onClick={addComment} disabled={!newComment.trim()} style={{ backgroundColor: primaryColor }}>
                       <Send className="w-4 h-4" />
                     </Button>
                   </div>

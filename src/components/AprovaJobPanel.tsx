@@ -24,6 +24,8 @@ interface Client {
   is_active: boolean;
   last_login_at: string | null;
   created_at: string;
+  primary_color?: string;
+  secondary_color?: string;
 }
 
 interface Job {
@@ -70,7 +72,7 @@ export const AprovaJobPanel = () => {
   
   // Client form state
   const [showClientDialog, setShowClientDialog] = useState(false);
-  const [clientForm, setClientForm] = useState({ name: '', username: '', password: '' });
+  const [clientForm, setClientForm] = useState({ name: '', username: '', password: '', primary_color: '#8B5CF6', secondary_color: '#6366F1' });
   
   // Job form state
   const [showJobDialog, setShowJobDialog] = useState(false);
@@ -194,7 +196,9 @@ export const AprovaJobPanel = () => {
         user_id: user?.id,
         name: clientForm.name,
         username: clientForm.username.toLowerCase().trim(),
-        password_hash: passwordHash
+        password_hash: passwordHash,
+        primary_color: clientForm.primary_color,
+        secondary_color: clientForm.secondary_color
       });
 
     if (error) {
@@ -208,7 +212,7 @@ export const AprovaJobPanel = () => {
 
     toast({ title: "Sucesso", description: "Cliente criado com sucesso!" });
     setShowClientDialog(false);
-    setClientForm({ name: '', username: '', password: '' });
+    setClientForm({ name: '', username: '', password: '', primary_color: '#8B5CF6', secondary_color: '#6366F1' });
     fetchClients();
   };
 
@@ -695,6 +699,40 @@ export const AprovaJobPanel = () => {
                       onChange={(e) => setClientForm(prev => ({ ...prev, password: e.target.value }))}
                       placeholder="••••••••"
                     />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Cor Primária</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <input
+                          type="color"
+                          value={clientForm.primary_color}
+                          onChange={(e) => setClientForm(prev => ({ ...prev, primary_color: e.target.value }))}
+                          className="w-10 h-10 rounded cursor-pointer border-0"
+                        />
+                        <Input
+                          value={clientForm.primary_color}
+                          onChange={(e) => setClientForm(prev => ({ ...prev, primary_color: e.target.value }))}
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Cor Secundária</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <input
+                          type="color"
+                          value={clientForm.secondary_color}
+                          onChange={(e) => setClientForm(prev => ({ ...prev, secondary_color: e.target.value }))}
+                          className="w-10 h-10 rounded cursor-pointer border-0"
+                        />
+                        <Input
+                          value={clientForm.secondary_color}
+                          onChange={(e) => setClientForm(prev => ({ ...prev, secondary_color: e.target.value }))}
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
                   </div>
                   <Button onClick={createClient} className="w-full">Criar Cliente</Button>
                 </div>
