@@ -351,6 +351,12 @@ export const AprovaJobPanel = () => {
     toast({ title: "Copiado!", description: "Credenciais copiadas para a área de transferência" });
   };
 
+  const copyClientLink = (client: Client) => {
+    const accessUrl = `${window.location.origin}/aprova-job/${client.access_token}`;
+    navigator.clipboard.writeText(accessUrl);
+    toast({ title: "Link copiado!", description: "Link de acesso copiado para a área de transferência" });
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
@@ -671,7 +677,16 @@ export const AprovaJobPanel = () => {
                           <Button
                             variant="outline"
                             size="sm"
+                            onClick={() => copyClientLink(client)}
+                            title="Copiar Link"
+                          >
+                            <ExternalLink className="w-4 h-4 mr-1" /> Copiar Link
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => copyClientCredentials(client)}
+                            title="Copiar credenciais completas"
                           >
                             <Copy className="w-4 h-4 mr-1" /> Copiar Acesso
                           </Button>
@@ -679,14 +694,16 @@ export const AprovaJobPanel = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => window.open(`/aprova-job/${client.access_token}`, '_blank')}
+                            title="Abrir página do cliente"
                           >
-                            <ExternalLink className="w-4 h-4" />
+                            <Eye className="w-4 h-4" />
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             className="text-red-500 hover:text-red-600"
                             onClick={() => deleteClient(client.id)}
+                            title="Excluir cliente"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
