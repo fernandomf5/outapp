@@ -58,6 +58,7 @@ import { MindMapCreatorPanel } from "@/components/MindMapCreatorPanel";
 import { ProposalCreatorPanel } from "@/components/proposal/ProposalCreatorPanel";
 import { AgendaPanel } from "@/components/AgendaPanel";
 import { AgendaReminders } from "@/components/AgendaReminders";
+import { AprovaJobPanel } from "@/components/AprovaJobPanel";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -1198,6 +1199,10 @@ const Dashboard = () => {
 
           <TabsContent value="agenda">
             <AgendaPanel />
+          </TabsContent>
+
+          <TabsContent value="aprova-job">
+            <AprovaJobPanel />
           </TabsContent>
         </Tabs>
       </main>

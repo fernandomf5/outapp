@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain } from "lucide-react";
+import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import logoLight from "@/assets/logo-light.png";
@@ -76,6 +76,7 @@ export function UserSidebar() {
     { title: "Gestão de Equipe", icon: UserCog, path: "/dashboard", tab: "equipe" },
     { title: "Gestão de Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios" },
     { title: "Organizador de Tarefas", icon: Target, path: "/dashboard", tab: "tarefas" },
+    { title: "Aprova Job", icon: ClipboardCheck, path: "/dashboard", tab: "aprova-job" },
   ];
 
   const crmItems: MenuItem[] = [

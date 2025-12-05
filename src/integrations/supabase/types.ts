@@ -1319,6 +1319,191 @@ export type Database = {
           },
         ]
       }
+      aprova_job_clients: {
+        Row: {
+          access_token: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_login_at: string | null
+          name: string
+          password_hash: string
+          updated_at: string | null
+          user_id: string
+          username: string
+        }
+        Insert: {
+          access_token?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_login_at?: string | null
+          name: string
+          password_hash: string
+          updated_at?: string | null
+          user_id: string
+          username: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_login_at?: string | null
+          name?: string
+          password_hash?: string
+          updated_at?: string | null
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      aprova_job_comments: {
+        Row: {
+          client_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_from_client: boolean | null
+          job_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_from_client?: boolean | null
+          job_id: string
+        }
+        Update: {
+          client_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_from_client?: boolean | null
+          job_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aprova_job_comments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "aprova_job_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aprova_job_comments_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "aprova_job_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aprova_job_jobs: {
+        Row: {
+          approved_at: string | null
+          client_id: string
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          media_urls: Json | null
+          rejection_notes: string | null
+          revision_notes: string | null
+          status: Database["public"]["Enums"]["job_approval_status"] | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          client_id: string
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          media_urls?: Json | null
+          rejection_notes?: string | null
+          revision_notes?: string | null
+          status?: Database["public"]["Enums"]["job_approval_status"] | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          client_id?: string
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          media_urls?: Json | null
+          rejection_notes?: string | null
+          revision_notes?: string | null
+          status?: Database["public"]["Enums"]["job_approval_status"] | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aprova_job_jobs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "aprova_job_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aprova_job_notifications: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          job_id: string | null
+          message: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          job_id?: string | null
+          message: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          job_id?: string | null
+          message?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aprova_job_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "aprova_job_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aprova_job_notifications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "aprova_job_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           author_name: string
@@ -5962,6 +6147,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      job_approval_status: "pending" | "approved" | "revision" | "rejected"
       plan_type:
         | "free_trial"
         | "chatbot"
@@ -6099,6 +6285,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      job_approval_status: ["pending", "approved", "revision", "rejected"],
       plan_type: [
         "free_trial",
         "chatbot",
