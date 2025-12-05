@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText, QrCode, Calendar, ShoppingBag, ArrowLeft, Calculator, Brain, Globe, Users, HelpCircle, LinkIcon, Layers, MousePointer, DollarSign, CheckSquare, StickyNote, Eye, Megaphone, Code, UserCog, FileCheck } from "lucide-react";
+import { Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText, QrCode, Calendar, ShoppingBag, ArrowLeft, Calculator, Brain, Globe, Users, HelpCircle, LinkIcon, Layers, MousePointer, DollarSign, CheckSquare, StickyNote, Eye, Megaphone, Code, UserCog, FileCheck } from "lucide-react";
+import { useTheme } from "next-themes";
+import logoLight from "@/assets/logo-light.png";
+import logoDark from "@/assets/logo-dark.png";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -72,8 +75,11 @@ const Dashboard = () => {
   const { toast } = useToast();
   const { t } = useLanguage();
   const { hasFeature, loading: featuresLoading } = useUserFeatures();
+  const { resolvedTheme } = useTheme();
   const [searchParams] = useSearchParams();
   const [userFullName, setUserFullName] = useState<string>('');
+  
+  const currentLogo = resolvedTheme === 'dark' ? logoDark : logoLight;
   const [stats, setStats] = useState({
     totalAgents: 0,
     activeConnections: 0,
@@ -314,7 +320,7 @@ const Dashboard = () => {
               <div className="flex items-center gap-3">
                 <SidebarTrigger />
                 <Link to="/dashboard" className="bg-primary/10 p-2 rounded-xl cursor-pointer hover:bg-primary/20 transition-smooth">
-                  <Bot className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
+                  <img src={currentLogo} alt="Out App" className="w-7 h-7 sm:w-8 sm:h-8" />
                 </Link>
                 <div>
                   <h1 className="text-xl sm:text-2xl font-bold">
