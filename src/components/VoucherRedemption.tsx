@@ -84,6 +84,45 @@ export const VoucherRedemption = () => {
         return;
       }
 
+      // Verificar se é voucher de teste expirado
+      if ((voucher as any).is_expired_trial) {
+        // Cancelar TODAS as assinaturas ativas do usuário
+        const { error: cancelError } = await supabase
+          .from('subscriptions')
+          .update({ status: 'cancelled' })
+          .eq('user_id', user!.id)
+          .eq('status', 'active');
+
+        if (cancelError) {
+          console.error('Erro ao cancelar assinaturas:', cancelError);
+        }
+
+        // Registrar resgate
+        const { error: redemptionError } = await supabase
+          .from('voucher_redemptions')
+          .insert({
+            voucher_id: voucher.id,
+            user_id: user!.id
+          });
+
+        if (redemptionError) throw redemptionError;
+
+        // Atualizar contador de usos
+        await supabase
+          .from('vouchers')
+          .update({ current_uses: voucher.current_uses + 1 })
+          .eq('id', voucher.id);
+
+        toast({
+          title: "Voucher aplicado",
+          description: "Seu período de teste foi encerrado"
+        });
+
+        setCode("");
+        setTimeout(() => window.location.reload(), 2000);
+        return;
+      }
+
       // Todo voucher agora deve ter um plan_id vinculado
       if (!voucher.plan_id) {
         toast({

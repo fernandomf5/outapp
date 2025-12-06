@@ -6016,6 +6016,7 @@ export type Database = {
           expires_at: string | null
           id: string
           is_active: boolean
+          is_expired_trial: boolean | null
           max_uses: number
           plan_id: string | null
         }
@@ -6028,6 +6029,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean
+          is_expired_trial?: boolean | null
           max_uses?: number
           plan_id?: string | null
         }
@@ -6040,6 +6042,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean
+          is_expired_trial?: boolean | null
           max_uses?: number
           plan_id?: string | null
         }
