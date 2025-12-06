@@ -25,11 +25,14 @@ export const SubscriptionBanner = () => {
   const [plan, setPlan] = useState<Plan | null>(null);
   const [daysLeft, setDaysLeft] = useState<number>(0);
   const [dismissed, setDismissed] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [hasNoPlan, setHasNoPlan] = useState(false);
 
   useEffect(() => {
     if (!user) return;
 
     const fetchSubscription = async () => {
+      setLoading(true);
       const { data: subData, error: subError } = await supabase
         .from('subscriptions')
         .select('*, plans(name, plan_type)')
@@ -40,11 +43,14 @@ export const SubscriptionBanner = () => {
         .maybeSingle();
 
       if (subError || !subData) {
+        setHasNoPlan(true);
+        setLoading(false);
         return;
       }
 
       setSubscription(subData);
       setPlan(subData.plans as unknown as Plan);
+      setHasNoPlan(false);
 
       // Calcular dias restantes
       const expiresAt = new Date(subData.expires_at);
@@ -52,12 +58,48 @@ export const SubscriptionBanner = () => {
       const diffTime = expiresAt.getTime() - now.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       setDaysLeft(diffDays);
+      setLoading(false);
     };
 
     fetchSubscription();
   }, [user]);
 
-  if (!subscription || !plan || dismissed) return null;
+  if (loading || dismissed) return null;
+
+  // Mostrar banner quando não tem plano nenhum
+  if (hasNoPlan) {
+    return (
+      <Alert className="bg-destructive/10 border-destructive mb-6 relative">
+        <AlertTriangle className="h-5 w-5 text-destructive" />
+        <AlertDescription className="ml-8 pr-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <p className="font-semibold text-destructive">Você não possui um plano ativo!</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Adquira um plano para ter acesso a todas as funcionalidades da plataforma.
+              </p>
+            </div>
+            <Button
+              onClick={() => navigate("/dashboard?tab=meu-plano")}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 whitespace-nowrap"
+            >
+              Ver Planos
+            </Button>
+          </div>
+        </AlertDescription>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-2 right-2 h-6 w-6"
+          onClick={() => setDismissed(true)}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </Alert>
+    );
+  }
+
+  if (!subscription || !plan) return null;
 
   // Não mostrar para planos pagos
   if (plan.plan_type !== 'free_trial') return null;
