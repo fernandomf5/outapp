@@ -3,34 +3,57 @@
 class ChatSounds {
   private audioContext: AudioContext | null = null;
   private enabled: boolean = true;
+  private initialized: boolean = false;
 
   constructor() {
-    if (typeof window !== 'undefined') {
+    // Defer AudioContext creation until first use
+  }
+
+  private async ensureAudioContext() {
+    if (!this.audioContext && typeof window !== 'undefined') {
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     }
+    
+    // Resume AudioContext if suspended (browser autoplay policy)
+    if (this.audioContext && this.audioContext.state === 'suspended') {
+      try {
+        await this.audioContext.resume();
+      } catch (e) {
+        console.warn('Could not resume AudioContext:', e);
+      }
+    }
+    
+    return this.audioContext;
   }
 
   setEnabled(enabled: boolean) {
     this.enabled = enabled;
   }
 
-  private playTone(frequency: number, duration: number, volume: number = 0.3) {
-    if (!this.audioContext || !this.enabled) return;
+  private async playTone(frequency: number, duration: number, volume: number = 0.3) {
+    if (!this.enabled) return;
+    
+    const ctx = await this.ensureAudioContext();
+    if (!ctx) return;
 
-    const oscillator = this.audioContext.createOscillator();
-    const gainNode = this.audioContext.createGain();
+    try {
+      const oscillator = ctx.createOscillator();
+      const gainNode = ctx.createGain();
 
-    oscillator.connect(gainNode);
-    gainNode.connect(this.audioContext.destination);
+      oscillator.connect(gainNode);
+      gainNode.connect(ctx.destination);
 
-    oscillator.frequency.value = frequency;
-    oscillator.type = 'sine';
+      oscillator.frequency.value = frequency;
+      oscillator.type = 'sine';
 
-    gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+      gainNode.gain.setValueAtTime(volume, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
 
-    oscillator.start(this.audioContext.currentTime);
-    oscillator.stop(this.audioContext.currentTime + duration);
+      oscillator.start(ctx.currentTime);
+      oscillator.stop(ctx.currentTime + duration);
+    } catch (e) {
+      console.warn('Could not play tone:', e);
+    }
   }
 
   // Som de digitação (tecla)
@@ -40,9 +63,7 @@ class ChatSounds {
 
   // Som de enviar mensagem (satisfatório)
   playSendSound() {
-    if (!this.audioContext || !this.enabled) return;
-
-    const now = this.audioContext.currentTime;
+    if (!this.enabled) return;
     
     // Primeiro tom (mais grave)
     this.playTone(523.25, 0.1, 0.2); // C5
@@ -60,7 +81,7 @@ class ChatSounds {
 
   // Som de mensagem recebida
   playReceiveSound() {
-    if (!this.audioContext || !this.enabled) return;
+    if (!this.enabled) return;
 
     // Tom duplo descendente
     this.playTone(659.25, 0.1, 0.2); // E5
@@ -69,15 +90,18 @@ class ChatSounds {
     }, 80);
   }
 
-  // Som de notificação
+  // Som de notificação - mais alto e perceptível
   playNotificationSound() {
-    if (!this.audioContext || !this.enabled) return;
+    if (!this.enabled) return;
 
-    // Sequência de tons para notificação
-    this.playTone(800, 0.1, 0.3);
+    // Sequência de tons mais audíveis
+    this.playTone(880, 0.15, 0.5); // A5
     setTimeout(() => {
-      this.playTone(1000, 0.1, 0.3);
-    }, 100);
+      this.playTone(1100, 0.15, 0.5);
+    }, 150);
+    setTimeout(() => {
+      this.playTone(880, 0.2, 0.4);
+    }, 300);
   }
 }
 
