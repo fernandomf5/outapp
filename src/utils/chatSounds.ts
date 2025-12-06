@@ -1,54 +1,38 @@
-// Utility functions for chat sounds using Audio element (more reliable than Web Audio API)
+// Utility functions for chat sounds using Audio element
 
 class ChatSounds {
   private enabled: boolean = true;
-  private notificationAudio: HTMLAudioElement | null = null;
 
-  constructor() {
-    // Criar elemento de áudio com som de notificação em base64
-    if (typeof window !== 'undefined') {
-      this.initAudio();
-    }
-  }
-
-  private initAudio() {
-    // Som de notificação suave (chime elegante)
-    const notificationBase64 = 'data:audio/mp3;base64,//uQxAAAAAANIAAAAAExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/7kMQAA8AAADSAAAAAAAANIAAAAExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV';
-    
-    this.notificationAudio = new Audio(notificationBase64);
-    this.notificationAudio.volume = 0.5;
-  }
+  constructor() {}
 
   setEnabled(enabled: boolean) {
     this.enabled = enabled;
   }
 
-  // Som de notificação - mais confiável com Audio element
+  // Som de notificação usando URL de áudio real
   async playNotificationSound() {
-    if (!this.enabled || !this.notificationAudio) {
-      console.log('🔔 Som desabilitado ou não inicializado');
+    if (!this.enabled) {
+      console.log('🔔 Som desabilitado');
       return;
     }
 
     try {
-      // Resetar para o início
-      this.notificationAudio.currentTime = 0;
-      await this.notificationAudio.play();
-      console.log('🔔 Som de notificação tocado com sucesso!');
+      // Usar som de notificação do Notification Sound API (arquivo confiável)
+      const audio = new Audio('https://notificationsounds.com/storage/sounds/file-sounds-1150-pristine.mp3');
+      audio.volume = 0.6;
+      await audio.play();
+      console.log('🔔 Som de notificação tocado!');
     } catch (error) {
-      console.warn('🔔 Erro ao tocar som (pode precisar de interação do usuário):', error);
+      console.warn('🔔 Erro ao tocar som:', error);
       
-      // Tentar novamente após pequeno delay
-      setTimeout(async () => {
-        try {
-          if (this.notificationAudio) {
-            this.notificationAudio.currentTime = 0;
-            await this.notificationAudio.play();
-          }
-        } catch (e) {
-          console.warn('🔔 Segunda tentativa falhou:', e);
-        }
-      }, 100);
+      // Fallback: tentar com outro som
+      try {
+        const fallbackAudio = new Audio('https://cdn.freesound.org/previews/536/536420_4921277-lq.mp3');
+        fallbackAudio.volume = 0.6;
+        await fallbackAudio.play();
+      } catch (e) {
+        console.warn('🔔 Fallback também falhou:', e);
+      }
     }
   }
 
