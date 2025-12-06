@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { chatSounds } from "@/utils/chatSounds";
+import { toast } from "sonner";
 
 export const GlobalChatNotification = () => {
   const { user } = useAuth();
   const [agentIds, setAgentIds] = useState<string[]>([]);
   const channelRef = useRef<any>(null);
+  const lastNotificationRef = useRef<string | null>(null);
 
   // Buscar agentes do usuário
   useEffect(() => {
@@ -32,11 +34,11 @@ export const GlobalChatNotification = () => {
   useEffect(() => {
     if (agentIds.length === 0) return;
 
-    console.log('🔔 Configurando listener para mensagens...');
+    console.log('🔔 Configurando listener global para mensagens de clientes...');
 
     // Inscrever para TODAS as novas mensagens e filtrar no cliente
     const channel = supabase
-      .channel('global-chat-notifications-v2')
+      .channel('global-chat-notifications-v3')
       .on(
         'postgres_changes',
         {
@@ -46,10 +48,14 @@ export const GlobalChatNotification = () => {
         },
         async (payload) => {
           const newMessage = payload.new as any;
-          console.log('🔔 Mensagem recebida:', newMessage.role, newMessage.conversation_id);
+          
+          // Evitar duplicatas
+          if (lastNotificationRef.current === newMessage.id) return;
           
           // Só processar mensagens de clientes
           if (newMessage.role !== 'customer') return;
+
+          console.log('🔔 Nova mensagem de cliente detectada:', newMessage.id);
 
           // Verificar se a conversa pertence a um agente do usuário
           const { data: conversation } = await supabase
@@ -59,13 +65,22 @@ export const GlobalChatNotification = () => {
             .single();
 
           if (conversation && agentIds.includes(conversation.agent_id)) {
-            console.log('🔔 Mensagem de cliente em agente do usuário! Tocando som...');
+            lastNotificationRef.current = newMessage.id;
+            console.log('🔔 Mensagem de cliente em agente do usuário! Tocando som e mostrando toast...');
+            
+            // Tocar som de notificação
             chatSounds.playNotificationSound();
+            
+            // Mostrar toast de notificação
+            toast.info("Nova mensagem de cliente!", {
+              description: newMessage.content?.substring(0, 50) + (newMessage.content?.length > 50 ? '...' : ''),
+              duration: 5000,
+            });
           }
         }
       )
       .subscribe((status) => {
-        console.log('🔔 Status da subscription:', status);
+        console.log('🔔 Status da subscription global:', status);
       });
 
     channelRef.current = channel;
