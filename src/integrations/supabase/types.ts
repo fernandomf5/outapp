@@ -4916,6 +4916,7 @@ export type Database = {
           images: string[] | null
           is_featured: boolean | null
           project_url: string | null
+          scroll_image_url: string | null
           title: string
           updated_at: string | null
         }
@@ -4929,6 +4930,7 @@ export type Database = {
           images?: string[] | null
           is_featured?: boolean | null
           project_url?: string | null
+          scroll_image_url?: string | null
           title: string
           updated_at?: string | null
         }
@@ -4942,6 +4944,7 @@ export type Database = {
           images?: string[] | null
           is_featured?: boolean | null
           project_url?: string | null
+          scroll_image_url?: string | null
           title?: string
           updated_at?: string | null
         }
