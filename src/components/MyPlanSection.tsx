@@ -82,6 +82,7 @@ export const MyPlanSection = () => {
         .from('plans')
         .select('*')
         .eq('is_active', true)
+        .eq('is_visible', true)
         .neq('plan_type', 'free_trial')
         .order('order_index', { ascending: true });
 
