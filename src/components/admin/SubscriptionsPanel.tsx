@@ -35,18 +35,36 @@ export const SubscriptionsPanel = () => {
 
   const fetchSubscriptions = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    
+    // Fetch subscriptions
+    const { data: subsData, error: subsError } = await supabase
       .from('subscriptions')
       .select(`
         *,
-        plan:plans(name, price),
-        profile:profiles(full_name, email)
+        plan:plans(name, price)
       `)
       .order('created_at', { ascending: false });
 
-    if (!error && data) {
-      setSubscriptions(data as any);
+    if (subsError || !subsData) {
+      console.error('Error fetching subscriptions:', subsError);
+      setLoading(false);
+      return;
     }
+
+    // Fetch profiles for all users
+    const userIds = [...new Set(subsData.map(s => s.user_id))];
+    const { data: profilesData } = await supabase
+      .from('profiles')
+      .select('user_id, full_name, email')
+      .in('user_id', userIds);
+
+    // Merge profiles into subscriptions
+    const subscriptionsWithProfiles = subsData.map(sub => ({
+      ...sub,
+      profile: profilesData?.find(p => p.user_id === sub.user_id) || null
+    }));
+
+    setSubscriptions(subscriptionsWithProfiles as any);
     setLoading(false);
   };
 
