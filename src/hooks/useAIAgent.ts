@@ -45,10 +45,13 @@ export const useAIAgent = () => {
 
   const saveAgent = useCallback(async (agent: Partial<AIAgent>, userId: string) => {
     try {
+      // Ensure config is properly serialized as JSON
+      const configToSave = agent.config ? JSON.parse(JSON.stringify(agent.config)) : {};
+      
       const agentData = {
         name: agent.name || 'Novo Agente',
         niche: agent.niche || '',
-        config: agent.config || {},
+        config: configToSave,
         training_data: agent.training_data || {},
         is_active: agent.is_active ?? true,
         description: agent.description,
@@ -56,6 +59,8 @@ export const useAIAgent = () => {
         access_type: ((agent as any).access_type === 'restricted' ? 'private' : (agent as any).access_type) || 'public',
         updated_at: new Date().toISOString(),
       };
+      
+      console.log('Saving agent with config:', configToSave);
 
       let result;
       if (agent.id) {
