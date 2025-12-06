@@ -718,6 +718,18 @@ export default function AgentCustomerChat() {
   const primaryColor = agentInfo?.config?.primaryColor || '#6366f1';
   const secondaryColor = agentInfo?.config?.secondaryColor || '#8b5cf6';
 
+  // Mostrar loading enquanto carrega as informações do agente (incluindo cores)
+  if (!agentInfo) {
+    return (
+      <div className="min-h-dvh flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <p className="text-muted-foreground">Carregando chat...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-dvh" style={{ background: `linear-gradient(135deg, ${primaryColor}20, ${secondaryColor}20)` }}>
       <div className="container mx-auto max-w-4xl h-dvh flex flex-col p-4">
