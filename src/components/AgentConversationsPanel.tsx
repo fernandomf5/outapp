@@ -15,6 +15,7 @@ import { ptBR } from "date-fns/locale";
 import { linkifyText } from "@/utils/linkify";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { chatSounds } from "@/utils/chatSounds";
 
 interface Conversation {
   id: string;
@@ -150,6 +151,12 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
             console.log('📩 Nova mensagem recebida no painel:', payload);
             // Adicionar nova mensagem diretamente ao estado
             const newMessage = payload.new as any;
+            
+            // Tocar som de notificação se for mensagem do cliente
+            if (newMessage.role === 'customer') {
+              chatSounds.playNotificationSound();
+            }
+            
             setMessages(prev => {
               // Evitar duplicação
               const exists = prev.some(m => m.id === newMessage.id);
