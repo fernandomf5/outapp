@@ -59,6 +59,7 @@ import { ProposalCreatorPanel } from "@/components/proposal/ProposalCreatorPanel
 import { AgendaPanel } from "@/components/AgendaPanel";
 import { AgendaReminders } from "@/components/AgendaReminders";
 import { AprovaJobPanel } from "@/components/AprovaJobPanel";
+import { GlobalChatNotification } from "@/components/GlobalChatNotification";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -363,6 +364,7 @@ const Dashboard = () => {
 
   return (
     <>
+      <GlobalChatNotification />
       <AgendaReminders />
       <DraggableCalculator isOpen={isCalculatorOpen} onClose={() => setIsCalculatorOpen(false)} />
       <SidebarProvider>
