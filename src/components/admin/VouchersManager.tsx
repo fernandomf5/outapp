@@ -9,7 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Ticket, Copy } from "lucide-react";
+import { Plus, Trash2, Ticket, Copy, CheckCircle2, User, Calendar } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { format } from "date-fns";
 
 interface Voucher {
   id: string;
@@ -24,6 +26,17 @@ interface Voucher {
   plans?: { name: string } | null;
 }
 
+interface VoucherRedemption {
+  id: string;
+  voucher_id: string;
+  user_id: string;
+  redeemed_at: string;
+  voucher_code?: string;
+  user_name?: string;
+  user_email?: string;
+  plan_name?: string;
+}
+
 interface Feature {
   id: string;
   name: string;
@@ -34,6 +47,7 @@ interface Feature {
 export const VouchersManager = () => {
   const { toast } = useToast();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
+  const [redemptions, setRedemptions] = useState<VoucherRedemption[]>([]);
   const [plans, setPlans] = useState<any[]>([]);
   const [features, setFeatures] = useState<Feature[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -51,6 +65,7 @@ export const VouchersManager = () => {
 
   useEffect(() => {
     fetchVouchers();
+    fetchRedemptions();
     fetchPlans();
     fetchFeatures();
   }, []);
@@ -64,6 +79,43 @@ export const VouchersManager = () => {
     if (!error && data) {
       setVouchers(data);
     }
+  };
+
+  const fetchRedemptions = async () => {
+    // Buscar resgates
+    const { data: redemptionsData, error: redemptionsError } = await supabase
+      .from('voucher_redemptions')
+      .select('*')
+      .order('redeemed_at', { ascending: false });
+
+    if (redemptionsError || !redemptionsData) {
+      console.error('Error fetching redemptions:', redemptionsError);
+      return;
+    }
+
+    // Buscar vouchers e profiles relacionados
+    const voucherIds = [...new Set(redemptionsData.map(r => r.voucher_id))];
+    const userIds = [...new Set(redemptionsData.map(r => r.user_id))];
+
+    const [vouchersResult, profilesResult] = await Promise.all([
+      supabase.from('vouchers').select('id, code, plans(name)').in('id', voucherIds),
+      supabase.from('profiles').select('user_id, full_name, email').in('user_id', userIds)
+    ]);
+
+    // Merge data
+    const enrichedRedemptions: VoucherRedemption[] = redemptionsData.map(r => {
+      const voucher = vouchersResult.data?.find(v => v.id === r.voucher_id);
+      const profile = profilesResult.data?.find(p => p.user_id === r.user_id);
+      return {
+        ...r,
+        voucher_code: voucher?.code || 'N/A',
+        plan_name: voucher?.plans?.name || 'N/A',
+        user_name: profile?.full_name || 'N/A',
+        user_email: profile?.email || 'N/A'
+      };
+    });
+
+    setRedemptions(enrichedRedemptions);
   };
 
   const fetchPlans = async () => {
@@ -450,66 +502,132 @@ export const VouchersManager = () => {
         </Dialog>
       </div>
 
-      <div className="space-y-4">
-        {vouchers.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">Nenhum voucher criado ainda</p>
-        ) : (
-          vouchers.map((voucher) => (
-            <Card key={voucher.id} className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <code className="text-lg font-mono font-bold">{voucher.code}</code>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleCopyCode(voucher.code)}
-                    >
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                    <Badge className={voucher.is_active ? 'bg-success/20 text-success' : 'bg-gray-500/20 text-gray-500'}>
-                      {voucher.is_active ? 'Ativo' : 'Inativo'}
-                    </Badge>
-                  </div>
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    {voucher.plans ? (
-                      <p>Plano: <span className="font-semibold">{voucher.plans.name}</span></p>
-                    ) : (
-                      <>
-                        <p>Tipo: <span className="font-semibold">Recursos Customizados</span></p>
-                        {voucher.duration_days && (
-                          <p>Duração: <span className="font-semibold">{voucher.duration_days} dias</span></p>
+      <Tabs defaultValue="vouchers" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="vouchers">
+            Vouchers ({vouchers.length})
+          </TabsTrigger>
+          <TabsTrigger value="redemptions">
+            <CheckCircle2 className="w-4 h-4 mr-2" />
+            Utilizados ({redemptions.length})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="vouchers">
+          <div className="space-y-4">
+            {vouchers.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">Nenhum voucher criado ainda</p>
+            ) : (
+              vouchers.map((voucher) => (
+                <Card key={voucher.id} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <code className="text-lg font-mono font-bold">{voucher.code}</code>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleCopyCode(voucher.code)}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                        <Badge className={voucher.is_active ? 'bg-success/20 text-success' : 'bg-gray-500/20 text-gray-500'}>
+                          {voucher.is_active ? 'Ativo' : 'Inativo'}
+                        </Badge>
+                        {voucher.current_uses > 0 && (
+                          <Badge variant="secondary" className="bg-primary/20 text-primary">
+                            {voucher.current_uses}x usado
+                          </Badge>
                         )}
-                      </>
-                    )}
-                    <p>Usos: {voucher.current_uses} / {voucher.max_uses}</p>
-                    {voucher.expires_at && (
-                      <p>Expira: {new Date(voucher.expires_at).toLocaleDateString('pt-BR')}</p>
-                    )}
+                      </div>
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        {voucher.plans ? (
+                          <p>Plano: <span className="font-semibold">{voucher.plans.name}</span></p>
+                        ) : (
+                          <>
+                            <p>Tipo: <span className="font-semibold">Recursos Customizados</span></p>
+                            {voucher.duration_days && (
+                              <p>Duração: <span className="font-semibold">{voucher.duration_days} dias</span></p>
+                            )}
+                          </>
+                        )}
+                        <p>Usos: {voucher.current_uses} / {voucher.max_uses}</p>
+                        {voucher.expires_at && (
+                          <p>Expira: {new Date(voucher.expires_at).toLocaleDateString('pt-BR')}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleToggleStatus(voucher)}
+                      >
+                        {voucher.is_active ? 'Desativar' : 'Ativar'}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(voucher.id)}
+                        className="text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleToggleStatus(voucher)}
-                  >
-                    {voucher.is_active ? 'Desativar' : 'Ativar'}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(voucher.id)}
-                    className="text-destructive"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
+                </Card>
+              ))
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="redemptions">
+          <div className="space-y-4">
+            {redemptions.length === 0 ? (
+              <div className="text-center py-8">
+                <CheckCircle2 className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+                <p className="text-muted-foreground">Nenhum voucher foi utilizado ainda</p>
               </div>
-            </Card>
-          ))
-        )}
-      </div>
+            ) : (
+              redemptions.map((redemption) => (
+                <Card key={redemption.id} className="p-4 border-l-4 border-l-success">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Badge className="bg-success/20 text-success">
+                          <CheckCircle2 className="w-3 h-3 mr-1" />
+                          Utilizado
+                        </Badge>
+                        <code className="text-lg font-mono font-bold">{redemption.voucher_code}</code>
+                      </div>
+                      <div className="text-sm space-y-2 mt-3">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <User className="w-4 h-4" />
+                          <div>
+                            <span className="font-medium text-foreground">{redemption.user_name}</span>
+                            <span className="mx-2">•</span>
+                            <span>{redemption.user_email}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Ticket className="w-4 h-4" />
+                          <span>Plano: <span className="font-semibold text-foreground">{redemption.plan_name}</span></span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Calendar className="w-4 h-4" />
+                          <span>
+                            Resgatado em: {format(new Date(redemption.redeemed_at), 'dd/MM/yyyy HH:mm')}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </Card>
   );
 };
