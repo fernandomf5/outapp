@@ -36,10 +36,41 @@ class ChatSounds {
     }
   }
 
-  // Métodos legados mantidos para compatibilidade
-  playTypingSound() {}
-  playSendSound() {}
-  playReceiveSound() {}
+  // Som de digitação (tecla suave)
+  async playTypingSound() {
+    if (!this.enabled) return;
+    try {
+      const audio = new Audio('https://cdn.freesound.org/previews/256/256116_4772965-lq.mp3');
+      audio.volume = 0.2;
+      await audio.play();
+    } catch (error) {
+      console.warn('🔔 Erro ao tocar som de digitação:', error);
+    }
+  }
+
+  // Som de envio de mensagem
+  async playSendSound() {
+    if (!this.enabled) return;
+    try {
+      const audio = new Audio('https://cdn.freesound.org/previews/362/362205_5865517-lq.mp3');
+      audio.volume = 0.4;
+      await audio.play();
+    } catch (error) {
+      console.warn('🔔 Erro ao tocar som de envio:', error);
+    }
+  }
+
+  // Som de recebimento de mensagem
+  async playReceiveSound() {
+    if (!this.enabled) return;
+    try {
+      const audio = new Audio('https://cdn.freesound.org/previews/411/411089_5121236-lq.mp3');
+      audio.volume = 0.5;
+      await audio.play();
+    } catch (error) {
+      console.warn('🔔 Erro ao tocar som de recebimento:', error);
+    }
+  }
 }
 
 // Singleton instance
