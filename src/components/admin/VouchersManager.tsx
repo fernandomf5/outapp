@@ -60,7 +60,8 @@ export const VouchersManager = () => {
     max_uses: 1,
     expires_at: "",
     isLifetime: false,
-    allFeatures: false
+    allFeatures: false,
+    isExpiredTrial: false
   });
 
   useEffect(() => {
@@ -160,10 +161,10 @@ export const VouchersManager = () => {
       return;
     }
 
-    if (!useCustomFeatures && !newVoucher.plan_id) {
+    if (!useCustomFeatures && !newVoucher.plan_id && !newVoucher.isExpiredTrial) {
       toast({
         title: "Erro",
-        description: "Selecione um plano ou configure recursos customizados",
+        description: "Selecione um plano, configure recursos customizados ou marque como teste expirado",
         variant: "destructive"
       });
       return;
@@ -265,10 +266,11 @@ export const VouchersManager = () => {
     // Inserir voucher com plan_id definido
     const voucherData = {
       code: newVoucher.code,
-      plan_id: finalPlanId,
+      plan_id: newVoucher.isExpiredTrial ? null : finalPlanId,
       duration_days: null, // Não usado mais, a duração vem do plano
       max_uses: newVoucher.max_uses,
-      expires_at: newVoucher.expires_at || null
+      expires_at: newVoucher.expires_at || null,
+      is_expired_trial: newVoucher.isExpiredTrial
     };
 
     const { data: voucherInserted, error: voucherError } = await supabase
@@ -301,7 +303,7 @@ export const VouchersManager = () => {
     });
     fetchVouchers();
     setIsDialogOpen(false);
-    setNewVoucher({ code: "", plan_id: "", duration_days: "", max_uses: 1, expires_at: "", isLifetime: false, allFeatures: false });
+    setNewVoucher({ code: "", plan_id: "", duration_days: "", max_uses: 1, expires_at: "", isLifetime: false, allFeatures: false, isExpiredTrial: false });
     setSelectedFeatures([]);
     setUseCustomFeatures(false);
   };
@@ -382,7 +384,24 @@ export const VouchersManager = () => {
                 </div>
               </div>
 
-              {true ? (
+              <div className="flex items-center space-x-2 p-3 bg-orange-50 dark:bg-orange-900/20 rounded border border-orange-200 dark:border-orange-800">
+                <Checkbox
+                  id="expiredTrial"
+                  checked={newVoucher.isExpiredTrial}
+                  onCheckedChange={(checked) => {
+                    setNewVoucher({ 
+                      ...newVoucher, 
+                      isExpiredTrial: checked as boolean,
+                      plan_id: checked ? "" : newVoucher.plan_id
+                    });
+                  }}
+                />
+                <Label htmlFor="expiredTrial" className="cursor-pointer text-sm font-bold text-orange-700 dark:text-orange-400">
+                  ⏰ Teste Expirado (cancela assinatura do usuário)
+                </Label>
+              </div>
+
+              {!newVoucher.isExpiredTrial && (
                 <div>
                   <Label>Plano *</Label>
                   <Select value={newVoucher.plan_id} onValueChange={(v) => setNewVoucher({ ...newVoucher, plan_id: v })}>
@@ -398,7 +417,9 @@ export const VouchersManager = () => {
                     </SelectContent>
                   </Select>
                 </div>
-              ) : (
+              )}
+
+              {false && (
                 <>
                   <div>
                     <Label>Duração (dias) *</Label>
@@ -541,7 +562,9 @@ export const VouchersManager = () => {
                         )}
                       </div>
                       <div className="text-sm text-muted-foreground space-y-1">
-                        {voucher.plans ? (
+                        {(voucher as any).is_expired_trial ? (
+                          <p className="text-orange-600 font-semibold">⏰ Teste Expirado (cancela assinatura)</p>
+                        ) : voucher.plans ? (
                           <p>Plano: <span className="font-semibold">{voucher.plans.name}</span></p>
                         ) : (
                           <>
