@@ -15,6 +15,7 @@ import {
   Save,
   Play,
   Link2,
+  Palette,
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -36,12 +37,16 @@ const AIAgentBuilder = () => {
   const [originalAccessType, setOriginalAccessType] = useState<'public' | 'anonymous'>('public');
   const [showAccessChangeDialog, setShowAccessChangeDialog] = useState(false);
   const [pendingAccessType, setPendingAccessType] = useState<'public' | 'anonymous' | null>(null);
+  const [primaryColor, setPrimaryColor] = useState("#6366f1");
+  const [secondaryColor, setSecondaryColor] = useState("#8b5cf6");
 
   useEffect(() => {
     if (agentId && user) {
       loadAgent(agentId).then(agent => {
         setAgentName(agent.name);
         setWelcomeMessage(agent.config?.welcomeMessage || "");
+        setPrimaryColor(agent.config?.primaryColor || "#6366f1");
+        setSecondaryColor(agent.config?.secondaryColor || "#8b5cf6");
         const at = (agent as any).access_type || 'public';
         const normalizedAt = at === 'restricted' ? 'private' : at;
         setAccessType(normalizedAt);
@@ -109,6 +114,8 @@ const AIAgentBuilder = () => {
         config: {
           welcomeMessage,
           aiEnabled: false, // AI always disabled
+          primaryColor,
+          secondaryColor,
         },
         training_data: {},
         is_active: true,
@@ -272,6 +279,77 @@ const AIAgentBuilder = () => {
                   ? '⚡ Usuários entram direto no chat sem precisar se cadastrar ou fazer login'
                   : '✓ Usuários podem se cadastrar e usar o chat livremente'}
               </p>
+            </div>
+          </Card>
+
+          {/* Personalização de Cores */}
+          <Card className="p-4 sm:p-6 border-primary/20">
+            <div className="max-w-2xl">
+              <div className="flex items-center gap-2 mb-4">
+                <Palette className="w-5 h-5 text-primary" />
+                <Label className="text-base sm:text-lg font-semibold">Personalização de Cores</Label>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Cor Primária</Label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={primaryColor}
+                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      className="w-12 h-12 rounded-lg border border-border cursor-pointer"
+                    />
+                    <Input
+                      value={primaryColor}
+                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      placeholder="#6366f1"
+                      className="flex-1"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Cor principal do chat (botões, header)</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Cor Secundária</Label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={secondaryColor}
+                      onChange={(e) => setSecondaryColor(e.target.value)}
+                      className="w-12 h-12 rounded-lg border border-border cursor-pointer"
+                    />
+                    <Input
+                      value={secondaryColor}
+                      onChange={(e) => setSecondaryColor(e.target.value)}
+                      placeholder="#8b5cf6"
+                      className="flex-1"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Cor secundária (detalhes, acentos)</p>
+                </div>
+              </div>
+              <div className="mt-4 p-4 rounded-lg border border-border bg-muted/30">
+                <p className="text-sm font-medium mb-2">Pré-visualização</p>
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    C
+                  </div>
+                  <div 
+                    className="px-4 py-2 rounded-lg text-white text-sm"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    Botão Primário
+                  </div>
+                  <div 
+                    className="px-4 py-2 rounded-lg text-white text-sm"
+                    style={{ backgroundColor: secondaryColor }}
+                  >
+                    Botão Secundário
+                  </div>
+                </div>
+              </div>
             </div>
           </Card>
         </div>
