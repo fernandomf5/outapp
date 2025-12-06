@@ -855,9 +855,9 @@ export default function AgentCustomerChat() {
           {/* Botão para descer */}
           {showScrollButton && (
             <Button
-              variant="secondary"
               size="icon"
-              className="absolute bottom-32 right-4 rounded-full shadow-lg z-10"
+              className="absolute bottom-32 right-4 rounded-full shadow-lg z-10 text-white"
+              style={{ backgroundColor: primaryColor }}
               onClick={scrollToBottom}
             >
               <ArrowDown className="w-5 h-5" />
@@ -871,6 +871,7 @@ export default function AgentCustomerChat() {
                   <Button
                     variant="outline"
                     className="flex-1"
+                    style={{ borderColor: primaryColor, color: primaryColor }}
                     onClick={() => setShowAppointmentDialog(true)}
                   >
                     <Calendar className="w-4 h-4 mr-2" />
@@ -881,6 +882,7 @@ export default function AgentCustomerChat() {
                   <Button
                     variant="outline"
                     className="flex-1"
+                    style={{ borderColor: primaryColor, color: primaryColor }}
                     onClick={() => setShowOrderDialog(true)}
                   >
                     <ShoppingBag className="w-4 h-4 mr-2" />
@@ -1145,7 +1147,8 @@ export default function AgentCustomerChat() {
                 <Button 
                   type="submit"
                   disabled={loading || uploadingMedia || (!input.trim() && !selectedImage && !selectedDocument)}
-                  className="h-11 w-11 md:h-10 md:w-10"
+                  className="h-11 w-11 md:h-10 md:w-10 text-white"
+                  style={{ backgroundColor: primaryColor }}
                 >
                   <Send className="w-5 h-5" />
                 </Button>
