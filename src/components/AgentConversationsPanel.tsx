@@ -865,7 +865,6 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
                   onSubmit={(e) => {
                     e.preventDefault();
                     if (!uploadingMedia && (newMessage.trim() || selectedImage || selectedDocument)) {
-                      chatSounds.playSendSound();
                       handleSendMessage();
                     }
                   }}
@@ -909,17 +908,11 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
 
                   <Input
                     value={newMessage}
-                    onChange={(e) => {
-                      if (e.target.value.length > newMessage.length) {
-                        chatSounds.playTypingSound();
-                      }
-                      setNewMessage(e.target.value);
-                    }}
+                    onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={(e) => {
                       if ((e.key === 'Enter' || e.key === 'NumpadEnter') && !e.shiftKey) {
                         e.preventDefault();
                         if (!uploadingMedia && (newMessage.trim() || selectedImage || selectedDocument)) {
-                          chatSounds.playSendSound();
                           handleSendMessage();
                         }
                       }
