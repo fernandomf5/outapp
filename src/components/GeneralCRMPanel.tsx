@@ -91,7 +91,7 @@ export function GeneralCRMPanel() {
         }
       }
 
-      // 2. Buscar leads de agentes IA
+      // 2. Buscar leads de Chat Online (apenas clientes cadastrados/verificados)
       const { data: agents } = await supabase
         .from('ai_agents')
         .select('id, name')
@@ -100,10 +100,12 @@ export function GeneralCRMPanel() {
       if (agents && agents.length > 0) {
         const agentIds = agents.map(a => a.id);
         
+        // Buscar apenas clientes que se cadastraram (email_verified = true)
         const { data: agentCustomers } = await supabase
           .from('agent_customers')
-          .select('id, name, email, phone, agent_id, created_at')
-          .in('agent_id', agentIds);
+          .select('id, name, email, phone, agent_id, created_at, email_verified')
+          .in('agent_id', agentIds)
+          .eq('email_verified', true);
 
         if (agentCustomers) {
           agentCustomers.forEach(customer => {
@@ -115,8 +117,8 @@ export function GeneralCRMPanel() {
               name: customer.name || 'N/A',
               email: customer.email || 'N/A',
               phone: customer.phone || 'N/A',
-              source: 'Agente IA',
-              sourceName: agent?.name || 'Agente IA',
+              source: 'Chat Online',
+              sourceName: agent?.name || 'Chat Online',
               createdAt: customer.created_at
             });
           });
