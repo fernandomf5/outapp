@@ -130,15 +130,49 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
 
   useEffect(() => {
     if (selectedConversation) {
-      loadMessages(selectedConversation.id);
-      const messagesChannel = setupMessagesSubscription();
+      const conversationId = selectedConversation.id;
+      
+      // Carregar mensagens iniciais
+      loadMessages(conversationId);
+      
+      // Configurar subscription em tempo real
+      const channel = supabase
+        .channel(`agent-messages-realtime-${conversationId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'agent_messages',
+            filter: `conversation_id=eq.${conversationId}`,
+          },
+          (payload) => {
+            console.log('📩 Nova mensagem recebida no painel:', payload);
+            // Adicionar nova mensagem diretamente ao estado
+            const newMessage = payload.new as any;
+            setMessages(prev => {
+              // Evitar duplicação
+              const exists = prev.some(m => m.id === newMessage.id);
+              if (exists) return prev;
+              return [...prev, newMessage];
+            });
+          }
+        )
+        .subscribe((status) => {
+          console.log('📡 Status da subscription de mensagens:', status);
+        });
+      
+      // Polling de backup a cada 5 segundos para garantir sincronização
+      const pollingInterval = setInterval(() => {
+        loadMessages(conversationId);
+      }, 5000);
+      
       return () => {
-        if (messagesChannel) {
-          supabase.removeChannel(messagesChannel);
-        }
+        supabase.removeChannel(channel);
+        clearInterval(pollingInterval);
       };
     }
-  }, [selectedConversation]);
+  }, [selectedConversation?.id]);
 
   useEffect(() => {
     scrollToBottom();
@@ -251,31 +285,6 @@ export default function AgentConversationsPanel({ agentId }: { agentId: string }
         },
         () => {
           loadConversations();
-        }
-      )
-      .subscribe();
-
-    return channel;
-  };
-
-  const setupMessagesSubscription = () => {
-    if (!selectedConversation) return null;
-
-    const conversationId = selectedConversation.id;
-    
-    const channel = supabase
-      .channel(`agent-messages-${conversationId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'agent_messages',
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        () => {
-          // Recarregar todas as mensagens quando houver inserção
-          loadMessages(conversationId);
         }
       )
       .subscribe();
