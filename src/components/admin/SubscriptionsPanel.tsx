@@ -68,11 +68,24 @@ export const SubscriptionsPanel = () => {
     setLoading(false);
   };
 
-  const activeSubscriptions = subscriptions.filter(sub => 
+  // Agrupar por usuário e pegar apenas a assinatura mais recente de cada um
+  const latestSubscriptionByUser = subscriptions.reduce((acc, sub) => {
+    const existing = acc[sub.user_id];
+    if (!existing || new Date(sub.started_at) > new Date(existing.started_at)) {
+      acc[sub.user_id] = sub;
+    }
+    return acc;
+  }, {} as Record<string, Subscription>);
+
+  const uniqueSubscriptions = Object.values(latestSubscriptionByUser);
+
+  // Ativos: status 'active' E não expirado
+  const activeSubscriptions = uniqueSubscriptions.filter(sub => 
     sub.status === 'active' && new Date(sub.expires_at) > new Date()
   );
 
-  const inactiveSubscriptions = subscriptions.filter(sub => 
+  // Inativos: status diferente de 'active' OU expirado
+  const inactiveSubscriptions = uniqueSubscriptions.filter(sub => 
     sub.status !== 'active' || new Date(sub.expires_at) <= new Date()
   );
 
