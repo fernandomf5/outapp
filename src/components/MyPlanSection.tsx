@@ -125,13 +125,30 @@ export const MyPlanSection = () => {
       setSearchParams(searchParams, { replace: true });
     }
 
-    // Verificar status de pagamento
+    // Verificar status de pagamento (nosso parâmetro ou parâmetros nativos do Mercado Pago)
     const paymentStatus = searchParams.get('payment');
+    const mpStatus = searchParams.get('status') || searchParams.get('collection_status');
     const planType = searchParams.get('plan_type');
     const planName = searchParams.get('plan_name');
     
+    // Determinar o status real do pagamento
+    let finalStatus: 'success' | 'failure' | 'pending' | null = null;
+    
     if (paymentStatus) {
-      if (paymentStatus === 'success') {
+      finalStatus = paymentStatus as 'success' | 'failure' | 'pending';
+    } else if (mpStatus) {
+      // Mapear status do Mercado Pago
+      if (mpStatus === 'approved') {
+        finalStatus = 'success';
+      } else if (mpStatus === 'pending' || mpStatus === 'in_process') {
+        finalStatus = 'pending';
+      } else if (mpStatus === 'rejected' || mpStatus === 'cancelled') {
+        finalStatus = 'failure';
+      }
+    }
+    
+    if (finalStatus) {
+      if (finalStatus === 'success') {
         // Determinar o tipo do plano para a mensagem
         let planLabel = 'seu plano';
         if (planType === 'monthly') {
@@ -173,23 +190,25 @@ export const MyPlanSection = () => {
         };
         
         fetchNewSubscription();
-      } else if (paymentStatus === 'failure') {
+      } else if (finalStatus === 'failure') {
         toast({
           title: "Pagamento não concluído",
           description: "Houve um problema com o pagamento. Tente novamente.",
           variant: "destructive",
         });
-      } else if (paymentStatus === 'pending') {
+      } else if (finalStatus === 'pending') {
         toast({
-          title: "Pagamento pendente",
-          description: "Seu pagamento está sendo processado. Você será notificado quando for aprovado.",
+          title: "⏳ Pagamento PIX em processamento",
+          description: "Seu pagamento está sendo processado. Assim que for confirmado, seu plano será ativado automaticamente.",
         });
       }
       
-      // Remove the payment params from URL
-      searchParams.delete('payment');
-      searchParams.delete('plan_type');
-      searchParams.delete('plan_name');
+      // Remove all payment params from URL
+      const paramsToRemove = ['payment', 'plan_type', 'plan_name', 'status', 'collection_status', 
+        'collection_id', 'payment_id', 'external_reference', 'payment_type', 
+        'merchant_order_id', 'preference_id', 'site_id', 'processing_mode', 'merchant_account_id'];
+      
+      paramsToRemove.forEach(param => searchParams.delete(param));
       setSearchParams(searchParams, { replace: true });
     }
   }, [searchParams, setSearchParams, toast]);
