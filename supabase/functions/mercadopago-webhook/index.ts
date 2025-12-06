@@ -18,7 +18,7 @@ serve(async (req) => {
     );
 
     const body = await req.json();
-    console.log('Webhook recebido do Mercado Pago:', body);
+    console.log('Webhook recebido do Mercado Pago:', JSON.stringify(body));
 
     // Verificar se é uma notificação de pagamento
     if (body.type !== 'payment') {
@@ -43,6 +43,8 @@ serve(async (req) => {
 
     // Buscar detalhes do pagamento
     const paymentId = body.data.id;
+    console.log('Buscando detalhes do pagamento:', paymentId);
+    
     const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -50,45 +52,65 @@ serve(async (req) => {
     });
 
     if (!paymentResponse.ok) {
+      const errorText = await paymentResponse.text();
+      console.error('Erro ao buscar pagamento:', errorText);
       throw new Error('Erro ao buscar pagamento');
     }
 
     const payment = await paymentResponse.json();
-    console.log('Detalhes do pagamento:', payment);
+    console.log('Detalhes do pagamento:', JSON.stringify(payment));
 
     // Extrair informações do external_reference
     const externalRef = payment.external_reference;
     if (!externalRef) {
+      console.error('External reference não encontrado');
       throw new Error('External reference não encontrado');
     }
 
     const [userId, planId] = externalRef.split('|');
+    console.log('User ID:', userId, 'Plan ID:', planId);
 
     // Verificar status do pagamento
     if (payment.status === 'approved') {
       console.log('Pagamento aprovado, ativando assinatura');
 
       // Buscar informações do plano
-      const { data: plan } = await supabase
+      const { data: plan, error: planError } = await supabase
         .from('plans')
         .select('*')
         .eq('id', planId)
         .single();
 
-      if (!plan) {
+      if (planError || !plan) {
+        console.error('Plano não encontrado:', planError);
         throw new Error('Plano não encontrado');
       }
 
+      console.log('Plano encontrado:', plan.name);
+
       // Desativar assinaturas antigas
-      await supabase
+      const { error: cancelError } = await supabase
         .from('subscriptions')
         .update({ status: 'cancelled' })
         .eq('user_id', userId)
         .eq('status', 'active');
 
-      // Calcular data de expiração
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + plan.duration_days);
+      if (cancelError) {
+        console.log('Aviso ao cancelar assinaturas antigas:', cancelError);
+      }
+
+      // Calcular data de expiração (null para vitalício)
+      let expiresAt = null;
+      if (plan.plan_type !== 'lifetime' && plan.duration_days) {
+        const expiresDate = new Date();
+        expiresDate.setDate(expiresDate.getDate() + plan.duration_days);
+        expiresAt = expiresDate.toISOString();
+      } else if (plan.plan_type === 'lifetime') {
+        // Para vitalício, colocar uma data muito distante
+        const farFuture = new Date();
+        farFuture.setFullYear(farFuture.getFullYear() + 100);
+        expiresAt = farFuture.toISOString();
+      }
 
       // Criar nova assinatura
       const { error: subError } = await supabase
@@ -97,9 +119,9 @@ serve(async (req) => {
           user_id: userId,
           plan_id: planId,
           status: 'active',
-          expires_at: expiresAt.toISOString(),
+          expires_at: expiresAt,
           payment_method: 'mercadopago',
-          payment_id: paymentId,
+          payment_id: String(paymentId),
         });
 
       if (subError) {
@@ -107,7 +129,7 @@ serve(async (req) => {
         throw subError;
       }
 
-      console.log('Assinatura criada com sucesso');
+      console.log('Assinatura criada com sucesso para o plano:', plan.name);
     } else {
       console.log('Pagamento em status:', payment.status);
     }
