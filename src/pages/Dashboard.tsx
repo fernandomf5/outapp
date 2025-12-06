@@ -77,8 +77,9 @@ const Dashboard = () => {
   const { t } = useLanguage();
   const { hasFeature, loading: featuresLoading } = useUserFeatures();
   const { resolvedTheme } = useTheme();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [userFullName, setUserFullName] = useState<string>('');
+  const [paymentProcessed, setPaymentProcessed] = useState(false);
   
   const currentLogo = resolvedTheme === 'dark' ? logoDark : logoLight;
   const [stats, setStats] = useState({
@@ -155,7 +156,61 @@ const Dashboard = () => {
     }
   }, [agentId, aiAgents, activeTab]);
 
-
+  // Processar status de pagamento do Mercado Pago
+  useEffect(() => {
+    if (paymentProcessed) return;
+    
+    const mpStatus = searchParams.get('status') || searchParams.get('collection_status');
+    const paymentStatus = searchParams.get('payment');
+    const paymentId = searchParams.get('payment_id') || searchParams.get('collection_id');
+    
+    // Se não há parâmetros de pagamento, não fazer nada
+    if (!mpStatus && !paymentStatus && !paymentId) return;
+    
+    // Determinar o status real do pagamento
+    let finalStatus: 'success' | 'failure' | 'pending' | null = null;
+    
+    if (paymentStatus) {
+      finalStatus = paymentStatus as 'success' | 'failure' | 'pending';
+    } else if (mpStatus) {
+      if (mpStatus === 'approved') {
+        finalStatus = 'success';
+      } else if (mpStatus === 'pending' || mpStatus === 'in_process') {
+        finalStatus = 'pending';
+      } else if (mpStatus === 'rejected' || mpStatus === 'cancelled') {
+        finalStatus = 'failure';
+      }
+    }
+    
+    if (finalStatus) {
+      setPaymentProcessed(true);
+      
+      if (finalStatus === 'success') {
+        toast({
+          title: "🎉 Parabéns!",
+          description: "Seu plano foi ativado com sucesso! Aproveite todos os recursos.",
+          duration: 10000,
+        });
+      } else if (finalStatus === 'failure') {
+        toast({
+          title: "Pagamento não concluído",
+          description: "Houve um problema com o pagamento. Tente novamente.",
+          variant: "destructive",
+        });
+      } else if (finalStatus === 'pending') {
+        toast({
+          title: "⏳ Pagamento PIX em processamento",
+          description: "Seu pagamento está sendo processado. Assim que for confirmado, seu plano será ativado automaticamente.",
+          duration: 10000,
+        });
+      }
+      
+      // Limpar parâmetros de pagamento e garantir que esteja na tab meu-plano
+      const newParams = new URLSearchParams();
+      newParams.set('tab', 'meu-plano');
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, paymentProcessed, toast, setSearchParams]);
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return;
