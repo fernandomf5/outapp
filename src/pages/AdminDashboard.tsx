@@ -34,6 +34,7 @@ import { BlogSettingsManager } from "@/components/admin/BlogSettingsManager";
 import { FeaturesManager } from "@/components/admin/FeaturesManager";
 import { FeatureOverridesManager } from "@/components/admin/FeatureOverridesManager";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { NewUserNotifications } from "@/components/admin/NewUserNotifications";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -556,6 +557,7 @@ const AdminDashboard = () => {
               </div>
 
               <div className="flex gap-3 items-center">
+                <NewUserNotifications />
                 <TicketNotificationBell isAdmin={true} />
                 <LanguageSelector />
                 <ThemeToggle />
