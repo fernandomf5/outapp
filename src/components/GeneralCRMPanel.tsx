@@ -284,7 +284,7 @@ export function GeneralCRMPanel() {
         <CardHeader>
           <CardTitle>Controle de Leads</CardTitle>
           <CardDescription>
-            Todos os leads capturados de chatbots, agentes IA e páginas clonadas
+            Todos os leads capturados de chatbots, chat online e páginas clonadas
           </CardDescription>
         </CardHeader>
         <CardContent>
