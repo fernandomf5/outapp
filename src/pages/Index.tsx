@@ -18,6 +18,7 @@ import { SocialLinks } from "@/components/SocialLinks";
 import { useTheme } from "next-themes";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { VideoCover } from "@/components/VideoCover";
 import outAppLogo from "@/assets/out-app-logo.png";
 import heroIcon from "@/assets/hero-icon.png";
 import logoLion from "@/assets/logo-lion.png";
@@ -666,15 +667,7 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="relative w-full aspect-video rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl bg-muted">
-              <iframe
-                src={videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
-                title="Video demonstração"
-                className="absolute inset-0 w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
+            <VideoCover videoUrl={videoUrl} logoUrl={logoUrl || outAppLogo} />
           </div>
         </section>
       )}
