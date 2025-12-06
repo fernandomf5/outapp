@@ -1094,11 +1094,11 @@ export const AdsManagementPanel = () => {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-3xl font-bold tracking-tight">Dashboard de Anúncios</h2>
-              <p className="text-muted-foreground">
-                {selectedCampaignId 
-                  ? `Visualizando campanha: ${campaigns.find(c => c.id === selectedCampaignId)?.name}` 
-                  : 'Insira seus dados e visualize as métricas automaticamente'}
-              </p>
+              {selectedCampaignId && (
+                <p className="text-muted-foreground">
+                  Visualizando campanha: {campaigns.find(c => c.id === selectedCampaignId)?.name}
+                </p>
+              )}
             </div>
             <div className="flex items-center gap-3">
               {selectedCampaignId && (
@@ -1123,23 +1123,6 @@ export const AdsManagementPanel = () => {
                     </SelectContent>
                   </Select>
                   
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="date"
-                      value={startDateFilter}
-                      onChange={(e) => setStartDateFilter(e.target.value)}
-                      placeholder="Data inicial"
-                      className="w-[150px]"
-                    />
-                    <span className="text-muted-foreground">até</span>
-                    <Input
-                      type="date"
-                      value={endDateFilter}
-                      onChange={(e) => setEndDateFilter(e.target.value)}
-                      placeholder="Data final"
-                      className="w-[150px]"
-                    />
-                  </div>
                 </>
               )}
               <Button 
