@@ -198,7 +198,7 @@ export const VouchersManager = () => {
       featuresToUse = allFeatures?.map(f => f.id) || [];
     }
 
-    let finalPlanId = newVoucher.plan_id;
+    let finalPlanId: string | null = newVoucher.plan_id || null;
 
     // Se usar recursos customizados, criar plano oculto primeiro
     if (useCustomFeatures) {
