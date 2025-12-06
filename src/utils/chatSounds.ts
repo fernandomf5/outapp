@@ -1,108 +1,61 @@
-// Utility functions for chat sounds using Web Audio API
+// Utility functions for chat sounds using Audio element (more reliable than Web Audio API)
 
 class ChatSounds {
-  private audioContext: AudioContext | null = null;
   private enabled: boolean = true;
-  private initialized: boolean = false;
+  private notificationAudio: HTMLAudioElement | null = null;
 
   constructor() {
-    // Defer AudioContext creation until first use
+    // Criar elemento de áudio com som de notificação em base64
+    if (typeof window !== 'undefined') {
+      this.initAudio();
+    }
   }
 
-  private async ensureAudioContext() {
-    if (!this.audioContext && typeof window !== 'undefined') {
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    }
+  private initAudio() {
+    // Som de notificação em base64 (beep duplo)
+    const notificationBase64 = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleOp9H6OUJC0C5hQsDwxXEY0KJyXmB9qPAAEHN+gLqjQ8BAEy8wQQ9wMO1QIJ8gMfJP8E6vv7APsIAQUAAO//8f/3//X/9f/1//X/9f/1//X/9f/1//X/+P/+/wMA9f/r/+3/9f/+/wQAAgD9//j/9v/2//f/+P/5//n/+f/6//v/+//8//z//P/8//z//P/8//3//f/9//3//v/+//7//v/+//7//v/+//7//////wAAAAAAAAAAAAAAAAAAAAAAAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleOp9H6OUJC0C5hQsDwxXEY0KJyXmB9qPAAEHN+gLqjQ8BAEy8wQQ9wMO1QIJ8gMfJP8E6vv7APsIAQUAAO//8f/3//X/9f/1//X/9f/1//X/9f/1//X/+P/+/wMA9f/r/+3/9f/+/wQAAgD9//j/9v/2//f/+P/5//n/+f/6//v/+//8//z//P/8//z//P/8//3//f/9//3//v/+//7//v/+//7//v/+//7//////wAAAAAAAAAAAAAAAAAAAAAAAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==';
     
-    // Resume AudioContext if suspended (browser autoplay policy)
-    if (this.audioContext && this.audioContext.state === 'suspended') {
-      try {
-        await this.audioContext.resume();
-      } catch (e) {
-        console.warn('Could not resume AudioContext:', e);
-      }
-    }
-    
-    return this.audioContext;
+    this.notificationAudio = new Audio(notificationBase64);
+    this.notificationAudio.volume = 0.7;
   }
 
   setEnabled(enabled: boolean) {
     this.enabled = enabled;
   }
 
-  private async playTone(frequency: number, duration: number, volume: number = 0.3) {
-    if (!this.enabled) return;
-    
-    const ctx = await this.ensureAudioContext();
-    if (!ctx) return;
+  // Som de notificação - mais confiável com Audio element
+  async playNotificationSound() {
+    if (!this.enabled || !this.notificationAudio) {
+      console.log('🔔 Som desabilitado ou não inicializado');
+      return;
+    }
 
     try {
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
-
-      oscillator.frequency.value = frequency;
-      oscillator.type = 'sine';
-
-      gainNode.gain.setValueAtTime(volume, ctx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
-
-      oscillator.start(ctx.currentTime);
-      oscillator.stop(ctx.currentTime + duration);
-    } catch (e) {
-      console.warn('Could not play tone:', e);
+      // Resetar para o início
+      this.notificationAudio.currentTime = 0;
+      await this.notificationAudio.play();
+      console.log('🔔 Som de notificação tocado com sucesso!');
+    } catch (error) {
+      console.warn('🔔 Erro ao tocar som (pode precisar de interação do usuário):', error);
+      
+      // Tentar novamente após pequeno delay
+      setTimeout(async () => {
+        try {
+          if (this.notificationAudio) {
+            this.notificationAudio.currentTime = 0;
+            await this.notificationAudio.play();
+          }
+        } catch (e) {
+          console.warn('🔔 Segunda tentativa falhou:', e);
+        }
+      }, 100);
     }
   }
 
-  // Som de digitação (tecla)
-  playTypingSound() {
-    this.playTone(800, 0.05, 0.1);
-  }
-
-  // Som de enviar mensagem (satisfatório)
-  playSendSound() {
-    if (!this.enabled) return;
-    
-    // Primeiro tom (mais grave)
-    this.playTone(523.25, 0.1, 0.2); // C5
-    
-    // Segundo tom (mais agudo) - começa um pouco depois
-    setTimeout(() => {
-      this.playTone(659.25, 0.15, 0.25); // E5
-    }, 50);
-    
-    // Terceiro tom (ainda mais agudo) - finaliza o som
-    setTimeout(() => {
-      this.playTone(783.99, 0.2, 0.2); // G5
-    }, 100);
-  }
-
-  // Som de mensagem recebida
-  playReceiveSound() {
-    if (!this.enabled) return;
-
-    // Tom duplo descendente
-    this.playTone(659.25, 0.1, 0.2); // E5
-    setTimeout(() => {
-      this.playTone(523.25, 0.15, 0.25); // C5
-    }, 80);
-  }
-
-  // Som de notificação - mais alto e perceptível
-  playNotificationSound() {
-    if (!this.enabled) return;
-
-    // Sequência de tons mais audíveis
-    this.playTone(880, 0.15, 0.5); // A5
-    setTimeout(() => {
-      this.playTone(1100, 0.15, 0.5);
-    }, 150);
-    setTimeout(() => {
-      this.playTone(880, 0.2, 0.4);
-    }, 300);
-  }
+  // Métodos legados mantidos para compatibilidade
+  playTypingSound() {}
+  playSendSound() {}
+  playReceiveSound() {}
 }
 
 // Singleton instance
