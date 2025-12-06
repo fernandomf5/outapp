@@ -18,6 +18,8 @@ export default function AgentCustomerAuth() {
   const [loading, setLoading] = useState(false);
   const [checkingAccess, setCheckingAccess] = useState(true);
   const [accessType, setAccessType] = useState<string>('public');
+  const [primaryColor, setPrimaryColor] = useState('#6366f1');
+  const [secondaryColor, setSecondaryColor] = useState('#8b5cf6');
   const [customerId, setCustomerId] = useState<string>("");
   const [formData, setFormData] = useState({
     name: "",
@@ -76,9 +78,16 @@ export default function AgentCustomerAuth() {
       try {
         const { data: agent } = await supabase
           .from('ai_agents')
-          .select('access_type')
+          .select('access_type, config')
           .eq('id', agentId)
           .single();
+
+        // Set colors from agent config
+        if (agent?.config) {
+          const config = agent.config as any;
+          if (config.primaryColor) setPrimaryColor(config.primaryColor);
+          if (config.secondaryColor) setSecondaryColor(config.secondaryColor);
+        }
 
         setAccessType(agent?.access_type || 'public');
 
@@ -220,9 +229,12 @@ export default function AgentCustomerAuth() {
     }
   };
 
+  const bgStyle = { background: `linear-gradient(135deg, ${primaryColor}20, ${secondaryColor}20)` };
+  const buttonStyle = { backgroundColor: primaryColor };
+
   if (checkingAccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center gradient-primary p-4">
+      <div className="min-h-screen flex items-center justify-center p-4" style={bgStyle}>
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
@@ -254,7 +266,7 @@ export default function AgentCustomerAuth() {
   // Acesso direto - apenas nome
   if (authMode === 'anonymous') {
     return (
-      <div className="min-h-screen flex items-center justify-center gradient-primary p-4">
+      <div className="min-h-screen flex items-center justify-center p-4" style={bgStyle}>
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Bem-vindo ao Chat</CardTitle>
@@ -272,7 +284,12 @@ export default function AgentCustomerAuth() {
                   placeholder="Seu nome"
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button 
+                type="submit" 
+                className="w-full text-white" 
+                style={buttonStyle}
+                disabled={loading}
+              >
                 {loading ? 'Entrando...' : 'Entrar no Chat'}
               </Button>
             </form>
@@ -285,7 +302,7 @@ export default function AgentCustomerAuth() {
   // Escolha entre login e cadastro (para acesso público, privado ou restrito)
   if (authMode === 'choice') {
     return (
-      <div className="min-h-screen flex items-center justify-center gradient-primary p-4">
+      <div className="min-h-screen flex items-center justify-center p-4" style={bgStyle}>
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Bem-vindo ao Chat</CardTitle>
@@ -295,7 +312,8 @@ export default function AgentCustomerAuth() {
           </CardHeader>
           <CardContent className="space-y-4">
             <Button 
-              className="w-full h-auto py-6 flex-col gap-2" 
+              className="w-full h-auto py-6 flex-col gap-2 text-white" 
+              style={buttonStyle}
               onClick={() => setAuthMode('register')}
             >
               <MessageSquare className="w-6 h-6" />
@@ -319,7 +337,7 @@ export default function AgentCustomerAuth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center gradient-primary p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={bgStyle}>
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>
@@ -412,7 +430,12 @@ export default function AgentCustomerAuth() {
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button 
+              type="submit" 
+              className="w-full text-white" 
+              style={buttonStyle}
+              disabled={loading}
+            >
               {loading ? 'Processando...' : (
                 authMode === 'login' ? 'Entrar' : 
                 accessType === 'private' ? 'Solicitar Acesso' : 

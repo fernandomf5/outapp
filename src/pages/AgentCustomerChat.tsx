@@ -715,12 +715,15 @@ export default function AgentCustomerChat() {
     }
   };
 
+  const primaryColor = agentInfo?.config?.primaryColor || '#6366f1';
+  const secondaryColor = agentInfo?.config?.secondaryColor || '#8b5cf6';
+
   return (
-    <div className="min-h-dvh gradient-primary">
+    <div className="min-h-dvh" style={{ background: `linear-gradient(135deg, ${primaryColor}20, ${secondaryColor}20)` }}>
       <div className="container mx-auto max-w-4xl h-dvh flex flex-col p-4">
         <Card className="flex-1 flex flex-col relative">
           {/* Header fixo */}
-          <div className="sticky top-0 z-10 bg-card p-4 border-b flex items-center justify-between">
+          <div className="sticky top-0 z-10 p-4 border-b flex items-center justify-between" style={{ backgroundColor: primaryColor, color: 'white' }}>
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <h2 className="text-xl font-bold">{agentInfo?.name || 'Atendimento'}</h2>
@@ -743,7 +746,7 @@ export default function AgentCustomerChat() {
                    attendantStatus === 'busy' ? 'Em Atendimento' : 'Atendente Offline'}
                 </Badge>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm opacity-80">
                 Olá, {customer?.name}!
                 {attendantName && attendantStatus !== 'offline' && (
                   <span className="ml-1">• Atendido por {attendantName}</span>
@@ -814,11 +817,11 @@ export default function AgentCustomerChat() {
                     {message.role === 'customer' ? customer?.name : (message.sender_name || agentInfo?.name)}
                   </span>
                   <div
-                    className={`max-w-[85%] sm:max-w-[70%] rounded-lg p-3 ${
-                      message.role === 'customer'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-card text-foreground'
-                    }`}
+                    className="max-w-[85%] sm:max-w-[70%] rounded-lg p-3"
+                    style={message.role === 'customer' 
+                      ? { backgroundColor: primaryColor, color: 'white' }
+                      : { backgroundColor: 'hsl(var(--muted))', color: 'hsl(var(--foreground))' }
+                    }
                   >
                     {message.media_url && message.media_type === 'image' && (
                       <img 
