@@ -82,7 +82,7 @@ serve(async (req) => {
         failure: `https://outapp.com.br/dashboard?tab=meu-plano&payment=failure`,
         pending: `https://outapp.com.br/dashboard?tab=meu-plano&payment=pending`,
       },
-      auto_return: 'approved',
+      auto_return: 'all',
       notification_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/mercadopago-webhook`,
       external_reference: `${user.id}|${planId}`,
       metadata: {
