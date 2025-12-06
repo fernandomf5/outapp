@@ -33,7 +33,7 @@ export const VoucherRedemption = () => {
       // Buscar voucher
       const { data: voucher, error: voucherError } = await supabase
         .from('vouchers')
-        .select('*, plans(*)')
+        .select('*, plans(*), is_expired_trial')
         .eq('code', normalizedCode)
         .eq('is_active', true)
         .maybeSingle();
