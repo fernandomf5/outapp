@@ -78,9 +78,9 @@ serve(async (req) => {
         name: profile?.full_name || user.email,
       },
       back_urls: {
-        success: `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.lovable.app')}/dashboard?tab=myplan&payment=success`,
-        failure: `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.lovable.app')}/dashboard?tab=myplan&payment=failure`,
-        pending: `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.lovable.app')}/dashboard?tab=myplan&payment=pending`,
+        success: `https://outapp.com.br/dashboard?tab=myplan&payment=success&plan_type=${plan.plan_type}&plan_name=${encodeURIComponent(plan.name)}`,
+        failure: `https://outapp.com.br/dashboard?tab=myplan&payment=failure`,
+        pending: `https://outapp.com.br/dashboard?tab=myplan&payment=pending`,
       },
       auto_return: 'approved',
       notification_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/mercadopago-webhook`,

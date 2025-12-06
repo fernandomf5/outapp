@@ -127,12 +127,52 @@ export const MyPlanSection = () => {
 
     // Verificar status de pagamento
     const paymentStatus = searchParams.get('payment');
+    const planType = searchParams.get('plan_type');
+    const planName = searchParams.get('plan_name');
+    
     if (paymentStatus) {
       if (paymentStatus === 'success') {
+        // Determinar o tipo do plano para a mensagem
+        let planLabel = 'seu plano';
+        if (planType === 'monthly') {
+          planLabel = 'Mensal';
+        } else if (planType === 'annual') {
+          planLabel = 'Anual';
+        } else if (planType === 'lifetime') {
+          planLabel = 'Vitalício';
+        } else if (planName) {
+          planLabel = decodeURIComponent(planName);
+        }
+        
         toast({
-          title: "Pagamento aprovado!",
-          description: "Sua assinatura foi ativada com sucesso.",
+          title: "🎉 Parabéns!",
+          description: `Você assinou o plano ${planLabel} com sucesso! Aproveite todos os recursos.`,
         });
+        
+        // Recarregar dados da assinatura
+        const fetchNewSubscription = async () => {
+          const { data: subData } = await supabase
+            .from('subscriptions')
+            .select('*')
+            .eq('user_id', user?.id)
+            .eq('status', 'active')
+            .single();
+
+          if (subData) {
+            setSubscription(subData);
+            const { data: planData } = await supabase
+              .from('plans')
+              .select('*')
+              .eq('id', subData.plan_id)
+              .single();
+
+            if (planData) {
+              setCurrentPlan(planData);
+            }
+          }
+        };
+        
+        fetchNewSubscription();
       } else if (paymentStatus === 'failure') {
         toast({
           title: "Pagamento não concluído",
@@ -146,8 +186,10 @@ export const MyPlanSection = () => {
         });
       }
       
-      // Remove the payment param from URL
+      // Remove the payment params from URL
       searchParams.delete('payment');
+      searchParams.delete('plan_type');
+      searchParams.delete('plan_name');
       setSearchParams(searchParams, { replace: true });
     }
   }, [searchParams, setSearchParams, toast]);

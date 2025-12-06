@@ -5347,6 +5347,8 @@ export type Database = {
           created_at: string
           expires_at: string
           id: string
+          payment_id: string | null
+          payment_method: string | null
           plan_id: string
           started_at: string
           status: Database["public"]["Enums"]["subscription_status"]
@@ -5357,6 +5359,8 @@ export type Database = {
           created_at?: string
           expires_at: string
           id?: string
+          payment_id?: string | null
+          payment_method?: string | null
           plan_id: string
           started_at?: string
           status?: Database["public"]["Enums"]["subscription_status"]
@@ -5367,6 +5371,8 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
+          payment_id?: string | null
+          payment_method?: string | null
           plan_id?: string
           started_at?: string
           status?: Database["public"]["Enums"]["subscription_status"]
