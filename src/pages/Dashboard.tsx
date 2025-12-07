@@ -373,65 +373,68 @@ const Dashboard = () => {
         
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <header className="bg-card border-b border-border px-4 sm:px-6 py-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <SidebarTrigger />
-                <Link to="/dashboard" className="bg-primary/10 p-2 rounded-xl cursor-pointer hover:bg-primary/20 transition-smooth">
-                  <img src={currentLogo} alt="Out App" className="w-7 h-7 sm:w-8 sm:h-8" />
+          <header className="bg-card border-b border-border px-3 sm:px-6 py-3 sm:py-4 sticky top-0 z-40">
+            <div className="flex items-center justify-between gap-2">
+              {/* Left side - Sidebar trigger and logo */}
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                <SidebarTrigger className="shrink-0" />
+                <Link to="/dashboard" className="bg-primary/10 p-1.5 sm:p-2 rounded-lg sm:rounded-xl cursor-pointer hover:bg-primary/20 transition-smooth shrink-0">
+                  <img src={currentLogo} alt="Out App" className="w-6 h-6 sm:w-8 sm:h-8" />
                 </Link>
-                <div>
-                  <h1 className="text-xl sm:text-2xl font-bold">
-                    {t('hello')}, {userFullName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário'}! 👋
+                <div className="min-w-0">
+                  <h1 className="text-base sm:text-xl lg:text-2xl font-bold truncate">
+                    {t('hello')}, {(userFullName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário').split(' ')[0]}! 👋
                   </h1>
-                  <p className="text-xs sm:text-sm text-muted-foreground">{t('welcome_back')}</p>
+                  <p className="text-[10px] sm:text-xs lg:text-sm text-muted-foreground hidden sm:block">{t('welcome_back')}</p>
                 </div>
               </div>
               
-              <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+              {/* Right side - Actions */}
+              <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 shrink-0">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsCalculatorOpen(true)}
                   title="Calculadora"
+                  className="h-8 w-8 sm:h-9 sm:w-9"
                 >
-                  <Calculator className="w-5 h-5" />
+                  <Calculator className="w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>
                 <ConversationNotificationBell />
                 <NotificationBell />
                 <TicketNotificationBell />
-                <LanguageSelector />
-                <ThemeToggle />
-                  <Button 
-                    variant="outline" 
-                    onClick={() => navigate("/settings")} 
-                    className="flex-1 sm:flex-none" 
-                    size="sm"
-                  >
-                    <Settings className="w-4 h-4 sm:mr-2" />
-                    <span className="hidden sm:inline">{t('settings')}</span>
-                  </Button>
+                <div className="hidden md:flex items-center gap-2">
+                  <LanguageSelector />
+                  <ThemeToggle />
+                </div>
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate("/settings")} 
+                  size="icon"
+                  className="h-8 w-8 sm:h-9 sm:w-9"
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
                 <Button
                   onClick={handleLogout}
                   variant="ghost"
-                  className="flex-1 sm:flex-none"
-                  size="sm"
+                  size="icon"
+                  className="h-8 w-8 sm:h-9 sm:w-9"
                 >
-                  <LogOut className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">{t('logout')}</span>
+                  <LogOut className="w-4 h-4" />
                 </Button>
               </div>
             </div>
           </header>
 
           {/* Main Content */}
-          <main className="flex-1 overflow-auto px-4 sm:px-6 py-6 sm:py-8">
+          <main className="flex-1 overflow-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
         {/* Subscription Banner */}
         <SubscriptionBanner />
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
 
-          <TabsContent value="overview" className="space-y-6 sm:space-y-8">
+          <TabsContent value="overview" className="space-y-4 sm:space-y-6 lg:space-y-8">
         {/* Task Reminder */}
         <TaskReminder />
         
@@ -439,67 +442,67 @@ const Dashboard = () => {
         <QuickNotesPanel />
         
         {/* Stats Summary */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Chats</CardTitle>
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+        <div className="grid gap-2 sm:gap-3 lg:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+          <Card className="p-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-1 sm:pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium">Chats</CardTitle>
+              <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalAgents}</div>
+            <CardContent className="p-3 sm:p-4 pt-0">
+              <div className="text-xl sm:text-2xl font-bold">{stats.totalAgents}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Área de Membros</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+          <Card className="p-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-1 sm:pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium truncate">Membros</CardTitle>
+              <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalMembersAreas}</div>
+            <CardContent className="p-3 sm:p-4 pt-0">
+              <div className="text-xl sm:text-2xl font-bold">{stats.totalMembersAreas}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Links</CardTitle>
-              <Link2 className="h-4 w-4 text-muted-foreground" />
+          <Card className="p-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-1 sm:pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium">Links</CardTitle>
+              <Link2 className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalShortLinks}</div>
+            <CardContent className="p-3 sm:p-4 pt-0">
+              <div className="text-xl sm:text-2xl font-bold">{stats.totalShortLinks}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Briefings</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+          <Card className="p-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-1 sm:pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium">Briefings</CardTitle>
+              <FileText className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalBriefings}</div>
+            <CardContent className="p-3 sm:p-4 pt-0">
+              <div className="text-xl sm:text-2xl font-bold">{stats.totalBriefings}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Quiz</CardTitle>
-              <HelpCircle className="h-4 w-4 text-muted-foreground" />
+          <Card className="p-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-1 sm:pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium">Quiz</CardTitle>
+              <HelpCircle className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalQuizzes}</div>
+            <CardContent className="p-3 sm:p-4 pt-0">
+              <div className="text-xl sm:text-2xl font-bold">{stats.totalQuizzes}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Páginas</CardTitle>
-              <Copy className="h-4 w-4 text-muted-foreground" />
+          <Card className="p-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-1 sm:pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium">Páginas</CardTitle>
+              <Copy className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalClonedPages}</div>
+            <CardContent className="p-3 sm:p-4 pt-0">
+              <div className="text-xl sm:text-2xl font-bold">{stats.totalClonedPages}</div>
             </CardContent>
           </Card>
         </div>
 
         {/* All Resources Grid */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold">Todos os Recursos</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="space-y-3 sm:space-y-4">
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold">Todos os Recursos</h2>
+          <div className="grid gap-2 sm:gap-3 lg:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {/* Chat Online e Agente IA */}
             {hasFeature('ai_agent') && (
               <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("ai-agents")}>

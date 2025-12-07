@@ -110,18 +110,18 @@ export function UserSidebar() {
   ];
 
   return (
-    <Sidebar className={collapsed ? "w-14" : "w-60"} collapsible="icon">
-      <div className="flex items-center justify-center p-4 border-b border-border">
+    <Sidebar className={collapsed ? "w-14" : "w-56 sm:w-60"} collapsible="icon">
+      <div className="flex items-center justify-center p-3 sm:p-4 border-b border-border">
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <img src={currentLogo} alt="Out App" className="w-8 h-8" />
-          {!collapsed && <span className="font-bold text-lg">Out App</span>}
+          <img src={currentLogo} alt="Out App" className="w-7 h-7 sm:w-8 sm:h-8" />
+          {!collapsed && <span className="font-bold text-base sm:text-lg">Out App</span>}
         </Link>
       </div>
       
-      <ScrollArea className="flex-1">
-        <SidebarContent>
+      <ScrollArea className="flex-1 overflow-y-auto">
+        <SidebarContent className="p-1 sm:p-2">
           <SidebarGroup>
-            <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1">{t('main')}</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">{t('main')}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {mainItems.map((item) => (
@@ -129,18 +129,18 @@ export function UserSidebar() {
                       {item.title === "Blog" ? (
                         <SidebarMenuButton
                           onClick={() => window.open(item.path, '_blank')}
-                          className=""
+                          className="text-sm py-2"
                         >
-                          <item.icon className="h-4 w-4" />
-                          {!collapsed && <span>{item.title}</span>}
+                          <item.icon className="h-4 w-4 shrink-0" />
+                          {!collapsed && <span className="truncate">{item.title}</span>}
                         </SidebarMenuButton>
                       ) : (
                         <SidebarMenuButton
                           onClick={() => handleNavigation(item.path, item.tab)}
-                          className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                          className={`text-sm py-2 ${isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}`}
                         >
-                          <item.icon className="h-4 w-4" />
-                          {!collapsed && <span>{item.title}</span>}
+                          <item.icon className="h-4 w-4 shrink-0" />
+                          {!collapsed && <span className="truncate">{item.title}</span>}
                         </SidebarMenuButton>
                       )}
                   </SidebarMenuItem>
@@ -150,7 +150,7 @@ export function UserSidebar() {
           </SidebarGroup>
 
           <SidebarGroup>
-            <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1">Gestão</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">Gestão</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {managementItems.map((item) => {
@@ -159,10 +159,10 @@ export function UserSidebar() {
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         onClick={() => handleNavigation(item.path, item.tab)}
-                        className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                        className={`text-sm py-2 ${isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}`}
                       >
-                        <item.icon className="h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
+                        <item.icon className="h-4 w-4 shrink-0" />
+                        {!collapsed && <span className="truncate">{item.title}</span>}
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   );
@@ -172,17 +172,17 @@ export function UserSidebar() {
           </SidebarGroup>
 
           <SidebarGroup>
-            <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1">Leads</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">Leads</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {crmItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       onClick={() => handleNavigation(item.path, item.tab)}
-                      className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                      className={`text-sm py-2 ${isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}`}
                     >
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      {!collapsed && <span className="truncate">{item.title}</span>}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -191,7 +191,7 @@ export function UserSidebar() {
           </SidebarGroup>
 
           <SidebarGroup>
-            <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1">Recursos</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">Recursos</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <TooltipProvider delayDuration={300}>
@@ -203,10 +203,10 @@ export function UserSidebar() {
                           <TooltipTrigger asChild>
                             <SidebarMenuButton
                               onClick={() => handleNavigation(item.path, item.tab)}
-                              className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                              className={`text-sm py-2 ${isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}`}
                             >
-                              <item.icon className="h-4 w-4" />
-                              {!collapsed && <span>{item.title}</span>}
+                              <item.icon className="h-4 w-4 shrink-0" />
+                              {!collapsed && <span className="truncate">{item.title}</span>}
                             </SidebarMenuButton>
                           </TooltipTrigger>
                           {collapsed && (
@@ -224,7 +224,7 @@ export function UserSidebar() {
           </SidebarGroup>
 
           <SidebarGroup>
-            <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1">Recursos Avançados</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">Avançados</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <TooltipProvider delayDuration={300}>
@@ -236,10 +236,10 @@ export function UserSidebar() {
                           <TooltipTrigger asChild>
                             <SidebarMenuButton
                               onClick={() => handleNavigation(item.path, item.tab)}
-                              className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                              className={`text-sm py-2 ${isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}`}
                             >
-                              <item.icon className="h-4 w-4" />
-                              {!collapsed && <span>{item.title}</span>}
+                              <item.icon className="h-4 w-4 shrink-0" />
+                              {!collapsed && <span className="truncate">{item.title}</span>}
                             </SidebarMenuButton>
                           </TooltipTrigger>
                           {collapsed && (
@@ -257,7 +257,7 @@ export function UserSidebar() {
           </SidebarGroup>
 
           <SidebarGroup>
-            <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1">{t('support')}</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">{t('support')}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {supportItems.map((item) => {
@@ -266,10 +266,10 @@ export function UserSidebar() {
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         onClick={() => handleNavigation(item.path, item.tab)}
-                        className={isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}
+                        className={`text-sm py-2 ${isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}`}
                       >
-                        <item.icon className="h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
+                        <item.icon className="h-4 w-4 shrink-0" />
+                        {!collapsed && <span className="truncate">{item.title}</span>}
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   );
