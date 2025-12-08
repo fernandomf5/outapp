@@ -526,57 +526,57 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background safe-area-inset">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
-        <div className="container mx-auto px-6 sm:px-8 py-3 sm:py-4">
+        <div className="container mx-auto px-3 xs:px-4 sm:px-6 md:px-8 lg:px-10 py-2 xs:py-3 sm:py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3">
               {(logoLightUrl || logoDarkUrl) ? (
                 <img 
                   src={theme === 'dark' ? (logoDarkUrl || logoUrl) : (logoLightUrl || logoUrl)} 
                   alt={siteTitle || "Logo"} 
-                  className="h-8 sm:h-10 w-auto object-contain"
+                  className="h-6 xs:h-7 sm:h-8 md:h-10 lg:h-12 3xl:h-14 w-auto object-contain"
                 />
               ) : logoUrl ? (
                 <img 
                   src={logoUrl} 
                   alt={siteTitle || "Logo"} 
-                  className="h-8 sm:h-10 w-auto object-contain"
+                  className="h-6 xs:h-7 sm:h-8 md:h-10 lg:h-12 3xl:h-14 w-auto object-contain"
                 />
               ) : (
-                <img src={outAppLogo} alt="Out App" className="h-8 sm:h-10 w-auto" />
+                <img src={outAppLogo} alt="Out App" className="h-6 xs:h-7 sm:h-8 md:h-10 lg:h-12 3xl:h-14 w-auto" />
               )}
               {siteTitle && (
-                <span className="text-base sm:text-lg md:text-xl font-bold">
+                <span className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl font-bold truncate max-w-[100px] xs:max-w-[120px] sm:max-w-none">
                   {siteTitle}
                 </span>
               )}
             </div>
             
             {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-6">
-              <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
+            <nav className="hidden lg:flex items-center gap-3 xl:gap-4 2xl:gap-6 3xl:gap-8">
+              <a href="#" className="text-xs xl:text-sm 2xl:text-base 3xl:text-lg text-muted-foreground hover:text-foreground transition-smooth">
                 {t('home')}
               </a>
-              <a href="#recursos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
+              <a href="#recursos" className="text-xs xl:text-sm 2xl:text-base 3xl:text-lg text-muted-foreground hover:text-foreground transition-smooth">
                 {t('features')}
               </a>
-              <a href="#planos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
+              <a href="#planos" className="text-xs xl:text-sm 2xl:text-base 3xl:text-lg text-muted-foreground hover:text-foreground transition-smooth">
                 {t('pricing')}
               </a>
-              <a href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
+              <a href="/blog" className="text-xs xl:text-sm 2xl:text-base 3xl:text-lg text-muted-foreground hover:text-foreground transition-smooth">
                 Blog
               </a>
-              <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
+              <a href="#faq" className="text-xs xl:text-sm 2xl:text-base 3xl:text-lg text-muted-foreground hover:text-foreground transition-smooth">
                 {t('faq')}
               </a>
               {headerPages.map((page) => (
                 <Link
                   key={page.id}
                   to={`/${page.slug}`}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-smooth"
+                  className="text-xs xl:text-sm 2xl:text-base 3xl:text-lg text-muted-foreground hover:text-foreground transition-smooth"
                 >
                   {page.title}
                 </Link>
@@ -584,10 +584,10 @@ const Index = () => {
               <SocialLinks links={socialLinks} />
               <ThemeToggle />
               <LanguageSelector />
-              <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} className="active:scale-95 transition-transform">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} className="active:scale-95 transition-transform text-xs xl:text-sm 2xl:text-base">
                 {t('login')}
               </Button>
-              <Button size="sm" onClick={() => navigate("/auth")} className="gradient-primary shadow-glow active:scale-95 transition-transform">
+              <Button size="sm" onClick={() => navigate("/auth")} className="gradient-primary shadow-glow active:scale-95 transition-transform text-xs xl:text-sm 2xl:text-base">
                 {t('start_free')}
               </Button>
             </nav>
@@ -599,55 +599,55 @@ const Index = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-24 sm:pt-28 md:pt-32 pb-16 sm:pb-20 md:pb-24 px-4 sm:px-6 md:px-8 gradient-primary relative overflow-hidden">
+      <section className="pt-16 xs:pt-20 sm:pt-24 md:pt-28 lg:pt-32 3xl:pt-40 pb-10 xs:pb-12 sm:pb-16 md:pb-20 lg:pb-24 3xl:pb-32 px-3 xs:px-4 sm:px-6 md:px-8 lg:px-10 gradient-primary relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-48 sm:w-64 h-48 sm:h-64 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-10 w-64 sm:w-96 h-64 sm:h-96 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute top-20 left-10 w-32 xs:w-40 sm:w-48 md:w-64 lg:w-80 3xl:w-96 h-32 xs:h-40 sm:h-48 md:h-64 lg:h-80 3xl:h-96 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-10 w-40 xs:w-56 sm:w-64 md:w-80 lg:w-96 3xl:w-[500px] h-40 xs:h-56 sm:h-64 md:h-80 lg:h-96 3xl:h-[500px] bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         </div>
         
-        <div className="container mx-auto text-center text-white relative z-10 max-w-5xl">
-          <div className="inline-block mb-6 sm:mb-8">
-            <img src={heroIcon} alt="Out App" className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40" />
+        <div className="container mx-auto text-center text-white relative z-10 max-w-5xl 3xl:max-w-7xl">
+          <div className="inline-block mb-4 xs:mb-5 sm:mb-6 md:mb-8 lg:mb-10">
+            <img src={heroIcon} alt="Out App" className="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 3xl:w-52 3xl:h-52" />
           </div>
           
           <h1 
-            className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 sm:mb-8 animate-fade-in leading-tight px-8 sm:px-12 md:px-16"
+            className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl 3xl:text-8xl font-bold mb-4 xs:mb-5 sm:mb-6 md:mb-8 animate-fade-in leading-tight px-2 xs:px-4 sm:px-8 md:px-12 lg:px-16"
             dangerouslySetInnerHTML={{ __html: landingSettings.landing_title }}
           />
           
-          <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-8 sm:mb-10 text-white/90 max-w-3xl mx-auto animate-fade-in leading-relaxed px-2">
+          <p className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl mb-5 xs:mb-6 sm:mb-8 md:mb-10 text-white/90 max-w-3xl 3xl:max-w-5xl mx-auto animate-fade-in leading-relaxed px-2">
             {landingSettings.hero_subtitle}
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 justify-center animate-scale-in max-w-md sm:max-w-none mx-auto px-2">
+          <div className="flex flex-col sm:flex-row gap-3 xs:gap-4 sm:gap-5 justify-center animate-scale-in max-w-md sm:max-w-none mx-auto px-2">
             <Button 
               size="lg" 
               onClick={() => navigate("/auth")}
-              className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 shadow-glow text-base sm:text-lg md:text-xl px-8 sm:px-10 py-6 sm:py-7 active:scale-95 transition-transform font-semibold"
+              className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 shadow-glow text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl px-5 xs:px-6 sm:px-8 md:px-10 py-4 xs:py-5 sm:py-6 md:py-7 lg:py-8 active:scale-95 transition-transform font-semibold"
             >
               {landingSettings.hero_cta_text}
             </Button>
             <Button 
               size="lg" 
               variant="outline"
-              className="w-full sm:w-auto bg-transparent border-white text-white hover:bg-white hover:text-primary text-base sm:text-lg md:text-xl px-8 sm:px-10 py-6 sm:py-7 active:scale-95 transition-all font-semibold"
+              className="w-full sm:w-auto bg-transparent border-white text-white hover:bg-white hover:text-primary text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl px-5 xs:px-6 sm:px-8 md:px-10 py-4 xs:py-5 sm:py-6 md:py-7 lg:py-8 active:scale-95 transition-all font-semibold"
               onClick={() => document.getElementById('recursos')?.scrollIntoView({ behavior: 'smooth' })}
             >
               Ver Recursos
             </Button>
           </div>
           
-          <div className="mt-8 sm:mt-10 md:mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 md:gap-8 text-sm sm:text-base px-2">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+          <div className="mt-5 xs:mt-6 sm:mt-8 md:mt-10 lg:mt-12 flex flex-col sm:flex-row items-center justify-center gap-3 xs:gap-4 sm:gap-6 md:gap-8 text-xs xs:text-sm sm:text-base lg:text-lg 3xl:text-xl px-2">
+            <div className="flex items-center gap-1.5 xs:gap-2">
+              <CheckCircle2 className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 flex-shrink-0" />
               <span className="font-medium">3 dias grátis</span>
             </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+            <div className="flex items-center gap-1.5 xs:gap-2">
+              <CheckCircle2 className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 flex-shrink-0" />
               <span className="font-medium">Sem cartão</span>
             </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+            <div className="flex items-center gap-1.5 xs:gap-2">
+              <CheckCircle2 className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 flex-shrink-0" />
               <span className="font-medium">Cancele quando quiser</span>
             </div>
           </div>
@@ -656,13 +656,13 @@ const Index = () => {
 
       {/* Video Section */}
       {videoUrl && (
-        <section className="py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-8 bg-muted/30">
-          <div className="container mx-auto max-w-full sm:max-w-6xl lg:max-w-7xl">
-            <div className="text-center mb-10 sm:mb-12 md:mb-16 px-2">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-5 md:mb-6 leading-tight">
+        <section className="py-10 xs:py-12 sm:py-16 md:py-20 lg:py-24 3xl:py-32 px-3 xs:px-4 sm:px-6 md:px-8 bg-muted/30">
+          <div className="container mx-auto max-w-full sm:max-w-6xl lg:max-w-7xl 3xl:max-w-[2000px]">
+            <div className="text-center mb-6 xs:mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-2">
+              <h2 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl 3xl:text-6xl font-bold mb-3 xs:mb-4 sm:mb-5 md:mb-6 leading-tight">
                 {landingSettings.video_section_title}
               </h2>
-              <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              <p className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl text-muted-foreground max-w-3xl 3xl:max-w-5xl mx-auto leading-relaxed">
                 {landingSettings.video_section_subtitle}
               </p>
             </div>
@@ -673,31 +673,31 @@ const Index = () => {
       )}
 
       {/* Features Section */}
-      <section id="recursos" className="py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-8 bg-background">
-        <div className="container mx-auto max-w-full sm:max-w-7xl">
-          <div className="text-center mb-12 sm:mb-16 md:mb-20 px-2">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-5 md:mb-6 leading-tight">
+      <section id="recursos" className="py-10 xs:py-12 sm:py-16 md:py-20 lg:py-24 3xl:py-32 px-3 xs:px-4 sm:px-6 md:px-8 bg-background">
+        <div className="container mx-auto max-w-full sm:max-w-7xl 3xl:max-w-[2000px]">
+          <div className="text-center mb-8 xs:mb-10 sm:mb-12 md:mb-16 lg:mb-20 px-2">
+            <h2 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 3xl:text-7xl font-bold mb-3 xs:mb-4 sm:mb-5 md:mb-6 leading-tight">
               {landingSettings.features_title}
             </h2>
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            <p className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl text-muted-foreground max-w-3xl 3xl:max-w-5xl mx-auto leading-relaxed">
               {landingSettings.features_subtitle}
             </p>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-7 md:gap-8 max-w-5xl lg:max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4 gap-4 xs:gap-5 sm:gap-6 md:gap-7 lg:gap-8 max-w-5xl lg:max-w-7xl 3xl:max-w-[2200px] mx-auto">
             {features.map((feature, index) => {
               const Icon = getIconComponent(feature.icon);
               return (
                 <div
                   key={feature.id || index}
-                  className="bg-card p-7 sm:p-8 md:p-10 rounded-2xl border border-border hover:shadow-xl transition-smooth hover-scale"
+                  className="bg-card p-4 xs:p-5 sm:p-6 md:p-7 lg:p-8 xl:p-10 3xl:p-12 rounded-xl sm:rounded-2xl border border-border hover:shadow-xl transition-smooth hover-scale"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <div className="bg-primary/10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 rounded-xl md:rounded-2xl flex items-center justify-center mb-5 sm:mb-6 md:mb-7">
-                    <Icon className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 text-primary" />
+                  <div className="bg-primary/10 w-10 h-10 xs:w-12 xs:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-18 lg:h-18 3xl:w-20 3xl:h-20 rounded-lg sm:rounded-xl md:rounded-2xl flex items-center justify-center mb-3 xs:mb-4 sm:mb-5 md:mb-6 lg:mb-7">
+                    <Icon className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 3xl:w-10 3xl:h-10 text-primary" />
                   </div>
-                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4 leading-tight">{feature.title}</h3>
-                  <p className="text-sm sm:text-base md:text-lg text-muted-foreground leading-relaxed">{feature.description}</p>
+                  <h3 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl font-bold mb-2 xs:mb-3 sm:mb-4 leading-tight">{feature.title}</h3>
+                  <p className="text-xs xs:text-sm sm:text-base md:text-lg 3xl:text-xl text-muted-foreground leading-relaxed">{feature.description}</p>
                 </div>
               );
             })}
@@ -706,18 +706,18 @@ const Index = () => {
       </section>
 
       {/* Pricing Section */}
-      <section id="planos" className="py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-8 bg-muted/30">
-        <div className="container mx-auto max-w-full sm:max-w-7xl">
-          <div className="text-center mb-12 sm:mb-16 md:mb-20 px-2">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-5 md:mb-6 leading-tight">
+      <section id="planos" className="py-10 xs:py-12 sm:py-16 md:py-20 lg:py-24 3xl:py-32 px-3 xs:px-4 sm:px-6 md:px-8 bg-muted/30">
+        <div className="container mx-auto max-w-full sm:max-w-7xl 3xl:max-w-[2000px]">
+          <div className="text-center mb-8 xs:mb-10 sm:mb-12 md:mb-16 lg:mb-20 px-2">
+            <h2 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 3xl:text-7xl font-bold mb-3 xs:mb-4 sm:mb-5 md:mb-6 leading-tight">
               {landingSettings.pricing_title}
             </h2>
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            <p className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl text-muted-foreground max-w-3xl 3xl:max-w-5xl mx-auto leading-relaxed">
               {landingSettings.pricing_subtitle}
             </p>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-7 md:gap-8 lg:gap-10 max-w-5xl lg:max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4 gap-4 xs:gap-5 sm:gap-6 md:gap-7 lg:gap-8 xl:gap-10 max-w-5xl lg:max-w-7xl 3xl:max-w-[2200px] mx-auto">
             {plans.map((plan) => {
               const isPopular = plan.plan_type === 'monthly' && plan.price > 50 && plan.price < 150;
               const features = Array.isArray(plan.features) ? plan.features : [];
@@ -726,22 +726,22 @@ const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Da
               return (
                 <div
                   key={plan.id}
-                  className={`bg-card p-7 sm:p-8 md:p-10 rounded-2xl border-2 transition-smooth hover-scale ${
+                  className={`bg-card p-4 xs:p-5 sm:p-6 md:p-7 lg:p-8 xl:p-10 3xl:p-12 rounded-xl sm:rounded-2xl border-2 transition-smooth hover-scale ${
                     isPopular 
                       ? 'border-primary shadow-glow relative' 
                       : 'border-border'
                   }`}
                 >
                   {isPopular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1.5 rounded-full text-sm font-semibold">
+                    <div className="absolute -top-2.5 xs:-top-3 left-1/2 -translate-x-1/2 bg-primary text-white px-3 xs:px-4 py-1 xs:py-1.5 rounded-full text-xs xs:text-sm font-semibold">
                       Mais Popular
                     </div>
                   )}
                   
                   {isOfferActive && (
-                    <div className="mb-5 p-4 bg-destructive/10 border border-destructive/20 rounded-xl text-center">
+                    <div className="mb-3 xs:mb-4 sm:mb-5 p-2 xs:p-3 sm:p-4 bg-destructive/10 border border-destructive/20 rounded-lg sm:rounded-xl text-center">
                       {plan.limited_offer_banner && (
-                        <p className="text-base font-semibold text-destructive mb-2">
+                        <p className="text-xs xs:text-sm sm:text-base font-semibold text-destructive mb-1 xs:mb-2">
                           {plan.limited_offer_banner}
                         </p>
                       )}
@@ -759,27 +759,27 @@ const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Da
                     </div>
                   )}
                   
-                  <div className="mb-6 sm:mb-7">
-                    <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3">{plan.name}</h3>
-                    <p className="text-muted-foreground text-sm sm:text-base">{plan.description}</p>
+                  <div className="mb-4 xs:mb-5 sm:mb-6 lg:mb-7">
+                    <h3 className="text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl 3xl:text-4xl font-bold mb-2 xs:mb-3">{plan.name}</h3>
+                    <p className="text-muted-foreground text-xs xs:text-sm sm:text-base lg:text-lg">{plan.description}</p>
                   </div>
                   
-                  <div className="mb-6 sm:mb-8 md:mb-10">
-                    <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold">
+                  <div className="mb-4 xs:mb-5 sm:mb-6 md:mb-8 lg:mb-10">
+                    <span className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl 3xl:text-7xl font-bold">
                       {plan.price === 0 ? 'Grátis' : `R$ ${plan.price}`}
                     </span>
                     {plan.price > 0 && (
-                      <span className="text-sm sm:text-base md:text-lg text-muted-foreground">
+                      <span className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground">
                         /{plan.plan_type === 'monthly' ? 'mês' : plan.plan_type === 'annual' ? 'ano' : plan.plan_type === 'lifetime' ? 'vitalício' : plan.duration_days + ' dias'}
                       </span>
                     )}
                   </div>
                   
-                  <ul className="space-y-3 sm:space-y-4">
+                  <ul className="space-y-2 xs:space-y-3 sm:space-y-4">
                     {features.map((feature: string, featureIndex: number) => (
-                      <li key={featureIndex} className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-primary flex-shrink-0 mt-0.5" />
-                        <span className="text-sm sm:text-base">{feature}</span>
+                      <li key={featureIndex} className="flex items-start gap-2 xs:gap-3">
+                        <CheckCircle2 className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-primary flex-shrink-0 mt-0.5" />
+                        <span className="text-xs xs:text-sm sm:text-base lg:text-lg">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -788,14 +788,14 @@ const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Da
             })}
           </div>
           
-          <div className="text-center mt-10 sm:mt-12 md:mt-16 px-2">
-            <p className="text-base sm:text-lg text-muted-foreground mb-5 leading-relaxed">
+          <div className="text-center mt-6 xs:mt-8 sm:mt-10 md:mt-12 lg:mt-16 px-2">
+            <p className="text-xs xs:text-sm sm:text-base md:text-lg text-muted-foreground mb-3 xs:mb-4 sm:mb-5 leading-relaxed">
               Teste todas as funcionalidades por 3 dias sem compromisso. Sem cartão de crédito.
             </p>
             <Button 
               size="lg"
               onClick={() => navigate("/auth")}
-              className="gradient-primary shadow-glow text-base sm:text-lg md:text-xl px-8 sm:px-10 md:px-14 py-6 sm:py-7 md:py-8 active:scale-95 transition-transform w-full sm:w-auto max-w-md font-semibold"
+              className="gradient-primary shadow-glow text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl px-5 xs:px-6 sm:px-8 md:px-10 lg:px-14 py-4 xs:py-5 sm:py-6 md:py-7 lg:py-8 active:scale-95 transition-transform w-full sm:w-auto max-w-md font-semibold"
             >
               Começar Teste Grátis - 3 Dias 🚀
             </Button>
@@ -807,23 +807,23 @@ const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Da
       <FAQSection hideSupportCTA />
 
       {/* CTA Section */}
-      <section className="py-10 sm:py-16 md:py-20 px-6 sm:px-8 gradient-primary relative overflow-hidden">
+      <section className="py-8 xs:py-10 sm:py-12 md:py-16 lg:py-20 3xl:py-28 px-3 xs:px-4 sm:px-6 md:px-8 gradient-primary relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-10 right-10 w-48 sm:w-64 h-48 sm:h-64 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-10 left-10 w-64 sm:w-96 h-64 sm:h-96 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute top-10 right-10 w-32 xs:w-40 sm:w-48 md:w-64 lg:w-80 h-32 xs:h-40 sm:h-48 md:h-64 lg:h-80 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-10 left-10 w-40 xs:w-56 sm:w-64 md:w-80 lg:w-96 h-40 xs:h-56 sm:h-64 md:h-80 lg:h-96 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         </div>
         
-        <div className="container mx-auto text-center text-white relative z-10 max-w-4xl">
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 md:mb-6">
+        <div className="container mx-auto text-center text-white relative z-10 max-w-4xl 3xl:max-w-6xl">
+          <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 3xl:text-6xl font-bold mb-2 xs:mb-3 sm:mb-4 md:mb-6">
             {landingSettings.cta_title}
           </h2>
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-5 sm:mb-6 md:mb-8 text-white/90 max-w-2xl mx-auto">
+          <p className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl 3xl:text-2xl mb-4 xs:mb-5 sm:mb-6 md:mb-8 text-white/90 max-w-2xl 3xl:max-w-4xl mx-auto">
             {landingSettings.cta_subtitle}
           </p>
           <Button 
             size="lg"
             onClick={() => navigate("/auth")}
-            className="w-full sm:w-auto max-w-md bg-white text-primary hover:bg-white/90 shadow-glow text-sm sm:text-base md:text-lg px-6 sm:px-8 py-5 sm:py-6 active:scale-95 transition-transform"
+            className="w-full sm:w-auto max-w-md bg-white text-primary hover:bg-white/90 shadow-glow text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl px-4 xs:px-5 sm:px-6 md:px-8 py-3 xs:py-4 sm:py-5 md:py-6 active:scale-95 transition-transform"
           >
             {landingSettings.cta_button_text}
           </Button>
@@ -832,15 +832,15 @@ const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Da
 
       {/* Footer */}
       <footer className="bg-muted/50 border-t">
-        <div className="container mx-auto px-4 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <div className="space-y-4">
+        <div className="container mx-auto px-3 xs:px-4 sm:px-6 md:px-8 py-8 xs:py-10 sm:py-12 lg:py-16 3xl:py-20">
+          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 xs:gap-8 mb-6 xs:mb-8">
+            <div className="space-y-3 xs:space-y-4 xs:col-span-2 md:col-span-1">
               {logoUrl ? (
-                <img src={logoUrl} alt={siteTitle} className="h-12 w-auto mb-4" />
+                <img src={logoUrl} alt={siteTitle} className="h-8 xs:h-10 sm:h-12 lg:h-14 w-auto mb-3 xs:mb-4" />
               ) : (
-                <div className="flex items-center gap-2 mb-4">
-                  <img src={outAppLogo} alt="Out App" className="h-8 w-8" />
-                  <span className="font-bold text-xl">{siteTitle || "Out App"}</span>
+                <div className="flex items-center gap-2 mb-3 xs:mb-4">
+                  <img src={outAppLogo} alt="Out App" className="h-6 xs:h-7 sm:h-8 w-auto" />
+                  <span className="font-bold text-base xs:text-lg sm:text-xl lg:text-2xl">{siteTitle || "Out App"}</span>
                 </div>
               )}
               <SocialLinks links={socialLinks} variant="footer" />
@@ -848,13 +848,13 @@ const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Da
             
             {footerMenus.map((menu: any, index: number) => (
               <div key={index}>
-                <h4 className="font-semibold mb-4">{menu.title}</h4>
-                <ul className="space-y-2">
+                <h4 className="font-semibold mb-2 xs:mb-3 sm:mb-4 text-sm xs:text-base sm:text-lg">{menu.title}</h4>
+                <ul className="space-y-1.5 xs:space-y-2">
                   {menu.links?.map((link: any, linkIndex: number) => (
                     <li key={linkIndex}>
                       <a 
                         href={link.url} 
-                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        className="text-xs xs:text-sm sm:text-base text-muted-foreground hover:text-foreground transition-colors"
                       >
                         {link.text}
                       </a>
@@ -866,20 +866,20 @@ const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Da
           </div>
 
           {footerImages.length > 0 && (
-            <div className="flex items-center justify-center gap-8 py-6 border-t">
+            <div className="flex flex-wrap items-center justify-center gap-4 xs:gap-6 sm:gap-8 py-4 xs:py-5 sm:py-6 border-t">
               {footerImages.map((img, index) => (
                 <img 
                   key={index} 
                   src={img} 
                   alt={`Partner ${index + 1}`}
-                  className="h-12 w-auto opacity-70 hover:opacity-100 transition-opacity"
+                  className="h-8 xs:h-10 sm:h-12 w-auto opacity-70 hover:opacity-100 transition-opacity"
                 />
               ))}
             </div>
           )}
 
-          <div className="pt-8 border-t text-center">
-            <p className="text-sm text-muted-foreground">
+          <div className="pt-6 xs:pt-8 border-t text-center">
+            <p className="text-xs xs:text-sm sm:text-base text-muted-foreground">
               {footerText || `© ${new Date().getFullYear()} ${siteTitle || 'Automação'}. Todos os direitos reservados.`}
             </p>
           </div>
@@ -888,11 +888,11 @@ const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Da
 
       {/* Page Dialog */}
       <Dialog open={pageDialogOpen} onOpenChange={setPageDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto mx-2 xs:mx-4">
           <DialogHeader>
-            <DialogTitle className="text-2xl">{selectedPage?.title}</DialogTitle>
+            <DialogTitle className="text-lg xs:text-xl sm:text-2xl">{selectedPage?.title}</DialogTitle>
           </DialogHeader>
-          <div className="mt-6 text-base leading-relaxed whitespace-pre-wrap">
+          <div className="mt-4 xs:mt-6 text-sm xs:text-base leading-relaxed whitespace-pre-wrap">
             {selectedPage?.content}
           </div>
         </DialogContent>

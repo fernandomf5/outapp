@@ -568,3 +568,316 @@ All colors MUST be HSL.
 .animate-move-down {
   animation: move-down 8s linear infinite;
 }
+
+/* ========================================
+   RESPONSIVE UTILITIES
+   ======================================== */
+
+/* Touch-friendly tap targets */
+@media (pointer: coarse) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  button, a, [role="button"] {
+    min-height: 44px;
+  }
+}
+
+/* Safe area insets for mobile devices */
+.safe-area-inset {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Responsive text sizing using clamp */
+.text-responsive-xs {
+  font-size: clamp(0.625rem, 2vw, 0.75rem);
+}
+
+.text-responsive-sm {
+  font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+}
+
+.text-responsive-base {
+  font-size: clamp(0.875rem, 3vw, 1rem);
+}
+
+.text-responsive-lg {
+  font-size: clamp(1rem, 3.5vw, 1.125rem);
+}
+
+.text-responsive-xl {
+  font-size: clamp(1.125rem, 4vw, 1.25rem);
+}
+
+.text-responsive-2xl {
+  font-size: clamp(1.25rem, 4.5vw, 1.5rem);
+}
+
+.text-responsive-3xl {
+  font-size: clamp(1.5rem, 5vw, 1.875rem);
+}
+
+.text-responsive-4xl {
+  font-size: clamp(1.875rem, 6vw, 2.25rem);
+}
+
+.text-responsive-5xl {
+  font-size: clamp(2.25rem, 7vw, 3rem);
+}
+
+.text-responsive-hero {
+  font-size: clamp(1.75rem, 8vw, 4.5rem);
+  line-height: 1.1;
+}
+
+/* TV/Large screen optimizations */
+@media (min-width: 1920px) {
+  html {
+    font-size: 18px;
+  }
+  
+  .container {
+    max-width: 1600px;
+  }
+}
+
+@media (min-width: 2560px) {
+  html {
+    font-size: 20px;
+  }
+  
+  .container {
+    max-width: 2000px;
+  }
+}
+
+@media (min-width: 3840px) {
+  html {
+    font-size: 24px;
+  }
+  
+  .container {
+    max-width: 3000px;
+  }
+}
+
+/* Extra small devices (phones) */
+@media (max-width: 374px) {
+  html {
+    font-size: 14px;
+  }
+  
+  .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+/* Small phones */
+@media (min-width: 375px) and (max-width: 639px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+/* Tablet portrait */
+@media (min-width: 640px) and (max-width: 767px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+/* Tablet landscape / Small laptops */
+@media (min-width: 768px) and (max-width: 1023px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+/* Laptop screens */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+/* Desktop screens */
+@media (min-width: 1280px) and (max-width: 1535px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+/* Large desktop */
+@media (min-width: 1536px) and (max-width: 1919px) {
+  html {
+    font-size: 17px;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Hide scrollbar on mobile while maintaining scroll functionality */
+@media (max-width: 767px) {
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Responsive grid utilities */
+.grid-responsive-auto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .grid-responsive-auto {
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .grid-responsive-auto {
+    gap: 2rem;
+  }
+}
+
+/* Card responsive sizing */
+.card-responsive {
+  padding: 1rem;
+}
+
+@media (min-width: 640px) {
+  .card-responsive {
+    padding: 1.25rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .card-responsive {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .card-responsive {
+    padding: 2rem;
+  }
+}
+
+@media (min-width: 1920px) {
+  .card-responsive {
+    padding: 2.5rem;
+  }
+}
+
+/* Button responsive sizing */
+.btn-responsive {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .btn-responsive {
+    padding: 0.625rem 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .btn-responsive {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 1920px) {
+  .btn-responsive {
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+  }
+}
+
+/* Landscape mode fixes */
+@media (orientation: landscape) and (max-height: 500px) {
+  .landscape-compact {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  
+  .landscape-hide {
+    display: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* Focus visible for accessibility */
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border: 0 0% 20%;
+  }
+  
+  .dark {
+    --border: 0 0% 80%;
+  }
+}
