@@ -966,9 +966,24 @@ export function LinkBioCreator() {
                     }}
                   />
                   {musicUrl && (
-                    <p className="text-xs text-green-600">
-                      ✓ Música carregada com sucesso
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs text-green-600 flex-1">
+                        ✓ Música carregada com sucesso
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setMusicUrl("");
+                          setMusicAutoplay(false);
+                          toast({
+                            title: "Música removida",
+                          });
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
                   )}
                   <p className="text-xs text-muted-foreground">
                     Faça upload de um arquivo de áudio (.mp3, .wav, etc)
