@@ -37,6 +37,23 @@ import { Switch } from "@/components/ui/switch";
 import { AvatarUpload } from "@/components/AvatarUpload";
 import { HexColorPicker } from "react-colorful";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface LinkBio {
   id: string;
@@ -633,6 +650,116 @@ export function LinkBioCreator() {
     return <Icon className="w-4 h-4" />;
   };
 
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = links.findIndex((link) => link.id === active.id);
+      const newIndex = links.findIndex((link) => link.id === over.id);
+      
+      const newLinks = arrayMove(links, oldIndex, newIndex);
+      setLinks(newLinks);
+
+      // Update positions in database
+      const updates = newLinks.map((link, index) => ({
+        id: link.id,
+        position: index,
+      }));
+
+      for (const update of updates) {
+        await supabase
+          .from('link_bio_links')
+          .update({ position: update.position })
+          .eq('id', update.id);
+      }
+
+      toast({
+        title: "Ordem atualizada!",
+        description: "A ordem dos links foi salva",
+      });
+    }
+  };
+
+  // Sortable Link Item Component
+  const SortableLinkItem = ({ link }: { link: BioLink }) => {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id: link.id });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.5 : 1,
+      zIndex: isDragging ? 1000 : 1,
+    };
+
+    return (
+      <Card ref={setNodeRef} style={style} className="p-4">
+        <div className="flex items-center gap-3">
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing touch-none"
+          >
+            <GripVertical className="w-4 h-4 text-muted-foreground" />
+          </div>
+          {link.image_url ? (
+            <img src={link.image_url} alt={link.title} className="w-10 h-10 object-cover rounded" />
+          ) : (
+            <IconComponent iconName={link.icon} />
+          )}
+          <div className="flex-1">
+            <p className="font-medium">{link.title}</p>
+            <p className="text-sm text-muted-foreground truncate">{link.url}</p>
+            {link.image_url && (
+              <p className="text-xs text-muted-foreground">Com imagem</p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              {link.clicks} cliques
+            </span>
+            <Switch
+              checked={link.is_active}
+              onCheckedChange={() => toggleLinkActive(link.id, link.is_active)}
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => startEditLink(link)}
+            >
+              <Pencil className="w-4 h-4 text-muted-foreground" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => deleteLink(link.id)}
+            >
+              <Trash2 className="w-4 h-4 text-destructive" />
+            </Button>
+          </div>
+        </div>
+      </Card>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <Card className="p-6">
@@ -956,53 +1083,28 @@ export function LinkBioCreator() {
 
                 <div className="space-y-2">
                   <h3 className="font-semibold">Seus Links</h3>
+                  <p className="text-xs text-muted-foreground">Arraste para reorganizar a ordem dos links</p>
                   {links.length === 0 ? (
                     <p className="text-muted-foreground text-center py-8">
                       Nenhum link adicionado ainda
                     </p>
                   ) : (
-                    links.map((link) => (
-                      <Card key={link.id} className="p-4">
-                        <div className="flex items-center gap-3">
-                          <GripVertical className="w-4 h-4 text-muted-foreground cursor-move" />
-                          {link.image_url ? (
-                            <img src={link.image_url} alt={link.title} className="w-10 h-10 object-cover rounded" />
-                          ) : (
-                            <IconComponent iconName={link.icon} />
-                          )}
-                          <div className="flex-1">
-                            <p className="font-medium">{link.title}</p>
-                            <p className="text-sm text-muted-foreground truncate">{link.url}</p>
-                            {link.image_url && (
-                              <p className="text-xs text-muted-foreground">Com imagem</p>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">
-                              {link.clicks} cliques
-                            </span>
-                            <Switch
-                              checked={link.is_active}
-                              onCheckedChange={() => toggleLinkActive(link.id, link.is_active)}
-                            />
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => startEditLink(link)}
-                            >
-                              <Pencil className="w-4 h-4 text-muted-foreground" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => deleteLink(link.id)}
-                            >
-                              <Trash2 className="w-4 h-4 text-destructive" />
-                            </Button>
-                          </div>
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={links.map(link => link.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <div className="space-y-2">
+                          {links.map((link) => (
+                            <SortableLinkItem key={link.id} link={link} />
+                          ))}
                         </div>
-                      </Card>
-                    ))
+                      </SortableContext>
+                    </DndContext>
                   )}
                 </div>
 
