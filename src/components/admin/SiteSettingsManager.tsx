@@ -487,10 +487,20 @@ export const SiteSettingsManager = () => {
                       >
                         <option value="facebook">Facebook</option>
                         <option value="instagram">Instagram</option>
-                        <option value="twitter">Twitter/X</option>
+                        <option value="twitter">Twitter / X</option>
                         <option value="linkedin">LinkedIn</option>
                         <option value="youtube">YouTube</option>
+                        <option value="tiktok">TikTok</option>
                         <option value="whatsapp">WhatsApp</option>
+                        <option value="telegram">Telegram</option>
+                        <option value="pinterest">Pinterest</option>
+                        <option value="discord">Discord</option>
+                        <option value="twitch">Twitch</option>
+                        <option value="snapchat">Snapchat</option>
+                        <option value="reddit">Reddit</option>
+                        <option value="spotify">Spotify</option>
+                        <option value="threads">Threads</option>
+                        <option value="github">GitHub</option>
                         <option value="email">Email</option>
                         <option value="phone">Telefone</option>
                       </select>
