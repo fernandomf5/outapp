@@ -55,6 +55,11 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+interface SocialLink {
+  platform: string;
+  url: string;
+}
+
 interface LinkBio {
   id: string;
   username: string;
@@ -83,6 +88,7 @@ interface LinkBio {
   music_autoplay: boolean;
   background_overlay_color: string;
   background_overlay_opacity: number;
+  social_links: SocialLink[];
 }
 
 interface BioLink {
@@ -106,6 +112,18 @@ const iconOptions = [
   { value: 'email', label: 'Email', icon: Mail },
   { value: 'phone', label: 'Telefone', icon: Phone },
   { value: 'website', label: 'Website', icon: Globe },
+];
+
+const socialPlatforms = [
+  { value: 'instagram', label: 'Instagram', icon: Instagram, placeholder: 'https://instagram.com/seuuser' },
+  { value: 'facebook', label: 'Facebook', icon: Facebook, placeholder: 'https://facebook.com/suapagina' },
+  { value: 'twitter', label: 'Twitter/X', icon: Twitter, placeholder: 'https://twitter.com/seuuser' },
+  { value: 'youtube', label: 'YouTube', icon: Youtube, placeholder: 'https://youtube.com/@seucanal' },
+  { value: 'linkedin', label: 'LinkedIn', icon: Linkedin, placeholder: 'https://linkedin.com/in/seuperfil' },
+  { value: 'tiktok', label: 'TikTok', icon: Globe, placeholder: 'https://tiktok.com/@seuuser' },
+  { value: 'whatsapp', label: 'WhatsApp', icon: Phone, placeholder: 'https://wa.me/5511999999999' },
+  { value: 'email', label: 'Email', icon: Mail, placeholder: 'mailto:seu@email.com' },
+  { value: 'website', label: 'Website', icon: Globe, placeholder: 'https://seusite.com' },
 ];
 
 const themeOptions = [
@@ -150,7 +168,7 @@ export function LinkBioCreator() {
   const [musicAutoplay, setMusicAutoplay] = useState(false);
   const [backgroundOverlayColor, setBackgroundOverlayColor] = useState("#000000");
   const [backgroundOverlayOpacity, setBackgroundOverlayOpacity] = useState(0);
-  
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
   // New link states
   const [newLinkTitle, setNewLinkTitle] = useState("");
   const [newLinkUrl, setNewLinkUrl] = useState("");
@@ -200,6 +218,7 @@ export function LinkBioCreator() {
       setMusicAutoplay(selectedBio.music_autoplay || false);
       setBackgroundOverlayColor(selectedBio.background_overlay_color || '#000000');
       setBackgroundOverlayOpacity(selectedBio.background_overlay_opacity || 0);
+      setSocialLinks(selectedBio.social_links || []);
       fetchLinks(selectedBio.id);
     }
   }, [selectedBio]);
@@ -214,7 +233,11 @@ export function LinkBioCreator() {
       .order('created_at', { ascending: false });
 
     if (biosData && biosData.length > 0) {
-      setBios(biosData as LinkBio[]);
+      const parsedBios = biosData.map(bio => ({
+        ...bio,
+        social_links: Array.isArray(bio.social_links) ? bio.social_links as unknown as SocialLink[] : []
+      })) as LinkBio[];
+      setBios(parsedBios);
       if (!selectedBioId) {
         setSelectedBioId(biosData[0].id);
       }
@@ -258,6 +281,7 @@ export function LinkBioCreator() {
     setMusicAutoplay(false);
     setBackgroundOverlayColor("#000000");
     setBackgroundOverlayOpacity(0);
+    setSocialLinks([]);
     setLinks([]);
   };
 
@@ -319,6 +343,7 @@ export function LinkBioCreator() {
       music_autoplay: musicAutoplay,
       background_overlay_color: backgroundOverlayColor,
       background_overlay_opacity: backgroundOverlayOpacity,
+      social_links: socialLinks as unknown as any,
       is_active: true,
     };
 
@@ -1022,6 +1047,103 @@ export function LinkBioCreator() {
                   <Label>Tocar música automaticamente ao abrir a página</Label>
                 </div>
               )}
+
+              {/* Seção de Redes Sociais */}
+              <div className="space-y-3 p-4 border rounded-lg bg-accent/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Instagram className="w-5 h-5" />
+                      Redes Sociais
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      Adicione links das suas redes sociais que aparecerão abaixo da descrição
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  {socialLinks.map((social, index) => {
+                    const platform = socialPlatforms.find(p => p.value === social.platform);
+                    const Icon = platform?.icon || Globe;
+                    return (
+                      <div key={index} className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{platform?.label || social.platform}</p>
+                          <p className="text-xs text-muted-foreground truncate">{social.url}</p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const newSocials = socialLinks.filter((_, i) => i !== index);
+                            setSocialLinks(newSocials);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Select
+                    onValueChange={(value) => {
+                      if (!socialLinks.find(s => s.platform === value)) {
+                        setSocialLinks([...socialLinks, { platform: value, url: '' }]);
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Adicionar rede social..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {socialPlatforms
+                        .filter(p => !socialLinks.find(s => s.platform === p.value))
+                        .map((platform) => (
+                          <SelectItem key={platform.value} value={platform.value}>
+                            <div className="flex items-center gap-2">
+                              <platform.icon className="w-4 h-4" />
+                              {platform.label}
+                            </div>
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+
+                  {socialLinks.map((social, index) => {
+                    const platform = socialPlatforms.find(p => p.value === social.platform);
+                    if (!social.url && platform) {
+                      return (
+                        <div key={`input-${index}`} className="flex items-center gap-2">
+                          <Input
+                            placeholder={platform.placeholder}
+                            defaultValue={social.url}
+                            onBlur={(e) => {
+                              const newSocials = [...socialLinks];
+                              newSocials[index].url = e.target.value;
+                              setSocialLinks(newSocials);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                const input = e.target as HTMLInputElement;
+                                const newSocials = [...socialLinks];
+                                newSocials[index].url = input.value;
+                                setSocialLinks(newSocials);
+                              }
+                            }}
+                          />
+                        </div>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+              </div>
 
               <div className="p-4 bg-muted rounded-lg">
                 <p className="text-sm font-medium mb-1">🔗 Seu Link:</p>
@@ -1792,12 +1914,35 @@ export function LinkBioCreator() {
                           </h2>
                           {bioText && (
                             <p 
-                              className="text-center mb-6 max-w-md"
+                              className="text-center mb-3 max-w-md"
                               style={{ color: textColor }}
                             >
                               {bioText}
                             </p>
                           )}
+                          
+                          {/* Social Links Preview */}
+                          {socialLinks.filter(s => s.url).length > 0 && (
+                            <div className="flex items-center justify-center gap-2 mb-4 flex-wrap">
+                              {socialLinks.filter(s => s.url).map((social, index) => {
+                                const platform = socialPlatforms.find(p => p.value === social.platform);
+                                const Icon = platform?.icon || Globe;
+                                return (
+                                  <div
+                                    key={index}
+                                    className="w-8 h-8 rounded-full flex items-center justify-center"
+                                    style={{ 
+                                      backgroundColor: buttonColor,
+                                      color: buttonTextColor
+                                    }}
+                                  >
+                                    <Icon className="w-4 h-4" />
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                          
                           <div className="w-full max-w-md" style={{ display: 'flex', flexDirection: 'column', gap: `${buttonSpacing}px` }}>
                             {links.filter(l => l.is_active).slice(0, 3).map((link) => (
                               link.image_url ? (
