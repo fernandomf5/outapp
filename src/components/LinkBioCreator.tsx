@@ -959,8 +959,19 @@ export function LinkBioCreator() {
                           .getPublicUrl(fileName);
 
                         setMusicUrl(publicUrl);
+                        
+                        // Salvar automaticamente se já existe um bio
+                        if (selectedBio) {
+                          await supabase
+                            .from('link_bios')
+                            .update({ music_url: publicUrl })
+                            .eq('id', selectedBio.id);
+                          
+                          await fetchBios();
+                        }
+                        
                         toast({
-                          title: "Música enviada!",
+                          title: "Música atualizada!",
                         });
                       }
                     }}
@@ -973,9 +984,20 @@ export function LinkBioCreator() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => {
+                        onClick={async () => {
                           setMusicUrl("");
                           setMusicAutoplay(false);
+                          
+                          // Salvar remoção automaticamente se já existe um bio
+                          if (selectedBio) {
+                            await supabase
+                              .from('link_bios')
+                              .update({ music_url: "", music_autoplay: false })
+                              .eq('id', selectedBio.id);
+                            
+                            await fetchBios();
+                          }
+                          
                           toast({
                             title: "Música removida",
                           });
