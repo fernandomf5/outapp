@@ -114,13 +114,19 @@ const iconOptions = [
   { value: 'website', label: 'Website', icon: Globe },
 ];
 
+const TikTokIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+  </svg>
+);
+
 const socialPlatforms = [
   { value: 'instagram', label: 'Instagram', icon: Instagram, placeholder: 'https://instagram.com/seuuser' },
   { value: 'facebook', label: 'Facebook', icon: Facebook, placeholder: 'https://facebook.com/suapagina' },
   { value: 'twitter', label: 'Twitter/X', icon: Twitter, placeholder: 'https://twitter.com/seuuser' },
   { value: 'youtube', label: 'YouTube', icon: Youtube, placeholder: 'https://youtube.com/@seucanal' },
   { value: 'linkedin', label: 'LinkedIn', icon: Linkedin, placeholder: 'https://linkedin.com/in/seuperfil' },
-  { value: 'tiktok', label: 'TikTok', icon: Globe, placeholder: 'https://tiktok.com/@seuuser' },
+  { value: 'tiktok', label: 'TikTok', icon: TikTokIcon, placeholder: 'https://tiktok.com/@seuuser' },
   { value: 'whatsapp', label: 'WhatsApp', icon: Phone, placeholder: 'https://wa.me/5511999999999' },
   { value: 'email', label: 'Email', icon: Mail, placeholder: 'mailto:seu@email.com' },
   { value: 'website', label: 'Website', icon: Globe, placeholder: 'https://seusite.com' },
@@ -1063,13 +1069,14 @@ export function LinkBioCreator() {
                 </div>
 
                 <div className="space-y-2">
-                  {socialLinks.map((social, index) => {
+                  {socialLinks.filter(s => s.url).map((social, index) => {
                     const platform = socialPlatforms.find(p => p.value === social.platform);
                     const Icon = platform?.icon || Globe;
+                    const isSvgComponent = typeof Icon === 'function' && Icon.toString().includes('svg');
                     return (
                       <div key={index} className="flex items-center gap-2">
                         <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                          <Icon className="w-5 h-5" />
+                          {isSvgComponent ? <Icon /> : <Icon className="w-5 h-5" />}
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-medium">{platform?.label || social.platform}</p>
@@ -1091,52 +1098,72 @@ export function LinkBioCreator() {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <Select
-                    onValueChange={(value) => {
-                      if (!socialLinks.find(s => s.platform === value)) {
-                        setSocialLinks([...socialLinks, { platform: value, url: '' }]);
-                      }
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Adicionar rede social..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {socialPlatforms
-                        .filter(p => !socialLinks.find(s => s.platform === p.value))
-                        .map((platform) => (
-                          <SelectItem key={platform.value} value={platform.value}>
-                            <div className="flex items-center gap-2">
-                              <platform.icon className="w-4 h-4" />
-                              {platform.label}
-                            </div>
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    <Select
+                      value=""
+                      onValueChange={(value) => {
+                        if (value && !socialLinks.find(s => s.platform === value)) {
+                          setSocialLinks([...socialLinks, { platform: value, url: '' }]);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Selecionar rede social..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {socialPlatforms
+                          .filter(p => !socialLinks.find(s => s.platform === p.value))
+                          .map((platform) => {
+                            const Icon = platform.icon;
+                            return (
+                              <SelectItem key={platform.value} value={platform.value}>
+                                <div className="flex items-center gap-2">
+                                  {typeof Icon === 'function' && Icon.toString().includes('svg') ? (
+                                    <Icon />
+                                  ) : (
+                                    <Icon className="w-4 h-4" />
+                                  )}
+                                  {platform.label}
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
                   {socialLinks.map((social, index) => {
                     const platform = socialPlatforms.find(p => p.value === social.platform);
                     if (!social.url && platform) {
+                      const Icon = platform.icon;
                       return (
                         <div key={`input-${index}`} className="flex items-center gap-2">
+                          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                            {typeof Icon === 'function' && Icon.toString().includes('svg') ? (
+                              <Icon />
+                            ) : (
+                              <Icon className="w-5 h-5" />
+                            )}
+                          </div>
                           <Input
                             placeholder={platform.placeholder}
                             defaultValue={social.url}
-                            onBlur={(e) => {
-                              const newSocials = [...socialLinks];
-                              newSocials[index].url = e.target.value;
-                              setSocialLinks(newSocials);
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                const input = e.target as HTMLInputElement;
+                            className="flex-1"
+                          />
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              const input = e.currentTarget.parentElement?.querySelector('input');
+                              if (input && input.value) {
                                 const newSocials = [...socialLinks];
                                 newSocials[index].url = input.value;
                                 setSocialLinks(newSocials);
                               }
                             }}
-                          />
+                          >
+                            <Plus className="w-4 h-4 mr-1" />
+                            Adicionar
+                          </Button>
                         </div>
                       );
                     }
@@ -1927,6 +1954,7 @@ export function LinkBioCreator() {
                               {socialLinks.filter(s => s.url).map((social, index) => {
                                 const platform = socialPlatforms.find(p => p.value === social.platform);
                                 const Icon = platform?.icon || Globe;
+                                const isSvgComponent = typeof Icon === 'function' && Icon.toString().includes('svg');
                                 return (
                                   <div
                                     key={index}
@@ -1936,7 +1964,7 @@ export function LinkBioCreator() {
                                       color: buttonTextColor
                                     }}
                                   >
-                                    <Icon className="w-4 h-4" />
+                                    {isSvgComponent ? <Icon /> : <Icon className="w-4 h-4" />}
                                   </div>
                                 );
                               })}
