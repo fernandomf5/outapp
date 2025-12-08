@@ -1,4 +1,4 @@
-import { Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MessageCircle, Share2 } from "lucide-react";
+import { Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MessageCircle, Share2, Music, Github, Send, Disc } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
@@ -23,6 +23,16 @@ const platformIcons: Record<string, any> = {
   email: Mail,
   phone: Phone,
   whatsapp: MessageCircle,
+  tiktok: Music,
+  telegram: Send,
+  pinterest: Disc,
+  discord: MessageCircle,
+  twitch: Disc,
+  snapchat: MessageCircle,
+  reddit: MessageCircle,
+  spotify: Music,
+  threads: MessageCircle,
+  github: Github,
 };
 
 const platformColors: Record<string, string> = {
@@ -34,6 +44,16 @@ const platformColors: Record<string, string> = {
   email: "hover:text-primary",
   phone: "hover:text-primary",
   whatsapp: "hover:text-[#25D366]",
+  tiktok: "hover:text-[#000000] dark:hover:text-[#FFFFFF]",
+  telegram: "hover:text-[#0088CC]",
+  pinterest: "hover:text-[#E60023]",
+  discord: "hover:text-[#5865F2]",
+  twitch: "hover:text-[#9146FF]",
+  snapchat: "hover:text-[#FFFC00]",
+  reddit: "hover:text-[#FF4500]",
+  spotify: "hover:text-[#1DB954]",
+  threads: "hover:text-[#000000] dark:hover:text-[#FFFFFF]",
+  github: "hover:text-[#333] dark:hover:text-[#FFFFFF]",
 };
 
 export const SocialLinks = ({ links, variant = "default", vertical = false, horizontal = false }: SocialLinksProps) => {
