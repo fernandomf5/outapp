@@ -3687,6 +3687,7 @@ export type Database = {
           is_active: boolean | null
           music_autoplay: boolean | null
           music_url: string | null
+          social_links: Json | null
           text_color: string | null
           theme: string | null
           total_clicks: number | null
@@ -3720,6 +3721,7 @@ export type Database = {
           is_active?: boolean | null
           music_autoplay?: boolean | null
           music_url?: string | null
+          social_links?: Json | null
           text_color?: string | null
           theme?: string | null
           total_clicks?: number | null
@@ -3753,6 +3755,7 @@ export type Database = {
           is_active?: boolean | null
           music_autoplay?: boolean | null
           music_url?: string | null
+          social_links?: Json | null
           text_color?: string | null
           theme?: string | null
           total_clicks?: number | null

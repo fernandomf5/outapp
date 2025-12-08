@@ -4,6 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { ExternalLink } from "lucide-react";
 import { Link2, Instagram, Youtube, Facebook, Twitter, Linkedin, Mail, Phone, Globe } from "lucide-react";
 
+interface SocialLink {
+  platform: string;
+  url: string;
+}
+
 interface LinkBio {
   id: string;
   username: string;
@@ -31,6 +36,7 @@ interface LinkBio {
   music_autoplay?: boolean;
   background_overlay_color: string;
   background_overlay_opacity: number;
+  social_links?: SocialLink[];
 }
 
 interface BioLink {
@@ -52,6 +58,18 @@ const iconOptions = {
   linkedin: Linkedin,
   email: Mail,
   phone: Phone,
+  website: Globe,
+};
+
+const socialPlatformIcons: Record<string, any> = {
+  instagram: Instagram,
+  facebook: Facebook,
+  twitter: Twitter,
+  youtube: Youtube,
+  linkedin: Linkedin,
+  tiktok: Globe,
+  whatsapp: Phone,
+  email: Mail,
   website: Globe,
 };
 
@@ -251,11 +269,35 @@ export default function LinkBioPage() {
           
           {bio.bio && (
             <p 
-              className="text-center max-w-md mb-6 sm:mb-8 px-4 text-sm sm:text-base"
+              className="text-center max-w-md mb-4 px-4 text-sm sm:text-base"
               style={{ color: bio.text_color }}
             >
               {bio.bio}
             </p>
+          )}
+
+          {/* Social Links */}
+          {bio.social_links && bio.social_links.length > 0 && (
+            <div className="flex items-center justify-center gap-3 mb-6 sm:mb-8 flex-wrap">
+              {bio.social_links.filter(s => s.url).map((social, index) => {
+                const Icon = socialPlatformIcons[social.platform] || Globe;
+                return (
+                  <a
+                    key={index}
+                    href={social.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-transform hover:scale-110"
+                    style={{ 
+                      backgroundColor: bio.button_color,
+                      color: bio.button_text_color
+                    }}
+                  >
+                    <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </a>
+                );
+              })}
+            </div>
           )}
         </div>
 
