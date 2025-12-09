@@ -20,37 +20,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Auto logout após 30 minutos de inatividade
+  // Logout ao fechar a página (se não clicou em sair)
   useEffect(() => {
     if (!user) return;
 
-    let inactivityTimer: NodeJS.Timeout;
-    let debounceTimer: NodeJS.Timeout;
-
-    const resetTimer = () => {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(async () => {
-          console.log('Auto logout por inatividade');
-          await supabase.auth.signOut();
-        }, 30 * 60 * 1000); // 30 minutos
-      }, 100); // Debounce de 100ms
+    const handleBeforeUnload = () => {
+      // Marca que a página está sendo fechada
+      sessionStorage.setItem('page_closing', 'true');
     };
 
-    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'mousemove', 'click', 'input'];
-    events.forEach(event => {
-      document.addEventListener(event, resetTimer, { passive: true });
-    });
+    const handleUnload = () => {
+      // Ao fechar a página, faz logout
+      navigator.sendBeacon && supabase.auth.signOut();
+    };
 
-    resetTimer();
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('unload', handleUnload);
+
+    // Limpa o flag ao carregar (significa que voltou/recarregou)
+    sessionStorage.removeItem('page_closing');
 
     return () => {
-      clearTimeout(inactivityTimer);
-      clearTimeout(debounceTimer);
-      events.forEach(event => {
-        document.removeEventListener(event, resetTimer);
-      });
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('unload', handleUnload);
     };
   }, [user]);
 
