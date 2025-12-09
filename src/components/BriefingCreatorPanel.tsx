@@ -401,7 +401,7 @@ export function BriefingCreatorPanel() {
               Criar Briefing
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden">
+          <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingBriefing ? 'Editar' : 'Criar'} Briefing</DialogTitle>
               <DialogDescription>Configure seu formulário personalizado</DialogDescription>
