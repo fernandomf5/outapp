@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Search, Mail, Calendar, Edit, Trash2, Key, LogIn, Ban, Crown } from "lucide-react";
-import { format } from "date-fns";
+import { Users, Search, Mail, Calendar, Edit, Trash2, Key, LogIn, Ban, Crown, Filter, TrendingUp, TrendingDown, UserPlus, UserMinus, ChevronDown } from "lucide-react";
+import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -25,6 +26,23 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface UserProfile {
   id: string;
@@ -34,7 +52,10 @@ interface UserProfile {
   created_at: string;
   is_banned?: boolean;
   plan_name?: string;
+  has_active_subscription?: boolean;
 }
+
+type DateFilterType = 'all' | '7days' | '15days' | '30days' | 'month' | 'year' | 'custom';
 
 export const UsersPanel = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -49,6 +70,14 @@ export const UsersPanel = () => {
   const [newPassword, setNewPassword] = useState("");
   const [banDialogOpen, setBanDialogOpen] = useState(false);
   const { toast } = useToast();
+
+  // Filtros de data
+  const [dateFilter, setDateFilter] = useState<DateFilterType>('all');
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [selectedYear, setSelectedYear] = useState<string>('');
+  const [customStartDate, setCustomStartDate] = useState<string>('');
+  const [customEndDate, setCustomEndDate] = useState<string>('');
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -82,16 +111,21 @@ export const UsersPanel = () => {
         data.map(async (user) => {
           const { data: subscription } = await supabase
             .from('subscriptions')
-            .select('plan_id, plans(name)')
+            .select('plan_id, status, expires_at, plans(name)')
             .eq('user_id', user.user_id)
             .eq('status', 'active')
             .order('expires_at', { ascending: false })
             .limit(1)
             .maybeSingle();
 
+          const hasActiveSubscription = subscription && 
+            (subscription as any).status === 'active' && 
+            new Date((subscription as any).expires_at) > new Date();
+
           return {
             ...user,
-            plan_name: (subscription as any)?.plans?.name || 'Sem plano'
+            plan_name: (subscription as any)?.plans?.name || 'Sem plano',
+            has_active_subscription: hasActiveSubscription
           };
         })
       );
@@ -100,16 +134,97 @@ export const UsersPanel = () => {
     setLoading(false);
   };
 
-  const filteredUsers = users.filter(user => 
-    user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Função para filtrar usuários por data
+  const getFilteredByDate = (usersList: UserProfile[]) => {
+    const now = new Date();
+
+    return usersList.filter(user => {
+      const userDate = parseISO(user.created_at);
+
+      switch (dateFilter) {
+        case '7days':
+          return isWithinInterval(userDate, { start: subDays(now, 7), end: now });
+        case '15days':
+          return isWithinInterval(userDate, { start: subDays(now, 15), end: now });
+        case '30days':
+          return isWithinInterval(userDate, { start: subDays(now, 30), end: now });
+        case 'month':
+          if (!selectedMonth || !selectedYear) return true;
+          const monthStart = startOfMonth(new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1));
+          const monthEnd = endOfMonth(new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1));
+          return isWithinInterval(userDate, { start: monthStart, end: monthEnd });
+        case 'year':
+          if (!selectedYear) return true;
+          const yearStart = startOfYear(new Date(parseInt(selectedYear), 0));
+          const yearEnd = endOfYear(new Date(parseInt(selectedYear), 0));
+          return isWithinInterval(userDate, { start: yearStart, end: yearEnd });
+        case 'custom':
+          if (!customStartDate || !customEndDate) return true;
+          return isWithinInterval(userDate, { 
+            start: parseISO(customStartDate), 
+            end: parseISO(customEndDate + 'T23:59:59') 
+          });
+        default:
+          return true;
+      }
+    });
+  };
+
+  // Métricas calculadas
+  const metrics = useMemo(() => {
+    const now = new Date();
+    const last7Days = users.filter(u => isWithinInterval(parseISO(u.created_at), { start: subDays(now, 7), end: now }));
+    const last30Days = users.filter(u => isWithinInterval(parseISO(u.created_at), { start: subDays(now, 30), end: now }));
+    const previous30Days = users.filter(u => isWithinInterval(parseISO(u.created_at), { start: subDays(now, 60), end: subDays(now, 30) }));
+    
+    const withPlan = users.filter(u => u.has_active_subscription);
+    const withoutPlan = users.filter(u => !u.has_active_subscription);
+    
+    const growthRate = previous30Days.length > 0 
+      ? ((last30Days.length - previous30Days.length) / previous30Days.length * 100).toFixed(1)
+      : '100';
+
+    return {
+      total: users.length,
+      last7Days: last7Days.length,
+      last30Days: last30Days.length,
+      withPlan: withPlan.length,
+      withoutPlan: withoutPlan.length,
+      growthRate: parseFloat(growthRate),
+      conversionRate: users.length > 0 ? ((withPlan.length / users.length) * 100).toFixed(1) : '0'
+    };
+  }, [users]);
+
+  // Anos disponíveis para filtro
+  const availableYears = useMemo(() => {
+    const years = new Set<string>();
+    users.forEach(user => {
+      years.add(new Date(user.created_at).getFullYear().toString());
+    });
+    return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
+  }, [users]);
+
+  const filteredUsers = useMemo(() => {
+    let result = users.filter(user => 
+      user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    return getFilteredByDate(result);
+  }, [users, searchTerm, dateFilter, selectedMonth, selectedYear, customStartDate, customEndDate]);
 
   const displayedUsers = filteredUsers.slice(0, displayCount);
   const hasMore = displayCount < filteredUsers.length;
 
   const loadMore = () => {
     setDisplayCount(prev => Math.min(prev + 5, filteredUsers.length));
+  };
+
+  const resetFilters = () => {
+    setDateFilter('all');
+    setSelectedMonth('');
+    setSelectedYear('');
+    setCustomStartDate('');
+    setCustomEndDate('');
   };
 
   const openEditDialog = (user: UserProfile) => {
@@ -391,6 +506,221 @@ export const UsersPanel = () => {
           </p>
         </div>
       </div>
+
+      {/* Métricas */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+        <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+          <div className="flex items-center gap-2 mb-1">
+            <Users className="w-4 h-4 text-primary" />
+            <span className="text-xs text-muted-foreground">Total</span>
+          </div>
+          <p className="text-lg font-bold">{metrics.total}</p>
+        </div>
+        
+        <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+          <div className="flex items-center gap-2 mb-1">
+            <UserPlus className="w-4 h-4 text-green-500" />
+            <span className="text-xs text-muted-foreground">Últimos 7 dias</span>
+          </div>
+          <p className="text-lg font-bold text-green-500">{metrics.last7Days}</p>
+        </div>
+        
+        <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+          <div className="flex items-center gap-2 mb-1">
+            <Calendar className="w-4 h-4 text-blue-500" />
+            <span className="text-xs text-muted-foreground">Últimos 30 dias</span>
+          </div>
+          <p className="text-lg font-bold text-blue-500">{metrics.last30Days}</p>
+        </div>
+        
+        <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+          <div className="flex items-center gap-2 mb-1">
+            <Crown className="w-4 h-4 text-yellow-500" />
+            <span className="text-xs text-muted-foreground">Com plano</span>
+          </div>
+          <p className="text-lg font-bold text-yellow-500">{metrics.withPlan}</p>
+        </div>
+        
+        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+          <div className="flex items-center gap-2 mb-1">
+            <UserMinus className="w-4 h-4 text-red-500" />
+            <span className="text-xs text-muted-foreground">Sem plano</span>
+          </div>
+          <p className="text-lg font-bold text-red-500">{metrics.withoutPlan}</p>
+        </div>
+        
+        <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
+          <div className="flex items-center gap-2 mb-1">
+            {metrics.growthRate >= 0 ? (
+              <TrendingUp className="w-4 h-4 text-purple-500" />
+            ) : (
+              <TrendingDown className="w-4 h-4 text-purple-500" />
+            )}
+            <span className="text-xs text-muted-foreground">Crescimento</span>
+          </div>
+          <p className="text-lg font-bold text-purple-500">{metrics.growthRate}%</p>
+        </div>
+      </div>
+
+      {/* Filtros */}
+      <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen} className="mb-4">
+        <CollapsibleTrigger asChild>
+          <Button variant="outline" className="w-full justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4" />
+              <span>Filtros de Data</span>
+              {dateFilter !== 'all' && (
+                <span className="ml-2 px-2 py-0.5 bg-primary/20 text-primary text-xs rounded-full">
+                  Ativo
+                </span>
+              )}
+            </div>
+            <ChevronDown className={`w-4 h-4 transition-transform ${filtersOpen ? 'rotate-180' : ''}`} />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-4 p-4 border border-border rounded-lg bg-card">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <Button 
+              variant={dateFilter === 'all' ? 'default' : 'outline'} 
+              size="sm"
+              onClick={() => setDateFilter('all')}
+            >
+              Todos
+            </Button>
+            <Button 
+              variant={dateFilter === '7days' ? 'default' : 'outline'} 
+              size="sm"
+              onClick={() => setDateFilter('7days')}
+            >
+              Últimos 7 dias
+            </Button>
+            <Button 
+              variant={dateFilter === '15days' ? 'default' : 'outline'} 
+              size="sm"
+              onClick={() => setDateFilter('15days')}
+            >
+              Últimos 15 dias
+            </Button>
+            <Button 
+              variant={dateFilter === '30days' ? 'default' : 'outline'} 
+              size="sm"
+              onClick={() => setDateFilter('30days')}
+            >
+              Últimos 30 dias
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Filtro por mês */}
+            <div className="space-y-2">
+              <Label className="text-sm">Por mês/ano</Label>
+              <div className="flex gap-2">
+                <Select 
+                  value={selectedMonth} 
+                  onValueChange={(v) => {
+                    setSelectedMonth(v);
+                    setDateFilter('month');
+                  }}
+                >
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Mês" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Janeiro</SelectItem>
+                    <SelectItem value="2">Fevereiro</SelectItem>
+                    <SelectItem value="3">Março</SelectItem>
+                    <SelectItem value="4">Abril</SelectItem>
+                    <SelectItem value="5">Maio</SelectItem>
+                    <SelectItem value="6">Junho</SelectItem>
+                    <SelectItem value="7">Julho</SelectItem>
+                    <SelectItem value="8">Agosto</SelectItem>
+                    <SelectItem value="9">Setembro</SelectItem>
+                    <SelectItem value="10">Outubro</SelectItem>
+                    <SelectItem value="11">Novembro</SelectItem>
+                    <SelectItem value="12">Dezembro</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select 
+                  value={selectedYear} 
+                  onValueChange={(v) => {
+                    setSelectedYear(v);
+                    if (selectedMonth) setDateFilter('month');
+                  }}
+                >
+                  <SelectTrigger className="w-24">
+                    <SelectValue placeholder="Ano" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableYears.map(year => (
+                      <SelectItem key={year} value={year}>{year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Filtro por ano */}
+            <div className="space-y-2">
+              <Label className="text-sm">Apenas por ano</Label>
+              <Select 
+                value={dateFilter === 'year' ? selectedYear : ''} 
+                onValueChange={(v) => {
+                  setSelectedYear(v);
+                  setSelectedMonth('');
+                  setDateFilter('year');
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o ano" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableYears.map(year => (
+                    <SelectItem key={year} value={year}>{year}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Filtro customizado */}
+          <div className="space-y-2">
+            <Label className="text-sm">Período personalizado</Label>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex-1">
+                <Label className="text-xs text-muted-foreground">De</Label>
+                <Input
+                  type="date"
+                  value={customStartDate}
+                  onChange={(e) => {
+                    setCustomStartDate(e.target.value);
+                    if (e.target.value && customEndDate) setDateFilter('custom');
+                  }}
+                />
+              </div>
+              <div className="flex-1">
+                <Label className="text-xs text-muted-foreground">Até</Label>
+                <Input
+                  type="date"
+                  value={customEndDate}
+                  onChange={(e) => {
+                    setCustomEndDate(e.target.value);
+                    if (customStartDate && e.target.value) setDateFilter('custom');
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center pt-2 border-t border-border">
+            <p className="text-sm text-muted-foreground">
+              Mostrando <span className="font-bold text-foreground">{filteredUsers.length}</span> usuários
+            </p>
+            <Button variant="ghost" size="sm" onClick={resetFilters}>
+              Limpar filtros
+            </Button>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       <div className="mb-4 relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
