@@ -272,7 +272,7 @@ export const TaskOrganizerPanel = () => {
   const [editingBlock, setEditingBlock] = useState<TaskBlock | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
-  const [selectedClientFilter, setSelectedClientFilter] = useState<string>("all");
+  const [selectedClientFilter, setSelectedClientFilter] = useState<string>("");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [dateStart, setDateStart] = useState<string>("");
   const [dateEnd, setDateEnd] = useState<string>("");
@@ -823,6 +823,71 @@ export const TaskOrganizerPanel = () => {
     return acc;
   }, {} as Record<string, typeof tasks>);
 
+  // Show client selection screen if no client selected
+  if (!selectedClientFilter) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold mb-2">Organizador de Tarefas</h2>
+          <p className="text-muted-foreground mb-8">Selecione um cliente para visualizar suas tarefas</p>
+        </div>
+        
+        <div className="max-w-2xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle>Selecione o Cliente</CardTitle>
+              <CardDescription>Escolha um cliente para gerenciar suas tarefas</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-3">
+                <Button 
+                  variant="outline" 
+                  className="justify-start h-auto py-4 px-4"
+                  onClick={() => setSelectedClientFilter("all")}
+                >
+                  <div className="text-left">
+                    <div className="font-semibold">Todos os Clientes</div>
+                    <div className="text-sm text-muted-foreground">Ver tarefas de todos os clientes</div>
+                  </div>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="justify-start h-auto py-4 px-4"
+                  onClick={() => setSelectedClientFilter("none")}
+                >
+                  <div className="text-left">
+                    <div className="font-semibold">Sem Cliente</div>
+                    <div className="text-sm text-muted-foreground">Tarefas não vinculadas a clientes</div>
+                  </div>
+                </Button>
+                {clients.map(client => (
+                  <Button 
+                    key={client.id}
+                    variant="outline" 
+                    className="justify-start h-auto py-4 px-4"
+                    onClick={() => setSelectedClientFilter(client.id)}
+                  >
+                    <div className="text-left">
+                      <div className="font-semibold">{client.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {tasks.filter(t => t.client_id === client.id).length} tarefas
+                      </div>
+                    </div>
+                  </Button>
+                ))}
+              </div>
+              {clients.length === 0 && (
+                <p className="text-center text-muted-foreground py-4">
+                  Nenhum cliente cadastrado. Crie um cliente primeiro ou selecione "Sem Cliente".
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -834,7 +899,7 @@ export const TaskOrganizerPanel = () => {
         <div className="flex flex-wrap gap-2 items-center">
           <Select value={selectedClientFilter} onValueChange={setSelectedClientFilter}>
             <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Filtrar por cliente" />
+              <SelectValue placeholder="Selecionar cliente" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os Clientes</SelectItem>
