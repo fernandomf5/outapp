@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { FileText, Upload, X, Star } from "lucide-react";
+import { FileText, Upload, X, Star, MessageCircle } from "lucide-react";
 
 export default function BriefingPublicPage() {
   const { briefingId } = useParams();
@@ -122,6 +122,24 @@ export default function BriefingPublicPage() {
           .update({ responses_count: (briefing?.responses_count || 0) + 1 })
           .eq('id', briefingId);
       }
+
+      // Enviar email se destination_email estiver configurado
+      if (briefing?.destination_email) {
+        try {
+          await supabase.functions.invoke('send-briefing-response', {
+            body: {
+              briefingTitle: briefing.title,
+              visitorName: visitorName,
+              destinationEmail: briefing.destination_email,
+              responses: responses,
+              fields: briefing.fields
+            }
+          });
+        } catch (emailError) {
+          console.error('Erro ao enviar email:', emailError);
+          // Não bloquear o fluxo se o email falhar
+        }
+      }
       
       setSubmitted(true);
     } catch (error) {
@@ -129,6 +147,38 @@ export default function BriefingPublicPage() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const generateWhatsAppMessage = () => {
+    if (!briefing?.destination_whatsapp) return '';
+    
+    let message = `*Nova resposta de briefing: ${briefing.title}*\n\n`;
+    message += `*Enviado por:* ${visitorName}\n\n`;
+    message += `*Respostas:*\n`;
+    
+    for (const field of briefing.fields || []) {
+      const value = responses[field.label];
+      if (value !== undefined && value !== null && value !== '') {
+        let displayValue = value;
+        if (field.type === 'checkbox') {
+          displayValue = value === true ? 'Sim' : 'Não';
+        } else if (field.type === 'rating') {
+          displayValue = `${value} de 5 estrelas`;
+        } else if (field.type === 'file' && typeof value === 'string' && value.startsWith('http')) {
+          displayValue = value;
+        }
+        message += `\n• *${field.label}:* ${displayValue}`;
+      }
+    }
+    
+    return encodeURIComponent(message);
+  };
+
+  const handleWhatsAppClick = () => {
+    if (!briefing?.destination_whatsapp) return;
+    const message = generateWhatsAppMessage();
+    const whatsappUrl = `https://wa.me/${briefing.destination_whatsapp}?text=${message}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   const renderField = (field: any) => {
@@ -458,6 +508,22 @@ export default function BriefingPublicPage() {
                 Obrigado por responder o formulário, {visitorName}!
               </p>
             </div>
+            
+            {/* Botão WhatsApp */}
+            {briefing?.destination_whatsapp && (
+              <div className="pt-4">
+                <Button 
+                  onClick={handleWhatsAppClick}
+                  className="bg-green-500 hover:bg-green-600 text-white w-full"
+                >
+                  <MessageCircle className="mr-2 h-5 w-5" />
+                  Enviar também pelo WhatsApp
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Clique para enviar as respostas diretamente no WhatsApp
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

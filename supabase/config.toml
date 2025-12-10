@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.create-chatbot-conversation]
 verify_jwt = false
+
+[functions.send-briefing-response]
+verify_jwt = false

@@ -31,7 +31,8 @@ import {
   Circle,
   Star,
   Lock,
-  LockOpen
+  LockOpen,
+  MessageCircle
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
@@ -147,6 +148,8 @@ export function BriefingCreatorPanel() {
     logo_url: '',
     primary_color: '#8B5CF6',
     secondary_color: '#EC4899',
+    destination_email: '',
+    destination_whatsapp: '',
     fields: [] as BriefingField[]
   });
 
@@ -274,6 +277,8 @@ export function BriefingCreatorPanel() {
             logo_url: formData.logo_url,
             primary_color: formData.primary_color,
             secondary_color: formData.secondary_color,
+            destination_email: formData.destination_email || null,
+            destination_whatsapp: formData.destination_whatsapp || null,
             fields: formData.fields
           })
           .eq('id', editingBriefing.id);
@@ -290,6 +295,8 @@ export function BriefingCreatorPanel() {
             logo_url: formData.logo_url,
             primary_color: formData.primary_color,
             secondary_color: formData.secondary_color,
+            destination_email: formData.destination_email || null,
+            destination_whatsapp: formData.destination_whatsapp || null,
             fields: formData.fields,
             is_active: true,
             responses_count: 0
@@ -301,7 +308,7 @@ export function BriefingCreatorPanel() {
 
       setIsCreateDialogOpen(false);
       setEditingBriefing(null);
-      setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', fields: [] });
+      setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', destination_email: '', destination_whatsapp: '', fields: [] });
       loadBriefings();
     } catch (error: any) {
       toast.error("Erro ao salvar briefing");
@@ -316,6 +323,8 @@ export function BriefingCreatorPanel() {
       logo_url: (briefing as any).logo_url || '',
       primary_color: (briefing as any).primary_color || '#8B5CF6',
       secondary_color: (briefing as any).secondary_color || '#EC4899',
+      destination_email: (briefing as any).destination_email || '',
+      destination_whatsapp: (briefing as any).destination_whatsapp || '',
       fields: briefing.fields
     });
     setIsCreateDialogOpen(true);
@@ -395,7 +404,7 @@ export function BriefingCreatorPanel() {
           <DialogTrigger asChild>
             <Button className="gradient-primary shadow-glow" onClick={() => {
               setEditingBriefing(null);
-              setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', fields: [] });
+              setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', destination_email: '', destination_whatsapp: '', fields: [] });
             }}>
               <Plus className="mr-2 h-4 w-4" />
               Criar Briefing
@@ -477,6 +486,46 @@ export function BriefingCreatorPanel() {
                         </div>
                       </div>
                     </div>
+                  </div>
+                  
+                  {/* Envio de Respostas */}
+                  <div className="space-y-3 border-t pt-4">
+                    <Label className="text-base font-semibold">Envio de Respostas</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Configure para onde as respostas serão enviadas automaticamente
+                    </p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="grid gap-2">
+                        <Label className="text-sm flex items-center gap-2">
+                          <Mail className="h-4 w-4" />
+                          Email de Destino
+                        </Label>
+                        <Input
+                          type="email"
+                          value={formData.destination_email}
+                          onChange={(e) => setFormData(prev => ({...prev, destination_email: e.target.value}))}
+                          placeholder="email@empresa.com"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label className="text-sm flex items-center gap-2">
+                          <MessageCircle className="h-4 w-4" />
+                          WhatsApp de Destino
+                        </Label>
+                        <Input
+                          type="tel"
+                          value={formData.destination_whatsapp}
+                          onChange={(e) => setFormData(prev => ({...prev, destination_whatsapp: e.target.value}))}
+                          placeholder="5511999999999"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Formato: código do país + DDD + número (sem espaços ou símbolos)
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                      💡 Se ambos estiverem preenchidos, as respostas serão enviadas por email e será gerado um botão para enviar via WhatsApp.
+                    </p>
                   </div>
                 </div>
               </TabsContent>
@@ -617,7 +666,7 @@ export function BriefingCreatorPanel() {
               <Button variant="outline" onClick={() => {
                 setIsCreateDialogOpen(false);
                 setEditingBriefing(null);
-                setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', fields: [] });
+                setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', destination_email: '', destination_whatsapp: '', fields: [] });
               }}>
                 Cancelar
               </Button>
