@@ -39,8 +39,6 @@ interface QuizQuestion {
   id: string;
   question: string;
   options: string[];
-  correct_answer: number;
-  explanation?: string;
 }
 
 export const QuizCreatorPanel = () => {
@@ -66,9 +64,7 @@ export const QuizCreatorPanel = () => {
     questions: [
       {
         question: '',
-        options: ['', '', '', ''],
-        correct_answer: 0,
-        explanation: ''
+        options: ['', '', '', '']
       }
     ]
   });
@@ -104,9 +100,7 @@ export const QuizCreatorPanel = () => {
         ...formData.questions,
         {
           question: '',
-          options: ['', '', '', ''],
-          correct_answer: 0,
-          explanation: ''
+          options: ['', '', '', '']
         }
       ]
     });
@@ -207,9 +201,7 @@ export const QuizCreatorPanel = () => {
         questions: [
           {
             question: '',
-            options: ['', '', '', ''],
-            correct_answer: 0,
-            explanation: ''
+            options: ['', '', '', '']
           }
         ]
       });
@@ -454,37 +446,13 @@ export const QuizCreatorPanel = () => {
                       <div className="grid gap-2">
                         <Label>Opções de Resposta</Label>
                         {question.options.map((option, oIndex) => (
-                          <div key={oIndex} className="flex items-center gap-2">
-                            <Input 
-                              value={option}
-                              onChange={(e) => handleUpdateOption(qIndex, oIndex, e.target.value)}
-                              placeholder={`Opção ${oIndex + 1}`}
-                            />
-                            <Button
-                              type="button"
-                              variant={question.correct_answer === oIndex ? "default" : "outline"}
-                              size="icon"
-                              onClick={() => handleUpdateQuestion(qIndex, 'correct_answer', oIndex)}
-                              title="Marcar como resposta correta"
-                            >
-                              {question.correct_answer === oIndex ? (
-                                <CheckCircle2 className="h-4 w-4" />
-                              ) : (
-                                <XCircle className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </div>
+                          <Input 
+                            key={oIndex}
+                            value={option}
+                            onChange={(e) => handleUpdateOption(qIndex, oIndex, e.target.value)}
+                            placeholder={`Opção ${oIndex + 1}`}
+                          />
                         ))}
-                      </div>
-
-                      <div className="grid gap-2">
-                        <Label>Explicação (Opcional)</Label>
-                        <Textarea 
-                          value={question.explanation}
-                          onChange={(e) => handleUpdateQuestion(qIndex, 'explanation', e.target.value)}
-                          placeholder="Explique a resposta correta..."
-                          rows={2}
-                        />
                       </div>
                     </div>
                   </Card>
