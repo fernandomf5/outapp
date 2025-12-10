@@ -5,17 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Gift, ExternalLink } from "lucide-react";
+import { ArrowRight, RotateCcw, Gift, ExternalLink, CheckCircle2 } from "lucide-react";
 
 interface QuizQuestion {
   id: string;
   question: string;
   options: string[];
-  correct_answer: number;
-  explanation?: string;
 }
 
 interface Quiz {
@@ -123,7 +120,7 @@ export default function QuizPage() {
           phone: userData.phone || null,
           whatsapp: userData.whatsapp || null,
           answers: selectedAnswers,
-          score: calculateScore()
+          score: 0
         }]);
     } catch (error) {
       console.error("Erro ao salvar dados:", error);
@@ -159,17 +156,6 @@ export default function QuizPage() {
     setCurrentQuestion(0);
     setSelectedAnswers([]);
     setShowResults(false);
-  };
-
-  const calculateScore = () => {
-    if (!quiz) return 0;
-    let correct = 0;
-    quiz.questions.forEach((question, index) => {
-      if (selectedAnswers[index] === question.correct_answer) {
-        correct++;
-      }
-    });
-    return Math.round((correct / quiz.questions.length) * 100);
   };
 
   if (loading) {
@@ -268,7 +254,7 @@ export default function QuizPage() {
                 className="w-full gradient-primary shadow-glow"
                 size="lg"
               >
-                Ver Meus Resultados
+                Ver Resultado
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
@@ -320,51 +306,24 @@ export default function QuizPage() {
           ) : (
             <div className="space-y-6">
               <div className="text-center space-y-4">
-                <div className="text-6xl font-bold gradient-text">
-                  {calculateScore()}%
-                </div>
-                <p className="text-xl text-muted-foreground">
-                  Você acertou {selectedAnswers.filter((ans, idx) => ans === quiz.questions[idx].correct_answer).length} de {quiz.questions.length} perguntas
+                <CheckCircle2 className="h-16 w-16 text-success mx-auto" />
+                <h3 className="text-2xl font-bold">Quiz Concluído!</h3>
+                <p className="text-muted-foreground">
+                  Obrigado por responder ao quiz
                 </p>
               </div>
 
-              <div className="space-y-4">
-                {quiz.questions.map((question, qIndex) => {
-                  const isCorrect = selectedAnswers[qIndex] === question.correct_answer;
-                  return (
-                    <Card key={qIndex} className={isCorrect ? "border-success/50 bg-success/5" : "border-destructive/50 bg-destructive/5"}>
-                      <CardHeader>
-                        <div className="flex items-start gap-3">
-                          {isCorrect ? (
-                            <CheckCircle2 className="h-6 w-6 text-success mt-1 flex-shrink-0" />
-                          ) : (
-                            <XCircle className="h-6 w-6 text-destructive mt-1 flex-shrink-0" />
-                          )}
-                          <div className="flex-1">
-                            <CardTitle className="text-base">{question.question}</CardTitle>
-                            <div className="mt-2 space-y-1">
-                              <p className="text-sm">
-                                <span className="font-semibold">Sua resposta: </span>
-                                {question.options[selectedAnswers[qIndex]]}
-                              </p>
-                              {!isCorrect && (
-                                <p className="text-sm text-success">
-                                  <span className="font-semibold">Resposta correta: </span>
-                                  {question.options[question.correct_answer]}
-                                </p>
-                              )}
-                              {question.explanation && (
-                                <p className="text-sm text-muted-foreground mt-2">
-                                  {question.explanation}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </CardHeader>
-                    </Card>
-                  );
-                })}
+              {/* Resumo das respostas */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-lg">Suas Respostas:</h4>
+                {quiz.questions.map((question, qIndex) => (
+                  <Card key={qIndex} className="p-4">
+                    <p className="font-medium text-sm mb-1">{question.question}</p>
+                    <p className="text-muted-foreground text-sm">
+                      Resposta: {question.options[selectedAnswers[qIndex]]}
+                    </p>
+                  </Card>
+                ))}
               </div>
 
               {/* Oferta */}
@@ -396,7 +355,8 @@ export default function QuizPage() {
 
               <Button
                 onClick={handleRestart}
-                className="w-full gradient-primary shadow-glow"
+                className="w-full"
+                variant="outline"
                 size="lg"
               >
                 <RotateCcw className="mr-2 h-4 w-4" />
