@@ -20,32 +20,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Logout ao fechar a página (se não clicou em sair)
-  useEffect(() => {
-    if (!user) return;
-
-    const handleBeforeUnload = () => {
-      // Marca que a página está sendo fechada
-      sessionStorage.setItem('page_closing', 'true');
-    };
-
-    const handleUnload = () => {
-      // Ao fechar a página, faz logout
-      navigator.sendBeacon && supabase.auth.signOut();
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('unload', handleUnload);
-
-    // Limpa o flag ao carregar (significa que voltou/recarregou)
-    sessionStorage.removeItem('page_closing');
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('unload', handleUnload);
-    };
-  }, [user]);
-
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
