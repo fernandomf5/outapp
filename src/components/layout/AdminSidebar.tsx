@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Users, DollarSign, TrendingUp, Settings, Video, FileText, Package, Crown, MessageSquare, LifeBuoy, Globe, Shield } from "lucide-react";
+import { Users, DollarSign, TrendingUp, Settings, Video, FileText, Package, Crown, MessageSquare, LifeBuoy, Globe, Shield, Ticket } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -109,6 +109,7 @@ export function AdminSidebar() {
     { title: t('messages'), icon: MessageSquare, tab: "messages" },
     { title: t('tickets'), icon: LifeBuoy, tab: "tickets" },
     { title: t('vouchers'), icon: Package, tab: "vouchers" },
+    { title: "Cupons de Desconto", icon: Ticket, tab: "discount-coupons" },
     { title: "Criador de páginas", icon: FileText, tab: "page-creator" },
     { title: t('integrations'), icon: Settings, tab: "integrations" },
     { title: "Config da Landing Page", icon: Settings, tab: "settings" },

@@ -3087,6 +3087,47 @@ export type Database = {
           },
         ]
       }
+      coupon_usages: {
+        Row: {
+          coupon_id: string
+          discount_amount: number
+          discounted_price: number
+          id: string
+          original_price: number
+          plan_id: string | null
+          used_at: string
+          user_id: string
+        }
+        Insert: {
+          coupon_id: string
+          discount_amount: number
+          discounted_price: number
+          id?: string
+          original_price: number
+          plan_id?: string | null
+          used_at?: string
+          user_id: string
+        }
+        Update: {
+          coupon_id?: string
+          discount_amount?: number
+          discounted_price?: number
+          id?: string
+          original_price?: number
+          plan_id?: string | null
+          used_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_usages_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "discount_coupons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custom_domains: {
         Row: {
           created_at: string
@@ -3264,6 +3305,60 @@ export type Database = {
           updated_at?: string
           user_id?: string
           views_count?: number
+        }
+        Relationships: []
+      }
+      discount_coupons: {
+        Row: {
+          applicable_plans: string[] | null
+          code: string
+          created_at: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          max_uses_per_user: number | null
+          min_purchase_amount: number | null
+          updated_at: string
+          uses_count: number
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          applicable_plans?: string[] | null
+          code: string
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value: number
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          max_uses_per_user?: number | null
+          min_purchase_amount?: number | null
+          updated_at?: string
+          uses_count?: number
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          applicable_plans?: string[] | null
+          code?: string
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          max_uses_per_user?: number | null
+          min_purchase_amount?: number | null
+          updated_at?: string
+          uses_count?: number
+          valid_from?: string | null
+          valid_until?: string | null
         }
         Relationships: []
       }

@@ -29,7 +29,7 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { planId } = await req.json();
+    const { planId, couponId, discountAmount, finalPrice } = await req.json();
 
     // Buscar configurações do Mercado Pago
     const { data: mpSettings } = await supabase
@@ -55,6 +55,85 @@ serve(async (req) => {
       throw new Error('Plano não encontrado');
     }
 
+    // Validar cupom se fornecido
+    let validatedDiscountAmount = 0;
+    let validatedFinalPrice = plan.price;
+
+    if (couponId) {
+      const { data: coupon, error: couponError } = await supabase
+        .from('discount_coupons')
+        .select('*')
+        .eq('id', couponId)
+        .eq('is_active', true)
+        .single();
+
+      if (couponError || !coupon) {
+        throw new Error('Cupom inválido');
+      }
+
+      // Verificar validade
+      const now = new Date();
+      const validFrom = new Date(coupon.valid_from);
+      const validUntil = coupon.valid_until ? new Date(coupon.valid_until) : null;
+
+      if (now < validFrom || (validUntil && now > validUntil)) {
+        throw new Error('Cupom expirado ou não válido');
+      }
+
+      // Verificar limite de usos
+      if (coupon.max_uses && coupon.uses_count >= coupon.max_uses) {
+        throw new Error('Cupom esgotado');
+      }
+
+      // Verificar usos por usuário
+      const { count: userUsages } = await supabase
+        .from('coupon_usages')
+        .select('*', { count: 'exact', head: true })
+        .eq('coupon_id', couponId)
+        .eq('user_id', user.id);
+
+      if (userUsages && userUsages >= coupon.max_uses_per_user) {
+        throw new Error('Limite de uso do cupom atingido');
+      }
+
+      // Verificar valor mínimo
+      if (plan.price < coupon.min_purchase_amount) {
+        throw new Error('Valor mínimo não atingido');
+      }
+
+      // Verificar plano aplicável
+      if (coupon.applicable_plans && coupon.applicable_plans.length > 0 && !coupon.applicable_plans.includes(planId)) {
+        throw new Error('Cupom não aplicável a este plano');
+      }
+
+      // Calcular desconto
+      if (coupon.discount_type === 'percentage') {
+        validatedDiscountAmount = (plan.price * coupon.discount_value) / 100;
+      } else {
+        validatedDiscountAmount = coupon.discount_value;
+      }
+      validatedDiscountAmount = Math.min(validatedDiscountAmount, plan.price);
+      validatedFinalPrice = Math.max(0, plan.price - validatedDiscountAmount);
+
+      // Registrar uso do cupom
+      await supabase
+        .from('coupon_usages')
+        .insert({
+          coupon_id: couponId,
+          user_id: user.id,
+          plan_id: planId,
+          original_price: plan.price,
+          discounted_price: validatedFinalPrice,
+          discount_amount: validatedDiscountAmount,
+        });
+
+      // Incrementar contador de usos
+      await supabase
+        .from('discount_coupons')
+        .update({ uses_count: coupon.uses_count + 1 })
+        .eq('id', couponId);
+    }
+
     // Buscar perfil do usuário
     const { data: profile } = await supabase
       .from('profiles')
@@ -66,10 +145,10 @@ serve(async (req) => {
     const preference = {
       items: [
         {
-          title: plan.name,
+          title: couponId ? `${plan.name} (com desconto)` : plan.name,
           description: plan.description,
           quantity: 1,
-          unit_price: plan.price,
+          unit_price: validatedFinalPrice,
           currency_id: 'BRL',
         }
       ],
@@ -88,6 +167,10 @@ serve(async (req) => {
       metadata: {
         user_id: user.id,
         plan_id: planId,
+        coupon_id: couponId || null,
+        original_price: plan.price,
+        discount_amount: validatedDiscountAmount,
+        final_price: validatedFinalPrice,
       },
     };
 

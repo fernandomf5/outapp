@@ -21,6 +21,7 @@ import { PageCreator } from "@/components/admin/PageCreator";
 import { SiteSettingsManager } from "@/components/admin/SiteSettingsManager";
 import { AdminMessagesManager } from "@/components/admin/AdminMessagesManager";
 import { VouchersManager } from "@/components/admin/VouchersManager";
+import { DiscountCouponsManager } from "@/components/admin/DiscountCouponsManager";
 import { TicketsManager } from "@/components/admin/TicketsManager";
 import { TicketNotificationBell } from "@/components/TicketNotificationBell";
 import { LandingPageEditor } from "@/components/admin/LandingPageEditor";
@@ -735,6 +736,9 @@ const AdminDashboard = () => {
 
             {/* Vouchers Section */}
             {currentSection === 'vouchers' && <VouchersManager />}
+
+            {/* Cupons de Desconto Section */}
+            {currentSection === 'discount-coupons' && <DiscountCouponsManager />}
 
             {/* Criador de Páginas */}
             {currentSection === 'page-creator' && <PageCreator />}
