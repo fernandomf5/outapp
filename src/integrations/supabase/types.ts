@@ -1654,6 +1654,8 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          destination_email: string | null
+          destination_whatsapp: string | null
           fields: Json
           id: string
           is_active: boolean
@@ -1669,6 +1671,8 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          destination_email?: string | null
+          destination_whatsapp?: string | null
           fields?: Json
           id?: string
           is_active?: boolean
@@ -1684,6 +1688,8 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          destination_email?: string | null
+          destination_whatsapp?: string | null
           fields?: Json
           id?: string
           is_active?: boolean
