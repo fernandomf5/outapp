@@ -19,11 +19,13 @@ import {
   CheckCircle2,
   XCircle,
   Gift,
-  Link as LinkIcon
+  Link as LinkIcon,
+  PieChart
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { QuizAnalyticsPanel } from "./QuizAnalyticsPanel";
 
 interface Quiz {
   id: string;
@@ -46,6 +48,7 @@ export const QuizCreatorPanel = () => {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [analyticsQuizId, setAnalyticsQuizId] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -234,6 +237,16 @@ export const QuizCreatorPanel = () => {
 
   const totalResponses = quizzes.reduce((sum, q) => sum + q.responses_count, 0);
   const totalQuestions = quizzes.reduce((sum, q) => sum + (q.questions?.length || 0), 0);
+
+  // Show analytics panel if a quiz is selected
+  if (analyticsQuizId) {
+    return (
+      <QuizAnalyticsPanel 
+        quizId={analyticsQuizId} 
+        onBack={() => setAnalyticsQuizId(null)} 
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -580,6 +593,14 @@ export const QuizCreatorPanel = () => {
                       >
                         <Copy className="h-3 w-3 mr-1" />
                         Copiar Link
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={() => setAnalyticsQuizId(quiz.id)}
+                        title="Ver Analytics"
+                      >
+                        <PieChart className="h-4 w-4" />
                       </Button>
                       <Button 
                         variant="outline" 
