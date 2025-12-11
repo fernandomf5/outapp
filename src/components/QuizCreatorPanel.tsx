@@ -50,8 +50,9 @@ export const QuizCreatorPanel = () => {
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [analyticsQuizId, setAnalyticsQuizId] = useState<string | null>(null);
+  const [editingQuizId, setEditingQuizId] = useState<string | null>(null);
   
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     title: '',
     description: '',
     primary_color: '#8B5CF6',
@@ -73,7 +74,9 @@ export const QuizCreatorPanel = () => {
         options: ['', '', '', '']
       }
     ]
-  });
+  };
+  
+  const [formData, setFormData] = useState(initialFormData);
 
   useEffect(() => {
     loadQuizzes();
@@ -150,7 +153,41 @@ export const QuizCreatorPanel = () => {
       .replace(/^-+|-+$/g, '');
   };
 
-  const handleAddQuiz = async () => {
+  const handleEditQuiz = async (quiz: Quiz) => {
+    const { data, error } = await supabase
+      .from('quizzes')
+      .select('*')
+      .eq('id', quiz.id)
+      .single();
+
+    if (error || !data) {
+      toast.error("Erro ao carregar quiz");
+      return;
+    }
+
+    setFormData({
+      title: data.title || '',
+      description: data.description || '',
+      primary_color: data.primary_color || '#8B5CF6',
+      secondary_color: data.secondary_color || '#0EA5E9',
+      collect_data: data.collect_data || false,
+      collect_name: data.collect_name ?? true,
+      collect_email: data.collect_email ?? true,
+      collect_phone: data.collect_phone || false,
+      collect_whatsapp: data.collect_whatsapp || false,
+      show_offer: data.show_offer || false,
+      offer_title: data.offer_title || '',
+      offer_description: data.offer_description || '',
+      offer_button_text: data.offer_button_text || 'Quero essa oferta!',
+      offer_button_link: data.offer_button_link || '',
+      redirect_url: data.redirect_url || '',
+      questions: Array.isArray(data.questions) ? data.questions as { question: string; options: string[] }[] : [{ question: '', options: ['', '', '', ''] }]
+    });
+    setEditingQuizId(quiz.id);
+    setIsAddDialogOpen(true);
+  };
+
+  const handleSaveQuiz = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -160,64 +197,60 @@ export const QuizCreatorPanel = () => {
         return;
       }
 
-      const { data, error } = await supabase
-        .from('quizzes')
-        .insert([{
-          user_id: user.id,
-          title: formData.title,
-          description: formData.description,
-          primary_color: formData.primary_color,
-          secondary_color: formData.secondary_color,
-          questions: formData.questions,
-          collect_data: formData.collect_data,
-          collect_name: formData.collect_name,
-          collect_email: formData.collect_email,
-          collect_phone: formData.collect_phone,
-          collect_whatsapp: formData.collect_whatsapp,
-          show_offer: formData.show_offer,
-          offer_title: formData.offer_title,
-          offer_description: formData.offer_description,
-          offer_button_text: formData.offer_button_text,
-          offer_button_link: formData.offer_button_link,
-          redirect_url: formData.redirect_url,
-          is_active: true,
-          responses_count: 0
-        }])
-        .select('*')
-        .single();
+      const quizData = {
+        title: formData.title,
+        description: formData.description,
+        primary_color: formData.primary_color,
+        secondary_color: formData.secondary_color,
+        questions: formData.questions,
+        collect_data: formData.collect_data,
+        collect_name: formData.collect_name,
+        collect_email: formData.collect_email,
+        collect_phone: formData.collect_phone,
+        collect_whatsapp: formData.collect_whatsapp,
+        show_offer: formData.show_offer,
+        offer_title: formData.offer_title,
+        offer_description: formData.offer_description,
+        offer_button_text: formData.offer_button_text,
+        offer_button_link: formData.offer_button_link,
+        redirect_url: formData.redirect_url,
+      };
 
-      if (error) throw error;
+      if (editingQuizId) {
+        const { error } = await supabase
+          .from('quizzes')
+          .update(quizData)
+          .eq('id', editingQuizId);
 
-      toast.success("Quiz criado com sucesso!");
+        if (error) throw error;
+        toast.success("Quiz atualizado com sucesso!");
+      } else {
+        const { error } = await supabase
+          .from('quizzes')
+          .insert([{
+            ...quizData,
+            user_id: user.id,
+            is_active: true,
+            responses_count: 0
+          }]);
+
+        if (error) throw error;
+        toast.success("Quiz criado com sucesso!");
+      }
+
       setIsAddDialogOpen(false);
+      setEditingQuizId(null);
+      setFormData(initialFormData);
       loadQuizzes();
-      
-      setFormData({
-        title: '',
-        description: '',
-        primary_color: '#8B5CF6',
-        secondary_color: '#0EA5E9',
-        collect_data: false,
-        collect_name: true,
-        collect_email: true,
-        collect_phone: false,
-        collect_whatsapp: false,
-        show_offer: false,
-        offer_title: '',
-        offer_description: '',
-        offer_button_text: 'Quero essa oferta!',
-        offer_button_link: '',
-        redirect_url: '',
-        questions: [
-          {
-            question: '',
-            options: ['', '', '', '']
-          }
-        ]
-      });
     } catch (error: any) {
-      toast.error("Erro ao criar quiz");
+      toast.error(editingQuizId ? "Erro ao atualizar quiz" : "Erro ao criar quiz");
     }
+  };
+
+  const handleCloseDialog = () => {
+    setIsAddDialogOpen(false);
+    setEditingQuizId(null);
+    setFormData(initialFormData);
   };
 
   const handleDeleteQuiz = async (id: string) => {
@@ -262,17 +295,17 @@ export const QuizCreatorPanel = () => {
           <h2 className="text-3xl font-bold tracking-tight">Criador de Quiz</h2>
           <p className="text-muted-foreground">Crie quizzes interativos para engajar sua audiência</p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <Dialog open={isAddDialogOpen} onOpenChange={handleCloseDialog}>
           <DialogTrigger asChild>
-            <Button className="gradient-primary shadow-glow" onClick={() => setIsAddDialogOpen(true)}>
+            <Button className="gradient-primary shadow-glow" onClick={() => { setEditingQuizId(null); setFormData(initialFormData); setIsAddDialogOpen(true); }}>
               <Plus className="mr-2 h-4 w-4" />
               Criar Quiz
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Criar Novo Quiz</DialogTitle>
-              <DialogDescription>Configure seu quiz interativo</DialogDescription>
+              <DialogTitle>{editingQuizId ? 'Editar Quiz' : 'Criar Novo Quiz'}</DialogTitle>
+              <DialogDescription>{editingQuizId ? 'Edite as configurações do seu quiz' : 'Configure seu quiz interativo'}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
@@ -529,11 +562,11 @@ export const QuizCreatorPanel = () => {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              <Button variant="outline" onClick={handleCloseDialog}>
                 Cancelar
               </Button>
-              <Button onClick={handleAddQuiz} className="gradient-primary">
-                Criar Quiz
+              <Button onClick={handleSaveQuiz} className="gradient-primary">
+                {editingQuizId ? 'Atualizar Quiz' : 'Criar Quiz'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -661,7 +694,16 @@ export const QuizCreatorPanel = () => {
                       <Button 
                         variant="outline" 
                         size="icon"
+                        onClick={() => handleEditQuiz(quiz)}
+                        title="Editar Quiz"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="icon"
                         onClick={() => navigate(`/quiz/${quiz.id}`)}
+                        title="Visualizar"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
