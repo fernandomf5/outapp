@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ArrowRight, RotateCcw, Gift, ExternalLink, CheckCircle2 } from "lucide-react";
@@ -32,6 +31,8 @@ interface Quiz {
   offer_button_text?: string;
   offer_button_link?: string;
   redirect_url?: string;
+  primary_color?: string;
+  secondary_color?: string;
 }
 
 export default function QuizPage() {
@@ -185,11 +186,19 @@ export default function QuizPage() {
   const progress = ((currentQuestion + 1) / quiz.questions.length) * 100;
   const currentQ = quiz.questions[currentQuestion];
 
+  const primaryColor = quiz?.primary_color || '#8B5CF6';
+  const secondaryColor = quiz?.secondary_color || '#0EA5E9';
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
-      <Card className="w-full max-w-2xl glass shadow-glow">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{
+        background: `linear-gradient(135deg, ${primaryColor}15 0%, ${secondaryColor}15 100%)`
+      }}
+    >
+      <Card className="w-full max-w-2xl shadow-xl border-2" style={{ borderColor: `${primaryColor}30` }}>
         <CardHeader>
-          <CardTitle className="text-3xl font-bold gradient-text">{quiz.title}</CardTitle>
+          <CardTitle className="text-3xl font-bold" style={{ color: primaryColor }}>{quiz.title}</CardTitle>
           {quiz.description && (
             <CardDescription className="text-base">{quiz.description}</CardDescription>
           )}
@@ -251,7 +260,8 @@ export default function QuizPage() {
 
               <Button
                 onClick={handleSubmitData}
-                className="w-full gradient-primary shadow-glow"
+                className="w-full text-white shadow-lg"
+                style={{ backgroundColor: primaryColor }}
                 size="lg"
               >
                 Ver Resultado
@@ -265,7 +275,12 @@ export default function QuizPage() {
                   <span>Pergunta {currentQuestion + 1} de {quiz.questions.length}</span>
                   <span>{Math.round(progress)}%</span>
                 </div>
-                <Progress value={progress} className="h-2" />
+                <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{ width: `${progress}%`, backgroundColor: primaryColor }}
+                  />
+                </div>
               </div>
 
               <div className="space-y-4">
@@ -277,6 +292,7 @@ export default function QuizPage() {
                       key={index}
                       variant={selectedAnswers[currentQuestion] === index ? "default" : "outline"}
                       className="w-full text-left justify-start h-auto py-4 px-6 text-base"
+                      style={selectedAnswers[currentQuestion] === index ? { backgroundColor: primaryColor } : { borderColor: `${primaryColor}50` }}
                       onClick={() => handleAnswerSelect(index)}
                     >
                       <span className="mr-3 font-bold">{String.fromCharCode(65 + index)}.</span>
@@ -290,7 +306,8 @@ export default function QuizPage() {
                 <Button
                   onClick={handleNext}
                   disabled={selectedAnswers[currentQuestion] === undefined}
-                  className="gradient-primary shadow-glow"
+                  className="text-white shadow-lg"
+                  style={{ backgroundColor: primaryColor }}
                   size="lg"
                 >
                   {currentQuestion < quiz.questions.length - 1 ? (
@@ -306,7 +323,7 @@ export default function QuizPage() {
           ) : (
             <div className="space-y-6">
               <div className="text-center space-y-4">
-                <CheckCircle2 className="h-16 w-16 text-success mx-auto" />
+                <CheckCircle2 className="h-16 w-16 mx-auto" style={{ color: primaryColor }} />
                 <h3 className="text-2xl font-bold">Quiz Concluído!</h3>
                 <p className="text-muted-foreground">
                   Obrigado por responder ao quiz
@@ -328,10 +345,10 @@ export default function QuizPage() {
 
               {/* Oferta */}
               {quiz?.show_offer && (
-                <Card className="border-success bg-gradient-to-br from-success/10 to-success/5 shadow-glow">
+                <Card className="shadow-lg" style={{ borderColor: primaryColor, backgroundColor: `${primaryColor}10` }}>
                   <CardHeader className="text-center">
                     <div className="flex justify-center mb-2">
-                      <Gift className="h-12 w-12 text-success" />
+                      <Gift className="h-12 w-12" style={{ color: primaryColor }} />
                     </div>
                     <CardTitle className="text-2xl">{quiz.offer_title || "Oferta Especial!"}</CardTitle>
                     <CardDescription className="text-base">
@@ -342,7 +359,8 @@ export default function QuizPage() {
                     <CardContent className="flex justify-center pb-6">
                       <Button
                         onClick={() => window.open(quiz.offer_button_link, '_blank')}
-                        className="gradient-primary shadow-glow"
+                        className="text-white shadow-lg"
+                        style={{ backgroundColor: primaryColor }}
                         size="lg"
                       >
                         {quiz.offer_button_text || "Quero essa oferta!"}
