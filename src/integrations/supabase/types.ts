@@ -5188,9 +5188,11 @@ export type Database = {
           offer_button_text: string | null
           offer_description: string | null
           offer_title: string | null
+          primary_color: string | null
           questions: Json
           redirect_url: string | null
           responses_count: number
+          secondary_color: string | null
           show_offer: boolean | null
           title: string
           updated_at: string
@@ -5210,9 +5212,11 @@ export type Database = {
           offer_button_text?: string | null
           offer_description?: string | null
           offer_title?: string | null
+          primary_color?: string | null
           questions?: Json
           redirect_url?: string | null
           responses_count?: number
+          secondary_color?: string | null
           show_offer?: boolean | null
           title: string
           updated_at?: string
@@ -5232,9 +5236,11 @@ export type Database = {
           offer_button_text?: string | null
           offer_description?: string | null
           offer_title?: string | null
+          primary_color?: string | null
           questions?: Json
           redirect_url?: string | null
           responses_count?: number
+          secondary_color?: string | null
           show_offer?: boolean | null
           title?: string
           updated_at?: string
