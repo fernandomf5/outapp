@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Palette } from "lucide-react";
 import { 
   HelpCircle, 
   Plus,
@@ -53,6 +54,8 @@ export const QuizCreatorPanel = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    primary_color: '#8B5CF6',
+    secondary_color: '#0EA5E9',
     collect_data: false,
     collect_name: true,
     collect_email: true,
@@ -163,6 +166,8 @@ export const QuizCreatorPanel = () => {
           user_id: user.id,
           title: formData.title,
           description: formData.description,
+          primary_color: formData.primary_color,
+          secondary_color: formData.secondary_color,
           questions: formData.questions,
           collect_data: formData.collect_data,
           collect_name: formData.collect_name,
@@ -190,6 +195,8 @@ export const QuizCreatorPanel = () => {
       setFormData({
         title: '',
         description: '',
+        primary_color: '#8B5CF6',
+        secondary_color: '#0EA5E9',
         collect_data: false,
         collect_name: true,
         collect_email: true,
@@ -285,6 +292,55 @@ export const QuizCreatorPanel = () => {
                   rows={2}
                 />
               </div>
+
+              {/* Personalização de Cores */}
+              <Card className="p-4 bg-secondary/5">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Palette className="h-5 w-5 text-primary" />
+                    <div>
+                      <Label className="text-base font-semibold">Personalização de Cores</Label>
+                      <p className="text-sm text-muted-foreground">Customize as cores do seu quiz</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Cor Primária</Label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          value={formData.primary_color}
+                          onChange={(e) => setFormData({...formData, primary_color: e.target.value})}
+                          className="h-10 w-14 rounded border cursor-pointer"
+                        />
+                        <Input
+                          value={formData.primary_color}
+                          onChange={(e) => setFormData({...formData, primary_color: e.target.value})}
+                          placeholder="#8B5CF6"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Cor Secundária</Label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          value={formData.secondary_color}
+                          onChange={(e) => setFormData({...formData, secondary_color: e.target.value})}
+                          className="h-10 w-14 rounded border cursor-pointer"
+                        />
+                        <Input
+                          value={formData.secondary_color}
+                          onChange={(e) => setFormData({...formData, secondary_color: e.target.value})}
+                          placeholder="#0EA5E9"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
 
               {/* Captura de Dados */}
               <Card className="p-4 bg-primary/5">
