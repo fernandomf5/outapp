@@ -439,7 +439,6 @@ export function BriefingCreatorPanel() {
   });
 </script>`;
   };
-  };
 
   const handleCopyPopupCode = () => {
     if (!selectedBriefingForPopup) return;
