@@ -700,7 +700,7 @@ export const QuizCreatorPanel = () => {
                       <Button 
                         variant="outline" 
                         size="icon"
-                        onClick={() => navigate(`/quiz/${quiz.id}`)}
+                        onClick={() => window.open(`/quiz/${quiz.id}`, '_blank')}
                         title="Visualizar"
                       >
                         <Eye className="h-4 w-4" />
