@@ -5020,6 +5020,7 @@ export type Database = {
           image_url: string | null
           images: string[] | null
           is_featured: boolean | null
+          is_scrollable_screenshot: boolean | null
           portfolio_id: string | null
           project_url: string | null
           scroll_image_url: string | null
@@ -5037,6 +5038,7 @@ export type Database = {
           image_url?: string | null
           images?: string[] | null
           is_featured?: boolean | null
+          is_scrollable_screenshot?: boolean | null
           portfolio_id?: string | null
           project_url?: string | null
           scroll_image_url?: string | null
@@ -5054,6 +5056,7 @@ export type Database = {
           image_url?: string | null
           images?: string[] | null
           is_featured?: boolean | null
+          is_scrollable_screenshot?: boolean | null
           portfolio_id?: string | null
           project_url?: string | null
           scroll_image_url?: string | null
