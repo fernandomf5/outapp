@@ -31,6 +31,7 @@ interface PortfolioItem {
   is_featured: boolean;
   display_order: number;
   images: string[] | null;
+  is_scrollable_screenshot: boolean;
 }
 
 export default function PortfolioPublicPage() {
@@ -339,52 +340,107 @@ export default function PortfolioPublicPage() {
                     />
                   </div>
                 ) : selectedItemImages.length > 0 ? (
-                  <div className="relative bg-black/5 dark:bg-black/20 rounded-lg">
-                    <img
-                      src={selectedItemImages[currentImageIndex]}
-                      alt={`${selectedItem.title} - ${currentImageIndex + 1}`}
-                      className="w-full rounded-lg object-contain max-h-[60vh] mx-auto"
-                    />
-                    
-                    {selectedItemImages.length > 1 && (
-                      <>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full"
-                          onClick={handlePrevImage}
-                        >
-                          <ChevronLeft className="w-6 h-6" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full"
-                          onClick={handleNextImage}
-                        >
-                          <ChevronRight className="w-6 h-6" />
-                        </Button>
-                        
-                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                          {selectedItemImages.map((_, idx) => (
-                            <button
-                              key={idx}
-                              className={`w-2 h-2 rounded-full transition-all ${
-                                idx === currentImageIndex 
-                                  ? "bg-white w-4" 
-                                  : "bg-white/50 hover:bg-white/75"
-                              }`}
-                              onClick={() => setCurrentImageIndex(idx)}
-                            />
-                          ))}
-                        </div>
-                        
-                        <div className="absolute top-3 right-3 bg-black/60 text-white text-sm px-2 py-1 rounded">
-                          {currentImageIndex + 1} / {selectedItemImages.length}
-                        </div>
-                      </>
-                    )}
-                  </div>
+                  selectedItem.is_scrollable_screenshot ? (
+                    <div className="relative bg-black/5 dark:bg-black/20 rounded-lg overflow-hidden">
+                      <div className="max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
+                        <img
+                          src={selectedItemImages[currentImageIndex]}
+                          alt={`${selectedItem.title} - ${currentImageIndex + 1}`}
+                          className="w-full object-contain"
+                        />
+                      </div>
+                      
+                      {selectedItemImages.length > 1 && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full z-10"
+                            onClick={handlePrevImage}
+                          >
+                            <ChevronLeft className="w-6 h-6" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full z-10"
+                            onClick={handleNextImage}
+                          >
+                            <ChevronRight className="w-6 h-6" />
+                          </Button>
+                          
+                          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                            {selectedItemImages.map((_, idx) => (
+                              <button
+                                key={idx}
+                                className={`w-2 h-2 rounded-full transition-all ${
+                                  idx === currentImageIndex 
+                                    ? "bg-white w-4" 
+                                    : "bg-white/50 hover:bg-white/75"
+                                }`}
+                                onClick={() => setCurrentImageIndex(idx)}
+                              />
+                            ))}
+                          </div>
+                          
+                          <div className="absolute top-3 right-3 bg-black/60 text-white text-sm px-2 py-1 rounded z-10">
+                            {currentImageIndex + 1} / {selectedItemImages.length}
+                          </div>
+                        </>
+                      )}
+                      
+                      <div className="absolute bottom-3 left-3 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1 z-10">
+                        <span>↕ Role para ver mais</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative bg-black/5 dark:bg-black/20 rounded-lg">
+                      <img
+                        src={selectedItemImages[currentImageIndex]}
+                        alt={`${selectedItem.title} - ${currentImageIndex + 1}`}
+                        className="w-full rounded-lg object-contain max-h-[60vh] mx-auto"
+                      />
+                      
+                      {selectedItemImages.length > 1 && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full"
+                            onClick={handlePrevImage}
+                          >
+                            <ChevronLeft className="w-6 h-6" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full"
+                            onClick={handleNextImage}
+                          >
+                            <ChevronRight className="w-6 h-6" />
+                          </Button>
+                          
+                          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                            {selectedItemImages.map((_, idx) => (
+                              <button
+                                key={idx}
+                                className={`w-2 h-2 rounded-full transition-all ${
+                                  idx === currentImageIndex 
+                                    ? "bg-white w-4" 
+                                    : "bg-white/50 hover:bg-white/75"
+                                }`}
+                                onClick={() => setCurrentImageIndex(idx)}
+                              />
+                            ))}
+                          </div>
+                          
+                          <div className="absolute top-3 right-3 bg-black/60 text-white text-sm px-2 py-1 rounded">
+                            {currentImageIndex + 1} / {selectedItemImages.length}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )
                 ) : null}
 
                 <div className="flex flex-wrap gap-2">

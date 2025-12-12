@@ -74,6 +74,7 @@ interface PortfolioItem {
   display_order: number;
   is_featured: boolean;
   images: string[] | null;
+  is_scrollable_screenshot: boolean;
 }
 
 const nicheOptions = [
@@ -196,6 +197,7 @@ export function PortfolioCreatorPanel() {
     client_name: "",
     is_featured: false,
     images: [] as string[],
+    is_scrollable_screenshot: false,
   });
 
   const sensors = useSensors(
@@ -364,6 +366,7 @@ export function PortfolioCreatorPanel() {
       client_name: itemForm.client_name,
       is_featured: itemForm.is_featured,
       images: itemForm.images,
+      is_scrollable_screenshot: itemForm.is_scrollable_screenshot,
       portfolio_id: selectedPortfolio.id,
       display_order: editingItem ? editingItem.display_order : items.length,
     };
@@ -419,6 +422,7 @@ export function PortfolioCreatorPanel() {
       client_name: item.client_name || "",
       is_featured: item.is_featured,
       images: item.images || [],
+      is_scrollable_screenshot: item.is_scrollable_screenshot || false,
     });
     setIsItemDialogOpen(true);
   };
@@ -436,6 +440,7 @@ export function PortfolioCreatorPanel() {
       client_name: "",
       is_featured: false,
       images: [],
+      is_scrollable_screenshot: false,
     });
   };
 
@@ -935,6 +940,19 @@ export function PortfolioCreatorPanel() {
                             <Star className="w-4 h-4" /> Destacar este trabalho
                           </Label>
                         </div>
+
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={itemForm.is_scrollable_screenshot}
+                            onCheckedChange={(checked) => setItemForm({ ...itemForm, is_scrollable_screenshot: checked })}
+                          />
+                          <Label className="flex items-center gap-2">
+                            <ImageIcon className="w-4 h-4" /> Screenshot de site (exibir com scroll)
+                          </Label>
+                        </div>
+                        <p className="text-xs text-muted-foreground -mt-2">
+                          Ative esta opção se a imagem é um print completo de um site. Ela será exibida em um container com scroll vertical.
+                        </p>
 
                         <Button onClick={handleSaveItem} className="w-full">
                           {editingItem ? "Atualizar" : "Adicionar"} Trabalho
