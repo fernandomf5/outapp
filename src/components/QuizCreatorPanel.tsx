@@ -295,13 +295,11 @@ export const QuizCreatorPanel = () => {
           <h2 className="text-3xl font-bold tracking-tight">Criador de Quiz</h2>
           <p className="text-muted-foreground">Crie quizzes interativos para engajar sua audiência</p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={handleCloseDialog}>
-          <DialogTrigger asChild>
-            <Button className="gradient-primary shadow-glow" onClick={() => { setEditingQuizId(null); setFormData(initialFormData); setIsAddDialogOpen(true); }}>
-              <Plus className="mr-2 h-4 w-4" />
-              Criar Quiz
-            </Button>
-          </DialogTrigger>
+        <Button className="gradient-primary shadow-glow" onClick={() => { setEditingQuizId(null); setFormData(initialFormData); setIsAddDialogOpen(true); }}>
+          <Plus className="mr-2 h-4 w-4" />
+          Criar Quiz
+        </Button>
+        <Dialog open={isAddDialogOpen} onOpenChange={(open) => !open && handleCloseDialog()}>
           <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingQuizId ? 'Editar Quiz' : 'Criar Novo Quiz'}</DialogTitle>
