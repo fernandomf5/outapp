@@ -303,7 +303,7 @@ export function MembersAreaCreator() {
                 Criar Novo Curso
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
               <DialogHeader>
                 <DialogTitle className="text-2xl flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-primary" />
@@ -313,96 +313,98 @@ export function MembersAreaCreator() {
                   Configure seu curso e comece a criar módulos e aulas
                 </p>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label>Nome do Curso</Label>
-                  <Input 
-                    value={formData.title}
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    placeholder="Ex: Dominando React do Zero ao Avançado"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Descrição</Label>
-                  <Textarea 
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    placeholder="Descreva o que os alunos vão aprender no seu curso..."
-                    rows={4}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Tipo de Acesso</Label>
-                  <Select 
-                    value={(formData as any).access_mode} 
-                    onValueChange={(value) => setFormData({...formData, access_mode: value} as any)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="open">
-                        🌐 Área Liberada - Qualquer pessoa pode acessar
-                      </SelectItem>
-                      <SelectItem value="restricted">
-                        🔒 Solicitar Acesso - Requer aprovação e código
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    {(formData as any).access_mode === 'open' 
-                      ? 'Qualquer pessoa com o link pode acessar o conteúdo sem precisar fazer login.'
-                      : 'Usuários precisam solicitar acesso e você aprovará manualmente.'}
-                  </p>
-                </div>
-                <div className="space-y-3">
-                  <Label>Cores Personalizadas</Label>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="grid gap-2">
-                      <Label className="text-sm">Cor Primária</Label>
-                      <Popover open={showCreatePrimaryColorPicker} onOpenChange={setShowCreatePrimaryColorPicker}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start gap-2"
-                          >
-                            <div 
-                              className="w-5 h-5 rounded border border-border" 
-                              style={{ backgroundColor: (formData as any).primary_color }}
+              <div className="flex-1 overflow-y-auto pr-2">
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label>Nome do Curso</Label>
+                    <Input 
+                      value={formData.title}
+                      onChange={(e) => setFormData({...formData, title: e.target.value})}
+                      placeholder="Ex: Dominando React do Zero ao Avançado"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Descrição</Label>
+                    <Textarea 
+                      value={formData.description}
+                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      placeholder="Descreva o que os alunos vão aprender no seu curso..."
+                      rows={4}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Tipo de Acesso</Label>
+                    <Select 
+                      value={(formData as any).access_mode} 
+                      onValueChange={(value) => setFormData({...formData, access_mode: value} as any)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="open">
+                          🌐 Área Liberada - Qualquer pessoa pode acessar
+                        </SelectItem>
+                        <SelectItem value="restricted">
+                          🔒 Solicitar Acesso - Requer aprovação e código
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      {(formData as any).access_mode === 'open' 
+                        ? 'Qualquer pessoa com o link pode acessar o conteúdo sem precisar fazer login.'
+                        : 'Usuários precisam solicitar acesso e você aprovará manualmente.'}
+                    </p>
+                  </div>
+                  <div className="space-y-3">
+                    <Label>Cores Personalizadas</Label>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="grid gap-2">
+                        <Label className="text-sm">Cor Primária</Label>
+                        <Popover open={showCreatePrimaryColorPicker} onOpenChange={setShowCreatePrimaryColorPicker}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start gap-2"
+                            >
+                              <div 
+                                className="w-5 h-5 rounded border border-border" 
+                                style={{ backgroundColor: (formData as any).primary_color }}
+                              />
+                              <span className="text-sm">{(formData as any).primary_color}</span>
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-3">
+                            <HexColorPicker
+                              color={(formData as any).primary_color}
+                              onChange={(color) => setFormData({...formData, primary_color: color} as any)}
                             />
-                            <span className="text-sm">{(formData as any).primary_color}</span>
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-3">
-                          <HexColorPicker
-                            color={(formData as any).primary_color}
-                            onChange={(color) => setFormData({...formData, primary_color: color} as any)}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label className="text-sm">Cor Secundária</Label>
-                      <Popover open={showCreateSecondaryColorPicker} onOpenChange={setShowCreateSecondaryColorPicker}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start gap-2"
-                          >
-                            <div 
-                              className="w-5 h-5 rounded border border-border" 
-                              style={{ backgroundColor: (formData as any).secondary_color }}
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label className="text-sm">Cor Secundária</Label>
+                        <Popover open={showCreateSecondaryColorPicker} onOpenChange={setShowCreateSecondaryColorPicker}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start gap-2"
+                            >
+                              <div 
+                                className="w-5 h-5 rounded border border-border" 
+                                style={{ backgroundColor: (formData as any).secondary_color }}
+                              />
+                              <span className="text-sm">{(formData as any).secondary_color}</span>
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-3">
+                            <HexColorPicker
+                              color={(formData as any).secondary_color}
+                              onChange={(color) => setFormData({...formData, secondary_color: color} as any)}
                             />
-                            <span className="text-sm">{(formData as any).secondary_color}</span>
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-3">
-                          <HexColorPicker
-                            color={(formData as any).secondary_color}
-                            onChange={(color) => setFormData({...formData, secondary_color: color} as any)}
-                          />
-                        </PopoverContent>
-                      </Popover>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -421,7 +423,7 @@ export function MembersAreaCreator() {
           
           {/* Dialog de Edição */}
           <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
               <DialogHeader>
                 <DialogTitle className="text-2xl flex items-center gap-2">
                   <Edit className="w-5 h-5 text-primary" />
@@ -431,96 +433,98 @@ export function MembersAreaCreator() {
                   Atualize as informações do seu curso
                 </p>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label>Nome do Curso</Label>
-                  <Input 
-                    value={formData.title}
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    placeholder="Ex: Dominando React do Zero ao Avançado"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Descrição</Label>
-                  <Textarea 
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    placeholder="Descreva o que os alunos vão aprender no seu curso..."
-                    rows={4}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Tipo de Acesso</Label>
-                  <Select 
-                    value={(formData as any).access_mode} 
-                    onValueChange={(value) => setFormData({...formData, access_mode: value} as any)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="open">
-                        🌐 Área Liberada - Qualquer pessoa pode acessar
-                      </SelectItem>
-                      <SelectItem value="restricted">
-                        🔒 Solicitar Acesso - Requer aprovação e código
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    {(formData as any).access_mode === 'open' 
-                      ? 'Qualquer pessoa com o link pode acessar o conteúdo sem precisar fazer login.'
-                      : 'Usuários precisam solicitar acesso e você aprovará manualmente.'}
-                  </p>
-                </div>
-                <div className="space-y-3">
-                  <Label>Cores Personalizadas</Label>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="grid gap-2">
-                      <Label className="text-sm">Cor Primária</Label>
-                      <Popover open={showEditPrimaryColorPicker} onOpenChange={setShowEditPrimaryColorPicker}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start gap-2"
-                          >
-                            <div 
-                              className="w-5 h-5 rounded border border-border" 
-                              style={{ backgroundColor: (formData as any).primary_color }}
+              <div className="flex-1 overflow-y-auto pr-2">
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label>Nome do Curso</Label>
+                    <Input 
+                      value={formData.title}
+                      onChange={(e) => setFormData({...formData, title: e.target.value})}
+                      placeholder="Ex: Dominando React do Zero ao Avançado"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Descrição</Label>
+                    <Textarea 
+                      value={formData.description}
+                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      placeholder="Descreva o que os alunos vão aprender no seu curso..."
+                      rows={4}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Tipo de Acesso</Label>
+                    <Select 
+                      value={(formData as any).access_mode} 
+                      onValueChange={(value) => setFormData({...formData, access_mode: value} as any)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="open">
+                          🌐 Área Liberada - Qualquer pessoa pode acessar
+                        </SelectItem>
+                        <SelectItem value="restricted">
+                          🔒 Solicitar Acesso - Requer aprovação e código
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      {(formData as any).access_mode === 'open' 
+                        ? 'Qualquer pessoa com o link pode acessar o conteúdo sem precisar fazer login.'
+                        : 'Usuários precisam solicitar acesso e você aprovará manualmente.'}
+                    </p>
+                  </div>
+                  <div className="space-y-3">
+                    <Label>Cores Personalizadas</Label>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="grid gap-2">
+                        <Label className="text-sm">Cor Primária</Label>
+                        <Popover open={showEditPrimaryColorPicker} onOpenChange={setShowEditPrimaryColorPicker}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start gap-2"
+                            >
+                              <div 
+                                className="w-5 h-5 rounded border border-border" 
+                                style={{ backgroundColor: (formData as any).primary_color }}
+                              />
+                              <span className="text-sm">{(formData as any).primary_color}</span>
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-3">
+                            <HexColorPicker
+                              color={(formData as any).primary_color}
+                              onChange={(color) => setFormData({...formData, primary_color: color} as any)}
                             />
-                            <span className="text-sm">{(formData as any).primary_color}</span>
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-3">
-                          <HexColorPicker
-                            color={(formData as any).primary_color}
-                            onChange={(color) => setFormData({...formData, primary_color: color} as any)}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label className="text-sm">Cor Secundária</Label>
-                      <Popover open={showEditSecondaryColorPicker} onOpenChange={setShowEditSecondaryColorPicker}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start gap-2"
-                          >
-                            <div 
-                              className="w-5 h-5 rounded border border-border" 
-                              style={{ backgroundColor: (formData as any).secondary_color }}
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label className="text-sm">Cor Secundária</Label>
+                        <Popover open={showEditSecondaryColorPicker} onOpenChange={setShowEditSecondaryColorPicker}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start gap-2"
+                            >
+                              <div 
+                                className="w-5 h-5 rounded border border-border" 
+                                style={{ backgroundColor: (formData as any).secondary_color }}
+                              />
+                              <span className="text-sm">{(formData as any).secondary_color}</span>
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-3">
+                            <HexColorPicker
+                              color={(formData as any).secondary_color}
+                              onChange={(color) => setFormData({...formData, secondary_color: color} as any)}
                             />
-                            <span className="text-sm">{(formData as any).secondary_color}</span>
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-3">
-                          <HexColorPicker
-                            color={(formData as any).secondary_color}
-                            onChange={(color) => setFormData({...formData, secondary_color: color} as any)}
-                          />
-                        </PopoverContent>
-                      </Popover>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
                     </div>
                   </div>
                 </div>
