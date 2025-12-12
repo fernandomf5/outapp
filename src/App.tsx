@@ -44,6 +44,7 @@ import MindMapPresentation from "./pages/MindMapPresentation";
 import MindMapFullEditor from "./pages/MindMapFullEditor";
 import ProposalPublicView from "./pages/ProposalPublicView";
 import AprovaJobClient from "./pages/AprovaJobClient";
+import PortfolioPublicPage from "./pages/PortfolioPublicPage";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { CookieNotice } from "@/components/CookieNotice";
 
@@ -99,6 +100,8 @@ const AppContent = () => {
           } />
           <Route path="/proposta/:slug" element={<ProposalPublicView />} />
           <Route path="/aprova-job/:token" element={<AprovaJobClient />} />
+          <Route path="/portfolio/:portfolioId" element={<PortfolioPublicPage />} />
+          <Route path="/portfolio/:portfolioId/:slug" element={<PortfolioPublicPage />} />
                
               <Route path="/bot-builder" element={
                 <ProtectedRoute>
