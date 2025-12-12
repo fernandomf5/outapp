@@ -24,18 +24,14 @@ export const NewUserNotifications = () => {
   const [newUsers, setNewUsers] = useState<NewUser[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-  const [readUserIds, setReadUserIds] = useState<Set<string>>(new Set());
-
-  // Load read state from localStorage
-  useEffect(() => {
+  const [readUserIds, setReadUserIds] = useState<Set<string>>(() => {
+    // Initialize from localStorage synchronously
     const stored = localStorage.getItem('admin_read_user_notifications');
-    if (stored) {
-      setReadUserIds(new Set(JSON.parse(stored)));
-    }
-  }, []);
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  });
 
   // Fetch recent users (last 7 days)
-  const fetchRecentUsers = async () => {
+  const fetchRecentUsers = async (currentReadIds: Set<string>) => {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
@@ -49,7 +45,7 @@ export const NewUserNotifications = () => {
     if (!error && data) {
       const usersWithReadStatus = data.map(user => ({
         ...user,
-        is_read: readUserIds.has(user.user_id)
+        is_read: currentReadIds.has(user.user_id)
       }));
       setNewUsers(usersWithReadStatus);
       setUnreadCount(usersWithReadStatus.filter(u => !u.is_read).length);
@@ -57,7 +53,7 @@ export const NewUserNotifications = () => {
   };
 
   useEffect(() => {
-    fetchRecentUsers();
+    fetchRecentUsers(readUserIds);
 
     // Subscribe to realtime changes for new user registrations
     const channel = supabase
@@ -83,7 +79,7 @@ export const NewUserNotifications = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [readUserIds]);
+  }, []);
 
   const markAsRead = (userId: string) => {
     const newReadIds = new Set(readUserIds);
