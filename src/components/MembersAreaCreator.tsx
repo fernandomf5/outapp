@@ -303,8 +303,8 @@ export function MembersAreaCreator() {
                 Criar Novo Curso
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
-              <DialogHeader>
+            <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-hidden !flex !flex-col">
+              <DialogHeader className="flex-shrink-0">
                 <DialogTitle className="text-2xl flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-primary" />
                   Criar Novo Curso Online
@@ -313,8 +313,8 @@ export function MembersAreaCreator() {
                   Configure seu curso e comece a criar módulos e aulas
                 </p>
               </DialogHeader>
-              <div className="flex-1 overflow-y-auto pr-2">
-                <div className="grid gap-4 py-4">
+              <div className="flex-1 overflow-y-auto min-h-0 pr-2 -mr-2">
+                <div className="grid gap-4 py-4 pr-2">
                   <div className="grid gap-2">
                     <Label>Nome do Curso</Label>
                     <Input 
@@ -409,7 +409,7 @@ export function MembersAreaCreator() {
                   </div>
                 </div>
               </div>
-              <DialogFooter>
+              <DialogFooter className="flex-shrink-0">
                 <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                   Cancelar
                 </Button>
@@ -423,8 +423,8 @@ export function MembersAreaCreator() {
           
           {/* Dialog de Edição */}
           <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-            <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
-              <DialogHeader>
+            <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-hidden !flex !flex-col">
+              <DialogHeader className="flex-shrink-0">
                 <DialogTitle className="text-2xl flex items-center gap-2">
                   <Edit className="w-5 h-5 text-primary" />
                   Editar Curso Online
@@ -433,8 +433,8 @@ export function MembersAreaCreator() {
                   Atualize as informações do seu curso
                 </p>
               </DialogHeader>
-              <div className="flex-1 overflow-y-auto pr-2">
-                <div className="grid gap-4 py-4">
+              <div className="flex-1 overflow-y-auto min-h-0 pr-2 -mr-2">
+                <div className="grid gap-4 py-4 pr-2">
                   <div className="grid gap-2">
                     <Label>Nome do Curso</Label>
                     <Input 
@@ -529,7 +529,7 @@ export function MembersAreaCreator() {
                   </div>
                 </div>
               </div>
-              <DialogFooter>
+              <DialogFooter className="flex-shrink-0">
                 <Button variant="outline" onClick={() => {
                   setIsEditDialogOpen(false);
                   setEditingArea(null);
