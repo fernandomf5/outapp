@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ExternalLink, Star, Play } from "lucide-react";
+import { ExternalLink, Star, Play, ChevronLeft, ChevronRight, Images } from "lucide-react";
 
 interface Portfolio {
   id: string;
@@ -30,6 +30,7 @@ interface PortfolioItem {
   client_name: string | null;
   is_featured: boolean;
   display_order: number;
+  images: string[] | null;
 }
 
 export default function PortfolioPublicPage() {
@@ -39,6 +40,7 @@ export default function PortfolioPublicPage() {
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null);
   const [filter, setFilter] = useState<string>("all");
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     if (portfolioId) {
@@ -76,6 +78,36 @@ export default function PortfolioPublicPage() {
   const categories = ["all", ...new Set(items.map((item) => item.category).filter(Boolean))];
   const filteredItems = filter === "all" ? items : items.filter((item) => item.category === filter);
   const featuredItems = items.filter((item) => item.is_featured);
+
+  // Get all images for selected item (main image + gallery)
+  const getItemImages = (item: PortfolioItem | null): string[] => {
+    if (!item) return [];
+    const images: string[] = [];
+    if (item.image_url) images.push(item.image_url);
+    if (item.images && item.images.length > 0) {
+      images.push(...item.images);
+    }
+    return images;
+  };
+
+  const selectedItemImages = getItemImages(selectedItem);
+
+  const handlePrevImage = () => {
+    setCurrentImageIndex((prev) => 
+      prev === 0 ? selectedItemImages.length - 1 : prev - 1
+    );
+  };
+
+  const handleNextImage = () => {
+    setCurrentImageIndex((prev) => 
+      prev === selectedItemImages.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  // Reset image index when selecting a new item
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [selectedItem]);
 
   if (loading) {
     return (
@@ -163,6 +195,12 @@ export default function PortfolioPublicPage() {
                       </div>
                     </div>
                   )}
+                  {item.images && item.images.length > 0 && (
+                    <div className="absolute bottom-3 left-3 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                      <Images className="w-3 h-3" />
+                      {item.images.length + (item.image_url ? 1 : 0)}
+                    </div>
+                  )}
                   <Badge
                     className="absolute top-3 right-3"
                     style={{ backgroundColor: portfolio.primary_color }}
@@ -238,6 +276,12 @@ export default function PortfolioPublicPage() {
                     </div>
                   </div>
                 )}
+                {item.images && item.images.length > 0 && (
+                  <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                    <Images className="w-3 h-3" />
+                    {item.images.length + (item.image_url ? 1 : 0)}
+                  </div>
+                )}
               </div>
               <CardContent className="p-4">
                 <h3 className="font-semibold truncate">{item.title}</h3>
@@ -294,12 +338,53 @@ export default function PortfolioPublicPage() {
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     />
                   </div>
-                ) : selectedItem.image_url ? (
-                  <img
-                    src={selectedItem.image_url}
-                    alt={selectedItem.title}
-                    className="w-full rounded-lg object-cover max-h-[50vh]"
-                  />
+                ) : selectedItemImages.length > 0 ? (
+                  <div className="relative">
+                    <img
+                      src={selectedItemImages[currentImageIndex]}
+                      alt={`${selectedItem.title} - ${currentImageIndex + 1}`}
+                      className="w-full rounded-lg object-cover max-h-[50vh]"
+                    />
+                    
+                    {selectedItemImages.length > 1 && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full"
+                          onClick={handlePrevImage}
+                        >
+                          <ChevronLeft className="w-6 h-6" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full"
+                          onClick={handleNextImage}
+                        >
+                          <ChevronRight className="w-6 h-6" />
+                        </Button>
+                        
+                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                          {selectedItemImages.map((_, idx) => (
+                            <button
+                              key={idx}
+                              className={`w-2 h-2 rounded-full transition-all ${
+                                idx === currentImageIndex 
+                                  ? "bg-white w-4" 
+                                  : "bg-white/50 hover:bg-white/75"
+                              }`}
+                              onClick={() => setCurrentImageIndex(idx)}
+                            />
+                          ))}
+                        </div>
+                        
+                        <div className="absolute top-3 right-3 bg-black/60 text-white text-sm px-2 py-1 rounded">
+                          {currentImageIndex + 1} / {selectedItemImages.length}
+                        </div>
+                      </>
+                    )}
+                  </div>
                 ) : null}
 
                 <div className="flex flex-wrap gap-2">
