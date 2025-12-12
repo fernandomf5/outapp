@@ -452,6 +452,63 @@ export function PortfolioCreatorPanel() {
     });
   };
 
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+
+  const handleMultipleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    const remainingSlots = 10 - itemForm.images.length;
+    const filesToUpload = Array.from(files).slice(0, remainingSlots);
+
+    if (filesToUpload.length === 0) {
+      toast({ title: "Limite atingido", description: "Você já tem 10 imagens na galeria", variant: "destructive" });
+      return;
+    }
+
+    setUploadingGallery(true);
+    const newImages: string[] = [];
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({ title: "Erro", description: "Você precisa estar autenticado", variant: "destructive" });
+        return;
+      }
+
+      for (const file of filesToUpload) {
+        if (!file.type.startsWith('image/')) continue;
+        if (file.size > 5 * 1024 * 1024) continue;
+
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('portfolio-images')
+          .upload(fileName, file, { cacheControl: '3600', upsert: true });
+
+        if (!uploadError) {
+          const { data: { publicUrl } } = supabase.storage
+            .from('portfolio-images')
+            .getPublicUrl(fileName);
+          newImages.push(publicUrl);
+        }
+      }
+
+      if (newImages.length > 0) {
+        setItemForm(prev => ({ ...prev, images: [...prev.images, ...newImages] }));
+        toast({ title: `${newImages.length} imagem(ns) adicionada(s)!` });
+      }
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      toast({ title: "Erro ao enviar imagens", variant: "destructive" });
+    } finally {
+      setUploadingGallery(false);
+      // Reset input
+      event.target.value = '';
+    }
+  };
+
   const handleToggleFeatured = async (item: PortfolioItem) => {
     const { error } = await supabase
       .from("portfolio_items")
@@ -820,11 +877,27 @@ export function PortfolioCreatorPanel() {
                           )}
                           
                           {itemForm.images.length < 10 && (
-                            <ImageUpload
-                              currentImage=""
-                              onImageSelect={(url) => handleAddGalleryImage(url || "")}
-                              bucketName="portfolio-images"
-                            />
+                            <div 
+                              className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer"
+                              onClick={() => document.getElementById('gallery-upload')?.click()}
+                            >
+                              <input
+                                id="gallery-upload"
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={handleMultipleFileUpload}
+                                disabled={uploadingGallery}
+                                className="hidden"
+                              />
+                              <ImageIcon className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                              <p className="text-sm text-muted-foreground">
+                                {uploadingGallery ? 'Enviando...' : 'Clique para selecionar imagens'}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Selecione até {10 - itemForm.images.length} imagens de uma vez
+                              </p>
+                            </div>
                           )}
                         </div>
 
