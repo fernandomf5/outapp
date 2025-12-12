@@ -339,11 +339,11 @@ export default function PortfolioPublicPage() {
                     />
                   </div>
                 ) : selectedItemImages.length > 0 ? (
-                  <div className="relative">
+                  <div className="relative bg-black/5 dark:bg-black/20 rounded-lg">
                     <img
                       src={selectedItemImages[currentImageIndex]}
                       alt={`${selectedItem.title} - ${currentImageIndex + 1}`}
-                      className="w-full rounded-lg object-cover max-h-[50vh]"
+                      className="w-full rounded-lg object-contain max-h-[60vh] mx-auto"
                     />
                     
                     {selectedItemImages.length > 1 && (
