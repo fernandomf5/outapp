@@ -5012,6 +5012,7 @@ export type Database = {
       portfolio_items: {
         Row: {
           category: string
+          client_name: string | null
           created_at: string | null
           description: string | null
           display_order: number | null
@@ -5019,13 +5020,16 @@ export type Database = {
           image_url: string | null
           images: string[] | null
           is_featured: boolean | null
+          portfolio_id: string | null
           project_url: string | null
           scroll_image_url: string | null
           title: string
           updated_at: string | null
+          video_url: string | null
         }
         Insert: {
           category: string
+          client_name?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
@@ -5033,13 +5037,16 @@ export type Database = {
           image_url?: string | null
           images?: string[] | null
           is_featured?: boolean | null
+          portfolio_id?: string | null
           project_url?: string | null
           scroll_image_url?: string | null
           title: string
           updated_at?: string | null
+          video_url?: string | null
         }
         Update: {
           category?: string
+          client_name?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
@@ -5047,10 +5054,71 @@ export type Database = {
           image_url?: string | null
           images?: string[] | null
           is_featured?: boolean | null
+          portfolio_id?: string | null
           project_url?: string | null
           scroll_image_url?: string | null
           title?: string
           updated_at?: string | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_items_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "portfolios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portfolios: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_public: boolean | null
+          logo_url: string | null
+          name: string
+          niche: string
+          primary_color: string | null
+          secondary_color: string | null
+          slug: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_public?: boolean | null
+          logo_url?: string | null
+          name: string
+          niche?: string
+          primary_color?: string | null
+          secondary_color?: string | null
+          slug?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_public?: boolean | null
+          logo_url?: string | null
+          name?: string
+          niche?: string
+          primary_color?: string | null
+          secondary_color?: string | null
+          slug?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

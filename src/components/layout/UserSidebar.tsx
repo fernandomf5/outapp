@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck } from "lucide-react";
+import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck, Layers } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import logoLight from "@/assets/logo-light.png";
@@ -100,6 +100,7 @@ export function UserSidebar() {
     { title: "Criador de Pop-ups", icon: Megaphone, path: "/dashboard", tab: "popups" },
     { title: "Criador de Mapa Mental", icon: Brain, path: "/dashboard", tab: "mapa-mental" },
     { title: "Criador de Propostas", icon: FileCheck, path: "/dashboard", tab: "propostas" },
+    { title: "Criador de Portfólio", icon: Layers, path: "/dashboard", tab: "portfolio" },
   ];
 
   const supportItems: MenuItem[] = [

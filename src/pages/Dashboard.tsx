@@ -60,6 +60,7 @@ import { AgendaPanel } from "@/components/AgendaPanel";
 import { AgendaReminders } from "@/components/AgendaReminders";
 import { AprovaJobPanel } from "@/components/AprovaJobPanel";
 import { GlobalChatNotification } from "@/components/GlobalChatNotification";
+import { PortfolioCreatorPanel } from "@/components/PortfolioCreatorPanel";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -1264,6 +1265,12 @@ const Dashboard = () => {
           <TabsContent value="aprova-job">
             <FeatureGate featureKey="aprova_job">
               <AprovaJobPanel />
+            </FeatureGate>
+          </TabsContent>
+
+          <TabsContent value="portfolio">
+            <FeatureGate featureKey="portfolio_creator">
+              <PortfolioCreatorPanel />
             </FeatureGate>
           </TabsContent>
         </Tabs>
