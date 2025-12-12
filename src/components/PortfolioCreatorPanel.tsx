@@ -854,23 +854,26 @@ export function PortfolioCreatorPanel() {
                           </p>
                           
                           {itemForm.images.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mb-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
                               {itemForm.images.map((img, idx) => (
-                                <div key={idx} className="relative group w-14 h-14 shrink-0">
+                                <div key={idx} className="relative group aspect-video">
                                   <img 
                                     src={img} 
                                     alt={`Galeria ${idx + 1}`} 
-                                    className="w-14 h-14 object-cover rounded border"
+                                    className="w-full h-full object-cover rounded-lg border"
                                   />
                                   <Button
                                     type="button"
                                     variant="destructive"
                                     size="icon"
-                                    className="absolute -top-1 -right-1 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                                     onClick={() => handleRemoveGalleryImage(idx)}
                                   >
-                                    <Trash2 className="h-2.5 w-2.5" />
+                                    <Trash2 className="h-3 w-3" />
                                   </Button>
+                                  <span className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded">
+                                    {idx + 1}
+                                  </span>
                                 </div>
                               ))}
                             </div>
