@@ -32,7 +32,8 @@ import {
   Star,
   Lock,
   LockOpen,
-  MessageCircle
+  MessageCircle,
+  Code
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
@@ -140,6 +141,8 @@ export function BriefingCreatorPanel() {
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isFieldDialogOpen, setIsFieldDialogOpen] = useState(false);
+  const [popupCodeDialogOpen, setPopupCodeDialogOpen] = useState(false);
+  const [selectedBriefingForPopup, setSelectedBriefingForPopup] = useState<Briefing | null>(null);
   const [editingBriefing, setEditingBriefing] = useState<Briefing | null>(null);
   
   const [formData, setFormData] = useState({
@@ -355,6 +358,91 @@ export function BriefingCreatorPanel() {
     const link = `${window.location.origin}/briefing/${briefingId}`;
     navigator.clipboard.writeText(link);
     toast.success("Link copiado!");
+  };
+
+  const generatePopupCode = (briefing: Briefing) => {
+    const briefingUrl = `${window.location.origin}/briefing/${briefing.id}`;
+    const primaryColor = (briefing as any).primary_color || '#8B5CF6';
+    
+    return `<!-- Botão Pop-up Briefing: ${briefing.title} -->
+<button id="briefing-popup-btn-${briefing.id}" style="
+  background: ${primaryColor};
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+  transition: transform 0.2s, box-shadow 0.2s;
+" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.2)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 14px rgba(0,0,0,0.15)';">
+  ${briefing.title}
+</button>
+
+<!-- Modal do Briefing -->
+<div id="briefing-modal-${briefing.id}" style="
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  z-index: 99999;
+  justify-content: center;
+  align-items: center;
+">
+  <div style="
+    position: relative;
+    width: 90%;
+    max-width: 800px;
+    height: 90%;
+    max-height: 700px;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+  ">
+    <button onclick="document.getElementById('briefing-modal-${briefing.id}').style.display='none';" style="
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 100000;
+      background: #f3f4f6;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    ">×</button>
+    <iframe src="${briefingUrl}" style="
+      width: 100%;
+      height: 100%;
+      border: none;
+    "></iframe>
+  </div>
+</div>
+
+<script>
+  document.getElementById('briefing-popup-btn-${briefing.id}').addEventListener('click', function() {
+    document.getElementById('briefing-modal-${briefing.id}').style.display = 'flex';
+  });
+  document.getElementById('briefing-modal-${briefing.id}').addEventListener('click', function(e) {
+    if (e.target === this) this.style.display = 'none';
+  });
+</script>`;
+  };
+
+  const handleCopyPopupCode = () => {
+    if (!selectedBriefingForPopup) return;
+    const code = generatePopupCode(selectedBriefingForPopup);
+    navigator.clipboard.writeText(code);
+    toast.success("Código copiado!");
   };
 
   const handleToggleBlock = async (briefing: Briefing) => {
@@ -799,6 +887,17 @@ export function BriefingCreatorPanel() {
                       <Button 
                         variant="outline" 
                         size="sm"
+                        onClick={() => {
+                          setSelectedBriefingForPopup(briefing);
+                          setPopupCodeDialogOpen(true);
+                        }}
+                        title="Gerar código pop-up"
+                      >
+                        <Code className="h-3 w-3" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
                         onClick={() => handleToggleBlock(briefing)}
                         title={briefing.is_blocked ? "Desbloquear" : "Bloquear"}
                       >
@@ -837,6 +936,36 @@ export function BriefingCreatorPanel() {
         onConfirm={handleDeleteBriefing}
         description="Você tem certeza que deseja excluir este briefing? Esta ação não pode ser desfeita."
       />
+
+      {/* Dialog do Código Pop-up */}
+      <Dialog open={popupCodeDialogOpen} onOpenChange={setPopupCodeDialogOpen}>
+        <DialogContent className="sm:max-w-[700px]">
+          <DialogHeader>
+            <DialogTitle>Código do Botão Pop-up</DialogTitle>
+            <DialogDescription>
+              Copie e cole este código HTML no seu site para adicionar um botão que abre o briefing em pop-up.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="relative">
+              <Textarea
+                readOnly
+                value={selectedBriefingForPopup ? generatePopupCode(selectedBriefingForPopup) : ''}
+                className="font-mono text-xs h-[300px] resize-none"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setPopupCodeDialogOpen(false)}>
+                Fechar
+              </Button>
+              <Button onClick={handleCopyPopupCode} className="gradient-primary">
+                <Copy className="h-4 w-4 mr-2" />
+                Copiar Código
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
