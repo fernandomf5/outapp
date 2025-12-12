@@ -16,6 +16,7 @@ interface Subscription {
   plan: {
     name: string;
     price: number;
+    plan_type: string;
   };
   profile: {
     full_name: string;
@@ -41,7 +42,7 @@ export const SubscriptionsPanel = () => {
       .from('subscriptions')
       .select(`
         *,
-        plan:plans(name, price)
+        plan:plans(name, price, plan_type)
       `)
       .order('created_at', { ascending: false });
 
@@ -79,14 +80,20 @@ export const SubscriptionsPanel = () => {
 
   const uniqueSubscriptions = Object.values(latestSubscriptionByUser);
 
-  // Ativos: status 'active' E não expirado
+  // Helper para verificar se expirou (planos vitalícios nunca expiram)
+  const isSubscriptionExpired = (sub: Subscription) => {
+    if (sub.plan?.plan_type === 'lifetime') return false;
+    return new Date(sub.expires_at) <= new Date();
+  };
+
+  // Ativos: status 'active' E (não expirado OU vitalício)
   const activeSubscriptions = uniqueSubscriptions.filter(sub => 
-    sub.status === 'active' && new Date(sub.expires_at) > new Date()
+    sub.status === 'active' && !isSubscriptionExpired(sub)
   );
 
-  // Inativos: status diferente de 'active' OU expirado
+  // Inativos: status diferente de 'active' OU expirado (exceto vitalícios)
   const inactiveSubscriptions = uniqueSubscriptions.filter(sub => 
-    sub.status !== 'active' || new Date(sub.expires_at) <= new Date()
+    sub.status !== 'active' || isSubscriptionExpired(sub)
   );
 
   const displayedActiveSubscriptions = activeSubscriptions.slice(0, activeDisplayCount);
@@ -104,7 +111,8 @@ export const SubscriptionsPanel = () => {
   };
 
   const renderSubscriptionCard = (sub: Subscription) => {
-    const isExpired = new Date(sub.expires_at) <= new Date();
+    const isLifetime = sub.plan?.plan_type === 'lifetime';
+    const isExpired = isLifetime ? false : new Date(sub.expires_at) <= new Date();
     const daysUntilExpiry = Math.ceil((new Date(sub.expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
     
     return (
@@ -117,9 +125,15 @@ export const SubscriptionsPanel = () => {
             <div className="flex items-center gap-2 mb-2">
               <Crown className="w-5 h-5 text-primary" />
               <h3 className="font-semibold text-lg">{sub.plan?.name || 'Plano não encontrado'}</h3>
-              <Badge variant={sub.status === 'active' && !isExpired ? 'default' : 'secondary'}>
-                {sub.status === 'active' && !isExpired ? 'Ativa' : isExpired ? 'Expirada' : 'Inativa'}
-              </Badge>
+              {isLifetime ? (
+                <Badge variant="default" className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white">
+                  Vitalício
+                </Badge>
+              ) : (
+                <Badge variant={sub.status === 'active' && !isExpired ? 'default' : 'secondary'}>
+                  {sub.status === 'active' && !isExpired ? 'Ativa' : isExpired ? 'Expirada' : 'Inativa'}
+                </Badge>
+              )}
             </div>
             
             <div className="space-y-2 text-sm text-muted-foreground mt-3">
@@ -134,10 +148,16 @@ export const SubscriptionsPanel = () => {
                 <Calendar className="w-4 h-4" />
                 <div className="flex flex-col">
                   <span>Iniciou em: {format(new Date(sub.started_at), 'dd/MM/yyyy')}</span>
-                  <span className={isExpired ? 'text-destructive font-medium' : daysUntilExpiry <= 7 ? 'text-yellow-600 dark:text-yellow-500 font-medium' : ''}>
-                    {isExpired ? 'Expirou' : 'Expira'} em: {format(new Date(sub.expires_at), 'dd/MM/yyyy')}
-                    {!isExpired && daysUntilExpiry <= 7 && ` (${daysUntilExpiry} dias)`}
-                  </span>
+                  {isLifetime ? (
+                    <span className="text-amber-600 dark:text-amber-400 font-medium">
+                      Acesso vitalício - Nunca expira
+                    </span>
+                  ) : (
+                    <span className={isExpired ? 'text-destructive font-medium' : daysUntilExpiry <= 7 ? 'text-yellow-600 dark:text-yellow-500 font-medium' : ''}>
+                      {isExpired ? 'Expirou' : 'Expira'} em: {format(new Date(sub.expires_at), 'dd/MM/yyyy')}
+                      {!isExpired && daysUntilExpiry <= 7 && ` (${daysUntilExpiry} dias)`}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2">
