@@ -1269,9 +1269,7 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="portfolio">
-            <FeatureGate featureKey="portfolio_creator">
-              <PortfolioCreatorPanel />
-            </FeatureGate>
+            <PortfolioCreatorPanel />
           </TabsContent>
         </Tabs>
       </main>
