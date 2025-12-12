@@ -80,15 +80,13 @@ export default function PortfolioPublicPage() {
   const filteredItems = filter === "all" ? items : items.filter((item) => item.category === filter);
   const featuredItems = items.filter((item) => item.is_featured);
 
-  // Get all images for selected item (main image + gallery)
+  // Get only gallery images for selected item (main image is just for thumbnail/logo)
   const getItemImages = (item: PortfolioItem | null): string[] => {
     if (!item) return [];
-    const images: string[] = [];
-    if (item.image_url) images.push(item.image_url);
     if (item.images && item.images.length > 0) {
-      images.push(...item.images);
+      return item.images;
     }
-    return images;
+    return [];
   };
 
   const selectedItemImages = getItemImages(selectedItem);
