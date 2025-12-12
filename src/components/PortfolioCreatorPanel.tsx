@@ -195,6 +195,7 @@ export function PortfolioCreatorPanel() {
     project_url: "",
     client_name: "",
     is_featured: false,
+    images: [] as string[],
   });
 
   const sensors = useSensors(
@@ -354,7 +355,15 @@ export function PortfolioCreatorPanel() {
     }
 
     const data = {
-      ...itemForm,
+      title: itemForm.title,
+      description: itemForm.description,
+      category: itemForm.category,
+      image_url: itemForm.image_url,
+      video_url: itemForm.video_url,
+      project_url: itemForm.project_url,
+      client_name: itemForm.client_name,
+      is_featured: itemForm.is_featured,
+      images: itemForm.images,
       portfolio_id: selectedPortfolio.id,
       display_order: editingItem ? editingItem.display_order : items.length,
     };
@@ -409,6 +418,7 @@ export function PortfolioCreatorPanel() {
       project_url: item.project_url || "",
       client_name: item.client_name || "",
       is_featured: item.is_featured,
+      images: item.images || [],
     });
     setIsItemDialogOpen(true);
   };
@@ -425,6 +435,20 @@ export function PortfolioCreatorPanel() {
       project_url: "",
       client_name: "",
       is_featured: false,
+      images: [],
+    });
+  };
+
+  const handleAddGalleryImage = (url: string) => {
+    if (itemForm.images.length < 10 && url) {
+      setItemForm({ ...itemForm, images: [...itemForm.images, url] });
+    }
+  };
+
+  const handleRemoveGalleryImage = (index: number) => {
+    setItemForm({ 
+      ...itemForm, 
+      images: itemForm.images.filter((_, i) => i !== index) 
     });
   };
 
@@ -762,6 +786,46 @@ export function PortfolioCreatorPanel() {
                             onImageSelect={(url) => setItemForm({ ...itemForm, image_url: url || "" })}
                             bucketName="portfolio-images"
                           />
+                        </div>
+
+                        <div>
+                          <Label className="flex items-center gap-2">
+                            <ImageIcon className="w-4 h-4" /> Galeria de Imagens ({itemForm.images.length}/10)
+                          </Label>
+                          <p className="text-xs text-muted-foreground mb-2">
+                            Adicione até 10 imagens para exibir em carrossel
+                          </p>
+                          
+                          {itemForm.images.length > 0 && (
+                            <div className="grid grid-cols-5 gap-2 mb-3">
+                              {itemForm.images.map((img, idx) => (
+                                <div key={idx} className="relative group">
+                                  <img 
+                                    src={img} 
+                                    alt={`Galeria ${idx + 1}`} 
+                                    className="w-full h-16 object-cover rounded"
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="icon"
+                                    className="absolute -top-2 -right-2 h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={() => handleRemoveGalleryImage(idx)}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          
+                          {itemForm.images.length < 10 && (
+                            <ImageUpload
+                              currentImage=""
+                              onImageSelect={(url) => handleAddGalleryImage(url || "")}
+                              bucketName="portfolio-images"
+                            />
+                          )}
                         </div>
 
                         <div>
