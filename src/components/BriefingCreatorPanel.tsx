@@ -143,6 +143,7 @@ export function BriefingCreatorPanel() {
   const [isFieldDialogOpen, setIsFieldDialogOpen] = useState(false);
   const [popupCodeDialogOpen, setPopupCodeDialogOpen] = useState(false);
   const [selectedBriefingForPopup, setSelectedBriefingForPopup] = useState<Briefing | null>(null);
+  const [popupButtonName, setPopupButtonName] = useState('');
   const [editingBriefing, setEditingBriefing] = useState<Briefing | null>(null);
   
   const [formData, setFormData] = useState({
@@ -360,9 +361,10 @@ export function BriefingCreatorPanel() {
     toast.success("Link copiado!");
   };
 
-  const generatePopupCode = (briefing: Briefing) => {
+  const generatePopupCode = (briefing: Briefing, buttonName: string) => {
     const briefingUrl = `${window.location.origin}/briefing/${briefing.id}`;
     const primaryColor = (briefing as any).primary_color || '#8B5CF6';
+    const displayName = buttonName.trim() || briefing.title;
     
     return `<!-- Botão Pop-up Briefing: ${briefing.title} -->
 <button id="briefing-popup-btn-${briefing.id}" style="
@@ -377,7 +379,7 @@ export function BriefingCreatorPanel() {
   box-shadow: 0 4px 14px rgba(0,0,0,0.15);
   transition: transform 0.2s, box-shadow 0.2s;
 " onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.2)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 14px rgba(0,0,0,0.15)';">
-  ${briefing.title}
+  ${displayName}
 </button>
 
 <!-- Modal do Briefing -->
@@ -437,10 +439,11 @@ export function BriefingCreatorPanel() {
   });
 </script>`;
   };
+  };
 
   const handleCopyPopupCode = () => {
     if (!selectedBriefingForPopup) return;
-    const code = generatePopupCode(selectedBriefingForPopup);
+    const code = generatePopupCode(selectedBriefingForPopup, popupButtonName);
     navigator.clipboard.writeText(code);
     toast.success("Código copiado!");
   };
@@ -874,11 +877,10 @@ export function BriefingCreatorPanel() {
                       </div>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="flex-1"
                         onClick={() => handleCopyLink(briefing.id)}
                       >
                         <Copy className="h-3 w-3 mr-1" />
@@ -889,6 +891,7 @@ export function BriefingCreatorPanel() {
                         size="sm"
                         onClick={() => {
                           setSelectedBriefingForPopup(briefing);
+                          setPopupButtonName('');
                           setPopupCodeDialogOpen(true);
                         }}
                         title="Gerar código pop-up"
@@ -947,11 +950,23 @@ export function BriefingCreatorPanel() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="popup-button-name">Nome do Botão</Label>
+              <Input
+                id="popup-button-name"
+                placeholder={selectedBriefingForPopup?.title || 'Ex: Preencher Briefing'}
+                value={popupButtonName}
+                onChange={(e) => setPopupButtonName(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Se deixar vazio, usará o título do briefing
+              </p>
+            </div>
             <div className="relative">
               <Textarea
                 readOnly
-                value={selectedBriefingForPopup ? generatePopupCode(selectedBriefingForPopup) : ''}
-                className="font-mono text-xs h-[300px] resize-none"
+                value={selectedBriefingForPopup ? generatePopupCode(selectedBriefingForPopup, popupButtonName) : ''}
+                className="font-mono text-xs h-[250px] resize-none"
               />
             </div>
             <div className="flex gap-2 justify-end">
