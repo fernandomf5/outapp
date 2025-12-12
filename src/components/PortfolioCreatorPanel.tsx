@@ -854,22 +854,22 @@ export function PortfolioCreatorPanel() {
                           </p>
                           
                           {itemForm.images.length > 0 && (
-                            <div className="grid grid-cols-5 gap-2 mb-3">
+                            <div className="flex flex-wrap gap-2 mb-3">
                               {itemForm.images.map((img, idx) => (
-                                <div key={idx} className="relative group">
+                                <div key={idx} className="relative group w-14 h-14 shrink-0">
                                   <img 
                                     src={img} 
                                     alt={`Galeria ${idx + 1}`} 
-                                    className="w-full h-16 object-cover rounded"
+                                    className="w-14 h-14 object-cover rounded border"
                                   />
                                   <Button
                                     type="button"
                                     variant="destructive"
                                     size="icon"
-                                    className="absolute -top-2 -right-2 h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="absolute -top-1 -right-1 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity"
                                     onClick={() => handleRemoveGalleryImage(idx)}
                                   >
-                                    <Trash2 className="h-3 w-3" />
+                                    <Trash2 className="h-2.5 w-2.5" />
                                   </Button>
                                 </div>
                               ))}
