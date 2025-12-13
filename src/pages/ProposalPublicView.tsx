@@ -642,7 +642,10 @@ export default function ProposalPublicView() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-bold text-lg mb-1">{service.name}</h4>
-                        <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">{service.description}</p>
+                        <div 
+                          className="text-muted-foreground text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+                          dangerouslySetInnerHTML={{ __html: service.description }}
+                        />
                       </div>
                     </div>
                   </div>

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Trash2, GripVertical, Image, X, Play } from 'lucide-react';
@@ -10,6 +9,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ImageUpload } from '@/components/ImageUpload';
+import { ServiceRichTextEditor } from '../ServiceRichTextEditor';
 
 interface Service {
   id: string;
@@ -62,11 +62,10 @@ function SortableServiceItem({
               placeholder="Nome do serviço"
               className="font-medium"
             />
-            <Textarea
+            <ServiceRichTextEditor
               value={service.description}
-              onChange={(e) => onUpdate(service.id, { description: e.target.value })}
+              onChange={(val) => onUpdate(service.id, { description: val })}
               placeholder="Descreva o serviço em detalhes..."
-              rows={3}
             />
             
             {/* Image Section */}
