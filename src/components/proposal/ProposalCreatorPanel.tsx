@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Plus, History, Eye, Copy, Trash2, ExternalLink, Send, CheckCircle, XCircle, Clock, Filter, Pencil } from 'lucide-react';
+import { FileText, Plus, History, Eye, Copy, Trash2, ExternalLink, Send, CheckCircle, XCircle, Clock, Filter, Pencil, Files } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -269,6 +269,49 @@ export function ProposalCreatorPanel() {
     }
   };
 
+  const duplicateProposal = async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('commercial_proposals')
+        .select('*')
+        .eq('id', id)
+        .single();
+      if (error) throw error;
+      
+      setProposalData({
+        company_name: data.company_name || '',
+        company_logo_url: data.company_logo_url || '',
+        company_email: data.company_email || '',
+        company_phone: data.company_phone || '',
+        company_address: data.company_address || '',
+        company_cnpj: data.company_cnpj || '',
+        client_name: data.client_name || '',
+        client_email: data.client_email || '',
+        client_phone: data.client_phone || '',
+        client_company: data.client_company || '',
+        client_cnpj: data.client_cnpj || '',
+        client_address: data.client_address || '',
+        title: `${data.title} (Cópia)`,
+        introduction: data.introduction || '',
+        introduction_image_url: data.introduction_image_url || '',
+        introduction_images: (data as any).introduction_images || [],
+        services: (data.services || []) as any[],
+        timeline: (data.timeline || []) as any[],
+        pricing: (data.pricing || { items: [], discount: 0, total: 0 }) as any,
+        conditions: data.conditions || '',
+        valid_until: '',
+        primary_color: data.primary_color || '#6366f1',
+        auto_carousel: (data as any).auto_carousel ?? false,
+      });
+      setEditingProposal(null); // Not editing, creating new
+      setCurrentStep(0);
+      setActiveTab('create');
+      toast.success('Proposta duplicada! Faça as alterações e salve.');
+    } catch (error) {
+      toast.error('Erro ao duplicar proposta');
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const config: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ReactNode }> = {
       draft: { label: 'Rascunho', variant: 'secondary', icon: <FileText className="h-3 w-3" /> },
@@ -441,10 +484,13 @@ export function ProposalCreatorPanel() {
                                 </Button>
                               </>
                             )}
+                            <Button variant="ghost" size="icon" onClick={() => duplicateProposal(proposal.id)} title="Duplicar proposta">
+                              <Files className="h-4 w-4" />
+                            </Button>
                             <Button variant="ghost" size="icon" onClick={() => loadProposalForEdit(proposal.id)} title="Editar proposta">
                               <Pencil className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteProposal(proposal)}>
+                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteProposal(proposal)} title="Excluir proposta">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
