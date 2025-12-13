@@ -45,6 +45,7 @@ interface Proposal {
   title: string;
   introduction: string;
   introduction_image_url: string | null;
+  introduction_images: string[] | null;
   services: Service[];
   timeline: { id: string; phase: string; duration: string; deliverables: string }[];
   pricing: { items: { id: string; description: string; quantity: number; unit_price: number }[]; discount: number; total: number };
@@ -128,6 +129,78 @@ function ServiceCard({ service, index, primaryColor }: { service: Service; index
   );
 }
 
+// Introduction Section Component with carousel
+function IntroductionSection({ proposal, primaryColor }: { proposal: Proposal; primaryColor: string }) {
+  const [currentImage, setCurrentImage] = useState(0);
+  const images = proposal.introduction_images?.length 
+    ? proposal.introduction_images 
+    : (proposal.introduction_image_url ? [proposal.introduction_image_url] : []);
+  
+  return (
+    <Card className="border-0 shadow-lg overflow-hidden">
+      <CardHeader className="border-b bg-muted/30">
+        <CardTitle className="flex items-center gap-3 text-xl">
+          <div 
+            className="w-10 h-10 rounded-xl flex items-center justify-center"
+            style={{ backgroundColor: `${primaryColor}20` }}
+          >
+            <Sparkles className="h-5 w-5" style={{ color: primaryColor }} />
+          </div>
+          Apresentação
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-6">
+        <div className={`grid gap-6 ${images.length > 0 ? 'md:grid-cols-2' : ''}`}>
+          <div className="prose prose-sm dark:prose-invert max-w-none">
+            <p className="whitespace-pre-wrap text-base leading-relaxed">{proposal.introduction}</p>
+          </div>
+          {images.length > 0 && (
+            <div className="relative rounded-xl overflow-hidden shadow-md">
+              <img 
+                src={images[currentImage]} 
+                alt={`Apresentação ${currentImage + 1}`}
+                className="w-full h-64 md:h-full object-cover"
+              />
+              {images.length > 1 && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 shadow-lg text-white hover:text-white h-8 w-8"
+                    style={{ backgroundColor: primaryColor, opacity: 0.9 }}
+                    onClick={() => setCurrentImage(prev => prev === 0 ? images.length - 1 : prev - 1)}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 shadow-lg text-white hover:text-white h-8 w-8"
+                    style={{ backgroundColor: primaryColor, opacity: 0.9 }}
+                    onClick={() => setCurrentImage(prev => prev === images.length - 1 ? 0 : prev + 1)}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                    {images.map((_, idx) => (
+                      <button
+                        key={idx}
+                        className={`w-2 h-2 rounded-full transition-all ${idx === currentImage ? 'w-5' : ''}`}
+                        style={{ backgroundColor: idx === currentImage ? primaryColor : 'rgba(255,255,255,0.5)' }}
+                        onClick={() => setCurrentImage(idx)}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function ProposalPublicView() {
   const { slug } = useParams<{ slug: string }>();
   const [proposal, setProposal] = useState<Proposal | null>(null);
@@ -165,6 +238,7 @@ export default function ProposalPublicView() {
         timeline: (data.timeline || []) as any[],
         pricing: (data.pricing || { items: [], discount: 0, total: 0 }) as any,
         auto_carousel: (data as any).auto_carousel ?? false,
+        introduction_images: (data as any).introduction_images || [],
       });
 
       // Mark as viewed
@@ -600,35 +674,7 @@ export default function ProposalPublicView() {
 
         {/* Introduction */}
         {proposal.introduction && (
-          <Card className="border-0 shadow-lg overflow-hidden">
-            <CardHeader className="border-b bg-muted/30">
-              <CardTitle className="flex items-center gap-3 text-xl">
-                <div 
-                  className="w-10 h-10 rounded-xl flex items-center justify-center"
-                  style={{ backgroundColor: `${primaryColor}20` }}
-                >
-                  <Sparkles className="h-5 w-5" style={{ color: primaryColor }} />
-                </div>
-                Apresentação
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className={`grid gap-6 ${proposal.introduction_image_url ? 'md:grid-cols-2' : ''}`}>
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                  <p className="whitespace-pre-wrap text-base leading-relaxed">{proposal.introduction}</p>
-                </div>
-                {proposal.introduction_image_url && (
-                  <div className="relative">
-                    <img 
-                      src={proposal.introduction_image_url} 
-                      alt="Apresentação" 
-                      className="w-full h-64 md:h-full object-cover rounded-xl shadow-md"
-                    />
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <IntroductionSection proposal={proposal} primaryColor={primaryColor} />
         )}
 
         {/* Services */}

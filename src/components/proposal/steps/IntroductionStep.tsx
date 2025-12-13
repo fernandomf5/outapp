@@ -1,18 +1,42 @@
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ImageUpload } from '@/components/ImageUpload';
 import { Card, CardContent } from '@/components/ui/card';
-import { Image } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Image, X, Plus } from 'lucide-react';
 
 interface IntroductionStepProps {
   title: string;
   introduction: string;
   introductionImageUrl?: string;
-  onChange: (data: { title?: string; introduction?: string; introduction_image_url?: string }) => void;
+  introductionImages?: string[];
+  onChange: (data: { title?: string; introduction?: string; introduction_image_url?: string; introduction_images?: string[] }) => void;
 }
 
-export function IntroductionStep({ title, introduction, introductionImageUrl, onChange }: IntroductionStepProps) {
+export function IntroductionStep({ title, introduction, introductionImageUrl, introductionImages = [], onChange }: IntroductionStepProps) {
+  const [showImageUpload, setShowImageUpload] = useState(false);
+  
+  // Merge legacy single image with new array format
+  const allImages = introductionImages.length > 0 
+    ? introductionImages 
+    : (introductionImageUrl ? [introductionImageUrl] : []);
+
+  const handleAddImage = (url: string) => {
+    const newImages = [...allImages, url];
+    onChange({ introduction_images: newImages, introduction_image_url: newImages[0] });
+    setShowImageUpload(false);
+  };
+
+  const handleRemoveImage = (index: number) => {
+    const newImages = allImages.filter((_, i) => i !== index);
+    onChange({ 
+      introduction_images: newImages, 
+      introduction_image_url: newImages[0] || undefined 
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-center mb-6">
@@ -50,15 +74,63 @@ export function IntroductionStep({ title, introduction, introductionImageUrl, on
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 mb-3">
               <Image className="h-4 w-4 text-primary" />
-              <Label>Imagem de Apresentação (opcional)</Label>
+              <Label>Imagens de Apresentação (opcional)</Label>
             </div>
-            <ImageUpload
-              currentImage={introductionImageUrl || null}
-              onImageSelect={(url) => onChange({ introduction_image_url: url })}
-              bucketName="portfolio-images"
-            />
+            
+            {/* Display existing images */}
+            {allImages.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {allImages.map((img, idx) => (
+                  <div key={idx} className="relative group">
+                    <img 
+                      src={img} 
+                      alt={`Apresentação ${idx + 1}`} 
+                      className="w-24 h-24 object-cover rounded-lg border"
+                    />
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute -top-1 -right-1 h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handleRemoveImage(idx)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add image section */}
+            {showImageUpload ? (
+              <div className="border border-dashed rounded-lg p-3">
+                <ImageUpload
+                  currentImage={null}
+                  onImageSelect={handleAddImage}
+                  bucketName="portfolio-images"
+                />
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="mt-2 w-full"
+                  onClick={() => setShowImageUpload(false)}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => setShowImageUpload(true)}
+              >
+                <Plus className="h-4 w-4" />
+                {allImages.length > 0 ? 'Adicionar Mais Imagens' : 'Adicionar Imagem'}
+              </Button>
+            )}
+            
             <p className="text-xs text-muted-foreground mt-2">
-              Adicione uma imagem que represente sua empresa ou o projeto proposto.
+              Adicione imagens que representem sua empresa ou o projeto proposto. Múltiplas imagens serão exibidas em carrossel.
             </p>
           </CardContent>
         </Card>
