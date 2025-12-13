@@ -24,6 +24,7 @@ interface Service {
   name: string;
   description: string;
   image_url?: string;
+  gallery_images?: string[];
 }
 
 interface Proposal {
@@ -56,6 +57,75 @@ interface Proposal {
   client_accepted_at: string | null;
   client_signature_url: string | null;
   created_at: string;
+}
+
+// Service Card Component with individual gallery carousel
+function ServiceCard({ service, index, primaryColor }: { service: Service; index: number; primaryColor: string }) {
+  const [currentImage, setCurrentImage] = useState(0);
+  const images = service.gallery_images || (service.image_url ? [service.image_url] : []);
+  
+  return (
+    <div className="group relative p-5 rounded-xl border bg-card hover:shadow-md transition-all">
+      <div className="flex gap-4">
+        <div 
+          className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
+          style={{ backgroundColor: primaryColor }}
+        >
+          {index + 1}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h4 className="font-bold text-lg mb-1">{service.name}</h4>
+          <div 
+            className="text-muted-foreground text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert [&_p]:m-0"
+            dangerouslySetInnerHTML={{ __html: service.description }}
+          />
+          
+          {/* Image Gallery Carousel */}
+          {images.length > 0 && (
+            <div className="mt-4 relative rounded-lg overflow-hidden">
+              <img 
+                src={images[currentImage]} 
+                alt={`${service.name} ${currentImage + 1}`}
+                className="w-full h-48 object-cover"
+              />
+              {images.length > 1 && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 shadow-lg text-white hover:text-white h-8 w-8"
+                    style={{ backgroundColor: primaryColor, opacity: 0.9 }}
+                    onClick={() => setCurrentImage(prev => prev === 0 ? images.length - 1 : prev - 1)}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 shadow-lg text-white hover:text-white h-8 w-8"
+                    style={{ backgroundColor: primaryColor, opacity: 0.9 }}
+                    onClick={() => setCurrentImage(prev => prev === images.length - 1 ? 0 : prev + 1)}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                    {images.map((_, idx) => (
+                      <button
+                        key={idx}
+                        className={`w-2 h-2 rounded-full transition-all ${idx === currentImage ? 'w-5' : ''}`}
+                        style={{ backgroundColor: idx === currentImage ? primaryColor : 'rgba(255,255,255,0.5)' }}
+                        onClick={() => setCurrentImage(idx)}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function ProposalPublicView() {
@@ -629,26 +699,12 @@ export default function ProposalPublicView() {
               {/* Services List */}
               <div className="grid gap-4">
                 {proposal.services.map((service, index) => (
-                  <div 
+                  <ServiceCard 
                     key={service.id} 
-                    className="group relative p-5 rounded-xl border bg-card hover:shadow-md transition-all"
-                  >
-                    <div className="flex gap-4">
-                      <div 
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
-                        style={{ backgroundColor: primaryColor }}
-                      >
-                        {index + 1}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-lg mb-1">{service.name}</h4>
-                        <div 
-                          className="text-muted-foreground text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert"
-                          dangerouslySetInnerHTML={{ __html: service.description }}
-                        />
-                      </div>
-                    </div>
-                  </div>
+                    service={service} 
+                    index={index} 
+                    primaryColor={primaryColor} 
+                  />
                 ))}
               </div>
             </CardContent>

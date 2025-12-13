@@ -16,6 +16,7 @@ interface Service {
   name: string;
   description: string;
   image_url?: string;
+  gallery_images?: string[];
 }
 
 interface ServicesStepProps {
@@ -68,53 +69,67 @@ function SortableServiceItem({
               placeholder="Descreva o serviço em detalhes..."
             />
             
-            {/* Image Section */}
-            {service.image_url ? (
-              <div className="relative group">
-                <img 
-                  src={service.image_url} 
-                  alt={service.name} 
-                  className="w-full h-32 object-cover rounded-lg border"
-                />
+            {/* Image Gallery Section */}
+            <div className="space-y-3">
+              {/* Display existing images */}
+              {(service.gallery_images && service.gallery_images.length > 0) && (
+                <div className="flex flex-wrap gap-2">
+                  {service.gallery_images.map((img, idx) => (
+                    <div key={idx} className="relative group">
+                      <img 
+                        src={img} 
+                        alt={`${service.name} ${idx + 1}`} 
+                        className="w-20 h-20 object-cover rounded-lg border"
+                      />
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-1 -right-1 h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => {
+                          const newImages = service.gallery_images?.filter((_, i) => i !== idx) || [];
+                          onUpdate(service.id, { gallery_images: newImages });
+                        }}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add image button / upload area */}
+              {showImageUpload ? (
+                <div className="border border-dashed rounded-lg p-3">
+                  <ImageUpload
+                    currentImage={null}
+                    onImageSelect={(url) => {
+                      const currentImages = service.gallery_images || [];
+                      onUpdate(service.id, { gallery_images: [...currentImages, url] });
+                      setShowImageUpload(false);
+                    }}
+                    bucketName="portfolio-images"
+                  />
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="mt-2 w-full"
+                    onClick={() => setShowImageUpload(false)}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              ) : (
                 <Button
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => onUpdate(service.id, { image_url: undefined })}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => setShowImageUpload(true)}
                 >
-                  <X className="h-3 w-3" />
+                  <Image className="h-4 w-4" />
+                  {service.gallery_images?.length ? 'Adicionar Mais Imagens' : 'Adicionar Imagens'}
                 </Button>
-              </div>
-            ) : showImageUpload ? (
-              <div className="border border-dashed rounded-lg p-3">
-                <ImageUpload
-                  currentImage={null}
-                  onImageSelect={(url) => {
-                    onUpdate(service.id, { image_url: url });
-                    setShowImageUpload(false);
-                  }}
-                  bucketName="portfolio-images"
-                />
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="mt-2 w-full"
-                  onClick={() => setShowImageUpload(false)}
-                >
-                  Cancelar
-                </Button>
-              </div>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                onClick={() => setShowImageUpload(true)}
-              >
-                <Image className="h-4 w-4" />
-                Adicionar Imagem
-              </Button>
-            )}
+              )}
+            </div>
           </div>
           
           <Button
