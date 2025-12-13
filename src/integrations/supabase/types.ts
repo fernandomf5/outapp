@@ -2832,6 +2832,7 @@ export type Database = {
           id: string
           introduction: string | null
           introduction_image_url: string | null
+          introduction_images: Json | null
           is_private: boolean | null
           pricing: Json | null
           primary_color: string | null
@@ -2875,6 +2876,7 @@ export type Database = {
           id?: string
           introduction?: string | null
           introduction_image_url?: string | null
+          introduction_images?: Json | null
           is_private?: boolean | null
           pricing?: Json | null
           primary_color?: string | null
@@ -2918,6 +2920,7 @@ export type Database = {
           id?: string
           introduction?: string | null
           introduction_image_url?: string | null
+          introduction_images?: Json | null
           is_private?: boolean | null
           pricing?: Json | null
           primary_color?: string | null
