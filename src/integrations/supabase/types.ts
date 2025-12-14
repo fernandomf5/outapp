@@ -1665,6 +1665,8 @@ export type Database = {
           primary_color: string | null
           responses_count: number
           secondary_color: string | null
+          section_background_color: string | null
+          text_color: string | null
           title: string
           updated_at: string
           user_id: string
@@ -1683,6 +1685,8 @@ export type Database = {
           primary_color?: string | null
           responses_count?: number
           secondary_color?: string | null
+          section_background_color?: string | null
+          text_color?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -1701,6 +1705,8 @@ export type Database = {
           primary_color?: string | null
           responses_count?: number
           secondary_color?: string | null
+          section_background_color?: string | null
+          text_color?: string | null
           title?: string
           updated_at?: string
           user_id?: string
