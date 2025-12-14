@@ -34,7 +34,9 @@ import {
   LockOpen,
   MessageCircle,
   Code,
-  FileCode
+  FileCode,
+  MapPin,
+  Layers
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
@@ -59,11 +61,12 @@ import { CSS } from '@dnd-kit/utilities';
 
 interface BriefingField {
   id: string;
-  type: 'text' | 'textarea' | 'email' | 'phone' | 'number' | 'checkbox' | 'file' | 'date' | 'time' | 'url' | 'select' | 'radio' | 'rating';
+  type: 'text' | 'textarea' | 'email' | 'phone' | 'number' | 'checkbox' | 'file' | 'date' | 'time' | 'url' | 'select' | 'radio' | 'rating' | 'address';
   label: string;
   placeholder?: string;
   required: boolean;
   options?: string[];
+  step?: number;
 }
 
 interface Briefing {
@@ -106,6 +109,7 @@ function SortableField({ field, onEdit, onDelete }: { field: BriefingField; onEd
       case 'select': return <List className="h-4 w-4" />;
       case 'radio': return <Circle className="h-4 w-4" />;
       case 'rating': return <Star className="h-4 w-4" />;
+      case 'address': return <MapPin className="h-4 w-4" />;
       default: return <Type className="h-4 w-4" />;
     }
   };
@@ -117,10 +121,16 @@ function SortableField({ field, onEdit, onDelete }: { field: BriefingField; onEd
           <GripVertical className="h-5 w-5 text-muted-foreground" />
         </div>
         <div className="flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {getFieldIcon(field.type)}
             <span className="font-medium">{field.label}</span>
             {field.required && <Badge variant="destructive" className="text-xs">Obrigatório</Badge>}
+            {field.step && field.step > 1 && (
+              <Badge variant="secondary" className="text-xs">
+                <Layers className="h-3 w-3 mr-1" />
+                Etapa {field.step}
+              </Badge>
+            )}
           </div>
           <p className="text-sm text-muted-foreground mt-1">Tipo: {field.type}</p>
         </div>
@@ -161,6 +171,8 @@ export function BriefingCreatorPanel() {
     field_background_color: '#ffffff',
     destination_email: '',
     destination_whatsapp: '',
+    use_steps: false,
+    step_labels: ['Etapa 1', 'Etapa 2', 'Etapa 3'] as string[],
     fields: [] as BriefingField[]
   });
 
@@ -169,7 +181,8 @@ export function BriefingCreatorPanel() {
     type: 'text',
     label: '',
     placeholder: '',
-    required: false
+    required: false,
+    step: 1
   });
 
   const sensors = useSensors(
@@ -294,6 +307,8 @@ export function BriefingCreatorPanel() {
             field_background_color: formData.field_background_color,
             destination_email: formData.destination_email || null,
             destination_whatsapp: formData.destination_whatsapp || null,
+            use_steps: formData.use_steps,
+            step_labels: formData.step_labels,
             fields: formData.fields
           })
           .eq('id', editingBriefing.id);
@@ -316,6 +331,8 @@ export function BriefingCreatorPanel() {
             field_background_color: formData.field_background_color,
             destination_email: formData.destination_email || null,
             destination_whatsapp: formData.destination_whatsapp || null,
+            use_steps: formData.use_steps,
+            step_labels: formData.step_labels,
             fields: formData.fields,
             is_active: true,
             responses_count: 0
@@ -327,7 +344,7 @@ export function BriefingCreatorPanel() {
 
       setIsCreateDialogOpen(false);
       setEditingBriefing(null);
-      setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', background_color: '#1a1a2e', section_background_color: '#ffffff', text_color: '#1a1a2e', field_background_color: '#ffffff', destination_email: '', destination_whatsapp: '', fields: [] });
+      setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', background_color: '#1a1a2e', section_background_color: '#ffffff', text_color: '#1a1a2e', field_background_color: '#ffffff', destination_email: '', destination_whatsapp: '', use_steps: false, step_labels: ['Etapa 1', 'Etapa 2', 'Etapa 3'], fields: [] });
       loadBriefings();
     } catch (error: any) {
       toast.error("Erro ao salvar briefing");
@@ -348,6 +365,8 @@ export function BriefingCreatorPanel() {
       field_background_color: (briefing as any).field_background_color || '#ffffff',
       destination_email: (briefing as any).destination_email || '',
       destination_whatsapp: (briefing as any).destination_whatsapp || '',
+      use_steps: (briefing as any).use_steps || false,
+      step_labels: (briefing as any).step_labels || ['Etapa 1', 'Etapa 2', 'Etapa 3'],
       fields: briefing.fields
     });
     setIsCreateDialogOpen(true);
@@ -523,8 +542,14 @@ export function BriefingCreatorPanel() {
     { value: 'date', label: 'Data', icon: Calendar },
     { value: 'time', label: 'Hora', icon: Clock },
     { value: 'url', label: 'Link/URL', icon: Link2 },
+    { value: 'address', label: 'Endereço (CEP)', icon: MapPin },
   ];
 
+  // Get unique steps from fields
+  const getUsedSteps = () => {
+    const steps = new Set(formData.fields.map(f => f.step || 1));
+    return Array.from(steps).sort((a, b) => a - b);
+  };
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -536,7 +561,7 @@ export function BriefingCreatorPanel() {
           <DialogTrigger asChild>
             <Button className="gradient-primary shadow-glow" onClick={() => {
               setEditingBriefing(null);
-              setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', background_color: '#1a1a2e', section_background_color: '#ffffff', text_color: '#1a1a2e', field_background_color: '#ffffff', destination_email: '', destination_whatsapp: '', fields: [] });
+              setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', background_color: '#1a1a2e', section_background_color: '#ffffff', text_color: '#1a1a2e', field_background_color: '#ffffff', destination_email: '', destination_whatsapp: '', use_steps: false, step_labels: ['Etapa 1', 'Etapa 2', 'Etapa 3'], fields: [] });
             }}>
               <Plus className="mr-2 h-4 w-4" />
               Criar Briefing
@@ -688,6 +713,89 @@ export function BriefingCreatorPanel() {
                     </div>
                   </div>
                   
+                  {/* Configuração de Etapas */}
+                  <div className="space-y-3 border-t pt-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-base font-semibold flex items-center gap-2">
+                          <Layers className="h-4 w-4" />
+                          Formulário por Etapas
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Organize os campos em múltiplas etapas
+                        </p>
+                      </div>
+                      <Switch
+                        checked={formData.use_steps}
+                        onCheckedChange={(checked) => setFormData(prev => ({...prev, use_steps: checked}))}
+                      />
+                    </div>
+                    
+                    {formData.use_steps && (
+                      <div className="space-y-3 mt-4 p-3 border rounded-lg bg-muted/30">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm">Etapas do Formulário</Label>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => setFormData(prev => ({
+                              ...prev, 
+                              step_labels: [...prev.step_labels, `Etapa ${prev.step_labels.length + 1}`]
+                            }))}
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Adicionar
+                          </Button>
+                        </div>
+                        <div className="space-y-2">
+                          {formData.step_labels.map((label, idx) => (
+                            <div key={idx} className="flex items-center gap-2">
+                              <Badge variant="outline" className="shrink-0">
+                                {idx + 1}
+                              </Badge>
+                              <Input
+                                value={label}
+                                onChange={(e) => {
+                                  const newLabels = [...formData.step_labels];
+                                  newLabels[idx] = e.target.value;
+                                  setFormData(prev => ({...prev, step_labels: newLabels}));
+                                }}
+                                placeholder={`Nome da etapa ${idx + 1}`}
+                                className="flex-1"
+                              />
+                              {formData.step_labels.length > 1 && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => {
+                                    const newLabels = formData.step_labels.filter((_, i) => i !== idx);
+                                    // Also update fields that were in removed step
+                                    const updatedFields = formData.fields.map(f => ({
+                                      ...f,
+                                      step: f.step && f.step > idx + 1 ? f.step - 1 : f.step
+                                    }));
+                                    setFormData(prev => ({
+                                      ...prev, 
+                                      step_labels: newLabels,
+                                      fields: updatedFields
+                                    }));
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          💡 Ao adicionar campos, você poderá selecionar em qual etapa cada um aparece.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  
                   {/* Envio de Respostas */}
                   <div className="space-y-3 border-t pt-4">
                     <Label className="text-base font-semibold">Envio de Respostas</Label>
@@ -816,6 +924,28 @@ export function BriefingCreatorPanel() {
                           />
                           <Label htmlFor="required" className="cursor-pointer">Campo obrigatório</Label>
                         </div>
+                        
+                        {/* Seletor de etapa (só mostra se use_steps está ativo) */}
+                        {formData.use_steps && (
+                          <div className="grid gap-2">
+                            <Label>Etapa</Label>
+                            <Select
+                              value={String(fieldData.step || 1)}
+                              onValueChange={(value) => setFieldData({...fieldData, step: parseInt(value)})}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {formData.step_labels.map((label, idx) => (
+                                  <SelectItem key={idx + 1} value={String(idx + 1)}>
+                                    Etapa {idx + 1}: {label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
                       </div>
                       <DialogFooter>
                         <Button variant="outline" onClick={() => setIsFieldDialogOpen(false)}>
@@ -866,7 +996,7 @@ export function BriefingCreatorPanel() {
               <Button variant="outline" onClick={() => {
                 setIsCreateDialogOpen(false);
                 setEditingBriefing(null);
-                setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', background_color: '#1a1a2e', section_background_color: '#ffffff', text_color: '#1a1a2e', field_background_color: '#ffffff', destination_email: '', destination_whatsapp: '', fields: [] });
+                setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', background_color: '#1a1a2e', section_background_color: '#ffffff', text_color: '#1a1a2e', field_background_color: '#ffffff', destination_email: '', destination_whatsapp: '', use_steps: false, step_labels: ['Etapa 1', 'Etapa 2', 'Etapa 3'], fields: [] });
               }}>
                 Cancelar
               </Button>

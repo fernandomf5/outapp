@@ -1667,9 +1667,11 @@ export type Database = {
           responses_count: number
           secondary_color: string | null
           section_background_color: string | null
+          step_labels: Json | null
           text_color: string | null
           title: string
           updated_at: string
+          use_steps: boolean | null
           user_id: string
         }
         Insert: {
@@ -1688,9 +1690,11 @@ export type Database = {
           responses_count?: number
           secondary_color?: string | null
           section_background_color?: string | null
+          step_labels?: Json | null
           text_color?: string | null
           title: string
           updated_at?: string
+          use_steps?: boolean | null
           user_id: string
         }
         Update: {
@@ -1709,9 +1713,11 @@ export type Database = {
           responses_count?: number
           secondary_color?: string | null
           section_background_color?: string | null
+          step_labels?: Json | null
           text_color?: string | null
           title?: string
           updated_at?: string
+          use_steps?: boolean | null
           user_id?: string
         }
         Relationships: []
