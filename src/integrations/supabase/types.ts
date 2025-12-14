@@ -1652,6 +1652,7 @@ export type Database = {
       }
       briefings: {
         Row: {
+          background_color: string | null
           created_at: string
           description: string | null
           destination_email: string | null
@@ -1669,6 +1670,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          background_color?: string | null
           created_at?: string
           description?: string | null
           destination_email?: string | null
@@ -1686,6 +1688,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          background_color?: string | null
           created_at?: string
           description?: string | null
           destination_email?: string | null

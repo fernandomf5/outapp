@@ -533,6 +533,7 @@ export default function BriefingPublicPage() {
   // Apply custom colors
   const primaryColor = (briefing as any).primary_color || '#8B5CF6';
   const secondaryColor = (briefing as any).secondary_color || '#EC4899';
+  const backgroundColor = (briefing as any).background_color || '#1a1a2e';
 
   return (
     <>
@@ -587,10 +588,11 @@ export default function BriefingPublicPage() {
       </Dialog>
 
       <div 
-        className="min-h-screen bg-gradient-to-b from-background to-muted/20 py-12 px-4"
+        className="min-h-screen py-12 px-4"
         style={{
           '--custom-primary': primaryColor,
           '--custom-secondary': secondaryColor,
+          backgroundColor: backgroundColor,
         } as React.CSSProperties}
       >
         <Card className="max-w-3xl mx-auto glass">
