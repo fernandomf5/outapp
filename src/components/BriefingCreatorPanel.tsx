@@ -33,7 +33,8 @@ import {
   Lock,
   LockOpen,
   MessageCircle,
-  Code
+  Code,
+  FileCode
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
@@ -142,7 +143,9 @@ export function BriefingCreatorPanel() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isFieldDialogOpen, setIsFieldDialogOpen] = useState(false);
   const [popupCodeDialogOpen, setPopupCodeDialogOpen] = useState(false);
+  const [pageCodeDialogOpen, setPageCodeDialogOpen] = useState(false);
   const [selectedBriefingForPopup, setSelectedBriefingForPopup] = useState<Briefing | null>(null);
+  const [selectedBriefingForPage, setSelectedBriefingForPage] = useState<Briefing | null>(null);
   const [popupButtonName, setPopupButtonName] = useState('');
   const [editingBriefing, setEditingBriefing] = useState<Briefing | null>(null);
   
@@ -152,6 +155,7 @@ export function BriefingCreatorPanel() {
     logo_url: '',
     primary_color: '#8B5CF6',
     secondary_color: '#EC4899',
+    background_color: '#1a1a2e',
     destination_email: '',
     destination_whatsapp: '',
     fields: [] as BriefingField[]
@@ -281,6 +285,7 @@ export function BriefingCreatorPanel() {
             logo_url: formData.logo_url,
             primary_color: formData.primary_color,
             secondary_color: formData.secondary_color,
+            background_color: formData.background_color,
             destination_email: formData.destination_email || null,
             destination_whatsapp: formData.destination_whatsapp || null,
             fields: formData.fields
@@ -299,6 +304,7 @@ export function BriefingCreatorPanel() {
             logo_url: formData.logo_url,
             primary_color: formData.primary_color,
             secondary_color: formData.secondary_color,
+            background_color: formData.background_color,
             destination_email: formData.destination_email || null,
             destination_whatsapp: formData.destination_whatsapp || null,
             fields: formData.fields,
@@ -312,7 +318,7 @@ export function BriefingCreatorPanel() {
 
       setIsCreateDialogOpen(false);
       setEditingBriefing(null);
-      setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', destination_email: '', destination_whatsapp: '', fields: [] });
+      setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', background_color: '#1a1a2e', destination_email: '', destination_whatsapp: '', fields: [] });
       loadBriefings();
     } catch (error: any) {
       toast.error("Erro ao salvar briefing");
@@ -327,6 +333,7 @@ export function BriefingCreatorPanel() {
       logo_url: (briefing as any).logo_url || '',
       primary_color: (briefing as any).primary_color || '#8B5CF6',
       secondary_color: (briefing as any).secondary_color || '#EC4899',
+      background_color: (briefing as any).background_color || '#1a1a2e',
       destination_email: (briefing as any).destination_email || '',
       destination_whatsapp: (briefing as any).destination_whatsapp || '',
       fields: briefing.fields
@@ -447,6 +454,29 @@ export function BriefingCreatorPanel() {
     toast.success("Código copiado!");
   };
 
+  const generatePageCode = (briefing: Briefing) => {
+    const briefingUrl = `${window.location.origin}/briefing/${briefing.id}`;
+    
+    return `<!-- Briefing Embed: ${briefing.title} -->
+<iframe 
+  src="${briefingUrl}" 
+  style="
+    width: 100%;
+    min-height: 100vh;
+    border: none;
+  "
+  title="${briefing.title}"
+  allow="clipboard-write"
+></iframe>`;
+  };
+
+  const handleCopyPageCode = () => {
+    if (!selectedBriefingForPage) return;
+    const code = generatePageCode(selectedBriefingForPage);
+    navigator.clipboard.writeText(code);
+    toast.success("Código copiado!");
+  };
+
   const handleToggleBlock = async (briefing: Briefing) => {
     try {
       const newBlockedState = !briefing.is_blocked;
@@ -494,7 +524,7 @@ export function BriefingCreatorPanel() {
           <DialogTrigger asChild>
             <Button className="gradient-primary shadow-glow" onClick={() => {
               setEditingBriefing(null);
-              setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', destination_email: '', destination_whatsapp: '', fields: [] });
+              setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', background_color: '#1a1a2e', destination_email: '', destination_whatsapp: '', fields: [] });
             }}>
               <Plus className="mr-2 h-4 w-4" />
               Criar Briefing
@@ -574,6 +604,24 @@ export function BriefingCreatorPanel() {
                             className="flex-1"
                           />
                         </div>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label className="text-sm">Cor de Fundo</Label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={formData.background_color}
+                            onChange={(e) => setFormData(prev => ({...prev, background_color: e.target.value}))}
+                            className="w-10 h-10 rounded border border-border cursor-pointer"
+                          />
+                          <Input
+                            value={formData.background_color}
+                            onChange={(e) => setFormData(prev => ({...prev, background_color: e.target.value}))}
+                            placeholder="#1a1a2e"
+                            className="flex-1"
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground">Cor de fundo da página do briefing</p>
                       </div>
                     </div>
                   </div>
@@ -756,7 +804,7 @@ export function BriefingCreatorPanel() {
               <Button variant="outline" onClick={() => {
                 setIsCreateDialogOpen(false);
                 setEditingBriefing(null);
-                setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', destination_email: '', destination_whatsapp: '', fields: [] });
+                setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', background_color: '#1a1a2e', destination_email: '', destination_whatsapp: '', fields: [] });
               }}>
                 Cancelar
               </Button>
@@ -900,6 +948,17 @@ export function BriefingCreatorPanel() {
                       <Button 
                         variant="outline" 
                         size="sm"
+                        onClick={() => {
+                          setSelectedBriefingForPage(briefing);
+                          setPageCodeDialogOpen(true);
+                        }}
+                        title="Gerar código de página"
+                      >
+                        <FileCode className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="outline" 
+                        size="sm"
                         onClick={() => handleToggleBlock(briefing)}
                         title={briefing.is_blocked ? "Desbloquear" : "Bloquear"}
                       >
@@ -973,6 +1032,36 @@ export function BriefingCreatorPanel() {
                 Fechar
               </Button>
               <Button onClick={handleCopyPopupCode} className="gradient-primary">
+                <Copy className="h-4 w-4 mr-2" />
+                Copiar Código
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog do Código de Página */}
+      <Dialog open={pageCodeDialogOpen} onOpenChange={setPageCodeDialogOpen}>
+        <DialogContent className="sm:max-w-[700px]">
+          <DialogHeader>
+            <DialogTitle>Código para Página</DialogTitle>
+            <DialogDescription>
+              Copie e cole este código HTML no seu site para implementar o briefing como uma página completa.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="relative">
+              <Textarea
+                readOnly
+                value={selectedBriefingForPage ? generatePageCode(selectedBriefingForPage) : ''}
+                className="font-mono text-xs h-[200px] resize-none"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setPageCodeDialogOpen(false)}>
+                Fechar
+              </Button>
+              <Button onClick={handleCopyPageCode} className="gradient-primary">
                 <Copy className="h-4 w-4 mr-2" />
                 Copiar Código
               </Button>
