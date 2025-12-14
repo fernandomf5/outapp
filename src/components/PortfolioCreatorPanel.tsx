@@ -25,8 +25,10 @@ import {
   Star,
   FolderOpen,
   Video,
-  Link as LinkIcon
+  Link as LinkIcon,
+  FileCode
 } from "lucide-react";
+import { Textarea as TextareaUI } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/ImageUpload";
 import {
   DndContext,
@@ -172,6 +174,8 @@ export function PortfolioCreatorPanel() {
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [isPortfolioDialogOpen, setIsPortfolioDialogOpen] = useState(false);
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
+  const [isPageCodeDialogOpen, setIsPageCodeDialogOpen] = useState(false);
+  const [selectedPortfolioForCode, setSelectedPortfolioForCode] = useState<Portfolio | null>(null);
   const [editingPortfolio, setEditingPortfolio] = useState<Portfolio | null>(null);
   const [editingItem, setEditingItem] = useState<PortfolioItem | null>(null);
   const [loading, setLoading] = useState(true);
@@ -556,6 +560,35 @@ export function PortfolioCreatorPanel() {
     window.open(link, "_blank");
   };
 
+  const generatePageCode = (portfolio: Portfolio) => {
+    const portfolioUrl = `${window.location.origin}/portfolio/${portfolio.id}/${portfolio.slug || "view"}`;
+    
+    return `<!-- Portfolio Embed: ${portfolio.name} -->
+<iframe 
+  src="${portfolioUrl}" 
+  style="
+    width: 100%;
+    min-height: 100vh;
+    border: none;
+  "
+  title="${portfolio.name}"
+  allow="clipboard-write"
+></iframe>`;
+  };
+
+  const handleCopyPageCode = () => {
+    if (!selectedPortfolioForCode) return;
+    const code = generatePageCode(selectedPortfolioForCode);
+    navigator.clipboard.writeText(code);
+    toast({ title: "Código copiado!" });
+  };
+
+  const handleOpenPageCodeDialog = (portfolio: Portfolio, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedPortfolioForCode(portfolio);
+    setIsPageCodeDialogOpen(true);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -734,6 +767,7 @@ export function PortfolioCreatorPanel() {
                             e.stopPropagation();
                             handlePreview(portfolio);
                           }}
+                          title="Visualizar"
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
@@ -745,8 +779,18 @@ export function PortfolioCreatorPanel() {
                             e.stopPropagation();
                             handleCopyLink(portfolio);
                           }}
+                          title="Copiar link"
                         >
                           <Copy className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => handleOpenPageCodeDialog(portfolio, e)}
+                          title="Código para incorporar"
+                        >
+                          <FileCode className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -756,6 +800,7 @@ export function PortfolioCreatorPanel() {
                             e.stopPropagation();
                             handleEditPortfolio(portfolio);
                           }}
+                          title="Editar"
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
@@ -767,6 +812,7 @@ export function PortfolioCreatorPanel() {
                             e.stopPropagation();
                             handleDeletePortfolio(portfolio.id);
                           }}
+                          title="Excluir"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -998,6 +1044,32 @@ export function PortfolioCreatorPanel() {
           </div>
         </div>
       </CardContent>
+
+      {/* Dialog para Código de Página */}
+      <Dialog open={isPageCodeDialogOpen} onOpenChange={setIsPageCodeDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileCode className="w-5 h-5" />
+              Código para Página
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Copie o código abaixo para incorporar o portfólio "{selectedPortfolioForCode?.name}" em seu site como página completa.
+            </p>
+            <TextareaUI
+              readOnly
+              value={selectedPortfolioForCode ? generatePageCode(selectedPortfolioForCode) : ''}
+              className="font-mono text-xs h-[200px] resize-none"
+            />
+            <Button onClick={handleCopyPageCode} className="w-full">
+              <Copy className="w-4 h-4 mr-2" />
+              Copiar Código
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
