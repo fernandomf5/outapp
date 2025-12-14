@@ -147,6 +147,23 @@ export default function BriefingPublicPage() {
   const generateWhatsAppMessage = () => {
     if (!briefing?.destination_whatsapp) return '';
     
+    // Helper function to format address object
+    const formatAddress = (addr: any): string => {
+      if (!addr || typeof addr !== 'object') return String(addr || '');
+      const parts = [];
+      if (addr.logradouro) parts.push(addr.logradouro);
+      if (addr.numero) parts.push(addr.numero);
+      if (addr.complemento) parts.push(addr.complemento);
+      if (addr.bairro) parts.push(addr.bairro);
+      if (addr.cidade && addr.estado) {
+        parts.push(`${addr.cidade} - ${addr.estado}`);
+      } else if (addr.cidade) {
+        parts.push(addr.cidade);
+      }
+      if (addr.cep) parts.push(`CEP: ${addr.cep}`);
+      return parts.join(', ');
+    };
+    
     let message = `*Nova resposta de briefing: ${briefing.title}*\n\n`;
     message += `*Enviado por:* ${visitorName}\n\n`;
     message += `*Respostas:*\n`;
@@ -154,14 +171,28 @@ export default function BriefingPublicPage() {
     for (const field of briefing.fields || []) {
       const value = responses[field.label];
       if (value !== undefined && value !== null && value !== '') {
-        let displayValue = value;
-        if (field.type === 'checkbox') {
+        let displayValue: string;
+        
+        // Handle address objects
+        if (field.type === 'address' || (typeof value === 'object' && !Array.isArray(value) && 
+            ('cep' in value || 'logradouro' in value || 'cidade' in value))) {
+          displayValue = formatAddress(value);
+        } else if (field.type === 'checkbox') {
           displayValue = value === true ? 'Sim' : 'Não';
         } else if (field.type === 'rating') {
           displayValue = `${value} de 5 estrelas`;
         } else if (field.type === 'file' && typeof value === 'string' && value.startsWith('http')) {
           displayValue = value;
+        } else if (typeof value === 'object') {
+          if (Array.isArray(value)) {
+            displayValue = value.join(', ');
+          } else {
+            displayValue = JSON.stringify(value);
+          }
+        } else {
+          displayValue = String(value);
         }
+        
         message += `\n• *${field.label}:* ${displayValue}`;
       }
     }
