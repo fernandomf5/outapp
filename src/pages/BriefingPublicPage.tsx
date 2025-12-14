@@ -678,7 +678,11 @@ export default function BriefingPublicPage() {
                       variant="outline"
                       onClick={() => setCurrentStep(prev => prev - 1)}
                       className="flex-1"
-                      style={{ borderColor: primaryColor, color: primaryColor }}
+                      style={{ 
+                        backgroundColor: 'white', 
+                        borderColor: primaryColor, 
+                        color: primaryColor 
+                      }}
                     >
                       <ChevronLeft className="mr-2 h-4 w-4" />
                       Voltar
