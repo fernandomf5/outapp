@@ -8,10 +8,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
+import { AddressField } from "@/components/AddressField";
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { FileText, Upload, X, Star, MessageCircle } from "lucide-react";
+import { FileText, Upload, X, Star, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function BriefingPublicPage() {
   const { briefingId } = useParams();
@@ -22,6 +24,7 @@ export default function BriefingPublicPage() {
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
   const [visitorName, setVisitorName] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
 
   useEffect(() => {
     loadBriefing();
@@ -327,6 +330,19 @@ export default function BriefingPublicPage() {
             )}
           </div>
         );
+      case 'address':
+        const primaryColor = (briefing as any)?.primary_color || '#8B5CF6';
+        const textColor = (briefing as any)?.text_color || '#1a1a2e';
+        const fieldBackgroundColor = (briefing as any)?.field_background_color || '#ffffff';
+        return (
+          <AddressField
+            value={value || { cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '' }}
+            onChange={(addressData) => setResponses({ ...responses, [field.label]: addressData })}
+            required={field.required}
+            textColor={textColor}
+            fieldBackgroundColor={fieldBackgroundColor}
+          />
+        );
       case 'file':
         return (
           <div className="space-y-2">
@@ -367,6 +383,27 @@ export default function BriefingPublicPage() {
       default:
         return null;
     }
+  };
+
+  // Helper functions for step-based forms
+  const useSteps = briefing?.use_steps || false;
+  const stepLabels = briefing?.step_labels || ['Etapa 1'];
+  const totalSteps = stepLabels.length;
+  
+  const getFieldsForStep = (step: number) => {
+    if (!useSteps) return briefing?.fields || [];
+    return (briefing?.fields || []).filter((f: any) => (f.step || 1) === step);
+  };
+  
+  const canGoNext = () => {
+    if (!useSteps) return true;
+    const stepFields = getFieldsForStep(currentStep);
+    for (const field of stepFields) {
+      if (field.required && !responses[field.label]) {
+        return false;
+      }
+    }
+    return true;
   };
 
   if (loading) {
