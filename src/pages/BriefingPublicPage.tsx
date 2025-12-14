@@ -536,6 +536,7 @@ export default function BriefingPublicPage() {
   const backgroundColor = (briefing as any).background_color || '#1a1a2e';
   const sectionBackgroundColor = (briefing as any).section_background_color || '#ffffff';
   const textColor = (briefing as any).text_color || '#1a1a2e';
+  const fieldBackgroundColor = (briefing as any).field_background_color || '#ffffff';
 
   return (
     <>
@@ -552,6 +553,14 @@ export default function BriefingPublicPage() {
           }
           [style*="--custom-primary"] .border-primary {
             border-color: ${primaryColor} !important;
+          }
+          [style*="--custom-primary"] input,
+          [style*="--custom-primary"] textarea,
+          [style*="--custom-primary"] select,
+          [style*="--custom-primary"] [role="combobox"],
+          [style*="--custom-primary"] [data-radix-collection-item] {
+            background-color: ${fieldBackgroundColor} !important;
+            color: ${textColor} !important;
           }
         `}
       </style>

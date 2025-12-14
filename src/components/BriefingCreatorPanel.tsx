@@ -158,6 +158,7 @@ export function BriefingCreatorPanel() {
     background_color: '#1a1a2e',
     section_background_color: '#ffffff',
     text_color: '#1a1a2e',
+    field_background_color: '#ffffff',
     destination_email: '',
     destination_whatsapp: '',
     fields: [] as BriefingField[]
@@ -290,6 +291,7 @@ export function BriefingCreatorPanel() {
             background_color: formData.background_color,
             section_background_color: formData.section_background_color,
             text_color: formData.text_color,
+            field_background_color: formData.field_background_color,
             destination_email: formData.destination_email || null,
             destination_whatsapp: formData.destination_whatsapp || null,
             fields: formData.fields
@@ -311,6 +313,7 @@ export function BriefingCreatorPanel() {
             background_color: formData.background_color,
             section_background_color: formData.section_background_color,
             text_color: formData.text_color,
+            field_background_color: formData.field_background_color,
             destination_email: formData.destination_email || null,
             destination_whatsapp: formData.destination_whatsapp || null,
             fields: formData.fields,
@@ -324,7 +327,7 @@ export function BriefingCreatorPanel() {
 
       setIsCreateDialogOpen(false);
       setEditingBriefing(null);
-      setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', background_color: '#1a1a2e', section_background_color: '#ffffff', text_color: '#1a1a2e', destination_email: '', destination_whatsapp: '', fields: [] });
+      setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', background_color: '#1a1a2e', section_background_color: '#ffffff', text_color: '#1a1a2e', field_background_color: '#ffffff', destination_email: '', destination_whatsapp: '', fields: [] });
       loadBriefings();
     } catch (error: any) {
       toast.error("Erro ao salvar briefing");
@@ -342,6 +345,7 @@ export function BriefingCreatorPanel() {
       background_color: (briefing as any).background_color || '#1a1a2e',
       section_background_color: (briefing as any).section_background_color || '#ffffff',
       text_color: (briefing as any).text_color || '#1a1a2e',
+      field_background_color: (briefing as any).field_background_color || '#ffffff',
       destination_email: (briefing as any).destination_email || '',
       destination_whatsapp: (briefing as any).destination_whatsapp || '',
       fields: briefing.fields
@@ -532,7 +536,7 @@ export function BriefingCreatorPanel() {
           <DialogTrigger asChild>
             <Button className="gradient-primary shadow-glow" onClick={() => {
               setEditingBriefing(null);
-              setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', background_color: '#1a1a2e', section_background_color: '#ffffff', text_color: '#1a1a2e', destination_email: '', destination_whatsapp: '', fields: [] });
+              setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', background_color: '#1a1a2e', section_background_color: '#ffffff', text_color: '#1a1a2e', field_background_color: '#ffffff', destination_email: '', destination_whatsapp: '', fields: [] });
             }}>
               <Plus className="mr-2 h-4 w-4" />
               Criar Briefing
@@ -660,6 +664,23 @@ export function BriefingCreatorPanel() {
                             value={formData.text_color}
                             onChange={(e) => setFormData(prev => ({...prev, text_color: e.target.value}))}
                             placeholder="#1a1a2e"
+                            className="flex-1"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label className="text-sm">Cor de Fundo dos Campos</Label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={formData.field_background_color}
+                            onChange={(e) => setFormData(prev => ({...prev, field_background_color: e.target.value}))}
+                            className="w-10 h-10 rounded border border-border cursor-pointer"
+                          />
+                          <Input
+                            value={formData.field_background_color}
+                            onChange={(e) => setFormData(prev => ({...prev, field_background_color: e.target.value}))}
+                            placeholder="#ffffff"
                             className="flex-1"
                           />
                         </div>
@@ -845,7 +866,7 @@ export function BriefingCreatorPanel() {
               <Button variant="outline" onClick={() => {
                 setIsCreateDialogOpen(false);
                 setEditingBriefing(null);
-                setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', background_color: '#1a1a2e', section_background_color: '#ffffff', text_color: '#1a1a2e', destination_email: '', destination_whatsapp: '', fields: [] });
+                setFormData({ title: '', description: '', logo_url: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', background_color: '#1a1a2e', section_background_color: '#ffffff', text_color: '#1a1a2e', field_background_color: '#ffffff', destination_email: '', destination_whatsapp: '', fields: [] });
               }}>
                 Cancelar
               </Button>

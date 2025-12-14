@@ -1657,6 +1657,7 @@ export type Database = {
           description: string | null
           destination_email: string | null
           destination_whatsapp: string | null
+          field_background_color: string | null
           fields: Json
           id: string
           is_active: boolean
@@ -1677,6 +1678,7 @@ export type Database = {
           description?: string | null
           destination_email?: string | null
           destination_whatsapp?: string | null
+          field_background_color?: string | null
           fields?: Json
           id?: string
           is_active?: boolean
@@ -1697,6 +1699,7 @@ export type Database = {
           description?: string | null
           destination_email?: string | null
           destination_whatsapp?: string | null
+          field_background_color?: string | null
           fields?: Json
           id?: string
           is_active?: boolean
