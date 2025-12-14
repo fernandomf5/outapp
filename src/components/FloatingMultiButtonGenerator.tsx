@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Copy, Plus, Trash2, Zap, Save, Edit2, X } from "lucide-react";
+import { Copy, Plus, Trash2, Zap, Save, Edit2, X, MessageCircle, Circle, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -30,6 +30,8 @@ interface SavedButton {
   created_at: string;
 }
 
+type ButtonStyle = 'circular' | 'dialog' | 'bubble';
+
 export const FloatingMultiButtonGenerator = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -46,6 +48,10 @@ export const FloatingMultiButtonGenerator = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [buttonStyle, setButtonStyle] = useState<ButtonStyle>('circular');
+  const [dialogTitle, setDialogTitle] = useState("Olá!");
+  const [dialogSubtitle, setDialogSubtitle] = useState("Como podemos ajudar?");
+  const [secondaryColor, setSecondaryColor] = useState("#ffffff");
 
   useEffect(() => {
     if (user) {
@@ -77,10 +83,14 @@ export const FloatingMultiButtonGenerator = () => {
     setMainButtonText("Contato");
     setMainButtonIcon("whatsapp");
     setMainButtonColor("#25d366");
+    setSecondaryColor("#ffffff");
     setPosition("bottom-right");
     setSubButtons([{ id: '1', text: 'WhatsApp', link: '', icon: 'whatsapp', imageUrl: undefined }]);
     setEditingId(null);
     setShowForm(false);
+    setButtonStyle('circular');
+    setDialogTitle("Olá!");
+    setDialogSubtitle("Como podemos ajudar?");
   };
 
   const loadConfig = (config: SavedButton) => {
@@ -315,6 +325,15 @@ function toggleFloatingButtons() {
   };
 
   const generateCode = () => {
+    if (buttonStyle === 'dialog') {
+      return generateDialogCode();
+    } else if (buttonStyle === 'bubble') {
+      return generateBubbleCode();
+    }
+    return generateCircularCode();
+  };
+
+  const generateCircularCode = () => {
     const posStyles = getPositionStyles();
     const subButtonsHtml = subButtons.map((btn, idx) => `
       <a href="${btn.link}" target="_blank" style="
@@ -377,6 +396,175 @@ function toggleFloatingButtons() {
   });
   
   mainBtn.style.transform = isOpen ? 'rotate(45deg) scale(1.1)' : 'rotate(0deg) scale(1)';
+}
+</script>`;
+  };
+
+  const generateDialogCode = () => {
+    const posStyles = getPositionStyles();
+    const subButtonsHtml = subButtons.map((btn) => `
+      <a href="${btn.link}" target="_blank" style="
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        background: ${secondaryColor};
+        border-radius: 12px;
+        color: #333;
+        text-decoration: none;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: all 0.2s ease;
+        border: 1px solid rgba(0,0,0,0.05);
+      " class="floating-dialog-btn" onmouseover="this.style.transform='translateX(4px)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.12)'" onmouseout="this.style.transform='translateX(0)';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'">
+        <span style="width: 36px; height: 36px; border-radius: 8px; background: ${mainButtonColor}; display: flex; align-items: center; justify-content: center;">
+          ${getIconSvg(btn.icon, btn.imageUrl)}
+        </span>
+        <div>
+          <div style="font-weight: 600; font-size: 14px; color: #333;">${btn.text || 'Link'}</div>
+          <div style="font-size: 12px; color: #666; margin-top: 2px;">${btn.link ? 'Clique para acessar' : ''}</div>
+        </div>
+      </a>
+    `).join('');
+
+    return `<!-- Botão Flutuante Estilo Diálogo -->
+<div id="floating-dialog-container" style="position: fixed; ${Object.entries(posStyles).map(([k,v]) => k+':'+v).join('; ')}; z-index: 9999;">
+  <div id="floating-dialog-box" style="
+    display: none;
+    width: 320px;
+    background: ${secondaryColor};
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    margin-bottom: 16px;
+    overflow: hidden;
+    animation: slideUp 0.3s ease;
+  ">
+    <div style="background: ${mainButtonColor}; padding: 20px; color: white; position: relative;">
+      <button onclick="toggleFloatingDialog()" style="
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: rgba(255,255,255,0.2);
+        border: none;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        cursor: pointer;
+        color: white;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">×</button>
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+        ${getIconSvg(mainButtonIcon)}
+      </div>
+      <h3 style="margin: 0; font-size: 20px; font-weight: 700;">${dialogTitle}</h3>
+      <p style="margin: 4px 0 0 0; font-size: 14px; opacity: 0.9;">${dialogSubtitle}</p>
+    </div>
+    <div style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+      ${subButtonsHtml}
+    </div>
+  </div>
+  
+  <button id="floating-dialog-trigger" onclick="toggleFloatingDialog()" style="
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: ${mainButtonColor};
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    margin-left: auto;
+  " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+    ${getIconSvg(mainButtonIcon)}
+  </button>
+</div>
+
+<style>
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<script>
+let dialogOpen = false;
+
+function toggleFloatingDialog() {
+  dialogOpen = !dialogOpen;
+  const dialogBox = document.getElementById('floating-dialog-box');
+  const trigger = document.getElementById('floating-dialog-trigger');
+  
+  if (dialogOpen) {
+    dialogBox.style.display = 'block';
+    trigger.innerHTML = '<svg fill="white" width="24" height="24" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>';
+  } else {
+    dialogBox.style.display = 'none';
+    trigger.innerHTML = '${getIconSvg(mainButtonIcon).replace(/'/g, "\\'")}';
+  }
+}
+</script>`;
+  };
+
+  const generateBubbleCode = () => {
+    const posStyles = getPositionStyles();
+
+    return `<!-- Botão Flutuante Estilo Bolha -->
+<div id="floating-bubble-container" style="position: fixed; ${Object.entries(posStyles).map(([k,v]) => k+':'+v).join('; ')}; z-index: 9999; display: flex; align-items: flex-end; gap: 12px;">
+  <div id="floating-bubble-tooltip" style="
+    display: none;
+    background: ${secondaryColor};
+    padding: 12px 20px;
+    border-radius: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    color: #333;
+    font-weight: 500;
+    font-size: 14px;
+    white-space: nowrap;
+    animation: fadeIn 0.3s ease;
+  ">${mainButtonText}</div>
+  
+  <button id="floating-bubble-btn" onclick="window.open('${subButtons[0]?.link || '#'}', '_blank')" style="
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: ${mainButtonColor};
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    animation: pulse 2s infinite;
+  " onmouseover="showBubbleTooltip()" onmouseout="hideBubbleTooltip()">
+    ${getIconSvg(mainButtonIcon)}
+  </button>
+</div>
+
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 6px 24px rgba(0,0,0,0.25); }
+  50% { box-shadow: 0 6px 32px ${mainButtonColor}66; }
+}
+</style>
+
+<script>
+function showBubbleTooltip() {
+  document.getElementById('floating-bubble-tooltip').style.display = 'block';
+}
+function hideBubbleTooltip() {
+  document.getElementById('floating-bubble-tooltip').style.display = 'none';
 }
 </script>`;
   };
@@ -493,6 +681,74 @@ function toggleFloatingButtons() {
               placeholder="Ex: Botões do meu site"
             />
           </div>
+
+          {/* Seletor de Modelo */}
+          <div>
+            <Label className="mb-3 block">Modelo do Botão</Label>
+            <div className="grid grid-cols-3 gap-3">
+              <button
+                type="button"
+                onClick={() => setButtonStyle('circular')}
+                className={`p-4 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
+                  buttonStyle === 'circular' ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
+                }`}
+              >
+                <Circle className="w-6 h-6" />
+                <span className="text-xs font-medium">Circular</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setButtonStyle('dialog')}
+                className={`p-4 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
+                  buttonStyle === 'dialog' ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
+                }`}
+              >
+                <MessageSquare className="w-6 h-6" />
+                <span className="text-xs font-medium">Diálogo</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setButtonStyle('bubble')}
+                className={`p-4 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
+                  buttonStyle === 'bubble' ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
+                }`}
+              >
+                <MessageCircle className="w-6 h-6" />
+                <span className="text-xs font-medium">Bolha</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Campos específicos para estilo Diálogo */}
+          {buttonStyle === 'dialog' && (
+            <div className="space-y-3 p-4 bg-accent/50 rounded-lg border">
+              <h4 className="font-semibold text-sm">Configuração do Diálogo</h4>
+              <div>
+                <Label>Título do Diálogo</Label>
+                <Input
+                  value={dialogTitle}
+                  onChange={(e) => setDialogTitle(e.target.value)}
+                  placeholder="Olá!"
+                />
+              </div>
+              <div>
+                <Label>Subtítulo</Label>
+                <Input
+                  value={dialogSubtitle}
+                  onChange={(e) => setDialogSubtitle(e.target.value)}
+                  placeholder="Como podemos ajudar?"
+                />
+              </div>
+              <div>
+                <Label>Cor de Fundo do Diálogo</Label>
+                <Input
+                  type="color"
+                  value={secondaryColor}
+                  onChange={(e) => setSecondaryColor(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
 
           <div>
             <Label>Texto do Botão Principal</Label>
@@ -632,56 +888,205 @@ function toggleFloatingButtons() {
         {/* Preview */}
         <div>
           <Label className="mb-2 block">Prévia</Label>
-          <div className="relative bg-muted/50 rounded-lg p-4 h-[500px] border-2 border-dashed">
-            <div 
-              style={{ 
-                position: 'absolute',
-                ...getPositionStyles(),
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '10px'
-              }}
-            >
-              {isOpen && subButtons.map((btn, idx) => (
-                <div
-                  key={btn.id}
+          <div className="relative bg-muted/50 rounded-lg p-4 h-[500px] border-2 border-dashed overflow-hidden">
+            {/* Preview Circular */}
+            {buttonStyle === 'circular' && (
+              <div 
+                style={{ 
+                  position: 'absolute',
+                  ...getPositionStyles(),
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '10px'
+                }}
+              >
+                {isOpen && subButtons.map((btn, idx) => (
+                  <div
+                    key={btn.id}
+                    style={{
+                      width: '50px',
+                      height: '50px',
+                      background: mainButtonColor,
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                      animation: `fadeInUp 0.3s ease ${idx * 0.05}s both`,
+                      cursor: 'pointer'
+                    }}
+                    dangerouslySetInnerHTML={{ __html: getIconSvg(btn.icon, btn.imageUrl) }}
+                  />
+                ))}
+
+                <button
+                  onClick={() => setIsOpen(!isOpen)}
                   style={{
-                    width: '50px',
-                    height: '50px',
-                    background: mainButtonColor,
+                    width: '60px',
+                    height: '60px',
                     borderRadius: '50%',
+                    background: mainButtonColor,
+                    color: 'white',
+                    border: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 6px 20px rgba(0,0,0,0.2)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                    animation: `fadeInUp 0.3s ease ${idx * 0.05}s both`,
-                    cursor: 'pointer'
+                    transform: isOpen ? 'rotate(45deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.3s ease'
                   }}
-                  dangerouslySetInnerHTML={{ __html: getIconSvg(btn.icon, btn.imageUrl) }}
+                  dangerouslySetInnerHTML={{ __html: getIconSvg(mainButtonIcon) }}
                 />
-              ))}
+              </div>
+            )}
 
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                style={{
-                  width: '60px',
-                  height: '60px',
-                  borderRadius: '50%',
-                  background: mainButtonColor,
-                  color: 'white',
-                  border: 'none',
-                  cursor: 'pointer',
-                  boxShadow: '0 6px 20px rgba(0,0,0,0.2)',
+            {/* Preview Dialog */}
+            {buttonStyle === 'dialog' && (
+              <div 
+                style={{ 
+                  position: 'absolute',
+                  ...getPositionStyles(),
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transform: isOpen ? 'rotate(45deg)' : 'rotate(0deg)',
-                  transition: 'transform 0.3s ease'
+                  flexDirection: 'column',
+                  alignItems: 'flex-end'
                 }}
-                dangerouslySetInnerHTML={{ __html: getIconSvg(mainButtonIcon) }}
-              />
-            </div>
+              >
+                {isOpen && (
+                  <div style={{
+                    width: '280px',
+                    background: secondaryColor,
+                    borderRadius: '16px',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+                    marginBottom: '16px',
+                    overflow: 'hidden',
+                    animation: 'fadeInUp 0.3s ease'
+                  }}>
+                    <div style={{
+                      background: mainButtonColor,
+                      padding: '16px',
+                      color: 'white',
+                      position: 'relative'
+                    }}>
+                      <button 
+                        onClick={() => setIsOpen(false)}
+                        style={{
+                          position: 'absolute',
+                          top: '10px',
+                          right: '10px',
+                          background: 'rgba(255,255,255,0.2)',
+                          border: 'none',
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '50%',
+                          cursor: 'pointer',
+                          color: 'white',
+                          fontSize: '14px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >×</button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }} dangerouslySetInnerHTML={{ __html: getIconSvg(mainButtonIcon) }} />
+                      <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>{dialogTitle}</h3>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '12px', opacity: 0.9 }}>{dialogSubtitle}</p>
+                    </div>
+                    <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {subButtons.map((btn) => (
+                        <div
+                          key={btn.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            padding: '10px 12px',
+                            background: '#f8f9fa',
+                            borderRadius: '10px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          <span style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '6px',
+                            background: mainButtonColor,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }} dangerouslySetInnerHTML={{ __html: getIconSvg(btn.icon, btn.imageUrl) }} />
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: '12px', color: '#333' }}>{btn.text || 'Link'}</div>
+                            <div style={{ fontSize: '10px', color: '#666' }}>Clique para acessar</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => setIsOpen(!isOpen)}
+                  style={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    background: mainButtonColor,
+                    color: 'white',
+                    border: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 6px 20px rgba(0,0,0,0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'transform 0.3s ease'
+                  }}
+                  dangerouslySetInnerHTML={{ __html: isOpen ? '<svg fill="white" width="24" height="24" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>' : getIconSvg(mainButtonIcon) }}
+                />
+              </div>
+            )}
+
+            {/* Preview Bubble */}
+            {buttonStyle === 'bubble' && (
+              <div 
+                style={{ 
+                  position: 'absolute',
+                  ...getPositionStyles(),
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  gap: '12px'
+                }}
+              >
+                <div style={{
+                  background: secondaryColor,
+                  padding: '10px 16px',
+                  borderRadius: '20px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                  color: '#333',
+                  fontWeight: 500,
+                  fontSize: '13px',
+                  whiteSpace: 'nowrap'
+                }}>{mainButtonText}</div>
+                <button
+                  style={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    background: mainButtonColor,
+                    color: 'white',
+                    border: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 6px 20px rgba(0,0,0,0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    animation: 'pulse 2s infinite'
+                  }}
+                  dangerouslySetInnerHTML={{ __html: getIconSvg(mainButtonIcon) }}
+                />
+              </div>
+            )}
           </div>
 
           <style>{`
@@ -694,6 +1099,10 @@ function toggleFloatingButtons() {
                 opacity: 1;
                 transform: translateY(0) scale(1);
               }
+            }
+            @keyframes pulse {
+              0%, 100% { box-shadow: 0 6px 24px rgba(0,0,0,0.25); }
+              50% { box-shadow: 0 6px 32px ${mainButtonColor}66; }
             }
           `}</style>
 
