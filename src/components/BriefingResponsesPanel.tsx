@@ -305,6 +305,10 @@ export function BriefingResponsesPanel() {
                     const isImage = isFileUrl && 
                       (value as string).match(/\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)(\?|$)/i);
                     
+                    // Check if value is an address object
+                    const isAddressObject = value && typeof value === 'object' && !Array.isArray(value) &&
+                      ('cep' in value || 'logradouro' in value || 'cidade' in value);
+                    
                     const handleDownload = async (url: string, filename: string) => {
                       try {
                         const response = await fetch(url);
@@ -321,6 +325,33 @@ export function BriefingResponsesPanel() {
                       } catch (error) {
                         toast.error("Erro ao baixar arquivo");
                       }
+                    };
+
+                    // Format address object for display
+                    const formatAddress = (addr: any) => {
+                      const parts = [];
+                      if (addr.logradouro) parts.push(addr.logradouro);
+                      if (addr.numero) parts.push(addr.numero);
+                      if (addr.complemento) parts.push(addr.complemento);
+                      if (addr.bairro) parts.push(addr.bairro);
+                      if (addr.cidade && addr.estado) {
+                        parts.push(`${addr.cidade} - ${addr.estado}`);
+                      } else if (addr.cidade) {
+                        parts.push(addr.cidade);
+                      }
+                      if (addr.cep) parts.push(`CEP: ${addr.cep}`);
+                      return parts.join(', ');
+                    };
+
+                    // Format any value for display
+                    const formatValue = (val: any): string => {
+                      if (val === null || val === undefined) return '';
+                      if (typeof val === 'boolean') return val ? 'Sim' : 'Não';
+                      if (typeof val === 'object') {
+                        if (Array.isArray(val)) return val.join(', ');
+                        return JSON.stringify(val);
+                      }
+                      return String(val);
                     };
                     
                     return (
@@ -408,9 +439,13 @@ export function BriefingResponsesPanel() {
                                 </a>
                               </Button>
                             </div>
+                          ) : isAddressObject ? (
+                            <span className="text-muted-foreground">
+                              {formatAddress(value)}
+                            </span>
                           ) : (
                             <span className="text-muted-foreground">
-                              {typeof value === 'boolean' ? (value ? 'Sim' : 'Não') : value}
+                              {formatValue(value)}
                             </span>
                           )}
                         </div>
