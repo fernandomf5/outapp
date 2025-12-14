@@ -331,16 +331,17 @@ export default function BriefingPublicPage() {
           </div>
         );
       case 'address':
-        const primaryColor = (briefing as any)?.primary_color || '#8B5CF6';
-        const textColor = (briefing as any)?.text_color || '#1a1a2e';
-        const fieldBackgroundColor = (briefing as any)?.field_background_color || '#ffffff';
+        const addressPrimaryColor = (briefing as any)?.primary_color || '#8B5CF6';
+        const addressTextColor = (briefing as any)?.text_color || '#1a1a2e';
+        const addressFieldBackgroundColor = (briefing as any)?.field_background_color || '#ffffff';
         return (
           <AddressField
             value={value || { cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '' }}
             onChange={(addressData) => setResponses({ ...responses, [field.label]: addressData })}
             required={field.required}
-            textColor={textColor}
-            fieldBackgroundColor={fieldBackgroundColor}
+            textColor={addressTextColor}
+            fieldBackgroundColor={addressFieldBackgroundColor}
+            primaryColor={addressPrimaryColor}
           />
         );
       case 'file':
@@ -641,8 +642,23 @@ export default function BriefingPublicPage() {
                 />
               </div>
 
+              {/* Progress bar for steps */}
+              {useSteps && totalSteps > 1 && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm" style={{ color: textColor }}>
+                    <span>{stepLabels[currentStep - 1] || `Etapa ${currentStep}`}</span>
+                    <span>{currentStep} de {totalSteps}</span>
+                  </div>
+                  <Progress 
+                    value={(currentStep / totalSteps) * 100} 
+                    className="h-2"
+                    style={{ backgroundColor: `${primaryColor}30` }}
+                  />
+                </div>
+              )}
+
               <div className="space-y-4">
-                {briefing.fields.map((field: any) => (
+                {(useSteps ? getFieldsForStep(currentStep) : briefing.fields).map((field: any) => (
                   <div key={field.id} className="grid gap-2">
                     <Label style={{ color: textColor }}>
                       {field.label}
@@ -653,13 +669,52 @@ export default function BriefingPublicPage() {
                 ))}
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full gradient-primary text-white shadow-lg"
-                disabled={submitting || !visitorName.trim()}
-              >
-                {submitting ? 'Enviando...' : 'Enviar Briefing'}
-              </Button>
+              {/* Navigation buttons for steps */}
+              {useSteps && totalSteps > 1 ? (
+                <div className="flex gap-3">
+                  {currentStep > 1 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setCurrentStep(prev => prev - 1)}
+                      className="flex-1"
+                      style={{ borderColor: primaryColor, color: primaryColor }}
+                    >
+                      <ChevronLeft className="mr-2 h-4 w-4" />
+                      Voltar
+                    </Button>
+                  )}
+                  
+                  {currentStep < totalSteps ? (
+                    <Button
+                      type="button"
+                      onClick={() => setCurrentStep(prev => prev + 1)}
+                      disabled={!canGoNext()}
+                      className="flex-1 text-white"
+                      style={{ backgroundColor: primaryColor }}
+                    >
+                      Próximo
+                      <ChevronRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button 
+                      type="submit" 
+                      className="flex-1 gradient-primary text-white shadow-lg"
+                      disabled={submitting || !visitorName.trim() || !canGoNext()}
+                    >
+                      {submitting ? 'Enviando...' : 'Enviar Briefing'}
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <Button 
+                  type="submit" 
+                  className="w-full gradient-primary text-white shadow-lg"
+                  disabled={submitting || !visitorName.trim()}
+                >
+                  {submitting ? 'Enviando...' : 'Enviar Briefing'}
+                </Button>
+              )}
             </form>
           </CardContent>
         </Card>

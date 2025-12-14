@@ -21,9 +21,10 @@ interface AddressFieldProps {
   required?: boolean;
   textColor?: string;
   fieldBackgroundColor?: string;
+  primaryColor?: string;
 }
 
-export function AddressField({ value, onChange, required, textColor, fieldBackgroundColor }: AddressFieldProps) {
+export function AddressField({ value, onChange, required, textColor, fieldBackgroundColor, primaryColor }: AddressFieldProps) {
   const [loading, setLoading] = useState(false);
   
   const handleCepSearch = async () => {
@@ -98,10 +99,14 @@ export function AddressField({ value, onChange, required, textColor, fieldBackgr
           />
           <Button 
             type="button" 
-            variant="outline" 
             size="icon"
             onClick={handleCepSearch}
             disabled={loading}
+            style={{
+              backgroundColor: primaryColor || '#8B5CF6',
+              borderColor: primaryColor || '#8B5CF6',
+              color: '#ffffff'
+            }}
           >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
