@@ -534,6 +534,8 @@ export default function BriefingPublicPage() {
   const primaryColor = (briefing as any).primary_color || '#8B5CF6';
   const secondaryColor = (briefing as any).secondary_color || '#EC4899';
   const backgroundColor = (briefing as any).background_color || '#1a1a2e';
+  const sectionBackgroundColor = (briefing as any).section_background_color || '#ffffff';
+  const textColor = (briefing as any).text_color || '#1a1a2e';
 
   return (
     <>
@@ -595,7 +597,13 @@ export default function BriefingPublicPage() {
           backgroundColor: backgroundColor,
         } as React.CSSProperties}
       >
-        <Card className="max-w-3xl mx-auto glass">
+        <Card 
+          className="max-w-3xl mx-auto"
+          style={{
+            backgroundColor: sectionBackgroundColor,
+            color: textColor,
+          }}
+        >
           <CardHeader>
             {briefing.logo_url && (
               <div className="flex justify-center mb-4">
@@ -606,11 +614,11 @@ export default function BriefingPublicPage() {
                 />
               </div>
             )}
-            <CardTitle className="text-2xl text-primary">
+            <CardTitle className="text-2xl" style={{ color: primaryColor }}>
               {briefing.title}
             </CardTitle>
             {briefing.description && (
-              <CardDescription>{briefing.description}</CardDescription>
+              <CardDescription style={{ color: textColor, opacity: 0.8 }}>{briefing.description}</CardDescription>
             )}
           </CardHeader>
           <CardContent>
@@ -618,7 +626,7 @@ export default function BriefingPublicPage() {
               <div className="space-y-4">
                 {briefing.fields.map((field: any) => (
                   <div key={field.id} className="grid gap-2">
-                    <Label>
+                    <Label style={{ color: textColor }}>
                       {field.label}
                       {field.required && <span className="text-destructive ml-1">*</span>}
                     </Label>
