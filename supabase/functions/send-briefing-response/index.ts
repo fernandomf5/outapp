@@ -28,21 +28,54 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Briefing:", briefingTitle);
     console.log("Visitor:", visitorName);
 
+    // Helper function to format address object
+    const formatAddress = (addr: any): string => {
+      if (!addr || typeof addr !== 'object') return String(addr || '');
+      const parts = [];
+      if (addr.logradouro) parts.push(addr.logradouro);
+      if (addr.numero) parts.push(addr.numero);
+      if (addr.complemento) parts.push(addr.complemento);
+      if (addr.bairro) parts.push(addr.bairro);
+      if (addr.cidade && addr.estado) {
+        parts.push(`${addr.cidade} - ${addr.estado}`);
+      } else if (addr.cidade) {
+        parts.push(addr.cidade);
+      }
+      if (addr.cep) parts.push(`CEP: ${addr.cep}`);
+      return parts.join(', ');
+    };
+
+    // Helper to format any value for display
+    const formatValue = (value: any, fieldType: string): string => {
+      if (value === undefined || value === null || value === '') return '';
+      
+      // Handle address objects
+      if (fieldType === 'address' || (typeof value === 'object' && !Array.isArray(value) && 
+          ('cep' in value || 'logradouro' in value || 'cidade' in value))) {
+        return formatAddress(value);
+      }
+      
+      // Handle other types
+      if (fieldType === 'checkbox') {
+        return value === true ? 'Sim' : 'Não';
+      } else if (fieldType === 'rating') {
+        return `${value} de 5 estrelas`;
+      } else if (fieldType === 'file' && typeof value === 'string' && value.startsWith('http')) {
+        return `<a href="${value}" target="_blank" style="color: #6366f1;">Ver arquivo</a>`;
+      } else if (typeof value === 'object') {
+        if (Array.isArray(value)) return value.join(', ');
+        return JSON.stringify(value);
+      }
+      
+      return String(value);
+    };
+
     // Build HTML content for the email
     let responsesHtml = '';
     for (const field of fields) {
       const value = responses[field.label];
       if (value !== undefined && value !== null && value !== '') {
-        let displayValue = value;
-        
-        // Handle different field types
-        if (field.type === 'checkbox') {
-          displayValue = value === true ? 'Sim' : 'Não';
-        } else if (field.type === 'rating') {
-          displayValue = `${value} de 5 estrelas`;
-        } else if (field.type === 'file' && typeof value === 'string' && value.startsWith('http')) {
-          displayValue = `<a href="${value}" target="_blank" style="color: #6366f1;">Ver arquivo</a>`;
-        }
+        const displayValue = formatValue(value, field.type);
         
         responsesHtml += `
           <tr>
