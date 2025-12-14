@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FileText, Upload, X, Star, MessageCircle } from "lucide-react";
@@ -20,7 +20,6 @@ export default function BriefingPublicPage() {
   const [briefing, setBriefing] = useState<any>(null);
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
-  const [showNameDialog, setShowNameDialog] = useState(true);
   const [visitorName, setVisitorName] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
@@ -92,13 +91,6 @@ export default function BriefingPublicPage() {
     });
   };
 
-  const handleNameSubmit = () => {
-    if (!visitorName.trim()) {
-      toast.error("Por favor, informe seu primeiro nome");
-      return;
-    }
-    setShowNameDialog(false);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -564,39 +556,6 @@ export default function BriefingPublicPage() {
           }
         `}
       </style>
-      <Dialog open={showNameDialog} onOpenChange={setShowNameDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Bem-vindo!</DialogTitle>
-            <DialogDescription>
-              Por favor, informe seu primeiro nome antes de iniciar o briefing.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <Label htmlFor="visitor-name">Primeiro Nome *</Label>
-              <Input
-                id="visitor-name"
-                value={visitorName}
-                onChange={(e) => setVisitorName(e.target.value)}
-                placeholder="Digite seu primeiro nome"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleNameSubmit();
-                  }
-                }}
-              />
-            </div>
-            <Button 
-              onClick={handleNameSubmit}
-              className="w-full gradient-primary text-white shadow-lg"
-            >
-              Iniciar Briefing
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <div 
         className="min-h-screen py-12 px-4"
@@ -632,6 +591,19 @@ export default function BriefingPublicPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Campo de nome no topo */}
+              <div className="grid gap-2 p-4 rounded-lg border" style={{ borderColor: primaryColor, backgroundColor: `${primaryColor}10` }}>
+                <Label style={{ color: textColor, fontWeight: 600 }}>
+                  Seu Nome <span className="text-destructive ml-1">*</span>
+                </Label>
+                <Input
+                  value={visitorName}
+                  onChange={(e) => setVisitorName(e.target.value)}
+                  placeholder="Digite seu nome"
+                  required
+                />
+              </div>
+
               <div className="space-y-4">
                 {briefing.fields.map((field: any) => (
                   <div key={field.id} className="grid gap-2">
@@ -647,7 +619,7 @@ export default function BriefingPublicPage() {
               <Button 
                 type="submit" 
                 className="w-full gradient-primary text-white shadow-lg"
-                disabled={submitting || showNameDialog}
+                disabled={submitting || !visitorName.trim()}
               >
                 {submitting ? 'Enviando...' : 'Enviar Briefing'}
               </Button>
