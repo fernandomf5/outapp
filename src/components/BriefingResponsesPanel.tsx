@@ -13,8 +13,16 @@ import {
   Phone,
   Building2,
   ExternalLink,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Filter
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { toast } from "sonner";
@@ -47,11 +55,18 @@ interface BriefingResponse {
   briefing_fields?: BriefingField[];
 }
 
+interface BriefingOption {
+  id: string;
+  title: string;
+}
+
 export function BriefingResponsesPanel() {
   const [responses, setResponses] = useState<BriefingResponse[]>([]);
+  const [briefings, setBriefings] = useState<BriefingOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedResponse, setSelectedResponse] = useState<BriefingResponse | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedBriefingId, setSelectedBriefingId] = useState<string>("all");
 
   useEffect(() => {
     loadResponses();
@@ -68,6 +83,8 @@ export function BriefingResponsesPanel() {
         .eq('user_id', user.id);
 
       if (!briefingsData) return;
+
+      setBriefings(briefingsData.map(b => ({ id: b.id, title: b.title })));
 
       const { data, error } = await supabase
         .from('briefing_responses')
@@ -116,11 +133,16 @@ export function BriefingResponsesPanel() {
     }
   };
 
-  const filteredResponses = responses.filter(response =>
-    response.visitor_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    response.visitor_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    response.briefing_title?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredResponses = responses.filter(response => {
+    const matchesSearch = 
+      response.visitor_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      response.visitor_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      response.briefing_title?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesBriefing = selectedBriefingId === "all" || response.briefing_id === selectedBriefingId;
+    
+    return matchesSearch && matchesBriefing;
+  });
 
   return (
     <div className="space-y-6">
@@ -131,19 +153,33 @@ export function BriefingResponsesPanel() {
         </div>
       </div>
 
-      {/* Search */}
+      {/* Search and Filter */}
       <Card className="glass">
         <CardContent className="pt-6">
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por nome, email ou briefing..."
+                placeholder="Buscar por nome, email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
             </div>
+            <Select value={selectedBriefingId} onValueChange={setSelectedBriefingId}>
+              <SelectTrigger className="w-full sm:w-[250px]">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Filtrar por briefing" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os briefings</SelectItem>
+                {briefings.map((briefing) => (
+                  <SelectItem key={briefing.id} value={briefing.id}>
+                    {briefing.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
