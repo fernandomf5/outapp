@@ -25,6 +25,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+interface BriefingField {
+  id: string;
+  label: string;
+  type: string;
+  required?: boolean;
+  options?: string[];
+  step?: number;
+}
+
 interface BriefingResponse {
   id: string;
   briefing_id: string;
@@ -35,6 +44,7 @@ interface BriefingResponse {
   responses: Record<string, any>;
   created_at: string;
   briefing_title?: string;
+  briefing_fields?: BriefingField[];
 }
 
 export function BriefingResponsesPanel() {
@@ -52,25 +62,29 @@ export function BriefingResponsesPanel() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: briefings } = await supabase
+      const { data: briefingsData } = await supabase
         .from('briefings')
-        .select('id, title')
+        .select('id, title, fields')
         .eq('user_id', user.id);
 
-      if (!briefings) return;
+      if (!briefingsData) return;
 
       const { data, error } = await supabase
         .from('briefing_responses')
         .select('*')
-        .in('briefing_id', briefings.map(b => b.id))
+        .in('briefing_id', briefingsData.map(b => b.id))
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      const responsesWithTitles = (data || []).map(response => ({
-        ...response,
-        briefing_title: briefings.find(b => b.id === response.briefing_id)?.title
-      })) as BriefingResponse[];
+      const responsesWithTitles = (data || []).map(response => {
+        const briefing = briefingsData.find(b => b.id === response.briefing_id);
+        return {
+          ...response,
+          briefing_title: briefing?.title,
+          briefing_fields: (briefing?.fields as unknown as BriefingField[]) || []
+        };
+      }) as BriefingResponse[];
 
       setResponses(responsesWithTitles);
     } catch (error: any) {
@@ -298,7 +312,14 @@ export function BriefingResponsesPanel() {
                   <CardTitle className="text-base">Respostas do Briefing</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {Object.entries(selectedResponse.responses).map(([key, value]) => {
+                  {/* Use briefing fields order if available, otherwise fall back to object keys */}
+                  {(selectedResponse.briefing_fields && selectedResponse.briefing_fields.length > 0
+                    ? selectedResponse.briefing_fields.map(field => ({
+                        key: field.label,
+                        value: selectedResponse.responses[field.label]
+                      })).filter(item => item.value !== undefined)
+                    : Object.entries(selectedResponse.responses).map(([key, value]) => ({ key, value }))
+                  ).map(({ key, value }) => {
                     const isFileUrl = typeof value === 'string' && 
                       (value.startsWith('http') || value.startsWith('https://'));
                     
