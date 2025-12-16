@@ -71,7 +71,7 @@ const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete }: Sortable
   };
 
   return (
-    <TableRow ref={setNodeRef} style={style}>
+    <TableRow ref={setNodeRef} style={style} className={transaction.status === 'paid' ? 'bg-green-500/15 hover:bg-green-500/20' : ''}>
       <TableCell>
         <div className="flex items-center gap-2">
           <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
