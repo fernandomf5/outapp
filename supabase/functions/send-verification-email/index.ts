@@ -27,7 +27,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Sending verification email to:", email);
 
     const emailResponse = await resend.emails.send({
-      from: "Out App <noreply@outapp.com.br>",
+      from: "Out App <onboarding@resend.dev>",
       to: [email],
       subject: `Verifique seu e-mail - ${chatbotName}`,
       html: `
