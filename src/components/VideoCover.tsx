@@ -20,7 +20,7 @@ export const VideoCover = ({ videoUrl, logoUrl }: VideoCoverProps) => {
 
   if (isPlaying) {
     return (
-      <div className="relative w-full aspect-video rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl bg-muted">
+      <div className="relative w-full aspect-[4/3] xs:aspect-[16/10] sm:aspect-video rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl bg-muted mx-auto max-w-[95%] sm:max-w-full">
         <iframe
           src={getEmbedUrl(videoUrl)}
           title="Video demonstração"
@@ -34,7 +34,7 @@ export const VideoCover = ({ videoUrl, logoUrl }: VideoCoverProps) => {
 
   return (
     <div 
-      className="relative w-full aspect-video rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl cursor-pointer group"
+      className="relative w-full aspect-[4/3] xs:aspect-[16/10] sm:aspect-video rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl cursor-pointer group mx-auto max-w-[95%] sm:max-w-full"
       onClick={handlePlay}
     >
       {/* Background gradient */}
