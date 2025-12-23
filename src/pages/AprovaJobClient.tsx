@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Check, X, AlertCircle, Clock, MessageSquare, Send, LogOut, FileImage, ChevronLeft, ChevronRight, Loader2, Undo2 } from "lucide-react";
+import { VideoThumbnail } from "@/components/VideoThumbnail";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -436,7 +437,7 @@ export default function AprovaJobClient() {
                 {job.media_urls.length > 0 && (
                   <div className="aspect-video bg-muted">
                     {job.media_urls[0].includes('video') ? (
-                      <video src={job.media_urls[0]} className="w-full h-full object-cover" />
+                      <VideoThumbnail videoUrl={job.media_urls[0]} className="w-full h-full" />
                     ) : (
                       <img src={job.media_urls[0]} alt="" className="w-full h-full object-cover" />
                     )}
