@@ -12,7 +12,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Plus, Users, FileImage, Bell, Copy, Send, Trash2, Eye, ExternalLink, Image, Video, X, Check, Clock, AlertCircle, MessageSquare, Pencil } from "lucide-react";
+import { Plus, Users, FileImage, Bell, Copy, Send, Trash2, Eye, ExternalLink, Image, Video, X, Check, Clock, AlertCircle, MessageSquare, Pencil, Play } from "lucide-react";
+import { VideoThumbnail } from "@/components/VideoThumbnail";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -659,7 +660,10 @@ export const AprovaJobPanel = () => {
                       {job.media_urls.length > 0 && (
                         <div className="w-full sm:w-32 h-32 flex-shrink-0">
                           {job.media_urls[0].includes('video') ? (
-                            <video src={job.media_urls[0]} className="w-full h-full object-cover rounded" />
+                            <VideoThumbnail 
+                              videoUrl={job.media_urls[0]} 
+                              className="w-full h-full rounded"
+                            />
                           ) : (
                             <img src={job.media_urls[0]} alt="" className="w-full h-full object-cover rounded" />
                           )}

@@ -262,26 +262,130 @@ export const PopupCreatorPanel = () => {
   };
 
   const handleCopyCode = (popup: Popup) => {
-    const code = `<script>
-  // Copiar este código para o seu site
-  window.addEventListener('load', function() {
-    ${popup.trigger_type === 'time_delay' ? `
+    const bgStyle = popup.background_image 
+      ? `background-image: url('${popup.background_image}'); background-size: cover; background-position: center;`
+      : `background-color: ${popup.background_color || '#ffffff'};`;
+    
+    const positionStyles: Record<string, string> = {
+      'center': 'top: 50%; left: 50%; transform: translate(-50%, -50%);',
+      'bottom_right': 'bottom: 20px; right: 20px;',
+      'bottom_left': 'bottom: 20px; left: 20px;',
+      'top_right': 'top: 20px; right: 20px;',
+      'top_left': 'top: 20px; left: 20px;',
+    };
+    
+    const code = `<!-- Pop-up: ${popup.name} -->
+<script>
+(function() {
+  var popupShown = false;
+  var popupId = '${popup.id}';
+  
+  function createPopup() {
+    if (popupShown) return;
+    popupShown = true;
+    
+    // Overlay
+    var overlay = document.createElement('div');
+    overlay.id = 'popup-overlay-' + popupId;
+    overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99998; opacity: 0; transition: opacity 0.3s;';
+    
+    // Popup container
+    var popup = document.createElement('div');
+    popup.id = 'popup-' + popupId;
+    popup.style.cssText = 'position: fixed; ${positionStyles[popup.position] || positionStyles['center']} max-width: 400px; width: 90%; padding: 24px; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); z-index: 99999; opacity: 0; transition: opacity 0.3s, transform 0.3s; transform: ${popup.position === 'center' ? 'translate(-50%, -50%) scale(0.9)' : 'scale(0.9)'}; ${bgStyle}';
+    
+    var content = '';
+    
+    // Close button
+    content += '<button onclick="closePopup_' + popupId.replace(/-/g, '_') + '()" style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 24px; cursor: pointer; color: ${popup.text_color || '#000000'}; line-height: 1;">&times;</button>';
+    
+    ${popup.image_url ? `
+    content += '<img src="${popup.image_url}" alt="" style="width: 100%; border-radius: 8px; margin-bottom: 16px; max-height: 200px; object-fit: cover;" />';
+    ` : ''}
+    
+    ${popup.video_url ? `
+    content += '<video src="${popup.video_url}" controls style="width: 100%; border-radius: 8px; margin-bottom: 16px; max-height: 200px;"></video>';
+    ` : ''}
+    
+    content += '<h3 style="margin: 0 0 12px 0; font-size: 20px; font-weight: bold; color: ${popup.text_color || '#000000'};">${popup.title}</h3>';
+    content += '<p style="margin: 0 0 16px 0; color: ${popup.text_color || '#000000'}; opacity: 0.9;">${popup.content}</p>';
+    
+    ${popup.button_text ? `
+    content += '<a href="${popup.button_link || '#'}" target="_blank" style="display: block; width: 100%; padding: 12px 24px; background: ${popup.button_color || '#000000'}; color: #ffffff; text-align: center; text-decoration: none; border-radius: 8px; font-weight: 600; box-sizing: border-box;">${popup.button_text}</a>';
+    ` : ''}
+    
+    popup.innerHTML = content;
+    
+    document.body.appendChild(overlay);
+    document.body.appendChild(popup);
+    
+    // Animate in
     setTimeout(function() {
-      showPopup('${popup.id}');
-    }, ${popup.delay_seconds! * 1000});
-    ` : ''}
-    ${popup.trigger_type === 'scroll' ? `
-    window.addEventListener('scroll', function() {
-      var scrollPercent = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
-      if (scrollPercent >= ${popup.scroll_percentage}) {
-        showPopup('${popup.id}');
-      }
-    });
-    ` : ''}
+      overlay.style.opacity = '1';
+      popup.style.opacity = '1';
+      popup.style.transform = '${popup.position === 'center' ? 'translate(-50%, -50%) scale(1)' : 'scale(1)'}';
+    }, 10);
+    
+    // Close on overlay click
+    overlay.onclick = function() { closePopup_${popup.id.replace(/-/g, '_')}(); };
+    
+    // Track view
+    try {
+      fetch('https://iavhzfawrqewzokuvnob.supabase.co/rest/v1/popups?id=eq.${popup.id}', {
+        method: 'PATCH',
+        headers: {
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlhdmh6ZmF3cnFld3pva3V2bm9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzU3NTksImV4cCI6MjA2MzU1MTc1OX0.HJPS71Oo0r01VLUNKQVoXcQ2bNqTNY8FBYHXMWpWHAI',
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ views: ${popup.views + 1} })
+      });
+    } catch(e) {}
+  }
+  
+  window.closePopup_${popup.id.replace(/-/g, '_')} = function() {
+    var overlay = document.getElementById('popup-overlay-' + popupId);
+    var popup = document.getElementById('popup-' + popupId);
+    if (overlay) { overlay.style.opacity = '0'; setTimeout(function() { overlay.remove(); }, 300); }
+    if (popup) { popup.style.opacity = '0'; popup.style.transform = '${popup.position === 'center' ? 'translate(-50%, -50%) scale(0.9)' : 'scale(0.9)'}'; setTimeout(function() { popup.remove(); }, 300); }
+  };
+  
+  ${popup.trigger_type === 'time_delay' ? `
+  // Trigger: Time delay
+  setTimeout(createPopup, ${(popup.delay_seconds || 5) * 1000});
+  ` : ''}
+  
+  ${popup.trigger_type === 'scroll' ? `
+  // Trigger: Scroll percentage
+  var scrollTriggered = false;
+  window.addEventListener('scroll', function() {
+    if (scrollTriggered) return;
+    var scrollPercent = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+    if (scrollPercent >= ${popup.scroll_percentage || 50}) {
+      scrollTriggered = true;
+      createPopup();
+    }
   });
+  ` : ''}
+  
+  ${popup.trigger_type === 'exit_intent' ? `
+  // Trigger: Exit intent
+  document.addEventListener('mouseout', function(e) {
+    if (!e.toElement && !e.relatedTarget && e.clientY < 10) {
+      createPopup();
+    }
+  });
+  ` : ''}
+  
+  ${popup.trigger_type === 'manual' ? `
+  // Trigger: Manual - call window.showPopup_${popup.id.replace(/-/g, '_')}() to show
+  window.showPopup_${popup.id.replace(/-/g, '_')} = createPopup;
+  ` : ''}
+})();
 </script>`;
+    
     navigator.clipboard.writeText(code);
-    toast.success("Código copiado!");
+    toast.success("Código copiado! Cole no head, body ou footer do seu site.");
   };
 
   const totalViews = popups.reduce((sum, p) => sum + p.views, 0);
