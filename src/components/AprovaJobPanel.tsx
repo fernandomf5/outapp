@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Plus, Users, FileImage, Bell, Copy, Send, Trash2, Eye, ExternalLink, Image, Video, X, Check, Clock, AlertCircle, MessageSquare, Pencil, Play } from "lucide-react";
 import { VideoThumbnail } from "@/components/VideoThumbnail";
+import { isVideoUrl } from "@/lib/media";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -612,8 +613,8 @@ export const AprovaJobPanel = () => {
                         <div className="grid grid-cols-4 gap-2 mt-2">
                           {jobForm.media_urls.map((url, i) => (
                             <div key={i} className="relative group">
-                              {url.includes('video') ? (
-                                <video src={url} className="w-full h-20 object-cover rounded" />
+                              {isVideoUrl(url) ? (
+                                <VideoThumbnail videoUrl={url} className="w-full h-20 rounded" />
                               ) : (
                                 <img src={url} alt="" className="w-full h-20 object-cover rounded" />
                               )}
@@ -659,7 +660,7 @@ export const AprovaJobPanel = () => {
                       {/* Media preview */}
                       {job.media_urls.length > 0 && (
                         <div className="w-full sm:w-32 h-32 flex-shrink-0">
-                          {job.media_urls[0].includes('video') ? (
+                          {isVideoUrl(job.media_urls[0]) ? (
                             <VideoThumbnail 
                               videoUrl={job.media_urls[0]} 
                               className="w-full h-full rounded"
@@ -997,7 +998,7 @@ export const AprovaJobPanel = () => {
                     <div className="grid grid-cols-2 gap-2 mt-2">
                       {selectedJob.media_urls.map((url, i) => (
                         <div key={i} className="relative">
-                          {url.includes('video') ? (
+                          {isVideoUrl(url) ? (
                             <video src={url} controls className="w-full rounded" />
                           ) : (
                             <img src={url} alt="" className="w-full rounded cursor-pointer" onClick={() => window.open(url, '_blank')} />
