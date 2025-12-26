@@ -5,7 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ExternalLink, Star, Play, ChevronLeft, ChevronRight, Images, ChevronDown, ChevronUp } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { ExternalLink, Star, Play, ChevronLeft, ChevronRight, Images, ChevronDown, ChevronUp, Menu, X, Filter } from "lucide-react";
 
 // Component for truncated description with "see more" button
 const TruncatedDescription = ({ 
@@ -294,34 +295,103 @@ export default function PortfolioPublicPage() {
         </div>
       )}
 
-      {/* Filtros - Scrollable on mobile */}
-      {categories.length > 1 && (
-        <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16 py-4 sm:py-6 max-w-[2000px] mx-auto">
-          <div className="flex flex-wrap gap-2 sm:gap-3">
-            {categories.map((cat) => (
-              <Button
-                key={cat}
-                variant={filter === cat ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilter(cat)}
-                className="text-xs sm:text-sm md:text-base px-3 sm:px-4 md:px-5 py-1.5 sm:py-2"
-                style={filter === cat ? { backgroundColor: portfolio.primary_color, color: "#fff" } : { color: cardTextColor, borderColor: cardTextColor + "40" }}
-              >
-                {cat === "all" ? "Todos" : cat}
-              </Button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Grid de Trabalhos - Responsive for all screen sizes */}
       <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16 py-6 sm:py-8 md:py-10 lg:py-12 max-w-[2000px] mx-auto">
-        <h2
-          className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-4 sm:mb-6 md:mb-8"
-          style={{ color: portfolio.primary_color }}
-        >
-          Trabalhos
-        </h2>
+        <div className="flex items-center justify-between mb-4 sm:mb-6 md:mb-8">
+          <h2
+            className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold"
+            style={{ color: portfolio.primary_color }}
+          >
+            Trabalhos
+          </h2>
+          
+          {/* Off-canvas category menu */}
+          {categories.length > 1 && (
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-2 text-xs sm:text-sm md:text-base px-3 sm:px-4 py-2"
+                  style={{ 
+                    borderColor: portfolio.primary_color + "60",
+                    color: cardTextColor
+                  }}
+                >
+                  <Filter className="w-4 h-4" />
+                  <span className="hidden sm:inline">Categorias</span>
+                  {filter !== "all" && (
+                    <Badge 
+                      className="ml-1 text-[10px] sm:text-xs"
+                      style={{ backgroundColor: portfolio.primary_color, color: "#fff" }}
+                    >
+                      {filter}
+                    </Badge>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent 
+                side="right" 
+                className="w-[280px] sm:w-[350px] p-0"
+                style={{ backgroundColor: cardBgColor }}
+              >
+                <SheetHeader className="p-4 sm:p-6 border-b" style={{ borderColor: cardTextColor + "20" }}>
+                  <SheetTitle 
+                    className="text-lg sm:text-xl font-bold flex items-center gap-2"
+                    style={{ color: cardTextColor }}
+                  >
+                    <Filter className="w-5 h-5" style={{ color: portfolio.primary_color }} />
+                    Categorias
+                  </SheetTitle>
+                </SheetHeader>
+                
+                <div className="p-4 sm:p-6 space-y-2">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setFilter(cat)}
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-between group ${
+                        filter === cat ? "font-semibold" : "hover:translate-x-1"
+                      }`}
+                      style={{ 
+                        backgroundColor: filter === cat ? portfolio.primary_color + "20" : "transparent",
+                        color: cardTextColor,
+                        borderLeft: filter === cat ? `3px solid ${portfolio.primary_color}` : "3px solid transparent"
+                      }}
+                    >
+                      <span className="text-sm sm:text-base">
+                        {cat === "all" ? "Todos os trabalhos" : cat}
+                      </span>
+                      {filter === cat && (
+                        <div 
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: portfolio.primary_color }}
+                        />
+                      )}
+                    </button>
+                  ))}
+                </div>
+                
+                {filter !== "all" && (
+                  <div className="p-4 sm:p-6 border-t" style={{ borderColor: cardTextColor + "20" }}>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setFilter("all")}
+                      style={{ 
+                        borderColor: portfolio.primary_color,
+                        color: portfolio.primary_color
+                      }}
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Limpar filtro
+                    </Button>
+                  </div>
+                )}
+              </SheetContent>
+            </Sheet>
+          )}
+        </div>
+        
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
           {filteredItems.map((item) => (
             <Card
