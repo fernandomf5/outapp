@@ -5098,6 +5098,7 @@ export type Database = {
       portfolios: {
         Row: {
           background_color: string | null
+          button_text_color: string | null
           card_background_color: string | null
           card_text_color: string | null
           cover_url: string | null
@@ -5121,6 +5122,7 @@ export type Database = {
         }
         Insert: {
           background_color?: string | null
+          button_text_color?: string | null
           card_background_color?: string | null
           card_text_color?: string | null
           cover_url?: string | null
@@ -5144,6 +5146,7 @@ export type Database = {
         }
         Update: {
           background_color?: string | null
+          button_text_color?: string | null
           card_background_color?: string | null
           card_text_color?: string | null
           cover_url?: string | null
