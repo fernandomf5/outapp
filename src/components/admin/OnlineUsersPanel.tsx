@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -18,16 +18,14 @@ interface OnlineUser {
 export const OnlineUsersPanel = () => {
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [channelStatus, setChannelStatus] = useState<string>('connecting');
 
-  useEffect(() => {
-    const channel = supabase.channel('online-users');
-
-    const updateUsers = () => {
-      const state = channel.presenceState();
-      console.log('Presence state:', state);
-      const users: OnlineUser[] = [];
-      
-      Object.values(state).forEach((presences: any) => {
+  const updateUsers = useCallback((channel: ReturnType<typeof supabase.channel>) => {
+    const state = channel.presenceState();
+    const users: OnlineUser[] = [];
+    
+    Object.values(state).forEach((presences: any) => {
+      if (Array.isArray(presences)) {
         presences.forEach((presence: any) => {
           if (presence.user_id) {
             users.push({
@@ -38,46 +36,59 @@ export const OnlineUsersPanel = () => {
             });
           }
         });
-      });
+      }
+    });
 
-      // Remove duplicates by user_id
-      const uniqueUsers = users.reduce((acc: OnlineUser[], current) => {
-        const exists = acc.find(u => u.user_id === current.user_id);
-        if (!exists) {
-          acc.push(current);
-        }
-        return acc;
-      }, []);
+    // Remove duplicates by user_id
+    const uniqueUsers = users.reduce((acc: OnlineUser[], current) => {
+      const exists = acc.find(u => u.user_id === current.user_id);
+      if (!exists) {
+        acc.push(current);
+      }
+      return acc;
+    }, []);
 
-      console.log('Online users:', uniqueUsers);
-      setOnlineUsers(uniqueUsers);
-      setIsLoading(false);
-    };
+    setOnlineUsers(uniqueUsers);
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    const channel = supabase.channel('online-users', {
+      config: {
+        presence: {
+          key: 'admin-observer',
+        },
+      },
+    });
 
     channel
       .on('presence', { event: 'sync' }, () => {
-        console.log('Admin panel: Presence synced');
-        updateUsers();
+        updateUsers(channel);
       })
-      .on('presence', { event: 'join' }, ({ newPresences }) => {
-        console.log('User joined:', newPresences);
-        updateUsers();
+      .on('presence', { event: 'join' }, () => {
+        updateUsers(channel);
       })
-      .on('presence', { event: 'leave' }, ({ leftPresences }) => {
-        console.log('User left:', leftPresences);
-        updateUsers();
+      .on('presence', { event: 'leave' }, () => {
+        updateUsers(channel);
       })
       .subscribe((status) => {
-        console.log('Admin presence channel status:', status);
+        setChannelStatus(status);
         if (status === 'SUBSCRIBED') {
-          updateUsers();
+          setIsLoading(false);
+          updateUsers(channel);
         }
       });
 
+    // Poll for updates every 5 seconds as backup
+    const pollInterval = setInterval(() => {
+      updateUsers(channel);
+    }, 5000);
+
     return () => {
+      clearInterval(pollInterval);
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [updateUsers]);
 
   const formatOnlineTime = (isoString: string) => {
     try {
@@ -85,11 +96,6 @@ export const OnlineUsersPanel = () => {
     } catch {
       return "--:--";
     }
-  };
-
-  const handleRefresh = () => {
-    setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 500);
   };
 
   return (
@@ -101,9 +107,12 @@ export const OnlineUsersPanel = () => {
             Usuários Online
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={handleRefresh} className="h-8 w-8">
-              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            </Button>
+            <Badge 
+              variant="outline" 
+              className={`text-xs ${channelStatus === 'SUBSCRIBED' ? 'border-green-500 text-green-500' : 'border-yellow-500 text-yellow-500'}`}
+            >
+              {channelStatus === 'SUBSCRIBED' ? 'Conectado' : channelStatus}
+            </Badge>
             <Badge variant="secondary" className="bg-green-500/20 text-green-500 border-green-500/30">
               <Circle className="w-2 h-2 fill-current mr-1" />
               {onlineUsers.length} online
