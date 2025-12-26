@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Search, Mail, Calendar, Edit, Trash2, Key, LogIn, Ban, Crown, Filter, TrendingUp, TrendingDown, UserPlus, UserMinus, ChevronDown } from "lucide-react";
+import { Users, Search, Mail, Calendar, Edit, Trash2, Key, LogIn, Ban, Crown, Filter, TrendingUp, TrendingDown, UserPlus, UserMinus, ChevronDown, Download, Phone } from "lucide-react";
 import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -225,6 +225,41 @@ export const UsersPanel = () => {
     setSelectedYear('');
     setCustomStartDate('');
     setCustomEndDate('');
+  };
+
+  // Funções de exportação de leads
+  const downloadEmails = () => {
+    const emails = filteredUsers.map(u => u.email).filter(Boolean).join('\n');
+    const blob = new Blob([emails], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'emails-leads.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({
+      title: "Download concluído",
+      description: `${filteredUsers.length} emails exportados.`,
+    });
+  };
+
+  const downloadCSV = () => {
+    const header = 'Nome,Email,Data Cadastro,Plano,Status Plano\n';
+    const rows = filteredUsers.map(u => 
+      `"${u.full_name}","${u.email}","${format(new Date(u.created_at), 'dd/MM/yyyy')}","${u.plan_name}","${u.has_active_subscription ? 'Ativo' : 'Inativo'}"`
+    ).join('\n');
+    const csv = header + rows;
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'leads-usuarios.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({
+      title: "Download concluído",
+      description: `${filteredUsers.length} leads exportados em CSV.`,
+    });
   };
 
   const openEditDialog = (user: UserProfile) => {
@@ -721,6 +756,22 @@ export const UsersPanel = () => {
           </div>
         </CollapsibleContent>
       </Collapsible>
+
+      {/* Ações de exportação de leads */}
+      <div className="flex flex-wrap gap-2 mb-4 p-3 rounded-lg border border-border bg-card">
+        <div className="flex items-center gap-2 mr-auto">
+          <Download className="w-4 h-4 text-primary" />
+          <span className="text-sm font-medium">Exportar Leads:</span>
+        </div>
+        <Button variant="outline" size="sm" onClick={downloadEmails}>
+          <Mail className="w-4 h-4 mr-2" />
+          Emails (.txt)
+        </Button>
+        <Button variant="outline" size="sm" onClick={downloadCSV}>
+          <Download className="w-4 h-4 mr-2" />
+          Todos os Dados (.csv)
+        </Button>
+      </div>
 
       <div className="mb-4 relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
