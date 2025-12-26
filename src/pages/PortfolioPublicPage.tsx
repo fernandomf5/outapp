@@ -17,6 +17,13 @@ interface Portfolio {
   logo_url: string | null;
   cover_url: string | null;
   is_public: boolean;
+  background_color: string | null;
+  overlay_color: string | null;
+  overlay_opacity: number | null;
+  title_color: string | null;
+  description_color: string | null;
+  card_background_color: string | null;
+  card_text_color: string | null;
 }
 
 interface PortfolioItem {
@@ -127,8 +134,17 @@ export default function PortfolioPublicPage() {
     );
   }
 
+  // Custom colors with fallbacks
+  const bgColor = portfolio.background_color || "#ffffff";
+  const overlayColor = portfolio.overlay_color || "#000000";
+  const overlayOpacity = portfolio.overlay_opacity ?? 0.4;
+  const titleColor = portfolio.title_color || "#ffffff";
+  const descriptionColor = portfolio.description_color || "#f0f0f0";
+  const cardBgColor = portfolio.card_background_color || "#ffffff";
+  const cardTextColor = portfolio.card_text_color || "#1a1a2e";
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen" style={{ backgroundColor: bgColor }}>
       {/* Hero Section */}
       <div
         className="relative h-[40vh] md:h-[50vh] flex items-center justify-center overflow-hidden"
@@ -138,18 +154,33 @@ export default function PortfolioPublicPage() {
             : `linear-gradient(135deg, ${portfolio.primary_color} 0%, ${portfolio.secondary_color} 100%)`,
         }}
       >
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="relative z-10 text-center text-white p-6">
+        <div 
+          className="absolute inset-0" 
+          style={{ backgroundColor: overlayColor, opacity: overlayOpacity }}
+        />
+        <div className="relative z-10 text-center p-6">
           {portfolio.logo_url && (
-            <img
-              src={portfolio.logo_url}
-              alt={portfolio.name}
-              className="w-20 h-20 md:w-24 md:h-24 rounded-full mx-auto mb-4 border-4 border-white/30 object-cover"
-            />
+            <div className="mb-6 flex justify-center">
+              <img
+                src={portfolio.logo_url}
+                alt={portfolio.name}
+                className="max-w-[200px] md:max-w-[280px] max-h-[120px] md:max-h-[160px] w-auto h-auto object-contain drop-shadow-lg"
+              />
+            </div>
           )}
-          <h1 className="text-3xl md:text-5xl font-bold mb-3">{portfolio.name}</h1>
+          <h1 
+            className="text-3xl md:text-5xl font-bold mb-3"
+            style={{ color: titleColor }}
+          >
+            {portfolio.name}
+          </h1>
           {portfolio.description && (
-            <p className="text-lg md:text-xl opacity-90 max-w-2xl mx-auto">{portfolio.description}</p>
+            <p 
+              className="text-lg md:text-xl max-w-2xl mx-auto"
+              style={{ color: descriptionColor }}
+            >
+              {portfolio.description}
+            </p>
           )}
         </div>
       </div>
@@ -167,7 +198,8 @@ export default function PortfolioPublicPage() {
             {featuredItems.map((item) => (
               <Card
                 key={item.id}
-                className="group cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300"
+                className="group cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300 border-0"
+                style={{ backgroundColor: cardBgColor }}
                 onClick={() => setSelectedItem(item)}
               >
                 <div className="relative aspect-video overflow-hidden">
@@ -184,7 +216,7 @@ export default function PortfolioPublicPage() {
                         background: `linear-gradient(135deg, ${portfolio.primary_color}40 0%, ${portfolio.secondary_color}40 100%)`,
                       }}
                     >
-                      <span className="text-4xl font-bold text-muted-foreground">{item.title[0]}</span>
+                      <span className="text-4xl font-bold" style={{ color: cardTextColor, opacity: 0.5 }}>{item.title[0]}</span>
                     </div>
                   )}
                   {item.video_url && (
@@ -197,19 +229,19 @@ export default function PortfolioPublicPage() {
                   {item.images && item.images.length > 0 && (
                     <div className="absolute bottom-3 left-3 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
                       <Images className="w-3 h-3" />
-                      {item.images.length + (item.image_url ? 1 : 0)}
+                      {item.images.length}
                     </div>
                   )}
                   <Badge
                     className="absolute top-3 right-3"
-                    style={{ backgroundColor: portfolio.primary_color }}
+                    style={{ backgroundColor: portfolio.primary_color, color: "#fff" }}
                   >
                     <Star className="w-3 h-3 mr-1" /> Destaque
                   </Badge>
                 </div>
                 <CardContent className="p-4">
-                  <h3 className="font-semibold text-lg mb-1">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">{item.category}</p>
+                  <h3 className="font-semibold text-lg mb-1" style={{ color: cardTextColor }}>{item.title}</h3>
+                  <p className="text-sm" style={{ color: cardTextColor, opacity: 0.7 }}>{item.category}</p>
                 </CardContent>
               </Card>
             ))}
@@ -227,7 +259,7 @@ export default function PortfolioPublicPage() {
                 variant={filter === cat ? "default" : "outline"}
                 size="sm"
                 onClick={() => setFilter(cat)}
-                style={filter === cat ? { backgroundColor: portfolio.primary_color } : {}}
+                style={filter === cat ? { backgroundColor: portfolio.primary_color, color: "#fff" } : { color: cardTextColor, borderColor: cardTextColor + "40" }}
               >
                 {cat === "all" ? "Todos" : cat}
               </Button>
@@ -248,7 +280,8 @@ export default function PortfolioPublicPage() {
           {filteredItems.map((item) => (
             <Card
               key={item.id}
-              className="group cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300"
+              className="group cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300 border-0"
+              style={{ backgroundColor: cardBgColor }}
               onClick={() => setSelectedItem(item)}
             >
               <div className="relative aspect-square overflow-hidden">
@@ -265,7 +298,7 @@ export default function PortfolioPublicPage() {
                       background: `linear-gradient(135deg, ${portfolio.primary_color}30 0%, ${portfolio.secondary_color}30 100%)`,
                     }}
                   >
-                    <span className="text-4xl font-bold text-muted-foreground">{item.title[0]}</span>
+                    <span className="text-4xl font-bold" style={{ color: cardTextColor, opacity: 0.5 }}>{item.title[0]}</span>
                   </div>
                 )}
                 {item.video_url && (
@@ -278,18 +311,18 @@ export default function PortfolioPublicPage() {
                 {item.images && item.images.length > 0 && (
                   <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
                     <Images className="w-3 h-3" />
-                    {item.images.length + (item.image_url ? 1 : 0)}
+                    {item.images.length}
                   </div>
                 )}
               </div>
               <CardContent className="p-4">
-                <h3 className="font-semibold truncate">{item.title}</h3>
+                <h3 className="font-semibold truncate" style={{ color: cardTextColor }}>{item.title}</h3>
                 <div className="flex items-center justify-between mt-1">
-                  <p className="text-sm text-muted-foreground truncate">{item.category}</p>
+                  <p className="text-sm truncate" style={{ color: cardTextColor, opacity: 0.7 }}>{item.category}</p>
                   {item.is_featured && <Star className="w-4 h-4 text-yellow-500 shrink-0" />}
                 </div>
                 {item.client_name && (
-                  <p className="text-xs text-muted-foreground mt-1">Cliente: {item.client_name}</p>
+                  <p className="text-xs mt-1" style={{ color: cardTextColor, opacity: 0.6 }}>Cliente: {item.client_name}</p>
                 )}
               </CardContent>
             </Card>
@@ -297,7 +330,7 @@ export default function PortfolioPublicPage() {
         </div>
 
         {filteredItems.length === 0 && (
-          <div className="text-center py-12 text-muted-foreground">
+          <div className="text-center py-12" style={{ color: cardTextColor, opacity: 0.6 }}>
             <p>Nenhum trabalho encontrado nesta categoria.</p>
           </div>
         )}
@@ -310,7 +343,7 @@ export default function PortfolioPublicPage() {
           background: `linear-gradient(135deg, ${portfolio.primary_color}10 0%, ${portfolio.secondary_color}10 100%)`,
         }}
       >
-        <p className="text-muted-foreground">
+        <p style={{ color: cardTextColor, opacity: 0.7 }}>
           Portfólio criado com{" "}
           <a href="/" className="font-semibold hover:underline" style={{ color: portfolio.primary_color }}>
             Out App
@@ -439,28 +472,32 @@ export default function PortfolioPublicPage() {
                       )}
                     </div>
                   )
+                ) : selectedItem.image_url ? (
+                  <img
+                    src={selectedItem.image_url}
+                    alt={selectedItem.title}
+                    className="w-full rounded-lg object-contain max-h-[60vh]"
+                  />
                 ) : null}
 
-                <div className="flex flex-wrap gap-2">
+                <div className="space-y-3">
                   {selectedItem.category && (
-                    <Badge variant="secondary">{selectedItem.category}</Badge>
+                    <Badge style={{ backgroundColor: portfolio.primary_color, color: "#fff" }}>
+                      {selectedItem.category}
+                    </Badge>
                   )}
                   {selectedItem.client_name && (
-                    <Badge variant="outline">Cliente: {selectedItem.client_name}</Badge>
+                    <p className="text-sm text-muted-foreground">
+                      <strong>Cliente:</strong> {selectedItem.client_name}
+                    </p>
                   )}
-                  {selectedItem.is_featured && (
-                    <Badge style={{ backgroundColor: portfolio.primary_color }}>
-                      <Star className="w-3 h-3 mr-1" /> Destaque
-                    </Badge>
+                  {selectedItem.description && (
+                    <p className="text-muted-foreground">{selectedItem.description}</p>
                   )}
                 </div>
 
-                {selectedItem.description && (
-                  <p className="text-muted-foreground">{selectedItem.description}</p>
-                )}
-
                 {selectedItem.project_url && (
-                  <Button asChild style={{ backgroundColor: portfolio.primary_color }}>
+                  <Button asChild className="w-full" style={{ backgroundColor: portfolio.primary_color }}>
                     <a href={selectedItem.project_url} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="w-4 h-4 mr-2" /> Ver Projeto
                     </a>

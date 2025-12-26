@@ -61,6 +61,13 @@ interface Portfolio {
   is_public: boolean;
   slug: string | null;
   created_at: string;
+  background_color: string | null;
+  overlay_color: string | null;
+  overlay_opacity: number | null;
+  title_color: string | null;
+  description_color: string | null;
+  card_background_color: string | null;
+  card_text_color: string | null;
 }
 
 interface PortfolioItem {
@@ -189,6 +196,13 @@ export function PortfolioCreatorPanel() {
     logo_url: "",
     cover_url: "",
     is_public: true,
+    background_color: "#ffffff",
+    overlay_color: "#000000",
+    overlay_opacity: 0.4,
+    title_color: "#ffffff",
+    description_color: "#f0f0f0",
+    card_background_color: "#ffffff",
+    card_text_color: "#1a1a2e",
   });
 
   const [itemForm, setItemForm] = useState({
@@ -331,6 +345,13 @@ export function PortfolioCreatorPanel() {
       logo_url: portfolio.logo_url || "",
       cover_url: portfolio.cover_url || "",
       is_public: portfolio.is_public,
+      background_color: portfolio.background_color || "#ffffff",
+      overlay_color: portfolio.overlay_color || "#000000",
+      overlay_opacity: portfolio.overlay_opacity || 0.4,
+      title_color: portfolio.title_color || "#ffffff",
+      description_color: portfolio.description_color || "#f0f0f0",
+      card_background_color: portfolio.card_background_color || "#ffffff",
+      card_text_color: portfolio.card_text_color || "#1a1a2e",
     });
     setIsPortfolioDialogOpen(true);
   };
@@ -347,6 +368,13 @@ export function PortfolioCreatorPanel() {
       logo_url: "",
       cover_url: "",
       is_public: true,
+      background_color: "#ffffff",
+      overlay_color: "#000000",
+      overlay_opacity: 0.4,
+      title_color: "#ffffff",
+      description_color: "#f0f0f0",
+      card_background_color: "#ffffff",
+      card_text_color: "#1a1a2e",
     });
   };
 
@@ -689,6 +717,125 @@ export function PortfolioCreatorPanel() {
                             value={portfolioForm.secondary_color}
                             onChange={(e) => setPortfolioForm({ ...portfolioForm, secondary_color: e.target.value })}
                           />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Personalização avançada de cores */}
+                    <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
+                      <h4 className="font-medium flex items-center gap-2">
+                        <Palette className="w-4 h-4" /> Personalização Avançada
+                      </h4>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Cor de Fundo da Página</Label>
+                          <div className="flex gap-2">
+                            <input
+                              type="color"
+                              value={portfolioForm.background_color}
+                              onChange={(e) => setPortfolioForm({ ...portfolioForm, background_color: e.target.value })}
+                              className="w-12 h-10 rounded cursor-pointer"
+                            />
+                            <Input
+                              value={portfolioForm.background_color}
+                              onChange={(e) => setPortfolioForm({ ...portfolioForm, background_color: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label>Cor de Sobreposição (Hero)</Label>
+                          <div className="flex gap-2">
+                            <input
+                              type="color"
+                              value={portfolioForm.overlay_color}
+                              onChange={(e) => setPortfolioForm({ ...portfolioForm, overlay_color: e.target.value })}
+                              className="w-12 h-10 rounded cursor-pointer"
+                            />
+                            <Input
+                              value={portfolioForm.overlay_color}
+                              onChange={(e) => setPortfolioForm({ ...portfolioForm, overlay_color: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>Opacidade da Sobreposição: {Math.round(portfolioForm.overlay_opacity * 100)}%</Label>
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.05"
+                          value={portfolioForm.overlay_opacity}
+                          onChange={(e) => setPortfolioForm({ ...portfolioForm, overlay_opacity: parseFloat(e.target.value) })}
+                          className="w-full h-2 bg-muted rounded-lg cursor-pointer"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Cor do Título (Hero)</Label>
+                          <div className="flex gap-2">
+                            <input
+                              type="color"
+                              value={portfolioForm.title_color}
+                              onChange={(e) => setPortfolioForm({ ...portfolioForm, title_color: e.target.value })}
+                              className="w-12 h-10 rounded cursor-pointer"
+                            />
+                            <Input
+                              value={portfolioForm.title_color}
+                              onChange={(e) => setPortfolioForm({ ...portfolioForm, title_color: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label>Cor da Descrição (Hero)</Label>
+                          <div className="flex gap-2">
+                            <input
+                              type="color"
+                              value={portfolioForm.description_color}
+                              onChange={(e) => setPortfolioForm({ ...portfolioForm, description_color: e.target.value })}
+                              className="w-12 h-10 rounded cursor-pointer"
+                            />
+                            <Input
+                              value={portfolioForm.description_color}
+                              onChange={(e) => setPortfolioForm({ ...portfolioForm, description_color: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Cor de Fundo dos Cards</Label>
+                          <div className="flex gap-2">
+                            <input
+                              type="color"
+                              value={portfolioForm.card_background_color}
+                              onChange={(e) => setPortfolioForm({ ...portfolioForm, card_background_color: e.target.value })}
+                              className="w-12 h-10 rounded cursor-pointer"
+                            />
+                            <Input
+                              value={portfolioForm.card_background_color}
+                              onChange={(e) => setPortfolioForm({ ...portfolioForm, card_background_color: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label>Cor do Texto dos Cards</Label>
+                          <div className="flex gap-2">
+                            <input
+                              type="color"
+                              value={portfolioForm.card_text_color}
+                              onChange={(e) => setPortfolioForm({ ...portfolioForm, card_text_color: e.target.value })}
+                              className="w-12 h-10 rounded cursor-pointer"
+                            />
+                            <Input
+                              value={portfolioForm.card_text_color}
+                              onChange={(e) => setPortfolioForm({ ...portfolioForm, card_text_color: e.target.value })}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
