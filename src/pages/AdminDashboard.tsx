@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
@@ -1217,18 +1218,12 @@ const AdminDashboard = () => {
 
             <div>
               <Label htmlFor="broadcast-message">Mensagem</Label>
-              <Textarea
-                id="broadcast-message"
+              <RichTextEditor
                 value={broadcastMessage.message}
-                onChange={(e) =>
-                  setBroadcastMessage({ ...broadcastMessage, message: e.target.value })
+                onChange={(value) =>
+                  setBroadcastMessage({ ...broadcastMessage, message: value })
                 }
-                placeholder="Digite sua mensagem aqui... Use quebras de linha e inclua URLs que serão automaticamente convertidos em links."
-                className="min-h-[150px]"
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                {broadcastMessage.message.length} caracteres. URLs serão convertidos em links clicáveis automaticamente.
-              </p>
             </div>
 
             <div>
