@@ -392,9 +392,9 @@ const AdminDashboard = () => {
       .map(line => {
         // Detectar URLs e transformar em links
         const urlRegex = /(https?:\/\/[^\s]+)/g;
-        return line.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-primary underline">$1</a>');
+        return `<p>${line.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>')}</p>`;
       })
-      .join('<br/>');
+      .join('');
 
     // Inserir mensagem na tabela admin_messages
     const { error } = await supabase
