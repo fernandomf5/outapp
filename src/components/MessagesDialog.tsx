@@ -339,11 +339,11 @@ const MessageCard = ({
 
       {message.content_html ? (
         <div 
-          className="prose prose-sm max-w-none"
+          className="prose prose-sm max-w-none dark:prose-invert text-foreground"
           dangerouslySetInnerHTML={{ __html: message.content_html }}
         />
       ) : (
-        <p className="text-muted-foreground whitespace-pre-wrap">
+        <p className="text-foreground whitespace-pre-wrap">
           {message.message}
         </p>
       )}
