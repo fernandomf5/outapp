@@ -69,6 +69,7 @@ interface Portfolio {
   card_background_color: string | null;
   card_text_color: string | null;
   button_text_color: string | null;
+  button_bg_color: string | null;
   button1_label: string | null;
   button1_url: string | null;
   button1_bg_color: string | null;
@@ -217,6 +218,7 @@ export function PortfolioCreatorPanel() {
     card_background_color: "#ffffff",
     card_text_color: "#1a1a2e",
     button_text_color: "#1a1a2e",
+    button_bg_color: "#e5e5e5",
     button1_label: "",
     button1_url: "",
     button1_bg_color: "#3b82f6",
@@ -379,6 +381,7 @@ export function PortfolioCreatorPanel() {
       card_background_color: portfolio.card_background_color || "#ffffff",
       card_text_color: portfolio.card_text_color || "#1a1a2e",
       button_text_color: portfolio.button_text_color || "#1a1a2e",
+      button_bg_color: portfolio.button_bg_color || "#e5e5e5",
       button1_label: portfolio.button1_label || "",
       button1_url: portfolio.button1_url || "",
       button1_bg_color: portfolio.button1_bg_color || "#3b82f6",
@@ -415,6 +418,7 @@ export function PortfolioCreatorPanel() {
       card_background_color: "#ffffff",
       card_text_color: "#1a1a2e",
       button_text_color: "#1a1a2e",
+      button_bg_color: "#e5e5e5",
       button1_label: "",
       button1_url: "",
       button1_bg_color: "#3b82f6",
