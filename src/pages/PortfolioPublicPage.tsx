@@ -87,7 +87,6 @@ export default function PortfolioPublicPage() {
   const filteredItems = filter === "all" ? items : items.filter((item) => item.category === filter);
   const featuredItems = items.filter((item) => item.is_featured);
 
-  // Get only gallery images for selected item (main image is just for thumbnail/logo)
   const getItemImages = (item: PortfolioItem | null): string[] => {
     if (!item) return [];
     if (item.images && item.images.length > 0) {
@@ -110,7 +109,6 @@ export default function PortfolioPublicPage() {
     );
   };
 
-  // Reset image index when selecting a new item
   useEffect(() => {
     setCurrentImageIndex(0);
   }, [selectedItem]);
@@ -118,17 +116,17 @@ export default function PortfolioPublicPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (!portfolio) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">Portfólio não encontrado</h1>
-          <p className="text-muted-foreground">Este portfólio não existe ou não está público.</p>
+          <h1 className="text-xl sm:text-2xl font-bold mb-2">Portfólio não encontrado</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Este portfólio não existe ou não está público.</p>
         </div>
       </div>
     );
@@ -144,10 +142,10 @@ export default function PortfolioPublicPage() {
   const cardTextColor = portfolio.card_text_color || "#1a1a2e";
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: bgColor }}>
-      {/* Hero Section */}
+    <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: bgColor }}>
+      {/* Hero Section - Responsive heights for all devices */}
       <div
-        className="relative h-[40vh] md:h-[50vh] flex items-center justify-center overflow-hidden"
+        className="relative min-h-[50vh] sm:min-h-[45vh] md:min-h-[50vh] lg:min-h-[55vh] xl:min-h-[60vh] 2xl:min-h-[50vh] flex items-center justify-center overflow-hidden"
         style={{
           background: portfolio.cover_url
             ? `url(${portfolio.cover_url}) center/cover no-repeat`
@@ -158,25 +156,25 @@ export default function PortfolioPublicPage() {
           className="absolute inset-0" 
           style={{ backgroundColor: overlayColor, opacity: overlayOpacity }}
         />
-        <div className="relative z-10 text-center p-6">
+        <div className="relative z-10 text-center px-4 sm:px-6 md:px-8 lg:px-12 py-8 sm:py-10 md:py-12 w-full max-w-7xl mx-auto">
           {portfolio.logo_url && (
-            <div className="mb-6 flex justify-center">
+            <div className="mb-4 sm:mb-6 md:mb-8 flex justify-center">
               <img
                 src={portfolio.logo_url}
                 alt={portfolio.name}
-                className="max-w-[200px] md:max-w-[280px] max-h-[120px] md:max-h-[160px] w-auto h-auto object-contain drop-shadow-lg"
+                className="max-w-[150px] sm:max-w-[200px] md:max-w-[280px] lg:max-w-[350px] xl:max-w-[400px] 2xl:max-w-[450px] max-h-[80px] sm:max-h-[100px] md:max-h-[140px] lg:max-h-[180px] xl:max-h-[200px] 2xl:max-h-[220px] w-auto h-auto object-contain drop-shadow-lg"
               />
             </div>
           )}
           <h1 
-            className="text-3xl md:text-5xl font-bold mb-3"
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold mb-2 sm:mb-3 md:mb-4 leading-tight"
             style={{ color: titleColor }}
           >
             {portfolio.name}
           </h1>
           {portfolio.description && (
             <p 
-              className="text-lg md:text-xl max-w-2xl mx-auto"
+              className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl max-w-xs sm:max-w-lg md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto leading-relaxed"
               style={{ color: descriptionColor }}
             >
               {portfolio.description}
@@ -185,20 +183,20 @@ export default function PortfolioPublicPage() {
         </div>
       </div>
 
-      {/* Destaques */}
+      {/* Destaques - Fully responsive grid */}
       {featuredItems.length > 0 && (
-        <div className="container mx-auto px-4 py-12">
+        <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16 py-8 sm:py-10 md:py-12 lg:py-16 max-w-[2000px] mx-auto">
           <h2
-            className="text-2xl md:text-3xl font-bold mb-6 flex items-center gap-2"
+            className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-4 sm:mb-6 md:mb-8 flex items-center gap-2"
             style={{ color: portfolio.primary_color }}
           >
-            <Star className="w-6 h-6" /> Destaques
+            <Star className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" /> Destaques
           </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
             {featuredItems.map((item) => (
               <Card
                 key={item.id}
-                className="group cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300 border-0"
+                className="group cursor-pointer overflow-hidden hover:shadow-2xl transition-all duration-300 border-0 rounded-lg sm:rounded-xl"
                 style={{ backgroundColor: cardBgColor }}
                 onClick={() => setSelectedItem(item)}
               >
@@ -207,7 +205,7 @@ export default function PortfolioPublicPage() {
                     <img
                       src={item.image_url}
                       alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
                     <div
@@ -216,32 +214,32 @@ export default function PortfolioPublicPage() {
                         background: `linear-gradient(135deg, ${portfolio.primary_color}40 0%, ${portfolio.secondary_color}40 100%)`,
                       }}
                     >
-                      <span className="text-4xl font-bold" style={{ color: cardTextColor, opacity: 0.5 }}>{item.title[0]}</span>
+                      <span className="text-3xl sm:text-4xl md:text-5xl font-bold" style={{ color: cardTextColor, opacity: 0.5 }}>{item.title[0]}</span>
                     </div>
                   )}
                   {item.video_url && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="bg-white rounded-full p-3">
-                        <Play className="w-8 h-8" style={{ color: portfolio.primary_color }} />
+                      <div className="bg-white rounded-full p-2 sm:p-3 md:p-4">
+                        <Play className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10" style={{ color: portfolio.primary_color }} />
                       </div>
                     </div>
                   )}
                   {item.images && item.images.length > 0 && (
-                    <div className="absolute bottom-3 left-3 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-                      <Images className="w-3 h-3" />
+                    <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 bg-black/60 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded flex items-center gap-1">
+                      <Images className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       {item.images.length}
                     </div>
                   )}
                   <Badge
-                    className="absolute top-3 right-3"
+                    className="absolute top-2 sm:top-3 right-2 sm:right-3 text-[10px] sm:text-xs"
                     style={{ backgroundColor: portfolio.primary_color, color: "#fff" }}
                   >
-                    <Star className="w-3 h-3 mr-1" /> Destaque
+                    <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" /> Destaque
                   </Badge>
                 </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold text-lg mb-1" style={{ color: cardTextColor }}>{item.title}</h3>
-                  <p className="text-sm" style={{ color: cardTextColor, opacity: 0.7 }}>{item.category}</p>
+                <CardContent className="p-3 sm:p-4 md:p-5">
+                  <h3 className="font-semibold text-base sm:text-lg md:text-xl mb-1 line-clamp-1" style={{ color: cardTextColor }}>{item.title}</h3>
+                  <p className="text-xs sm:text-sm md:text-base line-clamp-1" style={{ color: cardTextColor, opacity: 0.7 }}>{item.category}</p>
                 </CardContent>
               </Card>
             ))}
@@ -249,16 +247,17 @@ export default function PortfolioPublicPage() {
         </div>
       )}
 
-      {/* Filtros */}
+      {/* Filtros - Scrollable on mobile */}
       {categories.length > 1 && (
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-wrap gap-2">
+        <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16 py-4 sm:py-6 max-w-[2000px] mx-auto">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
             {categories.map((cat) => (
               <Button
                 key={cat}
                 variant={filter === cat ? "default" : "outline"}
                 size="sm"
                 onClick={() => setFilter(cat)}
+                className="text-xs sm:text-sm md:text-base px-3 sm:px-4 md:px-5 py-1.5 sm:py-2"
                 style={filter === cat ? { backgroundColor: portfolio.primary_color, color: "#fff" } : { color: cardTextColor, borderColor: cardTextColor + "40" }}
               >
                 {cat === "all" ? "Todos" : cat}
@@ -268,19 +267,19 @@ export default function PortfolioPublicPage() {
         </div>
       )}
 
-      {/* Grid de Trabalhos */}
-      <div className="container mx-auto px-4 py-8">
+      {/* Grid de Trabalhos - Responsive for all screen sizes */}
+      <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16 py-6 sm:py-8 md:py-10 lg:py-12 max-w-[2000px] mx-auto">
         <h2
-          className="text-2xl md:text-3xl font-bold mb-6"
+          className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-4 sm:mb-6 md:mb-8"
           style={{ color: portfolio.primary_color }}
         >
           Trabalhos
         </h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
           {filteredItems.map((item) => (
             <Card
               key={item.id}
-              className="group cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300 border-0"
+              className="group cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300 border-0 rounded-lg"
               style={{ backgroundColor: cardBgColor }}
               onClick={() => setSelectedItem(item)}
             >
@@ -289,7 +288,7 @@ export default function PortfolioPublicPage() {
                   <img
                     src={item.image_url}
                     alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 ) : (
                   <div
@@ -298,31 +297,31 @@ export default function PortfolioPublicPage() {
                       background: `linear-gradient(135deg, ${portfolio.primary_color}30 0%, ${portfolio.secondary_color}30 100%)`,
                     }}
                   >
-                    <span className="text-4xl font-bold" style={{ color: cardTextColor, opacity: 0.5 }}>{item.title[0]}</span>
+                    <span className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: cardTextColor, opacity: 0.5 }}>{item.title[0]}</span>
                   </div>
                 )}
                 {item.video_url && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="bg-white rounded-full p-2">
-                      <Play className="w-6 h-6" style={{ color: portfolio.primary_color }} />
+                    <div className="bg-white rounded-full p-1.5 sm:p-2">
+                      <Play className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" style={{ color: portfolio.primary_color }} />
                     </div>
                   </div>
                 )}
                 {item.images && item.images.length > 0 && (
-                  <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-                    <Images className="w-3 h-3" />
+                  <div className="absolute bottom-1.5 sm:bottom-2 left-1.5 sm:left-2 bg-black/60 text-white text-[9px] sm:text-[10px] md:text-xs px-1 sm:px-1.5 py-0.5 rounded flex items-center gap-0.5 sm:gap-1">
+                    <Images className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3" />
                     {item.images.length}
                   </div>
                 )}
               </div>
-              <CardContent className="p-4">
-                <h3 className="font-semibold truncate" style={{ color: cardTextColor }}>{item.title}</h3>
-                <div className="flex items-center justify-between mt-1">
-                  <p className="text-sm truncate" style={{ color: cardTextColor, opacity: 0.7 }}>{item.category}</p>
-                  {item.is_featured && <Star className="w-4 h-4 text-yellow-500 shrink-0" />}
+              <CardContent className="p-2 sm:p-3 md:p-4">
+                <h3 className="font-semibold text-xs sm:text-sm md:text-base truncate" style={{ color: cardTextColor }}>{item.title}</h3>
+                <div className="flex items-center justify-between mt-0.5 sm:mt-1">
+                  <p className="text-[10px] sm:text-xs md:text-sm truncate flex-1" style={{ color: cardTextColor, opacity: 0.7 }}>{item.category}</p>
+                  {item.is_featured && <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500 shrink-0 ml-1" />}
                 </div>
                 {item.client_name && (
-                  <p className="text-xs mt-1" style={{ color: cardTextColor, opacity: 0.6 }}>Cliente: {item.client_name}</p>
+                  <p className="text-[9px] sm:text-[10px] md:text-xs mt-0.5 sm:mt-1 truncate" style={{ color: cardTextColor, opacity: 0.6 }}>Cliente: {item.client_name}</p>
                 )}
               </CardContent>
             </Card>
@@ -330,20 +329,20 @@ export default function PortfolioPublicPage() {
         </div>
 
         {filteredItems.length === 0 && (
-          <div className="text-center py-12" style={{ color: cardTextColor, opacity: 0.6 }}>
-            <p>Nenhum trabalho encontrado nesta categoria.</p>
+          <div className="text-center py-8 sm:py-12 md:py-16" style={{ color: cardTextColor, opacity: 0.6 }}>
+            <p className="text-sm sm:text-base md:text-lg">Nenhum trabalho encontrado nesta categoria.</p>
           </div>
         )}
       </div>
 
       {/* Footer */}
       <footer
-        className="py-8 text-center"
+        className="py-6 sm:py-8 md:py-10 text-center px-4"
         style={{
           background: `linear-gradient(135deg, ${portfolio.primary_color}10 0%, ${portfolio.secondary_color}10 100%)`,
         }}
       >
-        <p style={{ color: cardTextColor, opacity: 0.7 }}>
+        <p className="text-xs sm:text-sm md:text-base" style={{ color: cardTextColor, opacity: 0.7 }}>
           Portfólio criado com{" "}
           <a href="/" className="font-semibold hover:underline" style={{ color: portfolio.primary_color }}>
             Out App
@@ -351,16 +350,16 @@ export default function PortfolioPublicPage() {
         </p>
       </footer>
 
-      {/* Modal de Detalhes */}
+      {/* Modal de Detalhes - Responsive */}
       <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-5xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto p-4 sm:p-6">
           {selectedItem && (
             <>
               <DialogHeader>
-                <DialogTitle className="text-2xl">{selectedItem.title}</DialogTitle>
+                <DialogTitle className="text-lg sm:text-xl md:text-2xl lg:text-3xl pr-8">{selectedItem.title}</DialogTitle>
               </DialogHeader>
 
-              <div className="space-y-6 mt-4">
+              <div className="space-y-4 sm:space-y-6 mt-3 sm:mt-4">
                 {selectedItem.video_url ? (
                   <div className="aspect-video rounded-lg overflow-hidden bg-black">
                     <iframe
@@ -373,7 +372,7 @@ export default function PortfolioPublicPage() {
                 ) : selectedItemImages.length > 0 ? (
                   selectedItem.is_scrollable_screenshot ? (
                     <div className="relative bg-black/5 dark:bg-black/20 rounded-lg overflow-hidden">
-                      <div className="max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
+                      <div className="max-h-[40vh] sm:max-h-[50vh] md:max-h-[60vh] overflow-y-auto scrollbar-thin">
                         <img
                           src={selectedItemImages[currentImageIndex]}
                           alt={`${selectedItem.title} - ${currentImageIndex + 1}`}
@@ -386,27 +385,27 @@ export default function PortfolioPublicPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full z-10"
+                            className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full z-10 h-8 w-8 sm:h-10 sm:w-10"
                             onClick={handlePrevImage}
                           >
-                            <ChevronLeft className="w-6 h-6" />
+                            <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full z-10"
+                            className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full z-10 h-8 w-8 sm:h-10 sm:w-10"
                             onClick={handleNextImage}
                           >
-                            <ChevronRight className="w-6 h-6" />
+                            <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6" />
                           </Button>
                           
-                          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                          <div className="absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 flex gap-1 sm:gap-1.5 z-10">
                             {selectedItemImages.map((_, idx) => (
                               <button
                                 key={idx}
-                                className={`w-2 h-2 rounded-full transition-all ${
+                                className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all ${
                                   idx === currentImageIndex 
-                                    ? "bg-white w-4" 
+                                    ? "bg-white w-3 sm:w-4" 
                                     : "bg-white/50 hover:bg-white/75"
                                 }`}
                                 onClick={() => setCurrentImageIndex(idx)}
@@ -414,13 +413,13 @@ export default function PortfolioPublicPage() {
                             ))}
                           </div>
                           
-                          <div className="absolute top-3 right-3 bg-black/60 text-white text-sm px-2 py-1 rounded z-10">
+                          <div className="absolute top-2 sm:top-3 right-2 sm:right-3 bg-black/60 text-white text-xs sm:text-sm px-1.5 sm:px-2 py-0.5 sm:py-1 rounded z-10">
                             {currentImageIndex + 1} / {selectedItemImages.length}
                           </div>
                         </>
                       )}
                       
-                      <div className="absolute bottom-3 left-3 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1 z-10">
+                      <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 bg-black/60 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded flex items-center gap-1 z-10">
                         <span>↕ Role para ver mais</span>
                       </div>
                     </div>
@@ -429,7 +428,7 @@ export default function PortfolioPublicPage() {
                       <img
                         src={selectedItemImages[currentImageIndex]}
                         alt={`${selectedItem.title} - ${currentImageIndex + 1}`}
-                        className="w-full rounded-lg object-contain max-h-[60vh] mx-auto"
+                        className="w-full rounded-lg object-contain max-h-[40vh] sm:max-h-[50vh] md:max-h-[60vh] mx-auto"
                       />
                       
                       {selectedItemImages.length > 1 && (
@@ -437,27 +436,27 @@ export default function PortfolioPublicPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full"
+                            className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full h-8 w-8 sm:h-10 sm:w-10"
                             onClick={handlePrevImage}
                           >
-                            <ChevronLeft className="w-6 h-6" />
+                            <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full"
+                            className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full h-8 w-8 sm:h-10 sm:w-10"
                             onClick={handleNextImage}
                           >
-                            <ChevronRight className="w-6 h-6" />
+                            <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6" />
                           </Button>
                           
-                          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                          <div className="absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 flex gap-1 sm:gap-1.5">
                             {selectedItemImages.map((_, idx) => (
                               <button
                                 key={idx}
-                                className={`w-2 h-2 rounded-full transition-all ${
+                                className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all ${
                                   idx === currentImageIndex 
-                                    ? "bg-white w-4" 
+                                    ? "bg-white w-3 sm:w-4" 
                                     : "bg-white/50 hover:bg-white/75"
                                 }`}
                                 onClick={() => setCurrentImageIndex(idx)}
@@ -465,7 +464,7 @@ export default function PortfolioPublicPage() {
                             ))}
                           </div>
                           
-                          <div className="absolute top-3 right-3 bg-black/60 text-white text-sm px-2 py-1 rounded">
+                          <div className="absolute top-2 sm:top-3 right-2 sm:right-3 bg-black/60 text-white text-xs sm:text-sm px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
                             {currentImageIndex + 1} / {selectedItemImages.length}
                           </div>
                         </>
@@ -476,28 +475,28 @@ export default function PortfolioPublicPage() {
                   <img
                     src={selectedItem.image_url}
                     alt={selectedItem.title}
-                    className="w-full rounded-lg object-contain max-h-[60vh]"
+                    className="w-full rounded-lg object-contain max-h-[40vh] sm:max-h-[50vh] md:max-h-[60vh]"
                   />
                 ) : null}
 
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {selectedItem.category && (
-                    <Badge style={{ backgroundColor: portfolio.primary_color, color: "#fff" }}>
+                    <Badge className="text-xs sm:text-sm" style={{ backgroundColor: portfolio.primary_color, color: "#fff" }}>
                       {selectedItem.category}
                     </Badge>
                   )}
                   {selectedItem.client_name && (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       <strong>Cliente:</strong> {selectedItem.client_name}
                     </p>
                   )}
                   {selectedItem.description && (
-                    <p className="text-muted-foreground">{selectedItem.description}</p>
+                    <p className="text-sm sm:text-base text-muted-foreground">{selectedItem.description}</p>
                   )}
                 </div>
 
                 {selectedItem.project_url && (
-                  <Button asChild className="w-full" style={{ backgroundColor: portfolio.primary_color }}>
+                  <Button asChild className="w-full text-sm sm:text-base py-2 sm:py-3" style={{ backgroundColor: portfolio.primary_color }}>
                     <a href={selectedItem.project_url} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="w-4 h-4 mr-2" /> Ver Projeto
                     </a>
