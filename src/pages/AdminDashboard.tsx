@@ -36,6 +36,7 @@ import { FeaturesManager } from "@/components/admin/FeaturesManager";
 import { FeatureOverridesManager } from "@/components/admin/FeatureOverridesManager";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { NewUserNotifications } from "@/components/admin/NewUserNotifications";
+import { OnlineUsersPanel } from "@/components/admin/OnlineUsersPanel";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -693,7 +694,15 @@ const AdminDashboard = () => {
                   </Card>
                 </div>
 
-                <GrowthChart />
+                {/* Online Users and Growth Chart */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <OnlineUsersPanel />
+                  </div>
+                  <div className="lg:col-span-2">
+                    <GrowthChart />
+                  </div>
+                </div>
               </>
             )}
 

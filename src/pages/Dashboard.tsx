@@ -61,6 +61,7 @@ import { AgendaReminders } from "@/components/AgendaReminders";
 import { AprovaJobPanel } from "@/components/AprovaJobPanel";
 import { GlobalChatNotification } from "@/components/GlobalChatNotification";
 import { PortfolioCreatorPanel } from "@/components/PortfolioCreatorPanel";
+import { useUserPresence } from "@/hooks/useUserPresence";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -82,6 +83,9 @@ const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [userFullName, setUserFullName] = useState<string>('');
   const [paymentProcessed, setPaymentProcessed] = useState(false);
+  
+  // Track user presence for online status
+  useUserPresence();
   
   const currentLogo = resolvedTheme === 'dark' ? logoDark : logoLight;
   const [stats, setStats] = useState({
