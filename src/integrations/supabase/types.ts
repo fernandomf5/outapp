@@ -5097,50 +5097,71 @@ export type Database = {
       }
       portfolios: {
         Row: {
+          background_color: string | null
+          card_background_color: string | null
+          card_text_color: string | null
           cover_url: string | null
           created_at: string
           description: string | null
+          description_color: string | null
           id: string
           is_active: boolean | null
           is_public: boolean | null
           logo_url: string | null
           name: string
           niche: string
+          overlay_color: string | null
+          overlay_opacity: number | null
           primary_color: string | null
           secondary_color: string | null
           slug: string | null
+          title_color: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          background_color?: string | null
+          card_background_color?: string | null
+          card_text_color?: string | null
           cover_url?: string | null
           created_at?: string
           description?: string | null
+          description_color?: string | null
           id?: string
           is_active?: boolean | null
           is_public?: boolean | null
           logo_url?: string | null
           name: string
           niche?: string
+          overlay_color?: string | null
+          overlay_opacity?: number | null
           primary_color?: string | null
           secondary_color?: string | null
           slug?: string | null
+          title_color?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          background_color?: string | null
+          card_background_color?: string | null
+          card_text_color?: string | null
           cover_url?: string | null
           created_at?: string
           description?: string | null
+          description_color?: string | null
           id?: string
           is_active?: boolean | null
           is_public?: boolean | null
           logo_url?: string | null
           name?: string
           niche?: string
+          overlay_color?: string | null
+          overlay_opacity?: number | null
           primary_color?: string | null
           secondary_color?: string | null
           slug?: string | null
+          title_color?: string | null
           updated_at?: string
           user_id?: string
         }
