@@ -1,16 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 export const useUserPresence = () => {
   const { user } = useAuth();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const [isTracking, setIsTracking] = useState(false);
+  const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!user) return;
 
-    const setupPresence = async () => {
+    let isMounted = true;
+
+    const initPresence = async () => {
       // Fetch user profile for full name
       const { data: profile } = await supabase
         .from('profiles')
@@ -18,9 +20,19 @@ export const useUserPresence = () => {
         .eq('user_id', user.id)
         .single();
 
+      if (!isMounted) return;
+
       const fullName = profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário';
       const email = profile?.email || user.email || '';
 
+      const presenceData = {
+        user_id: user.id,
+        email: email,
+        full_name: fullName,
+        online_at: new Date().toISOString(),
+      };
+
+      // Create channel
       const channel = supabase.channel('online-users', {
         config: {
           presence: {
@@ -29,51 +41,45 @@ export const useUserPresence = () => {
         },
       });
 
+      channelRef.current = channel;
+
       channel
         .on('presence', { event: 'sync' }, () => {
-          console.log('Presence synced');
+          // Synced
         })
         .subscribe(async (status) => {
-          console.log('Presence channel status:', status);
-          if (status === 'SUBSCRIBED') {
-            const trackResult = await channel.track({
-              user_id: user.id,
-              email: email,
-              full_name: fullName,
-              online_at: new Date().toISOString(),
-            });
-            console.log('Track result:', trackResult);
-            setIsTracking(true);
+          if (status === 'SUBSCRIBED' && isMounted) {
+            await channel.track(presenceData);
           }
         });
 
-      channelRef.current = channel;
-
-      // Heartbeat to keep presence alive
-      const heartbeat = setInterval(async () => {
-        if (channelRef.current && isTracking) {
-          await channelRef.current.track({
-            user_id: user.id,
-            email: email,
-            full_name: fullName,
-            online_at: new Date().toISOString(),
-          });
+      // Heartbeat every 20 seconds
+      heartbeatRef.current = setInterval(async () => {
+        if (channelRef.current && isMounted) {
+          try {
+            await channelRef.current.track({
+              ...presenceData,
+              online_at: new Date().toISOString(),
+            });
+          } catch (e) {
+            // Ignore errors
+          }
         }
-      }, 25000);
-
-      return () => {
-        clearInterval(heartbeat);
-        if (channelRef.current) {
-          channelRef.current.untrack();
-          supabase.removeChannel(channelRef.current);
-        }
-      };
+      }, 20000);
     };
 
-    const cleanup = setupPresence();
+    initPresence();
 
     return () => {
-      cleanup.then(cleanupFn => cleanupFn?.());
+      isMounted = false;
+      if (heartbeatRef.current) {
+        clearInterval(heartbeatRef.current);
+      }
+      if (channelRef.current) {
+        channelRef.current.untrack().catch(() => {});
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
-  }, [user]);
+  }, [user?.id]);
 };
