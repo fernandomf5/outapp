@@ -68,6 +68,7 @@ interface Portfolio {
   description_color: string | null;
   card_background_color: string | null;
   card_text_color: string | null;
+  button_text_color: string | null;
 }
 
 interface PortfolioItem {
@@ -203,6 +204,7 @@ export function PortfolioCreatorPanel() {
     description_color: "#f0f0f0",
     card_background_color: "#ffffff",
     card_text_color: "#1a1a2e",
+    button_text_color: "#1a1a2e",
   });
 
   const [itemForm, setItemForm] = useState({
@@ -352,6 +354,7 @@ export function PortfolioCreatorPanel() {
       description_color: portfolio.description_color || "#f0f0f0",
       card_background_color: portfolio.card_background_color || "#ffffff",
       card_text_color: portfolio.card_text_color || "#1a1a2e",
+      button_text_color: portfolio.button_text_color || "#1a1a2e",
     });
     setIsPortfolioDialogOpen(true);
   };
@@ -375,6 +378,7 @@ export function PortfolioCreatorPanel() {
       description_color: "#f0f0f0",
       card_background_color: "#ffffff",
       card_text_color: "#1a1a2e",
+      button_text_color: "#1a1a2e",
     });
   };
 
@@ -834,6 +838,21 @@ export function PortfolioCreatorPanel() {
                             <Input
                               value={portfolioForm.card_text_color}
                               onChange={(e) => setPortfolioForm({ ...portfolioForm, card_text_color: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label>Cor do Texto do Botão (Categorias)</Label>
+                          <div className="flex gap-2">
+                            <input
+                              type="color"
+                              value={portfolioForm.button_text_color}
+                              onChange={(e) => setPortfolioForm({ ...portfolioForm, button_text_color: e.target.value })}
+                              className="w-12 h-10 rounded cursor-pointer"
+                            />
+                            <Input
+                              value={portfolioForm.button_text_color}
+                              onChange={(e) => setPortfolioForm({ ...portfolioForm, button_text_color: e.target.value })}
                             />
                           </div>
                         </div>
