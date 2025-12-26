@@ -5098,6 +5098,7 @@ export type Database = {
       portfolios: {
         Row: {
           background_color: string | null
+          button_bg_color: string | null
           button_text_color: string | null
           button1_bg_color: string | null
           button1_enabled: boolean | null
@@ -5134,6 +5135,7 @@ export type Database = {
         }
         Insert: {
           background_color?: string | null
+          button_bg_color?: string | null
           button_text_color?: string | null
           button1_bg_color?: string | null
           button1_enabled?: boolean | null
@@ -5170,6 +5172,7 @@ export type Database = {
         }
         Update: {
           background_color?: string | null
+          button_bg_color?: string | null
           button_text_color?: string | null
           button1_bg_color?: string | null
           button1_enabled?: boolean | null

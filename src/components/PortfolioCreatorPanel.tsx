@@ -274,9 +274,9 @@ export function PortfolioCreatorPanel() {
       .order("created_at", { ascending: false });
 
     if (!error && data) {
-      setPortfolios(data);
+      setPortfolios(data as unknown as Portfolio[]);
       if (data.length > 0 && !selectedPortfolio) {
-        setSelectedPortfolio(data[0]);
+        setSelectedPortfolio(data[0] as unknown as Portfolio);
       }
     }
     setLoading(false);
@@ -908,6 +908,58 @@ export function PortfolioCreatorPanel() {
                             />
                           </div>
                         </div>
+                        <div>
+                          <Label>Cor de Fundo do Botão (Categorias)</Label>
+                          <div className="flex gap-2">
+                            <input
+                              type="color"
+                              value={portfolioForm.button_bg_color}
+                              onChange={(e) => setPortfolioForm({ ...portfolioForm, button_bg_color: e.target.value })}
+                              className="w-12 h-10 rounded cursor-pointer"
+                            />
+                            <Input
+                              value={portfolioForm.button_bg_color}
+                              onChange={(e) => setPortfolioForm({ ...portfolioForm, button_bg_color: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* Preview dos botões de categoria */}
+                        <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                          <Label className="mb-2 block">Preview - Botões de Categoria</Label>
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              className="px-4 py-2 rounded-full text-sm font-medium transition-all"
+                              style={{
+                                backgroundColor: portfolioForm.button_bg_color,
+                                color: portfolioForm.button_text_color,
+                              }}
+                            >
+                              Todos
+                            </button>
+                            <button
+                              type="button"
+                              className="px-4 py-2 rounded-full text-sm font-medium transition-all"
+                              style={{
+                                backgroundColor: portfolioForm.button_bg_color,
+                                color: portfolioForm.button_text_color,
+                              }}
+                            >
+                              Web Design
+                            </button>
+                            <button
+                              type="button"
+                              className="px-4 py-2 rounded-full text-sm font-medium transition-all"
+                              style={{
+                                backgroundColor: portfolioForm.button_bg_color,
+                                color: portfolioForm.button_text_color,
+                              }}
+                            >
+                              Branding
+                            </button>
+                          </div>
+                        </div>
                       </div>
 
                       {/* Botão 1 */}
@@ -977,6 +1029,22 @@ export function PortfolioCreatorPanel() {
                                 onCheckedChange={(checked) => setPortfolioForm({ ...portfolioForm, button1_shadow: checked })}
                               />
                               <Label>Adicionar sombra</Label>
+                            </div>
+                            
+                            {/* Preview do Botão 1 */}
+                            <div className="mt-3 p-3 bg-muted/50 rounded-lg">
+                              <Label className="mb-2 block text-xs">Preview - Botão 1</Label>
+                              <button
+                                type="button"
+                                className="px-6 py-2 rounded-lg font-medium transition-all"
+                                style={{
+                                  backgroundColor: portfolioForm.button1_bg_color,
+                                  color: portfolioForm.button1_text_color,
+                                  boxShadow: portfolioForm.button1_shadow ? '0 4px 14px 0 rgba(0, 0, 0, 0.25)' : 'none',
+                                }}
+                              >
+                                {portfolioForm.button1_label || "Botão 1"}
+                              </button>
                             </div>
                           </div>
                         )}
@@ -1049,6 +1117,22 @@ export function PortfolioCreatorPanel() {
                                 onCheckedChange={(checked) => setPortfolioForm({ ...portfolioForm, button2_shadow: checked })}
                               />
                               <Label>Adicionar sombra</Label>
+                            </div>
+                            
+                            {/* Preview do Botão 2 */}
+                            <div className="mt-3 p-3 bg-muted/50 rounded-lg">
+                              <Label className="mb-2 block text-xs">Preview - Botão 2</Label>
+                              <button
+                                type="button"
+                                className="px-6 py-2 rounded-lg font-medium transition-all"
+                                style={{
+                                  backgroundColor: portfolioForm.button2_bg_color,
+                                  color: portfolioForm.button2_text_color,
+                                  boxShadow: portfolioForm.button2_shadow ? '0 4px 14px 0 rgba(0, 0, 0, 0.25)' : 'none',
+                                }}
+                              >
+                                {portfolioForm.button2_label || "Botão 2"}
+                              </button>
                             </div>
                           </div>
                         )}
