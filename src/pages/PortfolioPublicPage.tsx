@@ -73,6 +73,18 @@ interface Portfolio {
   card_background_color: string | null;
   card_text_color: string | null;
   button_text_color: string | null;
+  button1_label: string | null;
+  button1_url: string | null;
+  button1_bg_color: string | null;
+  button1_text_color: string | null;
+  button1_shadow: boolean | null;
+  button1_enabled: boolean | null;
+  button2_label: string | null;
+  button2_url: string | null;
+  button2_bg_color: string | null;
+  button2_text_color: string | null;
+  button2_shadow: boolean | null;
+  button2_enabled: boolean | null;
 }
 
 interface PortfolioItem {
@@ -98,6 +110,7 @@ export default function PortfolioPublicPage() {
   const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null);
   const [filter, setFilter] = useState<string>("all");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
 
   useEffect(() => {
     if (portfolioId) {
@@ -223,15 +236,84 @@ export default function PortfolioPublicPage() {
             {portfolio.name}
           </h1>
           {portfolio.description && (
-            <p 
-              className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl max-w-xs sm:max-w-lg md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto leading-relaxed"
-              style={{ color: descriptionColor }}
-            >
-              {portfolio.description}
-            </p>
+            portfolio.description.length > 150 ? (
+              <div className="max-w-xs sm:max-w-lg md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto">
+                <p 
+                  className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl leading-relaxed"
+                  style={{ color: descriptionColor }}
+                >
+                  {portfolio.description.slice(0, 150)}...
+                </p>
+                <button
+                  onClick={() => setIsDescriptionDialogOpen(true)}
+                  className="mt-2 text-xs sm:text-sm font-medium hover:underline transition-all flex items-center gap-1 mx-auto"
+                  style={{ color: descriptionColor, opacity: 0.9 }}
+                >
+                  <ChevronDown className="w-4 h-4" />
+                  Sobre a empresa
+                </button>
+              </div>
+            ) : (
+              <p 
+                className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl max-w-xs sm:max-w-lg md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto leading-relaxed"
+                style={{ color: descriptionColor }}
+              >
+                {portfolio.description}
+              </p>
+            )
+          )}
+
+          {/* Custom Buttons */}
+          {(portfolio.button1_enabled || portfolio.button2_enabled) && (
+            <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mt-4 sm:mt-6">
+              {portfolio.button1_enabled && portfolio.button1_label && portfolio.button1_url && (
+                <a
+                  href={portfolio.button1_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-sm sm:text-base transition-all hover:opacity-90"
+                  style={{
+                    backgroundColor: portfolio.button1_bg_color || "#3b82f6",
+                    color: portfolio.button1_text_color || "#ffffff",
+                    boxShadow: portfolio.button1_shadow ? "0 4px 14px rgba(0, 0, 0, 0.25)" : "none",
+                  }}
+                >
+                  {portfolio.button1_label}
+                </a>
+              )}
+              {portfolio.button2_enabled && portfolio.button2_label && portfolio.button2_url && (
+                <a
+                  href={portfolio.button2_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-sm sm:text-base transition-all hover:opacity-90"
+                  style={{
+                    backgroundColor: portfolio.button2_bg_color || "#10b981",
+                    color: portfolio.button2_text_color || "#ffffff",
+                    boxShadow: portfolio.button2_shadow ? "0 4px 14px rgba(0, 0, 0, 0.25)" : "none",
+                  }}
+                >
+                  {portfolio.button2_label}
+                </a>
+              )}
+            </div>
           )}
         </div>
       </div>
+
+      {/* Description Dialog */}
+      <Dialog open={isDescriptionDialogOpen} onOpenChange={setIsDescriptionDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl sm:text-2xl">Sobre {portfolio.name}</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed whitespace-pre-wrap">
+              {portfolio.description}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Destaques - Fully responsive grid */}
       {featuredItems.length > 0 && (
