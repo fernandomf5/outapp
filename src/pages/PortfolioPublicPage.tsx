@@ -73,6 +73,7 @@ interface Portfolio {
   card_background_color: string | null;
   card_text_color: string | null;
   button_text_color: string | null;
+  button_bg_color: string | null;
   button1_label: string | null;
   button1_url: string | null;
   button1_bg_color: string | null;
@@ -203,6 +204,7 @@ export default function PortfolioPublicPage() {
   const cardBgColor = portfolio.card_background_color || "#ffffff";
   const cardTextColor = portfolio.card_text_color || "#1a1a2e";
   const buttonTextColor = portfolio.button_text_color || "#1a1a2e";
+  const buttonBgColor = portfolio.button_bg_color || "#e5e5e5";
 
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: bgColor }}>
@@ -437,8 +439,8 @@ export default function PortfolioPublicPage() {
                         filter === cat ? "font-semibold" : "hover:translate-x-1"
                       }`}
                       style={{ 
-                        backgroundColor: filter === cat ? portfolio.primary_color + "20" : "transparent",
-                        color: cardTextColor,
+                        backgroundColor: filter === cat ? buttonBgColor : "transparent",
+                        color: filter === cat ? buttonTextColor : cardTextColor,
                         borderLeft: filter === cat ? `3px solid ${portfolio.primary_color}` : "3px solid transparent"
                       }}
                     >
