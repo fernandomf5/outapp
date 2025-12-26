@@ -69,6 +69,18 @@ interface Portfolio {
   card_background_color: string | null;
   card_text_color: string | null;
   button_text_color: string | null;
+  button1_label: string | null;
+  button1_url: string | null;
+  button1_bg_color: string | null;
+  button1_text_color: string | null;
+  button1_shadow: boolean | null;
+  button1_enabled: boolean | null;
+  button2_label: string | null;
+  button2_url: string | null;
+  button2_bg_color: string | null;
+  button2_text_color: string | null;
+  button2_shadow: boolean | null;
+  button2_enabled: boolean | null;
 }
 
 interface PortfolioItem {
@@ -205,6 +217,18 @@ export function PortfolioCreatorPanel() {
     card_background_color: "#ffffff",
     card_text_color: "#1a1a2e",
     button_text_color: "#1a1a2e",
+    button1_label: "",
+    button1_url: "",
+    button1_bg_color: "#3b82f6",
+    button1_text_color: "#ffffff",
+    button1_shadow: false,
+    button1_enabled: false,
+    button2_label: "",
+    button2_url: "",
+    button2_bg_color: "#10b981",
+    button2_text_color: "#ffffff",
+    button2_shadow: false,
+    button2_enabled: false,
   });
 
   const [itemForm, setItemForm] = useState({
@@ -355,6 +379,18 @@ export function PortfolioCreatorPanel() {
       card_background_color: portfolio.card_background_color || "#ffffff",
       card_text_color: portfolio.card_text_color || "#1a1a2e",
       button_text_color: portfolio.button_text_color || "#1a1a2e",
+      button1_label: portfolio.button1_label || "",
+      button1_url: portfolio.button1_url || "",
+      button1_bg_color: portfolio.button1_bg_color || "#3b82f6",
+      button1_text_color: portfolio.button1_text_color || "#ffffff",
+      button1_shadow: portfolio.button1_shadow || false,
+      button1_enabled: portfolio.button1_enabled || false,
+      button2_label: portfolio.button2_label || "",
+      button2_url: portfolio.button2_url || "",
+      button2_bg_color: portfolio.button2_bg_color || "#10b981",
+      button2_text_color: portfolio.button2_text_color || "#ffffff",
+      button2_shadow: portfolio.button2_shadow || false,
+      button2_enabled: portfolio.button2_enabled || false,
     });
     setIsPortfolioDialogOpen(true);
   };
@@ -379,6 +415,18 @@ export function PortfolioCreatorPanel() {
       card_background_color: "#ffffff",
       card_text_color: "#1a1a2e",
       button_text_color: "#1a1a2e",
+      button1_label: "",
+      button1_url: "",
+      button1_bg_color: "#3b82f6",
+      button1_text_color: "#ffffff",
+      button1_shadow: false,
+      button1_enabled: false,
+      button2_label: "",
+      button2_url: "",
+      button2_bg_color: "#10b981",
+      button2_text_color: "#ffffff",
+      button2_shadow: false,
+      button2_enabled: false,
     });
   };
 
@@ -856,6 +904,150 @@ export function PortfolioCreatorPanel() {
                             />
                           </div>
                         </div>
+                      </div>
+
+                      {/* Botão 1 */}
+                      <div className="border-t pt-4 mt-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Switch
+                            checked={portfolioForm.button1_enabled}
+                            onCheckedChange={(checked) => setPortfolioForm({ ...portfolioForm, button1_enabled: checked })}
+                          />
+                          <Label className="font-medium">Botão 1</Label>
+                        </div>
+                        {portfolioForm.button1_enabled && (
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label>Nome do Botão</Label>
+                                <Input
+                                  value={portfolioForm.button1_label}
+                                  onChange={(e) => setPortfolioForm({ ...portfolioForm, button1_label: e.target.value })}
+                                  placeholder="Ex: Fale Conosco"
+                                />
+                              </div>
+                              <div>
+                                <Label>URL do Botão</Label>
+                                <Input
+                                  value={portfolioForm.button1_url}
+                                  onChange={(e) => setPortfolioForm({ ...portfolioForm, button1_url: e.target.value })}
+                                  placeholder="https://..."
+                                />
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label>Cor de Fundo</Label>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="color"
+                                    value={portfolioForm.button1_bg_color}
+                                    onChange={(e) => setPortfolioForm({ ...portfolioForm, button1_bg_color: e.target.value })}
+                                    className="w-12 h-10 rounded cursor-pointer"
+                                  />
+                                  <Input
+                                    value={portfolioForm.button1_bg_color}
+                                    onChange={(e) => setPortfolioForm({ ...portfolioForm, button1_bg_color: e.target.value })}
+                                  />
+                                </div>
+                              </div>
+                              <div>
+                                <Label>Cor do Texto</Label>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="color"
+                                    value={portfolioForm.button1_text_color}
+                                    onChange={(e) => setPortfolioForm({ ...portfolioForm, button1_text_color: e.target.value })}
+                                    className="w-12 h-10 rounded cursor-pointer"
+                                  />
+                                  <Input
+                                    value={portfolioForm.button1_text_color}
+                                    onChange={(e) => setPortfolioForm({ ...portfolioForm, button1_text_color: e.target.value })}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                checked={portfolioForm.button1_shadow}
+                                onCheckedChange={(checked) => setPortfolioForm({ ...portfolioForm, button1_shadow: checked })}
+                              />
+                              <Label>Adicionar sombra</Label>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Botão 2 */}
+                      <div className="border-t pt-4 mt-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Switch
+                            checked={portfolioForm.button2_enabled}
+                            onCheckedChange={(checked) => setPortfolioForm({ ...portfolioForm, button2_enabled: checked })}
+                          />
+                          <Label className="font-medium">Botão 2</Label>
+                        </div>
+                        {portfolioForm.button2_enabled && (
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label>Nome do Botão</Label>
+                                <Input
+                                  value={portfolioForm.button2_label}
+                                  onChange={(e) => setPortfolioForm({ ...portfolioForm, button2_label: e.target.value })}
+                                  placeholder="Ex: Ver Mais"
+                                />
+                              </div>
+                              <div>
+                                <Label>URL do Botão</Label>
+                                <Input
+                                  value={portfolioForm.button2_url}
+                                  onChange={(e) => setPortfolioForm({ ...portfolioForm, button2_url: e.target.value })}
+                                  placeholder="https://..."
+                                />
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label>Cor de Fundo</Label>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="color"
+                                    value={portfolioForm.button2_bg_color}
+                                    onChange={(e) => setPortfolioForm({ ...portfolioForm, button2_bg_color: e.target.value })}
+                                    className="w-12 h-10 rounded cursor-pointer"
+                                  />
+                                  <Input
+                                    value={portfolioForm.button2_bg_color}
+                                    onChange={(e) => setPortfolioForm({ ...portfolioForm, button2_bg_color: e.target.value })}
+                                  />
+                                </div>
+                              </div>
+                              <div>
+                                <Label>Cor do Texto</Label>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="color"
+                                    value={portfolioForm.button2_text_color}
+                                    onChange={(e) => setPortfolioForm({ ...portfolioForm, button2_text_color: e.target.value })}
+                                    className="w-12 h-10 rounded cursor-pointer"
+                                  />
+                                  <Input
+                                    value={portfolioForm.button2_text_color}
+                                    onChange={(e) => setPortfolioForm({ ...portfolioForm, button2_text_color: e.target.value })}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                checked={portfolioForm.button2_shadow}
+                                onCheckedChange={(checked) => setPortfolioForm({ ...portfolioForm, button2_shadow: checked })}
+                              />
+                              <Label>Adicionar sombra</Label>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
 

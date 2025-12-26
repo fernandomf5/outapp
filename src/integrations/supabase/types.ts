@@ -5099,6 +5099,18 @@ export type Database = {
         Row: {
           background_color: string | null
           button_text_color: string | null
+          button1_bg_color: string | null
+          button1_enabled: boolean | null
+          button1_label: string | null
+          button1_shadow: boolean | null
+          button1_text_color: string | null
+          button1_url: string | null
+          button2_bg_color: string | null
+          button2_enabled: boolean | null
+          button2_label: string | null
+          button2_shadow: boolean | null
+          button2_text_color: string | null
+          button2_url: string | null
           card_background_color: string | null
           card_text_color: string | null
           cover_url: string | null
@@ -5123,6 +5135,18 @@ export type Database = {
         Insert: {
           background_color?: string | null
           button_text_color?: string | null
+          button1_bg_color?: string | null
+          button1_enabled?: boolean | null
+          button1_label?: string | null
+          button1_shadow?: boolean | null
+          button1_text_color?: string | null
+          button1_url?: string | null
+          button2_bg_color?: string | null
+          button2_enabled?: boolean | null
+          button2_label?: string | null
+          button2_shadow?: boolean | null
+          button2_text_color?: string | null
+          button2_url?: string | null
           card_background_color?: string | null
           card_text_color?: string | null
           cover_url?: string | null
@@ -5147,6 +5171,18 @@ export type Database = {
         Update: {
           background_color?: string | null
           button_text_color?: string | null
+          button1_bg_color?: string | null
+          button1_enabled?: boolean | null
+          button1_label?: string | null
+          button1_shadow?: boolean | null
+          button1_text_color?: string | null
+          button1_url?: string | null
+          button2_bg_color?: string | null
+          button2_enabled?: boolean | null
+          button2_label?: string | null
+          button2_shadow?: boolean | null
+          button2_text_color?: string | null
+          button2_url?: string | null
           card_background_color?: string | null
           card_text_color?: string | null
           cover_url?: string | null
