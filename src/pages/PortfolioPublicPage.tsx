@@ -5,7 +5,54 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ExternalLink, Star, Play, ChevronLeft, ChevronRight, Images } from "lucide-react";
+import { ExternalLink, Star, Play, ChevronLeft, ChevronRight, Images, ChevronDown, ChevronUp } from "lucide-react";
+
+// Component for truncated description with "see more" button
+const TruncatedDescription = ({ 
+  text, 
+  maxLength = 150, 
+  className = "",
+  style = {}
+}: { 
+  text: string; 
+  maxLength?: number; 
+  className?: string;
+  style?: React.CSSProperties;
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  if (text.length <= maxLength) {
+    return <p className={className} style={style}>{text}</p>;
+  }
+  
+  return (
+    <div>
+      <p className={className} style={style}>
+        {isExpanded ? text : `${text.slice(0, maxLength)}...`}
+      </p>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsExpanded(!isExpanded);
+        }}
+        className="flex items-center gap-1 text-xs sm:text-sm font-medium mt-1 hover:underline transition-all"
+        style={{ color: style?.color || 'inherit', opacity: 0.9 }}
+      >
+        {isExpanded ? (
+          <>
+            <ChevronUp className="w-3 h-3 sm:w-4 sm:h-4" />
+            Ver menos
+          </>
+        ) : (
+          <>
+            <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
+            Ver descrição completa
+          </>
+        )}
+      </button>
+    </div>
+  );
+};
 
 interface Portfolio {
   id: string;
@@ -491,7 +538,11 @@ export default function PortfolioPublicPage() {
                     </p>
                   )}
                   {selectedItem.description && (
-                    <p className="text-sm sm:text-base text-muted-foreground">{selectedItem.description}</p>
+                    <TruncatedDescription 
+                      text={selectedItem.description} 
+                      maxLength={200}
+                      className="text-sm sm:text-base text-muted-foreground"
+                    />
                   )}
                 </div>
 
