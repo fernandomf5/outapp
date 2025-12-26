@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Circle, Clock } from "lucide-react";
+import { Users, Circle, Clock, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Button } from "@/components/ui/button";
 
 interface OnlineUser {
   user_id: string;
@@ -21,50 +22,57 @@ export const OnlineUsersPanel = () => {
   useEffect(() => {
     const channel = supabase.channel('online-users');
 
+    const updateUsers = () => {
+      const state = channel.presenceState();
+      console.log('Presence state:', state);
+      const users: OnlineUser[] = [];
+      
+      Object.values(state).forEach((presences: any) => {
+        presences.forEach((presence: any) => {
+          if (presence.user_id) {
+            users.push({
+              user_id: presence.user_id,
+              email: presence.email || '',
+              full_name: presence.full_name || 'Usuário',
+              online_at: presence.online_at || new Date().toISOString(),
+            });
+          }
+        });
+      });
+
+      // Remove duplicates by user_id
+      const uniqueUsers = users.reduce((acc: OnlineUser[], current) => {
+        const exists = acc.find(u => u.user_id === current.user_id);
+        if (!exists) {
+          acc.push(current);
+        }
+        return acc;
+      }, []);
+
+      console.log('Online users:', uniqueUsers);
+      setOnlineUsers(uniqueUsers);
+      setIsLoading(false);
+    };
+
     channel
       .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState();
-        const users: OnlineUser[] = [];
-        
-        Object.values(state).forEach((presences: any) => {
-          presences.forEach((presence: OnlineUser) => {
-            if (presence.user_id) {
-              users.push(presence);
-            }
-          });
-        });
-
-        // Remove duplicates by user_id
-        const uniqueUsers = users.reduce((acc: OnlineUser[], current) => {
-          const exists = acc.find(u => u.user_id === current.user_id);
-          if (!exists) {
-            acc.push(current);
-          }
-          return acc;
-        }, []);
-
-        setOnlineUsers(uniqueUsers);
-        setIsLoading(false);
+        console.log('Admin panel: Presence synced');
+        updateUsers();
       })
       .on('presence', { event: 'join' }, ({ newPresences }) => {
-        setOnlineUsers(prev => {
-          const newUsers = [...prev];
-          newPresences.forEach((presence: any) => {
-            if (presence.user_id && !newUsers.find(u => u.user_id === presence.user_id)) {
-              newUsers.push(presence as OnlineUser);
-            }
-          });
-          return newUsers;
-        });
+        console.log('User joined:', newPresences);
+        updateUsers();
       })
       .on('presence', { event: 'leave' }, ({ leftPresences }) => {
-        setOnlineUsers(prev => 
-          prev.filter(user => 
-            !leftPresences.find((p: any) => p.user_id === user.user_id)
-          )
-        );
+        console.log('User left:', leftPresences);
+        updateUsers();
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Admin presence channel status:', status);
+        if (status === 'SUBSCRIBED') {
+          updateUsers();
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -79,6 +87,11 @@ export const OnlineUsersPanel = () => {
     }
   };
 
+  const handleRefresh = () => {
+    setIsLoading(true);
+    setTimeout(() => setIsLoading(false), 500);
+  };
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -87,10 +100,15 @@ export const OnlineUsersPanel = () => {
             <Users className="w-5 h-5 text-primary" />
             Usuários Online
           </CardTitle>
-          <Badge variant="secondary" className="bg-green-500/20 text-green-500 border-green-500/30">
-            <Circle className="w-2 h-2 fill-current mr-1" />
-            {onlineUsers.length} online
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={handleRefresh} className="h-8 w-8">
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            </Button>
+            <Badge variant="secondary" className="bg-green-500/20 text-green-500 border-green-500/30">
+              <Circle className="w-2 h-2 fill-current mr-1" />
+              {onlineUsers.length} online
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -102,6 +120,7 @@ export const OnlineUsersPanel = () => {
           <div className="text-center py-8 text-muted-foreground">
             <Users className="w-12 h-12 mx-auto mb-2 opacity-20" />
             <p>Nenhum usuário online no momento</p>
+            <p className="text-xs mt-2">Os usuários aparecem aqui quando acessam o dashboard</p>
           </div>
         ) : (
           <ScrollArea className="h-[400px] pr-4">
