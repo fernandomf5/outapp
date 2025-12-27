@@ -20,12 +20,14 @@ import {
   Calendar,
   Clock,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Key
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { TeamDelegationPanel } from "@/components/team/TeamDelegationPanel";
 
 interface TeamMember {
   id: string;
@@ -45,7 +47,9 @@ export const TeamManagementPanel = () => {
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDelegationDialogOpen, setIsDelegationDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
+  const [delegatingMember, setDelegatingMember] = useState<TeamMember | null>(null);
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
   
   const [formData, setFormData] = useState({
@@ -422,6 +426,18 @@ export const TeamManagementPanel = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setDelegatingMember(member);
+                          setIsDelegationDialogOpen(true);
+                        }}
+                        className="gap-1"
+                      >
+                        <Key className="h-4 w-4" />
+                        Delegar
+                      </Button>
                       <Button variant="ghost" size="icon" onClick={() => handleEditMember(member)}>
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -521,6 +537,27 @@ export const TeamManagementPanel = () => {
               Salvar
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Delegação de Funções */}
+      <Dialog open={isDelegationDialogOpen} onOpenChange={setIsDelegationDialogOpen}>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Key className="h-5 w-5 text-primary" />
+              Delegar Funções
+            </DialogTitle>
+            <DialogDescription>
+              Crie credenciais de acesso e defina permissões para este membro
+            </DialogDescription>
+          </DialogHeader>
+          {delegatingMember && (
+            <TeamDelegationPanel 
+              member={delegatingMember} 
+              onClose={() => setIsDelegationDialogOpen(false)} 
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>

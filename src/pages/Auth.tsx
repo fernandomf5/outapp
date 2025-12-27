@@ -404,7 +404,7 @@ const Auth = () => {
             </Button>
           </form>
 
-          <div className="mt-5 sm:mt-6 text-center">
+          <div className="mt-5 sm:mt-6 text-center space-y-3">
             <p className="text-sm sm:text-base text-muted-foreground">
               {isLogin ? "Não tem uma conta?" : "Já tem uma conta?"}{" "}
               <button
@@ -415,6 +415,18 @@ const Auth = () => {
                 {isLogin ? "Cadastre-se grátis" : "Fazer login"}
               </button>
             </p>
+            
+            {isLogin && (
+              <p className="text-sm text-muted-foreground">
+                <button
+                  type="button"
+                  onClick={() => navigate("/team-login")}
+                  className="text-primary/80 hover:text-primary hover:underline inline-flex items-center gap-1"
+                >
+                  Entrar como membro da equipe
+                </button>
+              </p>
+            )}
           </div>
 
           {!isLogin && (
