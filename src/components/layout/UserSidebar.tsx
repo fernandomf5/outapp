@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck, Layers } from "lucide-react";
+import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck, Layers, LogIn } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import logoLight from "@/assets/logo-light.png";
@@ -23,6 +23,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useUserFeatures } from "@/hooks/useUserFeatures";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
+import { Button } from "@/components/ui/button";
 
 interface MenuItem {
   title: string;
@@ -51,6 +52,39 @@ export function UserSidebar() {
   const searchParams = new URLSearchParams(location.search);
   const currentTab = searchParams.get('tab') || 'overview';
   const collapsed = state === "collapsed";
+
+  // State for team membership check
+  const [teamMembership, setTeamMembership] = useState<{ adminName: string; adminUserId: string } | null>(null);
+
+  useEffect(() => {
+    if (user && !isTeamMember) {
+      checkTeamMembership();
+    }
+  }, [user, isTeamMember]);
+
+  const checkTeamMembership = async () => {
+    if (!user) return;
+    
+    // Check if user is a linked team member in someone else's team
+    const { data: membership } = await supabase
+      .from('team_members')
+      .select(`
+        id,
+        user_id,
+        profiles!team_members_user_id_fkey(full_name, email)
+      `)
+      .eq('linked_user_id', user.id)
+      .eq('status', 'active')
+      .maybeSingle();
+
+    if (membership && membership.profiles) {
+      const profile = membership.profiles as any;
+      setTeamMembership({
+        adminName: profile.full_name || profile.email || 'Administrador',
+        adminUserId: membership.user_id
+      });
+    }
+  };
 
   const isActive = (path: string, tab?: string) => {
     if (tab) {
@@ -175,6 +209,33 @@ export function UserSidebar() {
               <SidebarMenu>
                 {managementItems.map((item) => {
                   if (!canShowItem(item)) return null;
+                  
+                  // Special handling for team management to show access button
+                  if (item.tab === 'equipe' && teamMembership && !isTeamMember) {
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          onClick={() => handleNavigation(item.path, item.tab)}
+                          className={`text-sm py-2 ${isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}`}
+                        >
+                          <item.icon className="h-4 w-4 shrink-0" />
+                          {!collapsed && <span className="truncate">{item.title}</span>}
+                        </SidebarMenuButton>
+                        {!collapsed && teamMembership && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full mt-1 text-xs gap-1 border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground"
+                            onClick={() => navigate('/team-member-auth')}
+                          >
+                            <LogIn className="h-3 w-3" />
+                            Acessar Área de {teamMembership.adminName}
+                          </Button>
+                        )}
+                      </SidebarMenuItem>
+                    );
+                  }
+                  
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
