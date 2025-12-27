@@ -391,12 +391,12 @@ export const TeamManagementPanel = () => {
 
   const handleQuickLogin = (member: TeamMember) => {
     // Navigate to team member auth page with pre-filled username
-    navigate('/team-member-auth', { state: { prefillUsername: member.email } });
+    navigate('/team-login', { state: { prefillUsername: member.email } });
   };
 
   const handleAccessAdminPanel = () => {
     if (teamMemberOf) {
-      navigate('/team-member-auth', { state: { prefillUsername: teamMemberOf.memberEmail } });
+      navigate('/team-login', { state: { prefillUsername: teamMemberOf.memberEmail } });
     }
   };
 

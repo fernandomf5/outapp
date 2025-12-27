@@ -235,7 +235,7 @@ export function UserSidebar() {
                             variant="outline"
                             size="sm"
                             className="w-full mt-1 text-xs gap-1 border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground"
-                            onClick={() => navigate('/team-member-auth')}
+                            onClick={() => navigate('/team-login')}
                           >
                             <LogIn className="h-3 w-3" />
                             Acessar Área de {teamMembership.adminName}

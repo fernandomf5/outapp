@@ -114,8 +114,16 @@ export function TeamMemberProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    const storedSession = localStorage.getItem(STORAGE_KEY);
+
+    // Clear local session first (so UI always logs out immediately)
+    localStorage.removeItem(STORAGE_KEY);
+    setIsTeamMember(false);
+    setTeamMember(null);
+    setPermissions([]);
+
+    // Best-effort revoke on server
     try {
-      const storedSession = localStorage.getItem(STORAGE_KEY);
       if (storedSession) {
         const { token } = JSON.parse(storedSession);
         await supabase.functions.invoke('team-member-auth', {
@@ -124,11 +132,6 @@ export function TeamMemberProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error('Logout error:', error);
-    } finally {
-      localStorage.removeItem(STORAGE_KEY);
-      setIsTeamMember(false);
-      setTeamMember(null);
-      setPermissions([]);
     }
   };
 

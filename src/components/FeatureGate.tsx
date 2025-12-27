@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useUserFeatures } from '@/hooks/useUserFeatures';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
+import { useTeamMember } from '@/contexts/TeamMemberContext';
 import { Construction } from 'lucide-react';
 
 interface FeatureGateProps {
@@ -15,6 +16,7 @@ export const FeatureGate = ({ featureKey, children }: FeatureGateProps) => {
   const navigate = useNavigate();
   const { hasFeature } = useUserFeatures();
   const { isBlocked, blockMessage, loading } = useFeatureAccess(featureKey);
+  const { isTeamMember } = useTeamMember();
 
   // Show loading state
   if (loading) {
@@ -37,6 +39,11 @@ export const FeatureGate = ({ featureKey, children }: FeatureGateProps) => {
         </Button>
       </Card>
     );
+  }
+
+  // Team members: do NOT show plan upgrade screens (they only see delegated resources)
+  if (isTeamMember) {
+    return <>{children}</>;
   }
 
   // Check if user has feature in their plan
