@@ -218,11 +218,25 @@ export default function AgentCustomerAuth() {
         }
       }
     } catch (error: any) {
-      const errorMessage = error.message || "Ocorreu um erro.";
+      // Tratamento de erros com mensagens formais para o usuário
+      let errorMessage = "Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente.";
+      
+      if (error.message) {
+        // Verifica se é erro técnico e substitui por mensagem amigável
+        if (error.message.includes("Edge Function") || 
+            error.message.includes("non-2xx") || 
+            error.message.includes("FunctionsHttpError") ||
+            error.message.includes("fetch")) {
+          errorMessage = "Não foi possível conectar ao servidor. Por favor, verifique sua conexão e tente novamente.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       if (authMode === 'login') {
-        showError("Erro no login", errorMessage);
+        showError("Não foi possível realizar o login", "Verifique suas credenciais e tente novamente.");
       } else {
-        showError("Erro", errorMessage);
+        showError("Erro no cadastro", errorMessage);
       }
     } finally {
       setLoading(false);
