@@ -22,6 +22,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useUserFeatures } from "@/hooks/useUserFeatures";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTeamMember } from "@/contexts/TeamMemberContext";
 
 interface MenuItem {
   title: string;
@@ -32,6 +33,7 @@ interface MenuItem {
   badge?: number;
   inDevelopment?: boolean;
   superscript?: string;
+  moduleKey?: string; // Key for team member permission check
 }
 
 export function UserSidebar() {
@@ -42,6 +44,7 @@ export function UserSidebar() {
   const { t } = useLanguage();
   const { user } = useAuth();
   const { theme, resolvedTheme } = useTheme();
+  const { isTeamMember, canAccessModule } = useTeamMember();
   
   const currentLogo = resolvedTheme === 'dark' ? logoDark : logoLight;
   const currentPath = location.pathname;
@@ -70,17 +73,17 @@ export function UserSidebar() {
   ];
 
   const managementItems: MenuItem[] = [
-    { title: "Agenda", icon: Calendar, path: "/dashboard", tab: "agenda" },
-    { title: "Gestão de Clientes", icon: Users, path: "/dashboard", tab: "clientes" },
-    { title: "Gestão Financeira", icon: DollarSign, path: "/dashboard", tab: "financeiro" },
-    { title: "Gestão de Equipe", icon: UserCog, path: "/dashboard", tab: "equipe" },
-    { title: "Gestão de Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios" },
-    { title: "Organizador de Tarefas", icon: Target, path: "/dashboard", tab: "tarefas" },
+    { title: "Agenda", icon: Calendar, path: "/dashboard", tab: "agenda", moduleKey: "agenda" },
+    { title: "Gestão de Clientes", icon: Users, path: "/dashboard", tab: "clientes", moduleKey: "crm" },
+    { title: "Gestão Financeira", icon: DollarSign, path: "/dashboard", tab: "financeiro", moduleKey: "financial" },
+    { title: "Gestão de Equipe", icon: UserCog, path: "/dashboard", tab: "equipe" }, // Always visible for admins, hidden for team members
+    { title: "Gestão de Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios", moduleKey: "ads" },
+    { title: "Organizador de Tarefas", icon: Target, path: "/dashboard", tab: "tarefas", moduleKey: "tasks" },
     { title: "Aprova Job", icon: ClipboardCheck, path: "/dashboard", tab: "aprova-job" },
   ];
 
   const crmItems: MenuItem[] = [
-    { title: "Controle de Leads", icon: Database, path: "/dashboard", tab: "crm-geral" },
+    { title: "Controle de Leads", icon: Database, path: "/dashboard", tab: "crm-geral", moduleKey: "crm" },
   ];
 
   const basicResourcesItems: MenuItem[] = [
@@ -91,16 +94,16 @@ export function UserSidebar() {
   ];
 
   const advancedResourcesItems: MenuItem[] = [
-    { title: "Chat Online", icon: MessageSquare, path: "/dashboard", tab: "ai-agents" },
-    { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner" },
+    { title: "Chat Online", icon: MessageSquare, path: "/dashboard", tab: "ai-agents", moduleKey: "chatbots" },
+    { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner", moduleKey: "cloner" },
     { title: "Área de Membros", icon: UserCog, path: "/dashboard", tab: "area-membros" },
-    { title: "Link na Bio", icon: ExternalLink, path: "/dashboard", tab: "linkbio" },
-    { title: "Briefing", icon: FileText, path: "/dashboard", tab: "briefing" },
+    { title: "Link na Bio", icon: ExternalLink, path: "/dashboard", tab: "linkbio", moduleKey: "link_bio" },
+    { title: "Briefing", icon: FileText, path: "/dashboard", tab: "briefing", moduleKey: "briefings" },
     { title: "Criador de Quiz", icon: HelpCircle, path: "/dashboard", tab: "criador-quizz" },
     { title: "Criador de Pop-ups", icon: Megaphone, path: "/dashboard", tab: "popups" },
     { title: "Criador de Mapa Mental", icon: Brain, path: "/dashboard", tab: "mapa-mental" },
     { title: "Criador de Propostas", icon: FileCheck, path: "/dashboard", tab: "propostas" },
-    { title: "Criador de Portfólio", icon: Layers, path: "/dashboard", tab: "portfolio" },
+    { title: "Criador de Portfólio", icon: Layers, path: "/dashboard", tab: "portfolio", moduleKey: "portfolio" },
   ];
 
   const supportItems: MenuItem[] = [
@@ -109,6 +112,22 @@ export function UserSidebar() {
     { title: t('my_plan'), icon: CreditCard, path: "/dashboard", tab: "plan" },
     { title: "Tutoriais", icon: Lightbulb, path: "/dashboard", tab: "tutoriais" },
   ];
+
+  // Filter function that checks both feature access and team member permissions
+  const canShowItem = (item: MenuItem): boolean => {
+    // Check plan feature first
+    if (item.feature && !hasFeature(item.feature)) return false;
+    
+    // If user is a team member and item has a moduleKey, check permission
+    if (isTeamMember && item.moduleKey) {
+      return canAccessModule(item.moduleKey);
+    }
+    
+    // Special case: hide team management for team members
+    if (isTeamMember && item.tab === 'equipe') return false;
+    
+    return true;
+  };
 
   return (
     <Sidebar className={collapsed ? "w-14" : "w-56 sm:w-60"} collapsible="icon">
@@ -155,7 +174,7 @@ export function UserSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {managementItems.map((item) => {
-                  if (item.feature && !hasFeature(item.feature)) return null;
+                  if (!canShowItem(item)) return null;
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
@@ -176,7 +195,9 @@ export function UserSidebar() {
             <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">Leads</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {crmItems.map((item) => (
+                {crmItems.map((item) => {
+                  if (!canShowItem(item)) return null;
+                  return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       onClick={() => handleNavigation(item.path, item.tab)}
@@ -186,7 +207,8 @@ export function UserSidebar() {
                       {!collapsed && <span className="truncate">{item.title}</span>}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                ))}
+                  );
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -197,7 +219,7 @@ export function UserSidebar() {
               <SidebarMenu>
                 <TooltipProvider delayDuration={300}>
                   {basicResourcesItems.map((item) => {
-                    if (item.feature && !hasFeature(item.feature)) return null;
+                    if (!canShowItem(item)) return null;
                     return (
                       <SidebarMenuItem key={item.title}>
                         <Tooltip>
@@ -230,7 +252,7 @@ export function UserSidebar() {
               <SidebarMenu>
                 <TooltipProvider delayDuration={300}>
                   {advancedResourcesItems.map((item) => {
-                    if (item.feature && !hasFeature(item.feature)) return null;
+                    if (!canShowItem(item)) return null;
                     return (
                       <SidebarMenuItem key={item.title}>
                         <Tooltip>
@@ -262,7 +284,7 @@ export function UserSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {supportItems.map((item) => {
-                  if (item.feature && !hasFeature(item.feature)) return null;
+                  if (!canShowItem(item)) return null;
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton

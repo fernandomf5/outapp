@@ -62,6 +62,8 @@ import { AprovaJobPanel } from "@/components/AprovaJobPanel";
 import { GlobalChatNotification } from "@/components/GlobalChatNotification";
 import { PortfolioCreatorPanel } from "@/components/PortfolioCreatorPanel";
 import { useUserPresence } from "@/hooks/useUserPresence";
+import { TeamMemberBanner } from "@/components/TeamMemberBanner";
+import { useTeamMember } from "@/contexts/TeamMemberContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -373,7 +375,11 @@ const Dashboard = () => {
       <AgendaReminders />
       <DraggableCalculator isOpen={isCalculatorOpen} onClose={() => setIsCalculatorOpen(false)} />
       <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-background safe-area-inset">
+        <div className="min-h-screen flex flex-col w-full bg-background safe-area-inset">
+        {/* Team Member Banner */}
+        <TeamMemberBanner />
+        
+        <div className="flex flex-1">
         <UserSidebar />
         
         <div className="flex-1 flex flex-col min-w-0">
@@ -1298,6 +1304,7 @@ const Dashboard = () => {
         </AlertDialogContent>
       </AlertDialog>
         </div>
+      </div>
       </div>
     </SidebarProvider>
     </>
