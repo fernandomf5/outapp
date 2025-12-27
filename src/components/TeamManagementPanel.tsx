@@ -34,7 +34,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { TeamDelegationPanel } from "@/components/team/TeamDelegationPanel";
-import { useTeamMember } from "@/contexts/TeamMemberContext";
+
 
 interface Invitation {
   id: string;
@@ -60,7 +60,7 @@ interface TeamMember {
 
 export const TeamManagementPanel = () => {
   const navigate = useNavigate();
-  const { isTeamMember, teamMember } = useTeamMember();
+  
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -347,6 +347,11 @@ export const TeamManagementPanel = () => {
     }
   };
 
+  const handleQuickLogin = (member: TeamMember) => {
+    // Navigate to team member auth page with pre-filled username
+    navigate('/team-member-auth', { state: { prefillUsername: member.email } });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -355,16 +360,6 @@ export const TeamManagementPanel = () => {
           <p className="text-muted-foreground">Gerencie sua equipe de colaboradores</p>
         </div>
         <div className="flex items-center gap-2">
-          {isTeamMember && teamMember && (
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/dashboard')}
-              className="gap-2"
-            >
-              <LogIn className="h-4 w-4" />
-              Entrar no Painel de {teamMember.name.split(' ')[0]}
-            </Button>
-          )}
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gradient-primary shadow-glow">
@@ -576,6 +571,17 @@ export const TeamManagementPanel = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      {member.linked_user_id && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleQuickLogin(member)}
+                          className="gap-1"
+                        >
+                          <LogIn className="h-4 w-4" />
+                          Entrar no Painel
+                        </Button>
+                      )}
                       <Button 
                         variant="outline" 
                         size="sm"
