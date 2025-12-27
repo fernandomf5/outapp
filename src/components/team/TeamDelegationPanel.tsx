@@ -12,10 +12,10 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
-  Key, Shield, Eye, Edit, Trash2, Plus, Save, 
+  Mail, Shield, Eye, Edit, Trash2, Plus, Save, 
   Users, Calendar, DollarSign, CheckSquare, BarChart3,
   MessageSquare, Settings, Briefcase, FileText, Image,
-  Globe, Link, Megaphone, Palette
+  Globe, Link, Megaphone, Palette, Send, RefreshCw, Clock, CheckCircle, XCircle, Loader2
 } from 'lucide-react';
 
 interface TeamMember {
@@ -25,13 +25,15 @@ interface TeamMember {
   status: string;
   role: string;
   department: string;
+  user_id?: string;
 }
 
-interface Credential {
+interface Invitation {
   id: string;
-  username: string;
-  is_active: boolean;
-  last_login_at: string | null;
+  invited_email: string;
+  status: string;
+  created_at: string;
+  expires_at: string;
 }
 
 interface Permission {
@@ -158,13 +160,11 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
   const { toast } = useToast();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('credentials');
+  const [activeTab, setActiveTab] = useState('invitation');
   
-  // Credentials state
-  const [credential, setCredential] = useState<Credential | null>(null);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  // Invitation state
+  const [invitation, setInvitation] = useState<Invitation | null>(null);
+  const [sendingInvite, setSendingInvite] = useState(false);
   
   // Permissions state
   const [permissions, setPermissions] = useState<Permission[]>([]);
@@ -175,10 +175,24 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
   const [selectedResources, setSelectedResources] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
-    loadCredentials();
+    loadInvitation();
     loadPermissions();
     loadAvailableResources();
   }, [member.id]);
+
+  const loadInvitation = async () => {
+    // Check for existing invitation
+    const { data, error } = await supabase
+      .from('team_invitations')
+      .select('*')
+      .eq('invited_email', member.email)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (!error && data && data.length > 0) {
+      setInvitation(data[0]);
+    }
+  };
 
   const loadAvailableResources = async () => {
     if (!user) return;
@@ -206,23 +220,7 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
       .eq('user_id', user.id);
     if (businesses) resources.financial_businesses = businesses;
     
-    // Load Task Categories/Lists (using task_categories or similar)
-    // For now, using placeholder since we need to check the actual table
-    
     setAvailableResources(resources);
-  };
-
-  const loadCredentials = async () => {
-    const { data, error } = await supabase
-      .from('team_member_credentials')
-      .select('id, username, is_active, last_login_at')
-      .eq('team_member_id', member.id)
-      .single();
-
-    if (!error && data) {
-      setCredential(data);
-      setUsername(data.username);
-    }
   };
 
   const loadPermissions = async () => {
@@ -252,70 +250,101 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
     }
   };
 
-  const handleSaveCredentials = async () => {
-    if (!username.trim()) {
-      toast({
-        title: "Erro",
-        description: "O nome de usuário é obrigatório.",
-        variant: "destructive"
-      });
-      return;
-    }
+  const handleSendInvitation = async () => {
+    if (!user) return;
 
-    if (!credential && (!password || password.length < 6)) {
-      toast({
-        title: "Erro",
-        description: "A senha deve ter pelo menos 6 caracteres.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (password && password !== confirmPassword) {
-      toast({
-        title: "Erro",
-        description: "As senhas não coincidem.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setLoading(true);
-
+    setSendingInvite(true);
     try {
-      const { data: session } = await supabase.auth.getSession();
-      
       const { data, error } = await supabase.functions.invoke('team-member-auth', {
         body: {
-          action: 'create_credentials',
+          action: 'send_invitation',
+          adminUserId: user.id,
           teamMemberId: member.id,
-          username: username.trim().toLowerCase(),
-          password: password || undefined
-        },
-        headers: {
-          Authorization: `Bearer ${session?.session?.access_token}`
+          invitedEmail: member.email
         }
       });
 
       if (error || !data?.success) {
-        throw new Error(data?.error || 'Erro ao salvar credenciais');
+        throw new Error(data?.error || 'Erro ao enviar convite');
       }
 
       toast({
-        title: credential ? "Credenciais atualizadas" : "Usuário criado com sucesso! ✅",
-        description: credential 
-          ? "As credenciais foram atualizadas com sucesso!"
-          : `O membro ${member.name} agora pode acessar o sistema com o usuário "${username.trim().toLowerCase()}".`
+        title: 'Convite enviado! ✅',
+        description: `Um email de convite foi enviado para ${member.email}`
       });
 
-      loadCredentials();
-      setPassword('');
-      setConfirmPassword('');
+      loadInvitation();
     } catch (error: any) {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao salvar credenciais.",
-        variant: "destructive"
+        title: 'Erro',
+        description: error.message || 'Erro ao enviar convite',
+        variant: 'destructive'
+      });
+    } finally {
+      setSendingInvite(false);
+    }
+  };
+
+  const handleResendInvitation = async () => {
+    if (!invitation) return;
+
+    setSendingInvite(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('team-member-auth', {
+        body: {
+          action: 'resend_invitation',
+          invitationId: invitation.id
+        }
+      });
+
+      if (error || !data?.success) {
+        throw new Error(data?.error || 'Erro ao reenviar convite');
+      }
+
+      toast({
+        title: 'Convite reenviado! ✅',
+        description: `Um novo email de convite foi enviado para ${member.email}`
+      });
+
+      loadInvitation();
+    } catch (error: any) {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao reenviar convite',
+        variant: 'destructive'
+      });
+    } finally {
+      setSendingInvite(false);
+    }
+  };
+
+  const handleCancelInvitation = async () => {
+    if (!invitation) return;
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('team-member-auth', {
+        body: {
+          action: 'cancel_invitation',
+          invitationId: invitation.id
+        }
+      });
+
+      if (error || !data?.success) {
+        throw new Error(data?.error || 'Erro ao cancelar convite');
+      }
+
+      toast({
+        title: 'Convite cancelado',
+        description: 'O convite foi cancelado com sucesso'
+      });
+
+      setInvitation(null);
+    } catch (error: any) {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao cancelar convite',
+        variant: 'destructive'
       });
     } finally {
       setLoading(false);
@@ -327,10 +356,8 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
       const existing = prev.find(p => p.module_key === moduleKey && p.action === action);
       
       if (existing) {
-        // Remove permission
         return prev.filter(p => !(p.module_key === moduleKey && p.action === action));
       } else {
-        // Add permission with resource restrictions if any selected
         const restrictions: Record<string, any> = {};
         if (selectedResources[moduleKey]?.length > 0) {
           restrictions.allowed_ids = selectedResources[moduleKey];
@@ -369,7 +396,6 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
         ? current.filter(id => id !== resourceId)
         : [...current, resourceId];
       
-      // Also update permissions restrictions
       setPermissions(prevPerms => 
         prevPerms.map(p => {
           if (p.module_key === moduleKey) {
@@ -407,16 +433,11 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
     setLoading(true);
 
     try {
-      const { data: session } = await supabase.auth.getSession();
-      
       const { data, error } = await supabase.functions.invoke('team-member-auth', {
         body: {
           action: 'update_permissions',
           teamMemberId: member.id,
           permissions: permissions.filter(p => p.is_allowed)
-        },
-        headers: {
-          Authorization: `Bearer ${session?.session?.access_token}`
         }
       });
 
@@ -425,16 +446,16 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
       }
 
       toast({
-        title: "Sucesso",
-        description: "Permissões atualizadas com sucesso!"
+        title: 'Sucesso',
+        description: 'Permissões atualizadas com sucesso!'
       });
 
       setOriginalPermissions(permissions);
     } catch (error: any) {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao salvar permissões.",
-        variant: "destructive"
+        title: 'Erro',
+        description: error.message || 'Erro ao salvar permissões.',
+        variant: 'destructive'
       });
     } finally {
       setLoading(false);
@@ -443,6 +464,23 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
 
   const hasUnsavedPermissions = JSON.stringify(permissions) !== JSON.stringify(originalPermissions);
 
+  const getInvitationStatusBadge = () => {
+    if (!invitation) return null;
+    
+    switch (invitation.status) {
+      case 'pending':
+        return <Badge variant="secondary" className="gap-1"><Clock className="h-3 w-3" /> Pendente</Badge>;
+      case 'accepted':
+        return <Badge variant="default" className="gap-1 bg-green-600"><CheckCircle className="h-3 w-3" /> Aceito</Badge>;
+      case 'expired':
+        return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" /> Expirado</Badge>;
+      default:
+        return null;
+    }
+  };
+
+  const isLinked = !!member.user_id;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -450,16 +488,22 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
           <h3 className="text-lg font-semibold">{member.name}</h3>
           <p className="text-sm text-muted-foreground">{member.email}</p>
         </div>
-        <Badge variant={member.status === 'active' ? 'default' : 'secondary'}>
-          {member.status === 'active' ? 'Ativo' : member.status === 'inactive' ? 'Inativo' : 'Afastado'}
-        </Badge>
+        <div className="flex items-center gap-2">
+          {isLinked ? (
+            <Badge variant="default" className="gap-1 bg-green-600">
+              <CheckCircle className="h-3 w-3" /> Vinculado
+            </Badge>
+          ) : (
+            <Badge variant="secondary">Não vinculado</Badge>
+          )}
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="credentials" className="flex items-center gap-2">
-            <Key className="h-4 w-4" />
-            Credenciais
+          <TabsTrigger value="invitation" className="flex items-center gap-2">
+            <Mail className="h-4 w-4" />
+            Convite
           </TabsTrigger>
           <TabsTrigger value="permissions" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
@@ -467,70 +511,101 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="credentials" className="space-y-4 mt-4">
+        <TabsContent value="invitation" className="space-y-4 mt-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Dados de Acesso</CardTitle>
+              <CardTitle className="text-base">Convite por Email</CardTitle>
               <CardDescription>
-                Defina o usuário e senha que o membro usará para acessar o sistema
+                Envie um convite para o membro da equipe aceitar e vincular sua conta
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {credential && (
-                <div className="p-3 bg-muted/50 rounded-lg text-sm">
-                  <p className="text-muted-foreground">
-                    Último acesso: {credential.last_login_at 
-                      ? new Date(credential.last_login_at).toLocaleString('pt-BR')
-                      : 'Nunca'}
+              {isLinked ? (
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                    <CheckCircle className="h-5 w-5" />
+                    <span className="font-medium">Conta vinculada com sucesso!</span>
+                  </div>
+                  <p className="text-sm text-green-600 dark:text-green-500 mt-1">
+                    Este membro já aceitou o convite e pode acessar o sistema.
                   </p>
                 </div>
+              ) : invitation ? (
+                <div className="space-y-4">
+                  <div className="p-4 bg-muted/50 rounded-lg space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Status do Convite</span>
+                      {getInvitationStatusBadge()}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      <p>Enviado em: {new Date(invitation.created_at).toLocaleString('pt-BR')}</p>
+                      <p>Expira em: {new Date(invitation.expires_at).toLocaleString('pt-BR')}</p>
+                    </div>
+                  </div>
+
+                  {invitation.status === 'pending' && (
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={handleResendInvitation}
+                        disabled={sendingInvite}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        {sendingInvite ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                        )}
+                        Reenviar Convite
+                      </Button>
+                      <Button 
+                        onClick={handleCancelInvitation}
+                        disabled={loading}
+                        variant="destructive"
+                      >
+                        Cancelar
+                      </Button>
+                    </div>
+                  )}
+
+                  {invitation.status === 'expired' && (
+                    <Button 
+                      onClick={handleSendInvitation}
+                      disabled={sendingInvite}
+                      className="w-full"
+                    >
+                      {sendingInvite ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4 mr-2" />
+                      )}
+                      Enviar Novo Convite
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <p className="text-sm text-muted-foreground">
+                      Ao enviar o convite, o membro receberá um email com um link para aceitar.
+                      Após aceitar, ele poderá acessar o sistema com a conta dele e ver apenas o que você liberar.
+                    </p>
+                  </div>
+
+                  <Button 
+                    onClick={handleSendInvitation}
+                    disabled={sendingInvite}
+                    className="w-full"
+                  >
+                    {sendingInvite ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4 mr-2" />
+                    )}
+                    Enviar Convite para {member.email}
+                  </Button>
+                </div>
               )}
-
-              <div className="space-y-2">
-                <Label htmlFor="username">Nome de Usuário</Label>
-                <Input
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="ex: joao.silva"
-                />
-                <p className="text-xs text-muted-foreground">
-                  O usuário será convertido para minúsculas automaticamente
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">
-                  {credential ? 'Nova Senha (deixe em branco para manter a atual)' : 'Senha'}
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={credential ? '••••••••' : 'Mínimo 6 caracteres'}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar Senha</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Digite a senha novamente"
-                />
-              </div>
-
-              <Button 
-                onClick={handleSaveCredentials} 
-                disabled={loading}
-                className="w-full"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                {credential ? 'Atualizar Credenciais' : 'Criar Credenciais'}
-              </Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -538,109 +613,96 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
         <TabsContent value="permissions" className="space-y-4 mt-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Permissões por Módulo</CardTitle>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                Módulos e Permissões
+              </CardTitle>
               <CardDescription>
-                Defina quais recursos o membro pode acessar e quais ações pode realizar
+                Defina quais módulos e ações o membro pode acessar
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[400px] pr-4">
                 <Accordion type="multiple" className="space-y-2">
                   {MODULES.map((module) => {
-                    const Icon = module.icon;
-                    const hasAll = hasAllPermissions(module.key);
-                    const hasAny = hasAnyPermission(module.key);
-
+                    const ModuleIcon = module.icon;
+                    const moduleResources = getResourcesForModule(module);
+                    
                     return (
                       <AccordionItem 
                         key={module.key} 
                         value={module.key}
-                        className="border rounded-lg px-4"
+                        className="border rounded-lg px-3"
                       >
                         <AccordionTrigger className="hover:no-underline py-3">
-                          <div className="flex items-center justify-between w-full pr-4">
+                          <div className="flex items-center justify-between w-full pr-2">
                             <div className="flex items-center gap-3">
-                              <Icon className="h-5 w-5 text-muted-foreground" />
+                              <ModuleIcon className="h-4 w-4 text-muted-foreground" />
                               <div className="text-left">
-                                <p className="font-medium">{module.label}</p>
+                                <p className="font-medium text-sm">{module.label}</p>
                                 <p className="text-xs text-muted-foreground">{module.description}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                               <Switch
-                                checked={hasAny}
+                                checked={hasAnyPermission(module.key)}
                                 onCheckedChange={(checked) => toggleModuleAllPermissions(module.key, checked)}
                               />
-                              <Badge variant={hasAll ? 'default' : hasAny ? 'secondary' : 'outline'} className="text-xs">
-                                {hasAll ? 'Completo' : hasAny ? 'Parcial' : 'Bloqueado'}
-                              </Badge>
                             </div>
                           </div>
                         </AccordionTrigger>
-                        <AccordionContent className="pb-4 space-y-4">
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
-                            {ACTIONS.map((action) => {
-                              const ActionIcon = action.icon;
-                              const isEnabled = hasPermission(module.key, action.key);
-
-                              return (
-                                <button
-                                  key={action.key}
-                                  onClick={() => togglePermission(module.key, action.key)}
-                                  className={`
-                                    flex items-center gap-2 p-2 rounded-lg border transition-colors
-                                    ${isEnabled 
-                                      ? 'bg-primary/10 border-primary text-primary' 
-                                      : 'bg-muted/30 border-border text-muted-foreground hover:bg-muted/50'
-                                    }
-                                  `}
-                                >
-                                  <ActionIcon className="h-4 w-4" />
-                                  <span className="text-sm">{action.label}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                          
-                          {/* Resource Selection for modules with hasResourceSelection */}
-                          {module.hasResourceSelection && getResourcesForModule(module).length > 0 && (
-                            <div className="mt-4 pt-4 border-t">
-                              <p className="text-sm font-medium mb-2">
-                                Selecionar {module.label} específicos:
-                              </p>
-                              <p className="text-xs text-muted-foreground mb-3">
-                                Deixe todos desmarcados para permitir acesso a todos. Marque apenas os que deseja permitir.
-                              </p>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                {getResourcesForModule(module).map((resource) => {
-                                  const isSelected = (selectedResources[module.key] || []).includes(resource.id);
-                                  return (
-                                    <button
-                                      key={resource.id}
-                                      onClick={() => toggleResourceSelection(module.key, resource.id)}
-                                      className={`
-                                        flex items-center gap-2 p-2 rounded-lg border transition-colors text-left
-                                        ${isSelected 
-                                          ? 'bg-primary/10 border-primary text-primary' 
-                                          : 'bg-muted/30 border-border text-muted-foreground hover:bg-muted/50'
-                                        }
-                                      `}
-                                    >
-                                      <div className={`w-4 h-4 rounded border flex items-center justify-center ${isSelected ? 'bg-primary border-primary' : 'border-muted-foreground'}`}>
-                                        {isSelected && <span className="text-primary-foreground text-xs">✓</span>}
-                                      </div>
-                                      <span className="text-sm truncate">{resource.name}</span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                              {(selectedResources[module.key] || []).length > 0 && (
-                                <p className="text-xs text-primary mt-2">
-                                  {(selectedResources[module.key] || []).length} selecionado(s)
-                                </p>
-                              )}
+                        <AccordionContent className="pb-3">
+                          <div className="space-y-4 pt-2">
+                            {/* Actions */}
+                            <div className="grid grid-cols-2 gap-2">
+                              {ACTIONS.map((action) => {
+                                const ActionIcon = action.icon;
+                                const isActive = hasPermission(module.key, action.key);
+                                
+                                return (
+                                  <Button
+                                    key={action.key}
+                                    variant={isActive ? "default" : "outline"}
+                                    size="sm"
+                                    className="justify-start gap-2"
+                                    onClick={() => togglePermission(module.key, action.key)}
+                                  >
+                                    <ActionIcon className="h-3 w-3" />
+                                    {action.label}
+                                  </Button>
+                                );
+                              })}
                             </div>
-                          )}
+
+                            {/* Resource Selection */}
+                            {module.hasResourceSelection && moduleResources.length > 0 && (
+                              <div className="space-y-2 pt-2 border-t">
+                                <Label className="text-xs text-muted-foreground">
+                                  Selecione quais {module.label.toLowerCase()} o membro pode acessar:
+                                </Label>
+                                <div className="space-y-1">
+                                  {moduleResources.map((resource) => {
+                                    const isSelected = selectedResources[module.key]?.includes(resource.id);
+                                    return (
+                                      <div 
+                                        key={resource.id}
+                                        className="flex items-center gap-2 p-2 rounded hover:bg-muted/50 cursor-pointer"
+                                        onClick={() => toggleResourceSelection(module.key, resource.id)}
+                                      >
+                                        <Switch checked={isSelected} />
+                                        <span className="text-sm">{resource.name}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                                {selectedResources[module.key]?.length === 0 && (
+                                  <p className="text-xs text-amber-600 dark:text-amber-400">
+                                    Nenhum selecionado = acesso a todos
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </AccordionContent>
                       </AccordionItem>
                     );
@@ -648,19 +710,22 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
                 </Accordion>
               </ScrollArea>
 
-              <div className="mt-4 pt-4 border-t">
-                <Button 
-                  onClick={handleSavePermissions} 
-                  disabled={loading || !hasUnsavedPermissions}
-                  className="w-full"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  Salvar Permissões
-                  {hasUnsavedPermissions && (
-                    <Badge variant="secondary" className="ml-2">Alterações não salvas</Badge>
-                  )}
-                </Button>
-              </div>
+              {hasUnsavedPermissions && (
+                <div className="mt-4 pt-4 border-t">
+                  <Button 
+                    onClick={handleSavePermissions}
+                    disabled={loading}
+                    className="w-full"
+                  >
+                    {loading ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4 mr-2" />
+                    )}
+                    Salvar Permissões
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

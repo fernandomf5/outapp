@@ -5796,46 +5796,41 @@ export type Database = {
           },
         ]
       }
-      team_member_credentials: {
+      team_invitations: {
         Row: {
+          accepted_at: string | null
+          accepted_by_user_id: string | null
+          admin_user_id: string
           created_at: string
+          expires_at: string
           id: string
-          is_active: boolean
-          last_login_at: string | null
-          password_hash: string
-          team_member_id: string
-          updated_at: string
-          username: string
+          invitation_token: string
+          invited_email: string
+          status: string
         }
         Insert: {
+          accepted_at?: string | null
+          accepted_by_user_id?: string | null
+          admin_user_id: string
           created_at?: string
+          expires_at: string
           id?: string
-          is_active?: boolean
-          last_login_at?: string | null
-          password_hash: string
-          team_member_id: string
-          updated_at?: string
-          username: string
+          invitation_token: string
+          invited_email: string
+          status?: string
         }
         Update: {
+          accepted_at?: string | null
+          accepted_by_user_id?: string | null
+          admin_user_id?: string
           created_at?: string
+          expires_at?: string
           id?: string
-          is_active?: boolean
-          last_login_at?: string | null
-          password_hash?: string
-          team_member_id?: string
-          updated_at?: string
-          username?: string
+          invitation_token?: string
+          invited_email?: string
+          status?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "team_member_credentials_team_member_id_fkey"
-            columns: ["team_member_id"]
-            isOneToOne: true
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       team_member_permissions: {
         Row: {
@@ -5875,38 +5870,6 @@ export type Database = {
           },
         ]
       }
-      team_member_sessions: {
-        Row: {
-          created_at: string
-          expires_at: string
-          id: string
-          team_member_id: string
-          token: string
-        }
-        Insert: {
-          created_at?: string
-          expires_at: string
-          id?: string
-          team_member_id: string
-          token: string
-        }
-        Update: {
-          created_at?: string
-          expires_at?: string
-          id?: string
-          team_member_id?: string
-          token?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "team_member_sessions_team_member_id_fkey"
-            columns: ["team_member_id"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       team_members: {
         Row: {
           avatar_url: string | null
@@ -5914,6 +5877,7 @@ export type Database = {
           department: string
           email: string
           id: string
+          invitation_id: string | null
           joined_date: string
           name: string
           notes: string | null
@@ -5930,6 +5894,7 @@ export type Database = {
           department: string
           email: string
           id?: string
+          invitation_id?: string | null
           joined_date?: string
           name: string
           notes?: string | null
@@ -5946,6 +5911,7 @@ export type Database = {
           department?: string
           email?: string
           id?: string
+          invitation_id?: string | null
           joined_date?: string
           name?: string
           notes?: string | null
