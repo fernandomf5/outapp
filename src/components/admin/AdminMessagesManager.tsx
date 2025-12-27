@@ -26,6 +26,7 @@ interface AdminMessage {
   created_at: string;
   sent_to_all: boolean;
   user_id: string | null;
+  is_welcome_message: boolean;
 }
 
 export const AdminMessagesManager = () => {
@@ -45,6 +46,7 @@ export const AdminMessagesManager = () => {
     imageUrl: "",
     sendToAll: true,
     selectedUserId: "",
+    isWelcomeMessage: false,
   });
   const [userSearch, setUserSearch] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -149,7 +151,8 @@ export const AdminMessagesManager = () => {
         image_url: newMessage.imageUrl || null,
         sent_to_all: newMessage.sendToAll,
         user_id: newMessage.sendToAll ? null : newMessage.selectedUserId,
-        is_read: false
+        is_read: false,
+        is_welcome_message: newMessage.isWelcomeMessage
       });
 
     if (error) {
@@ -161,9 +164,14 @@ export const AdminMessagesManager = () => {
       return;
     }
 
-    const description = newMessage.sendToAll 
-      ? `Broadcast enviado para ${totalUsers} usuários.`
-      : "Mensagem enviada para o usuário selecionado.";
+    let description = "";
+    if (newMessage.isWelcomeMessage) {
+      description = "Mensagem de boas-vindas configurada. Será exibida apenas para novos usuários.";
+    } else if (newMessage.sendToAll) {
+      description = `Broadcast enviado para ${totalUsers} usuários.`;
+    } else {
+      description = "Mensagem enviada para o usuário selecionado.";
+    }
 
     toast({
       title: "Mensagem enviada! 📨",
@@ -175,7 +183,8 @@ export const AdminMessagesManager = () => {
       message: "", 
       imageUrl: "", 
       sendToAll: true, 
-      selectedUserId: "" 
+      selectedUserId: "",
+      isWelcomeMessage: false
     });
     setUserSearch("");
     setSearchResults([]);
@@ -332,11 +341,17 @@ export const AdminMessagesManager = () => {
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between gap-4 mb-3">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
                             <h3 className="font-semibold text-lg">{message.title}</h3>
-                            <Badge variant={message.sent_to_all ? "default" : "secondary"}>
-                              {message.sent_to_all ? "Broadcast" : "Individual"}
-                            </Badge>
+                            {message.is_welcome_message ? (
+                              <Badge variant="outline" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-300">
+                                Boas-Vindas
+                              </Badge>
+                            ) : (
+                              <Badge variant={message.sent_to_all ? "default" : "secondary"}>
+                                {message.sent_to_all ? "Broadcast" : "Individual"}
+                              </Badge>
+                            )}
                           </div>
                           <p className="text-xs text-muted-foreground">
                             {new Date(message.created_at).toLocaleDateString('pt-BR', {
@@ -420,14 +435,15 @@ export const AdminMessagesManager = () => {
             <div className="space-y-3">
               <Label>Destinatário</Label>
               <RadioGroup 
-                value={newMessage.sendToAll ? "all" : "specific"}
+                value={newMessage.isWelcomeMessage ? "welcome" : (newMessage.sendToAll ? "all" : "specific")}
                 onValueChange={(value) => {
                   setNewMessage({ 
                     ...newMessage, 
-                    sendToAll: value === "all",
-                    selectedUserId: value === "all" ? "" : newMessage.selectedUserId
+                    sendToAll: value === "all" || value === "welcome",
+                    selectedUserId: (value === "all" || value === "welcome") ? "" : newMessage.selectedUserId,
+                    isWelcomeMessage: value === "welcome"
                   });
-                  if (value === "all") {
+                  if (value === "all" || value === "welcome") {
                     setUserSearch("");
                     setSearchResults([]);
                   }
@@ -440,12 +456,25 @@ export const AdminMessagesManager = () => {
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="welcome" id="new-welcome" />
+                  <Label htmlFor="new-welcome" className="font-normal flex items-center gap-2">
+                    Mensagem de Boas-Vindas
+                    <Badge variant="outline" className="text-xs">Novos usuários</Badge>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
                   <RadioGroupItem value="specific" id="new-specific" />
                   <Label htmlFor="new-specific" className="font-normal">
                     Usuário específico
                   </Label>
                 </div>
               </RadioGroup>
+              
+              {newMessage.isWelcomeMessage && (
+                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 text-sm text-green-700 dark:text-green-400">
+                  <p><strong>Mensagem de Boas-Vindas:</strong> Esta mensagem será exibida apenas para usuários que criarem conta <strong>após</strong> esta mensagem ser enviada.</p>
+                </div>
+              )}
             </div>
 
             {!newMessage.sendToAll && (
@@ -550,7 +579,8 @@ export const AdminMessagesManager = () => {
                   message: "", 
                   imageUrl: "", 
                   sendToAll: true, 
-                  selectedUserId: "" 
+                  selectedUserId: "",
+                  isWelcomeMessage: false
                 });
               }}>
                 Cancelar
