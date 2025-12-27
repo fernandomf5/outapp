@@ -114,7 +114,7 @@ serve(async (req) => {
         
         try {
           const emailResponse = await resend.emails.send({
-            from: 'OutApp <noreply@resend.dev>',
+            from: 'OutApp <noreply@outapp.com.br>',
             to: [invitedEmail],
             subject: `${adminName} convidou você para a equipe`,
             html: `
@@ -194,7 +194,7 @@ serve(async (req) => {
 
         try {
           await resend.emails.send({
-            from: 'OutApp <noreply@resend.dev>',
+            from: 'OutApp <noreply@outapp.com.br>',
             to: [invitation.invited_email],
             subject: `${adminName} reenviou o convite para a equipe`,
             html: `

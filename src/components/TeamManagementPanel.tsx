@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Users, 
   UserPlus, 
@@ -21,13 +22,24 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  Key
+  Key,
+  Send,
+  RefreshCw,
+  X
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { TeamDelegationPanel } from "@/components/team/TeamDelegationPanel";
+
+interface Invitation {
+  id: string;
+  invited_email: string;
+  status: string;
+  created_at: string;
+  expires_at: string;
+}
 
 interface TeamMember {
   id: string;
@@ -52,6 +64,9 @@ export const TeamManagementPanel = () => {
   const [delegatingMember, setDelegatingMember] = useState<TeamMember | null>(null);
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [sendingInvite, setSendingInvite] = useState(false);
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [loadingInvitations, setLoadingInvitations] = useState(false);
+  const [activeTab, setActiveTab] = useState<'members' | 'invitations'>('members');
   
   const [formData, setFormData] = useState({
     name: '',
@@ -64,7 +79,29 @@ export const TeamManagementPanel = () => {
 
   useEffect(() => {
     loadMembers();
+    loadInvitations();
   }, []);
+
+  const loadInvitations = async () => {
+    setLoadingInvitations(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('team_invitations')
+        .select('*')
+        .eq('admin_user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setInvitations(data || []);
+    } catch (error: any) {
+      console.error("Erro ao carregar convites:", error);
+    } finally {
+      setLoadingInvitations(false);
+    }
+  };
 
   const loadMembers = async () => {
     try {
@@ -113,6 +150,7 @@ export const TeamManagementPanel = () => {
 
       toast.success(`Convite enviado para ${formData.email}!`);
       setIsAddDialogOpen(false);
+      loadInvitations(); // Reload invitations list
       setFormData({
         name: '',
         email: '',
@@ -126,6 +164,61 @@ export const TeamManagementPanel = () => {
     } finally {
       setSendingInvite(false);
     }
+  };
+
+  const handleResendInvitation = async (invitationId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('team-member-auth', {
+        body: {
+          action: 'resend_invitation',
+          invitationId
+        }
+      });
+
+      if (error || !data?.success) {
+        throw new Error(data?.error || 'Erro ao reenviar convite');
+      }
+
+      toast.success("Convite reenviado com sucesso!");
+      loadInvitations();
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao reenviar convite");
+    }
+  };
+
+  const handleCancelInvitation = async (invitationId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('team-member-auth', {
+        body: {
+          action: 'cancel_invitation',
+          invitationId
+        }
+      });
+
+      if (error || !data?.success) {
+        throw new Error(data?.error || 'Erro ao cancelar convite');
+      }
+
+      toast.success("Convite cancelado");
+      loadInvitations();
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao cancelar convite");
+    }
+  };
+
+  const getInvitationStatusBadge = (status: string, expiresAt: string) => {
+    const isExpired = new Date(expiresAt) < new Date();
+    
+    if (status === 'accepted') {
+      return <Badge className="bg-green-600 text-white gap-1"><CheckCircle2 className="h-3 w-3" /> Aceito</Badge>;
+    }
+    if (status === 'cancelled') {
+      return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" /> Cancelado</Badge>;
+    }
+    if (isExpired) {
+      return <Badge variant="destructive" className="gap-1"><Clock className="h-3 w-3" /> Expirado</Badge>;
+    }
+    return <Badge variant="secondary" className="gap-1"><Clock className="h-3 w-3" /> Pendente</Badge>;
   };
 
   const handleDeleteMember = async (id: string) => {
@@ -348,24 +441,38 @@ export const TeamManagementPanel = () => {
         </Card>
       </div>
 
-      {/* Lista de Membros */}
-      <Card className="glass">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Membros da Equipe</CardTitle>
-            <Select value={filter} onValueChange={(value: any) => setFilter(value)}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="active">Ativos</SelectItem>
-                <SelectItem value="inactive">Inativos</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-        <CardContent>
+      {/* Tabs: Membros / Convites */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'members' | 'invitations')}>
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="members" className="gap-2">
+            <Users className="h-4 w-4" />
+            Membros ({members.length})
+          </TabsTrigger>
+          <TabsTrigger value="invitations" className="gap-2">
+            <Send className="h-4 w-4" />
+            Convites ({invitations.filter(i => i.status === 'pending').length})
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Tab: Membros */}
+        <TabsContent value="members">
+          <Card className="glass">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Membros da Equipe</CardTitle>
+                <Select value={filter} onValueChange={(value: any) => setFilter(value)}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="active">Ativos</SelectItem>
+                    <SelectItem value="inactive">Inativos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardHeader>
+            <CardContent>
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">Carregando...</div>
           ) : filteredMembers.length === 0 ? (
@@ -446,8 +553,88 @@ export const TeamManagementPanel = () => {
               ))}
             </div>
             )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab: Convites Enviados */}
+        <TabsContent value="invitations">
+          <Card className="glass">
+            <CardHeader>
+              <CardTitle>Convites Enviados</CardTitle>
+              <CardDescription>Acompanhe os convites enviados para sua equipe</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingInvitations ? (
+                <div className="text-center py-8 text-muted-foreground">Carregando...</div>
+              ) : invitations.length === 0 ? (
+                <div className="text-center py-12">
+                  <Mail className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground mb-4">
+                    Nenhum convite enviado ainda
+                  </p>
+                  <Button onClick={() => setIsAddDialogOpen(true)} className="gradient-primary">
+                    <Send className="mr-2 h-4 w-4" />
+                    Enviar Primeiro Convite
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {invitations.map((invitation) => (
+                    <Card key={invitation.id} className="p-4 hover:shadow-lg transition-smooth">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4 flex-1">
+                          <div className="p-3 rounded-full bg-primary/10">
+                            <Mail className="h-5 w-5 text-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="font-semibold">{invitation.invited_email}</h3>
+                              {getInvitationStatusBadge(invitation.status, invitation.expires_at)}
+                            </div>
+                            <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                Enviado em {format(new Date(invitation.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                Expira em {format(new Date(invitation.expires_at), "dd/MM/yyyy", { locale: ptBR })}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {invitation.status === 'pending' && (
+                            <>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleResendInvitation(invitation.id)}
+                                className="gap-1"
+                              >
+                                <RefreshCw className="h-4 w-4" />
+                                Reenviar
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => handleCancelInvitation(invitation.id)}
+                              >
+                                <X className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Dialog de Edição */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
