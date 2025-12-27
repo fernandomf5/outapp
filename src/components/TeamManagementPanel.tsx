@@ -100,30 +100,34 @@ export const TeamManagementPanel = () => {
   // Check if current user is a team member of someone else's team
   const checkIfUserIsTeamMember = async () => {
     if (!user) return;
-    
+
     try {
-      const { data: membership } = await supabase
+      const { data: membership, error: membershipError } = await supabase
         .from('team_members')
-        .select(`
-          id,
-          email,
-          user_id,
-          profiles:profiles!team_members_user_id_fkey(full_name, email)
-        `)
+        .select('id, email, user_id')
         .eq('linked_user_id', user.id)
         .eq('status', 'active')
         .maybeSingle();
 
-      if (membership && membership.profiles) {
-        const profile = membership.profiles as any;
-        setTeamMemberOf({
-          adminName: profile.full_name || profile.email || 'Administrador',
-          adminUserId: membership.user_id,
-          memberEmail: membership.email
-        });
+      if (membershipError || !membership) {
+        setTeamMemberOf(null);
+        return;
       }
+
+      const { data: adminProfile } = await supabase
+        .from('profiles')
+        .select('full_name, email')
+        .eq('user_id', membership.user_id)
+        .maybeSingle();
+
+      setTeamMemberOf({
+        adminName: adminProfile?.full_name || adminProfile?.email || 'Administrador',
+        adminUserId: membership.user_id,
+        memberEmail: membership.email,
+      });
     } catch (error) {
       console.error('Error checking team membership:', error);
+      setTeamMemberOf(null);
     }
   };
 
@@ -327,7 +331,6 @@ export const TeamManagementPanel = () => {
         .from('team_members')
         .update({
           name: formData.name,
-          email: formData.email,
           phone: formData.phone,
           role: formData.role,
           department: formData.department,
@@ -779,12 +782,15 @@ export const TeamManagementPanel = () => {
             </div>
             <div className="grid gap-2">
               <Label>E-mail</Label>
-              <Input 
+              <Input
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                placeholder="joao@empresa.com"
+                disabled
+                readOnly
               />
+              <p className="text-xs text-muted-foreground">
+                O e-mail do membro é fixo e não pode ser alterado.
+              </p>
             </div>
             <div className="grid gap-2">
               <Label>Telefone</Label>
