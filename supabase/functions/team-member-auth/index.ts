@@ -305,10 +305,10 @@ serve(async (req) => {
           )
         }
 
-        // Find valid invitation
+        // Find valid invitation with admin info
         const { data: invitation, error: inviteError } = await supabaseAdmin
           .from('team_invitations')
-          .select('*')
+          .select('*, admin:profiles!team_invitations_admin_user_id_fkey(full_name, email)')
           .eq('invitation_token', token)
           .eq('status', 'pending')
           .gt('expires_at', new Date().toISOString())
@@ -320,6 +320,8 @@ serve(async (req) => {
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
           )
         }
+
+        const adminName = (invitation as any).admin?.full_name || (invitation as any).admin?.email || 'Administrador'
 
         // Get accepting user from auth header
         const authHeader = req.headers.get('Authorization')
@@ -377,7 +379,8 @@ serve(async (req) => {
           JSON.stringify({ 
             success: true, 
             message: 'Convite aceito com sucesso!',
-            teamMemberId
+            teamMemberId,
+            adminName
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
@@ -448,6 +451,52 @@ serve(async (req) => {
 
         return new Response(
           JSON.stringify({ success: true, message: 'Permissões atualizadas com sucesso' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      case 'check_invitation': {
+        const { token } = data
+
+        if (!token) {
+          return new Response(
+            JSON.stringify({ valid: false, error: 'Token é obrigatório' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+          )
+        }
+
+        // Find valid invitation
+        const { data: invitation, error: inviteError } = await supabaseAdmin
+          .from('team_invitations')
+          .select('*, admin:profiles!team_invitations_admin_user_id_fkey(full_name, email)')
+          .eq('invitation_token', token)
+          .eq('status', 'pending')
+          .gt('expires_at', new Date().toISOString())
+          .maybeSingle()
+
+        if (inviteError) {
+          console.error('Error checking invitation:', inviteError)
+          return new Response(
+            JSON.stringify({ valid: false, error: 'Erro ao verificar convite' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+          )
+        }
+
+        if (!invitation) {
+          return new Response(
+            JSON.stringify({ valid: false, error: 'Convite inválido ou expirado' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+
+        const adminName = (invitation as any).admin?.full_name || (invitation as any).admin?.email || 'Administrador'
+
+        return new Response(
+          JSON.stringify({ 
+            valid: true, 
+            adminName,
+            invitedEmail: invitation.invited_email
+          }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
