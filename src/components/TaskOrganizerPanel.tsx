@@ -272,7 +272,7 @@ export const TaskOrganizerPanel = () => {
   const [editingBlock, setEditingBlock] = useState<TaskBlock | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
-  const [selectedClientFilter, setSelectedClientFilter] = useState<string>("");
+  const [selectedClientFilter, setSelectedClientFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [dateStart, setDateStart] = useState<string>("");
   const [dateEnd, setDateEnd] = useState<string>("");

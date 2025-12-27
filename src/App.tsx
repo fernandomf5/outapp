@@ -13,7 +13,7 @@ import { useFavicon } from "./hooks/useFavicon";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
-import BotBuilder from "./pages/BotBuilder";
+
 import AIAgentBuilder from "./pages/AIAgentBuilder";
 import FunnelBuilder from "./pages/FunnelBuilder";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -110,11 +110,6 @@ const AppContent = () => {
           <Route path="/instalar" element={<InstallApp />} />
           <Route path="/aceitar-convite" element={<AcceptInvitation />} />
                
-              <Route path="/bot-builder" element={
-                <ProtectedRoute>
-                  <BotBuilder />
-                </ProtectedRoute>
-              } />
               <Route path="/ai-agent" element={
                 <ProtectedRoute>
                   <AIAgentBuilder />
