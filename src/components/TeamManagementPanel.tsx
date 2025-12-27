@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,13 +26,15 @@ import {
   Key,
   Send,
   RefreshCw,
-  X
+  X,
+  LogIn
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { TeamDelegationPanel } from "@/components/team/TeamDelegationPanel";
+import { useTeamMember } from "@/contexts/TeamMemberContext";
 
 interface Invitation {
   id: string;
@@ -56,6 +59,8 @@ interface TeamMember {
 }
 
 export const TeamManagementPanel = () => {
+  const navigate = useNavigate();
+  const { isTeamMember, teamMember } = useTeamMember();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -344,79 +349,91 @@ export const TeamManagementPanel = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Gestão de Equipe</h2>
           <p className="text-muted-foreground">Gerencie sua equipe de colaboradores</p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gradient-primary shadow-glow">
-              <Mail className="mr-2 h-4 w-4" />
-              Enviar Convite
+        <div className="flex items-center gap-2">
+          {isTeamMember && teamMember && (
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/dashboard')}
+              className="gap-2"
+            >
+              <LogIn className="h-4 w-4" />
+              Entrar no Painel de {teamMember.name.split(' ')[0]}
             </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Enviar Convite para Equipe</DialogTitle>
-              <DialogDescription>Convide alguém para fazer parte da sua equipe</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label>E-mail do Convidado</Label>
-                <Input 
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  placeholder="email@exemplo.com"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Um convite será enviado para este e-mail. Após aceitar, a pessoa aparecerá como membro da equipe.
-                </p>
-              </div>
-              <div className="grid gap-2">
-                <Label>Cargo (opcional)</Label>
-                <Input 
-                  value={formData.role}
-                  onChange={(e) => setFormData({...formData, role: e.target.value})}
-                  placeholder="Ex: Assistente, Gerente..."
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>Departamento (opcional)</Label>
-                <Select value={formData.department} onValueChange={(value) => setFormData({...formData, department: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="tecnologia">Tecnologia</SelectItem>
-                    <SelectItem value="marketing">Marketing</SelectItem>
-                    <SelectItem value="vendas">Vendas</SelectItem>
-                    <SelectItem value="financeiro">Financeiro</SelectItem>
-                    <SelectItem value="rh">Recursos Humanos</SelectItem>
-                    <SelectItem value="operacoes">Operações</SelectItem>
-                    <SelectItem value="suporte">Suporte</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                Cancelar
+          )}
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gradient-primary shadow-glow">
+                <Mail className="mr-2 h-4 w-4" />
+                Enviar Convite
               </Button>
-              <Button onClick={handleSendInvitation} className="gradient-primary" disabled={sendingInvite}>
-                {sendingInvite ? (
-                  <>Enviando...</>
-                ) : (
-                  <>
-                    <Mail className="mr-2 h-4 w-4" />
-                    Enviar Convite
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Enviar Convite para Equipe</DialogTitle>
+                <DialogDescription>Convide alguém para fazer parte da sua equipe</DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label>E-mail do Convidado</Label>
+                  <Input 
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    placeholder="email@exemplo.com"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Um convite será enviado para este e-mail. Após aceitar, a pessoa aparecerá como membro da equipe.
+                  </p>
+                </div>
+                <div className="grid gap-2">
+                  <Label>Cargo (opcional)</Label>
+                  <Input 
+                    value={formData.role}
+                    onChange={(e) => setFormData({...formData, role: e.target.value})}
+                    placeholder="Ex: Assistente, Gerente..."
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Departamento (opcional)</Label>
+                  <Select value={formData.department} onValueChange={(value) => setFormData({...formData, department: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="tecnologia">Tecnologia</SelectItem>
+                      <SelectItem value="marketing">Marketing</SelectItem>
+                      <SelectItem value="vendas">Vendas</SelectItem>
+                      <SelectItem value="financeiro">Financeiro</SelectItem>
+                      <SelectItem value="rh">Recursos Humanos</SelectItem>
+                      <SelectItem value="operacoes">Operações</SelectItem>
+                      <SelectItem value="suporte">Suporte</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleSendInvitation} className="gradient-primary" disabled={sendingInvite}>
+                  {sendingInvite ? (
+                    <>Enviando...</>
+                  ) : (
+                    <>
+                      <Mail className="mr-2 h-4 w-4" />
+                      Enviar Convite
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Estatísticas */}
