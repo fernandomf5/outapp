@@ -108,7 +108,7 @@ const AppContent = () => {
           <Route path="/portfolio/:portfolioId" element={<PortfolioPublicPage />} />
           <Route path="/portfolio/:portfolioId/:slug" element={<PortfolioPublicPage />} />
           <Route path="/instalar" element={<InstallApp />} />
-          <Route path="/accept-invitation" element={<AcceptInvitation />} />
+          <Route path="/aceitar-convite" element={<AcceptInvitation />} />
                
               <Route path="/bot-builder" element={
                 <ProtectedRoute>
