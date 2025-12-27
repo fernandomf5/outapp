@@ -5873,6 +5873,41 @@ export type Database = {
           },
         ]
       }
+      team_member_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          revoked_at: string | null
+          team_member_id: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          revoked_at?: string | null
+          team_member_id: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          revoked_at?: string | null
+          team_member_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_member_sessions_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           avatar_url: string | null
