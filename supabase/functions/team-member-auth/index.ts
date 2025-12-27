@@ -305,10 +305,10 @@ serve(async (req) => {
           )
         }
 
-        // Find valid invitation with admin info
+        // Find valid invitation
         const { data: invitation, error: inviteError } = await supabaseAdmin
           .from('team_invitations')
-          .select('*, admin:profiles!team_invitations_admin_user_id_fkey(full_name, email)')
+          .select('*')
           .eq('invitation_token', token)
           .eq('status', 'pending')
           .gt('expires_at', new Date().toISOString())
@@ -321,7 +321,14 @@ serve(async (req) => {
           )
         }
 
-        const adminName = (invitation as any).admin?.full_name || (invitation as any).admin?.email || 'Administrador'
+        // Get admin profile separately
+        const { data: adminProfile } = await supabaseAdmin
+          .from('profiles')
+          .select('full_name, email')
+          .eq('user_id', invitation.admin_user_id)
+          .maybeSingle()
+
+        const adminName = adminProfile?.full_name || adminProfile?.email || 'Administrador'
 
         // Get accepting user from auth header
         const authHeader = req.headers.get('Authorization')
@@ -470,7 +477,7 @@ serve(async (req) => {
         // Find valid invitation
         const { data: invitation, error: inviteError } = await supabaseAdmin
           .from('team_invitations')
-          .select('*, admin:profiles!team_invitations_admin_user_id_fkey(full_name, email)')
+          .select('*')
           .eq('invitation_token', token)
           .eq('status', 'pending')
           .gt('expires_at', new Date().toISOString())
@@ -491,7 +498,14 @@ serve(async (req) => {
           )
         }
 
-        const adminName = (invitation as any).admin?.full_name || (invitation as any).admin?.email || 'Administrador'
+        // Get admin profile separately
+        const { data: adminProfile } = await supabaseAdmin
+          .from('profiles')
+          .select('full_name, email')
+          .eq('user_id', invitation.admin_user_id)
+          .maybeSingle()
+
+        const adminName = adminProfile?.full_name || adminProfile?.email || 'Administrador'
 
         return new Response(
           JSON.stringify({ 
