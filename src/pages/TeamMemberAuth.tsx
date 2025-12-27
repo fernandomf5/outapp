@@ -23,7 +23,7 @@ export default function TeamMemberAuth() {
 
   useEffect(() => {
     if (!contextLoading && isTeamMember) {
-      navigate('/dashboard');
+      navigate('/team-dashboard', { replace: true });
     }
   }, [isTeamMember, contextLoading, navigate]);
 
@@ -48,7 +48,7 @@ export default function TeamMemberAuth() {
         title: "Login realizado com sucesso",
         description: "Bem-vindo ao painel!"
       });
-      navigate('/dashboard');
+      navigate('/team-dashboard', { replace: true });
     } else {
       toast({
         title: "Não foi possível realizar o login",

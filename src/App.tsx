@@ -48,6 +48,7 @@ import AprovaJobClient from "./pages/AprovaJobClient";
 import PortfolioPublicPage from "./pages/PortfolioPublicPage";
 import InstallApp from "./pages/InstallApp";
 import TeamMemberAuth from "./pages/TeamMemberAuth";
+import TeamMemberDashboard from "./pages/TeamMemberDashboard";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { CookieNotice } from "@/components/CookieNotice";
@@ -63,6 +64,11 @@ const AppContent = () => {
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/team-login" element={<TeamMemberAuth />} />
+              <Route path="/team-dashboard" element={
+                <ProtectedRoute>
+                  <TeamMemberDashboard />
+                </ProtectedRoute>
+              } />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/email-confirmed" element={<EmailConfirmed />} />
