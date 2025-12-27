@@ -26,6 +26,7 @@ interface TeamMember {
   role: string;
   department: string;
   user_id?: string;
+  linked_user_id?: string;
 }
 
 interface Invitation {
@@ -466,7 +467,7 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
     }
   };
 
-  const isLinked = !!member.user_id;
+  const isLinked = !!member.linked_user_id;
 
   return (
     <div className="space-y-6">

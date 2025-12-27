@@ -5879,6 +5879,7 @@ export type Database = {
           id: string
           invitation_id: string | null
           joined_date: string
+          linked_user_id: string | null
           name: string
           notes: string | null
           phone: string | null
@@ -5896,6 +5897,7 @@ export type Database = {
           id?: string
           invitation_id?: string | null
           joined_date?: string
+          linked_user_id?: string | null
           name: string
           notes?: string | null
           phone?: string | null
@@ -5913,6 +5915,7 @@ export type Database = {
           id?: string
           invitation_id?: string | null
           joined_date?: string
+          linked_user_id?: string | null
           name?: string
           notes?: string | null
           phone?: string | null

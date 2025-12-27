@@ -52,6 +52,7 @@ interface TeamMember {
   avatar_url?: string;
   joined_date: string;
   created_at: string;
+  linked_user_id?: string;
 }
 
 export const TeamManagementPanel = () => {
@@ -523,11 +524,20 @@ export const TeamManagementPanel = () => {
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-semibold">{member.name}</h3>
                           <Badge className={getStatusColor(member.status)}>
                             {getStatusLabel(member.status)}
                           </Badge>
+                          {member.linked_user_id ? (
+                            <Badge variant="outline" className="gap-1 border-green-500 text-green-600">
+                              <CheckCircle2 className="h-3 w-3" /> Vinculado
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="gap-1 text-muted-foreground">
+                              <Clock className="h-3 w-3" /> Aguardando
+                            </Badge>
+                          )}
                         </div>
                         <p className="text-sm text-muted-foreground">{member.role} • {member.department}</p>
                         <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
