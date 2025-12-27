@@ -34,7 +34,13 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { TeamDelegationPanel } from "@/components/team/TeamDelegationPanel";
+import { useAuth } from "@/contexts/AuthContext";
 
+interface TeamMemberOfAdmin {
+  adminName: string;
+  adminUserId: string;
+  memberEmail: string;
+}
 
 interface Invitation {
   id: string;
@@ -60,6 +66,7 @@ interface TeamMember {
 
 export const TeamManagementPanel = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,6 +80,7 @@ export const TeamManagementPanel = () => {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loadingInvitations, setLoadingInvitations] = useState(false);
   const [activeTab, setActiveTab] = useState<'members' | 'invitations'>('members');
+  const [teamMemberOf, setTeamMemberOf] = useState<TeamMemberOfAdmin | null>(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -86,7 +94,38 @@ export const TeamManagementPanel = () => {
   useEffect(() => {
     loadMembers();
     loadInvitations();
-  }, []);
+    checkIfUserIsTeamMember();
+  }, [user]);
+
+  // Check if current user is a team member of someone else's team
+  const checkIfUserIsTeamMember = async () => {
+    if (!user) return;
+    
+    try {
+      const { data: membership } = await supabase
+        .from('team_members')
+        .select(`
+          id,
+          email,
+          user_id,
+          profiles:profiles!team_members_user_id_fkey(full_name, email)
+        `)
+        .eq('linked_user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (membership && membership.profiles) {
+        const profile = membership.profiles as any;
+        setTeamMemberOf({
+          adminName: profile.full_name || profile.email || 'Administrador',
+          adminUserId: membership.user_id,
+          memberEmail: membership.email
+        });
+      }
+    } catch (error) {
+      console.error('Error checking team membership:', error);
+    }
+  };
 
   const loadInvitations = async () => {
     setLoadingInvitations(true);
@@ -352,8 +391,37 @@ export const TeamManagementPanel = () => {
     navigate('/team-member-auth', { state: { prefillUsername: member.email } });
   };
 
+  const handleAccessAdminPanel = () => {
+    if (teamMemberOf) {
+      navigate('/team-member-auth', { state: { prefillUsername: teamMemberOf.memberEmail } });
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Show banner if user is a team member of someone else */}
+      {teamMemberOf && (
+        <Card className="border-primary/50 bg-primary/5">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Users className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">Você é membro da equipe de {teamMemberOf.adminName}</p>
+                  <p className="text-sm text-muted-foreground">Acesse o painel para gerenciar as tarefas delegadas</p>
+                </div>
+              </div>
+              <Button onClick={handleAccessAdminPanel} className="gap-2">
+                <LogIn className="h-4 w-4" />
+                Entrar no Painel de {teamMemberOf.adminName.split(' ')[0]}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Gestão de Equipe</h2>
