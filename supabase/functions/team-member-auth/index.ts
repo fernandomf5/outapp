@@ -93,12 +93,10 @@ serve(async (req) => {
           .from('team_invitations')
           .insert({
             admin_user_id: adminUserId,
-            team_member_id: teamMemberId || null,
             invited_email: invitedEmail.toLowerCase().trim(),
             invitation_token: invitationToken,
             status: 'pending',
-            expires_at: expiresAt,
-            role: role || null
+            expires_at: expiresAt
           })
           .select()
           .single()
@@ -299,11 +297,10 @@ serve(async (req) => {
             .from('team_members')
             .insert({
               user_id: invitation.admin_user_id,
-              member_user_id: acceptingUserId,
               name: invitation.invited_email.split('@')[0],
               email: invitation.invited_email,
-              role: invitation.role || 'Membro',
-              department: invitation.department || 'geral',
+              role: 'Membro',
+              department: 'geral',
               status: 'active',
               joined_date: new Date().toISOString(),
               invitation_id: invitation.id
@@ -319,7 +316,6 @@ serve(async (req) => {
           await supabaseAdmin
             .from('team_members')
             .update({
-              member_user_id: acceptingUserId,
               status: 'active'
             })
             .eq('id', teamMemberId)
