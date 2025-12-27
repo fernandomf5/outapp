@@ -265,6 +265,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_read: boolean
+          is_welcome_message: boolean
           message: string
           sent_to_all: boolean
           title: string
@@ -276,6 +277,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_read?: boolean
+          is_welcome_message?: boolean
           message: string
           sent_to_all?: boolean
           title: string
@@ -287,6 +289,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_read?: boolean
+          is_welcome_message?: boolean
           message?: string
           sent_to_all?: boolean
           title?: string

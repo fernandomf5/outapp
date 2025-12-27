@@ -12,6 +12,7 @@ interface AdminMessage {
   message: string;
   created_at: string;
   is_read: boolean;
+  is_welcome_message?: boolean;
 }
 
 export const NotificationBell = () => {
@@ -19,9 +20,29 @@ export const NotificationBell = () => {
   const [messages, setMessages] = useState<AdminMessage[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [userCreatedAt, setUserCreatedAt] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
+
+    // First, get the user's creation date from profiles
+    const fetchUserCreatedAt = async () => {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('created_at')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (profile) {
+        setUserCreatedAt(profile.created_at);
+      }
+    };
+
+    fetchUserCreatedAt();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user || !userCreatedAt) return;
 
     const fetchMessages = async () => {
       // Buscar mensagens do usuário ou broadcast
@@ -32,6 +53,23 @@ export const NotificationBell = () => {
         .order('created_at', { ascending: false });
 
       if (messagesError || !messagesData) return;
+
+      // Filter messages based on welcome message rules:
+      // - Welcome messages: only show if message was created BEFORE user signed up
+      // - Regular broadcast/individual: show if message was created BEFORE or user was already registered
+      const filteredMessages = messagesData.filter(msg => {
+        const messageCreatedAt = new Date(msg.created_at);
+        const userSignupDate = new Date(userCreatedAt);
+        
+        if (msg.is_welcome_message) {
+          // Welcome messages: only show to users who signed up AFTER the message was created
+          return messageCreatedAt < userSignupDate;
+        } else {
+          // Regular messages: only show to users who were registered BEFORE or AT the time the message was sent
+          // This prevents new users from seeing old broadcasts
+          return messageCreatedAt > userSignupDate || msg.user_id === user.id;
+        }
+      });
 
       // Buscar status de leitura do usuário
       const { data: readsData } = await supabase
@@ -45,7 +83,7 @@ export const NotificationBell = () => {
       );
 
       // Combinar mensagens com status de leitura
-      const messagesWithReadStatus = messagesData.map(msg => ({
+      const messagesWithReadStatus = filteredMessages.map(msg => ({
         ...msg,
         is_read: readStatusMap.get(msg.id) || false
       }));
@@ -88,7 +126,7 @@ export const NotificationBell = () => {
       supabase.removeChannel(messagesChannel);
       supabase.removeChannel(readsChannel);
     };
-  }, [user]);
+  }, [user, userCreatedAt]);
 
   return (
     <>
