@@ -48,9 +48,10 @@ serve(async (req) => {
     switch (action) {
       case 'login': {
         const { username, password } = data
-        console.log('Login attempt for username:', username)
+        const normalizedEmail = String(username ?? '').toLowerCase().trim()
+        console.log('Login attempt for username:', normalizedEmail)
 
-        if (!username || !password) {
+        if (!normalizedEmail || !password) {
           return new Response(
             JSON.stringify({ success: false, error: 'Usuário e senha são obrigatórios' }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
@@ -60,16 +61,8 @@ serve(async (req) => {
         // Find team member by email
         const { data: teamMember, error: tmError } = await supabaseAdmin
           .from('team_members')
-          .select(`
-            id,
-            name,
-            email,
-            status,
-            linked_user_id,
-            user_id,
-            profiles:profiles!team_members_user_id_fkey(full_name, email)
-          `)
-          .eq('email', username.toLowerCase().trim())
+          .select('id,name,email,status,linked_user_id,user_id')
+          .eq('email', normalizedEmail)
           .eq('status', 'active')
           .maybeSingle()
 
@@ -81,7 +74,7 @@ serve(async (req) => {
           )
         }
 
-        // Check if linked user exists and verify password
+        // Check if linked user exists (invite accepted)
         if (!teamMember.linked_user_id) {
           return new Response(
             JSON.stringify({ success: false, error: 'Este membro ainda não aceitou o convite da equipe' }),
@@ -89,29 +82,43 @@ serve(async (req) => {
           )
         }
 
-        // Get the linked user's password hash from profiles
-        const { data: profileData, error: profileError } = await supabaseAdmin
-          .from('profiles')
-          .select('password_hash')
-          .eq('user_id', teamMember.linked_user_id)
-          .maybeSingle()
+        // Validate password using Supabase Auth (email + senha do usuário)
+        const supabaseAuth = createClient(
+          Deno.env.get('SUPABASE_URL') ?? '',
+          Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+          {
+            auth: {
+              autoRefreshToken: false,
+              persistSession: false,
+            },
+          }
+        )
 
-        if (profileError || !profileData?.password_hash) {
-          console.error('Profile not found or no password set:', profileError)
+        const { data: authData, error: authError } = await supabaseAuth.auth.signInWithPassword({
+          email: normalizedEmail,
+          password,
+        })
+
+        if (authError || !authData?.user) {
+          console.error('Invalid credentials:', authError)
           return new Response(
-            JSON.stringify({ success: false, error: 'Conta não configurada. Entre com sua conta Supabase e acesse novamente.' }),
+            JSON.stringify({ success: false, error: 'Usuário ou senha incorretos' }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
           )
         }
 
-        // Verify password
-        const providedHash = await hashPassword(password)
-        if (providedHash !== profileData.password_hash) {
-          console.error('Invalid password')
+        if (authData.user.id !== teamMember.linked_user_id) {
+          console.error('User mismatch for team member login')
           return new Response(
-            JSON.stringify({ success: false, error: 'Senha incorreta' }),
+            JSON.stringify({ success: false, error: 'Esta conta não está vinculada a este acesso de equipe' }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
           )
+        }
+
+        try {
+          await supabaseAuth.auth.signOut()
+        } catch (_) {
+          // ignore
         }
 
         // Generate session token
@@ -124,7 +131,7 @@ serve(async (req) => {
           .insert({
             team_member_id: teamMember.id,
             token: sessionToken,
-            expires_at: expiresAt
+            expires_at: expiresAt,
           })
 
         if (sessionError) {
@@ -141,7 +148,13 @@ serve(async (req) => {
           .select('module_key, action, is_allowed, restrictions')
           .eq('team_member_id', teamMember.id)
 
-        const adminProfile = teamMember.profiles as any
+        // Get admin name
+        const { data: adminProfile } = await supabaseAdmin
+          .from('profiles')
+          .select('full_name, email')
+          .eq('user_id', teamMember.user_id)
+          .maybeSingle()
+
         const adminName = adminProfile?.full_name || adminProfile?.email || 'Administrador'
 
         console.log('Login successful for team member:', teamMember.id)
@@ -156,9 +169,9 @@ serve(async (req) => {
               name: teamMember.name,
               email: teamMember.email,
               adminUserId: teamMember.user_id,
-              adminName
+              adminName,
             },
-            permissions: permissions || []
+            permissions: permissions || [],
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
@@ -178,20 +191,7 @@ serve(async (req) => {
         // Find valid session
         const { data: session, error: sessionError } = await supabaseAdmin
           .from('team_member_sessions')
-          .select(`
-            id,
-            team_member_id,
-            expires_at,
-            revoked_at,
-            team_members(
-              id,
-              name,
-              email,
-              user_id,
-              status,
-              profiles:profiles!team_members_user_id_fkey(full_name, email)
-            )
-          `)
+          .select('id, team_member_id, expires_at, revoked_at')
           .eq('token', token)
           .maybeSingle()
 
@@ -211,8 +211,21 @@ serve(async (req) => {
           )
         }
 
-        const teamMember = session.team_members as any
-        if (!teamMember || teamMember.status !== 'active') {
+        const { data: teamMember, error: tmError } = await supabaseAdmin
+          .from('team_members')
+          .select('id, name, email, user_id, status')
+          .eq('id', session.team_member_id)
+          .maybeSingle()
+
+        if (tmError || !teamMember) {
+          console.error('Team member not found for session:', tmError)
+          return new Response(
+            JSON.stringify({ valid: false, error: 'Membro não encontrado' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+
+        if (teamMember.status !== 'active') {
           return new Response(
             JSON.stringify({ valid: false, error: 'Membro inativo' }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -225,7 +238,13 @@ serve(async (req) => {
           .select('module_key, action, is_allowed, restrictions')
           .eq('team_member_id', teamMember.id)
 
-        const adminProfile = teamMember.profiles as any
+        // Get admin name
+        const { data: adminProfile } = await supabaseAdmin
+          .from('profiles')
+          .select('full_name, email')
+          .eq('user_id', teamMember.user_id)
+          .maybeSingle()
+
         const adminName = adminProfile?.full_name || adminProfile?.email || 'Administrador'
 
         return new Response(
@@ -236,9 +255,9 @@ serve(async (req) => {
               name: teamMember.name,
               email: teamMember.email,
               adminUserId: teamMember.user_id,
-              adminName
+              adminName,
             },
-            permissions: permissions || []
+            permissions: permissions || [],
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )

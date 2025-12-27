@@ -64,25 +64,34 @@ export function UserSidebar() {
 
   const checkTeamMembership = async () => {
     if (!user) return;
-    
-    // Check if user is a linked team member in someone else's team
-    const { data: membership } = await supabase
-      .from('team_members')
-      .select(`
-        id,
-        user_id,
-        profiles!team_members_user_id_fkey(full_name, email)
-      `)
-      .eq('linked_user_id', user.id)
-      .eq('status', 'active')
-      .maybeSingle();
 
-    if (membership && membership.profiles) {
-      const profile = membership.profiles as any;
+    try {
+      // Check if user is a linked team member in someone else's team
+      const { data: membership, error: membershipError } = await supabase
+        .from('team_members')
+        .select('id, user_id')
+        .eq('linked_user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (membershipError || !membership) {
+        setTeamMembership(null);
+        return;
+      }
+
+      const { data: adminProfile } = await supabase
+        .from('profiles')
+        .select('full_name, email')
+        .eq('user_id', membership.user_id)
+        .maybeSingle();
+
       setTeamMembership({
-        adminName: profile.full_name || profile.email || 'Administrador',
-        adminUserId: membership.user_id
+        adminName: adminProfile?.full_name || adminProfile?.email || 'Administrador',
+        adminUserId: membership.user_id,
       });
+    } catch (e) {
+      console.error('Error checking team membership:', e);
+      setTeamMembership(null);
     }
   };
 
