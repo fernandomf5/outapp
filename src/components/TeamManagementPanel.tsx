@@ -51,6 +51,7 @@ export const TeamManagementPanel = () => {
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
   const [delegatingMember, setDelegatingMember] = useState<TeamMember | null>(null);
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [sendingInvite, setSendingInvite] = useState(false);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -85,25 +86,33 @@ export const TeamManagementPanel = () => {
     }
   };
 
-  const handleAddMember = async () => {
+  const handleSendInvitation = async () => {
+    if (!formData.email) {
+      toast.error("Informe o e-mail do convidado");
+      return;
+    }
+
+    setSendingInvite(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { error } = await supabase
-        .from('team_members')
-        .insert([{
-          user_id: user.id,
-          ...formData,
-          joined_date: new Date().toISOString()
-        }]);
+      const { data, error } = await supabase.functions.invoke('team-member-auth', {
+        body: {
+          action: 'send_invitation',
+          adminUserId: user.id,
+          invitedEmail: formData.email,
+          role: formData.role,
+          department: formData.department
+        }
+      });
 
-      if (error) throw error;
+      if (error || !data?.success) {
+        throw new Error(data?.error || 'Erro ao enviar convite');
+      }
 
-      toast.success("Membro adicionado com sucesso!");
+      toast.success(`Convite enviado para ${formData.email}!`);
       setIsAddDialogOpen(false);
-      loadMembers();
-      
       setFormData({
         name: '',
         email: '',
@@ -113,7 +122,9 @@ export const TeamManagementPanel = () => {
         status: 'active'
       });
     } catch (error: any) {
-      toast.error("Erro ao adicionar membro");
+      toast.error(error.message || "Erro ao enviar convite");
+    } finally {
+      setSendingInvite(false);
     }
   };
 
@@ -223,51 +234,38 @@ export const TeamManagementPanel = () => {
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button className="gradient-primary shadow-glow">
-              <UserPlus className="mr-2 h-4 w-4" />
-              Adicionar Membro
+              <Mail className="mr-2 h-4 w-4" />
+              Enviar Convite
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Adicionar Membro da Equipe</DialogTitle>
-              <DialogDescription>Adicione um novo colaborador à equipe</DialogDescription>
+              <DialogTitle>Enviar Convite para Equipe</DialogTitle>
+              <DialogDescription>Convide alguém para fazer parte da sua equipe</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label>Nome Completo</Label>
-                <Input 
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  placeholder="João Silva"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>E-mail</Label>
+                <Label>E-mail do Convidado</Label>
                 <Input 
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  placeholder="joao@empresa.com"
+                  placeholder="email@exemplo.com"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Um convite será enviado para este e-mail. Após aceitar, a pessoa aparecerá como membro da equipe.
+                </p>
               </div>
               <div className="grid gap-2">
-                <Label>Telefone</Label>
-                <Input 
-                  value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  placeholder="(11) 99999-9999"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>Cargo</Label>
+                <Label>Cargo (opcional)</Label>
                 <Input 
                   value={formData.role}
                   onChange={(e) => setFormData({...formData, role: e.target.value})}
-                  placeholder="Ex: Desenvolvedor, Designer..."
+                  placeholder="Ex: Assistente, Gerente..."
                 />
               </div>
               <div className="grid gap-2">
-                <Label>Departamento</Label>
+                <Label>Departamento (opcional)</Label>
                 <Select value={formData.department} onValueChange={(value) => setFormData({...formData, department: value})}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione..." />
@@ -283,26 +281,20 @@ export const TeamManagementPanel = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid gap-2">
-                <Label>Status</Label>
-                <Select value={formData.status} onValueChange={(value: any) => setFormData({...formData, status: value})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Ativo</SelectItem>
-                    <SelectItem value="inactive">Inativo</SelectItem>
-                    <SelectItem value="on_leave">De Férias</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleAddMember} className="gradient-primary">
-                Adicionar
+              <Button onClick={handleSendInvitation} className="gradient-primary" disabled={sendingInvite}>
+                {sendingInvite ? (
+                  <>Enviando...</>
+                ) : (
+                  <>
+                    <Mail className="mr-2 h-4 w-4" />
+                    Enviar Convite
+                  </>
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
