@@ -65,7 +65,10 @@ const MODULES = [
     key: 'tasks', 
     label: 'Tarefas', 
     icon: CheckSquare,
-    description: 'Organizador de tarefas'
+    description: 'Organizador de tarefas',
+    hasResourceSelection: true,
+    resourceType: 'contacts',
+    resourceLabel: 'clientes'
   },
   { 
     key: 'crm', 
@@ -290,6 +293,18 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
       resources.cloned_pages = clonedPages.map(cp => ({
         id: cp.id,
         name: cp.slug || cp.original_url?.substring(0, 50) || 'Sem nome'
+      }));
+    }
+    
+    // Load Contacts (CRM clients for task delegation)
+    const { data: contacts } = await supabase
+      .from('contacts')
+      .select('id, name, company')
+      .eq('user_id', user.id);
+    if (contacts) {
+      resources.contacts = contacts.map(c => ({
+        id: c.id,
+        name: c.company ? `${c.name} (${c.company})` : c.name
       }));
     }
     
@@ -801,22 +816,20 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
                 </Accordion>
               </ScrollArea>
 
-              {hasUnsavedPermissions && (
-                <div className="mt-4 pt-4 border-t">
-                  <Button 
-                    onClick={handleSavePermissions}
-                    disabled={loading}
-                    className="w-full"
-                  >
-                    {loading ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Save className="h-4 w-4 mr-2" />
-                    )}
-                    Salvar Permissões
-                  </Button>
-                </div>
-              )}
+              <div className="mt-4 pt-4 border-t">
+                <Button 
+                  onClick={handleSavePermissions}
+                  disabled={loading || !hasUnsavedPermissions}
+                  className="w-full"
+                >
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  {hasUnsavedPermissions ? 'Salvar Alterações' : 'Permissões Salvas'}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
