@@ -357,7 +357,8 @@ serve(async (req) => {
               department: 'geral',
               status: 'active',
               joined_date: new Date().toISOString(),
-              invitation_id: invitation.id
+              invitation_id: invitation.id,
+              linked_user_id: acceptingUserId
             })
             .select()
             .single()
@@ -366,11 +367,12 @@ serve(async (req) => {
             teamMemberId = newMember.id
           }
         } else {
-          // Update existing team member
+          // Update existing team member with linked user
           await supabaseAdmin
             .from('team_members')
             .update({
-              status: 'active'
+              status: 'active',
+              linked_user_id: acceptingUserId
             })
             .eq('id', teamMemberId)
         }
