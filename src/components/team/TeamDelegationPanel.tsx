@@ -14,7 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { 
   Mail, Shield, Eye, Edit, Trash2, Plus, Save, 
   Users, Calendar, DollarSign, CheckSquare, BarChart3,
-  Settings, Briefcase, FileText, Image,
+  Settings, Briefcase, FileText, Image, MessageSquare,
   Globe, Link, Megaphone, Palette, Send, RefreshCw, Clock, CheckCircle, XCircle, Loader2
 } from 'lucide-react';
 
@@ -58,7 +58,8 @@ const MODULES = [
     icon: DollarSign,
     description: 'Gestão financeira',
     hasResourceSelection: true,
-    resourceType: 'financial_businesses'
+    resourceType: 'financial_businesses',
+    resourceLabel: 'empresas/contas'
   },
   { 
     key: 'tasks', 
@@ -78,7 +79,17 @@ const MODULES = [
     icon: Briefcase,
     description: 'Chats de atendimento online',
     hasResourceSelection: true,
-    resourceType: 'ai_agents'
+    resourceType: 'ai_agents',
+    resourceLabel: 'chatbots'
+  },
+  { 
+    key: 'chatbots', 
+    label: 'Chatbots Fluxo', 
+    icon: MessageSquare,
+    description: 'Chatbots com fluxo de conversa',
+    hasResourceSelection: true,
+    resourceType: 'chatbots',
+    resourceLabel: 'chatbots de fluxo'
   },
   { 
     key: 'reports', 
@@ -90,37 +101,55 @@ const MODULES = [
     key: 'link_bio', 
     label: 'Link na Bio', 
     icon: Link,
-    description: 'Páginas de links'
+    description: 'Páginas de links',
+    hasResourceSelection: true,
+    resourceType: 'link_bios',
+    resourceLabel: 'páginas de link'
   },
   { 
     key: 'briefings', 
     label: 'Briefings', 
     icon: FileText,
-    description: 'Formulários de briefing'
+    description: 'Formulários de briefing',
+    hasResourceSelection: true,
+    resourceType: 'briefings',
+    resourceLabel: 'briefings'
   },
   { 
     key: 'portfolio', 
     label: 'Portfólio', 
     icon: Image,
-    description: 'Portfólio de trabalhos'
+    description: 'Portfólio de trabalhos',
+    hasResourceSelection: true,
+    resourceType: 'portfolios',
+    resourceLabel: 'portfólios'
   },
   { 
     key: 'websites', 
     label: 'Sites', 
     icon: Globe,
-    description: 'Criador de sites'
+    description: 'Criador de sites',
+    hasResourceSelection: true,
+    resourceType: 'websites',
+    resourceLabel: 'sites'
   },
   { 
     key: 'ads', 
     label: 'Campanhas/Anúncios', 
     icon: Megaphone,
-    description: 'Gestão de campanhas'
+    description: 'Gestão de campanhas',
+    hasResourceSelection: true,
+    resourceType: 'ad_campaigns',
+    resourceLabel: 'campanhas'
   },
   { 
     key: 'cloner', 
     label: 'Clonador de Páginas', 
     icon: Palette,
-    description: 'Clonador de páginas web'
+    description: 'Clonador de páginas web',
+    hasResourceSelection: true,
+    resourceType: 'cloned_pages',
+    resourceLabel: 'páginas clonadas'
   },
   { 
     key: 'settings', 
@@ -197,6 +226,13 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
       .eq('user_id', user.id);
     if (agents) resources.ai_agents = agents as Resource[];
     
+    // Load Chatbots (Flow-based)
+    const { data: chatbots } = await supabase
+      .from('chatbots')
+      .select('id, name')
+      .eq('user_id', user.id);
+    if (chatbots) resources.chatbots = chatbots as Resource[];
+    
     // Load Financial Businesses
     const { data: businesses } = await supabase
       .from('financial_businesses')
@@ -204,9 +240,67 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
       .eq('user_id', user.id);
     if (businesses) resources.financial_businesses = businesses as Resource[];
     
-    // Load Task Lists (using tasks table grouped by list or creating a simple approach)
-    // For now, we'll skip task_lists as the table might not exist - can be added later
-    // if you have a task_lists table
+    // Load Link Bios
+    const { data: linkBios } = await supabase
+      .from('link_bios')
+      .select('id, display_name, username')
+      .eq('user_id', user.id);
+    if (linkBios) {
+      resources.link_bios = linkBios.map(lb => ({
+        id: lb.id,
+        name: lb.display_name || lb.username || 'Sem nome'
+      }));
+    }
+    
+    // Load Briefings
+    const { data: briefings } = await supabase
+      .from('briefings')
+      .select('id, title')
+      .eq('user_id', user.id);
+    if (briefings) {
+      resources.briefings = briefings.map(b => ({
+        id: b.id,
+        name: b.title
+      }));
+    }
+    
+    // Load Portfolios
+    const { data: portfolios } = await supabase
+      .from('portfolios')
+      .select('id, name')
+      .eq('user_id', user.id);
+    if (portfolios) resources.portfolios = portfolios as Resource[];
+    
+    // Load Websites
+    const { data: websites } = await supabase
+      .from('websites')
+      .select('id, title')
+      .eq('user_id', user.id);
+    if (websites) {
+      resources.websites = websites.map(w => ({
+        id: w.id,
+        name: w.title
+      }));
+    }
+    
+    // Load Ad Campaigns
+    const { data: campaigns } = await supabase
+      .from('ad_campaigns')
+      .select('id, name')
+      .eq('user_id', user.id);
+    if (campaigns) resources.ad_campaigns = campaigns as Resource[];
+    
+    // Load Cloned Pages
+    const { data: clonedPages } = await supabase
+      .from('cloned_pages')
+      .select('id, slug, original_url')
+      .eq('user_id', user.id);
+    if (clonedPages) {
+      resources.cloned_pages = clonedPages.map(cp => ({
+        id: cp.id,
+        name: cp.slug || cp.original_url?.substring(0, 50) || 'Sem nome'
+      }));
+    }
     
     setAvailableResources(resources);
   };
@@ -666,28 +760,46 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
                             {module.hasResourceSelection && moduleResources.length > 0 && (
                               <div className="space-y-2 pt-2 border-t">
                                 <Label className="text-xs text-muted-foreground">
-                                  Selecione quais {module.label.toLowerCase()} o membro pode acessar:
+                                  Selecione quais {module.resourceLabel || module.label.toLowerCase()} o membro pode acessar:
                                 </Label>
-                                <div className="space-y-1">
+                                <div className="space-y-1 max-h-40 overflow-y-auto">
                                   {moduleResources.map((resource) => {
                                     const isSelected = selectedResources[module.key]?.includes(resource.id);
                                     return (
                                       <div 
                                         key={resource.id}
-                                        className="flex items-center gap-2 p-2 rounded hover:bg-muted/50 cursor-pointer"
+                                        className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${
+                                          isSelected 
+                                            ? 'bg-primary/10 border border-primary/30' 
+                                            : 'hover:bg-muted/50 border border-transparent'
+                                        }`}
                                         onClick={() => toggleResourceSelection(module.key, resource.id)}
                                       >
                                         <Switch checked={isSelected} />
-                                        <span className="text-sm">{resource.name}</span>
+                                        <span className="text-sm truncate">{resource.name}</span>
                                       </div>
                                     );
                                   })}
                                 </div>
-                                {selectedResources[module.key]?.length === 0 && (
-                                  <p className="text-xs text-amber-600 dark:text-amber-400">
-                                    Nenhum selecionado = acesso a todos
-                                  </p>
-                                )}
+                                <div className="flex items-center gap-2 pt-1">
+                                  <Badge variant={selectedResources[module.key]?.length > 0 ? "default" : "secondary"} className="text-xs">
+                                    {selectedResources[module.key]?.length || 0} de {moduleResources.length} selecionados
+                                  </Badge>
+                                  {selectedResources[module.key]?.length === 0 && (
+                                    <span className="text-xs text-amber-600 dark:text-amber-400">
+                                      = acesso a todos
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Empty resource message */}
+                            {module.hasResourceSelection && moduleResources.length === 0 && (
+                              <div className="pt-2 border-t">
+                                <p className="text-xs text-muted-foreground italic">
+                                  Nenhum(a) {module.resourceLabel || module.label.toLowerCase()} cadastrado(a)
+                                </p>
                               </div>
                             )}
                           </div>
