@@ -98,8 +98,7 @@ serve(async (req) => {
             invitation_token: invitationToken,
             status: 'pending',
             expires_at: expiresAt,
-            role: role || null,
-            department: department || null
+            role: role || null
           })
           .select()
           .single()
