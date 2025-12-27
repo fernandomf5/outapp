@@ -148,7 +148,12 @@ export const TeamManagementPanel = () => {
         throw new Error(data?.error || 'Erro ao enviar convite');
       }
 
-      toast.success(`Convite enviado para ${formData.email}!`);
+      const wasResent = Boolean((data as any)?.resent);
+      toast.success(
+        wasResent
+          ? `Convite já estava pendente — reenviado para ${formData.email}!`
+          : `Convite enviado para ${formData.email}!`
+      );
       setIsAddDialogOpen(false);
       loadInvitations(); // Reload invitations list
       setFormData({
@@ -208,17 +213,36 @@ export const TeamManagementPanel = () => {
 
   const getInvitationStatusBadge = (status: string, expiresAt: string) => {
     const isExpired = new Date(expiresAt) < new Date();
-    
+
     if (status === 'accepted') {
-      return <Badge className="bg-green-600 text-white gap-1"><CheckCircle2 className="h-3 w-3" /> Aceito</Badge>;
+      return (
+        <Badge className="bg-success text-success-foreground gap-1">
+          <CheckCircle2 className="h-3 w-3" /> Aceito
+        </Badge>
+      );
     }
-    if (status === 'cancelled') {
-      return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" /> Cancelado</Badge>;
+
+    if (status === 'rejected') {
+      return (
+        <Badge className="bg-destructive text-destructive-foreground gap-1">
+          <XCircle className="h-3 w-3" /> Cancelado
+        </Badge>
+      );
     }
+
     if (isExpired) {
-      return <Badge variant="destructive" className="gap-1"><Clock className="h-3 w-3" /> Expirado</Badge>;
+      return (
+        <Badge className="bg-destructive text-destructive-foreground gap-1">
+          <Clock className="h-3 w-3" /> Expirado
+        </Badge>
+      );
     }
-    return <Badge variant="secondary" className="gap-1"><Clock className="h-3 w-3" /> Pendente</Badge>;
+
+    return (
+      <Badge variant="secondary" className="gap-1">
+        <Clock className="h-3 w-3" /> Pendente
+      </Badge>
+    );
   };
 
   const handleDeleteMember = async (id: string) => {

@@ -59,30 +59,82 @@ serve(async (req) => {
           )
         }
 
-        // Check if there's already a pending invitation for this email
-        const { data: existingInvitation } = await supabaseAdmin
-          .from('team_invitations')
-          .select('id, status')
-          .eq('admin_user_id', adminUserId)
-          .eq('invited_email', invitedEmail.toLowerCase().trim())
-          .eq('status', 'pending')
-          .single()
-
-        if (existingInvitation) {
-          return new Response(
-            JSON.stringify({ success: false, error: 'Já existe um convite pendente para este email' }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-          )
-        }
-
         // Get admin profile
         const { data: adminProfile } = await supabaseAdmin
           .from('profiles')
           .select('full_name, email')
           .eq('user_id', adminUserId)
-          .single()
+          .maybeSingle()
 
         const adminName = adminProfile?.full_name || adminProfile?.email || 'Administrador'
+
+        // Check if there's already a pending invitation for this email
+        const { data: existingInvitation } = await supabaseAdmin
+          .from('team_invitations')
+          .select('id')
+          .eq('admin_user_id', adminUserId)
+          .eq('invited_email', invitedEmail.toLowerCase().trim())
+          .eq('status', 'pending')
+          .maybeSingle()
+
+        // If there is already a pending invite, we simply reissue a token and resend the email
+        if (existingInvitation?.id) {
+          const invitationToken = generateToken()
+          const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+
+          const { error: updateError } = await supabaseAdmin
+            .from('team_invitations')
+            .update({
+              invitation_token: invitationToken,
+              expires_at: expiresAt,
+            })
+            .eq('id', existingInvitation.id)
+
+          if (updateError) {
+            console.error('Error updating existing invitation:', updateError)
+            return new Response(
+              JSON.stringify({ success: false, error: 'Erro ao atualizar convite existente: ' + updateError.message }),
+              { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+            )
+          }
+
+          const acceptUrl = `https://outapp.com.br/aceitar-convite?token=${invitationToken}`
+
+          try {
+            const emailResponse = await resend.emails.send({
+              from: 'OutApp <noreply@outapp.com.br>',
+              to: [invitedEmail],
+              subject: `${adminName} reenviou o convite para a equipe`,
+              html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                  <h1 style="color: #6366f1;">Convite para Equipe</h1>
+                  <p>Olá!</p>
+                  <p><strong>${adminName}</strong> reenviou o convite para você fazer parte da equipe no OutApp.</p>
+                  ${role ? `<p>Cargo: <strong>${role}</strong></p>` : ''}
+                  ${department ? `<p>Departamento: <strong>${department}</strong></p>` : ''}
+                  <p>Clique no botão abaixo para aceitar o convite:</p>
+                  <a href="${acceptUrl}" style="display: inline-block; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+                    Aceitar Convite
+                  </a>
+                  <p style="margin-top: 20px; color: #666; font-size: 12px;">Este convite expira em 7 dias.</p>
+                </div>
+              `,
+            })
+            console.log('Email resent successfully:', emailResponse)
+          } catch (emailError: any) {
+            console.error('Error resending email (existing invitation):', emailError)
+          }
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              resent: true,
+              message: 'Convite já estava pendente e foi reenviado',
+              invitationId: existingInvitation.id,
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
 
         // Generate invitation token
         const invitationToken = generateToken()
@@ -234,7 +286,7 @@ serve(async (req) => {
 
         await supabaseAdmin
           .from('team_invitations')
-          .update({ status: 'cancelled' })
+          .update({ status: 'rejected' })
           .eq('id', invitationId)
 
         return new Response(
