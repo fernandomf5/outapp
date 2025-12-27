@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "./contexts/AuthContext";
+import { TeamMemberProvider } from "./contexts/TeamMemberContext";
 import { useEffect, useState } from "react";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { useFavicon } from "./hooks/useFavicon";
@@ -46,6 +47,7 @@ import ProposalPublicView from "./pages/ProposalPublicView";
 import AprovaJobClient from "./pages/AprovaJobClient";
 import PortfolioPublicPage from "./pages/PortfolioPublicPage";
 import InstallApp from "./pages/InstallApp";
+import TeamMemberAuth from "./pages/TeamMemberAuth";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { CookieNotice } from "@/components/CookieNotice";
 
@@ -59,6 +61,7 @@ const AppContent = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/team-login" element={<TeamMemberAuth />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/email-confirmed" element={<EmailConfirmed />} />
@@ -143,14 +146,16 @@ const App = () => (
     <HelmetProvider>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
         <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <ErrorBoundary>
-              <AppContent />
-            </ErrorBoundary>
-            <CookieNotice />
-          </TooltipProvider>
+          <TeamMemberProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <ErrorBoundary>
+                <AppContent />
+              </ErrorBoundary>
+              <CookieNotice />
+            </TooltipProvider>
+          </TeamMemberProvider>
         </AuthProvider>
       </ThemeProvider>
     </HelmetProvider>
