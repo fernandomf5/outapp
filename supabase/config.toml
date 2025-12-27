@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.send-briefing-response]
 verify_jwt = false
+
+[functions.team-member-auth]
+verify_jwt = false

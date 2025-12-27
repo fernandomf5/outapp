@@ -5796,6 +5796,117 @@ export type Database = {
           },
         ]
       }
+      team_member_credentials: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          last_login_at: string | null
+          password_hash: string
+          team_member_id: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_login_at?: string | null
+          password_hash: string
+          team_member_id: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_login_at?: string | null
+          password_hash?: string
+          team_member_id?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_member_credentials_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: true
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_member_permissions: {
+        Row: {
+          action: Database["public"]["Enums"]["permission_action"]
+          created_at: string
+          id: string
+          is_allowed: boolean
+          module_key: string
+          restrictions: Json | null
+          team_member_id: string
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["permission_action"]
+          created_at?: string
+          id?: string
+          is_allowed?: boolean
+          module_key: string
+          restrictions?: Json | null
+          team_member_id: string
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["permission_action"]
+          created_at?: string
+          id?: string
+          is_allowed?: boolean
+          module_key?: string
+          restrictions?: Json | null
+          team_member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_member_permissions_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_member_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          team_member_id: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          team_member_id: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          team_member_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_member_sessions_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           avatar_url: string | null
@@ -5805,7 +5916,9 @@ export type Database = {
           id: string
           joined_date: string
           name: string
+          notes: string | null
           phone: string | null
+          position: string | null
           role: string
           status: string
           updated_at: string
@@ -5819,7 +5932,9 @@ export type Database = {
           id?: string
           joined_date?: string
           name: string
+          notes?: string | null
           phone?: string | null
+          position?: string | null
           role: string
           status?: string
           updated_at?: string
@@ -5833,7 +5948,9 @@ export type Database = {
           id?: string
           joined_date?: string
           name?: string
+          notes?: string | null
           phone?: string | null
+          position?: string | null
           role?: string
           status?: string
           updated_at?: string
@@ -6420,6 +6537,10 @@ export type Database = {
     }
     Functions: {
       generate_access_code: { Args: never; Returns: string }
+      get_team_member_restrictions: {
+        Args: { _module_key: string; _team_member_id: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -6427,10 +6548,19 @@ export type Database = {
         }
         Returns: boolean
       }
+      team_member_has_permission: {
+        Args: {
+          _action: Database["public"]["Enums"]["permission_action"]
+          _module_key: string
+          _team_member_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "user"
       job_approval_status: "pending" | "approved" | "revision" | "rejected"
+      permission_action: "create" | "read" | "update" | "delete"
       plan_type:
         | "free_trial"
         | "chatbot"
@@ -6569,6 +6699,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user"],
       job_approval_status: ["pending", "approved", "revision", "rejected"],
+      permission_action: ["create", "read", "update", "delete"],
       plan_type: [
         "free_trial",
         "chatbot",
