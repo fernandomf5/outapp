@@ -67,7 +67,7 @@ const MODULES = [
     icon: CheckSquare,
     description: 'Organizador de tarefas',
     hasResourceSelection: true,
-    resourceType: 'contacts',
+    resourceType: 'customers',
     resourceLabel: 'clientes'
   },
   { 
@@ -296,15 +296,15 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
       }));
     }
     
-    // Load Contacts (CRM clients for task delegation)
-    const { data: contacts } = await supabase
-      .from('contacts')
-      .select('id, name, company')
+    // Load Customers (clientes do organizador de tarefas)
+    const { data: customers } = await supabase
+      .from('customers')
+      .select('id, name')
       .eq('user_id', user.id);
-    if (contacts) {
-      resources.contacts = contacts.map(c => ({
+    if (customers) {
+      resources.customers = customers.map(c => ({
         id: c.id,
-        name: c.company ? `${c.name} (${c.company})` : c.name
+        name: c.name
       }));
     }
     
