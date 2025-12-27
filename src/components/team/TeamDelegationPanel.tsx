@@ -83,15 +83,6 @@ const MODULES = [
     resourceLabel: 'chatbots'
   },
   { 
-    key: 'chatbots', 
-    label: 'Chatbots Fluxo', 
-    icon: MessageSquare,
-    description: 'Chatbots com fluxo de conversa',
-    hasResourceSelection: true,
-    resourceType: 'chatbots',
-    resourceLabel: 'chatbots de fluxo'
-  },
-  { 
     key: 'reports', 
     label: 'Relatórios', 
     icon: BarChart3,
