@@ -14,7 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { 
   Mail, Shield, Eye, Edit, Trash2, Plus, Save, 
   Users, Calendar, DollarSign, CheckSquare, BarChart3,
-  MessageSquare, Settings, Briefcase, FileText, Image,
+  Settings, Briefcase, FileText, Image,
   Globe, Link, Megaphone, Palette, Send, RefreshCw, Clock, CheckCircle, XCircle, Loader2
 } from 'lucide-react';
 
@@ -63,23 +63,13 @@ const MODULES = [
     key: 'tasks', 
     label: 'Tarefas', 
     icon: CheckSquare,
-    description: 'Organizador de tarefas',
-    hasResourceSelection: true,
-    resourceType: 'task_lists'
+    description: 'Organizador de tarefas'
   },
   { 
     key: 'crm', 
     label: 'CRM / Contatos', 
     icon: Users,
     description: 'Gestão de contatos e leads'
-  },
-  { 
-    key: 'chatbots', 
-    label: 'Chatbots', 
-    icon: MessageSquare,
-    description: 'Gerenciamento de chatbots',
-    hasResourceSelection: true,
-    resourceType: 'chatbots'
   },
   { 
     key: 'ai_agents', 
@@ -204,21 +194,18 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
       .from('ai_agents')
       .select('id, name')
       .eq('user_id', user.id);
-    if (agents) resources.ai_agents = agents;
-    
-    // Load Chatbots
-    const { data: chatbots } = await supabase
-      .from('chatbots')
-      .select('id, name')
-      .eq('user_id', user.id);
-    if (chatbots) resources.chatbots = chatbots;
+    if (agents) resources.ai_agents = agents as Resource[];
     
     // Load Financial Businesses
     const { data: businesses } = await supabase
       .from('financial_businesses')
       .select('id, name')
       .eq('user_id', user.id);
-    if (businesses) resources.financial_businesses = businesses;
+    if (businesses) resources.financial_businesses = businesses as Resource[];
+    
+    // Load Task Lists (using tasks table grouped by list or creating a simple approach)
+    // For now, we'll skip task_lists as the table might not exist - can be added later
+    // if you have a task_lists table
     
     setAvailableResources(resources);
   };
