@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -55,14 +54,16 @@ const MODULES = [
     label: 'Financeiro', 
     icon: DollarSign,
     description: 'Gestão financeira',
-    hasAdvancedRestrictions: true
+    hasResourceSelection: true,
+    resourceType: 'financial_businesses'
   },
   { 
     key: 'tasks', 
     label: 'Tarefas', 
     icon: CheckSquare,
     description: 'Organizador de tarefas',
-    hasAdvancedRestrictions: true
+    hasResourceSelection: true,
+    resourceType: 'task_lists'
   },
   { 
     key: 'crm', 
@@ -74,13 +75,17 @@ const MODULES = [
     key: 'chatbots', 
     label: 'Chatbots', 
     icon: MessageSquare,
-    description: 'Gerenciamento de chatbots'
+    description: 'Gerenciamento de chatbots',
+    hasResourceSelection: true,
+    resourceType: 'chatbots'
   },
   { 
     key: 'ai_agents', 
-    label: 'Agentes IA', 
+    label: 'Chat Online', 
     icon: Briefcase,
-    description: 'Agentes de atendimento'
+    description: 'Chats de atendimento online',
+    hasResourceSelection: true,
+    resourceType: 'ai_agents'
   },
   { 
     key: 'reports', 
@@ -144,6 +149,11 @@ interface TeamDelegationPanelProps {
   onClose: () => void;
 }
 
+interface Resource {
+  id: string;
+  name: string;
+}
+
 export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProps) {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -159,11 +169,48 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
   // Permissions state
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [originalPermissions, setOriginalPermissions] = useState<Permission[]>([]);
+  
+  // Resources state for selection
+  const [availableResources, setAvailableResources] = useState<Record<string, Resource[]>>({});
+  const [selectedResources, setSelectedResources] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     loadCredentials();
     loadPermissions();
+    loadAvailableResources();
   }, [member.id]);
+
+  const loadAvailableResources = async () => {
+    if (!user) return;
+    
+    const resources: Record<string, Resource[]> = {};
+    
+    // Load AI Agents (Chat Online)
+    const { data: agents } = await supabase
+      .from('ai_agents')
+      .select('id, name')
+      .eq('user_id', user.id);
+    if (agents) resources.ai_agents = agents;
+    
+    // Load Chatbots
+    const { data: chatbots } = await supabase
+      .from('chatbots')
+      .select('id, name')
+      .eq('user_id', user.id);
+    if (chatbots) resources.chatbots = chatbots;
+    
+    // Load Financial Businesses
+    const { data: businesses } = await supabase
+      .from('financial_businesses')
+      .select('id, name')
+      .eq('user_id', user.id);
+    if (businesses) resources.financial_businesses = businesses;
+    
+    // Load Task Categories/Lists (using task_categories or similar)
+    // For now, using placeholder since we need to check the actual table
+    
+    setAvailableResources(resources);
+  };
 
   const loadCredentials = async () => {
     const { data, error } = await supabase
@@ -192,6 +239,15 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
         restrictions: (p.restrictions as Record<string, any>) || {}
       }));
       setPermissions(perms);
+      
+      // Extract selected resources from restrictions
+      const resources: Record<string, string[]> = {};
+      perms.forEach(p => {
+        if (p.restrictions?.allowed_ids) {
+          resources[p.module_key] = p.restrictions.allowed_ids;
+        }
+      });
+      setSelectedResources(resources);
       setOriginalPermissions(perms);
     }
   };
@@ -246,8 +302,10 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
       }
 
       toast({
-        title: "Sucesso",
-        description: "Credenciais salvas com sucesso!"
+        title: credential ? "Credenciais atualizadas" : "Usuário criado com sucesso! ✅",
+        description: credential 
+          ? "As credenciais foram atualizadas com sucesso!"
+          : `O membro ${member.name} agora pode acessar o sistema com o usuário "${username.trim().toLowerCase()}".`
       });
 
       loadCredentials();
@@ -272,8 +330,12 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
         // Remove permission
         return prev.filter(p => !(p.module_key === moduleKey && p.action === action));
       } else {
-        // Add permission
-        return [...prev, { module_key: moduleKey, action, is_allowed: true, restrictions: {} }];
+        // Add permission with resource restrictions if any selected
+        const restrictions: Record<string, any> = {};
+        if (selectedResources[moduleKey]?.length > 0) {
+          restrictions.allowed_ids = selectedResources[moduleKey];
+        }
+        return [...prev, { module_key: moduleKey, action, is_allowed: true, restrictions }];
       }
     });
   };
@@ -283,16 +345,44 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
       const otherPerms = prev.filter(p => p.module_key !== moduleKey);
       
       if (enable) {
+        const restrictions: Record<string, any> = {};
+        if (selectedResources[moduleKey]?.length > 0) {
+          restrictions.allowed_ids = selectedResources[moduleKey];
+        }
         const newPerms = ACTIONS.map(a => ({
           module_key: moduleKey,
           action: a.key,
           is_allowed: true,
-          restrictions: {}
+          restrictions
         }));
         return [...otherPerms, ...newPerms];
       } else {
         return otherPerms;
       }
+    });
+  };
+
+  const toggleResourceSelection = (moduleKey: string, resourceId: string) => {
+    setSelectedResources(prev => {
+      const current = prev[moduleKey] || [];
+      const updated = current.includes(resourceId)
+        ? current.filter(id => id !== resourceId)
+        : [...current, resourceId];
+      
+      // Also update permissions restrictions
+      setPermissions(prevPerms => 
+        prevPerms.map(p => {
+          if (p.module_key === moduleKey) {
+            return {
+              ...p,
+              restrictions: updated.length > 0 ? { allowed_ids: updated } : {}
+            };
+          }
+          return p;
+        })
+      );
+      
+      return { ...prev, [moduleKey]: updated };
     });
   };
 
@@ -306,6 +396,11 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
 
   const hasAllPermissions = (moduleKey: string): boolean => {
     return ACTIONS.every(a => hasPermission(moduleKey, a.key));
+  };
+
+  const getResourcesForModule = (module: typeof MODULES[0]): Resource[] => {
+    if (!module.hasResourceSelection || !module.resourceType) return [];
+    return availableResources[module.resourceType] || [];
   };
 
   const handleSavePermissions = async () => {
@@ -482,7 +577,7 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
                             </div>
                           </div>
                         </AccordionTrigger>
-                        <AccordionContent className="pb-4">
+                        <AccordionContent className="pb-4 space-y-4">
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
                             {ACTIONS.map((action) => {
                               const ActionIcon = action.icon;
@@ -506,6 +601,46 @@ export function TeamDelegationPanel({ member, onClose }: TeamDelegationPanelProp
                               );
                             })}
                           </div>
+                          
+                          {/* Resource Selection for modules with hasResourceSelection */}
+                          {module.hasResourceSelection && getResourcesForModule(module).length > 0 && (
+                            <div className="mt-4 pt-4 border-t">
+                              <p className="text-sm font-medium mb-2">
+                                Selecionar {module.label} específicos:
+                              </p>
+                              <p className="text-xs text-muted-foreground mb-3">
+                                Deixe todos desmarcados para permitir acesso a todos. Marque apenas os que deseja permitir.
+                              </p>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {getResourcesForModule(module).map((resource) => {
+                                  const isSelected = (selectedResources[module.key] || []).includes(resource.id);
+                                  return (
+                                    <button
+                                      key={resource.id}
+                                      onClick={() => toggleResourceSelection(module.key, resource.id)}
+                                      className={`
+                                        flex items-center gap-2 p-2 rounded-lg border transition-colors text-left
+                                        ${isSelected 
+                                          ? 'bg-primary/10 border-primary text-primary' 
+                                          : 'bg-muted/30 border-border text-muted-foreground hover:bg-muted/50'
+                                        }
+                                      `}
+                                    >
+                                      <div className={`w-4 h-4 rounded border flex items-center justify-center ${isSelected ? 'bg-primary border-primary' : 'border-muted-foreground'}`}>
+                                        {isSelected && <span className="text-primary-foreground text-xs">✓</span>}
+                                      </div>
+                                      <span className="text-sm truncate">{resource.name}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                              {(selectedResources[module.key] || []).length > 0 && (
+                                <p className="text-xs text-primary mt-2">
+                                  {(selectedResources[module.key] || []).length} selecionado(s)
+                                </p>
+                              )}
+                            </div>
+                          )}
                         </AccordionContent>
                       </AccordionItem>
                     );
