@@ -1,10 +1,13 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { Resend } from "https://esm.sh/resend@2.0.0"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
+
+const resend = new Resend(Deno.env.get('RESEND_API_KEY'))
 
 // Simple hash function for password verification
 async function hashPassword(password: string): Promise<string> {
@@ -43,333 +46,297 @@ serve(async (req) => {
     console.log(`Team member auth action: ${action}`)
 
     switch (action) {
-      case 'login': {
-        const { username, password } = data
+      case 'send_invitation': {
+        const { adminUserId, invitedEmail, role, department, teamMemberId } = data
         
-        if (!username || !password) {
+        console.log('Sending invitation to:', invitedEmail)
+
+        if (!adminUserId || !invitedEmail) {
+          console.error('Missing required fields:', { adminUserId, invitedEmail })
           return new Response(
-            JSON.stringify({ error: 'Usuário e senha são obrigatórios' }),
+            JSON.stringify({ success: false, error: 'Admin ID e email são obrigatórios' }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
           )
         }
 
-        // Find credentials by username
-        const { data: credentials, error: credError } = await supabaseAdmin
-          .from('team_member_credentials')
-          .select(`
-            id,
-            team_member_id,
-            username,
-            password_hash,
-            is_active,
-            team_member:team_members (
-              id,
-              user_id,
-              name,
-              email,
-              status
-            )
-          `)
-          .eq('username', username.toLowerCase().trim())
+        // Check if there's already a pending invitation for this email
+        const { data: existingInvitation } = await supabaseAdmin
+          .from('team_invitations')
+          .select('id, status')
+          .eq('admin_user_id', adminUserId)
+          .eq('invited_email', invitedEmail.toLowerCase().trim())
+          .eq('status', 'pending')
           .single()
 
-        if (credError || !credentials) {
-          console.log('Credentials not found:', credError)
+        if (existingInvitation) {
           return new Response(
-            JSON.stringify({ error: 'Credenciais inválidas' }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+            JSON.stringify({ success: false, error: 'Já existe um convite pendente para este email' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
           )
         }
 
-        // Check if credential is active
-        if (!credentials.is_active) {
-          return new Response(
-            JSON.stringify({ error: 'Este acesso foi desativado pelo administrador' }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
-          )
-        }
-
-        // Check if team member is active
-        const teamMember = credentials.team_member as any
-        if (!teamMember || teamMember.status !== 'active') {
-          return new Response(
-            JSON.stringify({ error: 'Membro da equipe inativo ou não encontrado' }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
-          )
-        }
-
-        // Verify password
-        const hashedPassword = await hashPassword(password)
-        if (hashedPassword !== credentials.password_hash) {
-          console.log('Password mismatch')
-          return new Response(
-            JSON.stringify({ error: 'Credenciais inválidas' }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
-          )
-        }
-
-        // Get admin profile info
+        // Get admin profile
         const { data: adminProfile } = await supabaseAdmin
           .from('profiles')
           .select('full_name, email')
-          .eq('user_id', teamMember.user_id)
+          .eq('user_id', adminUserId)
           .single()
 
-        // Get permissions for this team member
-        const { data: permissions } = await supabaseAdmin
-          .from('team_member_permissions')
-          .select('module_key, action, is_allowed, restrictions')
-          .eq('team_member_id', credentials.team_member_id)
-          .eq('is_allowed', true)
+        const adminName = adminProfile?.full_name || adminProfile?.email || 'Administrador'
 
-        // Clean up expired sessions
-        await supabaseAdmin
-          .from('team_member_sessions')
-          .delete()
-          .lt('expires_at', new Date().toISOString())
+        // Generate invitation token
+        const invitationToken = generateToken()
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
 
-        // Create new session (24 hours)
-        const token = generateToken()
-        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-
-        const { error: sessionError } = await supabaseAdmin
-          .from('team_member_sessions')
+        // Create invitation record
+        const { data: invitation, error: inviteError } = await supabaseAdmin
+          .from('team_invitations')
           .insert({
-            team_member_id: credentials.team_member_id,
-            token,
-            expires_at: expiresAt
+            admin_user_id: adminUserId,
+            team_member_id: teamMemberId || null,
+            invited_email: invitedEmail.toLowerCase().trim(),
+            invitation_token: invitationToken,
+            status: 'pending',
+            expires_at: expiresAt,
+            role: role || null,
+            department: department || null
           })
+          .select()
+          .single()
 
-        if (sessionError) {
-          console.error('Session creation error:', sessionError)
+        if (inviteError) {
+          console.error('Error creating invitation:', inviteError)
           return new Response(
-            JSON.stringify({ error: 'Erro ao criar sessão' }),
+            JSON.stringify({ success: false, error: 'Erro ao criar convite: ' + inviteError.message }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
           )
         }
 
-        // Update last login
-        await supabaseAdmin
-          .from('team_member_credentials')
-          .update({ last_login_at: new Date().toISOString() })
-          .eq('id', credentials.id)
+        // Send invitation email
+        const acceptUrl = `https://outapp.com.br/aceitar-convite?token=${invitationToken}`
+        
+        try {
+          const emailResponse = await resend.emails.send({
+            from: 'OutApp <noreply@resend.dev>',
+            to: [invitedEmail],
+            subject: `${adminName} convidou você para a equipe`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h1 style="color: #6366f1;">Convite para Equipe</h1>
+                <p>Olá!</p>
+                <p><strong>${adminName}</strong> convidou você para fazer parte da equipe no OutApp.</p>
+                ${role ? `<p>Cargo: <strong>${role}</strong></p>` : ''}
+                ${department ? `<p>Departamento: <strong>${department}</strong></p>` : ''}
+                <p>Clique no botão abaixo para aceitar o convite:</p>
+                <a href="${acceptUrl}" style="display: inline-block; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+                  Aceitar Convite
+                </a>
+                <p style="margin-top: 20px; color: #666; font-size: 12px;">
+                  Este convite expira em 7 dias. Se você não solicitou este convite, pode ignorar este email.
+                </p>
+              </div>
+            `
+          })
 
-        console.log('Team member login successful:', teamMember.name)
+          console.log('Email sent successfully:', emailResponse)
+        } catch (emailError: any) {
+          console.error('Error sending email:', emailError)
+          // Don't fail the invitation if email fails, user can resend
+        }
 
         return new Response(
-          JSON.stringify({
-            success: true,
-            token,
-            expiresAt,
-            teamMember: {
-              id: teamMember.id,
-              name: teamMember.name,
-              email: teamMember.email,
-              adminUserId: teamMember.user_id,
-              adminName: adminProfile?.full_name || adminProfile?.email || 'Administrador'
-            },
-            permissions: permissions || []
+          JSON.stringify({ 
+            success: true, 
+            message: 'Convite enviado com sucesso',
+            invitationId: invitation.id
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
-      case 'validate': {
-        const { token } = data
-        
-        if (!token) {
+      case 'resend_invitation': {
+        const { invitationId } = data
+
+        if (!invitationId) {
           return new Response(
-            JSON.stringify({ valid: false, error: 'Token não fornecido' }),
+            JSON.stringify({ success: false, error: 'ID do convite é obrigatório' }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
           )
         }
 
-        // Find valid session
-        const { data: session, error: sessionError } = await supabaseAdmin
-          .from('team_member_sessions')
-          .select(`
-            id,
-            team_member_id,
-            expires_at,
-            team_member:team_members (
-              id,
-              user_id,
-              name,
-              email,
-              status
-            )
-          `)
-          .eq('token', token)
-          .gt('expires_at', new Date().toISOString())
+        // Get invitation
+        const { data: invitation, error: inviteError } = await supabaseAdmin
+          .from('team_invitations')
+          .select('*, admin:profiles!team_invitations_admin_user_id_fkey(full_name, email)')
+          .eq('id', invitationId)
           .single()
 
-        if (sessionError || !session) {
+        if (inviteError || !invitation) {
           return new Response(
-            JSON.stringify({ valid: false, error: 'Sessão inválida ou expirada' }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
-        }
-
-        const teamMember = session.team_member as any
-        if (!teamMember || teamMember.status !== 'active') {
-          return new Response(
-            JSON.stringify({ valid: false, error: 'Membro da equipe inativo' }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
-        }
-
-        // Get admin profile info
-        const { data: adminProfile } = await supabaseAdmin
-          .from('profiles')
-          .select('full_name, email')
-          .eq('user_id', teamMember.user_id)
-          .single()
-
-        // Get permissions
-        const { data: permissions } = await supabaseAdmin
-          .from('team_member_permissions')
-          .select('module_key, action, is_allowed, restrictions')
-          .eq('team_member_id', session.team_member_id)
-          .eq('is_allowed', true)
-
-        return new Response(
-          JSON.stringify({
-            valid: true,
-            teamMember: {
-              id: teamMember.id,
-              name: teamMember.name,
-              email: teamMember.email,
-              adminUserId: teamMember.user_id,
-              adminName: adminProfile?.full_name || adminProfile?.email || 'Administrador'
-            },
-            permissions: permissions || []
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
-      case 'logout': {
-        const { token } = data
-        
-        if (token) {
-          await supabaseAdmin
-            .from('team_member_sessions')
-            .delete()
-            .eq('token', token)
-        }
-
-        return new Response(
-          JSON.stringify({ success: true }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
-      case 'create_credentials': {
-        // This action requires admin authentication
-        const authHeader = req.headers.get('Authorization')
-        if (!authHeader) {
-          return new Response(
-            JSON.stringify({ error: 'Não autorizado' }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
-          )
-        }
-
-        const token = authHeader.replace('Bearer ', '')
-        const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
-        
-        if (authError || !user) {
-          return new Response(
-            JSON.stringify({ error: 'Não autorizado' }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
-          )
-        }
-
-        const { teamMemberId, username, password } = data
-
-        // Verify team member belongs to this user
-        const { data: teamMember, error: tmError } = await supabaseAdmin
-          .from('team_members')
-          .select('id, user_id')
-          .eq('id', teamMemberId)
-          .eq('user_id', user.id)
-          .single()
-
-        if (tmError || !teamMember) {
-          return new Response(
-            JSON.stringify({ error: 'Membro da equipe não encontrado ou não autorizado' }),
+            JSON.stringify({ success: false, error: 'Convite não encontrado' }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
           )
         }
 
-        // Check if username already exists
-        const { data: existingUsername } = await supabaseAdmin
-          .from('team_member_credentials')
-          .select('id')
-          .eq('username', username.toLowerCase().trim())
-          .single()
+        // Generate new token and extend expiration
+        const newToken = generateToken()
+        const newExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
 
-        if (existingUsername) {
+        await supabaseAdmin
+          .from('team_invitations')
+          .update({
+            invitation_token: newToken,
+            expires_at: newExpiresAt,
+            status: 'pending'
+          })
+          .eq('id', invitationId)
+
+        // Send email
+        const adminName = (invitation as any).admin?.full_name || (invitation as any).admin?.email || 'Administrador'
+        const acceptUrl = `https://outapp.com.br/aceitar-convite?token=${newToken}`
+
+        try {
+          await resend.emails.send({
+            from: 'OutApp <noreply@resend.dev>',
+            to: [invitation.invited_email],
+            subject: `${adminName} reenviou o convite para a equipe`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h1 style="color: #6366f1;">Convite para Equipe</h1>
+                <p>Olá!</p>
+                <p><strong>${adminName}</strong> reenviou o convite para você fazer parte da equipe no OutApp.</p>
+                <p>Clique no botão abaixo para aceitar o convite:</p>
+                <a href="${acceptUrl}" style="display: inline-block; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+                  Aceitar Convite
+                </a>
+                <p style="margin-top: 20px; color: #666; font-size: 12px;">
+                  Este convite expira em 7 dias.
+                </p>
+              </div>
+            `
+          })
+        } catch (emailError: any) {
+          console.error('Error resending email:', emailError)
+        }
+
+        return new Response(
+          JSON.stringify({ success: true, message: 'Convite reenviado com sucesso' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      case 'cancel_invitation': {
+        const { invitationId } = data
+
+        if (!invitationId) {
           return new Response(
-            JSON.stringify({ error: 'Este nome de usuário já está em uso' }),
+            JSON.stringify({ success: false, error: 'ID do convite é obrigatório' }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
           )
         }
 
-        // Check if credentials already exist for this member
-        const { data: existingCreds } = await supabaseAdmin
-          .from('team_member_credentials')
-          .select('id')
-          .eq('team_member_id', teamMemberId)
+        await supabaseAdmin
+          .from('team_invitations')
+          .update({ status: 'cancelled' })
+          .eq('id', invitationId)
+
+        return new Response(
+          JSON.stringify({ success: true, message: 'Convite cancelado' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      case 'accept_invitation': {
+        const { token } = data
+
+        if (!token) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Token é obrigatório' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+          )
+        }
+
+        // Find valid invitation
+        const { data: invitation, error: inviteError } = await supabaseAdmin
+          .from('team_invitations')
+          .select('*')
+          .eq('invitation_token', token)
+          .eq('status', 'pending')
+          .gt('expires_at', new Date().toISOString())
           .single()
 
-        const hashedPassword = await hashPassword(password)
+        if (inviteError || !invitation) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Convite inválido ou expirado' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+          )
+        }
 
-        if (existingCreds) {
-          // Update existing credentials
-          const { error: updateError } = await supabaseAdmin
-            .from('team_member_credentials')
-            .update({
-              username: username.toLowerCase().trim(),
-              password_hash: hashedPassword,
-              is_active: true
+        // Get accepting user from auth header
+        const authHeader = req.headers.get('Authorization')
+        let acceptingUserId = null
+
+        if (authHeader) {
+          const userToken = authHeader.replace('Bearer ', '')
+          const { data: { user } } = await supabaseAdmin.auth.getUser(userToken)
+          acceptingUserId = user?.id
+        }
+
+        // Update invitation status
+        await supabaseAdmin
+          .from('team_invitations')
+          .update({
+            status: 'accepted',
+            accepted_at: new Date().toISOString(),
+            accepted_by_user_id: acceptingUserId
+          })
+          .eq('id', invitation.id)
+
+        // Create team member if not exists
+        let teamMemberId = invitation.team_member_id
+
+        if (!teamMemberId) {
+          const { data: newMember, error: memberError } = await supabaseAdmin
+            .from('team_members')
+            .insert({
+              user_id: invitation.admin_user_id,
+              member_user_id: acceptingUserId,
+              name: invitation.invited_email.split('@')[0],
+              email: invitation.invited_email,
+              role: invitation.role || 'Membro',
+              department: invitation.department || 'geral',
+              status: 'active',
+              joined_date: new Date().toISOString(),
+              invitation_id: invitation.id
             })
-            .eq('id', existingCreds.id)
+            .select()
+            .single()
 
-          if (updateError) {
-            console.error('Update credentials error:', updateError)
-            return new Response(
-              JSON.stringify({ error: 'Erro ao atualizar credenciais' }),
-              { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-            )
+          if (!memberError && newMember) {
+            teamMemberId = newMember.id
           }
         } else {
-          // Create new credentials
-          const { error: insertError } = await supabaseAdmin
-            .from('team_member_credentials')
-            .insert({
-              team_member_id: teamMemberId,
-              username: username.toLowerCase().trim(),
-              password_hash: hashedPassword,
-              is_active: true
+          // Update existing team member
+          await supabaseAdmin
+            .from('team_members')
+            .update({
+              member_user_id: acceptingUserId,
+              status: 'active'
             })
-
-          if (insertError) {
-            console.error('Insert credentials error:', insertError)
-            return new Response(
-              JSON.stringify({ error: 'Erro ao criar credenciais' }),
-              { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-            )
-          }
+            .eq('id', teamMemberId)
         }
 
         return new Response(
-          JSON.stringify({ success: true, message: 'Credenciais salvas com sucesso' }),
+          JSON.stringify({ 
+            success: true, 
+            message: 'Convite aceito com sucesso!',
+            teamMemberId
+          }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
       case 'update_permissions': {
-        // This action requires admin authentication
         const authHeader = req.headers.get('Authorization')
         if (!authHeader) {
           return new Response(
@@ -439,15 +406,16 @@ serve(async (req) => {
       }
 
       default:
+        console.error('Unknown action:', action)
         return new Response(
-          JSON.stringify({ error: 'Ação inválida' }),
+          JSON.stringify({ error: 'Ação inválida: ' + action }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
         )
     }
   } catch (error) {
     console.error('Team member auth error:', error)
     return new Response(
-      JSON.stringify({ error: 'Erro interno do servidor' }),
+      JSON.stringify({ error: 'Erro interno do servidor: ' + (error as Error).message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     )
   }

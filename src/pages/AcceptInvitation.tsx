@@ -32,7 +32,7 @@ export default function AcceptInvitation() {
 
     if (!user) {
       // Redirect to login with return URL
-      navigate(`/auth?redirect=/accept-invitation?token=${token}`);
+      navigate(`/auth?redirect=/aceitar-convite?token=${token}`);
       return;
     }
 
