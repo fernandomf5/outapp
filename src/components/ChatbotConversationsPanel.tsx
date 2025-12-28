@@ -15,7 +15,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 
-export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId?: string }) => {
+interface TeamContext {
+  adminUserId: string;
+  allowedIds: string[];
+}
+
+interface ChatbotConversationsPanelProps {
+  chatbotId?: string;
+  teamContext?: TeamContext;
+}
+
+export const ChatbotConversationsPanel = ({ chatbotId, teamContext }: ChatbotConversationsPanelProps) => {
   const [conversations, setConversations] = useState<any[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -106,6 +116,9 @@ export const ChatbotConversationsPanel = ({ chatbotId }: { chatbotId?: string })
 
       if (chatbotId) {
         query = query.eq('chatbot_id', chatbotId);
+      } else if (teamContext?.allowedIds && teamContext.allowedIds.length > 0) {
+        // Filter by allowed chatbot IDs for team members
+        query = query.in('chatbot_id', teamContext.allowedIds);
       }
 
       const { data, error } = await query;

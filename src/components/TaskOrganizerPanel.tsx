@@ -261,7 +261,16 @@ function DroppableBlock({ block, tasks, allBlocks, onEdit, onDelete, onEditBlock
   );
 }
 
-export const TaskOrganizerPanel = () => {
+interface TeamContext {
+  adminUserId: string;
+  allowedIds: string[];
+}
+
+interface TaskOrganizerPanelProps {
+  teamContext?: TeamContext;
+}
+
+export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [blocks, setBlocks] = useState<TaskBlock[]>([]);
   const [clients, setClients] = useState<Array<{id: string, name: string}>>([]);
@@ -313,10 +322,19 @@ export const TaskOrganizerPanel = () => {
     return closestCenter(args);
   };
 
+  // Helper to get the correct user ID (admin's ID when team member)
+  const getTargetUserId = async (): Promise<string | null> => {
+    if (teamContext?.adminUserId) {
+      return teamContext.adminUserId;
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    return user?.id || null;
+  };
+
   useEffect(() => {
     loadData();
     loadClients();
-  }, []);
+  }, [teamContext]);
 
   useEffect(() => {
     if (taskForm.client_id) {
@@ -328,14 +346,21 @@ export const TaskOrganizerPanel = () => {
 
   const loadClients = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const userId = await getTargetUserId();
+      if (!userId) return;
 
-      const { data, error } = await supabase
+      let query = supabase
         .from("customers")
         .select("id, name")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("name", { ascending: true });
+
+      // If team member with restrictions, filter by allowed client IDs
+      if (teamContext?.allowedIds && teamContext.allowedIds.length > 0) {
+        query = query.in("id", teamContext.allowedIds);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setClients(data || []);
@@ -347,13 +372,13 @@ export const TaskOrganizerPanel = () => {
 
   const loadClientCategories = async (clientId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const userId = await getTargetUserId();
+      if (!userId) return;
 
       const { data, error } = await supabase
         .from("task_categories")
         .select("id, name")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("client_id", clientId)
         .order("name", { ascending: true });
 
@@ -370,13 +395,13 @@ export const TaskOrganizerPanel = () => {
     if (!categoryName || !categoryName.trim()) return;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const userId = await getTargetUserId();
+      if (!userId) return;
 
       const { error } = await supabase
         .from("task_categories")
         .insert({
-          user_id: user.id,
+          user_id: userId,
           client_id: taskForm.client_id,
           name: categoryName.trim()
         });
@@ -393,33 +418,47 @@ export const TaskOrganizerPanel = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const userId = await getTargetUserId();
+      if (!userId) return;
 
-      // Load blocks
-      const { data: blocksData, error: blocksError } = await supabase
+      // Load blocks - filter by allowed client IDs if team member
+      let blocksQuery = supabase
         .from("task_blocks")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("order_index", { ascending: true });
+
+      // If team member with restrictions, filter blocks by client_id
+      if (teamContext?.allowedIds && teamContext.allowedIds.length > 0) {
+        blocksQuery = blocksQuery.or(`client_id.in.(${teamContext.allowedIds.join(',')}),client_id.is.null`);
+      }
+
+      const { data: blocksData, error: blocksError } = await blocksQuery;
 
       if (blocksError) throw blocksError;
 
-      // If no blocks exist, create default ones
-      if (!blocksData || blocksData.length === 0) {
-        await createDefaultBlocks(user.id);
+      // If no blocks exist and not a team member, create default ones
+      if ((!blocksData || blocksData.length === 0) && !teamContext) {
+        await createDefaultBlocks(userId);
         await loadData();
         return;
       }
 
-      setBlocks(blocksData);
+      setBlocks(blocksData || []);
 
-      // Load tasks
-      const { data: tasksData, error: tasksError } = await supabase
+      // Load tasks - filter by allowed client IDs if team member
+      let tasksQuery = supabase
         .from("tasks")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
+
+      // If team member with restrictions, filter tasks by client_id
+      if (teamContext?.allowedIds && teamContext.allowedIds.length > 0) {
+        tasksQuery = tasksQuery.in("client_id", teamContext.allowedIds);
+      }
+
+      const { data: tasksData, error: tasksError } = await tasksQuery;
 
       if (tasksError) throw tasksError;
       setTasks((tasksData || []) as Task[]);

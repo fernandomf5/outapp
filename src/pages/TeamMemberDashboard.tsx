@@ -12,8 +12,9 @@ import { ClientsManagementPanel } from "@/components/ClientsManagementPanel";
 import { FinancialManagementPanel } from "@/components/FinancialManagementPanel";
 import { AdsManagementPanel } from "@/components/AdsManagementPanel";
 import { TaskOrganizerPanel } from "@/components/TaskOrganizerPanel";
+import { ChatbotConversationsPanel } from "@/components/ChatbotConversationsPanel";
 
-type TeamModuleKey = "agenda" | "crm" | "financial" | "ads" | "tasks";
+type TeamModuleKey = "agenda" | "crm" | "financial" | "ads" | "tasks" | "chatbots";
 
 const MODULES: Array<{ key: TeamModuleKey; title: string; description: string }> = [
   { key: "agenda", title: "Agenda", description: "Gerencie eventos e lembretes" },
@@ -21,6 +22,7 @@ const MODULES: Array<{ key: TeamModuleKey; title: string; description: string }>
   { key: "financial", title: "Financeiro", description: "Controle financeiro" },
   { key: "ads", title: "Anúncios", description: "Gestão de anúncios" },
   { key: "tasks", title: "Tarefas", description: "Organizador de tarefas" },
+  { key: "chatbots", title: "Chat Online", description: "Conversas do chatbot" },
 ];
 
 export default function TeamMemberDashboard() {
@@ -28,7 +30,7 @@ export default function TeamMemberDashboard() {
   const [searchParams] = useSearchParams();
   const tab = (searchParams.get("tab") || "").toLowerCase();
 
-  const { isTeamMember, teamMember, canAccessModule, logout } = useTeamMember();
+  const { isTeamMember, teamMember, canAccessModule, getAllowedIds, logout } = useTeamMember();
 
   const allowedModules = useMemo(() => {
     return MODULES.filter((m) => canAccessModule(m.key));
@@ -66,17 +68,29 @@ export default function TeamMemberDashboard() {
       );
     }
 
+    // Get allowed IDs for current module
+    const allowedIds = getAllowedIds(activeTab);
+    const adminUserId = teamMember.adminUserId;
+
     switch (activeTab) {
       case "agenda":
-        return <AgendaPanel />;
+        return <AgendaPanel teamContext={{ adminUserId, allowedIds }} />;
       case "crm":
-        return <ClientsManagementPanel />;
+        return <ClientsManagementPanel teamContext={{ adminUserId, allowedIds }} />;
       case "financial":
-        return <FinancialManagementPanel />;
+        return <FinancialManagementPanel teamContext={{ adminUserId, allowedIds }} />;
       case "ads":
-        return <AdsManagementPanel />;
+        return <AdsManagementPanel teamContext={{ adminUserId, allowedIds }} />;
       case "tasks":
-        return <TaskOrganizerPanel />;
+        return <TaskOrganizerPanel teamContext={{ adminUserId, allowedIds }} />;
+      case "chatbots":
+        // For chatbots, allowedIds contains chatbot IDs
+        // If only one chatbot is allowed, pass it directly
+        if (allowedIds.length === 1) {
+          return <ChatbotConversationsPanel chatbotId={allowedIds[0]} />;
+        }
+        // Otherwise show all allowed chatbots (need to filter in component)
+        return <ChatbotConversationsPanel teamContext={{ adminUserId, allowedIds }} />;
       default:
         return null;
     }

@@ -38,7 +38,16 @@ const COLORS = [
   '#eab308', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6'
 ];
 
-export function AgendaPanel() {
+interface TeamContext {
+  adminUserId: string;
+  allowedIds: string[];
+}
+
+interface AgendaPanelProps {
+  teamContext?: TeamContext;
+}
+
+export function AgendaPanel({ teamContext }: AgendaPanelProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [events, setEvents] = useState<AgendaEvent[]>([]);

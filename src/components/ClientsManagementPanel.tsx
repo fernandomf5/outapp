@@ -52,7 +52,16 @@ const statusLabels = {
   vip: "VIP",
 };
 
-export function ClientsManagementPanel() {
+interface TeamContext {
+  adminUserId: string;
+  allowedIds: string[];
+}
+
+interface ClientsManagementPanelProps {
+  teamContext?: TeamContext;
+}
+
+export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelProps) {
   const { user } = useAuth();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
