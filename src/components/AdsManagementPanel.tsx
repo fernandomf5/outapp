@@ -82,7 +82,16 @@ interface AdCampaign {
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--success))'];
 
-export const AdsManagementPanel = () => {
+interface TeamContext {
+  adminUserId: string;
+  allowedIds: string[];
+}
+
+interface AdsManagementPanelProps {
+  teamContext?: TeamContext;
+}
+
+export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => {
   const [clients, setClients] = useState<AdClient[]>([]);
   const [campaigns, setCampaigns] = useState<AdCampaign[]>([]);
   const [loading, setLoading] = useState(true);

@@ -115,7 +115,16 @@ const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete }: Sortable
   );
 };
 
-export const FinancialManagementPanel = () => {
+interface TeamContext {
+  adminUserId: string;
+  allowedIds: string[];
+}
+
+interface FinancialManagementPanelProps {
+  teamContext?: TeamContext;
+}
+
+export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPanelProps) => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [selectedBusinessId, setSelectedBusinessId] = useState<string>('');
   const [transactions, setTransactions] = useState<Transaction[]>([]);

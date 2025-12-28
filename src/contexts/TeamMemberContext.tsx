@@ -25,6 +25,7 @@ interface TeamMemberContextType {
   logout: () => Promise<void>;
   hasPermission: (moduleKey: string, action: 'create' | 'read' | 'update' | 'delete') => boolean;
   getModuleRestrictions: (moduleKey: string) => Record<string, any>;
+  getAllowedIds: (moduleKey: string) => string[];
   canAccessModule: (moduleKey: string) => boolean;
 }
 
@@ -156,6 +157,12 @@ export function TeamMemberProvider({ children }: { children: ReactNode }) {
     return restrictions;
   };
 
+  const getAllowedIds = (moduleKey: string): string[] => {
+    if (!isTeamMember) return [];
+    const restrictions = getModuleRestrictions(moduleKey);
+    return restrictions.allowed_ids || [];
+  };
+
   const canAccessModule = (moduleKey: string): boolean => {
     if (!isTeamMember) return true; // Regular users have all access
     // Check if at least has read permission
@@ -172,6 +179,7 @@ export function TeamMemberProvider({ children }: { children: ReactNode }) {
       logout,
       hasPermission,
       getModuleRestrictions,
+      getAllowedIds,
       canAccessModule
     }}>
       {children}
