@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTeamMember } from '@/contexts/TeamMemberContext';
 
 interface FeatureOverride {
   id: string;
@@ -12,12 +13,16 @@ interface FeatureOverride {
 
 export const useFeatureAccess = (featureKey: string) => {
   const { user } = useAuth();
+  const { isTeamMember, teamMember } = useTeamMember();
   const [isBlocked, setIsBlocked] = useState(false);
   const [blockMessage, setBlockMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // For team members, use admin's user ID to check feature access
+  const effectiveUserId = isTeamMember && teamMember ? teamMember.adminUserId : user?.id;
+
   useEffect(() => {
-    if (!user) {
+    if (!effectiveUserId) {
       setIsBlocked(false);
       setBlockMessage(null);
       setLoading(false);
@@ -25,18 +30,18 @@ export const useFeatureAccess = (featureKey: string) => {
     }
 
     checkFeatureAccess();
-  }, [user, featureKey]);
+  }, [effectiveUserId, featureKey]);
 
   const checkFeatureAccess = async () => {
-    if (!user) return;
+    if (!effectiveUserId) return;
 
     try {
-      // Check for user-specific override first
+      // Check for user-specific override first (using admin's ID for team members)
       const { data: userOverride } = await supabase
         .from('feature_overrides')
         .select('*')
         .eq('feature_key', featureKey)
-        .eq('user_id', user.id)
+        .eq('user_id', effectiveUserId)
         .maybeSingle();
 
       if (userOverride) {

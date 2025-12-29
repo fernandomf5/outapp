@@ -1,14 +1,17 @@
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTeamMember } from "@/contexts/TeamMemberContext";
 
 export const useUserPresence = () => {
   const { user } = useAuth();
+  const { isTeamMember } = useTeamMember();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    // Team members don't track presence - only regular users
+    if (!user || isTeamMember) return;
 
     let isMounted = true;
 
@@ -81,5 +84,5 @@ export const useUserPresence = () => {
         channelRef.current = null;
       }
     };
-  }, [user?.id]);
+  }, [user?.id, isTeamMember]);
 };

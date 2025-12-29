@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTeamMember } from '@/contexts/TeamMemberContext';
 
 export interface Feature {
   id: string;
@@ -13,28 +14,32 @@ export interface Feature {
 
 export const useUserFeatures = () => {
   const { user } = useAuth();
+  const { isTeamMember, teamMember } = useTeamMember();
   const [features, setFeatures] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // For team members, use admin's user ID to fetch features
+  const effectiveUserId = isTeamMember && teamMember ? teamMember.adminUserId : user?.id;
+
   useEffect(() => {
-    if (!user) {
+    if (!effectiveUserId) {
       setFeatures([]);
       setLoading(false);
       return;
     }
 
     fetchUserFeatures();
-  }, [user]);
+  }, [effectiveUserId]);
 
   const fetchUserFeatures = async () => {
-    if (!user) return;
+    if (!effectiveUserId) return;
 
     try {
-      // Buscar assinatura ativa do usuário
+      // Buscar assinatura ativa do usuário (ou do admin se for team member)
       const { data: subscription } = await supabase
         .from('subscriptions')
         .select('plan_id, expires_at')
-        .eq('user_id', user.id)
+        .eq('user_id', effectiveUserId)
         .eq('status', 'active')
         .order('expires_at', { ascending: false })
         .limit(1)
