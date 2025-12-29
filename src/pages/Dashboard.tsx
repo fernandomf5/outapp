@@ -125,8 +125,11 @@ const Dashboard = () => {
     };
   };
 
-  // Buscar nome do usuário da tabela profiles
+  // Buscar nome do usuário da tabela profiles (skip for team members - they use teamMember.adminName)
   useEffect(() => {
+    // Team members don't need to fetch profile - they already have adminName from context
+    if (isTeamMember) return;
+    
     const fetchUserProfile = async () => {
       if (!user) return;
       
@@ -165,7 +168,7 @@ const Dashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, isTeamMember]);
 
   // Se tiver agentId na URL, abrir painel de gerenciamento
   useEffect(() => {
@@ -234,7 +237,8 @@ const Dashboard = () => {
   }, [searchParams, paymentProcessed, toast, setSearchParams]);
   useEffect(() => {
     const fetchData = async () => {
-      if (!user) return;
+      // For team members, use admin's user ID; for regular users, use their own
+      if (!effectiveUserId) return;
 
       // Buscar agentes IA do usuário com contagem de cliques
       const { data: agentsData, error: agentsError } = await supabase
@@ -243,7 +247,7 @@ const Dashboard = () => {
           *,
           button_clicks:button_link_clicks(count)
         `)
-        .eq('user_id', user.id)
+        .eq('user_id', effectiveUserId)
         .order('created_at', { ascending: false });
 
       if (!agentsError && agentsData) {
@@ -262,14 +266,14 @@ const Dashboard = () => {
           { count: membersAreasCount },
           { count: popupsCount }
         ] = await Promise.all([
-          supabase.from('short_links').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-          supabase.from('link_bios').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-          supabase.from('cloned_pages').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-          supabase.from('quizzes').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-          supabase.from('websites').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-          supabase.from('briefings').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-          supabase.from('members_areas').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-          supabase.from('popups').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+          supabase.from('short_links').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
+          supabase.from('link_bios').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
+          supabase.from('cloned_pages').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
+          supabase.from('quizzes').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
+          supabase.from('websites').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
+          supabase.from('briefings').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
+          supabase.from('members_areas').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
+          supabase.from('popups').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
         ]);
 
         setStats({
@@ -290,23 +294,25 @@ const Dashboard = () => {
 
     fetchData();
 
-    // Subscrever mudanças em tempo real para agentes IA
-    const agentsSubscription = supabase
-      .channel('ai_agents_changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'ai_agents',
-        filter: `user_id=eq.${user?.id}`
-      }, () => {
-        fetchData();
-      })
-      .subscribe();
+    // Subscrever mudanças em tempo real para agentes IA (only for regular users)
+    if (!isTeamMember && effectiveUserId) {
+      const agentsSubscription = supabase
+        .channel('ai_agents_changes')
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'ai_agents',
+          filter: `user_id=eq.${effectiveUserId}`
+        }, () => {
+          fetchData();
+        })
+        .subscribe();
 
-    return () => {
-      agentsSubscription.unsubscribe();
-    };
-  }, [user]);
+      return () => {
+        agentsSubscription.unsubscribe();
+      };
+    }
+  }, [effectiveUserId, isTeamMember]);
 
   const handleTabChange = (value: string) => {
     navigate(`/dashboard?tab=${value}`);
