@@ -85,6 +85,7 @@ const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [userFullName, setUserFullName] = useState<string>('');
   const [paymentProcessed, setPaymentProcessed] = useState(false);
+  const { isTeamMember, teamMember, getAllowedIds, canAccessModule } = useTeamMember();
   
   // Track user presence for online status
   useUserPresence();
@@ -111,6 +112,18 @@ const Dashboard = () => {
   const section = searchParams.get('section');
   const chatbotId = searchParams.get('chatbotId');
   const agentId = searchParams.get('agentId');
+
+  // For team members, use admin's user ID for data fetching
+  const effectiveUserId = isTeamMember && teamMember ? teamMember.adminUserId : user?.id;
+  
+  // Get team context for components (when team member)
+  const getTeamContext = (moduleKey: string) => {
+    if (!isTeamMember || !teamMember) return undefined;
+    return {
+      adminUserId: teamMember.adminUserId,
+      allowedIds: getAllowedIds(moduleKey)
+    };
+  };
 
   // Buscar nome do usuário da tabela profiles
   useEffect(() => {
@@ -394,46 +407,57 @@ const Dashboard = () => {
                 </Link>
                 <div className="min-w-0">
                   <h1 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl font-bold truncate">
-                    {t('hello')}, {(userFullName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário').split(' ')[0]}! 👋
+                    {isTeamMember && teamMember 
+                      ? `Painel de ${teamMember.adminName.split(' ')[0]}`
+                      : `${t('hello')}, ${(userFullName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário').split(' ')[0]}! 👋`
+                    }
                   </h1>
-                  <p className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm lg:text-base 3xl:text-lg text-muted-foreground hidden xs:block">{t('welcome_back')}</p>
+                  <p className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm lg:text-base 3xl:text-lg text-muted-foreground hidden xs:block">
+                    {isTeamMember ? 'Acesso como membro da equipe' : t('welcome_back')}
+                  </p>
                 </div>
               </div>
               
               {/* Right side - Actions */}
               <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-2 lg:gap-3 shrink-0">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsCalculatorOpen(true)}
-                  title="Calculadora"
-                  className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
-                >
-                  <Calculator className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-                </Button>
-                <ConversationNotificationBell />
-                <NotificationBell />
-                <TicketNotificationBell />
+                {!isTeamMember && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsCalculatorOpen(true)}
+                    title="Calculadora"
+                    className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
+                  >
+                    <Calculator className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+                  </Button>
+                )}
+                {!isTeamMember && <ConversationNotificationBell />}
+                {!isTeamMember && <NotificationBell />}
+                {!isTeamMember && <TicketNotificationBell />}
                 <div className="hidden md:flex items-center gap-1 lg:gap-2">
                   <LanguageSelector />
                   <ThemeToggle />
                 </div>
-                <Button 
-                  variant="outline" 
-                  onClick={() => navigate("/settings")} 
-                  size="icon"
-                  className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
-                >
-                  <Settings className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
-                </Button>
-                <Button
-                  onClick={handleLogout}
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
-                >
-                  <LogOut className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
-                </Button>
+                {!isTeamMember && (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => navigate("/settings")} 
+                      size="icon"
+                      className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
+                    >
+                      <Settings className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
+                    </Button>
+                    <Button
+                      onClick={handleLogout}
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
+                    >
+                      <LogOut className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </header>
@@ -998,7 +1022,7 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="clientes">
-            <ClientsManagementPanel />
+            <ClientsManagementPanel teamContext={getTeamContext('crm')} />
           </TabsContent>
 
           <TabsContent value="floating-button">
@@ -1167,7 +1191,7 @@ const Dashboard = () => {
 
           <TabsContent value="financeiro">
             <FeatureGate featureKey="financial_management">
-              <FinancialManagementPanel />
+              <FinancialManagementPanel teamContext={getTeamContext('financial')} />
             </FeatureGate>
           </TabsContent>
 
@@ -1179,13 +1203,13 @@ const Dashboard = () => {
 
           <TabsContent value="anuncios">
             <FeatureGate featureKey="ads_management">
-              <AdsManagementPanel />
+              <AdsManagementPanel teamContext={getTeamContext('ads')} />
             </FeatureGate>
           </TabsContent>
 
           <TabsContent value="tarefas">
             <FeatureGate featureKey="task_organizer">
-              <TaskOrganizerPanel />
+              <TaskOrganizerPanel teamContext={getTeamContext('tasks')} />
             </FeatureGate>
           </TabsContent>
 
@@ -1269,7 +1293,7 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="agenda">
-            <AgendaPanel />
+            <AgendaPanel teamContext={getTeamContext('agenda')} />
           </TabsContent>
 
           <TabsContent value="aprova-job">
