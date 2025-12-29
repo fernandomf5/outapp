@@ -13,7 +13,7 @@ export function TeamMemberBanner() {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/team-login', { replace: true });
+    navigate('/auth', { replace: true });
   };
 
   return (
