@@ -155,6 +155,7 @@ export function LinkBioCreator({ teamContext }: { teamContext?: { adminUserId: s
   const [showAnalytics, setShowAnalytics] = useState(false);
 
   const effectiveUserId = teamContext?.adminUserId ?? user?.id;
+  const selectedBio = bios.find(b => b.id === selectedBioId) || null;
   const allowedBioIds = teamContext?.allowedIds;
   
   // Form states
