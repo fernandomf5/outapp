@@ -236,32 +236,7 @@ export function UserSidebar() {
                   {managementItems.map((item) => {
                     if (!canShowItem(item)) return null;
                     
-                    // Special handling for team management to show access button (for regular users who are also team members elsewhere)
-                    if (item.tab === 'equipe' && teamMembership && !isTeamMember) {
-                      return (
-                        <SidebarMenuItem key={item.title}>
-                          <SidebarMenuButton
-                            onClick={() => handleNavigation(item.path, item.tab)}
-                            className={`text-sm py-2 ${isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}`}
-                          >
-                            <item.icon className="h-4 w-4 shrink-0" />
-                            {!collapsed && <span className="truncate">{item.title}</span>}
-                          </SidebarMenuButton>
-                          {!collapsed && teamMembership && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full mt-1 text-xs gap-1 border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground"
-                              onClick={() => navigate('/team-login')}
-                            >
-                              <LogIn className="h-3 w-3" />
-                              Acessar Área de {teamMembership.adminName}
-                            </Button>
-                          )}
-                        </SidebarMenuItem>
-                      );
-                    }
-                    
+                    // Special handling removed: no "Acessar Área do Administrador" shortcut
                     return (
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
