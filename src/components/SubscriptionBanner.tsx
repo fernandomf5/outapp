@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTeamMember } from "@/contexts/TeamMemberContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ interface Plan {
 
 export const SubscriptionBanner = () => {
   const { user } = useAuth();
+  const { isTeamMember } = useTeamMember();
   const navigate = useNavigate();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [plan, setPlan] = useState<Plan | null>(null);
@@ -29,6 +31,12 @@ export const SubscriptionBanner = () => {
   const [hasNoPlan, setHasNoPlan] = useState(false);
 
   useEffect(() => {
+    // Team members should NEVER see plan banners
+    if (isTeamMember) {
+      setLoading(false);
+      return;
+    }
+
     if (!user) return;
 
     const fetchSubscription = async () => {
@@ -62,7 +70,7 @@ export const SubscriptionBanner = () => {
     };
 
     fetchSubscription();
-  }, [user]);
+  }, [user, isTeamMember]);
 
   if (loading || dismissed) return null;
 

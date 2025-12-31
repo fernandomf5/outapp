@@ -115,15 +115,46 @@ const Dashboard = () => {
 
   // For team members, use admin's user ID for data fetching
   const effectiveUserId = isTeamMember && teamMember ? teamMember.adminUserId : user?.id;
-  
+
   // Get team context for components (when team member)
   const getTeamContext = (moduleKey: string) => {
     if (!isTeamMember || !teamMember) return undefined;
     return {
       adminUserId: teamMember.adminUserId,
-      allowedIds: getAllowedIds(moduleKey)
+      allowedIds: getAllowedIds(moduleKey),
     };
   };
+
+  // For team members: force navigation to the first allowed module (no parallel dashboard)
+  useEffect(() => {
+    if (!isTeamMember) return;
+
+    const candidates = [
+      { moduleKey: 'agenda', tab: 'agenda' },
+      { moduleKey: 'crm', tab: 'clientes' },
+      { moduleKey: 'financial', tab: 'financeiro' },
+      { moduleKey: 'ads', tab: 'anuncios' },
+      { moduleKey: 'tasks', tab: 'tarefas' },
+      { moduleKey: 'ai_agents', tab: 'ai-agents' },
+      { moduleKey: 'link_bio', tab: 'linkbio' },
+      { moduleKey: 'briefings', tab: 'briefing' },
+      { moduleKey: 'portfolio', tab: 'portfolio' },
+      { moduleKey: 'cloner', tab: 'cloner' },
+    ];
+
+    const allowedTabs = candidates
+      .filter((c) => canAccessModule(c.moduleKey))
+      .map((c) => c.tab);
+
+    const isAllowed = allowedTabs.includes(activeTab);
+    const firstAllowed = allowedTabs[0];
+
+    if (!firstAllowed) return;
+
+    if (!isAllowed) {
+      navigate(`/dashboard?tab=${firstAllowed}`, { replace: true });
+    }
+  }, [isTeamMember, canAccessModule, activeTab, navigate]);
 
   // Buscar nome do usuário da tabela profiles (skip for team members - they use teamMember.adminName)
   useEffect(() => {
@@ -1122,7 +1153,7 @@ const Dashboard = () => {
           <TabsContent value="linkbio">
             <ErrorBoundary>
               <FeatureGate featureKey="link_bio">
-                <LinkBioCreator />
+                <LinkBioCreator teamContext={getTeamContext('link_bio')} />
               </FeatureGate>
             </ErrorBoundary>
           </TabsContent>
@@ -1178,7 +1209,8 @@ const Dashboard = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <MyAIAgents 
+                    <MyAIAgents
+                      teamContext={getTeamContext('ai_agents')}
                       onManage={(agent) => setSelectedAgentForManagement(agent)}
                     />
                   </CardContent>

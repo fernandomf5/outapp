@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { MessageSquare, Pencil, Trash2, Copy, ExternalLink, Settings, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTeamMember } from "@/contexts/TeamMemberContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -26,13 +27,20 @@ import {
 } from "@/components/ui/dialog";
 import AgentNotificationsPanel from "@/components/AgentNotificationsPanel";
 
-interface MyAIAgentsProps {
-  onManage?: (agent: { id: string; name: string; niche: string }) => void;
+interface TeamContext {
+  adminUserId: string;
+  allowedIds?: string[];
 }
 
-export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
+interface MyAIAgentsProps {
+  onManage?: (agent: { id: string; name: string; niche: string }) => void;
+  teamContext?: TeamContext;
+}
+
+export const MyAIAgents = ({ onManage, teamContext }: MyAIAgentsProps = {}) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isTeamMember } = useTeamMember();
   const { toast } = useToast();
   const { t } = useLanguage();
   const [agents, setAgents] = useState<any[]>([]);
@@ -41,17 +49,22 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
   const [notifications, setNotifications] = useState<Record<string, { appointments: number; orders: number; messages: number }>>({});
   const [selectedAgentForNotifications, setSelectedAgentForNotifications] = useState<string | null>(null);
 
+  const effectiveUserId = teamContext?.adminUserId ?? user?.id;
+  const allowedIds = teamContext?.allowedIds;
+
   useEffect(() => {
     fetchAgents();
 
-    // Subscrever mudanças em tempo real
+    // Team members: no realtime (keeps it simple + avoids cross-user subscriptions)
+    if (isTeamMember || !effectiveUserId) return;
+
     const subscription = supabase
       .channel('my_agents_changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
         table: 'ai_agents',
-        filter: `user_id=eq.${user?.id}`
+        filter: `user_id=eq.${effectiveUserId}`
       }, () => {
         fetchAgents();
       })
@@ -60,17 +73,30 @@ export const MyAIAgents = ({ onManage }: MyAIAgentsProps = {}) => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [user]);
+  }, [effectiveUserId, isTeamMember]);
 
   const fetchAgents = async () => {
-    if (!user) return;
-    
+    if (!effectiveUserId) return;
+
+    // If delegated but no allowed IDs, show empty (nothing delegated)
+    if (isTeamMember && Array.isArray(allowedIds) && allowedIds.length === 0) {
+      setAgents([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
-    const { data, error } = await supabase
+    let query = supabase
       .from('ai_agents')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', effectiveUserId)
       .order('created_at', { ascending: false });
+
+    if (isTeamMember && Array.isArray(allowedIds) && allowedIds.length > 0) {
+      query = query.in('id', allowedIds);
+    }
+
+    const { data, error } = await query;
 
     if (!error && data) {
       setAgents(data);

@@ -145,7 +145,7 @@ const themeOptions = [
   { value: 'pastel', label: 'Pastel', bg: '#fef9ef', text: '#2d3748', button: '#f687b3', buttonText: '#ffffff' },
 ];
 
-export function LinkBioCreator() {
+export function LinkBioCreator({ teamContext }: { teamContext?: { adminUserId: string; allowedIds?: string[] } } = {}) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [bios, setBios] = useState<LinkBio[]>([]);
@@ -153,8 +153,9 @@ export function LinkBioCreator() {
   const [links, setLinks] = useState<BioLink[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
-  
-  const selectedBio = bios.find(b => b.id === selectedBioId) || null;
+
+  const effectiveUserId = teamContext?.adminUserId ?? user?.id;
+  const allowedBioIds = teamContext?.allowedIds;
   
   // Form states
   const [username, setUsername] = useState("");
@@ -200,10 +201,10 @@ export function LinkBioCreator() {
   const [uploadingEditLinkImage, setUploadingEditLinkImage] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    if (effectiveUserId) {
       fetchBios();
     }
-  }, [user]);
+  }, [effectiveUserId]);
 
   useEffect(() => {
     if (selectedBio) {
@@ -236,13 +237,24 @@ export function LinkBioCreator() {
   }, [selectedBio]);
 
   const fetchBios = async () => {
-    if (!user) return;
-    
-    const { data: biosData } = await supabase
+    if (!effectiveUserId) return;
+
+    let query = supabase
       .from('link_bios')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', effectiveUserId)
       .order('created_at', { ascending: false });
+
+    if (Array.isArray(allowedBioIds)) {
+      if (allowedBioIds.length === 0) {
+        setBios([]);
+        setSelectedBioId(null);
+        return;
+      }
+      query = query.in('id', allowedBioIds);
+    }
+
+    const { data: biosData } = await query;
 
     if (biosData && biosData.length > 0) {
       const parsedBios = biosData.map(bio => ({
@@ -253,6 +265,9 @@ export function LinkBioCreator() {
       if (!selectedBioId) {
         setSelectedBioId(biosData[0].id);
       }
+    } else {
+      setBios([]);
+      setSelectedBioId(null);
     }
   };
 
@@ -298,7 +313,7 @@ export function LinkBioCreator() {
   };
 
   const createOrUpdateBio = async () => {
-    if (!user || !username) {
+    if (!effectiveUserId || !username) {
       toast({
         title: "Erro",
         description: "Nome de usuário é obrigatório",
@@ -331,7 +346,7 @@ export function LinkBioCreator() {
     }
 
     const bioData = {
-      user_id: user.id,
+      user_id: effectiveUserId,
       username: cleanUsername,
       display_name: displayName,
       bio: bioText,
