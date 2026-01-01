@@ -642,18 +642,7 @@ export const TeamManagementPanel = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {member.linked_user_id && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleQuickLogin(member)}
-                          className="gap-1"
-                        >
-                          <LogIn className="h-4 w-4" />
-                          Entrar no Painel
-                        </Button>
-                      )}
-                      <Button 
+                      <Button
                         variant="outline" 
                         size="sm"
                         onClick={() => {
