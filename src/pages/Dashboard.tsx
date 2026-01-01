@@ -434,7 +434,7 @@ const Dashboard = () => {
         
         <div className="flex-1 flex flex-col min-w-0">
           {/* Header */}
-          <header className="bg-card border-b border-border px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 py-2 xs:py-3 sm:py-4 sticky top-0 z-40 safe-area-bottom">
+          <header className={`bg-card border-b border-border px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 py-2 xs:py-3 sm:py-4 sticky z-40 safe-area-bottom ${isTeamMember ? 'top-10' : 'top-0'}`}>
             <div className="flex items-center justify-between gap-1 xs:gap-2 sm:gap-3">
               {/* Left side - Sidebar trigger and logo */}
               <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 min-w-0 flex-1">
