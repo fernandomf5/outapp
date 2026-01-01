@@ -6555,6 +6555,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      team_member_can: {
+        Args: {
+          p_admin_user_id: string
+          p_module_key: string
+          p_required_action: Database["public"]["Enums"]["permission_action"]
+          p_resource_id: string
+        }
+        Returns: boolean
+      }
       team_member_has_permission: {
         Args: {
           _action: Database["public"]["Enums"]["permission_action"]

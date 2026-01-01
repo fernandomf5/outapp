@@ -97,7 +97,15 @@ export function TeamMemberProvider({ children }: { children: ReactNode }) {
         return { success: false, error: data?.error || 'Credenciais inválidas' };
       }
 
-      // Store session
+      // Set Supabase session so RLS policies work via auth.uid()
+      if (data.supabaseAccessToken && data.supabaseRefreshToken) {
+        await supabase.auth.setSession({
+          access_token: data.supabaseAccessToken,
+          refresh_token: data.supabaseRefreshToken,
+        });
+      }
+
+      // Store team member session
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         token: data.token,
         expiresAt: data.expiresAt
@@ -122,6 +130,13 @@ export function TeamMemberProvider({ children }: { children: ReactNode }) {
     setIsTeamMember(false);
     setTeamMember(null);
     setPermissions([]);
+
+    // Sign out from Supabase Auth as well
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Supabase signOut error:', error);
+    }
 
     // Best-effort revoke on server
     try {
