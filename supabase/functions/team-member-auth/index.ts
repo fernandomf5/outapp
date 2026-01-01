@@ -115,13 +115,12 @@ serve(async (req) => {
           )
         }
 
-        try {
-          await supabaseAuth.auth.signOut()
-        } catch (_) {
-          // ignore
-        }
+        // Keep the Supabase session tokens to return to the client
+        // This allows RLS policies to work via auth.uid()
+        const supabaseAccessToken = authData.session?.access_token
+        const supabaseRefreshToken = authData.session?.refresh_token
 
-        // Generate session token
+        // Generate our own session token for team member context
         const sessionToken = generateToken()
         const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
 
@@ -164,6 +163,9 @@ serve(async (req) => {
             success: true,
             token: sessionToken,
             expiresAt,
+            // Return Supabase session so client can set it for RLS
+            supabaseAccessToken,
+            supabaseRefreshToken,
             teamMember: {
               id: teamMember.id,
               name: teamMember.name,
