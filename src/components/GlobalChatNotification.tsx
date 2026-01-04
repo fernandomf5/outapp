@@ -1,20 +1,44 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTeamMember } from "@/contexts/TeamMemberContext";
 import { chatSounds } from "@/utils/chatSounds";
 import { toast } from "sonner";
 
 export const GlobalChatNotification = () => {
   const { user } = useAuth();
+  const { isTeamMember, teamMember, getAllowedIds, canAccessModule } = useTeamMember();
   const [agentIds, setAgentIds] = useState<string[]>([]);
   const channelRef = useRef<any>(null);
   const lastNotificationRef = useRef<string | null>(null);
 
-  // Buscar agentes do usuário
+  // Buscar agentes do usuário ou agentes delegados para membro da equipe
   useEffect(() => {
-    if (!user) return;
-
     const fetchAgents = async () => {
+      // Se é membro da equipe com acesso ao módulo de chatbots/ai_agents
+      if (isTeamMember && teamMember) {
+        // Check both chatbots and ai_agents modules
+        const hasChatbotsAccess = canAccessModule('chatbots');
+        const hasAiAgentsAccess = canAccessModule('ai_agents');
+        
+        if (hasChatbotsAccess || hasAiAgentsAccess) {
+          const chatbotIds = getAllowedIds('chatbots');
+          const agentIdsFromModule = getAllowedIds('ai_agents');
+          
+          // Combine both sets of IDs
+          const allIds = [...new Set([...chatbotIds, ...agentIdsFromModule])];
+          
+          if (allIds.length > 0) {
+            setAgentIds(allIds);
+            console.log('🔔 GlobalChatNotification (Team Member): Monitorando', allIds.length, 'agentes delegados:', allIds);
+          }
+        }
+        return;
+      }
+
+      // Se é usuário normal
+      if (!user) return;
+
       const { data: agents } = await supabase
         .from('ai_agents')
         .select('id')
@@ -28,7 +52,7 @@ export const GlobalChatNotification = () => {
     };
 
     fetchAgents();
-  }, [user]);
+  }, [user, isTeamMember, teamMember, canAccessModule, getAllowedIds]);
 
   // Configurar listener de mensagens
   useEffect(() => {

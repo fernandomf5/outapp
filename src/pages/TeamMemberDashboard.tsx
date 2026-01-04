@@ -13,8 +13,10 @@ import { FinancialManagementPanel } from "@/components/FinancialManagementPanel"
 import { AdsManagementPanel } from "@/components/AdsManagementPanel";
 import { TaskOrganizerPanel } from "@/components/TaskOrganizerPanel";
 import { ChatbotConversationsPanel } from "@/components/ChatbotConversationsPanel";
+import { GlobalChatNotification } from "@/components/GlobalChatNotification";
+import AgentConversationsPanel from "@/components/AgentConversationsPanel";
 
-type TeamModuleKey = "agenda" | "crm" | "financial" | "ads" | "tasks" | "chatbots";
+type TeamModuleKey = "agenda" | "crm" | "financial" | "ads" | "tasks" | "chatbots" | "ai_agents";
 
 const MODULES: Array<{ key: TeamModuleKey; title: string; description: string }> = [
   { key: "agenda", title: "Agenda", description: "Gerencie eventos e lembretes" },
@@ -22,7 +24,8 @@ const MODULES: Array<{ key: TeamModuleKey; title: string; description: string }>
   { key: "financial", title: "Financeiro", description: "Controle financeiro" },
   { key: "ads", title: "Anúncios", description: "Gestão de anúncios" },
   { key: "tasks", title: "Tarefas", description: "Organizador de tarefas" },
-  { key: "chatbots", title: "Chat Online", description: "Conversas do chatbot" },
+  { key: "chatbots", title: "Chat Online (Chatbot)", description: "Conversas do chatbot" },
+  { key: "ai_agents", title: "Chat Online", description: "Chats de atendimento online" },
 ];
 
 export default function TeamMemberDashboard() {
@@ -91,6 +94,15 @@ export default function TeamMemberDashboard() {
         }
         // Otherwise show all allowed chatbots (need to filter in component)
         return <ChatbotConversationsPanel teamContext={{ adminUserId, allowedIds }} />;
+      case "ai_agents":
+        // For AI agents (Chat Online), use the AgentConversationsPanel
+        if (allowedIds.length === 1) {
+          return <AgentConversationsPanel agentId={allowedIds[0]} />;
+        }
+        // If multiple agents, render the first one (or we could show a selector)
+        return allowedIds.length > 0 
+          ? <AgentConversationsPanel agentId={allowedIds[0]} />
+          : null;
       default:
         return null;
     }
@@ -99,7 +111,9 @@ export default function TeamMemberDashboard() {
   const showGrid = !tab;
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      <GlobalChatNotification />
+      <div className="min-h-screen bg-background">
       <Helmet>
         <title>Painel do Membro da Equipe | Out App</title>
         <meta
@@ -177,6 +191,7 @@ export default function TeamMemberDashboard() {
           </section>
         )}
       </main>
-    </div>
+      </div>
+    </>
   );
 }
