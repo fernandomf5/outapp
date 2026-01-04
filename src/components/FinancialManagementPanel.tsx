@@ -176,24 +176,34 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   useEffect(() => {
     loadBusinesses();
     loadCategories();
-  }, []);
+  }, [teamContext?.adminUserId]);
 
   useEffect(() => {
     if (selectedBusinessId) {
       loadTransactions();
     }
-  }, [selectedBusinessId, selectedMonth, selectedYear]);
+  }, [selectedBusinessId, selectedMonth, selectedYear, teamContext?.adminUserId]);
 
   const loadBusinesses = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
+      // If teamContext is provided, use adminUserId and filter by allowedIds
+      const targetUserId = teamContext?.adminUserId || user.id;
+
+      let query = supabase
         .from('financial_businesses')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', targetUserId)
         .order('created_at', { ascending: false });
+
+      // If team member with specific allowed IDs, filter by them
+      if (teamContext?.allowedIds && teamContext.allowedIds.length > 0) {
+        query = query.in('id', teamContext.allowedIds);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setBusinesses((data || []) as Business[]);
@@ -214,10 +224,13 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Use adminUserId if teamContext is provided
+      const targetUserId = teamContext?.adminUserId || user.id;
+
       const { data, error } = await supabase
         .from('financial_transactions')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', targetUserId)
         .eq('business_id', selectedBusinessId)
         .eq('year', selectedYear)
         .order('due_date', { ascending: true});
@@ -236,10 +249,13 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Use adminUserId if teamContext is provided
+      const targetUserId = teamContext?.adminUserId || user.id;
+
       const { data, error } = await supabase
         .from('financial_categories')
         .select('name')
-        .eq('user_id', user.id)
+        .eq('user_id', targetUserId)
         .order('name');
 
       if (error) throw error;
