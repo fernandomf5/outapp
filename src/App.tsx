@@ -50,6 +50,7 @@ import InstallApp from "./pages/InstallApp";
 import TeamMemberAuth from "./pages/TeamMemberAuth";
 import TeamMemberDashboard from "./pages/TeamMemberDashboard";
 import AcceptInvitation from "./pages/AcceptInvitation";
+import PageEditor from "./pages/PageEditor";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { CookieNotice } from "@/components/CookieNotice";
 
@@ -112,9 +113,14 @@ const AppContent = () => {
           <Route path="/proposta/:slug" element={<ProposalPublicView />} />
           <Route path="/aprova-job/:token" element={<AprovaJobClient />} />
           <Route path="/portfolio/:portfolioId" element={<PortfolioPublicPage />} />
-          <Route path="/portfolio/:portfolioId/:slug" element={<PortfolioPublicPage />} />
-          <Route path="/instalar" element={<InstallApp />} />
-          <Route path="/aceitar-convite" element={<AcceptInvitation />} />
+              <Route path="/portfolio/:portfolioId/:slug" element={<PortfolioPublicPage />} />
+              <Route path="/instalar" element={<InstallApp />} />
+              <Route path="/aceitar-convite" element={<AcceptInvitation />} />
+              <Route path="/page-editor/:pageId" element={
+                <ProtectedRoute>
+                  <PageEditor />
+                </ProtectedRoute>
+              } />
                
               <Route path="/ai-agent" element={
                 <ProtectedRoute>
