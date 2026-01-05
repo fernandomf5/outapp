@@ -61,6 +61,7 @@ import { AgendaReminders } from "@/components/AgendaReminders";
 import { AprovaJobPanel } from "@/components/AprovaJobPanel";
 import { GlobalChatNotification } from "@/components/GlobalChatNotification";
 import { PortfolioCreatorPanel } from "@/components/PortfolioCreatorPanel";
+import { PageBuilderPanel } from "@/components/PageBuilderPanel";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { TeamMemberBanner } from "@/components/TeamMemberBanner";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
@@ -1161,6 +1162,12 @@ const Dashboard = () => {
           <TabsContent value="cloner">
             <FeatureGate featureKey="page_cloner">
               <PageCloner teamContext={getTeamContext('cloner')} />
+            </FeatureGate>
+          </TabsContent>
+
+          <TabsContent value="page-builder">
+            <FeatureGate featureKey="page_builder">
+              <PageBuilderPanel />
             </FeatureGate>
           </TabsContent>
 
