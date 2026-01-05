@@ -862,6 +862,9 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
     return acc;
   }, {} as Record<string, typeof tasks>);
 
+  // Check if this is a team member context
+  const isTeamMember = !!teamContext?.allowedIds && teamContext.allowedIds.length > 0;
+
   // Show client selection screen if no client selected
   if (!selectedClientFilter) {
     return (
@@ -879,26 +882,31 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-3">
-                <Button 
-                  variant="outline" 
-                  className="justify-start h-auto py-4 px-4"
-                  onClick={() => setSelectedClientFilter("all")}
-                >
-                  <div className="text-left">
-                    <div className="font-semibold">Todos os Clientes</div>
-                    <div className="text-sm text-muted-foreground">Ver tarefas de todos os clientes</div>
-                  </div>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="justify-start h-auto py-4 px-4"
-                  onClick={() => setSelectedClientFilter("none")}
-                >
-                  <div className="text-left">
-                    <div className="font-semibold">Sem Cliente</div>
-                    <div className="text-sm text-muted-foreground">Tarefas não vinculadas a clientes</div>
-                  </div>
-                </Button>
+                {/* Only show "Todos" and "Sem Cliente" for non-team members */}
+                {!isTeamMember && (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      className="justify-start h-auto py-4 px-4"
+                      onClick={() => setSelectedClientFilter("all")}
+                    >
+                      <div className="text-left">
+                        <div className="font-semibold">Todos os Clientes</div>
+                        <div className="text-sm text-muted-foreground">Ver tarefas de todos os clientes</div>
+                      </div>
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="justify-start h-auto py-4 px-4"
+                      onClick={() => setSelectedClientFilter("none")}
+                    >
+                      <div className="text-left">
+                        <div className="font-semibold">Sem Cliente</div>
+                        <div className="text-sm text-muted-foreground">Tarefas não vinculadas a clientes</div>
+                      </div>
+                    </Button>
+                  </>
+                )}
                 {clients.map(client => (
                   <Button 
                     key={client.id}
@@ -917,7 +925,10 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
               </div>
               {clients.length === 0 && (
                 <p className="text-center text-muted-foreground py-4">
-                  Nenhum cliente cadastrado. Crie um cliente primeiro ou selecione "Sem Cliente".
+                  {isTeamMember 
+                    ? "Nenhum cliente foi delegado a você. Peça ao administrador para delegar clientes."
+                    : "Nenhum cliente cadastrado. Crie um cliente primeiro ou selecione \"Sem Cliente\"."
+                  }
                 </p>
               )}
             </CardContent>
@@ -941,8 +952,12 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
               <SelectValue placeholder="Selecionar cliente" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos os Clientes</SelectItem>
-              <SelectItem value="none">Sem Cliente</SelectItem>
+              {!isTeamMember && (
+                <>
+                  <SelectItem value="all">Todos os Clientes</SelectItem>
+                  <SelectItem value="none">Sem Cliente</SelectItem>
+                </>
+              )}
               {clients.map(client => (
                 <SelectItem key={client.id} value={client.id}>
                   {client.name}
