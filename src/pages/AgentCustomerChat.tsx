@@ -733,24 +733,24 @@ export default function AgentCustomerChat() {
 
   return (
     <div className="min-h-dvh" style={{ background: `linear-gradient(135deg, ${primaryColor}20, ${secondaryColor}20)` }}>
-      <div className="container mx-auto max-w-4xl h-dvh flex flex-col p-4">
+      <div className="container mx-auto max-w-4xl h-dvh flex flex-col p-2 sm:p-4">
         <Card className="flex-1 flex flex-col relative">
           {/* Header fixo */}
-          <div className="sticky top-0 z-10 p-4 border-b flex items-center justify-between" style={{ backgroundColor: primaryColor, color: 'white' }}>
-            <div className="flex items-center gap-3 flex-1">
+          <div className="sticky top-0 z-10 p-3 sm:p-4 border-b flex items-center justify-between gap-2" style={{ backgroundColor: primaryColor, color: 'white' }}>
+            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
               {/* Logo */}
               {logoUrl && (
-                <div className="w-10 h-10 rounded-full overflow-hidden bg-white/20 flex-shrink-0">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-white/20 flex-shrink-0">
                   <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
                 </div>
               )}
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-bold">{agentInfo?.name || 'Atendimento'}</h2>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+                  <h2 className="text-base sm:text-xl font-bold truncate">{agentInfo?.name || 'Atendimento'}</h2>
                   {/* Status do Atendente */}
                   <Badge 
                     variant="outline" 
-                    className={`text-xs ${
+                    className={`text-[10px] sm:text-xs shrink-0 ${
                       attendantStatus === 'online' 
                         ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400' 
                         : attendantStatus === 'busy'
@@ -758,32 +758,38 @@ export default function AgentCustomerChat() {
                           : 'bg-gray-50 text-gray-600 dark:bg-gray-900/20 dark:text-gray-400'
                     }`}
                   >
-                    <span className={`w-2 h-2 rounded-full mr-1 ${
+                    <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full mr-1 ${
                       attendantStatus === 'online' ? 'bg-green-500' :
                       attendantStatus === 'busy' ? 'bg-yellow-500' : 'bg-gray-400'
                     }`} />
-                    {attendantStatus === 'online' ? 'Atendente Online' : 
-                     attendantStatus === 'busy' ? 'Em Atendimento' : 'Atendente Offline'}
+                    <span className="hidden sm:inline">
+                      {attendantStatus === 'online' ? 'Atendente Online' : 
+                       attendantStatus === 'busy' ? 'Em Atendimento' : 'Atendente Offline'}
+                    </span>
+                    <span className="sm:hidden">
+                      {attendantStatus === 'online' ? 'Online' : 
+                       attendantStatus === 'busy' ? 'Ocupado' : 'Offline'}
+                    </span>
                   </Badge>
                 </div>
-                <p className="text-sm opacity-80">
+                <p className="text-xs sm:text-sm opacity-80 truncate">
                   Olá, {customer?.name}!
                   {attendantName && attendantStatus !== 'offline' && (
-                    <span className="ml-1">• Atendido por {attendantName}</span>
+                    <span className="ml-1 hidden sm:inline">• Atendido por {attendantName}</span>
                   )}
                 </p>
                 
                 {/* Informação de acesso privado */}
                 {agentInfo?.access_type === 'private' && accessInfo && (
-                  <Alert className={`mt-2 py-2 ${accessInfo.daysRemaining <= 3 ? 'border-destructive' : 'border-primary'}`}>
-                    <Clock className="h-4 w-4" />
-                    <AlertDescription className="ml-2">
+                  <Alert className={`mt-2 py-1.5 sm:py-2 ${accessInfo.daysRemaining <= 3 ? 'border-destructive' : 'border-primary'}`}>
+                    <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <AlertDescription className="ml-2 text-xs sm:text-sm">
                       {accessInfo.daysRemaining > 0 ? (
                         <>
-                          Acesso válido por <span className="font-semibold">{accessInfo.daysRemaining}</span> dia{accessInfo.daysRemaining !== 1 ? 's' : ''}
+                          Acesso: <span className="font-semibold">{accessInfo.daysRemaining}</span> dia{accessInfo.daysRemaining !== 1 ? 's' : ''}
                         </>
                       ) : (
-                        <span className="text-destructive font-semibold">Acesso expira hoje!</span>
+                        <span className="text-destructive font-semibold">Expira hoje!</span>
                       )}
                     </AlertDescription>
                   </Alert>
@@ -791,8 +797,8 @@ export default function AgentCustomerChat() {
               </div>
             </div>
             
-            <Button variant="ghost" size="icon" onClick={handleLogout}>
-              <LogOut className="w-5 h-5" />
+            <Button variant="ghost" size="icon" onClick={handleLogout} className="shrink-0 h-8 w-8 sm:h-10 sm:w-10">
+              <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
           </div>
 
@@ -885,29 +891,29 @@ export default function AgentCustomerChat() {
             </Button>
           )}
 
-          <div className="p-4 border-t space-y-2">
+          <div className="p-3 sm:p-4 border-t space-y-2">
             {(hasServices || hasProducts) && (
-              <div className="flex gap-2">
+              <div className={`grid gap-2 ${hasServices && hasProducts ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 {hasServices && (
                   <Button
                     variant="outline"
-                    className="flex-1"
+                    className="flex flex-col items-center justify-center gap-1 h-auto py-2 sm:flex-row sm:py-2 sm:gap-2"
                     style={{ borderColor: primaryColor, color: primaryColor }}
                     onClick={() => setShowAppointmentDialog(true)}
                   >
-                    <Calendar className="w-4 h-4 mr-2" />
-                    Agendar
+                    <Calendar className="w-5 h-5 sm:w-4 sm:h-4" />
+                    <span className="text-xs sm:text-sm">Agendar</span>
                   </Button>
                 )}
                 {hasProducts && (
                   <Button
                     variant="outline"
-                    className="flex-1"
+                    className="flex flex-col items-center justify-center gap-1 h-auto py-2 sm:flex-row sm:py-2 sm:gap-2"
                     style={{ borderColor: primaryColor, color: primaryColor }}
                     onClick={() => setShowOrderDialog(true)}
                   >
-                    <ShoppingBag className="w-4 h-4 mr-2" />
-                    Fazer Pedido
+                    <ShoppingBag className="w-5 h-5 sm:w-4 sm:h-4" />
+                    <span className="text-xs sm:text-sm">Fazer Pedido</span>
                   </Button>
                 )}
               </div>
@@ -917,31 +923,31 @@ export default function AgentCustomerChat() {
             {appointments.length > 0 && (
               <Collapsible open={showAppointments} onOpenChange={setShowAppointments}>
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between">
+                  <Button variant="ghost" className="w-full justify-between text-sm">
                     <span className="flex items-center gap-2">
                       <Calendar className="w-4 h-4" />
-                      Meus Agendamentos
-                      <Badge variant="secondary">{appointments.length}</Badge>
+                      <span className="hidden xs:inline">Meus </span>Agendamentos
+                      <Badge variant="secondary" className="text-xs">{appointments.length}</Badge>
                     </span>
                     {showAppointments ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </Button>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-2 mt-2">
+                <CollapsibleContent className="space-y-2 mt-2 max-h-48 overflow-y-auto">
                   {appointments.map((appointment) => (
-                    <Card key={appointment.id} className="p-3">
+                    <Card key={appointment.id} className="p-2 sm:p-3">
                       <div className="flex justify-between items-start gap-2">
-                        <div className="flex-1">
-                          <p className="font-medium">{appointment.service_name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(appointment.scheduled_date).toLocaleString('pt-BR')}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{appointment.service_name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(appointment.scheduled_date).toLocaleString('pt-BR', { 
+                              day: '2-digit', 
+                              month: '2-digit', 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
                           </p>
-                          {appointment.service_description && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {appointment.service_description}
-                            </p>
-                          )}
                         </div>
-                        <div className="flex flex-col gap-2 items-end">
+                        <div className="flex flex-col gap-1 items-end shrink-0">
                           <Badge 
                             variant={
                               appointment.status === 'confirmed' ? 'default' : 
@@ -949,6 +955,7 @@ export default function AgentCustomerChat() {
                               appointment.status === 'cancelled' ? 'destructive' :
                               'secondary'
                             }
+                            className="text-[10px] sm:text-xs"
                           >
                             {appointment.status === 'pending' && 'Pendente'}
                             {appointment.status === 'confirmed' && 'Confirmado'}
@@ -960,9 +967,10 @@ export default function AgentCustomerChat() {
                             <Button
                               size="sm"
                               variant="ghost"
+                              className="h-6 text-xs px-2"
                               onClick={() => setCancelDialog({ open: true, type: 'appointment', id: appointment.id })}
                             >
-                              <X className="w-4 h-4 mr-1" />
+                              <X className="w-3 h-3 mr-1" />
                               Cancelar
                             </Button>
                           )}
@@ -978,34 +986,34 @@ export default function AgentCustomerChat() {
             {orders.length > 0 && (
               <Collapsible open={showOrders} onOpenChange={setShowOrders}>
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between">
+                  <Button variant="ghost" className="w-full justify-between text-sm">
                     <span className="flex items-center gap-2">
                       <ShoppingBag className="w-4 h-4" />
-                      Meus Pedidos
-                      <Badge variant="secondary">{orders.length}</Badge>
+                      <span className="hidden xs:inline">Meus </span>Pedidos
+                      <Badge variant="secondary" className="text-xs">{orders.length}</Badge>
                     </span>
                     {showOrders ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </Button>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-2 mt-2">
+                <CollapsibleContent className="space-y-2 mt-2 max-h-48 overflow-y-auto">
                   {orders.map((order) => (
-                    <Card key={order.id} className="p-3">
+                    <Card key={order.id} className="p-2 sm:p-3">
                       <div className="flex justify-between items-start gap-2">
-                        <div className="flex-1">
-                          <p className="font-medium">Pedido #{order.order_number}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(order.created_at).toLocaleString('pt-BR')}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm">Pedido #{order.order_number}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(order.created_at).toLocaleString('pt-BR', { 
+                              day: '2-digit', 
+                              month: '2-digit', 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
                           </p>
-                          <p className="text-sm font-medium mt-1">
-                            Total: R$ {Number(order.total_amount).toFixed(2)}
+                          <p className="text-xs font-medium mt-1">
+                            R$ {Number(order.total_amount).toFixed(2)}
                           </p>
-                          {order.delivery_address && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              Entrega: {order.delivery_address}
-                            </p>
-                          )}
                         </div>
-                        <div className="flex flex-col gap-2 items-end">
+                        <div className="flex flex-col gap-1 items-end shrink-0">
                           <Badge 
                             variant={
                               order.status === 'confirmed' ? 'default' : 
@@ -1013,6 +1021,7 @@ export default function AgentCustomerChat() {
                               order.status === 'cancelled' ? 'destructive' : 
                               'secondary'
                             }
+                            className="text-[10px] sm:text-xs"
                           >
                             {order.status === 'pending' && 'Pendente'}
                             {order.status === 'confirmed' && 'Confirmado'}
@@ -1025,9 +1034,10 @@ export default function AgentCustomerChat() {
                             <Button
                               size="sm"
                               variant="ghost"
+                              className="h-6 text-xs px-2"
                               onClick={() => setCancelDialog({ open: true, type: 'order', id: order.id })}
                             >
-                              <X className="w-4 h-4 mr-1" />
+                              <X className="w-3 h-3 mr-1" />
                               Cancelar
                             </Button>
                           )}
