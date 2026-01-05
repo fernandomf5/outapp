@@ -147,7 +147,16 @@ function SortableField({ field, onEdit, onDelete }: { field: BriefingField; onEd
   );
 }
 
-export function BriefingCreatorPanel() {
+interface TeamContext {
+  adminUserId: string;
+  allowedIds: string[];
+}
+
+interface BriefingCreatorPanelProps {
+  teamContext?: TeamContext;
+}
+
+export function BriefingCreatorPanel({ teamContext }: BriefingCreatorPanelProps) {
   const [briefings, setBriefings] = useState<Briefing[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -192,20 +201,36 @@ export function BriefingCreatorPanel() {
     })
   );
 
+  // Helper to get the correct user ID (admin's ID when team member)
+  const getTargetUserId = async (): Promise<string | null> => {
+    if (teamContext?.adminUserId) {
+      return teamContext.adminUserId;
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    return user?.id || null;
+  };
+
   useEffect(() => {
     loadBriefings();
-  }, []);
+  }, [teamContext]);
 
   const loadBriefings = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const userId = await getTargetUserId();
+      if (!userId) return;
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('briefings' as any)
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
+
+      // If team member with restrictions, filter by allowed briefing IDs
+      if (teamContext?.allowedIds && teamContext.allowedIds.length > 0) {
+        query = query.in('id', teamContext.allowedIds);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setBriefings((data || []) as unknown as Briefing[]);
@@ -284,8 +309,8 @@ export function BriefingCreatorPanel() {
 
   const handleSaveBriefing = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const userId = await getTargetUserId();
+      if (!userId) return;
 
       if (!formData.title || formData.fields.length === 0) {
         toast.error("Preencha o título e adicione pelo menos um campo");
@@ -319,7 +344,7 @@ export function BriefingCreatorPanel() {
         const { error } = await supabase
           .from('briefings' as any)
           .insert([{
-            user_id: user.id,
+            user_id: userId,
             title: formData.title,
             description: formData.description,
             logo_url: formData.logo_url,

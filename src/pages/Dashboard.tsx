@@ -1160,7 +1160,7 @@ const Dashboard = () => {
 
           <TabsContent value="cloner">
             <FeatureGate featureKey="page_cloner">
-              <PageCloner />
+              <PageCloner teamContext={getTeamContext('cloner')} />
             </FeatureGate>
           </TabsContent>
 
@@ -1288,7 +1288,7 @@ const Dashboard = () => {
                     </TabsList>
                     
                     <TabsContent value="criador">
-                      <BriefingCreatorPanel />
+                      <BriefingCreatorPanel teamContext={getTeamContext('briefings')} />
                     </TabsContent>
                     
                     <TabsContent value="respostas">
@@ -1342,7 +1342,7 @@ const Dashboard = () => {
 
           <TabsContent value="portfolio">
             <FeatureGate featureKey="portfolio_creator">
-              <PortfolioCreatorPanel />
+              <PortfolioCreatorPanel teamContext={getTeamContext('portfolio')} />
             </FeatureGate>
           </TabsContent>
         </Tabs>

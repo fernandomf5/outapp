@@ -187,7 +187,16 @@ function SortableItem({ item, onEdit, onDelete, onToggleFeatured }: SortableItem
   );
 }
 
-export function PortfolioCreatorPanel() {
+interface TeamContext {
+  adminUserId: string;
+  allowedIds: string[];
+}
+
+interface PortfolioCreatorPanelProps {
+  teamContext?: TeamContext;
+}
+
+export function PortfolioCreatorPanel({ teamContext }: PortfolioCreatorPanelProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
@@ -253,11 +262,20 @@ export function PortfolioCreatorPanel() {
     })
   );
 
+  // Helper to get the correct user ID (admin's ID when team member)
+  const getTargetUserId = (): string | null => {
+    if (teamContext?.adminUserId) {
+      return teamContext.adminUserId;
+    }
+    return user?.id || null;
+  };
+
   useEffect(() => {
-    if (user) {
+    const targetUserId = getTargetUserId();
+    if (targetUserId) {
       fetchPortfolios();
     }
-  }, [user]);
+  }, [user, teamContext]);
 
   useEffect(() => {
     if (selectedPortfolio) {
@@ -267,11 +285,24 @@ export function PortfolioCreatorPanel() {
 
   const fetchPortfolios = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const targetUserId = getTargetUserId();
+    if (!targetUserId) {
+      setLoading(false);
+      return;
+    }
+
+    let query = supabase
       .from("portfolios")
       .select("*")
-      .eq("user_id", user?.id)
+      .eq("user_id", targetUserId)
       .order("created_at", { ascending: false });
+
+    // If team member with restrictions, filter by allowed portfolio IDs
+    if (teamContext?.allowedIds && teamContext.allowedIds.length > 0) {
+      query = query.in("id", teamContext.allowedIds);
+    }
+
+    const { data, error } = await query;
 
     if (!error && data) {
       setPortfolios(data as unknown as Portfolio[]);
@@ -314,11 +345,14 @@ export function PortfolioCreatorPanel() {
       return;
     }
 
+    const targetUserId = getTargetUserId();
+    if (!targetUserId) return;
+
     const slug = generateSlug(portfolioForm.name);
     const data = {
       ...portfolioForm,
       slug,
-      user_id: user?.id,
+      user_id: targetUserId,
     };
 
     if (editingPortfolio) {

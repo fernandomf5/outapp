@@ -165,31 +165,49 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
     branding: ['reach', 'qualified_reach', 'brand_recall']
   };
 
+  // Helper to get the correct user ID (admin's ID when team member)
+  const getTargetUserId = async (): Promise<string | null> => {
+    if (teamContext?.adminUserId) {
+      return teamContext.adminUserId;
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    return user?.id || null;
+  };
+
   useEffect(() => {
     loadData();
-  }, []);
+  }, [teamContext]);
 
   const loadData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const userId = await getTargetUserId();
+      if (!userId) return;
 
       // Load clients
-      const { data: clientsData, error: clientsError } = await supabase
+      let clientsQuery = supabase
         .from('ad_clients')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
+
+      const { data: clientsData, error: clientsError } = await clientsQuery;
 
       if (clientsError) throw clientsError;
       setClients((clientsData || []) as AdClient[]);
 
       // Load campaigns
-      const { data: campaignsData, error: campaignsError } = await supabase
+      let campaignsQuery = supabase
         .from('ad_campaigns')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
+
+      // If team member with restrictions, filter by allowed campaign IDs
+      if (teamContext?.allowedIds && teamContext.allowedIds.length > 0) {
+        campaignsQuery = campaignsQuery.in('id', teamContext.allowedIds);
+      }
+
+      const { data: campaignsData, error: campaignsError } = await campaignsQuery;
 
       if (campaignsError) throw campaignsError;
       setCampaigns((campaignsData || []) as AdCampaign[]);
@@ -202,8 +220,8 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
 
   const handleAddClient = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const userId = await getTargetUserId();
+      if (!userId) return;
 
       if (!clientFormData.name) {
         toast.error("Preencha o nome do cliente");
@@ -213,7 +231,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
       const { error } = await supabase
         .from('ad_clients')
         .insert([{
-          user_id: user.id,
+          user_id: userId,
           name: clientFormData.name,
           client_type: clientFormData.client_type,
           description: clientFormData.description || null,
@@ -495,8 +513,8 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
 
   const handleAddCampaign = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const userId = await getTargetUserId();
+      if (!userId) return;
 
       if (!campaignFormData.name || !campaignFormData.budget || !campaignFormData.spent || !campaignFormData.client_id) {
         toast.error("Preencha os campos obrigatórios");
@@ -506,7 +524,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
       const { error } = await supabase
         .from('ad_campaigns')
         .insert([{
-          user_id: user.id,
+          user_id: userId,
           name: campaignFormData.name,
           platform: campaignFormData.platform,
           campaign_type: campaignFormData.campaign_type,
