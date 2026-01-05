@@ -38,7 +38,16 @@ const AVAILABLE_PAGE_PATHS = [
   "page5"
 ];
 
-export const PageCloner = () => {
+interface TeamContext {
+  adminUserId: string;
+  allowedIds: string[];
+}
+
+interface PageClonerProps {
+  teamContext?: TeamContext;
+}
+
+export const PageCloner = ({ teamContext }: PageClonerProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [clonedPages, setClonedPages] = useState<ClonedPage[]>([]);
@@ -100,18 +109,37 @@ export const PageCloner = () => {
   });
   const [totalClicks, setTotalClicks] = useState(0);
 
+  // Helper to get the correct user ID (admin's ID when team member)
+  const getTargetUserId = (): string | null => {
+    if (teamContext?.adminUserId) {
+      return teamContext.adminUserId;
+    }
+    return user?.id || null;
+  };
+
   useEffect(() => {
-    if (user) {
+    const targetUserId = getTargetUserId();
+    if (targetUserId) {
       fetchClonedPages();
     }
-  }, [user]);
+  }, [user, teamContext]);
 
   const fetchClonedPages = async () => {
-    const { data, error } = await supabase
+    const targetUserId = getTargetUserId();
+    if (!targetUserId) return;
+
+    let query = supabase
       .from('cloned_pages')
       .select('*')
-      .eq('user_id', user!.id)
+      .eq('user_id', targetUserId)
       .order('created_at', { ascending: false });
+
+    // If team member with restrictions, filter by allowed page IDs
+    if (teamContext?.allowedIds && teamContext.allowedIds.length > 0) {
+      query = query.in('id', teamContext.allowedIds);
+    }
+
+    const { data, error } = await query;
 
     if (!error && data) {
       setClonedPages(data);
@@ -167,11 +195,14 @@ export const PageCloner = () => {
       // Detect checkout links
       const detectedLinks = detectCheckoutLinks(cloneResult.content);
 
+      const targetUserId = getTargetUserId();
+      if (!targetUserId) throw new Error('Usuário não autenticado');
+
       // Save to database
       const { data, error } = await supabase
         .from('cloned_pages')
         .insert({
-          user_id: user!.id,
+          user_id: targetUserId,
           original_url: cloneData.original_url,
           cloned_url: clonedUrl,
           slug: slug,
@@ -262,10 +293,13 @@ export const PageCloner = () => {
         ? `https://${page.custom_domain}/${slug}`
         : `${window.location.origin}/${page.custom_domain}/${slug}`;
 
+      const targetUserId = getTargetUserId();
+      if (!targetUserId) throw new Error('Usuário não autenticado');
+
       const { data, error } = await supabase
         .from('cloned_pages')
         .insert({
-          user_id: user!.id,
+          user_id: targetUserId,
           original_url: page.original_url,
           cloned_url: clonedUrl,
           slug: slug,
