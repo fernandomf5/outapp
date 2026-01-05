@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Globe, Copy, Trash2, Link2, Settings, BarChart3, Loader2, ExternalLink, MousePointerClick, Plus, Users, FileText, Code } from "lucide-react";
+import { Globe, Copy, Trash2, Link2, Settings, BarChart3, Loader2, ExternalLink, MousePointerClick, Plus, Users, FileText, Code, Pencil } from "lucide-react";
 import { AnalyticsPanel } from "./cloner/AnalyticsPanel";
 import { LeadsManager } from "./cloner/LeadsManager";
 
@@ -50,6 +51,7 @@ interface PageClonerProps {
 export const PageCloner = ({ teamContext }: PageClonerProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [clonedPages, setClonedPages] = useState<ClonedPage[]>([]);
   const [isCloneDialogOpen, setIsCloneDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -664,6 +666,15 @@ export const PageCloner = ({ teamContext }: PageClonerProps) => {
                       title="Código de Incorporação"
                     >
                       <Code className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={() => navigate(`/page-editor/${page.id}`)}
+                      title="Editar Página"
+                      className="gradient-primary"
+                    >
+                      <Pencil className="w-4 h-4" />
                     </Button>
                     <Button
                       size="sm"
