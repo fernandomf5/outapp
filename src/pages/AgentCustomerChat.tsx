@@ -738,10 +738,10 @@ export default function AgentCustomerChat() {
           {/* Header fixo */}
           <div className="sticky top-0 z-10 p-3 sm:p-4 border-b flex items-center justify-between gap-2" style={{ backgroundColor: primaryColor, color: 'white' }}>
             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-              {/* Logo */}
+              {/* Logo e Nome */}
               {logoUrl && (
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-white/20 flex-shrink-0">
-                  <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-white/20 flex-shrink-0 border border-white/30">
+                  <img src={logoUrl} alt="Logo" className="w-full h-full object-contain p-1" />
                 </div>
               )}
               <div className="flex-1 min-w-0">

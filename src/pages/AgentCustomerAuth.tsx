@@ -20,6 +20,8 @@ export default function AgentCustomerAuth() {
   const [accessType, setAccessType] = useState<string>('public');
   const [primaryColor, setPrimaryColor] = useState('#6366f1');
   const [secondaryColor, setSecondaryColor] = useState('#8b5cf6');
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [agentName, setAgentName] = useState<string>('');
   const [customerId, setCustomerId] = useState<string>("");
   const [formData, setFormData] = useState({
     name: "",
@@ -78,17 +80,19 @@ export default function AgentCustomerAuth() {
       try {
         const { data: agent } = await supabase
           .from('ai_agents')
-          .select('access_type, config')
+          .select('access_type, config, name')
           .eq('id', agentId)
           .single();
 
-        // Set colors from agent config
+        // Set colors and logo from agent config
         if (agent?.config) {
           const config = agent.config as any;
           if (config.primaryColor) setPrimaryColor(config.primaryColor);
           if (config.secondaryColor) setSecondaryColor(config.secondaryColor);
+          if (config.logoUrl) setLogoUrl(config.logoUrl);
         }
 
+        if (agent?.name) setAgentName(agent.name);
         setAccessType(agent?.access_type || 'public');
 
         if (agent?.access_type === 'anonymous') {
@@ -280,8 +284,13 @@ export default function AgentCustomerAuth() {
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={bgStyle}>
         <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Bem-vindo ao Chat</CardTitle>
+          <CardHeader className="text-center">
+            {logoUrl && (
+              <div className="flex justify-center mb-4">
+                <img src={logoUrl} alt="Logo" className="h-16 w-auto object-contain" />
+              </div>
+            )}
+            <CardTitle>{agentName || 'Bem-vindo ao Chat'}</CardTitle>
             <CardDescription>Digite seu nome para iniciar</CardDescription>
           </CardHeader>
           <CardContent>
@@ -316,8 +325,13 @@ export default function AgentCustomerAuth() {
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={bgStyle}>
         <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Bem-vindo ao Chat</CardTitle>
+          <CardHeader className="text-center">
+            {logoUrl && (
+              <div className="flex justify-center mb-4">
+                <img src={logoUrl} alt="Logo" className="h-16 w-auto object-contain" />
+              </div>
+            )}
+            <CardTitle>{agentName || 'Bem-vindo ao Chat'}</CardTitle>
             <CardDescription>
               Escolha como deseja acessar
             </CardDescription>
@@ -351,7 +365,12 @@ export default function AgentCustomerAuth() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={bgStyle}>
       <Card className="w-full max-w-md">
-        <CardHeader>
+        <CardHeader className="text-center">
+          {logoUrl && (
+            <div className="flex justify-center mb-4">
+              <img src={logoUrl} alt="Logo" className="h-16 w-auto object-contain" />
+            </div>
+          )}
           <CardTitle>
             {authMode === 'login' ? 'Entrar no Chat' : 
              accessType === 'private' ? 'Solicitar Acesso' : 'Iniciar Novo Chat'}
