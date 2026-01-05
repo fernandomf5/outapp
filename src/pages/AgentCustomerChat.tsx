@@ -772,12 +772,15 @@ export default function AgentCustomerChat() {
                     </span>
                   </Badge>
                 </div>
-                <p className="text-xs sm:text-sm opacity-80 truncate">
-                  Olá, {customer?.name}!
-                  {attendantName && attendantStatus !== 'offline' && (
-                    <span className="ml-1 hidden sm:inline">• Atendido por {attendantName}</span>
-                  )}
-                </p>
+                <div className="text-xs sm:text-sm opacity-80">
+                  <p className="font-medium">Olá, {customer?.name}! 👋</p>
+                  <p className="text-[10px] sm:text-xs opacity-90">
+                    Que bom ver você por aqui!
+                    {attendantName && attendantStatus !== 'offline' && (
+                      <span className="ml-1 hidden sm:inline">• Atendido por {attendantName}</span>
+                    )}
+                  </p>
+                </div>
                 
                 {/* Informação de acesso privado */}
                 {agentInfo?.access_type === 'private' && accessInfo && (
