@@ -16,6 +16,9 @@ import {
   Play,
   Link2,
   Palette,
+  ImageIcon,
+  Trash2,
+  Upload,
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -39,6 +42,8 @@ const AIAgentBuilder = () => {
   const [pendingAccessType, setPendingAccessType] = useState<'public' | 'anonymous' | null>(null);
   const [primaryColor, setPrimaryColor] = useState("#6366f1");
   const [secondaryColor, setSecondaryColor] = useState("#8b5cf6");
+  const [logoUrl, setLogoUrl] = useState<string>("");
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   useEffect(() => {
     if (agentId && user) {
@@ -47,6 +52,7 @@ const AIAgentBuilder = () => {
         setWelcomeMessage(agent.config?.welcomeMessage || "");
         setPrimaryColor(agent.config?.primaryColor || "#6366f1");
         setSecondaryColor(agent.config?.secondaryColor || "#8b5cf6");
+        setLogoUrl(agent.config?.logoUrl || "");
         const at = (agent as any).access_type || 'public';
         const normalizedAt = at === 'restricted' ? 'private' : at;
         setAccessType(normalizedAt);
@@ -102,6 +108,50 @@ const AIAgentBuilder = () => {
     setPendingAccessType(null);
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    setIsUploadingLogo(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('business-logos')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('business-logos')
+        .getPublicUrl(fileName);
+
+      setLogoUrl(publicUrl);
+      toast({
+        title: "Logo carregada!",
+        description: "A logomarca foi enviada com sucesso.",
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Erro no upload",
+        description: "Não foi possível enviar a imagem.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setLogoUrl("");
+    toast({
+      title: "Logo removida",
+      description: "A logomarca foi removida.",
+    });
+  };
+
   const handleSave = async () => {
     if (!user) return;
     
@@ -116,6 +166,7 @@ const AIAgentBuilder = () => {
           aiEnabled: false, // AI always disabled
           primaryColor,
           secondaryColor,
+          logoUrl,
         },
         training_data: {},
         is_active: true,
@@ -279,6 +330,83 @@ const AIAgentBuilder = () => {
                   ? '⚡ Usuários entram direto no chat sem precisar se cadastrar ou fazer login'
                   : '✓ Usuários podem se cadastrar e usar o chat livremente'}
               </p>
+            </div>
+          </Card>
+
+          {/* Logomarca */}
+          <Card className="p-4 sm:p-6 border-primary/20">
+            <div className="max-w-2xl">
+              <div className="flex items-center gap-2 mb-4">
+                <ImageIcon className="w-5 h-5 text-primary" />
+                <Label className="text-base sm:text-lg font-semibold">Logomarca do Chat</Label>
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-4">
+                Adicione sua logomarca para personalizar o cabeçalho do chat
+              </p>
+              
+              {logoUrl ? (
+                <div className="flex items-center gap-4">
+                  <div className="relative w-20 h-20 rounded-lg border border-border overflow-hidden bg-muted">
+                    <img 
+                      src={logoUrl} 
+                      alt="Logo do chat" 
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRemoveLogo}
+                      className="gap-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Remover
+                    </Button>
+                    <label className="cursor-pointer">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="gap-2 pointer-events-none"
+                        disabled={isUploadingLogo}
+                      >
+                        <Upload className="w-4 h-4" />
+                        Trocar
+                      </Button>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+              ) : (
+                <label className="cursor-pointer">
+                  <div className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg hover:border-primary/50 transition-colors bg-muted/30">
+                    {isUploadingLogo ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        <span className="text-sm text-muted-foreground">Enviando...</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2">
+                        <Upload className="w-8 h-8 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">Clique para enviar uma imagem</span>
+                        <span className="text-xs text-muted-foreground">PNG, JPG ou WEBP</span>
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                    disabled={isUploadingLogo}
+                  />
+                </label>
+              )}
             </div>
           </Card>
 
