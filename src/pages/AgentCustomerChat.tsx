@@ -717,6 +717,7 @@ export default function AgentCustomerChat() {
 
   const primaryColor = agentInfo?.config?.primaryColor || '#6366f1';
   const secondaryColor = agentInfo?.config?.secondaryColor || '#8b5cf6';
+  const logoUrl = agentInfo?.config?.logoUrl || '';
 
   // Mostrar loading enquanto carrega as informações do agente (incluindo cores)
   if (!agentInfo) {
@@ -736,50 +737,58 @@ export default function AgentCustomerChat() {
         <Card className="flex-1 flex flex-col relative">
           {/* Header fixo */}
           <div className="sticky top-0 z-10 p-4 border-b flex items-center justify-between" style={{ backgroundColor: primaryColor, color: 'white' }}>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold">{agentInfo?.name || 'Atendimento'}</h2>
-                {/* Status do Atendente */}
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs ${
-                    attendantStatus === 'online' 
-                      ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400' 
-                      : attendantStatus === 'busy'
-                        ? 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400'
-                        : 'bg-gray-50 text-gray-600 dark:bg-gray-900/20 dark:text-gray-400'
-                  }`}
-                >
-                  <span className={`w-2 h-2 rounded-full mr-1 ${
-                    attendantStatus === 'online' ? 'bg-green-500' :
-                    attendantStatus === 'busy' ? 'bg-yellow-500' : 'bg-gray-400'
-                  }`} />
-                  {attendantStatus === 'online' ? 'Atendente Online' : 
-                   attendantStatus === 'busy' ? 'Em Atendimento' : 'Atendente Offline'}
-                </Badge>
-              </div>
-              <p className="text-sm opacity-80">
-                Olá, {customer?.name}!
-                {attendantName && attendantStatus !== 'offline' && (
-                  <span className="ml-1">• Atendido por {attendantName}</span>
-                )}
-              </p>
-              
-              {/* Informação de acesso privado */}
-              {agentInfo?.access_type === 'private' && accessInfo && (
-                <Alert className={`mt-2 py-2 ${accessInfo.daysRemaining <= 3 ? 'border-destructive' : 'border-primary'}`}>
-                  <Clock className="h-4 w-4" />
-                  <AlertDescription className="ml-2">
-                    {accessInfo.daysRemaining > 0 ? (
-                      <>
-                        Acesso válido por <span className="font-semibold">{accessInfo.daysRemaining}</span> dia{accessInfo.daysRemaining !== 1 ? 's' : ''}
-                      </>
-                    ) : (
-                      <span className="text-destructive font-semibold">Acesso expira hoje!</span>
-                    )}
-                  </AlertDescription>
-                </Alert>
+            <div className="flex items-center gap-3 flex-1">
+              {/* Logo */}
+              {logoUrl && (
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-white/20 flex-shrink-0">
+                  <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                </div>
               )}
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-bold">{agentInfo?.name || 'Atendimento'}</h2>
+                  {/* Status do Atendente */}
+                  <Badge 
+                    variant="outline" 
+                    className={`text-xs ${
+                      attendantStatus === 'online' 
+                        ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400' 
+                        : attendantStatus === 'busy'
+                          ? 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400'
+                          : 'bg-gray-50 text-gray-600 dark:bg-gray-900/20 dark:text-gray-400'
+                    }`}
+                  >
+                    <span className={`w-2 h-2 rounded-full mr-1 ${
+                      attendantStatus === 'online' ? 'bg-green-500' :
+                      attendantStatus === 'busy' ? 'bg-yellow-500' : 'bg-gray-400'
+                    }`} />
+                    {attendantStatus === 'online' ? 'Atendente Online' : 
+                     attendantStatus === 'busy' ? 'Em Atendimento' : 'Atendente Offline'}
+                  </Badge>
+                </div>
+                <p className="text-sm opacity-80">
+                  Olá, {customer?.name}!
+                  {attendantName && attendantStatus !== 'offline' && (
+                    <span className="ml-1">• Atendido por {attendantName}</span>
+                  )}
+                </p>
+                
+                {/* Informação de acesso privado */}
+                {agentInfo?.access_type === 'private' && accessInfo && (
+                  <Alert className={`mt-2 py-2 ${accessInfo.daysRemaining <= 3 ? 'border-destructive' : 'border-primary'}`}>
+                    <Clock className="h-4 w-4" />
+                    <AlertDescription className="ml-2">
+                      {accessInfo.daysRemaining > 0 ? (
+                        <>
+                          Acesso válido por <span className="font-semibold">{accessInfo.daysRemaining}</span> dia{accessInfo.daysRemaining !== 1 ? 's' : ''}
+                        </>
+                      ) : (
+                        <span className="text-destructive font-semibold">Acesso expira hoje!</span>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
             </div>
             
             <Button variant="ghost" size="icon" onClick={handleLogout}>
