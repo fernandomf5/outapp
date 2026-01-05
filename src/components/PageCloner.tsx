@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Globe, Copy, Trash2, Link2, Settings, BarChart3, Loader2, ExternalLink, MousePointerClick, Plus, Users, FileText } from "lucide-react";
+import { Globe, Copy, Trash2, Link2, Settings, BarChart3, Loader2, ExternalLink, MousePointerClick, Plus, Users, FileText, Code } from "lucide-react";
 import { AnalyticsPanel } from "./cloner/AnalyticsPanel";
 import { LeadsManager } from "./cloner/LeadsManager";
 
@@ -55,7 +55,14 @@ export const PageCloner = ({ teamContext }: PageClonerProps) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAnalyticsDialogOpen, setIsAnalyticsDialogOpen] = useState(false);
   const [isLeadsDialogOpen, setIsLeadsDialogOpen] = useState(false);
+  const [isEmbedDialogOpen, setIsEmbedDialogOpen] = useState(false);
   const [selectedPage, setSelectedPage] = useState<ClonedPage | null>(null);
+  const [embedSettings, setEmbedSettings] = useState({
+    width: "100%",
+    height: "800",
+    scrolling: "yes",
+    border: false
+  });
   const [isCloning, setIsCloning] = useState(false);
   const [cloneData, setCloneData] = useState({
     original_url: "",
@@ -646,6 +653,17 @@ export const PageCloner = ({ teamContext }: PageClonerProps) => {
                       title="Duplicar Página"
                     >
                       <FileText className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedPage(page);
+                        setIsEmbedDialogOpen(true);
+                      }}
+                      title="Código de Incorporação"
+                    >
+                      <Code className="w-4 h-4" />
                     </Button>
                     <Button
                       size="sm"
@@ -1271,6 +1289,169 @@ export const PageCloner = ({ teamContext }: PageClonerProps) => {
             <DialogTitle>Leads Capturados - {selectedPage?.slug}</DialogTitle>
           </DialogHeader>
           {selectedPage && <LeadsManager pageId={selectedPage.id} />}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Embed/Incorporação */}
+      <Dialog open={isEmbedDialogOpen} onOpenChange={setIsEmbedDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Code className="w-5 h-5" />
+              Código de Incorporação
+            </DialogTitle>
+            <DialogDescription>
+              Use este código para incorporar a página clonada em seu site WordPress, Elementor ou qualquer outra plataforma.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedPage && (
+            <div className="space-y-6 mt-4">
+              {/* Configurações do Embed */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Largura</Label>
+                  <Select
+                    value={embedSettings.width}
+                    onValueChange={(value) => setEmbedSettings({ ...embedSettings, width: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="100%">100% (Responsivo)</SelectItem>
+                      <SelectItem value="800px">800px</SelectItem>
+                      <SelectItem value="1024px">1024px</SelectItem>
+                      <SelectItem value="1200px">1200px</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Altura (px)</Label>
+                  <Input
+                    type="number"
+                    value={embedSettings.height}
+                    onChange={(e) => setEmbedSettings({ ...embedSettings, height: e.target.value })}
+                    placeholder="800"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Permitir rolagem</Label>
+                  <p className="text-xs text-muted-foreground">Permite scroll dentro do iframe</p>
+                </div>
+                <Switch
+                  checked={embedSettings.scrolling === "yes"}
+                  onCheckedChange={(checked) => setEmbedSettings({ ...embedSettings, scrolling: checked ? "yes" : "no" })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Mostrar borda</Label>
+                  <p className="text-xs text-muted-foreground">Adiciona borda ao redor do iframe</p>
+                </div>
+                <Switch
+                  checked={embedSettings.border}
+                  onCheckedChange={(checked) => setEmbedSettings({ ...embedSettings, border: checked })}
+                />
+              </div>
+
+              {/* Código Iframe */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Code className="w-4 h-4" />
+                  Código HTML (iframe)
+                </Label>
+                <div className="relative">
+                  <Textarea
+                    readOnly
+                    value={`<iframe src="${selectedPage.cloned_url}" width="${embedSettings.width}" height="${embedSettings.height}" scrolling="${embedSettings.scrolling}" frameborder="${embedSettings.border ? '1' : '0'}" style="border: ${embedSettings.border ? '1px solid #ccc' : 'none'}; max-width: 100%;"></iframe>`}
+                    className="font-mono text-xs h-24 pr-12"
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="absolute top-2 right-2"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`<iframe src="${selectedPage.cloned_url}" width="${embedSettings.width}" height="${embedSettings.height}" scrolling="${embedSettings.scrolling}" frameborder="${embedSettings.border ? '1' : '0'}" style="border: ${embedSettings.border ? '1px solid #ccc' : 'none'}; max-width: 100%;"></iframe>`);
+                      toast({ title: "Código HTML copiado!" });
+                    }}
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Código Shortcode WordPress */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Shortcode WordPress
+                </Label>
+                <div className="relative">
+                  <Textarea
+                    readOnly
+                    value={`[embed width="${embedSettings.width.replace('px', '')}" height="${embedSettings.height}"]${selectedPage.cloned_url}[/embed]`}
+                    className="font-mono text-xs h-16 pr-12"
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="absolute top-2 right-2"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`[embed width="${embedSettings.width.replace('px', '')}" height="${embedSettings.height}"]${selectedPage.cloned_url}[/embed]`);
+                      toast({ title: "Shortcode copiado!" });
+                    }}
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Para usar no editor clássico do WordPress
+                </p>
+              </div>
+
+              {/* URL Direta */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Link2 className="w-4 h-4" />
+                  URL Direta
+                </Label>
+                <div className="relative">
+                  <Input
+                    readOnly
+                    value={selectedPage.cloned_url}
+                    className="font-mono text-xs pr-12"
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="absolute top-2 right-2"
+                    onClick={() => {
+                      navigator.clipboard.writeText(selectedPage.cloned_url);
+                      toast({ title: "URL copiada!" });
+                    }}
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Dicas */}
+              <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">💡 Dicas de uso</h4>
+                <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
+                  <li><strong>Elementor:</strong> Use o widget "HTML" e cole o código iframe</li>
+                  <li><strong>Gutenberg:</strong> Use o bloco "HTML Personalizado"</li>
+                  <li><strong>Divi:</strong> Use o módulo "Código" e cole o iframe</li>
+                  <li><strong>Outras plataformas:</strong> Procure por "Embed" ou "HTML personalizado"</li>
+                </ul>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
