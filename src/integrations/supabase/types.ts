@@ -1725,6 +1725,51 @@ export type Database = {
         }
         Relationships: []
       }
+      builder_pages: {
+        Row: {
+          created_at: string
+          elements: Json
+          id: string
+          is_published: boolean
+          name: string
+          published_at: string | null
+          settings: Json
+          slug: string
+          thumbnail_url: string | null
+          updated_at: string
+          user_id: string
+          views_count: number
+        }
+        Insert: {
+          created_at?: string
+          elements?: Json
+          id?: string
+          is_published?: boolean
+          name: string
+          published_at?: string | null
+          settings?: Json
+          slug: string
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id: string
+          views_count?: number
+        }
+        Update: {
+          created_at?: string
+          elements?: Json
+          id?: string
+          is_published?: boolean
+          name?: string
+          published_at?: string | null
+          settings?: Json
+          slug?: string
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id?: string
+          views_count?: number
+        }
+        Relationships: []
+      }
       button_link_clicks: {
         Row: {
           ai_agent_id: string | null

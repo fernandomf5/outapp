@@ -26,6 +26,7 @@ import ResetPassword from "./pages/ResetPassword";
 import ShortLinkRedirect from "./pages/ShortLinkRedirect";
 import ClonedPage from "./pages/ClonedPage";
 import ClonedOrCustomPage from "./pages/ClonedOrCustomPage";
+import BuilderPagePublic from "./pages/BuilderPagePublic";
 import LinkBioPage from "./pages/LinkBioPage";
 import AgentCustomerAuth from "./pages/AgentCustomerAuth";
 import AgentCustomerChat from "./pages/AgentCustomerChat";
@@ -51,6 +52,7 @@ import TeamMemberAuth from "./pages/TeamMemberAuth";
 import TeamMemberDashboard from "./pages/TeamMemberDashboard";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import PageEditor from "./pages/PageEditor";
+import PageBuilder from "./pages/PageBuilder";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { CookieNotice } from "@/components/CookieNotice";
 
@@ -114,11 +116,22 @@ const AppContent = () => {
           <Route path="/aprova-job/:token" element={<AprovaJobClient />} />
           <Route path="/portfolio/:portfolioId" element={<PortfolioPublicPage />} />
               <Route path="/portfolio/:portfolioId/:slug" element={<PortfolioPublicPage />} />
+              <Route path="/p/:slug" element={<BuilderPagePublic />} />
               <Route path="/instalar" element={<InstallApp />} />
               <Route path="/aceitar-convite" element={<AcceptInvitation />} />
               <Route path="/page-editor/:pageId" element={
                 <ProtectedRoute>
                   <PageEditor />
+                </ProtectedRoute>
+              } />
+              <Route path="/page-builder" element={
+                <ProtectedRoute>
+                  <PageBuilder />
+                </ProtectedRoute>
+              } />
+              <Route path="/page-builder/:pageId" element={
+                <ProtectedRoute>
+                  <PageBuilder />
                 </ProtectedRoute>
               } />
                

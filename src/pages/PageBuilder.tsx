@@ -112,12 +112,13 @@ const PageBuilder = () => {
 
       if (error) throw error;
 
+      const rawData = data as any;
       const pageData: BuilderPage = {
-        id: data.id,
-        name: data.name,
-        slug: data.slug,
-        elements: (data.elements as BuilderElement[]) || [],
-        settings: (data.settings as BuilderPage['settings']) || getDefaultSettings()
+        id: rawData.id,
+        name: rawData.name,
+        slug: rawData.slug,
+        elements: (rawData.elements as BuilderElement[]) || [],
+        settings: (rawData.settings as BuilderPage['settings']) || getDefaultSettings()
       };
 
       setPage(pageData);
@@ -297,22 +298,22 @@ const PageBuilder = () => {
         user_id: user?.id,
         name: pageName,
         slug: slug,
-        elements: elements,
-        settings: page?.settings || getDefaultSettings(),
+        elements: elements as any,
+        settings: (page?.settings || getDefaultSettings()) as any,
         is_published: false
       };
 
       if (page?.id) {
         const { error } = await supabase
           .from('builder_pages')
-          .update(pageData)
+          .update(pageData as any)
           .eq('id', page.id);
 
         if (error) throw error;
       } else {
         const { data, error } = await supabase
           .from('builder_pages')
-          .insert(pageData)
+          .insert(pageData as any)
           .select()
           .single();
 

@@ -670,8 +670,8 @@ export const PageCloner = ({ teamContext }: PageClonerProps) => {
                     <Button
                       size="sm"
                       variant="default"
-                      onClick={() => navigate(`/page-editor/${page.id}`)}
-                      title="Editar Página"
+                      onClick={() => navigate(`/page-builder?cloned=${page.id}`)}
+                      title="Editar no Page Builder"
                       className="gradient-primary"
                     >
                       <Pencil className="w-4 h-4" />
