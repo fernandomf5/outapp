@@ -17,6 +17,7 @@ import { BuilderCanvas } from "@/components/page-builder/BuilderCanvas";
 import { BuilderProperties } from "@/components/page-builder/BuilderProperties";
 import { BuilderToolbar } from "@/components/page-builder/BuilderToolbar";
 import { DragOverlayContent } from "@/components/page-builder/DragOverlayContent";
+import { LayoutStructure } from "@/components/page-builder/LayoutStructureSelector";
 
 export interface BuilderElement {
   id: string;
@@ -807,6 +808,81 @@ const PageBuilder = () => {
     }));
   };
 
+  // Function to add structured elements (section/row with predefined column layout)
+  const handleAddStructuredElement = (type: 'section' | 'row', structure: LayoutStructure) => {
+    const timestamp = Date.now();
+    const isVertical = structure.id.includes('vertical');
+    
+    // Create columns based on structure
+    const columns: BuilderElement[] = structure.columns.map((width, index) => {
+      const columnId = `column-${timestamp}-${index}-${Math.random().toString(36).substr(2, 9)}`;
+      return {
+        id: columnId,
+        type: 'column' as const,
+        content: '',
+        styles: {
+          flex: isVertical ? 'none' : `0 0 ${width}%`,
+          width: isVertical ? '100%' : `${width}%`,
+          padding: '15px',
+          minHeight: '100px',
+          backgroundColor: 'transparent'
+        },
+        settings: { width },
+        children: []
+      };
+    });
+
+    // Create the parent element (section or row)
+    const parentId = `${type}-${timestamp}-${Math.random().toString(36).substr(2, 9)}`;
+    const newElement: BuilderElement = {
+      id: parentId,
+      type,
+      content: '',
+      styles: type === 'section' 
+        ? {
+            padding: '40px 20px',
+            backgroundColor: 'transparent',
+            minHeight: '200px'
+          }
+        : {
+            display: 'flex',
+            flexDirection: isVertical ? 'column' : 'row',
+            flexWrap: isVertical ? 'nowrap' : 'wrap',
+            gap: '15px',
+            padding: '20px 0',
+            alignItems: 'stretch'
+          },
+      settings: {
+        fullWidth: false,
+        containerWidth: '1200px',
+        layoutType: isVertical ? 'vertical' : 'horizontal',
+        columnsCount: structure.columns.length
+      },
+      children: type === 'section' 
+        ? [{
+            id: `row-${timestamp}-${Math.random().toString(36).substr(2, 9)}`,
+            type: 'row' as const,
+            content: '',
+            styles: {
+              display: 'flex',
+              flexDirection: isVertical ? 'column' : 'row',
+              flexWrap: isVertical ? 'nowrap' : 'wrap',
+              gap: '15px',
+              width: '100%',
+              alignItems: 'stretch'
+            },
+            settings: { layoutType: isVertical ? 'vertical' : 'horizontal' },
+            children: columns
+          }]
+        : columns
+    };
+
+    const updatedElements = [...elements, newElement];
+    setElements(updatedElements);
+    addToHistory(updatedElements);
+    setSelectedElement(newElement);
+  };
+
   const getViewWidth = () => {
     switch (viewMode) {
       case 'mobile': return 'max-w-[375px]';
@@ -936,6 +1012,7 @@ ${settings?.customJs ? `<script>${settings.customJs}</script>` : ''}
               selectedElement={selectedElement}
               onSelectElement={setSelectedElement}
               onDeleteElement={handleDeleteElement}
+              onAddStructuredElement={handleAddStructuredElement}
             />
           )}
 
