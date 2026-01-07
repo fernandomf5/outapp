@@ -863,6 +863,23 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
             </Card>
+
+            {/* Criador de Páginas */}
+            {hasFeature('page_builder') && (
+              <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("page-builder")}>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <Globe className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base">Criador de Páginas</CardTitle>
+                      <p className="text-xs text-muted-foreground">Landing pages profissionais</p>
+                    </div>
+                  </div>
+                </CardHeader>
+              </Card>
+            )}
           </div>
         </div>
 

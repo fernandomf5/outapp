@@ -1,10 +1,13 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { BuilderElement } from "@/pages/PageBuilder";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { 
-  Trash2, Copy, Move, GripVertical, 
-  ChevronUp, ChevronDown, Settings 
+  Trash2, Copy, GripVertical, 
+  Image as ImageIcon, Video, Link2, Settings, X,
+  Type, AlignLeft, AlignCenter, AlignRight, Palette,
+  Upload
 } from "lucide-react";
 import {
   ContextMenu,
@@ -13,6 +16,13 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface CanvasElementProps {
   element: BuilderElement;
@@ -38,7 +48,12 @@ export const CanvasElement = ({
   depth
 }: CanvasElementProps) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [showQuickEdit, setShowQuickEdit] = useState(false);
+  const [editValue, setEditValue] = useState("");
+  const [uploading, setUploading] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   const { setNodeRef, isOver } = useDroppable({
     id: element.id,
@@ -49,11 +64,37 @@ export const CanvasElement = ({
   });
 
   const canHaveChildren = ['section', 'row', 'column'].includes(element.type);
+  const isTextEditable = ['heading', 'text', 'button'].includes(element.type);
+  const isImageElement = element.type === 'image';
+  const isVideoElement = element.type === 'video';
+  const isLinkableElement = ['button', 'image'].includes(element.type);
+
+  // Sync edit value when element changes
+  useEffect(() => {
+    if (isImageElement) {
+      setEditValue(element.settings?.src || '');
+    } else if (isVideoElement) {
+      setEditValue(element.settings?.src || '');
+    } else if (isTextEditable) {
+      setEditValue(element.content);
+    }
+  }, [element, isImageElement, isVideoElement, isTextEditable]);
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSelect();
+    
+    // Show quick edit for images and videos on click
+    if ((isImageElement || isVideoElement) && !isPreview) {
+      setShowQuickEdit(true);
+    }
+  };
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (['heading', 'text', 'button'].includes(element.type) && !isPreview) {
+    if (isTextEditable && !isPreview) {
       setIsEditing(true);
+      setEditValue(element.content);
     }
   };
 
@@ -73,6 +114,255 @@ export const CanvasElement = ({
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `builder-images/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('media')
+        .getPublicUrl(filePath);
+
+      onUpdate({
+        ...element,
+        settings: { ...element.settings, src: urlData.publicUrl }
+      });
+
+      toast({ title: "Imagem atualizada!" });
+      setShowQuickEdit(false);
+    } catch (error: any) {
+      toast({ 
+        title: "Erro no upload", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSrcUpdate = () => {
+    if (isImageElement) {
+      onUpdate({
+        ...element,
+        settings: { ...element.settings, src: editValue }
+      });
+    } else if (isVideoElement) {
+      onUpdate({
+        ...element,
+        settings: { ...element.settings, src: editValue }
+      });
+    }
+    setShowQuickEdit(false);
+    toast({ title: "Atualizado!" });
+  };
+
+  const handleStyleChange = (key: string, value: string) => {
+    onUpdate({
+      ...element,
+      styles: { ...element.styles, [key]: value }
+    });
+  };
+
+  const renderQuickEditToolbar = () => {
+    if (isPreview || !isSelected) return null;
+
+    return (
+      <div className="absolute -top-12 left-0 right-0 flex items-center justify-center z-20">
+        <div className="flex items-center gap-1 bg-background border shadow-lg rounded-lg px-2 py-1">
+          <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
+          <span className="text-xs font-medium capitalize px-2 border-r">{element.type}</span>
+          
+          {/* Text alignment for text elements */}
+          {isTextEditable && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                onClick={() => handleStyleChange('textAlign', 'left')}
+                title="Alinhar à esquerda"
+              >
+                <AlignLeft className="w-3.5 h-3.5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                onClick={() => handleStyleChange('textAlign', 'center')}
+                title="Centralizar"
+              >
+                <AlignCenter className="w-3.5 h-3.5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                onClick={() => handleStyleChange('textAlign', 'right')}
+                title="Alinhar à direita"
+              >
+                <AlignRight className="w-3.5 h-3.5" />
+              </Button>
+              <div className="w-px h-5 bg-border" />
+            </>
+          )}
+
+          {/* Image controls */}
+          {isImageElement && (
+            <>
+              <Popover open={showQuickEdit} onOpenChange={setShowQuickEdit}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0"
+                    title="Alterar imagem"
+                  >
+                    <ImageIcon className="w-3.5 h-3.5" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80" align="center">
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-sm">Alterar Imagem</h4>
+                    
+                    <div className="flex gap-2">
+                      <Input
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        placeholder="URL da imagem"
+                        className="flex-1"
+                      />
+                      <Button size="sm" onClick={handleSrcUpdate}>
+                        OK
+                      </Button>
+                    </div>
+
+                    <div className="text-center text-xs text-muted-foreground">ou</div>
+
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      {uploading ? "Enviando..." : "Fazer Upload"}
+                    </Button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                    />
+                  </div>
+                </PopoverContent>
+              </Popover>
+              <div className="w-px h-5 bg-border" />
+            </>
+          )}
+
+          {/* Video controls */}
+          {isVideoElement && (
+            <>
+              <Popover open={showQuickEdit} onOpenChange={setShowQuickEdit}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0"
+                    title="Alterar vídeo"
+                  >
+                    <Video className="w-3.5 h-3.5" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80" align="center">
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-sm">Alterar Vídeo</h4>
+                    <div className="flex gap-2">
+                      <Input
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        placeholder="URL do YouTube ou vídeo"
+                        className="flex-1"
+                      />
+                      <Button size="sm" onClick={handleSrcUpdate}>
+                        OK
+                      </Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+              <div className="w-px h-5 bg-border" />
+            </>
+          )}
+
+          {/* Link editor for buttons */}
+          {isLinkableElement && (
+            <>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0"
+                    title="Editar link"
+                  >
+                    <Link2 className="w-3.5 h-3.5" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72" align="center">
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-sm">Link</h4>
+                    <Input
+                      value={element.settings?.link || ''}
+                      onChange={(e) => onUpdate({
+                        ...element,
+                        settings: { ...element.settings, link: e.target.value }
+                      })}
+                      placeholder="https://exemplo.com"
+                    />
+                  </div>
+                </PopoverContent>
+              </Popover>
+              <div className="w-px h-5 bg-border" />
+            </>
+          )}
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0"
+            onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
+            title="Duplicar"
+          >
+            <Copy className="w-3.5 h-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            title="Excluir"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
   const renderContent = () => {
     const styles = element.styles || {};
 
@@ -86,33 +376,59 @@ export const CanvasElement = ({
             suppressContentEditableWarning
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
-            className={`outline-none ${isEditing ? 'ring-2 ring-primary' : ''}`}
+            className={`outline-none min-h-[24px] ${isEditing ? 'ring-2 ring-primary bg-primary/5 p-2 rounded' : ''}`}
             style={styles}
             dangerouslySetInnerHTML={{ __html: element.content }}
           />
         );
 
       case 'image':
+        const imgSrc = element.settings?.src || 'https://via.placeholder.com/800x400?text=Clique+para+alterar';
         return (
-          <img
-            src={element.settings?.src || 'https://via.placeholder.com/800x400'}
-            alt={element.settings?.alt || 'Imagem'}
-            style={styles}
-            className="max-w-full h-auto"
-          />
+          <div className="relative group/image">
+            <img
+              src={imgSrc}
+              alt={element.settings?.alt || 'Imagem'}
+              style={styles}
+              className="max-w-full h-auto cursor-pointer"
+            />
+            {!isPreview && (
+              <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover/image:opacity-100">
+                <div className="bg-background/90 rounded-lg px-3 py-2 text-sm font-medium">
+                  Clique para editar
+                </div>
+              </div>
+            )}
+          </div>
         );
 
       case 'video':
         const videoSrc = element.settings?.src || '';
+        if (!videoSrc && !isPreview) {
+          return (
+            <div 
+              className="w-full aspect-video bg-muted flex items-center justify-center cursor-pointer rounded-lg border-2 border-dashed border-muted-foreground/30"
+              onClick={() => setShowQuickEdit(true)}
+            >
+              <div className="text-center">
+                <Video className="w-12 h-12 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">Clique para adicionar vídeo</p>
+              </div>
+            </div>
+          );
+        }
+        
         if (element.settings?.type === 'youtube' && videoSrc) {
           const videoId = videoSrc.includes('youtu.be') 
             ? videoSrc.split('/').pop()?.split('?')[0]
-            : new URLSearchParams(new URL(videoSrc).search).get('v');
+            : videoSrc.includes('youtube.com') 
+              ? new URLSearchParams(new URL(videoSrc).search).get('v')
+              : videoSrc;
           return (
             <iframe
               src={`https://www.youtube.com/embed/${videoId}`}
               style={styles}
-              className="w-full aspect-video"
+              className="w-full aspect-video rounded-lg"
               frameBorder="0"
               allowFullScreen
             />
@@ -123,7 +439,7 @@ export const CanvasElement = ({
             src={videoSrc}
             style={styles}
             controls
-            className="w-full"
+            className="w-full rounded-lg"
           />
         );
 
@@ -136,7 +452,7 @@ export const CanvasElement = ({
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
             style={styles}
-            className={`inline-block ${isEditing ? 'ring-2 ring-primary' : ''}`}
+            className={`inline-block cursor-pointer ${isEditing ? 'ring-2 ring-primary' : ''}`}
           >
             {element.content}
           </div>
@@ -146,7 +462,7 @@ export const CanvasElement = ({
         return (
           <div 
             style={{ height: styles.height || '40px' }} 
-            className="bg-muted/30 flex items-center justify-center"
+            className="bg-muted/30 flex items-center justify-center border-2 border-dashed border-muted-foreground/20 rounded"
           >
             {!isPreview && (
               <span className="text-xs text-muted-foreground">Espaçador ({styles.height || '40px'})</span>
@@ -155,7 +471,7 @@ export const CanvasElement = ({
         );
 
       case 'divider':
-        return <hr style={styles} />;
+        return <hr style={styles} className="border-t-2" />;
 
       case 'icon':
         return (
@@ -169,6 +485,7 @@ export const CanvasElement = ({
           <div 
             dangerouslySetInnerHTML={{ __html: element.content }} 
             style={styles}
+            className="html-content"
           />
         );
 
@@ -235,7 +552,7 @@ export const CanvasElement = ({
       case 'section':
       case 'row':
       case 'column':
-        return null; // Children will be rendered separately
+        return null;
 
       default:
         return <div style={styles}>{element.content}</div>;
@@ -256,39 +573,11 @@ export const CanvasElement = ({
           ref={canHaveChildren ? setNodeRef : undefined}
           className={wrapperClasses}
           style={element.styles}
-          onClick={(e) => {
-            e.stopPropagation();
-            onSelect();
-          }}
+          onClick={handleClick}
           onDoubleClick={handleDoubleClick}
         >
-          {/* Element Toolbar */}
-          {isSelected && !isPreview && (
-            <div className="absolute -top-8 left-0 flex items-center gap-1 bg-primary text-primary-foreground rounded-t-md px-2 py-1 text-xs z-10">
-              <GripVertical className="w-3 h-3 cursor-grab" />
-              <span className="capitalize font-medium">{element.type}</span>
-              <div className="flex items-center gap-0.5 ml-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-5 w-5 p-0 hover:bg-primary-foreground/20"
-                  onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
-                  title="Duplicar"
-                >
-                  <Copy className="w-3 h-3" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-5 w-5 p-0 hover:bg-destructive/80"
-                  onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                  title="Excluir"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </Button>
-              </div>
-            </div>
-          )}
+          {/* Quick Edit Toolbar */}
+          {renderQuickEditToolbar()}
 
           {/* Element Content */}
           {renderContent()}
