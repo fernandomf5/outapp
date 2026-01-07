@@ -4,15 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Loader2, ArrowLeft, Save, Undo, Redo, Eye, EyeOff, Smartphone, Tablet, Monitor, Settings2 } from "lucide-react";
 import { EditorSidebar } from "@/components/page-editor/EditorSidebar";
-import { EditorToolbar } from "@/components/page-editor/EditorToolbar";
 import { ElementProperties } from "@/components/page-editor/ElementProperties";
 import { EditorCanvas } from "@/components/page-editor/EditorCanvas";
 
 export interface EditorElement {
   id: string;
-  type: 'text' | 'image' | 'video' | 'button' | 'section' | 'container' | 'icon' | 'divider' | 'spacer' | 'html';
+  type: 'text' | 'image' | 'video' | 'button' | 'section' | 'container' | 'icon' | 'divider' | 'spacer' | 'html' | 'heading' | 'link' | 'form-field' | 'element';
   selector?: string;
   originalContent?: string;
   newContent?: string;
@@ -44,6 +46,14 @@ const PageEditor = () => {
   const [viewMode, setViewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [sidebarTab, setSidebarTab] = useState<'elements' | 'layers' | 'settings'>('elements');
   const [showProperties, setShowProperties] = useState(true);
+  
+  // Dialog states for editing
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [stylesDialogOpen, setStylesDialogOpen] = useState(false);
+  const [tempImageUrl, setTempImageUrl] = useState("");
+  const [tempLinkUrl, setTempLinkUrl] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
   
   // History for undo/redo
   const [history, setHistory] = useState<EditorHistory[]>([]);
@@ -151,17 +161,37 @@ const PageEditor = () => {
     }
   };
 
-  const handleElementUpdate = (updatedElement: EditorElement) => {
+  // Send update to iframe
+  const sendUpdateToIframe = useCallback((elementId: string, updates: { content?: string; src?: string; href?: string; styles?: string }) => {
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({
+        type: 'update-element',
+        elementId,
+        ...updates
+      }, '*');
+    }
+  }, []);
+
+  const handleElementUpdate = useCallback((updatedElement: EditorElement) => {
     const newElements = elements.map(el => 
       el.id === updatedElement.id ? updatedElement : el
     );
     setElements(newElements);
     setSelectedElement(updatedElement);
     
-    // Apply changes to HTML
-    applyElementChanges(newElements);
-    addToHistory(newElements, modifiedHtml);
-  };
+    // Send updates to iframe
+    const stylesToString = (styles: Record<string, string> | undefined) => {
+      if (!styles) return '';
+      return Object.entries(styles).map(([k, v]) => `${k}: ${v}`).join('; ');
+    };
+
+    sendUpdateToIframe(updatedElement.id, {
+      content: updatedElement.newContent,
+      src: updatedElement.attributes?.src,
+      href: updatedElement.attributes?.href,
+      styles: stylesToString(updatedElement.styles)
+    });
+  }, [elements, sendUpdateToIframe]);
 
   const handleAddElement = (element: EditorElement) => {
     const newElements = [...elements, element];
@@ -184,27 +214,108 @@ const PageEditor = () => {
     if (selectedElement?.id === elementId) {
       setSelectedElement(null);
     }
-    applyElementChanges(newElements);
     addToHistory(newElements, modifiedHtml);
-  };
-
-  const applyElementChanges = (elementsToApply: EditorElement[]) => {
-    let html = originalHtml;
-    
-    // Apply text/content replacements
-    elementsToApply.forEach(element => {
-      if (element.selector && element.newContent) {
-        // This is a simplified version - real implementation would use DOM manipulation
-        // For now, we'll handle it in the iframe
-      }
-    });
-    
-    setModifiedHtml(html);
   };
 
   const handleHtmlChange = (newHtml: string) => {
     setModifiedHtml(newHtml);
     addToHistory(elements, newHtml);
+  };
+
+  // Handle messages from iframe for opening dialogs
+  const handleIframeAction = useCallback((action: string, elementId: string, data: any) => {
+    // Find or create element
+    let element = elements.find(el => el.id === elementId);
+    if (!element) {
+      element = {
+        id: elementId,
+        type: 'element',
+        selector: `[data-editor-id="${elementId}"]`,
+        attributes: {}
+      };
+      setElements(prev => [...prev, element!]);
+    }
+    setSelectedElement(element);
+
+    if (action === 'change-image') {
+      setTempImageUrl(data.currentSrc || '');
+      setImageDialogOpen(true);
+    } else if (action === 'edit-link') {
+      setTempLinkUrl(data.currentHref || '');
+      setLinkDialogOpen(true);
+    } else if (action === 'edit-styles') {
+      setStylesDialogOpen(true);
+    }
+  }, [elements]);
+
+  // Handle image upload
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedElement) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({ title: "Selecione uma imagem válida", variant: "destructive" });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Imagem muito grande (máx 5MB)", variant: "destructive" });
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `editor-images/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('cloned-pages')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('cloned-pages')
+        .getPublicUrl(filePath);
+
+      setTempImageUrl(publicUrl);
+      toast({ title: "Imagem enviada!" });
+    } catch (error: any) {
+      toast({ title: "Erro ao enviar imagem", description: error.message, variant: "destructive" });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const applyImageChange = () => {
+    if (!selectedElement || !tempImageUrl) return;
+    
+    const updatedElement = {
+      ...selectedElement,
+      type: 'image' as const,
+      attributes: { ...selectedElement.attributes, src: tempImageUrl }
+    };
+    
+    handleElementUpdate(updatedElement);
+    setImageDialogOpen(false);
+    setTempImageUrl('');
+    toast({ title: "Imagem atualizada!" });
+  };
+
+  const applyLinkChange = () => {
+    if (!selectedElement) return;
+    
+    const updatedElement = {
+      ...selectedElement,
+      type: 'button' as const,
+      attributes: { ...selectedElement.attributes, href: tempLinkUrl }
+    };
+    
+    handleElementUpdate(updatedElement);
+    setLinkDialogOpen(false);
+    setTempLinkUrl('');
+    toast({ title: "Link atualizado!" });
   };
 
   const getViewWidth = () => {
@@ -345,6 +456,7 @@ const PageEditor = () => {
               onElementUpdate={handleElementUpdate}
               onHtmlChange={handleHtmlChange}
               onElementDiscovered={handleElementDiscovered}
+              onIframeAction={handleIframeAction}
               isPreview={showPreview}
               viewMode={viewMode}
             />
@@ -361,6 +473,187 @@ const PageEditor = () => {
           />
         )}
       </div>
+
+      {/* Image Dialog */}
+      <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Trocar Imagem</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>URL da Imagem</Label>
+              <Input
+                value={tempImageUrl}
+                onChange={(e) => setTempImageUrl(e.target.value)}
+                placeholder="https://..."
+              />
+            </div>
+            <div className="text-center text-sm text-muted-foreground">ou</div>
+            <div className="space-y-2">
+              <Label>Upload de Imagem</Label>
+              <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-muted/50 transition-colors cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="editor-image-upload"
+                  disabled={uploadingImage}
+                />
+                <label htmlFor="editor-image-upload" className="cursor-pointer">
+                  {uploadingImage ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Enviando...</span>
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">Clique para enviar uma imagem</span>
+                  )}
+                </label>
+              </div>
+            </div>
+            {tempImageUrl && (
+              <div className="border rounded-lg p-2">
+                <img src={tempImageUrl} alt="Preview" className="max-h-32 mx-auto object-contain" />
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setImageDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={applyImageChange} disabled={!tempImageUrl}>Aplicar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Link Dialog */}
+      <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Link</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>URL do Link</Label>
+              <Input
+                value={tempLinkUrl}
+                onChange={(e) => setTempLinkUrl(e.target.value)}
+                placeholder="https://..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLinkDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={applyLinkChange}>Aplicar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Styles Dialog */}
+      <Dialog open={stylesDialogOpen} onOpenChange={setStylesDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Estilos</DialogTitle>
+          </DialogHeader>
+          {selectedElement && (
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+              <div className="space-y-2">
+                <Label>Cor de Fundo</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={selectedElement.styles?.backgroundColor || '#ffffff'}
+                    onChange={(e) => handleElementUpdate({
+                      ...selectedElement,
+                      styles: { ...selectedElement.styles, backgroundColor: e.target.value }
+                    })}
+                    className="w-12 h-10 p-1 cursor-pointer"
+                  />
+                  <Input
+                    value={selectedElement.styles?.backgroundColor || ''}
+                    onChange={(e) => handleElementUpdate({
+                      ...selectedElement,
+                      styles: { ...selectedElement.styles, backgroundColor: e.target.value }
+                    })}
+                    placeholder="#ffffff"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Cor do Texto</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={selectedElement.styles?.color || '#000000'}
+                    onChange={(e) => handleElementUpdate({
+                      ...selectedElement,
+                      styles: { ...selectedElement.styles, color: e.target.value }
+                    })}
+                    className="w-12 h-10 p-1 cursor-pointer"
+                  />
+                  <Input
+                    value={selectedElement.styles?.color || ''}
+                    onChange={(e) => handleElementUpdate({
+                      ...selectedElement,
+                      styles: { ...selectedElement.styles, color: e.target.value }
+                    })}
+                    placeholder="#000000"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Tamanho da Fonte</Label>
+                <Input
+                  value={selectedElement.styles?.fontSize || ''}
+                  onChange={(e) => handleElementUpdate({
+                    ...selectedElement,
+                    styles: { ...selectedElement.styles, fontSize: e.target.value }
+                  })}
+                  placeholder="16px"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Padding</Label>
+                <Input
+                  value={selectedElement.styles?.padding || ''}
+                  onChange={(e) => handleElementUpdate({
+                    ...selectedElement,
+                    styles: { ...selectedElement.styles, padding: e.target.value }
+                  })}
+                  placeholder="10px"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Margin</Label>
+                <Input
+                  value={selectedElement.styles?.margin || ''}
+                  onChange={(e) => handleElementUpdate({
+                    ...selectedElement,
+                    styles: { ...selectedElement.styles, margin: e.target.value }
+                  })}
+                  placeholder="10px"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Arredondamento</Label>
+                <Input
+                  value={selectedElement.styles?.borderRadius || ''}
+                  onChange={(e) => handleElementUpdate({
+                    ...selectedElement,
+                    styles: { ...selectedElement.styles, borderRadius: e.target.value }
+                  })}
+                  placeholder="8px"
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setStylesDialogOpen(false)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

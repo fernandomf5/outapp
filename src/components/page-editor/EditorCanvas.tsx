@@ -9,6 +9,7 @@ interface EditorCanvasProps {
   onElementUpdate: (element: EditorElement) => void;
   onHtmlChange: (html: string) => void;
   onElementDiscovered: (element: EditorElement) => void;
+  onIframeAction: (action: string, elementId: string, data: any) => void;
   isPreview: boolean;
   viewMode: 'desktop' | 'tablet' | 'mobile';
 }
@@ -21,6 +22,7 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
   onElementUpdate,
   onHtmlChange,
   onElementDiscovered,
+  onIframeAction,
   isPreview,
   viewMode
 }, ref) => {
@@ -86,6 +88,9 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
           gap: 8px;
           z-index: 99999;
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+          flex-wrap: wrap;
+          max-width: 90%;
+          justify-content: center;
         }
         
         .editor-toolbar button {
@@ -100,6 +105,7 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
           align-items: center;
           gap: 4px;
           transition: background 0.15s;
+          white-space: nowrap;
         }
         
         .editor-toolbar button:hover {
@@ -245,11 +251,14 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
             toolbar = document.createElement('div');
             toolbar.className = 'editor-toolbar';
             
-            // Edit button
+            // Edit text button
             if (['heading', 'text', 'link', 'button'].includes(type)) {
               const editBtn = document.createElement('button');
               editBtn.innerHTML = '✏️ Editar Texto';
-              editBtn.onclick = () => startEditing(el);
+              editBtn.onclick = function(e) {
+                e.stopPropagation();
+                startEditing(el);
+              };
               toolbar.appendChild(editBtn);
             }
             
@@ -257,21 +266,23 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
             if (type === 'image') {
               const imgBtn = document.createElement('button');
               imgBtn.innerHTML = '🖼️ Trocar Imagem';
-              imgBtn.onclick = () => {
+              imgBtn.onclick = function(e) {
+                e.stopPropagation();
                 window.parent.postMessage({
                   type: 'change-image',
                   elementId: el.dataset.editorId,
-                  currentSrc: el.src
+                  currentSrc: el.src || ''
                 }, '*');
               };
               toolbar.appendChild(imgBtn);
             }
             
             // Link button for links/buttons
-            if (type === 'link' || type === 'button') {
+            if (type === 'link' || type === 'button' || el.tagName.toLowerCase() === 'a') {
               const linkBtn = document.createElement('button');
               linkBtn.innerHTML = '🔗 Editar Link';
-              linkBtn.onclick = () => {
+              linkBtn.onclick = function(e) {
+                e.stopPropagation();
                 window.parent.postMessage({
                   type: 'edit-link',
                   elementId: el.dataset.editorId,
@@ -284,7 +295,8 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
             // Style button
             const styleBtn = document.createElement('button');
             styleBtn.innerHTML = '🎨 Estilos';
-            styleBtn.onclick = () => {
+            styleBtn.onclick = function(e) {
+              e.stopPropagation();
               window.parent.postMessage({
                 type: 'edit-styles',
                 elementId: el.dataset.editorId,
@@ -296,14 +308,22 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
             // Duplicate button
             const dupBtn = document.createElement('button');
             dupBtn.innerHTML = '📋 Duplicar';
-            dupBtn.onclick = () => duplicateElement(el);
+            dupBtn.onclick = function(e) {
+              e.stopPropagation();
+              duplicateElement(el);
+            };
             toolbar.appendChild(dupBtn);
             
             // Delete button
             const delBtn = document.createElement('button');
             delBtn.className = 'danger';
             delBtn.innerHTML = '🗑️ Excluir';
-            delBtn.onclick = () => deleteElement(el);
+            delBtn.onclick = function(e) {
+              e.stopPropagation();
+              if (confirm('Tem certeza que deseja excluir este elemento?')) {
+                deleteElement(el);
+              }
+            };
             toolbar.appendChild(delBtn);
             
             document.body.appendChild(toolbar);
@@ -315,11 +335,13 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
             el.focus();
             
             // Select all text
-            const range = document.createRange();
-            range.selectNodeContents(el);
-            const sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
+            try {
+              const range = document.createRange();
+              range.selectNodeContents(el);
+              const sel = window.getSelection();
+              sel.removeAllRanges();
+              sel.addRange(range);
+            } catch(e) {}
           }
           
           function stopEditing(el) {
@@ -338,6 +360,7 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
           function duplicateElement(el) {
             const clone = el.cloneNode(true);
             clone.dataset.editorId = generateUniqueId();
+            clone.classList.add('editor-element-highlight');
             el.parentNode.insertBefore(clone, el.nextSibling);
             
             window.parent.postMessage({
@@ -395,7 +418,7 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
           
           // Initialize all editable elements
           function initElements() {
-            document.querySelectorAll(editableSelectors).forEach(el => {
+            document.querySelectorAll(editableSelectors).forEach(function(el) {
               if (!el.dataset.editorId) {
                 el.dataset.editorId = generateUniqueId();
               }
@@ -442,7 +465,7 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
           document.addEventListener('keydown', function(e) {
             // Escape to deselect
             if (e.key === 'Escape') {
-              if (document.activeElement.contentEditable === 'true') {
+              if (document.activeElement && document.activeElement.contentEditable === 'true') {
                 document.activeElement.blur();
               } else if (selectedElement) {
                 selectedElement.classList.remove('editor-element-selected');
@@ -453,9 +476,11 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
             }
             
             // Delete key to remove element
-            if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElement && document.activeElement.contentEditable !== 'true') {
+            if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElement && (!document.activeElement || document.activeElement.contentEditable !== 'true')) {
               e.preventDefault();
-              deleteElement(selectedElement);
+              if (confirm('Tem certeza que deseja excluir este elemento?')) {
+                deleteElement(selectedElement);
+              }
             }
             
             // Ctrl+D to duplicate
@@ -482,36 +507,41 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
             contextMenu.style.left = e.clientX + 'px';
             contextMenu.style.top = e.clientY + 'px';
             
-            const actions = [];
+            var actions = [];
             
             if (['heading', 'text', 'link', 'button'].includes(type)) {
-              actions.push({ icon: '✏️', label: 'Editar Texto', action: () => { startEditing(el); closeContextMenu(); }});
+              actions.push({ icon: '✏️', label: 'Editar Texto', action: function() { startEditing(el); closeContextMenu(); }});
             }
             
             if (type === 'image') {
-              actions.push({ icon: '🖼️', label: 'Trocar Imagem', action: () => {
-                window.parent.postMessage({ type: 'change-image', elementId: el.dataset.editorId, currentSrc: el.src }, '*');
+              actions.push({ icon: '🖼️', label: 'Trocar Imagem', action: function() {
+                window.parent.postMessage({ type: 'change-image', elementId: el.dataset.editorId, currentSrc: el.src || '' }, '*');
                 closeContextMenu();
               }});
             }
             
-            if (type === 'link' || type === 'button') {
-              actions.push({ icon: '🔗', label: 'Editar Link', action: () => {
-                window.parent.postMessage({ type: 'edit-link', elementId: el.dataset.editorId, currentHref: el.href }, '*');
+            if (type === 'link' || type === 'button' || el.tagName.toLowerCase() === 'a') {
+              actions.push({ icon: '🔗', label: 'Editar Link', action: function() {
+                window.parent.postMessage({ type: 'edit-link', elementId: el.dataset.editorId, currentHref: el.href || '' }, '*');
                 closeContextMenu();
               }});
             }
             
-            actions.push({ icon: '🎨', label: 'Editar Estilos', action: () => {
+            actions.push({ icon: '🎨', label: 'Editar Estilos', action: function() {
               window.parent.postMessage({ type: 'edit-styles', elementId: el.dataset.editorId, currentStyles: el.getAttribute('style') || '' }, '*');
               closeContextMenu();
             }});
             
-            actions.push({ icon: '📋', label: 'Duplicar', action: () => { duplicateElement(el); closeContextMenu(); }});
-            actions.push({ icon: '🗑️', label: 'Excluir', action: () => { deleteElement(el); closeContextMenu(); }, danger: true });
+            actions.push({ icon: '📋', label: 'Duplicar', action: function() { duplicateElement(el); closeContextMenu(); }});
+            actions.push({ icon: '🗑️', label: 'Excluir', action: function() { 
+              if (confirm('Tem certeza que deseja excluir este elemento?')) {
+                deleteElement(el); 
+              }
+              closeContextMenu(); 
+            }, danger: true });
             
-            actions.forEach(item => {
-              const btn = document.createElement('button');
+            actions.forEach(function(item) {
+              var btn = document.createElement('button');
               btn.innerHTML = item.icon + ' ' + item.label;
               if (item.danger) btn.className = 'danger';
               btn.onclick = item.action;
@@ -531,12 +561,20 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
           // Listen for messages from parent
           window.addEventListener('message', function(e) {
             if (e.data.type === 'update-element') {
-              const el = document.querySelector('[data-editor-id="' + e.data.elementId + '"]');
+              var el = document.querySelector('[data-editor-id="' + e.data.elementId + '"]');
               if (el) {
-                if (e.data.content !== undefined) el.innerHTML = e.data.content;
-                if (e.data.src !== undefined) el.src = e.data.src;
-                if (e.data.href !== undefined) el.href = e.data.href;
-                if (e.data.styles !== undefined) el.setAttribute('style', e.data.styles);
+                if (e.data.content !== undefined && e.data.content !== null) {
+                  el.innerHTML = e.data.content;
+                }
+                if (e.data.src !== undefined && e.data.src !== null) {
+                  el.src = e.data.src;
+                }
+                if (e.data.href !== undefined && e.data.href !== null) {
+                  el.href = e.data.href;
+                }
+                if (e.data.styles !== undefined && e.data.styles !== null && e.data.styles !== '') {
+                  el.setAttribute('style', e.data.styles);
+                }
                 
                 window.parent.postMessage({
                   type: 'html-changed',
@@ -546,7 +584,7 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
             }
             
             if (e.data.type === 'select-element') {
-              const el = document.querySelector('[data-editor-id="' + e.data.elementId + '"]');
+              var el = document.querySelector('[data-editor-id="' + e.data.elementId + '"]');
               if (el) {
                 selectElement(el);
                 el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -584,7 +622,7 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      const { type, elementId, elementType, elementLabel, tagName, content, src, href, styles, outerHtml } = event.data;
+      const { type, elementId, elementType, elementLabel, tagName, content, src, href, styles, outerHtml, currentSrc, currentHref, currentStyles } = event.data;
       
       if (type === 'element-selected') {
         const element: EditorElement = {
@@ -611,42 +649,21 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
       }
       
       if (type === 'change-image') {
-        const element: EditorElement = {
-          id: elementId,
-          type: 'image',
-          selector: `[data-editor-id="${elementId}"]`,
-          attributes: { src: event.data.currentSrc }
-        };
-        onElementDiscovered(element);
-        onSelectElement(element);
+        onIframeAction('change-image', elementId, { currentSrc });
       }
       
       if (type === 'edit-link') {
-        const element: EditorElement = {
-          id: elementId,
-          type: 'button',
-          selector: `[data-editor-id="${elementId}"]`,
-          attributes: { href: event.data.currentHref }
-        };
-        onElementDiscovered(element);
-        onSelectElement(element);
+        onIframeAction('edit-link', elementId, { currentHref });
       }
       
       if (type === 'edit-styles') {
-        const element: EditorElement = {
-          id: elementId,
-          type: 'container',
-          selector: `[data-editor-id="${elementId}"]`,
-          styles: parseStyles(event.data.currentStyles)
-        };
-        onElementDiscovered(element);
-        onSelectElement(element);
+        onIframeAction('edit-styles', elementId, { currentStyles });
       }
     };
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [onSelectElement, onElementUpdate, onHtmlChange, onElementDiscovered]);
+  }, [onSelectElement, onElementUpdate, onHtmlChange, onElementDiscovered, onIframeAction]);
 
   const parseStyles = (styleString: string): Record<string, string> => {
     const styles: Record<string, string> = {};
@@ -676,7 +693,7 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
     <iframe
       ref={iframeRef}
       className="w-full min-h-[600px] h-[calc(100vh-120px)] border-0"
-      sandbox="allow-same-origin allow-scripts allow-forms"
+      sandbox="allow-same-origin allow-scripts allow-forms allow-modals"
       title="Editor Canvas"
     />
   );
