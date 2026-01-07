@@ -141,7 +141,7 @@ export function UserSidebar() {
 
   const advancedResourcesItems: MenuItem[] = [
     { title: "Chat Online", icon: MessageSquare, path: "/dashboard", tab: "ai-agents", moduleKey: "ai_agents" },
-    { title: "Criador de Páginas", icon: Globe, path: "/dashboard", tab: "page-builder", hideForTeamMember: true },
+    { title: "Criador de Páginas", icon: Globe, path: "/dashboard", tab: "page-builder", feature: "page_builder", hideForTeamMember: true },
     { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner", moduleKey: "cloner" },
     { title: "Área de Membros", icon: UserCog, path: "/dashboard", tab: "area-membros", hideForTeamMember: true },
     { title: "Link na Bio", icon: ExternalLink, path: "/dashboard", tab: "linkbio", moduleKey: "link_bio" },
