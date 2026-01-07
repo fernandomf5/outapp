@@ -233,23 +233,219 @@ const PageBuilder = () => {
   });
 
   const convertHtmlToElements = (html: string): BuilderElement[] => {
-    // Create a section with the HTML content as a custom HTML element
+    // Parse HTML and convert to individual editable elements
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const body = doc.body;
+
+    const elements: BuilderElement[] = [];
+    const timestamp = Date.now();
+    let counter = 0;
+
+    const parseNode = (node: Element, parentStyles: Record<string, string> = {}): BuilderElement | null => {
+      counter++;
+      const id = `${node.tagName.toLowerCase()}-${timestamp}-${counter}`;
+      const computedStyle = node.getAttribute('style') || '';
+      const styleObj: Record<string, string> = {};
+      
+      // Parse inline styles
+      if (computedStyle) {
+        computedStyle.split(';').forEach(rule => {
+          const [prop, val] = rule.split(':').map(s => s.trim());
+          if (prop && val) {
+            // Convert kebab-case to camelCase
+            const camelProp = prop.replace(/-([a-z])/g, (_, l) => l.toUpperCase());
+            styleObj[camelProp] = val;
+          }
+        });
+      }
+
+      const tagName = node.tagName.toLowerCase();
+
+      // Handle different HTML elements
+      if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tagName)) {
+        return {
+          id,
+          type: 'heading',
+          content: node.innerHTML,
+          styles: {
+            fontSize: tagName === 'h1' ? '48px' : tagName === 'h2' ? '36px' : tagName === 'h3' ? '28px' : '24px',
+            fontWeight: 'bold',
+            ...styleObj
+          },
+          settings: { tag: tagName }
+        };
+      }
+
+      if (tagName === 'p' || tagName === 'span' || tagName === 'div') {
+        const innerText = node.textContent?.trim();
+        // Only create text element if it has actual text content
+        if (innerText && innerText.length > 0 && !node.querySelector('img, video, iframe, button, a')) {
+          return {
+            id,
+            type: 'text',
+            content: node.innerHTML,
+            styles: {
+              fontSize: '16px',
+              lineHeight: '1.6',
+              ...styleObj
+            },
+            settings: {}
+          };
+        }
+      }
+
+      if (tagName === 'img') {
+        return {
+          id,
+          type: 'image',
+          content: '',
+          styles: {
+            width: '100%',
+            height: 'auto',
+            ...styleObj
+          },
+          settings: {
+            src: node.getAttribute('src') || '',
+            alt: node.getAttribute('alt') || 'Imagem'
+          }
+        };
+      }
+
+      if (tagName === 'video') {
+        return {
+          id,
+          type: 'video',
+          content: '',
+          styles: {
+            width: '100%',
+            aspectRatio: '16/9',
+            ...styleObj
+          },
+          settings: {
+            src: node.getAttribute('src') || '',
+            type: 'video'
+          }
+        };
+      }
+
+      if (tagName === 'iframe') {
+        const src = node.getAttribute('src') || '';
+        if (src.includes('youtube') || src.includes('youtu.be')) {
+          return {
+            id,
+            type: 'video',
+            content: '',
+            styles: { width: '100%', aspectRatio: '16/9', ...styleObj },
+            settings: { src, type: 'youtube' }
+          };
+        }
+      }
+
+      if (tagName === 'a' || tagName === 'button') {
+        return {
+          id,
+          type: 'button',
+          content: node.textContent || 'Clique Aqui',
+          styles: {
+            padding: '14px 28px',
+            backgroundColor: '#3b82f6',
+            color: '#ffffff',
+            borderRadius: '8px',
+            fontWeight: '600',
+            display: 'inline-block',
+            textAlign: 'center',
+            ...styleObj
+          },
+          settings: {
+            link: node.getAttribute('href') || '#',
+            target: node.getAttribute('target') || '_self'
+          }
+        };
+      }
+
+      if (tagName === 'hr') {
+        return {
+          id,
+          type: 'divider',
+          content: '',
+          styles: { borderTop: '2px solid #e5e7eb', margin: '20px 0', ...styleObj },
+          settings: {}
+        };
+      }
+
+      // For sections/containers, parse children
+      if (['section', 'header', 'footer', 'main', 'article', 'aside', 'nav'].includes(tagName)) {
+        const children: BuilderElement[] = [];
+        Array.from(node.children).forEach(child => {
+          const childElement = parseNode(child as Element, styleObj);
+          if (childElement) {
+            children.push(childElement);
+          }
+        });
+
+        // If no children were parsed but there's text content, add as HTML
+        if (children.length === 0 && node.innerHTML.trim()) {
+          return {
+            id,
+            type: 'html',
+            content: node.innerHTML,
+            styles: styleObj,
+            settings: {}
+          };
+        }
+
+        return {
+          id,
+          type: 'section',
+          content: '',
+          styles: {
+            padding: '20px',
+            backgroundColor: 'transparent',
+            ...styleObj
+          },
+          settings: { fullWidth: false },
+          children
+        };
+      }
+
+      return null;
+    };
+
+    // Process top-level elements
+    Array.from(body.children).forEach(child => {
+      const element = parseNode(child as Element);
+      if (element) {
+        elements.push(element);
+      }
+    });
+
+    // If no elements were parsed, create a single HTML element with the full content
+    if (elements.length === 0) {
+      return [{
+        id: `section-${timestamp}`,
+        type: 'section',
+        content: '',
+        styles: { padding: '0', backgroundColor: 'transparent' },
+        settings: { fullWidth: true },
+        children: [{
+          id: `html-${timestamp}`,
+          type: 'html',
+          content: html,
+          styles: {},
+          settings: {}
+        }]
+      }];
+    }
+
+    // Wrap all elements in a section for better organization
     return [{
-      id: `section-${Date.now()}`,
+      id: `section-wrapper-${timestamp}`,
       type: 'section',
       content: '',
-      styles: {
-        padding: '0',
-        backgroundColor: 'transparent'
-      },
+      styles: { padding: '0', backgroundColor: 'transparent' },
       settings: { fullWidth: true },
-      children: [{
-        id: `html-${Date.now()}`,
-        type: 'html',
-        content: html,
-        styles: {},
-        settings: {}
-      }]
+      children: elements
     }];
   };
 
