@@ -61,7 +61,6 @@ import { AgendaReminders } from "@/components/AgendaReminders";
 import { AprovaJobPanel } from "@/components/AprovaJobPanel";
 import { GlobalChatNotification } from "@/components/GlobalChatNotification";
 import { PortfolioCreatorPanel } from "@/components/PortfolioCreatorPanel";
-import { PageBuilderPanel } from "@/components/PageBuilderPanel";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { TeamMemberBanner } from "@/components/TeamMemberBanner";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
@@ -864,22 +863,6 @@ const Dashboard = () => {
               </CardHeader>
             </Card>
 
-            {/* Criador de Páginas */}
-            {hasFeature('page_builder') && (
-              <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("page-builder")}>
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <Globe className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base">Criador de Páginas</CardTitle>
-                      <p className="text-xs text-muted-foreground">Landing pages profissionais</p>
-                    </div>
-                  </div>
-                </CardHeader>
-              </Card>
-            )}
           </div>
         </div>
 
@@ -1182,11 +1165,6 @@ const Dashboard = () => {
             </FeatureGate>
           </TabsContent>
 
-          <TabsContent value="page-builder">
-            <FeatureGate featureKey="page_builder">
-              <PageBuilderPanel />
-            </FeatureGate>
-          </TabsContent>
 
           <TabsContent value="crm">
             <FeatureGate featureKey="crm_contacts">

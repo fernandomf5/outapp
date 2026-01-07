@@ -170,6 +170,14 @@ const PageEditor = () => {
     addToHistory(newElements, modifiedHtml);
   };
 
+  const handleElementDiscovered = (element: EditorElement) => {
+    // Check if element already exists
+    const exists = elements.find(el => el.id === element.id);
+    if (!exists) {
+      setElements(prev => [...prev, element]);
+    }
+  };
+
   const handleDeleteElement = (elementId: string) => {
     const newElements = elements.filter(el => el.id !== elementId);
     setElements(newElements);
@@ -336,6 +344,7 @@ const PageEditor = () => {
               onSelectElement={setSelectedElement}
               onElementUpdate={handleElementUpdate}
               onHtmlChange={handleHtmlChange}
+              onElementDiscovered={handleElementDiscovered}
               isPreview={showPreview}
               viewMode={viewMode}
             />
