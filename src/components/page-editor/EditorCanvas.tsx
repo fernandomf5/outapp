@@ -270,16 +270,49 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
                 if (data.content !== undefined && data.content !== null) {
                   el.innerHTML = data.content;
                 }
+
+                // Update src in a way that works with common patterns (srcset, lazy-load attrs, <picture>)
                 if (data.src !== undefined && data.src !== null && data.src !== '') {
-                  el.src = data.src;
+                  const tag = el.tagName.toLowerCase();
+
+                  // Always set as attribute too (outerHTML serialization)
+                  try { el.setAttribute('src', data.src); } catch (e) {}
+
+                  if (tag === 'img') {
+                    // srcset often overrides src
+                    if (el.hasAttribute('srcset')) el.removeAttribute('srcset');
+                    if (el.hasAttribute('data-srcset')) el.removeAttribute('data-srcset');
+
+                    // common lazy-load attributes that may overwrite our change
+                    if (el.hasAttribute('data-src')) el.setAttribute('data-src', data.src);
+                    if (el.hasAttribute('data-lazy-src')) el.setAttribute('data-lazy-src', data.src);
+                    if (el.hasAttribute('data-original')) el.setAttribute('data-original', data.src);
+                    if (el.hasAttribute('data-url')) el.setAttribute('data-url', data.src);
+
+                    el.src = data.src;
+
+                    // If inside <picture>, update <source> as well
+                    const picture = el.closest && el.closest('picture');
+                    if (picture) {
+                      picture.querySelectorAll('source').forEach(function(source) {
+                        try { source.setAttribute('srcset', data.src); } catch (e) {}
+                      });
+                    }
+                  } else {
+                    // video / iframe / etc
+                    try { el.src = data.src; } catch (e) {}
+                  }
                 }
+
                 if (data.href !== undefined && data.href !== null && data.href !== '') {
+                  try { el.setAttribute('href', data.href); } catch (e) {}
                   el.href = data.href;
                 }
+
                 if (data.styles !== undefined && data.styles !== null && data.styles !== '') {
                   el.setAttribute('style', data.styles);
                 }
-                
+
                 window.parent.postMessage({
                   type: 'html-changed',
                   outerHtml: document.documentElement.outerHTML
