@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
@@ -106,9 +106,9 @@ export const ElementProperties = ({ element, onUpdate, onDelete, onClose, onDupl
   const isVideo = element.type === 'video' || element.attributes?.tagName === 'video' || element.attributes?.tagName === 'iframe';
 
   return (
-    <div className="w-80 border-l bg-card flex flex-col shrink-0">
+    <div className="w-80 border-l bg-card flex flex-col shrink-0 h-full overflow-hidden">
       {/* Header */}
-      <div className="p-3 border-b">
+      <div className="p-3 border-b shrink-0">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <span className="font-medium text-sm">
@@ -137,8 +137,8 @@ export const ElementProperties = ({ element, onUpdate, onDelete, onClose, onDupl
       </div>
 
       {/* Tabs */}
-      <Tabs value={currentTab} onValueChange={(v) => setCurrentTab(v as any)} className="flex-1 flex flex-col">
-        <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 h-auto">
+      <Tabs value={currentTab} onValueChange={(v) => setCurrentTab(v as any)} className="flex-1 flex flex-col min-h-0">
+        <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 h-auto shrink-0">
           <TabsTrigger 
             value="content" 
             className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-2 text-xs"
@@ -162,7 +162,7 @@ export const ElementProperties = ({ element, onUpdate, onDelete, onClose, onDupl
           </TabsTrigger>
         </TabsList>
 
-        <ScrollArea className="flex-1">
+        <div className="flex-1 overflow-y-auto min-h-0">
           {/* Content Tab */}
           <TabsContent value="content" className="p-3 space-y-4 m-0">
             
@@ -593,7 +593,7 @@ export const ElementProperties = ({ element, onUpdate, onDelete, onClose, onDupl
               </Select>
             </div>
           </TabsContent>
-        </ScrollArea>
+        </div>
       </Tabs>
     </div>
   );
