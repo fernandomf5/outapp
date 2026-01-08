@@ -443,21 +443,25 @@ const Dashboard = () => {
                   <img src={currentLogo} alt="Out App" className="w-5 h-5 xs:w-6 xs:h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 3xl:w-12 3xl:h-12" />
                 </Link>
                 <div className="min-w-0">
-                  <h1 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl font-bold">
-                    {isTeamMember && teamMember 
-                      ? `Painel de ${teamMember.adminName.split(' ')[0]}`
-                      : (
-                        <>
-                          <span className="block xs:inline truncate">
-                            {t('hello')}, {(userFullName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário').split(' ')[0]}! 👋
-                          </span>
-                        </>
-                      )
-                    }
-                  </h1>
-                  <p className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm lg:text-base 3xl:text-lg text-muted-foreground">
-                    {isTeamMember ? 'Acesso como membro da equipe' : t('welcome_back')}
-                  </p>
+                  {isTeamMember && teamMember ? (
+                    <>
+                      <h1 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl font-bold">
+                        Painel de {teamMember.adminName.split(' ')[0]}
+                      </h1>
+                      <p className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm lg:text-base 3xl:text-lg text-muted-foreground">
+                        Acesso como membro da equipe
+                      </p>
+                    </>
+                  ) : (
+                    <div className="flex flex-col xs:flex-row xs:items-baseline xs:gap-2">
+                      <h1 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl font-bold truncate">
+                        {t('hello')}, {(userFullName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário').split(' ')[0]}! 👋
+                      </h1>
+                      <p className="text-[10px] xs:text-xs sm:text-sm md:text-base lg:text-lg 3xl:text-xl text-muted-foreground">
+                        {t('welcome_back')}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
               
