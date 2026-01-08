@@ -44,144 +44,32 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
     const doc = iframe.contentDocument;
     if (!doc) return;
 
-    // Inject comprehensive editor styles
+    // Simple, clean editor styles
     const editorStyles = isPreview ? '' : `
       <style id="editor-styles">
         * {
           cursor: pointer !important;
         }
         
-        .editor-element-highlight {
-          position: relative;
-          outline: 2px dashed rgba(59, 130, 246, 0.5) !important;
+        [data-editor-id] {
+          transition: outline 0.15s ease, box-shadow 0.15s ease;
+        }
+        
+        [data-editor-id]:hover {
+          outline: 2px dashed #3b82f6 !important;
           outline-offset: 2px;
-          transition: outline-color 0.15s ease;
         }
         
-        .editor-element-highlight:hover {
-          outline-color: rgba(59, 130, 246, 1) !important;
-          outline-style: solid !important;
-        }
-        
-        .editor-element-selected {
+        [data-editor-id].editor-selected {
           outline: 3px solid #8b5cf6 !important;
           outline-offset: 2px;
           box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2) !important;
         }
         
-        .editor-element-editing {
+        [data-editor-id].editor-editing {
           outline: 3px solid #10b981 !important;
-          outline-offset: 2px;
           box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2) !important;
         }
-        
-        .editor-toolbar {
-          position: fixed;
-          top: 10px;
-          left: 50%;
-          transform: translateX(-50%);
-          background: rgba(0, 0, 0, 0.9);
-          backdrop-filter: blur(10px);
-          border-radius: 8px;
-          padding: 8px 12px;
-          display: flex;
-          gap: 8px;
-          z-index: 99999;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-          flex-wrap: wrap;
-          max-width: 90%;
-          justify-content: center;
-        }
-        
-        .editor-toolbar button {
-          background: transparent;
-          border: none;
-          color: white;
-          padding: 6px 10px;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 12px;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          transition: background 0.15s;
-          white-space: nowrap;
-        }
-        
-        .editor-toolbar button:hover {
-          background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .editor-toolbar button.danger:hover {
-          background: rgba(239, 68, 68, 0.3);
-          color: #fca5a5;
-        }
-        
-        .editor-context-menu {
-          position: fixed;
-          background: white;
-          border-radius: 8px;
-          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-          min-width: 180px;
-          z-index: 99999;
-          overflow: hidden;
-        }
-        
-        .editor-context-menu button {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          width: 100%;
-          padding: 10px 14px;
-          border: none;
-          background: transparent;
-          cursor: pointer;
-          font-size: 13px;
-          color: #374151;
-          text-align: left;
-          transition: background 0.15s;
-        }
-        
-        .editor-context-menu button:hover {
-          background: #f3f4f6;
-        }
-        
-        .editor-context-menu button.danger {
-          color: #ef4444;
-        }
-        
-        .editor-context-menu button.danger:hover {
-          background: #fef2f2;
-        }
-        
-        .editor-element-label {
-          position: absolute;
-          top: -24px;
-          left: 0;
-          background: #8b5cf6;
-          color: white;
-          font-size: 10px;
-          padding: 2px 8px;
-          border-radius: 4px 4px 0 0;
-          font-family: system-ui, sans-serif;
-          pointer-events: none;
-          z-index: 99998;
-        }
-        
-        .editor-resize-handle {
-          position: absolute;
-          width: 10px;
-          height: 10px;
-          background: #8b5cf6;
-          border: 2px solid white;
-          border-radius: 50%;
-          cursor: se-resize;
-        }
-        
-        .editor-resize-handle.se { bottom: -5px; right: -5px; }
-        .editor-resize-handle.sw { bottom: -5px; left: -5px; cursor: sw-resize; }
-        .editor-resize-handle.ne { top: -5px; right: -5px; cursor: ne-resize; }
-        .editor-resize-handle.nw { top: -5px; left: -5px; cursor: nw-resize; }
       </style>
     `;
 
@@ -189,11 +77,9 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
       <script id="editor-script">
         (function() {
           let selectedElement = null;
-          let contextMenu = null;
-          let toolbar = null;
+          let isEditing = false;
           
-          // Elements we want to make editable
-          const editableSelectors = 'h1, h2, h3, h4, h5, h6, p, span, a, button, img, video, iframe, section, div, header, footer, nav, article, aside, figure, figcaption, ul, ol, li, blockquote, table, form, input, textarea, select, label';
+          const editableSelectors = 'h1, h2, h3, h4, h5, h6, p, span, a, button, img, video, iframe, section, div, header, footer, nav, article, aside, figure, figcaption, ul, ol, li, blockquote';
           
           function getElementType(el) {
             const tag = el.tagName.toLowerCase();
@@ -202,9 +88,8 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
             if (tag === 'img') return 'image';
             if (tag === 'video' || tag === 'iframe') return 'video';
             if (tag === 'a') return 'link';
-            if (tag === 'button' || (tag === 'a' && el.classList.contains('btn'))) return 'button';
+            if (tag === 'button') return 'button';
             if (['section', 'div', 'header', 'footer', 'nav', 'article', 'aside'].includes(tag)) return 'container';
-            if (['input', 'textarea', 'select'].includes(tag)) return 'form-field';
             return 'element';
           }
           
@@ -219,361 +104,180 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
               'link': 'Link',
               'button': 'Botão',
               'container': 'Seção',
-              'form-field': 'Campo',
               'element': tag.toUpperCase()
             };
             return labels[type] || tag.toUpperCase();
           }
           
-          function generateUniqueId() {
+          function generateId() {
             return 'el-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
           }
           
-          function closeContextMenu() {
-            if (contextMenu) {
-              contextMenu.remove();
-              contextMenu = null;
-            }
-          }
-          
-          function closeToolbar() {
-            if (toolbar) {
-              toolbar.remove();
-              toolbar = null;
-            }
-          }
-          
-          function showToolbar(el) {
-            closeToolbar();
-            
-            const type = getElementType(el);
-            
-            toolbar = document.createElement('div');
-            toolbar.className = 'editor-toolbar';
-            
-            // Edit text button
-            if (['heading', 'text', 'link', 'button'].includes(type)) {
-              const editBtn = document.createElement('button');
-              editBtn.innerHTML = '✏️ Editar Texto';
-              editBtn.onclick = function(e) {
-                e.stopPropagation();
-                startEditing(el);
-              };
-              toolbar.appendChild(editBtn);
-            }
-            
-            // Image change button
-            if (type === 'image') {
-              const imgBtn = document.createElement('button');
-              imgBtn.innerHTML = '🖼️ Trocar Imagem';
-              imgBtn.onclick = function(e) {
-                e.stopPropagation();
+          function deselectCurrent() {
+            if (selectedElement) {
+              selectedElement.classList.remove('editor-selected');
+              if (isEditing) {
+                selectedElement.contentEditable = 'false';
+                selectedElement.classList.remove('editor-editing');
+                isEditing = false;
+                
+                // Send updated HTML
                 window.parent.postMessage({
-                  type: 'change-image',
-                  elementId: el.dataset.editorId,
-                  currentSrc: el.src || ''
+                  type: 'content-updated',
+                  elementId: selectedElement.dataset.editorId,
+                  content: selectedElement.innerHTML,
+                  outerHtml: document.documentElement.outerHTML
                 }, '*');
-              };
-              toolbar.appendChild(imgBtn);
-            }
-            
-            // Link button for links/buttons
-            if (type === 'link' || type === 'button' || el.tagName.toLowerCase() === 'a') {
-              const linkBtn = document.createElement('button');
-              linkBtn.innerHTML = '🔗 Editar Link';
-              linkBtn.onclick = function(e) {
-                e.stopPropagation();
-                window.parent.postMessage({
-                  type: 'edit-link',
-                  elementId: el.dataset.editorId,
-                  currentHref: el.href || ''
-                }, '*');
-              };
-              toolbar.appendChild(linkBtn);
-            }
-            
-            // Style button
-            const styleBtn = document.createElement('button');
-            styleBtn.innerHTML = '🎨 Estilos';
-            styleBtn.onclick = function(e) {
-              e.stopPropagation();
-              window.parent.postMessage({
-                type: 'edit-styles',
-                elementId: el.dataset.editorId,
-                currentStyles: el.getAttribute('style') || ''
-              }, '*');
-            };
-            toolbar.appendChild(styleBtn);
-            
-            // Duplicate button
-            const dupBtn = document.createElement('button');
-            dupBtn.innerHTML = '📋 Duplicar';
-            dupBtn.onclick = function(e) {
-              e.stopPropagation();
-              duplicateElement(el);
-            };
-            toolbar.appendChild(dupBtn);
-            
-            // Delete button
-            const delBtn = document.createElement('button');
-            delBtn.className = 'danger';
-            delBtn.innerHTML = '🗑️ Excluir';
-            delBtn.onclick = function(e) {
-              e.stopPropagation();
-              if (confirm('Tem certeza que deseja excluir este elemento?')) {
-                deleteElement(el);
               }
-            };
-            toolbar.appendChild(delBtn);
-            
-            document.body.appendChild(toolbar);
-          }
-          
-          function startEditing(el) {
-            el.classList.add('editor-element-editing');
-            el.contentEditable = 'true';
-            el.focus();
-            
-            // Select all text
-            try {
-              const range = document.createRange();
-              range.selectNodeContents(el);
-              const sel = window.getSelection();
-              sel.removeAllRanges();
-              sel.addRange(range);
-            } catch(e) {}
-          }
-          
-          function stopEditing(el) {
-            el.classList.remove('editor-element-editing');
-            el.contentEditable = 'false';
-            
-            // Send updated content
-            window.parent.postMessage({
-              type: 'content-updated',
-              elementId: el.dataset.editorId,
-              content: el.innerHTML,
-              outerHtml: document.documentElement.outerHTML
-            }, '*');
-          }
-          
-          function duplicateElement(el) {
-            const clone = el.cloneNode(true);
-            clone.dataset.editorId = generateUniqueId();
-            clone.classList.add('editor-element-highlight');
-            el.parentNode.insertBefore(clone, el.nextSibling);
-            
-            window.parent.postMessage({
-              type: 'element-duplicated',
-              elementId: clone.dataset.editorId,
-              outerHtml: document.documentElement.outerHTML
-            }, '*');
-            
-            closeToolbar();
-          }
-          
-          function deleteElement(el) {
-            const id = el.dataset.editorId;
-            el.remove();
-            
-            window.parent.postMessage({
-              type: 'element-deleted',
-              elementId: id,
-              outerHtml: document.documentElement.outerHTML
-            }, '*');
-            
-            closeToolbar();
-            selectedElement = null;
+              selectedElement = null;
+            }
           }
           
           function selectElement(el) {
-            // Deselect previous
-            if (selectedElement) {
-              selectedElement.classList.remove('editor-element-selected');
+            deselectCurrent();
+            
+            if (!el.dataset.editorId) {
+              el.dataset.editorId = generateId();
             }
             
             selectedElement = el;
-            el.classList.add('editor-element-selected');
+            el.classList.add('editor-selected');
             
-            // Ensure it has an ID
-            if (!el.dataset.editorId) {
-              el.dataset.editorId = generateUniqueId();
-            }
+            const type = getElementType(el);
             
-            showToolbar(el);
-            
-            // Notify parent
             window.parent.postMessage({
               type: 'element-selected',
               elementId: el.dataset.editorId,
-              elementType: getElementType(el),
+              elementType: type,
               elementLabel: getElementLabel(el),
               tagName: el.tagName.toLowerCase(),
               content: el.innerHTML,
-              src: el.src || el.querySelector('img')?.src || '',
+              src: el.src || '',
               href: el.href || '',
               styles: el.getAttribute('style') || ''
             }, '*');
           }
           
-          // Initialize all editable elements
+          function startEditing(el) {
+            if (!el) return;
+            const type = getElementType(el);
+            if (['heading', 'text', 'link', 'button'].includes(type)) {
+              isEditing = true;
+              el.classList.add('editor-editing');
+              el.contentEditable = 'true';
+              el.focus();
+              
+              // Select text
+              try {
+                const range = document.createRange();
+                range.selectNodeContents(el);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+              } catch(e) {}
+            }
+          }
+          
+          // Initialize elements with IDs
           function initElements() {
             document.querySelectorAll(editableSelectors).forEach(function(el) {
               if (!el.dataset.editorId) {
-                el.dataset.editorId = generateUniqueId();
+                el.dataset.editorId = generateId();
               }
-              el.classList.add('editor-element-highlight');
             });
           }
           
-          // Click handler
+          // Click to select
           document.addEventListener('click', function(e) {
+            if (isEditing) return;
+            
             e.preventDefault();
             e.stopPropagation();
             
-            closeContextMenu();
-            
-            // Find closest editable element
             const el = e.target.closest(editableSelectors);
             if (el) {
               selectElement(el);
             }
           }, true);
           
-          // Double click for text editing
+          // Double click to edit text
           document.addEventListener('dblclick', function(e) {
             e.preventDefault();
             e.stopPropagation();
             
             const el = e.target.closest(editableSelectors);
             if (el) {
-              const type = getElementType(el);
-              if (['heading', 'text', 'link', 'button'].includes(type)) {
-                startEditing(el);
+              if (selectedElement !== el) {
+                selectElement(el);
               }
+              startEditing(el);
             }
           }, true);
           
-          // Blur handler for text editing
+          // Blur to stop editing
           document.addEventListener('blur', function(e) {
             if (e.target.contentEditable === 'true') {
-              stopEditing(e.target);
+              e.target.classList.remove('editor-editing');
+              e.target.contentEditable = 'false';
+              isEditing = false;
+              
+              window.parent.postMessage({
+                type: 'content-updated',
+                elementId: e.target.dataset.editorId,
+                content: e.target.innerHTML,
+                outerHtml: document.documentElement.outerHTML
+              }, '*');
             }
           }, true);
           
-          // Keyboard shortcuts
+          // Escape to deselect
           document.addEventListener('keydown', function(e) {
-            // Escape to deselect
             if (e.key === 'Escape') {
-              if (document.activeElement && document.activeElement.contentEditable === 'true') {
-                document.activeElement.blur();
-              } else if (selectedElement) {
-                selectedElement.classList.remove('editor-element-selected');
-                selectedElement = null;
-                closeToolbar();
-                window.parent.postMessage({ type: 'element-deselected' }, '*');
-              }
+              deselectCurrent();
+              window.parent.postMessage({ type: 'element-deselected' }, '*');
             }
             
-            // Delete key to remove element
-            if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElement && (!document.activeElement || document.activeElement.contentEditable !== 'true')) {
+            // Delete element
+            if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElement && !isEditing) {
               e.preventDefault();
-              if (confirm('Tem certeza que deseja excluir este elemento?')) {
-                deleteElement(selectedElement);
-              }
-            }
-            
-            // Ctrl+D to duplicate
-            if (e.key === 'd' && (e.ctrlKey || e.metaKey) && selectedElement) {
-              e.preventDefault();
-              duplicateElement(selectedElement);
-            }
-          });
-          
-          // Context menu
-          document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-            
-            const el = e.target.closest(editableSelectors);
-            if (!el) return;
-            
-            selectElement(el);
-            closeContextMenu();
-            
-            const type = getElementType(el);
-            
-            contextMenu = document.createElement('div');
-            contextMenu.className = 'editor-context-menu';
-            contextMenu.style.left = e.clientX + 'px';
-            contextMenu.style.top = e.clientY + 'px';
-            
-            var actions = [];
-            
-            if (['heading', 'text', 'link', 'button'].includes(type)) {
-              actions.push({ icon: '✏️', label: 'Editar Texto', action: function() { startEditing(el); closeContextMenu(); }});
-            }
-            
-            if (type === 'image') {
-              actions.push({ icon: '🖼️', label: 'Trocar Imagem', action: function() {
-                window.parent.postMessage({ type: 'change-image', elementId: el.dataset.editorId, currentSrc: el.src || '' }, '*');
-                closeContextMenu();
-              }});
-            }
-            
-            if (type === 'link' || type === 'button' || el.tagName.toLowerCase() === 'a') {
-              actions.push({ icon: '🔗', label: 'Editar Link', action: function() {
-                window.parent.postMessage({ type: 'edit-link', elementId: el.dataset.editorId, currentHref: el.href || '' }, '*');
-                closeContextMenu();
-              }});
-            }
-            
-            actions.push({ icon: '🎨', label: 'Editar Estilos', action: function() {
-              window.parent.postMessage({ type: 'edit-styles', elementId: el.dataset.editorId, currentStyles: el.getAttribute('style') || '' }, '*');
-              closeContextMenu();
-            }});
-            
-            actions.push({ icon: '📋', label: 'Duplicar', action: function() { duplicateElement(el); closeContextMenu(); }});
-            actions.push({ icon: '🗑️', label: 'Excluir', action: function() { 
-              if (confirm('Tem certeza que deseja excluir este elemento?')) {
-                deleteElement(el); 
-              }
-              closeContextMenu(); 
-            }, danger: true });
-            
-            actions.forEach(function(item) {
-              var btn = document.createElement('button');
-              btn.innerHTML = item.icon + ' ' + item.label;
-              if (item.danger) btn.className = 'danger';
-              btn.onclick = item.action;
-              contextMenu.appendChild(btn);
-            });
-            
-            document.body.appendChild(contextMenu);
-          });
-          
-          // Close context menu on click outside
-          document.addEventListener('mousedown', function(e) {
-            if (contextMenu && !contextMenu.contains(e.target)) {
-              closeContextMenu();
+              const id = selectedElement.dataset.editorId;
+              selectedElement.remove();
+              selectedElement = null;
+              
+              window.parent.postMessage({
+                type: 'element-deleted',
+                elementId: id,
+                outerHtml: document.documentElement.outerHTML
+              }, '*');
             }
           });
           
-          // Listen for messages from parent
+          // Listen for commands from parent
           window.addEventListener('message', function(e) {
-            if (e.data.type === 'update-element') {
-              var el = document.querySelector('[data-editor-id="' + e.data.elementId + '"]');
+            const data = e.data;
+            
+            if (data.type === 'select-element') {
+              const el = document.querySelector('[data-editor-id="' + data.elementId + '"]');
               if (el) {
-                if (e.data.content !== undefined && e.data.content !== null) {
-                  el.innerHTML = e.data.content;
+                selectElement(el);
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }
+            
+            if (data.type === 'update-element') {
+              const el = document.querySelector('[data-editor-id="' + data.elementId + '"]');
+              if (el) {
+                if (data.content !== undefined && data.content !== null) {
+                  el.innerHTML = data.content;
                 }
-                if (e.data.src !== undefined && e.data.src !== null) {
-                  el.src = e.data.src;
+                if (data.src !== undefined && data.src !== null && data.src !== '') {
+                  el.src = data.src;
                 }
-                if (e.data.href !== undefined && e.data.href !== null) {
-                  el.href = e.data.href;
+                if (data.href !== undefined && data.href !== null && data.href !== '') {
+                  el.href = data.href;
                 }
-                if (e.data.styles !== undefined && e.data.styles !== null && e.data.styles !== '') {
-                  el.setAttribute('style', e.data.styles);
+                if (data.styles !== undefined && data.styles !== null && data.styles !== '') {
+                  el.setAttribute('style', data.styles);
                 }
                 
                 window.parent.postMessage({
@@ -583,16 +287,34 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
               }
             }
             
-            if (e.data.type === 'select-element') {
-              var el = document.querySelector('[data-editor-id="' + e.data.elementId + '"]');
+            if (data.type === 'delete-element') {
+              const el = document.querySelector('[data-editor-id="' + data.elementId + '"]');
               if (el) {
-                selectElement(el);
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.remove();
+                window.parent.postMessage({
+                  type: 'element-deleted',
+                  elementId: data.elementId,
+                  outerHtml: document.documentElement.outerHTML
+                }, '*');
+              }
+            }
+            
+            if (data.type === 'duplicate-element') {
+              const el = document.querySelector('[data-editor-id="' + data.elementId + '"]');
+              if (el) {
+                const clone = el.cloneNode(true);
+                clone.dataset.editorId = generateId();
+                el.parentNode.insertBefore(clone, el.nextSibling);
+                
+                window.parent.postMessage({
+                  type: 'element-duplicated',
+                  elementId: clone.dataset.editorId,
+                  outerHtml: document.documentElement.outerHTML
+                }, '*');
               }
             }
           });
           
-          // Init
           setTimeout(initElements, 100);
         })();
       </script>
@@ -600,13 +322,14 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
 
     let modifiedHtml = html;
     
-    // Inject styles and scripts
+    // Inject styles
     if (modifiedHtml.includes('</head>')) {
       modifiedHtml = modifiedHtml.replace('</head>', `${editorStyles}</head>`);
     } else {
       modifiedHtml = editorStyles + modifiedHtml;
     }
     
+    // Inject script
     if (modifiedHtml.includes('</body>')) {
       modifiedHtml = modifiedHtml.replace('</body>', `${editorScript}</body>`);
     } else {
@@ -622,7 +345,7 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      const { type, elementId, elementType, elementLabel, tagName, content, src, href, styles, outerHtml, currentSrc, currentHref, currentStyles } = event.data;
+      const { type, elementId, elementType, elementLabel, tagName, content, src, href, styles, outerHtml } = event.data;
       
       if (type === 'element-selected') {
         const element: EditorElement = {
@@ -631,7 +354,7 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
           selector: `[data-editor-id="${elementId}"]`,
           originalContent: content,
           newContent: content,
-          styles: {},
+          styles: parseStyles(styles),
           attributes: { src, href, tagName, label: elementLabel }
         };
         onElementDiscovered(element);
@@ -647,18 +370,6 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
           onHtmlChange(outerHtml);
         }
       }
-      
-      if (type === 'change-image') {
-        onIframeAction('change-image', elementId, { currentSrc });
-      }
-      
-      if (type === 'edit-link') {
-        onIframeAction('edit-link', elementId, { currentHref });
-      }
-      
-      if (type === 'edit-styles') {
-        onIframeAction('edit-styles', elementId, { currentStyles });
-      }
     };
 
     window.addEventListener('message', handleMessage);
@@ -672,14 +383,16 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
     styleString.split(';').forEach(style => {
       const [key, value] = style.split(':').map(s => s.trim());
       if (key && value) {
-        styles[key] = value;
+        // Convert to camelCase
+        const camelKey = key.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+        styles[camelKey] = value;
       }
     });
     
     return styles;
   };
 
-  // Update element in iframe
+  // Update element in iframe when selected element changes externally
   useEffect(() => {
     if (!iframeRef.current || !selectedElement) return;
     

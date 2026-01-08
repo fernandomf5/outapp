@@ -43,7 +43,7 @@ const PageEditor = () => {
   const [viewMode, setViewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [sidebarTab, setSidebarTab] = useState<'elements' | 'layers' | 'settings'>('elements');
   const [showProperties, setShowProperties] = useState(true);
-  const [propertiesTab, setPropertiesTab] = useState<'content' | 'style' | 'layout' | 'image' | 'link'>('content');
+  const [propertiesTab, setPropertiesTab] = useState<'content' | 'style' | 'layout'>('content');
   
   // History for undo/redo
   const [history, setHistory] = useState<EditorHistory[]>([]);
@@ -205,6 +205,20 @@ const PageEditor = () => {
       setSelectedElement(null);
     }
     addToHistory(newElements, modifiedHtml);
+    
+    // Send delete command to iframe
+    iframeRef.current?.contentWindow?.postMessage({
+      type: 'delete-element',
+      elementId
+    }, '*');
+  };
+
+  const handleDuplicateElement = (elementId: string) => {
+    // Send duplicate command to iframe
+    iframeRef.current?.contentWindow?.postMessage({
+      type: 'duplicate-element',
+      elementId
+    }, '*');
   };
 
   const handleHtmlChange = (newHtml: string) => {
@@ -246,15 +260,11 @@ const PageEditor = () => {
     setSelectedElement(element);
     setShowProperties(true);
 
-    // Set the correct tab based on action
-    if (action === 'change-image') {
-      setPropertiesTab('image');
-    } else if (action === 'edit-link') {
-      setPropertiesTab('link');
-    } else if (action === 'edit-styles') {
+    // Set the correct tab based on action - all go to content now
+    setPropertiesTab('content');
+    
+    if (action === 'edit-styles') {
       setPropertiesTab('style');
-    } else {
-      setPropertiesTab('content');
     }
   }, [elements]);
 
@@ -415,6 +425,7 @@ const PageEditor = () => {
             element={selectedElement}
             onUpdate={handleElementUpdate}
             onDelete={() => handleDeleteElement(selectedElement.id)}
+            onDuplicate={() => handleDuplicateElement(selectedElement.id)}
             onClose={() => setSelectedElement(null)}
             activeTab={propertiesTab}
           />
