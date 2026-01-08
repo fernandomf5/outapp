@@ -435,73 +435,85 @@ const Dashboard = () => {
         <div className="flex-1 flex flex-col min-w-0">
           {/* Header */}
           <header className="bg-card border-b border-border px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 py-2 xs:py-3 sm:py-4 sticky top-0 z-40 safe-area-bottom">
-            <div className="flex items-center justify-between gap-1 xs:gap-2 sm:gap-3">
-              {/* Left side - Sidebar trigger and logo */}
-              <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 min-w-0 flex-1">
-                <SidebarTrigger className="shrink-0 h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10" />
-                <Link to="/dashboard" className="bg-primary/10 p-1 xs:p-1.5 sm:p-2 rounded-lg sm:rounded-xl cursor-pointer hover:bg-primary/20 transition-smooth shrink-0">
-                  <img src={currentLogo} alt="Out App" className="w-5 h-5 xs:w-6 xs:h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 3xl:w-12 3xl:h-12" />
-                </Link>
-                <div className="min-w-0">
-                  <h1 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl font-bold">
-                    {isTeamMember && teamMember 
-                      ? `Painel de ${teamMember.adminName.split(' ')[0]}`
-                      : `${t('hello')}, ${(userFullName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário').split(' ')[0]}! 👋`
-                    }
-                    {!isTeamMember && (
-                      <span className="font-normal text-muted-foreground ml-1 text-[10px] xs:text-xs sm:text-sm md:text-base lg:text-lg">
-                        - {t('welcome_back')}
-                      </span>
-                    )}
-                  </h1>
-                  {isTeamMember && (
-                    <p className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm lg:text-base 3xl:text-lg text-muted-foreground">
-                      Acesso como membro da equipe
-                    </p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[auto,1fr,auto] sm:items-center sm:gap-3">
+              {/* Greeting (top on mobile, middle on desktop) */}
+              <div className="min-w-0 sm:col-start-2">
+                <h1 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl font-bold leading-tight">
+                  {isTeamMember && teamMember 
+                    ? `Painel de ${teamMember.adminName.split(' ')[0]}`
+                    : `${t('hello')}, ${(userFullName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário').split(' ')[0]}! 👋`
+                  }
+                  {!isTeamMember && (
+                    <span className="font-normal text-muted-foreground ml-1 text-[10px] xs:text-xs sm:text-sm md:text-base lg:text-lg whitespace-nowrap">
+                      - {t('welcome_back')}
+                    </span>
                   )}
-                </div>
-              </div>
-              
-              {/* Right side - Actions */}
-              <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-2 lg:gap-3 shrink-0">
-                {!isTeamMember && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsCalculatorOpen(true)}
-                    title="Calculadora"
-                    className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
-                  >
-                    <Calculator className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-                  </Button>
+                </h1>
+                {isTeamMember && (
+                  <p className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm lg:text-base 3xl:text-lg text-muted-foreground">
+                    Acesso como membro da equipe
+                  </p>
                 )}
-                {!isTeamMember && <ConversationNotificationBell />}
-                {!isTeamMember && <NotificationBell />}
-                {!isTeamMember && <TicketNotificationBell />}
-                <div className="hidden md:flex items-center gap-1 lg:gap-2">
-                  <LanguageSelector />
-                  <ThemeToggle />
+              </div>
+
+              {/* Menu row (below greeting on mobile; split into grid columns on desktop) */}
+              <div className="flex items-center justify-between gap-2 sm:contents">
+                {/* Left side - Sidebar trigger and logo */}
+                <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 shrink-0 sm:col-start-1">
+                  <SidebarTrigger className="shrink-0 h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10" />
+                  <Link
+                    to="/dashboard"
+                    className="bg-primary/10 p-1 xs:p-1.5 sm:p-2 rounded-lg sm:rounded-xl cursor-pointer hover:bg-primary/20 transition-smooth shrink-0"
+                  >
+                    <img
+                      src={currentLogo}
+                      alt="Out App"
+                      className="w-5 h-5 xs:w-6 xs:h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 3xl:w-12 3xl:h-12"
+                    />
+                  </Link>
                 </div>
-                {!isTeamMember && (
-                  <>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => navigate("/settings")} 
-                      size="icon"
-                      className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
-                    >
-                      <Settings className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
-                    </Button>
+
+                {/* Right side - Actions */}
+                <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-2 lg:gap-3 shrink-0 sm:col-start-3 sm:justify-self-end">
+                  {!isTeamMember && (
                     <Button
-                      onClick={handleLogout}
                       variant="ghost"
                       size="icon"
+                      onClick={() => setIsCalculatorOpen(true)}
+                      title="Calculadora"
                       className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
                     >
-                      <LogOut className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
+                      <Calculator className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
                     </Button>
-                  </>
-                )}
+                  )}
+                  {!isTeamMember && <ConversationNotificationBell />}
+                  {!isTeamMember && <NotificationBell />}
+                  {!isTeamMember && <TicketNotificationBell />}
+                  <div className="hidden md:flex items-center gap-1 lg:gap-2">
+                    <LanguageSelector />
+                    <ThemeToggle />
+                  </div>
+                  {!isTeamMember && (
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={() => navigate("/settings")}
+                        size="icon"
+                        className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
+                      >
+                        <Settings className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
+                      </Button>
+                      <Button
+                        onClick={handleLogout}
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
+                      >
+                        <LogOut className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </header>
