@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Globe, Copy, Trash2, Link2, Settings, BarChart3, Loader2, ExternalLink, MousePointerClick, Plus, Users, FileText, Code, Pencil } from "lucide-react";
+import { Globe, Copy, Trash2, Link2, Settings, BarChart3, Loader2, ExternalLink, MousePointerClick, Plus, Users, FileText, Code, Pencil, ShoppingCart, Clock, Mail, FileCode } from "lucide-react";
 import { AnalyticsPanel } from "./cloner/AnalyticsPanel";
 import { LeadsManager } from "./cloner/LeadsManager";
 
@@ -709,15 +709,39 @@ export const PageCloner = ({ teamContext }: PageClonerProps) => {
             <DialogTitle>Configurar Página Clonada</DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="checkout" className="w-full mt-4">
-            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-1">
-              <TabsTrigger value="checkout">Checkout</TabsTrigger>
-              <TabsTrigger value="links">Links</TabsTrigger>
-              <TabsTrigger value="timer">Timer</TabsTrigger>
-              <TabsTrigger value="exit">Exit Intent</TabsTrigger>
-              <TabsTrigger value="social">Prova Social</TabsTrigger>
-              <TabsTrigger value="leads">Captura Leads</TabsTrigger>
-              <TabsTrigger value="pixels">Pixels</TabsTrigger>
-              <TabsTrigger value="code">Head & Footer</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-2 h-auto p-2">
+              <TabsTrigger value="checkout" className="flex flex-col items-center gap-1 py-2 px-1 h-auto">
+                <ShoppingCart className="w-4 h-4" />
+                <span className="text-[10px]">Checkout</span>
+              </TabsTrigger>
+              <TabsTrigger value="links" className="flex flex-col items-center gap-1 py-2 px-1 h-auto">
+                <Link2 className="w-4 h-4" />
+                <span className="text-[10px]">Links</span>
+              </TabsTrigger>
+              <TabsTrigger value="timer" className="flex flex-col items-center gap-1 py-2 px-1 h-auto">
+                <Clock className="w-4 h-4" />
+                <span className="text-[10px]">Timer</span>
+              </TabsTrigger>
+              <TabsTrigger value="exit" className="flex flex-col items-center gap-1 py-2 px-1 h-auto">
+                <MousePointerClick className="w-4 h-4" />
+                <span className="text-[10px]">Exit Intent</span>
+              </TabsTrigger>
+              <TabsTrigger value="social" className="flex flex-col items-center gap-1 py-2 px-1 h-auto">
+                <Users className="w-4 h-4" />
+                <span className="text-[10px]">Prova Social</span>
+              </TabsTrigger>
+              <TabsTrigger value="leads" className="flex flex-col items-center gap-1 py-2 px-1 h-auto">
+                <Mail className="w-4 h-4" />
+                <span className="text-[10px]">Leads</span>
+              </TabsTrigger>
+              <TabsTrigger value="pixels" className="flex flex-col items-center gap-1 py-2 px-1 h-auto">
+                <Code className="w-4 h-4" />
+                <span className="text-[10px]">Pixels</span>
+              </TabsTrigger>
+              <TabsTrigger value="code" className="flex flex-col items-center gap-1 py-2 px-1 h-auto">
+                <FileCode className="w-4 h-4" />
+                <span className="text-[10px]">Head/Footer</span>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="checkout" className="space-y-4">
