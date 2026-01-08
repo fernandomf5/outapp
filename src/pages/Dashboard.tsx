@@ -1194,7 +1194,7 @@ const Dashboard = () => {
                       onClick={() => setSelectedAgentForManagement(null)}
                     >
                       <ArrowLeft className="w-4 h-4 mr-2" />
-                      Voltar para Agentes IA
+                      Voltar
                     </Button>
                   </div>
                   <AgentManagementPanel
