@@ -448,10 +448,17 @@ const Dashboard = () => {
                       ? `Painel de ${teamMember.adminName.split(' ')[0]}`
                       : `${t('hello')}, ${(userFullName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário').split(' ')[0]}! 👋`
                     }
+                    {!isTeamMember && (
+                      <span className="font-normal text-muted-foreground ml-1 text-[10px] xs:text-xs sm:text-sm md:text-base lg:text-lg">
+                        - {t('welcome_back')}
+                      </span>
+                    )}
                   </h1>
-                  <p className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm lg:text-base 3xl:text-lg text-muted-foreground">
-                    {isTeamMember ? 'Acesso como membro da equipe' : t('welcome_back')}
-                  </p>
+                  {isTeamMember && (
+                    <p className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm lg:text-base 3xl:text-lg text-muted-foreground">
+                      Acesso como membro da equipe
+                    </p>
+                  )}
                 </div>
               </div>
               
