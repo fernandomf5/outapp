@@ -966,32 +966,48 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
             </div>
           </div>
           
-          {autoSumMode && (
-            <Card className="mt-4 bg-primary/5 border-primary/20">
-              <CardContent className="py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Calculator className="w-5 h-5 text-primary" />
-                    <span className="font-medium">Autosoma Ativa</span>
-                    <span className="text-muted-foreground text-sm">
-                      ({selectedTransactionIds.size} item(s) selecionado(s))
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-muted-foreground">Total Selecionado:</p>
-                    <p className={cn(
-                      "text-2xl font-bold",
-                      autoSumTotal >= 0 ? "text-green-600" : "text-red-600"
-                    )}>
-                      R$ {autoSumTotal.toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </CardContent>
       </Card>
+
+      {/* Card de Autosoma Sticky */}
+      {autoSumMode && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4">
+          <Card className="bg-background/95 backdrop-blur-sm border-primary shadow-lg">
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-full">
+                    <Calculator className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <span className="font-medium block">Autosoma Ativa</span>
+                    <span className="text-muted-foreground text-sm">
+                      {selectedTransactionIds.size} item(s) selecionado(s)
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Total</p>
+                  <p className={cn(
+                    "text-2xl font-bold",
+                    autoSumTotal >= 0 ? "text-green-600" : "text-red-600"
+                  )}>
+                    R$ {autoSumTotal.toFixed(2)}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleAutoSumMode}
+                  className="ml-4"
+                >
+                  ✕
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Cards de Resumo */}
       <div className="grid gap-4 md:grid-cols-4">
