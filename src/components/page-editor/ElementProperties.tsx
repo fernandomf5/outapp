@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { X, Trash2, Type, Palette, Layout, Link, Image as ImageIcon, Upload } from "lucide-react";
+import { X, Trash2, Type, Palette, Layout, Link as LinkIcon, Image as ImageIcon, Upload, Loader2 } from "lucide-react";
 import { EditorElement } from "@/pages/PageEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -18,11 +18,25 @@ interface ElementPropertiesProps {
   onUpdate: (element: EditorElement) => void;
   onDelete: () => void;
   onClose: () => void;
+  activeTab?: 'content' | 'style' | 'layout' | 'image' | 'link';
 }
 
-export const ElementProperties = ({ element, onUpdate, onDelete, onClose }: ElementPropertiesProps) => {
+export const ElementProperties = ({ element, onUpdate, onDelete, onClose, activeTab = 'content' }: ElementPropertiesProps) => {
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
+  const [currentTab, setCurrentTab] = useState(activeTab);
+
+  // Update tab when activeTab prop changes
+  useEffect(() => {
+    if (activeTab) {
+      // Map special tabs to their content
+      if (activeTab === 'image' || activeTab === 'link') {
+        setCurrentTab('content');
+      } else {
+        setCurrentTab(activeTab);
+      }
+    }
+  }, [activeTab, element.id]);
 
   const updateStyle = (key: string, value: string) => {
     onUpdate({
@@ -72,17 +86,17 @@ export const ElementProperties = ({ element, onUpdate, onDelete, onClose }: Elem
       const filePath = `editor-images/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('uploads')
+        .from('cloned-pages')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('uploads')
+        .from('cloned-pages')
         .getPublicUrl(filePath);
 
       updateAttribute('src', publicUrl);
-      toast({ title: "Imagem enviada!" });
+      toast({ title: "Imagem enviada com sucesso!" });
     } catch (error: any) {
       toast({ title: "Erro ao enviar imagem", description: error.message, variant: "destructive" });
     } finally {
@@ -90,17 +104,31 @@ export const ElementProperties = ({ element, onUpdate, onDelete, onClose }: Elem
     }
   };
 
+  // Determine what controls to show based on element type
+  const isImage = element.type === 'image' || element.attributes?.tagName === 'img';
+  const isLink = element.type === 'link' || element.type === 'button' || element.attributes?.tagName === 'a';
+  const isText = element.type === 'text' || element.type === 'heading' || ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span'].includes(element.attributes?.tagName || '');
+  const isVideo = element.type === 'video' || element.attributes?.tagName === 'video' || element.attributes?.tagName === 'iframe';
+
   return (
-    <div className="w-72 border-l bg-card flex flex-col shrink-0">
+    <div className="w-80 border-l bg-card flex flex-col shrink-0">
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b">
-        <span className="font-medium text-sm">Propriedades</span>
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-sm">
+            {element.attributes?.label || element.type || 'Elemento'}
+          </span>
+          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+            {element.attributes?.tagName?.toUpperCase() || element.type}
+          </span>
+        </div>
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
             size="sm"
             className="h-7 w-7 p-0 text-destructive hover:text-destructive"
             onClick={onDelete}
+            title="Excluir elemento"
           >
             <Trash2 className="w-4 h-4" />
           </Button>
@@ -109,6 +137,7 @@ export const ElementProperties = ({ element, onUpdate, onDelete, onClose }: Elem
             size="sm"
             className="h-7 w-7 p-0"
             onClick={onClose}
+            title="Fechar"
           >
             <X className="w-4 h-4" />
           </Button>
@@ -116,7 +145,7 @@ export const ElementProperties = ({ element, onUpdate, onDelete, onClose }: Elem
       </div>
 
       {/* Properties Content */}
-      <Tabs defaultValue="content" className="flex-1 flex flex-col">
+      <Tabs value={currentTab} onValueChange={(v) => setCurrentTab(v as any)} className="flex-1 flex flex-col">
         <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 h-auto">
           <TabsTrigger 
             value="content" 
@@ -144,25 +173,27 @@ export const ElementProperties = ({ element, onUpdate, onDelete, onClose }: Elem
         <ScrollArea className="flex-1">
           {/* Content Tab */}
           <TabsContent value="content" className="p-3 space-y-4 m-0">
-            {/* Text Content */}
-            {(element.type === 'text' || element.type === 'button' || element.type === 'html') && (
-              <div className="space-y-2">
-                <Label className="text-xs">Conteúdo</Label>
-                <Textarea
-                  value={element.newContent || ''}
-                  onChange={(e) => updateContent(e.target.value)}
-                  rows={element.type === 'html' ? 6 : 3}
-                  className="text-sm font-mono"
-                  placeholder={element.type === 'html' ? 'Cole seu código HTML...' : 'Digite o texto...'}
-                />
-              </div>
-            )}
-
-            {/* Image Upload */}
-            {element.type === 'image' && (
-              <div className="space-y-3">
+            {/* Image Controls */}
+            {isImage && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-primary">
+                  <ImageIcon className="w-4 h-4" />
+                  <span className="font-medium text-sm">Imagem</span>
+                </div>
+                
+                {/* Current Image Preview */}
+                {element.attributes?.src && (
+                  <div className="border rounded-lg p-2 bg-muted/30">
+                    <img 
+                      src={element.attributes.src} 
+                      alt="Preview" 
+                      className="max-h-24 mx-auto object-contain rounded"
+                    />
+                  </div>
+                )}
+                
                 <div className="space-y-2">
-                  <Label className="text-xs">URL da Imagem</Label>
+                  <Label className="text-xs font-medium">URL da Imagem</Label>
                   <Input
                     value={element.attributes?.src || ''}
                     onChange={(e) => updateAttribute('src', e.target.value)}
@@ -170,32 +201,46 @@ export const ElementProperties = ({ element, onUpdate, onDelete, onClose }: Elem
                     className="text-sm"
                   />
                 </div>
-                <div className="text-center text-xs text-muted-foreground">ou</div>
+                
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground">ou</span>
+                  </div>
+                </div>
+                
                 <div className="space-y-2">
-                  <Label className="text-xs">Upload de Imagem</Label>
-                  <div className="border-2 border-dashed rounded-lg p-4 text-center hover:bg-muted/50 transition-colors cursor-pointer">
+                  <Label className="text-xs font-medium">Upload de Imagem</Label>
+                  <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-muted/50 transition-colors cursor-pointer">
                     <input
                       type="file"
                       accept="image/*"
                       onChange={handleImageUpload}
                       className="hidden"
-                      id="image-upload"
+                      id="props-image-upload"
                       disabled={uploading}
                     />
-                    <label htmlFor="image-upload" className="cursor-pointer">
+                    <label htmlFor="props-image-upload" className="cursor-pointer block">
                       {uploading ? (
-                        <span className="text-xs text-muted-foreground">Enviando...</span>
+                        <div className="flex flex-col items-center gap-2">
+                          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                          <span className="text-sm text-muted-foreground">Enviando...</span>
+                        </div>
                       ) : (
                         <>
-                          <Upload className="w-6 h-6 mx-auto mb-2 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">Clique para enviar</span>
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground block">Clique para enviar</span>
+                          <span className="text-xs text-muted-foreground block mt-1">PNG, JPG, WEBP até 5MB</span>
                         </>
                       )}
                     </label>
                   </div>
                 </div>
+                
                 <div className="space-y-2">
-                  <Label className="text-xs">Texto Alternativo (Alt)</Label>
+                  <Label className="text-xs font-medium">Texto Alternativo (Alt)</Label>
                   <Input
                     value={element.attributes?.alt || ''}
                     onChange={(e) => updateAttribute('alt', e.target.value)}
@@ -206,11 +251,68 @@ export const ElementProperties = ({ element, onUpdate, onDelete, onClose }: Elem
               </div>
             )}
 
-            {/* Video URL */}
-            {element.type === 'video' && (
-              <div className="space-y-3">
+            {/* Link/Button Controls */}
+            {isLink && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-primary">
+                  <LinkIcon className="w-4 h-4" />
+                  <span className="font-medium text-sm">Link</span>
+                </div>
+                
                 <div className="space-y-2">
-                  <Label className="text-xs">URL do Vídeo</Label>
+                  <Label className="text-xs font-medium">URL do Link</Label>
+                  <Input
+                    value={element.attributes?.href || ''}
+                    onChange={(e) => updateAttribute('href', e.target.value)}
+                    placeholder="https://..."
+                    className="text-sm"
+                  />
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="open-new-tab"
+                    checked={element.attributes?.target === '_blank'}
+                    onCheckedChange={(checked) => updateAttribute('target', checked ? '_blank' : '_self')}
+                  />
+                  <Label htmlFor="open-new-tab" className="text-xs">Abrir em nova aba</Label>
+                </div>
+              </div>
+            )}
+
+            {/* Text Content */}
+            {isText && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-primary">
+                  <Type className="w-4 h-4" />
+                  <span className="font-medium text-sm">Texto</span>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">Conteúdo</Label>
+                  <Textarea
+                    value={element.newContent || element.originalContent || ''}
+                    onChange={(e) => updateContent(e.target.value)}
+                    rows={4}
+                    className="text-sm"
+                    placeholder="Digite o texto..."
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Dica: Dê duplo clique no elemento para editar diretamente
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Video Controls */}
+            {isVideo && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-primary">
+                  <span className="font-medium text-sm">🎬 Vídeo</span>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">URL do Vídeo</Label>
                   <Input
                     value={element.attributes?.src || ''}
                     onChange={(e) => updateAttribute('src', e.target.value)}
@@ -218,48 +320,22 @@ export const ElementProperties = ({ element, onUpdate, onDelete, onClose }: Elem
                     className="text-sm"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Suporta YouTube, Vimeo ou link direto do vídeo
+                    Suporta YouTube, Vimeo ou link direto
                   </p>
                 </div>
               </div>
             )}
 
-            {/* Button/Link Properties */}
-            {element.type === 'button' && (
-              <div className="space-y-2">
-                <Label className="text-xs">Link (URL)</Label>
-                <Input
-                  value={element.attributes?.href || ''}
-                  onChange={(e) => updateAttribute('href', e.target.value)}
-                  placeholder="https://..."
-                  className="text-sm"
-                />
-                <div className="flex items-center gap-2 pt-2">
-                  <Switch
-                    checked={element.attributes?.target === '_blank'}
-                    onCheckedChange={(checked) => updateAttribute('target', checked ? '_blank' : '_self')}
-                  />
-                  <Label className="text-xs">Abrir em nova aba</Label>
-                </div>
-              </div>
-            )}
-
-            {/* Spacer Height */}
-            {element.type === 'spacer' && (
-              <div className="space-y-2">
-                <Label className="text-xs">Altura (px)</Label>
-                <div className="flex items-center gap-3">
-                  <Slider
-                    value={[parseInt(element.styles?.height || '40')]}
-                    onValueChange={([value]) => updateStyle('height', `${value}px`)}
-                    min={10}
-                    max={200}
-                    step={5}
-                    className="flex-1"
-                  />
-                  <span className="text-xs text-muted-foreground w-12 text-right">
-                    {element.styles?.height || '40px'}
-                  </span>
+            {/* Generic element - show basic info */}
+            {!isImage && !isLink && !isText && !isVideo && (
+              <div className="space-y-4">
+                <div className="p-4 bg-muted/30 rounded-lg text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Elemento: <strong>{element.attributes?.label || element.type}</strong>
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Use as abas Estilo e Layout para editar
+                  </p>
                 </div>
               </div>
             )}
@@ -269,13 +345,13 @@ export const ElementProperties = ({ element, onUpdate, onDelete, onClose }: Elem
           <TabsContent value="style" className="p-3 space-y-4 m-0">
             {/* Background Color */}
             <div className="space-y-2">
-              <Label className="text-xs">Cor de Fundo</Label>
+              <Label className="text-xs font-medium">Cor de Fundo</Label>
               <div className="flex gap-2">
                 <Input
                   type="color"
                   value={element.styles?.backgroundColor || '#ffffff'}
                   onChange={(e) => updateStyle('backgroundColor', e.target.value)}
-                  className="w-10 h-8 p-1 cursor-pointer"
+                  className="w-12 h-9 p-1 cursor-pointer"
                 />
                 <Input
                   value={element.styles?.backgroundColor || ''}
@@ -287,93 +363,85 @@ export const ElementProperties = ({ element, onUpdate, onDelete, onClose }: Elem
             </div>
 
             {/* Text Color */}
-            {(element.type === 'text' || element.type === 'button') && (
-              <div className="space-y-2">
-                <Label className="text-xs">Cor do Texto</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="color"
-                    value={element.styles?.color || '#000000'}
-                    onChange={(e) => updateStyle('color', e.target.value)}
-                    className="w-10 h-8 p-1 cursor-pointer"
-                  />
-                  <Input
-                    value={element.styles?.color || ''}
-                    onChange={(e) => updateStyle('color', e.target.value)}
-                    placeholder="#000000"
-                    className="flex-1 text-sm"
-                  />
-                </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">Cor do Texto</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="color"
+                  value={element.styles?.color || '#000000'}
+                  onChange={(e) => updateStyle('color', e.target.value)}
+                  className="w-12 h-9 p-1 cursor-pointer"
+                />
+                <Input
+                  value={element.styles?.color || ''}
+                  onChange={(e) => updateStyle('color', e.target.value)}
+                  placeholder="#000000"
+                  className="flex-1 text-sm"
+                />
               </div>
-            )}
+            </div>
 
             {/* Font Size */}
-            {(element.type === 'text' || element.type === 'button') && (
-              <div className="space-y-2">
-                <Label className="text-xs">Tamanho da Fonte</Label>
-                <Select
-                  value={element.styles?.fontSize || '16px'}
-                  onValueChange={(value) => updateStyle('fontSize', value)}
-                >
-                  <SelectTrigger className="text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="12px">12px - Pequeno</SelectItem>
-                    <SelectItem value="14px">14px</SelectItem>
-                    <SelectItem value="16px">16px - Normal</SelectItem>
-                    <SelectItem value="18px">18px</SelectItem>
-                    <SelectItem value="20px">20px</SelectItem>
-                    <SelectItem value="24px">24px - Grande</SelectItem>
-                    <SelectItem value="32px">32px - Título</SelectItem>
-                    <SelectItem value="48px">48px - Destaque</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">Tamanho da Fonte</Label>
+              <Select
+                value={element.styles?.fontSize || ''}
+                onValueChange={(value) => updateStyle('fontSize', value)}
+              >
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="12px">12px - Pequeno</SelectItem>
+                  <SelectItem value="14px">14px</SelectItem>
+                  <SelectItem value="16px">16px - Normal</SelectItem>
+                  <SelectItem value="18px">18px</SelectItem>
+                  <SelectItem value="20px">20px</SelectItem>
+                  <SelectItem value="24px">24px - Grande</SelectItem>
+                  <SelectItem value="32px">32px - Título</SelectItem>
+                  <SelectItem value="48px">48px - Destaque</SelectItem>
+                  <SelectItem value="64px">64px - Hero</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             {/* Font Weight */}
-            {(element.type === 'text' || element.type === 'button') && (
-              <div className="space-y-2">
-                <Label className="text-xs">Peso da Fonte</Label>
-                <Select
-                  value={element.styles?.fontWeight || 'normal'}
-                  onValueChange={(value) => updateStyle('fontWeight', value)}
-                >
-                  <SelectTrigger className="text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="normal">Normal</SelectItem>
-                    <SelectItem value="500">Médio</SelectItem>
-                    <SelectItem value="600">Semi-Bold</SelectItem>
-                    <SelectItem value="bold">Bold</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">Peso da Fonte</Label>
+              <Select
+                value={element.styles?.fontWeight || ''}
+                onValueChange={(value) => updateStyle('fontWeight', value)}
+              >
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="300">Light</SelectItem>
+                  <SelectItem value="normal">Normal</SelectItem>
+                  <SelectItem value="500">Médio</SelectItem>
+                  <SelectItem value="600">Semi-Bold</SelectItem>
+                  <SelectItem value="bold">Bold</SelectItem>
+                  <SelectItem value="800">Extra Bold</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             {/* Border Radius */}
             <div className="space-y-2">
-              <Label className="text-xs">Arredondamento</Label>
-              <div className="flex items-center gap-3">
-                <Slider
-                  value={[parseInt(element.styles?.borderRadius || '0')]}
-                  onValueChange={([value]) => updateStyle('borderRadius', `${value}px`)}
-                  min={0}
-                  max={50}
-                  step={2}
-                  className="flex-1"
-                />
-                <span className="text-xs text-muted-foreground w-12 text-right">
-                  {element.styles?.borderRadius || '0px'}
-                </span>
-              </div>
+              <Label className="text-xs font-medium">Arredondamento: {element.styles?.borderRadius || '0px'}</Label>
+              <Slider
+                value={[parseInt(element.styles?.borderRadius || '0')]}
+                onValueChange={([value]) => updateStyle('borderRadius', `${value}px`)}
+                min={0}
+                max={50}
+                step={2}
+                className="w-full"
+              />
             </div>
 
             {/* Box Shadow */}
             <div className="space-y-2">
-              <Label className="text-xs">Sombra</Label>
+              <Label className="text-xs font-medium">Sombra</Label>
               <Select
                 value={element.styles?.boxShadow || 'none'}
                 onValueChange={(value) => updateStyle('boxShadow', value)}
@@ -390,13 +458,26 @@ export const ElementProperties = ({ element, onUpdate, onDelete, onClose }: Elem
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Opacity */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">Opacidade: {Math.round((parseFloat(element.styles?.opacity || '1')) * 100)}%</Label>
+              <Slider
+                value={[parseFloat(element.styles?.opacity || '1') * 100]}
+                onValueChange={([value]) => updateStyle('opacity', String(value / 100))}
+                min={0}
+                max={100}
+                step={5}
+                className="w-full"
+              />
+            </div>
           </TabsContent>
 
           {/* Layout Tab */}
           <TabsContent value="layout" className="p-3 space-y-4 m-0">
             {/* Width */}
             <div className="space-y-2">
-              <Label className="text-xs">Largura</Label>
+              <Label className="text-xs font-medium">Largura</Label>
               <Select
                 value={element.styles?.width || 'auto'}
                 onValueChange={(value) => updateStyle('width', value)}
@@ -409,6 +490,27 @@ export const ElementProperties = ({ element, onUpdate, onDelete, onClose }: Elem
                   <SelectItem value="100%">100%</SelectItem>
                   <SelectItem value="75%">75%</SelectItem>
                   <SelectItem value="50%">50%</SelectItem>
+                  <SelectItem value="25%">25%</SelectItem>
+                  <SelectItem value="fit-content">Ajustar ao conteúdo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Height */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">Altura</Label>
+              <Select
+                value={element.styles?.height || 'auto'}
+                onValueChange={(value) => updateStyle('height', value)}
+              >
+                <SelectTrigger className="text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="auto">Auto</SelectItem>
+                  <SelectItem value="100%">100%</SelectItem>
+                  <SelectItem value="100vh">Tela inteira</SelectItem>
+                  <SelectItem value="50vh">Meia tela</SelectItem>
                   <SelectItem value="fit-content">Ajustar ao conteúdo</SelectItem>
                 </SelectContent>
               </Select>
@@ -416,64 +518,52 @@ export const ElementProperties = ({ element, onUpdate, onDelete, onClose }: Elem
 
             {/* Padding */}
             <div className="space-y-2">
-              <Label className="text-xs">Padding (interno)</Label>
-              <div className="flex items-center gap-3">
-                <Slider
-                  value={[parseInt(element.styles?.padding || '0')]}
-                  onValueChange={([value]) => updateStyle('padding', `${value}px`)}
-                  min={0}
-                  max={60}
-                  step={4}
-                  className="flex-1"
-                />
-                <span className="text-xs text-muted-foreground w-12 text-right">
-                  {element.styles?.padding || '0px'}
-                </span>
-              </div>
+              <Label className="text-xs font-medium">Padding (interno): {element.styles?.padding || '0px'}</Label>
+              <Slider
+                value={[parseInt(element.styles?.padding || '0')]}
+                onValueChange={([value]) => updateStyle('padding', `${value}px`)}
+                min={0}
+                max={80}
+                step={4}
+                className="w-full"
+              />
             </div>
 
             {/* Margin */}
             <div className="space-y-2">
-              <Label className="text-xs">Margin (externo)</Label>
-              <div className="flex items-center gap-3">
-                <Slider
-                  value={[parseInt(element.styles?.margin || '0')]}
-                  onValueChange={([value]) => updateStyle('margin', `${value}px`)}
-                  min={0}
-                  max={60}
-                  step={4}
-                  className="flex-1"
-                />
-                <span className="text-xs text-muted-foreground w-12 text-right">
-                  {element.styles?.margin || '0px'}
-                </span>
-              </div>
+              <Label className="text-xs font-medium">Margin (externo): {element.styles?.margin || '0px'}</Label>
+              <Slider
+                value={[parseInt(element.styles?.margin || '0')]}
+                onValueChange={([value]) => updateStyle('margin', `${value}px`)}
+                min={0}
+                max={80}
+                step={4}
+                className="w-full"
+              />
             </div>
 
             {/* Text Align */}
-            {(element.type === 'text' || element.type === 'button' || element.type === 'section') && (
-              <div className="space-y-2">
-                <Label className="text-xs">Alinhamento do Texto</Label>
-                <Select
-                  value={element.styles?.textAlign || 'left'}
-                  onValueChange={(value) => updateStyle('textAlign', value)}
-                >
-                  <SelectTrigger className="text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="left">Esquerda</SelectItem>
-                    <SelectItem value="center">Centro</SelectItem>
-                    <SelectItem value="right">Direita</SelectItem>
-                    <SelectItem value="justify">Justificado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">Alinhamento do Texto</Label>
+              <Select
+                value={element.styles?.textAlign || 'left'}
+                onValueChange={(value) => updateStyle('textAlign', value)}
+              >
+                <SelectTrigger className="text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="left">Esquerda</SelectItem>
+                  <SelectItem value="center">Centro</SelectItem>
+                  <SelectItem value="right">Direita</SelectItem>
+                  <SelectItem value="justify">Justificado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             {/* Display */}
             <div className="space-y-2">
-              <Label className="text-xs">Display</Label>
+              <Label className="text-xs font-medium">Display</Label>
               <Select
                 value={element.styles?.display || 'block'}
                 onValueChange={(value) => updateStyle('display', value)}
@@ -485,7 +575,28 @@ export const ElementProperties = ({ element, onUpdate, onDelete, onClose }: Elem
                   <SelectItem value="block">Block</SelectItem>
                   <SelectItem value="inline-block">Inline Block</SelectItem>
                   <SelectItem value="flex">Flex</SelectItem>
+                  <SelectItem value="inline-flex">Inline Flex</SelectItem>
+                  <SelectItem value="grid">Grid</SelectItem>
                   <SelectItem value="none">Oculto</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Position */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">Posição</Label>
+              <Select
+                value={element.styles?.position || 'relative'}
+                onValueChange={(value) => updateStyle('position', value)}
+              >
+                <SelectTrigger className="text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="relative">Relativa</SelectItem>
+                  <SelectItem value="absolute">Absoluta</SelectItem>
+                  <SelectItem value="fixed">Fixa</SelectItem>
+                  <SelectItem value="sticky">Sticky</SelectItem>
                 </SelectContent>
               </Select>
             </div>

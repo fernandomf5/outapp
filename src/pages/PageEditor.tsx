@@ -4,9 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Loader2, ArrowLeft, Save, Undo, Redo, Eye, EyeOff, Smartphone, Tablet, Monitor, Settings2 } from "lucide-react";
 import { EditorSidebar } from "@/components/page-editor/EditorSidebar";
 import { ElementProperties } from "@/components/page-editor/ElementProperties";
@@ -46,14 +43,7 @@ const PageEditor = () => {
   const [viewMode, setViewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [sidebarTab, setSidebarTab] = useState<'elements' | 'layers' | 'settings'>('elements');
   const [showProperties, setShowProperties] = useState(true);
-  
-  // Dialog states for editing
-  const [imageDialogOpen, setImageDialogOpen] = useState(false);
-  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
-  const [stylesDialogOpen, setStylesDialogOpen] = useState(false);
-  const [tempImageUrl, setTempImageUrl] = useState("");
-  const [tempLinkUrl, setTempLinkUrl] = useState("");
-  const [uploadingImage, setUploadingImage] = useState(false);
+  const [propertiesTab, setPropertiesTab] = useState<'content' | 'style' | 'layout' | 'image' | 'link'>('content');
   
   // History for undo/redo
   const [history, setHistory] = useState<EditorHistory[]>([]);
@@ -222,101 +212,51 @@ const PageEditor = () => {
     addToHistory(elements, newHtml);
   };
 
-  // Handle messages from iframe for opening dialogs
+  // Handle messages from iframe for opening correct tabs
   const handleIframeAction = useCallback((action: string, elementId: string, data: any) => {
-    // Find or create element
+    // Find or create element with correct type
     let element = elements.find(el => el.id === elementId);
+    
     if (!element) {
+      // Determine type based on action
+      let type: EditorElement['type'] = 'element';
+      if (action === 'change-image') type = 'image';
+      else if (action === 'edit-link') type = 'link';
+      
       element = {
         id: elementId,
-        type: 'element',
+        type,
         selector: `[data-editor-id="${elementId}"]`,
-        attributes: {}
+        attributes: {
+          src: data.currentSrc || '',
+          href: data.currentHref || ''
+        },
+        styles: {}
       };
       setElements(prev => [...prev, element!]);
+    } else {
+      // Update element type if needed
+      if (action === 'change-image' && element.type !== 'image') {
+        element = { ...element, type: 'image', attributes: { ...element.attributes, src: data.currentSrc || '' } };
+      } else if (action === 'edit-link' && element.type !== 'link' && element.type !== 'button') {
+        element = { ...element, type: 'link', attributes: { ...element.attributes, href: data.currentHref || '' } };
+      }
     }
+    
     setSelectedElement(element);
+    setShowProperties(true);
 
+    // Set the correct tab based on action
     if (action === 'change-image') {
-      setTempImageUrl(data.currentSrc || '');
-      setImageDialogOpen(true);
+      setPropertiesTab('image');
     } else if (action === 'edit-link') {
-      setTempLinkUrl(data.currentHref || '');
-      setLinkDialogOpen(true);
+      setPropertiesTab('link');
     } else if (action === 'edit-styles') {
-      setStylesDialogOpen(true);
+      setPropertiesTab('style');
+    } else {
+      setPropertiesTab('content');
     }
   }, [elements]);
-
-  // Handle image upload
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !selectedElement) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast({ title: "Selecione uma imagem válida", variant: "destructive" });
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "Imagem muito grande (máx 5MB)", variant: "destructive" });
-      return;
-    }
-
-    setUploadingImage(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `editor-images/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('cloned-pages')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('cloned-pages')
-        .getPublicUrl(filePath);
-
-      setTempImageUrl(publicUrl);
-      toast({ title: "Imagem enviada!" });
-    } catch (error: any) {
-      toast({ title: "Erro ao enviar imagem", description: error.message, variant: "destructive" });
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
-  const applyImageChange = () => {
-    if (!selectedElement || !tempImageUrl) return;
-    
-    const updatedElement = {
-      ...selectedElement,
-      type: 'image' as const,
-      attributes: { ...selectedElement.attributes, src: tempImageUrl }
-    };
-    
-    handleElementUpdate(updatedElement);
-    setImageDialogOpen(false);
-    setTempImageUrl('');
-    toast({ title: "Imagem atualizada!" });
-  };
-
-  const applyLinkChange = () => {
-    if (!selectedElement) return;
-    
-    const updatedElement = {
-      ...selectedElement,
-      type: 'button' as const,
-      attributes: { ...selectedElement.attributes, href: tempLinkUrl }
-    };
-    
-    handleElementUpdate(updatedElement);
-    setLinkDialogOpen(false);
-    setTempLinkUrl('');
-    toast({ title: "Link atualizado!" });
-  };
 
   const getViewWidth = () => {
     switch (viewMode) {
@@ -452,7 +392,13 @@ const PageEditor = () => {
               html={modifiedHtml}
               elements={elements}
               selectedElement={selectedElement}
-              onSelectElement={setSelectedElement}
+              onSelectElement={(el) => {
+                setSelectedElement(el);
+                if (el) {
+                  setShowProperties(true);
+                  setPropertiesTab('content');
+                }
+              }}
               onElementUpdate={handleElementUpdate}
               onHtmlChange={handleHtmlChange}
               onElementDiscovered={handleElementDiscovered}
@@ -470,190 +416,10 @@ const PageEditor = () => {
             onUpdate={handleElementUpdate}
             onDelete={() => handleDeleteElement(selectedElement.id)}
             onClose={() => setSelectedElement(null)}
+            activeTab={propertiesTab}
           />
         )}
       </div>
-
-      {/* Image Dialog */}
-      <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Trocar Imagem</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>URL da Imagem</Label>
-              <Input
-                value={tempImageUrl}
-                onChange={(e) => setTempImageUrl(e.target.value)}
-                placeholder="https://..."
-              />
-            </div>
-            <div className="text-center text-sm text-muted-foreground">ou</div>
-            <div className="space-y-2">
-              <Label>Upload de Imagem</Label>
-              <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-muted/50 transition-colors cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  id="editor-image-upload"
-                  disabled={uploadingImage}
-                />
-                <label htmlFor="editor-image-upload" className="cursor-pointer">
-                  {uploadingImage ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Enviando...</span>
-                    </div>
-                  ) : (
-                    <span className="text-muted-foreground">Clique para enviar uma imagem</span>
-                  )}
-                </label>
-              </div>
-            </div>
-            {tempImageUrl && (
-              <div className="border rounded-lg p-2">
-                <img src={tempImageUrl} alt="Preview" className="max-h-32 mx-auto object-contain" />
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setImageDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={applyImageChange} disabled={!tempImageUrl}>Aplicar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Link Dialog */}
-      <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Link</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>URL do Link</Label>
-              <Input
-                value={tempLinkUrl}
-                onChange={(e) => setTempLinkUrl(e.target.value)}
-                placeholder="https://..."
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setLinkDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={applyLinkChange}>Aplicar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Styles Dialog */}
-      <Dialog open={stylesDialogOpen} onOpenChange={setStylesDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Editar Estilos</DialogTitle>
-          </DialogHeader>
-          {selectedElement && (
-            <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-              <div className="space-y-2">
-                <Label>Cor de Fundo</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="color"
-                    value={selectedElement.styles?.backgroundColor || '#ffffff'}
-                    onChange={(e) => handleElementUpdate({
-                      ...selectedElement,
-                      styles: { ...selectedElement.styles, backgroundColor: e.target.value }
-                    })}
-                    className="w-12 h-10 p-1 cursor-pointer"
-                  />
-                  <Input
-                    value={selectedElement.styles?.backgroundColor || ''}
-                    onChange={(e) => handleElementUpdate({
-                      ...selectedElement,
-                      styles: { ...selectedElement.styles, backgroundColor: e.target.value }
-                    })}
-                    placeholder="#ffffff"
-                    className="flex-1"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Cor do Texto</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="color"
-                    value={selectedElement.styles?.color || '#000000'}
-                    onChange={(e) => handleElementUpdate({
-                      ...selectedElement,
-                      styles: { ...selectedElement.styles, color: e.target.value }
-                    })}
-                    className="w-12 h-10 p-1 cursor-pointer"
-                  />
-                  <Input
-                    value={selectedElement.styles?.color || ''}
-                    onChange={(e) => handleElementUpdate({
-                      ...selectedElement,
-                      styles: { ...selectedElement.styles, color: e.target.value }
-                    })}
-                    placeholder="#000000"
-                    className="flex-1"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Tamanho da Fonte</Label>
-                <Input
-                  value={selectedElement.styles?.fontSize || ''}
-                  onChange={(e) => handleElementUpdate({
-                    ...selectedElement,
-                    styles: { ...selectedElement.styles, fontSize: e.target.value }
-                  })}
-                  placeholder="16px"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Padding</Label>
-                <Input
-                  value={selectedElement.styles?.padding || ''}
-                  onChange={(e) => handleElementUpdate({
-                    ...selectedElement,
-                    styles: { ...selectedElement.styles, padding: e.target.value }
-                  })}
-                  placeholder="10px"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Margin</Label>
-                <Input
-                  value={selectedElement.styles?.margin || ''}
-                  onChange={(e) => handleElementUpdate({
-                    ...selectedElement,
-                    styles: { ...selectedElement.styles, margin: e.target.value }
-                  })}
-                  placeholder="10px"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Arredondamento</Label>
-                <Input
-                  value={selectedElement.styles?.borderRadius || ''}
-                  onChange={(e) => handleElementUpdate({
-                    ...selectedElement,
-                    styles: { ...selectedElement.styles, borderRadius: e.target.value }
-                  })}
-                  placeholder="8px"
-                />
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button onClick={() => setStylesDialogOpen(false)}>Fechar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
