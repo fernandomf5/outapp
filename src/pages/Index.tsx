@@ -549,7 +549,7 @@ const Index = () => {
                 <img src={outAppLogo} alt="Out App" className="h-6 xs:h-7 sm:h-8 md:h-10 lg:h-12 3xl:h-14 w-auto" />
               )}
               {siteTitle && (
-                <span className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl font-bold truncate max-w-[100px] xs:max-w-[120px] sm:max-w-none">
+                <span className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl font-bold whitespace-nowrap">
                   {siteTitle}
                 </span>
               )}

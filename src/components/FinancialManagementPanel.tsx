@@ -7,7 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Plus, Edit2, Trash2, Check, GripVertical } from "lucide-react";
+import { DollarSign, Plus, Edit2, Trash2, Check, GripVertical, Calculator, CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -54,9 +58,12 @@ interface SortableRowProps {
   onStatusChange: (transaction: Transaction, status: 'paid' | 'pending' | 'cancelled') => void;
   onEdit: (transaction: Transaction) => void;
   onDelete: (id: string) => void;
+  autoSumMode?: boolean;
+  isSelected?: boolean;
+  onSelect?: (id: string, selected: boolean) => void;
 }
 
-const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete }: SortableRowProps) => {
+const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMode, isSelected, onSelect }: SortableRowProps) => {
   const {
     attributes,
     listeners,
@@ -71,7 +78,18 @@ const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete }: Sortable
   };
 
   return (
-    <TableRow ref={setNodeRef} style={style} className={transaction.status === 'paid' ? 'bg-green-500/15 hover:bg-green-500/20' : ''}>
+    <TableRow ref={setNodeRef} style={style} className={cn(
+      transaction.status === 'paid' ? 'bg-green-500/15 hover:bg-green-500/20' : '',
+      isSelected ? 'bg-primary/10 hover:bg-primary/15' : ''
+    )}>
+      {autoSumMode && (
+        <TableCell className="w-[40px]">
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={(checked) => onSelect?.(transaction.id, !!checked)}
+          />
+        </TableCell>
+      )}
       <TableCell>
         <div className="flex items-center gap-2">
           <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
@@ -146,6 +164,14 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [loading, setLoading] = useState(false);
+  
+  // Filtro por data
+  const [dateFilterStart, setDateFilterStart] = useState<Date | undefined>(undefined);
+  const [dateFilterEnd, setDateFilterEnd] = useState<Date | undefined>(undefined);
+  
+  // Autosoma
+  const [autoSumMode, setAutoSumMode] = useState(false);
+  const [selectedTransactionIds, setSelectedTransactionIds] = useState<Set<string>>(new Set());
   const [businessFormData, setBusinessFormData] = useState({
     name: '',
     business_type: 'personal' as 'personal' | 'company',
@@ -635,6 +661,13 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   const getMonthIndex = (month: string) => MONTHS.indexOf(month);
   
   const monthTransactions = transactions.filter(t => {
+    // Filtro por data
+    if (dateFilterStart || dateFilterEnd) {
+      const dueDate = new Date(t.due_date + 'T00:00:00');
+      if (dateFilterStart && dueDate < dateFilterStart) return false;
+      if (dateFilterEnd && dueDate > dateFilterEnd) return false;
+    }
+    
     if (t.is_recurring) {
       const transactionMonthIndex = getMonthIndex(t.month);
       const selectedMonthIndex = getMonthIndex(selectedMonth);
@@ -664,6 +697,31 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   const pendingAmount = transactionsWithMonthStatus
     .filter(t => t.status === 'pending')
     .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  // Cálculo da autosoma
+  const handleTransactionSelect = (id: string, selected: boolean) => {
+    const newSelected = new Set(selectedTransactionIds);
+    if (selected) {
+      newSelected.add(id);
+    } else {
+      newSelected.delete(id);
+    }
+    setSelectedTransactionIds(newSelected);
+  };
+
+  const autoSumTotal = transactionsWithMonthStatus
+    .filter(t => selectedTransactionIds.has(t.id))
+    .reduce((sum, t) => {
+      if (t.type === 'income') return sum + Number(t.amount);
+      return sum - Number(t.amount);
+    }, 0);
+
+  const toggleAutoSumMode = () => {
+    setAutoSumMode(!autoSumMode);
+    if (autoSumMode) {
+      setSelectedTransactionIds(new Set());
+    }
+  };
 
   if (businesses.length === 0) {
     return (
@@ -776,7 +834,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
           <CardTitle>Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div>
               <Label>Ano</Label>
               <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
@@ -817,18 +875,121 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                 </SelectContent>
               </Select>
             </div>
+            <div>
+              <Label>Data Início</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !dateFilterStart && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateFilterStart ? format(dateFilterStart, "dd/MM/yyyy") : "Selecione"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dateFilterStart}
+                    onSelect={setDateFilterStart}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div>
+              <Label>Data Fim</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !dateFilterEnd && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateFilterEnd ? format(dateFilterEnd, "dd/MM/yyyy") : "Selecione"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dateFilterEnd}
+                    onSelect={setDateFilterEnd}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
-          <div className="mt-4">
-            <Label className="mb-2 block">Filtrar por Status</Label>
-            <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="all">Todos</TabsTrigger>
-                <TabsTrigger value="pending">Pendente</TabsTrigger>
-                <TabsTrigger value="paid">Pago</TabsTrigger>
-                <TabsTrigger value="cancelled">Cancelado</TabsTrigger>
-              </TabsList>
-            </Tabs>
+          
+          <div className="flex items-center justify-between mt-4">
+            <div className="flex-1">
+              <Label className="mb-2 block">Filtrar por Status</Label>
+              <Tabs value={statusFilter} onValueChange={setStatusFilter}>
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="all">Todos</TabsTrigger>
+                  <TabsTrigger value="pending">Pendente</TabsTrigger>
+                  <TabsTrigger value="paid">Pago</TabsTrigger>
+                  <TabsTrigger value="cancelled">Cancelado</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+            
+            <div className="ml-4 flex items-center gap-2">
+              {(dateFilterStart || dateFilterEnd) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setDateFilterStart(undefined);
+                    setDateFilterEnd(undefined);
+                  }}
+                >
+                  Limpar datas
+                </Button>
+              )}
+              <Button
+                variant={autoSumMode ? "default" : "outline"}
+                onClick={toggleAutoSumMode}
+                className="flex items-center gap-2"
+              >
+                <Calculator className="w-4 h-4" />
+                {autoSumMode ? "Desativar Autosoma" : "Autosoma"}
+              </Button>
+            </div>
           </div>
+          
+          {autoSumMode && (
+            <Card className="mt-4 bg-primary/5 border-primary/20">
+              <CardContent className="py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Calculator className="w-5 h-5 text-primary" />
+                    <span className="font-medium">Autosoma Ativa</span>
+                    <span className="text-muted-foreground text-sm">
+                      ({selectedTransactionIds.size} item(s) selecionado(s))
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Total Selecionado:</p>
+                    <p className={cn(
+                      "text-2xl font-bold",
+                      autoSumTotal >= 0 ? "text-green-600" : "text-red-600"
+                    )}>
+                      R$ {autoSumTotal.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </CardContent>
       </Card>
 
@@ -895,6 +1056,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
             <Table>
               <TableHeader>
                 <TableRow>
+                  {autoSumMode && <TableHead className="w-[40px]">Sel.</TableHead>}
                   <TableHead>Tipo</TableHead>
                   <TableHead>Descrição</TableHead>
                   <TableHead>Categoria</TableHead>
@@ -916,12 +1078,15 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                       onStatusChange={handleStatusChange}
                       onEdit={openEdit}
                       onDelete={handleDelete}
+                      autoSumMode={autoSumMode}
+                      isSelected={selectedTransactionIds.has(transaction.id)}
+                      onSelect={handleTransactionSelect}
                     />
                   ))}
                 </SortableContext>
                 {transactionsWithMonthStatus.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={autoSumMode ? 8 : 7} className="text-center text-muted-foreground py-8">
                       Nenhuma transação neste mês
                     </TableCell>
                   </TableRow>
