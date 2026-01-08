@@ -321,7 +321,13 @@ export const EditorCanvas = forwardRef<HTMLIFrameElement, EditorCanvasProps>(({
     `;
 
     let modifiedHtml = html;
-    
+
+    // Remove CSP meta tags that can block loading images/resources from Supabase
+    // (common in cloned pages and breaks "trocar imagem")
+    modifiedHtml = modifiedHtml
+      .replace(/<meta[^>]+http-equiv=["']Content-Security-Policy["'][^>]*>/gi, '')
+      .replace(/<meta[^>]+http-equiv=["']Content-Security-Policy-Report-Only["'][^>]*>/gi, '');
+
     // Inject styles
     if (modifiedHtml.includes('</head>')) {
       modifiedHtml = modifiedHtml.replace('</head>', `${editorStyles}</head>`);
