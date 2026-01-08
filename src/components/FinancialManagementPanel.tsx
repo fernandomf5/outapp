@@ -78,58 +78,128 @@ const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMod
   };
 
   return (
-    <TableRow ref={setNodeRef} style={style} className={cn(
-      transaction.status === 'paid' ? 'bg-green-500/15 hover:bg-green-500/20' : '',
-      isSelected ? 'bg-primary/10 hover:bg-primary/15' : ''
-    )}>
-      {autoSumMode && (
-        <TableCell className="w-[40px]">
-          <Checkbox
-            checked={isSelected}
-            onCheckedChange={(checked) => onSelect?.(transaction.id, !!checked)}
-          />
+    <>
+      {/* Desktop Row */}
+      <TableRow ref={setNodeRef} style={style} className={cn(
+        "hidden md:table-row",
+        transaction.status === 'paid' ? 'bg-green-500/15 hover:bg-green-500/20' : '',
+        isSelected ? 'bg-primary/10 hover:bg-primary/15' : ''
+      )}>
+        {autoSumMode && (
+          <TableCell className="w-[40px]">
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={(checked) => onSelect?.(transaction.id, !!checked)}
+            />
+          </TableCell>
+        )}
+        <TableCell>
+          <div className="flex items-center gap-2">
+            <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+              <GripVertical className="w-4 h-4 text-muted-foreground" />
+            </div>
+            <div>
+              <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'}>
+                {transaction.type === 'income' ? 'Receita' : 'Despesa'}
+              </Badge>
+              {transaction.is_recurring && <Badge className="ml-2" variant="outline">Fixa</Badge>}
+            </div>
+          </div>
         </TableCell>
-      )}
-      <TableCell>
-        <div className="flex items-center gap-2">
-          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
-            <GripVertical className="w-4 h-4 text-muted-foreground" />
+        <TableCell>{transaction.description}</TableCell>
+        <TableCell>{transaction.category}</TableCell>
+        <TableCell>{format(new Date(transaction.due_date + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
+        <TableCell className="font-semibold">R$ {Number(transaction.amount).toFixed(2)}</TableCell>
+        <TableCell>
+          <Select value={transaction.status} onValueChange={(v) => onStatusChange(transaction, v as any)}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pending">Pendente</SelectItem>
+              <SelectItem value="paid">Pago</SelectItem>
+              <SelectItem value="cancelled">Cancelado</SelectItem>
+            </SelectContent>
+          </Select>
+        </TableCell>
+        <TableCell>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="icon" onClick={() => onEdit(transaction)}>
+              <Edit2 className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => onDelete(transaction.id)}>
+              <Trash2 className="w-4 h-4" />
+            </Button>
           </div>
-          <div>
-            <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'}>
-              {transaction.type === 'income' ? 'Receita' : 'Despesa'}
-            </Badge>
-            {transaction.is_recurring && <Badge className="ml-2" variant="outline">Fixa</Badge>}
+        </TableCell>
+      </TableRow>
+
+      {/* Mobile Card */}
+      <tr ref={setNodeRef} style={style} className={cn(
+        "md:hidden block",
+        transaction.status === 'paid' ? 'bg-green-500/15' : '',
+        isSelected ? 'bg-primary/10' : ''
+      )}>
+        <td colSpan={8} className="p-0">
+          <div className="p-3 border-b space-y-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                {autoSumMode && (
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={(checked) => onSelect?.(transaction.id, !!checked)}
+                  />
+                )}
+                <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing shrink-0">
+                  <GripVertical className="w-4 h-4 text-muted-foreground" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium truncate">{transaction.description}</p>
+                  <p className="text-xs text-muted-foreground">{transaction.category}</p>
+                </div>
+              </div>
+              <div className="flex gap-1 shrink-0">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(transaction)}>
+                  <Edit2 className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onDelete(transaction.id)}>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'} className="text-xs">
+                {transaction.type === 'income' ? 'Receita' : 'Despesa'}
+              </Badge>
+              {transaction.is_recurring && <Badge variant="outline" className="text-xs">Fixa</Badge>}
+              <span className="text-xs text-muted-foreground">
+                {format(new Date(transaction.due_date + 'T00:00:00'), 'dd/MM/yyyy')}
+              </span>
+            </div>
+            
+            <div className="flex items-center justify-between gap-2">
+              <span className={cn(
+                "text-lg font-bold",
+                transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+              )}>
+                R$ {Number(transaction.amount).toFixed(2)}
+              </span>
+              <Select value={transaction.status} onValueChange={(v) => onStatusChange(transaction, v as any)}>
+                <SelectTrigger className="w-[110px] h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pendente</SelectItem>
+                  <SelectItem value="paid">Pago</SelectItem>
+                  <SelectItem value="cancelled">Cancelado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </div>
-      </TableCell>
-      <TableCell>{transaction.description}</TableCell>
-      <TableCell>{transaction.category}</TableCell>
-      <TableCell>{format(new Date(transaction.due_date + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
-      <TableCell className="font-semibold">R$ {Number(transaction.amount).toFixed(2)}</TableCell>
-      <TableCell>
-        <Select value={transaction.status} onValueChange={(v) => onStatusChange(transaction, v as any)}>
-          <SelectTrigger className="w-[120px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="pending">Pendente</SelectItem>
-            <SelectItem value="paid">Pago</SelectItem>
-            <SelectItem value="cancelled">Cancelado</SelectItem>
-          </SelectContent>
-        </Select>
-      </TableCell>
-      <TableCell>
-        <div className="flex gap-2">
-          <Button variant="ghost" size="icon" onClick={() => onEdit(transaction)}>
-            <Edit2 className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={() => onDelete(transaction.id)}>
-            <Trash2 className="w-4 h-4" />
-          </Button>
-        </div>
-      </TableCell>
-    </TableRow>
+        </td>
+      </tr>
+    </>
   );
 };
 
@@ -788,14 +858,14 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold">Gestão Financeira</h2>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => setIsCategoryDialogOpen(true)}>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold">Gestão Financeira</h2>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={() => setIsCategoryDialogOpen(true)} className="text-xs sm:text-sm">
             Categorias
           </Button>
           <Select value={selectedBusinessId} onValueChange={setSelectedBusinessId}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full sm:w-[180px] text-xs sm:text-sm">
               <SelectValue placeholder="Selecione o negócio" />
             </SelectTrigger>
             <SelectContent>
@@ -806,24 +876,25 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
               ))}
             </SelectContent>
           </Select>
-          <Button variant="outline" onClick={() => setIsBusinessDialogOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Negócio
-          </Button>
-          <Button variant="outline" size="icon" onClick={() => {
-            const current = businesses.find(b => b.id === selectedBusinessId);
-            if (current) openEditBusiness(current);
-          }}>
-            <Edit2 className="w-4 h-4" />
-          </Button>
-          <Button variant="outline" size="icon" onClick={() => {
-            if (selectedBusinessId) handleDeleteBusiness(selectedBusinessId);
-          }}>
-            <Trash2 className="w-4 h-4" />
-          </Button>
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Transação
+          <div className="flex gap-1">
+            <Button variant="outline" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => setIsBusinessDialogOpen(true)}>
+              <Plus className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => {
+              const current = businesses.find(b => b.id === selectedBusinessId);
+              if (current) openEditBusiness(current);
+            }}>
+              <Edit2 className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => {
+              if (selectedBusinessId) handleDeleteBusiness(selectedBusinessId);
+            }}>
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+          <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="text-xs sm:text-sm">
+            <Plus className="w-4 h-4 mr-1" />
+            <span className="hidden xs:inline">Nova </span>Transação
           </Button>
         </div>
       </div>
@@ -1010,67 +1081,70 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       )}
 
       {/* Cards de Resumo */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setIsDetailsDialogOpen(true)}>
-          <CardHeader>
+          <CardHeader className="pb-2 p-3 sm:p-6">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-sm font-medium">Receitas Pagas</CardTitle>
-              <Check className="w-4 h-4 text-green-600" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Receitas Pagas</CardTitle>
+              <Check className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
             </div>
           </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-green-600">R$ {totalIncome.toFixed(2)}</p>
-            <Button variant="link" className="p-0 h-auto text-xs mt-1">Ver detalhes</Button>
+          <CardContent className="pt-0 p-3 sm:p-6">
+            <p className="text-lg sm:text-2xl font-bold text-green-600">R$ {totalIncome.toFixed(2)}</p>
+            <Button variant="link" className="p-0 h-auto text-[10px] sm:text-xs mt-1">Ver detalhes</Button>
           </CardContent>
         </Card>
         <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setIsDetailsDialogOpen(true)}>
-          <CardHeader>
+          <CardHeader className="pb-2 p-3 sm:p-6">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-sm font-medium">Despesas Pagas</CardTitle>
-              <Check className="w-4 h-4 text-red-600" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Despesas Pagas</CardTitle>
+              <Check className="w-3 h-3 sm:w-4 sm:h-4 text-red-600" />
             </div>
           </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-red-600">R$ {totalExpense.toFixed(2)}</p>
-            <Button variant="link" className="p-0 h-auto text-xs mt-1">Ver detalhes</Button>
+          <CardContent className="pt-0 p-3 sm:p-6">
+            <p className="text-lg sm:text-2xl font-bold text-red-600">R$ {totalExpense.toFixed(2)}</p>
+            <Button variant="link" className="p-0 h-auto text-[10px] sm:text-xs mt-1">Ver detalhes</Button>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
+          <CardHeader className="pb-2 p-3 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-medium">Pendentes</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-yellow-600">R$ {pendingAmount.toFixed(2)}</p>
-            <Button variant="link" className="p-0 h-auto text-xs mt-1" onClick={() => setIsDetailsDialogOpen(true)}>Ver detalhes</Button>
+          <CardContent className="pt-0 p-3 sm:p-6">
+            <p className="text-lg sm:text-2xl font-bold text-yellow-600">R$ {pendingAmount.toFixed(2)}</p>
+            <Button variant="link" className="p-0 h-auto text-[10px] sm:text-xs mt-1" onClick={() => setIsDetailsDialogOpen(true)}>Ver detalhes</Button>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Saldo</CardTitle>
+          <CardHeader className="pb-2 p-3 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-medium">Saldo</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className={`text-2xl font-bold ${(totalIncome - totalExpense) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <CardContent className="pt-0 p-3 sm:p-6">
+            <p className={cn(
+              "text-lg sm:text-2xl font-bold",
+              (totalIncome - totalExpense) >= 0 ? 'text-green-600' : 'text-red-600'
+            )}>
               R$ {(totalIncome - totalExpense).toFixed(2)}
             </p>
-            <Button variant="link" className="p-0 h-auto text-xs mt-1" onClick={() => setIsComparisonOpen(true)}>Comparar meses</Button>
+            <Button variant="link" className="p-0 h-auto text-[10px] sm:text-xs mt-1" onClick={() => setIsComparisonOpen(true)}>Comparar meses</Button>
           </CardContent>
         </Card>
       </div>
 
       {/* Tabela de Transações */}
       <Card>
-        <CardHeader>
-          <CardTitle>{selectedMonth} {selectedYear}</CardTitle>
-          <CardDescription>Transações do mês selecionado e transações fixas</CardDescription>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base sm:text-lg">{selectedMonth} {selectedYear}</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">Transações do mês selecionado e transações fixas</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 sm:p-6">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
           >
             <Table>
-              <TableHeader>
+              <TableHeader className="hidden md:table-header-group">
                 <TableRow>
                   {autoSumMode && <TableHead className="w-[40px]">Sel.</TableHead>}
                   <TableHead>Tipo</TableHead>
@@ -1102,7 +1176,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                 </SortableContext>
                 {transactionsWithMonthStatus.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={autoSumMode ? 8 : 7} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={autoSumMode ? 8 : 7} className="text-center text-muted-foreground py-8 text-sm">
                       Nenhuma transação neste mês
                     </TableCell>
                   </TableRow>
@@ -1115,16 +1189,16 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
 
       {/* Dialog Adicionar */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Nova Transação</DialogTitle>
+            <DialogTitle className="text-lg">Nova Transação</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <Label>Tipo</Label>
+                <Label className="text-xs sm:text-sm">Tipo</Label>
                 <Select value={formData.type} onValueChange={(v: any) => setFormData({ ...formData, type: v })}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
