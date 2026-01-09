@@ -242,11 +242,36 @@ Importante:
       .replace(/{numero}/gi, lead.phone);
   };
 
-  const openWhatsApp = (lead: Lead) => {
+  const openWhatsApp = (lead: Lead, markAsSent: boolean = false) => {
+    if (!message.trim()) {
+      toast({
+        title: "Mensagem vazia",
+        description: "Escreva uma mensagem antes de disparar.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const personalizedMessage = replaceVariables(message, lead);
     const encodedMessage = encodeURIComponent(personalizedMessage);
     const whatsappUrl = `https://web.whatsapp.com/send?phone=${lead.phone}&text=${encodedMessage}`;
-    window.open(whatsappUrl, '_blank');
+    const newWindow = window.open(whatsappUrl, '_blank');
+
+    if (markAsSent && newWindow) {
+      setLeads(prev => prev.map(l => 
+        l.id === lead.id ? { ...l, sent: true } : l
+      ));
+      toast({
+        title: "WhatsApp aberto!",
+        description: `Conversa com ${lead.name} pronta para envio.`
+      });
+    } else if (!newWindow) {
+      toast({
+        title: "Popup bloqueado!",
+        description: "Permita popups clicando no ícone na barra de endereços.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDispatch = async () => {
@@ -592,21 +617,34 @@ Importante:
                     <p className="text-xs text-muted-foreground">{lead.phone}</p>
                   </div>
 
-                  {lead.sent ? (
-                    <Badge variant="secondary" className="bg-green-500/10 text-green-600 text-xs">
-                      <CheckCircle2 className="w-3 h-3 mr-1" />
-                      Enviado
-                    </Badge>
-                  ) : (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleRemoveLead(lead.id)}
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-1.5">
+                    {lead.sent ? (
+                      <Badge variant="secondary" className="bg-green-500/10 text-green-600 text-xs">
+                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        Enviado
+                      </Badge>
+                    ) : (
+                      <>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => openWhatsApp(lead, true)}
+                          className="h-8 text-xs gap-1.5"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          Disparar
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveLead(lead.id)}
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
