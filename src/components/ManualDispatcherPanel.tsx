@@ -24,8 +24,9 @@ import {
   Save,
   FolderOpen,
   List,
-  X,
-  Edit2
+  FileText,
+  RotateCcw,
+  RefreshCw
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,6 +38,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Lead {
   id: string;
@@ -53,6 +61,14 @@ interface SavedList {
   message: string | null;
   total_leads: number;
   sent_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface SavedMessage {
+  id: string;
+  name: string;
+  content: string;
   created_at: string;
   updated_at: string;
 }
@@ -80,12 +96,23 @@ export function ManualDispatcherPanel() {
   const [currentListId, setCurrentListId] = useState<string | null>(null);
   const [currentListName, setCurrentListName] = useState<string | null>(null);
 
+  // Saved messages state
+  const [savedMessages, setSavedMessages] = useState<SavedMessage[]>([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [showSaveMessageDialog, setShowSaveMessageDialog] = useState(false);
+  const [showMessagesDialog, setShowMessagesDialog] = useState(false);
+  const [newMessageName, setNewMessageName] = useState('');
+  const [isSavingMessage, setIsSavingMessage] = useState(false);
+  const [currentMessageId, setCurrentMessageId] = useState<string | null>(null);
+  const [currentMessageName, setCurrentMessageName] = useState<string | null>(null);
+
   const generateId = () => Math.random().toString(36).substring(2, 9);
 
-  // Load saved lists on mount
+  // Load saved lists and messages on mount
   useEffect(() => {
     if (user) {
       loadSavedLists();
+      loadSavedMessages();
     }
   }, [user]);
 
@@ -115,6 +142,27 @@ export function ManualDispatcherPanel() {
     }
   };
 
+  const loadSavedMessages = async () => {
+    if (!user) return;
+    
+    setIsLoadingMessages(true);
+    try {
+      const { data, error } = await supabase
+        .from('manual_dispatcher_messages')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false });
+
+      if (error) throw error;
+
+      setSavedMessages(data || []);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    } finally {
+      setIsLoadingMessages(false);
+    }
+  };
+
   const handleSaveList = async () => {
     if (!user) return;
     
@@ -141,7 +189,6 @@ export function ManualDispatcherPanel() {
       const sentCount = leads.filter(l => l.sent).length;
       
       if (currentListId) {
-        // Update existing list
         const { error } = await supabase
           .from('manual_dispatcher_lists')
           .update({
@@ -162,7 +209,6 @@ export function ManualDispatcherPanel() {
           description: `"${newListName.trim() || currentListName}" foi salva com sucesso.`
         });
       } else {
-        // Create new list
         const { data, error } = await supabase
           .from('manual_dispatcher_lists')
           .insert([{
@@ -202,16 +248,113 @@ export function ManualDispatcherPanel() {
     }
   };
 
-  const handleLoadList = (list: SavedList) => {
-    setLeads(list.leads);
-    setMessage(list.message || '');
+  const handleSaveMessage = async () => {
+    if (!user) return;
+    
+    if (!newMessageName.trim() && !currentMessageId) {
+      toast({
+        title: "Nome obrigatório",
+        description: "Dê um nome para salvar a mensagem.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!message.trim()) {
+      toast({
+        title: "Mensagem vazia",
+        description: "Escreva uma mensagem antes de salvar.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSavingMessage(true);
+    try {
+      if (currentMessageId) {
+        const { error } = await supabase
+          .from('manual_dispatcher_messages')
+          .update({
+            content: message,
+            name: newMessageName.trim() || currentMessageName || 'Mensagem sem nome'
+          })
+          .eq('id', currentMessageId);
+
+        if (error) throw error;
+
+        setCurrentMessageName(newMessageName.trim() || currentMessageName);
+
+        toast({
+          title: "Mensagem atualizada!",
+          description: `"${newMessageName.trim() || currentMessageName}" foi salva.`
+        });
+      } else {
+        const { data, error } = await supabase
+          .from('manual_dispatcher_messages')
+          .insert([{
+            user_id: user.id,
+            name: newMessageName.trim(),
+            content: message
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        setCurrentMessageId(data.id);
+        setCurrentMessageName(newMessageName.trim());
+
+        toast({
+          title: "Mensagem salva!",
+          description: `"${newMessageName.trim()}" foi criada.`
+        });
+      }
+
+      setShowSaveMessageDialog(false);
+      setNewMessageName('');
+      loadSavedMessages();
+    } catch (error) {
+      console.error('Error saving message:', error);
+      toast({
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar a mensagem.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSavingMessage(false);
+    }
+  };
+
+  const handleLoadList = (list: SavedList, resetSent: boolean = false) => {
+    const loadedLeads = resetSent 
+      ? list.leads.map(l => ({ ...l, sent: false, selected: true }))
+      : list.leads;
+    
+    setLeads(loadedLeads);
+    if (list.message) {
+      setMessage(list.message);
+    }
     setCurrentListId(list.id);
     setCurrentListName(list.name);
     setShowListsDialog(false);
 
     toast({
       title: "Lista carregada!",
-      description: `"${list.name}" foi carregada com sucesso.`
+      description: resetSent 
+        ? `"${list.name}" carregada. Status de envio resetado.`
+        : `"${list.name}" foi carregada.`
+    });
+  };
+
+  const handleLoadMessage = (savedMsg: SavedMessage) => {
+    setMessage(savedMsg.content);
+    setCurrentMessageId(savedMsg.id);
+    setCurrentMessageName(savedMsg.name);
+    setShowMessagesDialog(false);
+
+    toast({
+      title: "Mensagem carregada!",
+      description: `"${savedMsg.name}" foi carregada.`
     });
   };
 
@@ -245,14 +388,57 @@ export function ManualDispatcherPanel() {
     }
   };
 
+  const handleDeleteMessage = async (msgId: string, msgName: string) => {
+    try {
+      const { error } = await supabase
+        .from('manual_dispatcher_messages')
+        .delete()
+        .eq('id', msgId);
+
+      if (error) throw error;
+
+      if (currentMessageId === msgId) {
+        setCurrentMessageId(null);
+        setCurrentMessageName(null);
+      }
+
+      toast({
+        title: "Mensagem excluída!",
+        description: `"${msgName}" foi removida.`
+      });
+
+      loadSavedMessages();
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      toast({
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir a mensagem.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleNewList = () => {
     setLeads([]);
-    setMessage('');
     setCurrentListId(null);
     setCurrentListName(null);
     toast({
       title: "Nova lista",
       description: "Lista limpa. Adicione novos leads."
+    });
+  };
+
+  const handleNewMessage = () => {
+    setMessage('');
+    setCurrentMessageId(null);
+    setCurrentMessageName(null);
+  };
+
+  const handleResetSentStatus = () => {
+    setLeads(prev => prev.map(l => ({ ...l, sent: false, selected: true })));
+    toast({
+      title: "Status resetado!",
+      description: "Todos os leads podem ser enviados novamente."
     });
   };
 
@@ -528,7 +714,7 @@ Importante:
         blockedCount++;
         toast({
           title: "Popup bloqueado!",
-          description: `Permita popups para o lead "${lead.name}". Clique no ícone de popup bloqueado na barra de endereços.`,
+          description: `Permita popups para o lead "${lead.name}".`,
           variant: "destructive"
         });
       }
@@ -543,7 +729,7 @@ Importante:
     if (blockedCount > 0) {
       toast({
         title: "Disparo parcial",
-        description: `${successCount} aberta(s), ${blockedCount} bloqueada(s). Permita popups e tente novamente.`,
+        description: `${successCount} aberta(s), ${blockedCount} bloqueada(s).`,
         variant: "destructive"
       });
     } else {
@@ -560,56 +746,52 @@ Importante:
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-            <Rocket className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-            Disparador Manual
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Envie mensagens personalizadas via WhatsApp Web
-          </p>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+              <Rocket className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+              Disparador Manual
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Envie mensagens personalizadas via WhatsApp Web
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowListsDialog(true)}
+              className="h-8 text-xs gap-1.5"
+            >
+              <FolderOpen className="w-3.5 h-3.5" />
+              Listas
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowMessagesDialog(true)}
+              className="h-8 text-xs gap-1.5"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              Mensagens
+            </Button>
+          </div>
+        </div>
+
+        {/* Current selections */}
+        <div className="flex items-center gap-2 flex-wrap">
           {currentListName && (
-            <Badge variant="outline" className="mt-2">
-              <List className="w-3 h-3 mr-1" />
+            <Badge variant="outline" className="flex items-center gap-1">
+              <List className="w-3 h-3" />
               Lista: {currentListName}
             </Badge>
           )}
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Save/Load buttons */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowListsDialog(true)}
-            className="h-8 text-xs gap-1.5"
-          >
-            <FolderOpen className="w-3.5 h-3.5" />
-            Minhas Listas
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setNewListName(currentListName || '');
-              setShowSaveDialog(true);
-            }}
-            disabled={leads.length === 0}
-            className="h-8 text-xs gap-1.5"
-          >
-            <Save className="w-3.5 h-3.5" />
-            {currentListId ? 'Salvar' : 'Salvar Lista'}
-          </Button>
-          {currentListId && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleNewList}
-              className="h-8 text-xs gap-1.5"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Nova Lista
-            </Button>
+          {currentMessageName && (
+            <Badge variant="outline" className="flex items-center gap-1">
+              <MessageSquare className="w-3 h-3" />
+              Msg: {currentMessageName}
+            </Badge>
           )}
         </div>
       </div>
@@ -632,6 +814,17 @@ Importante:
               <Send className="w-3 h-3" />
               {sentCount} enviado(s)
             </Badge>
+          )}
+          {sentCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleResetSentStatus}
+              className="h-6 text-xs gap-1 px-2"
+            >
+              <RotateCcw className="w-3 h-3" />
+              Resetar envios
+            </Button>
           )}
         </div>
       )}
@@ -665,7 +858,6 @@ Importante:
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Campos manuais */}
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="leadName" className="text-xs sm:text-sm flex items-center gap-1.5">
@@ -734,7 +926,21 @@ Importante:
               </Button>
             </div>
 
-            {/* Dica OCR */}
+            {/* Save list button */}
+            {leads.length > 0 && (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setNewListName(currentListName || '');
+                  setShowSaveDialog(true);
+                }}
+                className="w-full h-9 text-sm gap-1.5"
+              >
+                <Save className="w-4 h-4" />
+                {currentListId ? 'Salvar Lista' : 'Salvar Nova Lista'}
+              </Button>
+            )}
+
             <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50">
               <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
               <p className="text-xs text-muted-foreground">
@@ -764,7 +970,6 @@ Importante:
               className="text-sm resize-none"
             />
 
-            {/* Variáveis disponíveis */}
             <div className="space-y-2">
               <p className="text-xs font-medium text-muted-foreground">Variáveis disponíveis:</p>
               <div className="flex flex-wrap gap-2">
@@ -785,7 +990,21 @@ Importante:
               </div>
             </div>
 
-            {/* Preview */}
+            {/* Save message button */}
+            {message.trim() && (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setNewMessageName(currentMessageName || '');
+                  setShowSaveMessageDialog(true);
+                }}
+                className="w-full h-9 text-sm gap-1.5"
+              >
+                <Save className="w-4 h-4" />
+                {currentMessageId ? 'Salvar Mensagem' : 'Salvar Nova Mensagem'}
+              </Button>
+            )}
+
             {message && leads.length > 0 && (
               <div className="space-y-2">
                 <p className="text-xs font-medium text-muted-foreground">Preview (primeiro lead):</p>
@@ -822,6 +1041,15 @@ Importante:
                   className="h-8 text-xs"
                 >
                   {leads.every(l => l.selected) ? 'Desmarcar Todos' : 'Selecionar Todos'}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNewList}
+                  className="h-8 text-xs"
+                >
+                  <Plus className="w-3.5 h-3.5 mr-1" />
+                  Nova
                 </Button>
                 <Button
                   variant="destructive"
@@ -984,6 +1212,53 @@ Importante:
         </DialogContent>
       </Dialog>
 
+      {/* Save Message Dialog */}
+      <Dialog open={showSaveMessageDialog} onOpenChange={setShowSaveMessageDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Save className="w-5 h-5" />
+              {currentMessageId ? 'Salvar Mensagem' : 'Nova Mensagem'}
+            </DialogTitle>
+            <DialogDescription>
+              Salve esta mensagem para usar novamente depois.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="messageName">Nome da Mensagem</Label>
+              <Input
+                id="messageName"
+                placeholder="Ex: Promoção de Verão"
+                value={newMessageName}
+                onChange={(e) => setNewMessageName(e.target.value)}
+              />
+            </div>
+            <div className="p-3 rounded-lg bg-muted/50 text-sm">
+              <p className="line-clamp-3">{message}</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveMessageDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveMessage} disabled={isSavingMessage}>
+              {isSavingMessage ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Salvar
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Lists Dialog */}
       <Dialog open={showListsDialog} onOpenChange={setShowListsDialog}>
         <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-hidden flex flex-col">
@@ -993,7 +1268,7 @@ Importante:
               Minhas Listas
             </DialogTitle>
             <DialogDescription>
-              Carregue uma lista salva ou crie uma nova.
+              Carregue uma lista salva. Você pode resetar o status de envio.
             </DialogDescription>
           </DialogHeader>
           
@@ -1013,40 +1288,126 @@ Importante:
                 {savedLists.map((list) => (
                   <div
                     key={list.id}
-                    className={`flex items-center justify-between p-3 rounded-lg border transition-colors hover:bg-muted/50 ${
+                    className={`p-3 rounded-lg border transition-colors hover:bg-muted/50 ${
                       currentListId === list.id ? 'border-primary bg-primary/5' : ''
                     }`}
                   >
-                    <div className="flex-1 min-w-0 cursor-pointer" onClick={() => handleLoadList(list)}>
-                      <p className="font-medium text-sm truncate">{list.name}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline" className="text-xs">
-                          {list.total_leads} lead(s)
-                        </Badge>
-                        {list.sent_count > 0 && (
-                          <Badge variant="secondary" className="text-xs bg-green-500/10 text-green-600">
-                            {list.sent_count} enviado(s)
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{list.name}</p>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <Badge variant="outline" className="text-xs">
+                            {list.total_leads} lead(s)
                           </Badge>
-                        )}
+                          {list.sent_count > 0 && (
+                            <Badge variant="secondary" className="text-xs bg-green-500/10 text-green-600">
+                              {list.sent_count} enviado(s)
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {new Date(list.updated_at).toLocaleDateString('pt-BR')}
+                        </p>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Atualizado em {new Date(list.updated_at).toLocaleDateString('pt-BR')}
-                      </p>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteList(list.id, list.name)}
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1 ml-2">
+                    <div className="flex gap-2 mt-3">
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleLoadList(list)}
-                        className="h-8 w-8"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleLoadList(list, false)}
+                        className="flex-1 h-8 text-xs"
                       >
-                        <FolderOpen className="w-4 h-4" />
+                        <FolderOpen className="w-3.5 h-3.5 mr-1" />
+                        Carregar
                       </Button>
+                      {list.sent_count > 0 && (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => handleLoadList(list, true)}
+                          className="flex-1 h-8 text-xs"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5 mr-1" />
+                          Carregar + Resetar
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowListsDialog(false)}>
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Messages Dialog */}
+      <Dialog open={showMessagesDialog} onOpenChange={setShowMessagesDialog}>
+        <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Minhas Mensagens
+            </DialogTitle>
+            <DialogDescription>
+              Carregue uma mensagem salva para usar no disparo.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto py-4">
+            {isLoadingMessages ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : savedMessages.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>Nenhuma mensagem salva ainda.</p>
+                <p className="text-sm">Escreva uma mensagem e clique em "Salvar Mensagem".</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {savedMessages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`p-3 rounded-lg border transition-colors hover:bg-muted/50 cursor-pointer ${
+                      currentMessageId === msg.id ? 'border-primary bg-primary/5' : ''
+                    }`}
+                    onClick={() => handleLoadMessage(msg)}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{msg.name}</p>
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                          {msg.content}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {new Date(msg.updated_at).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleDeleteList(list.id, list.name)}
-                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteMessage(msg.id, msg.name);
+                        }}
+                        className="h-8 w-8 text-destructive hover:text-destructive flex-shrink-0"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -1058,7 +1419,7 @@ Importante:
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowListsDialog(false)}>
+            <Button variant="outline" onClick={() => setShowMessagesDialog(false)}>
               Fechar
             </Button>
           </DialogFooter>
