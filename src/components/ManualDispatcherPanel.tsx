@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,12 +18,25 @@ import {
   Loader2,
   CheckCircle2,
   AlertCircle,
-  Upload,
   Rocket,
   Users,
-  Info
+  Info,
+  Save,
+  FolderOpen,
+  List,
+  X,
+  Edit2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface Lead {
   id: string;
@@ -33,8 +46,20 @@ interface Lead {
   sent: boolean;
 }
 
+interface SavedList {
+  id: string;
+  name: string;
+  leads: Lead[];
+  message: string | null;
+  total_leads: number;
+  sent_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export function ManualDispatcherPanel() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -45,10 +70,193 @@ export function ManualDispatcherPanel() {
   const [isDispatching, setIsDispatching] = useState(false);
   const [currentDispatchIndex, setCurrentDispatchIndex] = useState(0);
 
+  // Saved lists state
+  const [savedLists, setSavedLists] = useState<SavedList[]>([]);
+  const [isLoadingLists, setIsLoadingLists] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [showListsDialog, setShowListsDialog] = useState(false);
+  const [newListName, setNewListName] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [currentListId, setCurrentListId] = useState<string | null>(null);
+  const [currentListName, setCurrentListName] = useState<string | null>(null);
+
   const generateId = () => Math.random().toString(36).substring(2, 9);
 
+  // Load saved lists on mount
+  useEffect(() => {
+    if (user) {
+      loadSavedLists();
+    }
+  }, [user]);
+
+  const loadSavedLists = async () => {
+    if (!user) return;
+    
+    setIsLoadingLists(true);
+    try {
+      const { data, error } = await supabase
+        .from('manual_dispatcher_lists')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false });
+
+      if (error) throw error;
+
+      const lists: SavedList[] = (data || []).map(item => ({
+        ...item,
+        leads: Array.isArray(item.leads) ? (item.leads as unknown as Lead[]) : []
+      }));
+
+      setSavedLists(lists);
+    } catch (error) {
+      console.error('Error loading lists:', error);
+    } finally {
+      setIsLoadingLists(false);
+    }
+  };
+
+  const handleSaveList = async () => {
+    if (!user) return;
+    
+    if (!newListName.trim() && !currentListId) {
+      toast({
+        title: "Nome obrigatório",
+        description: "Dê um nome para salvar a lista.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (leads.length === 0) {
+      toast({
+        title: "Lista vazia",
+        description: "Adicione leads antes de salvar.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const sentCount = leads.filter(l => l.sent).length;
+      
+      if (currentListId) {
+        // Update existing list
+        const { error } = await supabase
+          .from('manual_dispatcher_lists')
+          .update({
+            leads: JSON.parse(JSON.stringify(leads)),
+            message: message || null,
+            total_leads: leads.length,
+            sent_count: sentCount,
+            name: newListName.trim() || currentListName || 'Lista sem nome'
+          })
+          .eq('id', currentListId);
+
+        if (error) throw error;
+
+        setCurrentListName(newListName.trim() || currentListName);
+
+        toast({
+          title: "Lista atualizada!",
+          description: `"${newListName.trim() || currentListName}" foi salva com sucesso.`
+        });
+      } else {
+        // Create new list
+        const { data, error } = await supabase
+          .from('manual_dispatcher_lists')
+          .insert([{
+            user_id: user.id,
+            name: newListName.trim(),
+            leads: JSON.parse(JSON.stringify(leads)),
+            message: message || null,
+            total_leads: leads.length,
+            sent_count: sentCount
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        setCurrentListId(data.id);
+        setCurrentListName(newListName.trim());
+
+        toast({
+          title: "Lista salva!",
+          description: `"${newListName.trim()}" foi criada com sucesso.`
+        });
+      }
+
+      setShowSaveDialog(false);
+      setNewListName('');
+      loadSavedLists();
+    } catch (error) {
+      console.error('Error saving list:', error);
+      toast({
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar a lista.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleLoadList = (list: SavedList) => {
+    setLeads(list.leads);
+    setMessage(list.message || '');
+    setCurrentListId(list.id);
+    setCurrentListName(list.name);
+    setShowListsDialog(false);
+
+    toast({
+      title: "Lista carregada!",
+      description: `"${list.name}" foi carregada com sucesso.`
+    });
+  };
+
+  const handleDeleteList = async (listId: string, listName: string) => {
+    try {
+      const { error } = await supabase
+        .from('manual_dispatcher_lists')
+        .delete()
+        .eq('id', listId);
+
+      if (error) throw error;
+
+      if (currentListId === listId) {
+        setCurrentListId(null);
+        setCurrentListName(null);
+      }
+
+      toast({
+        title: "Lista excluída!",
+        description: `"${listName}" foi removida.`
+      });
+
+      loadSavedLists();
+    } catch (error) {
+      console.error('Error deleting list:', error);
+      toast({
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir a lista.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleNewList = () => {
+    setLeads([]);
+    setMessage('');
+    setCurrentListId(null);
+    setCurrentListName(null);
+    toast({
+      title: "Nova lista",
+      description: "Lista limpa. Adicione novos leads."
+    });
+  };
+
   const formatPhone = (phone: string) => {
-    // Remove tudo que não é número
     return phone.replace(/\D/g, '');
   };
 
@@ -110,7 +318,6 @@ export function ManualDispatcherPanel() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Verificar se é uma imagem
     if (!file.type.startsWith('image/')) {
       toast({
         title: "Arquivo inválido",
@@ -123,12 +330,10 @@ export function ManualDispatcherPanel() {
     setIsProcessingOCR(true);
 
     try {
-      // Converter imagem para base64
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64Image = reader.result as string;
 
-        // Usar a API de IA para OCR
         const { data: sessionData } = await supabase.auth.getSession();
         
         const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -181,7 +386,6 @@ Importante:
         const content = data.choices?.[0]?.message?.content || '';
 
         try {
-          // Tentar fazer parse do JSON
           const cleanContent = content.replace(/```json\n?|\n?```/g, '').trim();
           const parsed = JSON.parse(cleanContent);
 
@@ -230,7 +434,6 @@ Importante:
       setIsProcessingOCR(false);
     }
 
-    // Limpar input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -295,7 +498,6 @@ Importante:
       return;
     }
 
-    // Aviso sobre popups
     toast({
       title: "Iniciando disparo...",
       description: `Abrindo ${selectedLeads.length} conversa(s). Permita popups se solicitado!`,
@@ -307,12 +509,10 @@ Importante:
     let successCount = 0;
     let blockedCount = 0;
 
-    // Abrir uma aba por vez com intervalo maior para evitar bloqueios
     for (let i = 0; i < selectedLeads.length; i++) {
       const lead = selectedLeads[i];
       setCurrentDispatchIndex(i + 1);
       
-      // Tentar abrir e verificar se foi bloqueado
       const personalizedMessage = replaceVariables(message, lead);
       const encodedMessage = encodeURIComponent(personalizedMessage);
       const whatsappUrl = `https://web.whatsapp.com/send?phone=${lead.phone}&text=${encodedMessage}`;
@@ -321,7 +521,6 @@ Importante:
       
       if (newWindow) {
         successCount++;
-        // Marcar como enviado
         setLeads(prev => prev.map(l => 
           l.id === lead.id ? { ...l, sent: true } : l
         ));
@@ -334,7 +533,6 @@ Importante:
         });
       }
 
-      // Aguardar 3 segundos entre cada abertura (aumentado para evitar bloqueios)
       if (i < selectedLeads.length - 1) {
         await new Promise(resolve => setTimeout(resolve, 3000));
       }
@@ -371,28 +569,72 @@ Importante:
           <p className="text-sm text-muted-foreground mt-1">
             Envie mensagens personalizadas via WhatsApp Web
           </p>
-        </div>
-        {leads.length > 0 && (
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="outline" className="flex items-center gap-1">
-              <Users className="w-3 h-3" />
-              {leads.length} lead(s)
+          {currentListName && (
+            <Badge variant="outline" className="mt-2">
+              <List className="w-3 h-3 mr-1" />
+              Lista: {currentListName}
             </Badge>
-            {selectedCount > 0 && (
-              <Badge variant="default" className="flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" />
-                {selectedCount} selecionado(s)
-              </Badge>
-            )}
-            {sentCount > 0 && (
-              <Badge variant="secondary" className="flex items-center gap-1 bg-green-500/10 text-green-600">
-                <Send className="w-3 h-3" />
-                {sentCount} enviado(s)
-              </Badge>
-            )}
-          </div>
-        )}
+          )}
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Save/Load buttons */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowListsDialog(true)}
+            className="h-8 text-xs gap-1.5"
+          >
+            <FolderOpen className="w-3.5 h-3.5" />
+            Minhas Listas
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setNewListName(currentListName || '');
+              setShowSaveDialog(true);
+            }}
+            disabled={leads.length === 0}
+            className="h-8 text-xs gap-1.5"
+          >
+            <Save className="w-3.5 h-3.5" />
+            {currentListId ? 'Salvar' : 'Salvar Lista'}
+          </Button>
+          {currentListId && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleNewList}
+              className="h-8 text-xs gap-1.5"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Nova Lista
+            </Button>
+          )}
+        </div>
       </div>
+
+      {/* Stats badges */}
+      {leads.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <Badge variant="outline" className="flex items-center gap-1">
+            <Users className="w-3 h-3" />
+            {leads.length} lead(s)
+          </Badge>
+          {selectedCount > 0 && (
+            <Badge variant="default" className="flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3" />
+              {selectedCount} selecionado(s)
+            </Badge>
+          )}
+          {sentCount > 0 && (
+            <Badge variant="secondary" className="flex items-center gap-1 bg-green-500/10 text-green-600">
+              <Send className="w-3 h-3" />
+              {sentCount} enviado(s)
+            </Badge>
+          )}
+        </div>
+      )}
 
       {/* Aviso importante */}
       <Card className="border-amber-500/50 bg-amber-500/5">
@@ -691,6 +933,137 @@ Importante:
           </div>
         </CardContent>
       </Card>
+
+      {/* Save List Dialog */}
+      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Save className="w-5 h-5" />
+              {currentListId ? 'Salvar Lista' : 'Nova Lista'}
+            </DialogTitle>
+            <DialogDescription>
+              {currentListId 
+                ? 'Atualize o nome da lista ou mantenha o atual.'
+                : 'Dê um nome para sua lista de leads.'
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="listName">Nome da Lista</Label>
+              <Input
+                id="listName"
+                placeholder="Ex: Leads de Janeiro"
+                value={newListName}
+                onChange={(e) => setNewListName(e.target.value)}
+              />
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <p>{leads.length} lead(s) • {sentCount} enviado(s)</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveList} disabled={isSaving}>
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Salvar
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Lists Dialog */}
+      <Dialog open={showListsDialog} onOpenChange={setShowListsDialog}>
+        <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FolderOpen className="w-5 h-5" />
+              Minhas Listas
+            </DialogTitle>
+            <DialogDescription>
+              Carregue uma lista salva ou crie uma nova.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto py-4">
+            {isLoadingLists ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : savedLists.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <List className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>Nenhuma lista salva ainda.</p>
+                <p className="text-sm">Adicione leads e clique em "Salvar Lista".</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {savedLists.map((list) => (
+                  <div
+                    key={list.id}
+                    className={`flex items-center justify-between p-3 rounded-lg border transition-colors hover:bg-muted/50 ${
+                      currentListId === list.id ? 'border-primary bg-primary/5' : ''
+                    }`}
+                  >
+                    <div className="flex-1 min-w-0 cursor-pointer" onClick={() => handleLoadList(list)}>
+                      <p className="font-medium text-sm truncate">{list.name}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="outline" className="text-xs">
+                          {list.total_leads} lead(s)
+                        </Badge>
+                        {list.sent_count > 0 && (
+                          <Badge variant="secondary" className="text-xs bg-green-500/10 text-green-600">
+                            {list.sent_count} enviado(s)
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Atualizado em {new Date(list.updated_at).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1 ml-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleLoadList(list)}
+                        className="h-8 w-8"
+                      >
+                        <FolderOpen className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteList(list.id, list.name)}
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowListsDialog(false)}>
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
