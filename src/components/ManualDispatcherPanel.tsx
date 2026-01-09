@@ -517,27 +517,49 @@ export function ManualDispatcherPanel() {
 
     try {
       const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64Image = reader.result as string;
+      
+      reader.onerror = () => {
+        console.error('Erro ao ler arquivo');
+        toast({
+          title: "Erro ao ler imagem",
+          description: "Não foi possível ler o arquivo selecionado.",
+          variant: "destructive"
+        });
+        setIsProcessingOCR(false);
+      };
 
-        const { data: sessionData } = await supabase.auth.getSession();
-        
-        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${sessionData.session?.access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [
-              {
-                role: 'user',
-                content: [
-                  {
-                    type: 'text',
-                    text: `Analise esta imagem e extraia todos os nomes e números de telefone que encontrar. 
-                    
+      reader.onloadend = async () => {
+        try {
+          const base64Image = reader.result as string;
+
+          if (!base64Image) {
+            throw new Error('Imagem vazia');
+          }
+
+          const { data: sessionData } = await supabase.auth.getSession();
+          
+          if (!sessionData.session?.access_token) {
+            throw new Error('Sessão expirada');
+          }
+
+          console.log('Iniciando processamento OCR...');
+          
+          const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${sessionData.session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o-mini',
+              messages: [
+                {
+                  role: 'user',
+                  content: [
+                    {
+                      type: 'text',
+                      text: `Analise esta imagem e extraia todos os nomes e números de telefone que encontrar. 
+                      
 Retorne APENAS no formato JSON, sem markdown, sem explicações:
 {
   "leads": [
@@ -552,27 +574,38 @@ Importante:
 - Números devem conter apenas dígitos
 - Adicione o código do país 55 se não estiver presente
 - Se houver apenas número sem nome, use "Lead" + número sequencial como nome`
-                  },
-                  {
-                    type: 'image_url',
-                    image_url: { url: base64Image }
-                  }
-                ]
-              }
-            ],
-            max_tokens: 1000
-          })
-        });
+                    },
+                    {
+                      type: 'image_url',
+                      image_url: { url: base64Image }
+                    }
+                  ]
+                }
+              ],
+              max_tokens: 1000
+            })
+          });
 
-        if (!response.ok) {
-          throw new Error('Erro ao processar imagem');
-        }
+          console.log('Resposta recebida, status:', response.status);
 
-        const data = await response.json();
-        const content = data.choices?.[0]?.message?.content || '';
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Erro na API:', errorText);
+            throw new Error(`Erro ao processar imagem: ${response.status}`);
+          }
 
-        try {
+          const data = await response.json();
+          console.log('Dados recebidos:', data);
+          
+          const content = data.choices?.[0]?.message?.content || '';
+
+          if (!content) {
+            throw new Error('Resposta vazia da API');
+          }
+
           const cleanContent = content.replace(/```json\n?|\n?```/g, '').trim();
+          console.log('Conteúdo limpo:', cleanContent);
+          
           const parsed = JSON.parse(cleanContent);
 
           if (parsed.leads && Array.isArray(parsed.leads) && parsed.leads.length > 0) {
@@ -597,16 +630,16 @@ Importante:
               variant: "destructive"
             });
           }
-        } catch (parseError) {
-          console.error('Erro ao fazer parse:', parseError, content);
+        } catch (error) {
+          console.error('Erro no processamento OCR:', error);
           toast({
             title: "Erro ao processar",
-            description: "Não foi possível extrair os dados da imagem.",
+            description: error instanceof Error ? error.message : "Não foi possível extrair os dados da imagem.",
             variant: "destructive"
           });
+        } finally {
+          setIsProcessingOCR(false);
         }
-
-        setIsProcessingOCR(false);
       };
 
       reader.readAsDataURL(file);
