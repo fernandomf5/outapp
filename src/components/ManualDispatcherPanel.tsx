@@ -513,6 +513,17 @@ export function ManualDispatcherPanel() {
       return;
     }
 
+    // Verificar sessão antes de iniciar
+    const { data: sessionCheck } = await supabase.auth.getSession();
+    if (!sessionCheck.session?.access_token) {
+      toast({
+        title: "Sessão expirada",
+        description: "Por favor, faça login novamente.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsProcessingOCR(true);
 
     try {
@@ -536,18 +547,13 @@ export function ManualDispatcherPanel() {
             throw new Error('Imagem vazia');
           }
 
-          const { data: sessionData } = await supabase.auth.getSession();
-          
-          if (!sessionData.session?.access_token) {
-            throw new Error('Sessão expirada');
-          }
-
           console.log('Iniciando processamento OCR...');
+          console.log('Usando token da sessão...');
           
           const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${sessionData.session.access_token}`,
+              'Authorization': `Bearer ${sessionCheck.session.access_token}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
