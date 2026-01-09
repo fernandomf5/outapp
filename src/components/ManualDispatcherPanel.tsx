@@ -926,21 +926,6 @@ Importante:
               </Button>
             </div>
 
-            {/* Save list button */}
-            {leads.length > 0 && (
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setNewListName(currentListName || '');
-                  setShowSaveDialog(true);
-                }}
-                className="w-full h-9 text-sm gap-1.5"
-              >
-                <Save className="w-4 h-4" />
-                {currentListId ? 'Salvar Lista' : 'Salvar Nova Lista'}
-              </Button>
-            )}
-
             <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50">
               <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
               <p className="text-xs text-muted-foreground">
@@ -1033,14 +1018,35 @@ Importante:
                   {leads.length} lead(s) cadastrado(s)
                 </CardDescription>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowListsDialog(true)}
+                  className="h-8 text-xs gap-1"
+                >
+                  <FolderOpen className="w-3.5 h-3.5" />
+                  Carregar
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setNewListName(currentListName || '');
+                    setShowSaveDialog(true);
+                  }}
+                  className="h-8 text-xs gap-1"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  Salvar
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleSelectAll}
                   className="h-8 text-xs"
                 >
-                  {leads.every(l => l.selected) ? 'Desmarcar Todos' : 'Selecionar Todos'}
+                  {leads.every(l => l.selected) ? 'Desmarcar' : 'Selecionar'}
                 </Button>
                 <Button
                   variant="outline"
@@ -1320,25 +1326,35 @@ Importante:
                         </Button>
                       </div>
                     </div>
-                    <div className="flex gap-2 mt-3">
+                    <div className="flex gap-2 mt-3 flex-wrap">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleLoadList(list, false)}
-                        className="flex-1 h-8 text-xs"
+                        className="flex-1 h-8 text-xs min-w-[80px]"
                       >
                         <FolderOpen className="w-3.5 h-3.5 mr-1" />
                         Carregar
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleLoadList(list, false)}
+                        className="flex-1 h-8 text-xs min-w-[80px]"
+                        title="Carregar para editar (adicionar/remover leads)"
+                      >
+                        <Users className="w-3.5 h-3.5 mr-1" />
+                        Editar
                       </Button>
                       {list.sent_count > 0 && (
                         <Button
                           variant="default"
                           size="sm"
                           onClick={() => handleLoadList(list, true)}
-                          className="flex-1 h-8 text-xs"
+                          className="flex-1 h-8 text-xs min-w-[80px]"
                         >
                           <RefreshCw className="w-3.5 h-3.5 mr-1" />
-                          Carregar + Resetar
+                          Resetar
                         </Button>
                       )}
                     </div>
