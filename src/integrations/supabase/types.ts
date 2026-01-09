@@ -3935,6 +3935,42 @@ export type Database = {
         }
         Relationships: []
       }
+      manual_dispatcher_lists: {
+        Row: {
+          created_at: string
+          id: string
+          leads: Json
+          message: string | null
+          name: string
+          sent_count: number
+          total_leads: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          leads?: Json
+          message?: string | null
+          name: string
+          sent_count?: number
+          total_leads?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          leads?: Json
+          message?: string | null
+          name?: string
+          sent_count?: number
+          total_leads?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       members_area_access_requests: {
         Row: {
           access_code: string | null
