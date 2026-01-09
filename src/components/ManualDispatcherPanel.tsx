@@ -270,33 +270,65 @@ Importante:
       return;
     }
 
+    // Aviso sobre popups
+    toast({
+      title: "Iniciando disparo...",
+      description: `Abrindo ${selectedLeads.length} conversa(s). Permita popups se solicitado!`,
+    });
+
     setIsDispatching(true);
     setCurrentDispatchIndex(0);
 
-    // Abrir uma aba por vez com intervalo
+    let successCount = 0;
+    let blockedCount = 0;
+
+    // Abrir uma aba por vez com intervalo maior para evitar bloqueios
     for (let i = 0; i < selectedLeads.length; i++) {
       const lead = selectedLeads[i];
       setCurrentDispatchIndex(i + 1);
       
-      openWhatsApp(lead);
+      // Tentar abrir e verificar se foi bloqueado
+      const personalizedMessage = replaceVariables(message, lead);
+      const encodedMessage = encodeURIComponent(personalizedMessage);
+      const whatsappUrl = `https://web.whatsapp.com/send?phone=${lead.phone}&text=${encodedMessage}`;
       
-      // Marcar como enviado
-      setLeads(prev => prev.map(l => 
-        l.id === lead.id ? { ...l, sent: true } : l
-      ));
+      const newWindow = window.open(whatsappUrl, '_blank');
+      
+      if (newWindow) {
+        successCount++;
+        // Marcar como enviado
+        setLeads(prev => prev.map(l => 
+          l.id === lead.id ? { ...l, sent: true } : l
+        ));
+      } else {
+        blockedCount++;
+        toast({
+          title: "Popup bloqueado!",
+          description: `Permita popups para o lead "${lead.name}". Clique no ícone de popup bloqueado na barra de endereços.`,
+          variant: "destructive"
+        });
+      }
 
-      // Aguardar 2 segundos entre cada abertura
+      // Aguardar 3 segundos entre cada abertura (aumentado para evitar bloqueios)
       if (i < selectedLeads.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 3000));
       }
     }
 
     setIsDispatching(false);
 
-    toast({
-      title: "Disparo concluído!",
-      description: `${selectedLeads.length} conversa(s) aberta(s) no WhatsApp Web.`
-    });
+    if (blockedCount > 0) {
+      toast({
+        title: "Disparo parcial",
+        description: `${successCount} aberta(s), ${blockedCount} bloqueada(s). Permita popups e tente novamente.`,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Disparo concluído!",
+        description: `${successCount} conversa(s) aberta(s) no WhatsApp Web.`
+      });
+    }
   };
 
   const selectedCount = leads.filter(l => l.selected && !l.sent).length;
