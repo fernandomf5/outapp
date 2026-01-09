@@ -436,19 +436,26 @@ const Dashboard = () => {
           {/* Header */}
           <header className="bg-card border-b border-border px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 py-2 xs:py-3 sm:py-4 sticky top-0 z-40 safe-area-bottom">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              {/* Greeting - on top on mobile, inline on desktop */}
-              <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 order-1 sm:order-2 min-w-0 flex-1 sm:justify-center">
-                <h1 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl font-bold leading-tight truncate">
+              {/* Greeting - on top on mobile, center on desktop */}
+              <div className="flex flex-col order-1 sm:order-2 min-w-0 flex-1 sm:items-center">
+                <h1 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl font-bold leading-tight truncate flex items-center gap-1">
                   {isTeamMember && teamMember 
                     ? `Painel de ${teamMember.adminName.split(' ')[0]}`
                     : `${t('hello')}, ${(userFullName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário').split(' ')[0]}! 👋`
                   }
+                  {/* Mobile: welcome message inline */}
                   {!isTeamMember && (
-                    <span className="font-normal text-muted-foreground ml-1 text-[10px] xs:text-xs sm:text-sm md:text-base lg:text-lg whitespace-nowrap">
+                    <span className="font-normal text-muted-foreground ml-1 text-[10px] xs:text-xs sm:hidden whitespace-nowrap">
                       - {t('welcome_back')}
                     </span>
                   )}
                 </h1>
+                {/* Desktop: welcome message below */}
+                {!isTeamMember && (
+                  <p className="hidden sm:block text-xs md:text-sm lg:text-base text-muted-foreground">
+                    {t('welcome_back')}
+                  </p>
+                )}
                 {isTeamMember && (
                   <p className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm lg:text-base 3xl:text-lg text-muted-foreground">
                     Acesso como membro da equipe
