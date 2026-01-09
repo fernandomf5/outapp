@@ -435,10 +435,10 @@ const Dashboard = () => {
         <div className="flex-1 flex flex-col min-w-0">
           {/* Header */}
           <header className="bg-card border-b border-border px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 py-2 xs:py-3 sm:py-4 sticky top-0 z-40 safe-area-bottom">
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[auto,1fr,auto] sm:items-center sm:gap-3">
-              {/* Greeting (top on mobile, middle on desktop) */}
-              <div className="min-w-0 sm:col-start-2">
-                <h1 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl font-bold leading-tight">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              {/* Greeting - on top on mobile, inline on desktop */}
+              <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 order-1 sm:order-2 min-w-0 flex-1 sm:justify-center">
+                <h1 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl font-bold leading-tight truncate">
                   {isTeamMember && teamMember 
                     ? `Painel de ${teamMember.adminName.split(' ')[0]}`
                     : `${t('hello')}, ${(userFullName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário').split(' ')[0]}! 👋`
@@ -456,10 +456,10 @@ const Dashboard = () => {
                 )}
               </div>
 
-              {/* Menu row (below greeting on mobile; split into grid columns on desktop) */}
-              <div className="flex items-center justify-between gap-2 sm:contents">
+              {/* Menu row - below greeting on mobile, sides on desktop */}
+              <div className="flex items-center justify-between gap-2 order-2 sm:order-1 sm:contents">
                 {/* Left side - Sidebar trigger and logo */}
-                <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 shrink-0 sm:col-start-1">
+                <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 shrink-0 sm:order-1">
                   <SidebarTrigger className="shrink-0 h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10" />
                   <Link
                     to="/dashboard"
@@ -474,7 +474,7 @@ const Dashboard = () => {
                 </div>
 
                 {/* Right side - Actions */}
-                <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-2 lg:gap-3 shrink-0 sm:col-start-3 sm:justify-self-end">
+                <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-2 lg:gap-3 shrink-0 sm:order-3">
                   {!isTeamMember && (
                     <Button
                       variant="ghost"
