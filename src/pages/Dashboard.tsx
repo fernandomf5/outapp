@@ -61,6 +61,7 @@ import { AgendaReminders } from "@/components/AgendaReminders";
 import { AprovaJobPanel } from "@/components/AprovaJobPanel";
 import { GlobalChatNotification } from "@/components/GlobalChatNotification";
 import { PortfolioCreatorPanel } from "@/components/PortfolioCreatorPanel";
+import { ManualDispatcherPanel } from "@/components/ManualDispatcherPanel";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { TeamMemberBanner } from "@/components/TeamMemberBanner";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
@@ -1106,6 +1107,10 @@ const Dashboard = () => {
             <FeatureGate featureKey="qrcode_generator">
               <QRCodeGenerator />
             </FeatureGate>
+          </TabsContent>
+
+          <TabsContent value="disparador">
+            <ManualDispatcherPanel />
           </TabsContent>
 
           <TabsContent value="management">
