@@ -1,0 +1,1117 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Settings, Trash2, Edit, ArrowRight, GripVertical, User, Phone, Mail, Building, DollarSign, Calendar, Tag, ChevronRight, Filter, BarChart3, Eye, History, Pencil } from 'lucide-react';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragOverlay, DragStartEvent, useDroppable, useDraggable } from '@dnd-kit/core';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+
+interface SalesFunnel {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  color: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+interface FunnelStage {
+  id: string;
+  funnel_id: string;
+  name: string;
+  color: string;
+  order_index: number;
+}
+
+interface FunnelLead {
+  id: string;
+  funnel_id: string;
+  stage_id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  company: string | null;
+  value: number;
+  notes: string | null;
+  tags: string[] | null;
+  priority: string;
+  expected_close_date: string | null;
+  created_at: string;
+}
+
+interface LeadHistory {
+  id: string;
+  lead_id: string;
+  from_stage_id: string | null;
+  to_stage_id: string;
+  notes: string | null;
+  created_at: string;
+}
+
+// Draggable Lead Card Component
+function DraggableLeadCard({ lead, stages, onEdit, onDelete, onView }: { 
+  lead: FunnelLead; 
+  stages: FunnelStage[];
+  onEdit: (lead: FunnelLead) => void;
+  onDelete: (id: string) => void;
+  onView: (lead: FunnelLead) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: lead.id,
+    data: { lead }
+  });
+
+  const style = transform ? {
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    zIndex: isDragging ? 1000 : 1,
+    opacity: isDragging ? 0.8 : 1,
+  } : undefined;
+
+  const priorityColors = {
+    low: 'bg-green-500/20 text-green-600 border-green-500/30',
+    medium: 'bg-yellow-500/20 text-yellow-600 border-yellow-500/30',
+    high: 'bg-red-500/20 text-red-600 border-red-500/30',
+  };
+
+  const priorityLabels = {
+    low: 'Baixa',
+    medium: 'Média',
+    high: 'Alta',
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`bg-card border rounded-lg p-3 cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow ${isDragging ? 'ring-2 ring-primary' : ''}`}
+      {...attributes}
+      {...listeners}
+    >
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="flex items-center gap-2">
+          <GripVertical className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+          <span className="font-medium text-sm line-clamp-1">{lead.name}</span>
+        </div>
+        <div className="flex gap-1 flex-shrink-0">
+          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onView(lead); }}>
+            <Eye className="h-3 w-3" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onEdit(lead); }}>
+            <Pencil className="h-3 w-3" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={(e) => { e.stopPropagation(); onDelete(lead.id); }}>
+            <Trash2 className="h-3 w-3" />
+          </Button>
+        </div>
+      </div>
+
+      {lead.company && (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+          <Building className="w-3 h-3" />
+          <span className="truncate">{lead.company}</span>
+        </div>
+      )}
+
+      {lead.value > 0 && (
+        <div className="flex items-center gap-1.5 text-xs font-medium text-primary mb-1">
+          <DollarSign className="w-3 h-3" />
+          <span>R$ {lead.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between mt-2">
+        <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${priorityColors[lead.priority]}`}>
+          {priorityLabels[lead.priority]}
+        </Badge>
+        {lead.expected_close_date && (
+          <span className="text-[10px] text-muted-foreground">
+            {format(new Date(lead.expected_close_date), 'dd/MM/yy')}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Droppable Stage Column Component
+function DroppableStageColumn({ stage, leads, children, onAddLead }: { 
+  stage: FunnelStage; 
+  leads: FunnelLead[];
+  children: React.ReactNode;
+  onAddLead: () => void;
+}) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: stage.id,
+    data: { stage }
+  });
+
+  const totalValue = leads.reduce((acc, lead) => acc + (lead.value || 0), 0);
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`flex flex-col min-w-[280px] max-w-[280px] bg-muted/30 rounded-lg border transition-colors ${isOver ? 'bg-primary/10 border-primary' : 'border-border'}`}
+    >
+      <div className="p-3 border-b" style={{ borderColor: stage.color + '40' }}>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: stage.color }} />
+            <span className="font-semibold text-sm">{stage.name}</span>
+          </div>
+          <Badge variant="secondary" className="text-xs">{leads.length}</Badge>
+        </div>
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>Total: R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+          <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={onAddLead}>
+            <Plus className="w-3 h-3 mr-1" />
+            Add
+          </Button>
+        </div>
+      </div>
+      <ScrollArea className="flex-1 p-2" style={{ maxHeight: 'calc(100vh - 400px)' }}>
+        <div className="space-y-2">
+          {children}
+        </div>
+      </ScrollArea>
+    </div>
+  );
+}
+
+export default function SalesFunnelPanel() {
+  const { user } = useAuth();
+  const [funnels, setFunnels] = useState<SalesFunnel[]>([]);
+  const [selectedFunnel, setSelectedFunnel] = useState<SalesFunnel | null>(null);
+  const [stages, setStages] = useState<FunnelStage[]>([]);
+  const [leads, setLeads] = useState<FunnelLead[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('kanban');
+  
+  // Dialog states
+  const [showFunnelDialog, setShowFunnelDialog] = useState(false);
+  const [showStageDialog, setShowStageDialog] = useState(false);
+  const [showLeadDialog, setShowLeadDialog] = useState(false);
+  const [showLeadDetailDialog, setShowLeadDetailDialog] = useState(false);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+  
+  // Edit states
+  const [editingFunnel, setEditingFunnel] = useState<SalesFunnel | null>(null);
+  const [editingStage, setEditingStage] = useState<FunnelStage | null>(null);
+  const [editingLead, setEditingLead] = useState<FunnelLead | null>(null);
+  const [viewingLead, setViewingLead] = useState<FunnelLead | null>(null);
+  const [leadHistory, setLeadHistory] = useState<LeadHistory[]>([]);
+  
+  // Form states
+  const [funnelName, setFunnelName] = useState('');
+  const [funnelDescription, setFunnelDescription] = useState('');
+  const [funnelColor, setFunnelColor] = useState('#3b82f6');
+  
+  const [stageName, setStageName] = useState('');
+  const [stageColor, setStageColor] = useState('#6b7280');
+  const [preAddStageId, setPreAddStageId] = useState<string | null>(null);
+  
+  const [leadName, setLeadName] = useState('');
+  const [leadEmail, setLeadEmail] = useState('');
+  const [leadPhone, setLeadPhone] = useState('');
+  const [leadCompany, setLeadCompany] = useState('');
+  const [leadValue, setLeadValue] = useState('');
+  const [leadNotes, setLeadNotes] = useState('');
+  const [leadPriority, setLeadPriority] = useState<string>('medium');
+  const [leadExpectedDate, setLeadExpectedDate] = useState('');
+  const [leadTags, setLeadTags] = useState('');
+  
+  // Drag state
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor)
+  );
+
+  useEffect(() => {
+    if (user) {
+      loadFunnels();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (selectedFunnel) {
+      loadStages(selectedFunnel.id);
+      loadLeads(selectedFunnel.id);
+    }
+  }, [selectedFunnel]);
+
+  const loadFunnels = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('sales_funnels')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setFunnels(data || []);
+      
+      if (data && data.length > 0 && !selectedFunnel) {
+        setSelectedFunnel(data[0]);
+      }
+    } catch (error) {
+      console.error('Error loading funnels:', error);
+      toast.error('Erro ao carregar funis');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadStages = async (funnelId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('funnel_stages')
+        .select('*')
+        .eq('funnel_id', funnelId)
+        .order('order_index', { ascending: true });
+
+      if (error) throw error;
+      setStages(data || []);
+    } catch (error) {
+      console.error('Error loading stages:', error);
+    }
+  };
+
+  const loadLeads = async (funnelId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('funnel_leads')
+        .select('*')
+        .eq('funnel_id', funnelId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setLeads(data || []);
+    } catch (error) {
+      console.error('Error loading leads:', error);
+    }
+  };
+
+  const loadLeadHistory = async (leadId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('funnel_lead_history')
+        .select('*')
+        .eq('lead_id', leadId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setLeadHistory(data || []);
+    } catch (error) {
+      console.error('Error loading lead history:', error);
+    }
+  };
+
+  // Funnel CRUD
+  const handleSaveFunnel = async () => {
+    if (!funnelName.trim()) {
+      toast.error('Nome do funil é obrigatório');
+      return;
+    }
+
+    try {
+      if (editingFunnel) {
+        const { error } = await supabase
+          .from('sales_funnels')
+          .update({
+            name: funnelName,
+            description: funnelDescription || null,
+            color: funnelColor,
+          })
+          .eq('id', editingFunnel.id);
+
+        if (error) throw error;
+        toast.success('Funil atualizado!');
+      } else {
+        const { data, error } = await supabase
+          .from('sales_funnels')
+          .insert({
+            user_id: user?.id,
+            name: funnelName,
+            description: funnelDescription || null,
+            color: funnelColor,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Create default stages
+        const defaultStages = [
+          { name: 'Prospecção', color: '#6b7280', order_index: 0 },
+          { name: 'Conexão', color: '#3b82f6', order_index: 1 },
+          { name: 'Em Análise', color: '#f59e0b', order_index: 2 },
+          { name: 'Negociação', color: '#8b5cf6', order_index: 3 },
+          { name: 'Fechamento', color: '#22c55e', order_index: 4 },
+        ];
+
+        await supabase
+          .from('funnel_stages')
+          .insert(defaultStages.map(s => ({ ...s, funnel_id: data.id })));
+
+        toast.success('Funil criado com etapas padrão!');
+        setSelectedFunnel(data);
+      }
+
+      loadFunnels();
+      resetFunnelForm();
+      setShowFunnelDialog(false);
+    } catch (error) {
+      console.error('Error saving funnel:', error);
+      toast.error('Erro ao salvar funil');
+    }
+  };
+
+  const handleDeleteFunnel = async (id: string) => {
+    if (!confirm('Excluir este funil e todos os dados associados?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('sales_funnels')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      toast.success('Funil excluído!');
+      if (selectedFunnel?.id === id) {
+        setSelectedFunnel(null);
+        setStages([]);
+        setLeads([]);
+      }
+      loadFunnels();
+    } catch (error) {
+      console.error('Error deleting funnel:', error);
+      toast.error('Erro ao excluir funil');
+    }
+  };
+
+  const resetFunnelForm = () => {
+    setFunnelName('');
+    setFunnelDescription('');
+    setFunnelColor('#3b82f6');
+    setEditingFunnel(null);
+  };
+
+  // Stage CRUD
+  const handleSaveStage = async () => {
+    if (!stageName.trim() || !selectedFunnel) {
+      toast.error('Nome da etapa é obrigatório');
+      return;
+    }
+
+    try {
+      if (editingStage) {
+        const { error } = await supabase
+          .from('funnel_stages')
+          .update({
+            name: stageName,
+            color: stageColor,
+          })
+          .eq('id', editingStage.id);
+
+        if (error) throw error;
+        toast.success('Etapa atualizada!');
+      } else {
+        const maxOrder = Math.max(...stages.map(s => s.order_index), -1);
+        const { error } = await supabase
+          .from('funnel_stages')
+          .insert({
+            funnel_id: selectedFunnel.id,
+            name: stageName,
+            color: stageColor,
+            order_index: maxOrder + 1,
+          });
+
+        if (error) throw error;
+        toast.success('Etapa criada!');
+      }
+
+      loadStages(selectedFunnel.id);
+      resetStageForm();
+      setShowStageDialog(false);
+    } catch (error) {
+      console.error('Error saving stage:', error);
+      toast.error('Erro ao salvar etapa');
+    }
+  };
+
+  const handleDeleteStage = async (id: string) => {
+    const stageLeads = leads.filter(l => l.stage_id === id);
+    if (stageLeads.length > 0) {
+      toast.error('Mova os leads desta etapa antes de excluí-la');
+      return;
+    }
+
+    if (!confirm('Excluir esta etapa?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('funnel_stages')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      toast.success('Etapa excluída!');
+      loadStages(selectedFunnel!.id);
+    } catch (error) {
+      console.error('Error deleting stage:', error);
+      toast.error('Erro ao excluir etapa');
+    }
+  };
+
+  const resetStageForm = () => {
+    setStageName('');
+    setStageColor('#6b7280');
+    setEditingStage(null);
+  };
+
+  // Lead CRUD
+  const handleSaveLead = async () => {
+    if (!leadName.trim() || !selectedFunnel) {
+      toast.error('Nome do lead é obrigatório');
+      return;
+    }
+
+    const stageId = editingLead?.stage_id || preAddStageId || stages[0]?.id;
+    if (!stageId) {
+      toast.error('Crie pelo menos uma etapa primeiro');
+      return;
+    }
+
+    try {
+      const leadData = {
+        funnel_id: selectedFunnel.id,
+        stage_id: stageId,
+        name: leadName,
+        email: leadEmail || null,
+        phone: leadPhone || null,
+        company: leadCompany || null,
+        value: parseFloat(leadValue) || 0,
+        notes: leadNotes || null,
+        priority: leadPriority,
+        expected_close_date: leadExpectedDate || null,
+        tags: leadTags ? leadTags.split(',').map(t => t.trim()) : null,
+      };
+
+      if (editingLead) {
+        const { error } = await supabase
+          .from('funnel_leads')
+          .update(leadData)
+          .eq('id', editingLead.id);
+
+        if (error) throw error;
+        toast.success('Lead atualizado!');
+      } else {
+        const { data, error } = await supabase
+          .from('funnel_leads')
+          .insert(leadData)
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Create initial history
+        await supabase
+          .from('funnel_lead_history')
+          .insert({
+            lead_id: data.id,
+            to_stage_id: stageId,
+            notes: 'Lead criado',
+          });
+
+        toast.success('Lead criado!');
+      }
+
+      loadLeads(selectedFunnel.id);
+      resetLeadForm();
+      setShowLeadDialog(false);
+    } catch (error) {
+      console.error('Error saving lead:', error);
+      toast.error('Erro ao salvar lead');
+    }
+  };
+
+  const handleDeleteLead = async (id: string) => {
+    if (!confirm('Excluir este lead?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('funnel_leads')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      toast.success('Lead excluído!');
+      loadLeads(selectedFunnel!.id);
+    } catch (error) {
+      console.error('Error deleting lead:', error);
+      toast.error('Erro ao excluir lead');
+    }
+  };
+
+  const resetLeadForm = () => {
+    setLeadName('');
+    setLeadEmail('');
+    setLeadPhone('');
+    setLeadCompany('');
+    setLeadValue('');
+    setLeadNotes('');
+    setLeadPriority('medium');
+    setLeadExpectedDate('');
+    setLeadTags('');
+    setEditingLead(null);
+    setPreAddStageId(null);
+  };
+
+  // Drag and Drop
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveDragId(event.active.id as string);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    setActiveDragId(null);
+    const { active, over } = event;
+
+    if (!over || !selectedFunnel) return;
+
+    const leadId = active.id as string;
+    const newStageId = over.id as string;
+    
+    const lead = leads.find(l => l.id === leadId);
+    if (!lead || lead.stage_id === newStageId) return;
+
+    const oldStageId = lead.stage_id;
+
+    // Optimistic update
+    setLeads(prev => prev.map(l => 
+      l.id === leadId ? { ...l, stage_id: newStageId } : l
+    ));
+
+    try {
+      const { error } = await supabase
+        .from('funnel_leads')
+        .update({ stage_id: newStageId })
+        .eq('id', leadId);
+
+      if (error) throw error;
+
+      // Record history
+      await supabase
+        .from('funnel_lead_history')
+        .insert({
+          lead_id: leadId,
+          from_stage_id: oldStageId,
+          to_stage_id: newStageId,
+        });
+
+      const fromStage = stages.find(s => s.id === oldStageId);
+      const toStage = stages.find(s => s.id === newStageId);
+      toast.success(`${lead.name} movido de "${fromStage?.name}" para "${toStage?.name}"`);
+    } catch (error) {
+      console.error('Error moving lead:', error);
+      toast.error('Erro ao mover lead');
+      // Revert optimistic update
+      setLeads(prev => prev.map(l => 
+        l.id === leadId ? { ...l, stage_id: oldStageId } : l
+      ));
+    }
+  };
+
+  // View Lead Details
+  const handleViewLead = async (lead: FunnelLead) => {
+    setViewingLead(lead);
+    await loadLeadHistory(lead.id);
+    setShowLeadDetailDialog(true);
+  };
+
+  // Edit handlers
+  const openEditFunnel = (funnel: SalesFunnel) => {
+    setEditingFunnel(funnel);
+    setFunnelName(funnel.name);
+    setFunnelDescription(funnel.description || '');
+    setFunnelColor(funnel.color);
+    setShowFunnelDialog(true);
+  };
+
+  const openEditStage = (stage: FunnelStage) => {
+    setEditingStage(stage);
+    setStageName(stage.name);
+    setStageColor(stage.color);
+    setShowStageDialog(true);
+  };
+
+  const openEditLead = (lead: FunnelLead) => {
+    setEditingLead(lead);
+    setLeadName(lead.name);
+    setLeadEmail(lead.email || '');
+    setLeadPhone(lead.phone || '');
+    setLeadCompany(lead.company || '');
+    setLeadValue(lead.value?.toString() || '');
+    setLeadNotes(lead.notes || '');
+    setLeadPriority(lead.priority);
+    setLeadExpectedDate(lead.expected_close_date || '');
+    setLeadTags(lead.tags?.join(', ') || '');
+    setShowLeadDialog(true);
+  };
+
+  const openAddLeadToStage = (stageId: string) => {
+    resetLeadForm();
+    setPreAddStageId(stageId);
+    setShowLeadDialog(true);
+  };
+
+  // Calculate stats
+  const totalLeads = leads.length;
+  const totalValue = leads.reduce((acc, l) => acc + (l.value || 0), 0);
+  const highPriorityLeads = leads.filter(l => l.priority === 'high').length;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold">Funil de Vendas</h2>
+          <p className="text-muted-foreground text-sm">Gerencie seus leads e acompanhe a jornada de vendas</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Select 
+            value={selectedFunnel?.id || ''} 
+            onValueChange={(value) => {
+              const funnel = funnels.find(f => f.id === value);
+              setSelectedFunnel(funnel || null);
+            }}
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Selecione um funil" />
+            </SelectTrigger>
+            <SelectContent>
+              {funnels.map(funnel => (
+                <SelectItem key={funnel.id} value={funnel.id}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: funnel.color }} />
+                    {funnel.name}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Dialog open={showFunnelDialog} onOpenChange={(open) => { setShowFunnelDialog(open); if (!open) resetFunnelForm(); }}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="w-4 h-4 mr-1" />
+                Novo Funil
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{editingFunnel ? 'Editar Funil' : 'Novo Funil'}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label>Nome do Funil</Label>
+                  <Input value={funnelName} onChange={(e) => setFunnelName(e.target.value)} placeholder="Ex: Vendas B2B" />
+                </div>
+                <div>
+                  <Label>Descrição (opcional)</Label>
+                  <Textarea value={funnelDescription} onChange={(e) => setFunnelDescription(e.target.value)} placeholder="Descreva o objetivo deste funil" />
+                </div>
+                <div>
+                  <Label>Cor</Label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={funnelColor} onChange={(e) => setFunnelColor(e.target.value)} className="w-10 h-10 rounded cursor-pointer" />
+                    <Input value={funnelColor} onChange={(e) => setFunnelColor(e.target.value)} className="flex-1" />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => { setShowFunnelDialog(false); resetFunnelForm(); }}>Cancelar</Button>
+                <Button onClick={handleSaveFunnel}>{editingFunnel ? 'Salvar' : 'Criar Funil'}</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {/* Stats */}
+      {selectedFunnel && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">Total de Leads</p>
+                  <p className="text-2xl font-bold">{totalLeads}</p>
+                </div>
+                <User className="w-8 h-8 text-primary/50" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">Valor Total</p>
+                  <p className="text-2xl font-bold">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}</p>
+                </div>
+                <DollarSign className="w-8 h-8 text-green-500/50" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">Etapas</p>
+                  <p className="text-2xl font-bold">{stages.length}</p>
+                </div>
+                <ArrowRight className="w-8 h-8 text-blue-500/50" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">Alta Prioridade</p>
+                  <p className="text-2xl font-bold">{highPriorityLeads}</p>
+                </div>
+                <Tag className="w-8 h-8 text-red-500/50" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Actions for selected funnel */}
+      {selectedFunnel && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="outline" size="sm" onClick={() => openEditFunnel(selectedFunnel)}>
+            <Edit className="w-4 h-4 mr-1" />
+            Editar Funil
+          </Button>
+          <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Settings className="w-4 h-4 mr-1" />
+                Gerenciar Etapas
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Gerenciar Etapas do Funil</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Input value={stageName} onChange={(e) => setStageName(e.target.value)} placeholder="Nome da nova etapa" className="flex-1" />
+                  <input type="color" value={stageColor} onChange={(e) => setStageColor(e.target.value)} className="w-10 h-10 rounded cursor-pointer" />
+                  <Button onClick={handleSaveStage}>
+                    <Plus className="w-4 h-4 mr-1" />
+                    Adicionar
+                  </Button>
+                </div>
+                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                  {stages.map((stage) => (
+                    <div key={stage.id} className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+                      <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: stage.color }} />
+                      <span className="flex-1 font-medium">{stage.name}</span>
+                      <Badge variant="secondary">{leads.filter(l => l.stage_id === stage.id).length} leads</Badge>
+                      <Button variant="ghost" size="icon" onClick={() => openEditStage(stage)}>
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteStage(stage.id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={showLeadDialog} onOpenChange={(open) => { setShowLeadDialog(open); if (!open) resetLeadForm(); }}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="w-4 h-4 mr-1" />
+                Novo Lead
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>{editingLead ? 'Editar Lead' : 'Novo Lead'}</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 max-h-[60vh] overflow-y-auto pr-2">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <Label>Nome *</Label>
+                    <Input value={leadName} onChange={(e) => setLeadName(e.target.value)} placeholder="Nome do lead" />
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <Input type="email" value={leadEmail} onChange={(e) => setLeadEmail(e.target.value)} placeholder="email@exemplo.com" />
+                  </div>
+                  <div>
+                    <Label>Telefone</Label>
+                    <Input value={leadPhone} onChange={(e) => setLeadPhone(e.target.value)} placeholder="(11) 99999-9999" />
+                  </div>
+                  <div>
+                    <Label>Empresa</Label>
+                    <Input value={leadCompany} onChange={(e) => setLeadCompany(e.target.value)} placeholder="Nome da empresa" />
+                  </div>
+                  <div>
+                    <Label>Valor (R$)</Label>
+                    <Input type="number" value={leadValue} onChange={(e) => setLeadValue(e.target.value)} placeholder="0,00" />
+                  </div>
+                  <div>
+                    <Label>Prioridade</Label>
+                    <Select value={leadPriority} onValueChange={(v) => setLeadPriority(v as 'low' | 'medium' | 'high')}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Baixa</SelectItem>
+                        <SelectItem value="medium">Média</SelectItem>
+                        <SelectItem value="high">Alta</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Previsão de Fechamento</Label>
+                    <Input type="date" value={leadExpectedDate} onChange={(e) => setLeadExpectedDate(e.target.value)} />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Tags (separadas por vírgula)</Label>
+                    <Input value={leadTags} onChange={(e) => setLeadTags(e.target.value)} placeholder="cliente, b2b, premium" />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Observações</Label>
+                    <Textarea value={leadNotes} onChange={(e) => setLeadNotes(e.target.value)} placeholder="Anotações sobre o lead..." />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => { setShowLeadDialog(false); resetLeadForm(); }}>Cancelar</Button>
+                <Button onClick={handleSaveLead}>{editingLead ? 'Salvar' : 'Criar Lead'}</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Button variant="destructive" size="sm" onClick={() => handleDeleteFunnel(selectedFunnel.id)}>
+            <Trash2 className="w-4 h-4 mr-1" />
+            Excluir Funil
+          </Button>
+        </div>
+      )}
+
+      {/* Stage Edit Dialog */}
+      <Dialog open={showStageDialog} onOpenChange={(open) => { setShowStageDialog(open); if (!open) resetStageForm(); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Etapa</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Nome</Label>
+              <Input value={stageName} onChange={(e) => setStageName(e.target.value)} placeholder="Nome da etapa" />
+            </div>
+            <div>
+              <Label>Cor</Label>
+              <div className="flex items-center gap-2">
+                <input type="color" value={stageColor} onChange={(e) => setStageColor(e.target.value)} className="w-10 h-10 rounded cursor-pointer" />
+                <Input value={stageColor} onChange={(e) => setStageColor(e.target.value)} className="flex-1" />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowStageDialog(false); resetStageForm(); }}>Cancelar</Button>
+            <Button onClick={handleSaveStage}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Lead Detail Dialog */}
+      <Dialog open={showLeadDetailDialog} onOpenChange={setShowLeadDetailDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Lead</DialogTitle>
+          </DialogHeader>
+          {viewingLead && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-muted-foreground text-xs">Nome</Label>
+                  <p className="font-medium">{viewingLead.name}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground text-xs">Empresa</Label>
+                  <p className="font-medium">{viewingLead.company || '-'}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground text-xs">Email</Label>
+                  <p className="font-medium">{viewingLead.email || '-'}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground text-xs">Telefone</Label>
+                  <p className="font-medium">{viewingLead.phone || '-'}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground text-xs">Valor</Label>
+                  <p className="font-medium text-primary">R$ {viewingLead.value?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground text-xs">Etapa Atual</Label>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: stages.find(s => s.id === viewingLead.stage_id)?.color }} />
+                    <span className="font-medium">{stages.find(s => s.id === viewingLead.stage_id)?.name}</span>
+                  </div>
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-muted-foreground text-xs">Observações</Label>
+                  <p className="font-medium">{viewingLead.notes || '-'}</p>
+                </div>
+                {viewingLead.tags && viewingLead.tags.length > 0 && (
+                  <div className="col-span-2">
+                    <Label className="text-muted-foreground text-xs">Tags</Label>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {viewingLead.tags.map((tag, i) => (
+                        <Badge key={i} variant="secondary">{tag}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* History */}
+              <div>
+                <Label className="text-muted-foreground text-xs flex items-center gap-1 mb-2">
+                  <History className="w-3 h-3" />
+                  Histórico de Movimentação
+                </Label>
+                <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                  {leadHistory.map((h) => {
+                    const fromStage = stages.find(s => s.id === h.from_stage_id);
+                    const toStage = stages.find(s => s.id === h.to_stage_id);
+                    return (
+                      <div key={h.id} className="flex items-center gap-2 text-sm p-2 bg-muted rounded">
+                        <span className="text-muted-foreground text-xs">
+                          {format(new Date(h.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
+                        </span>
+                        {fromStage ? (
+                          <>
+                            <span className="font-medium">{fromStage.name}</span>
+                            <ChevronRight className="w-4 h-4" />
+                            <span className="font-medium">{toStage?.name}</span>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground italic">Lead criado em "{toStage?.name}"</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {leadHistory.length === 0 && (
+                    <p className="text-sm text-muted-foreground italic">Nenhum histórico disponível</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowLeadDetailDialog(false)}>Fechar</Button>
+            <Button onClick={() => { setShowLeadDetailDialog(false); if (viewingLead) openEditLead(viewingLead); }}>
+              <Edit className="w-4 h-4 mr-1" />
+              Editar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Kanban Board */}
+      {selectedFunnel ? (
+        <div className="overflow-x-auto pb-4">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="flex gap-4" style={{ minWidth: stages.length * 296 }}>
+              {stages.map((stage) => {
+                const stageLeads = leads.filter(l => l.stage_id === stage.id);
+                return (
+                  <DroppableStageColumn 
+                    key={stage.id} 
+                    stage={stage} 
+                    leads={stageLeads}
+                    onAddLead={() => openAddLeadToStage(stage.id)}
+                  >
+                    {stageLeads.map((lead) => (
+                      <DraggableLeadCard
+                        key={lead.id}
+                        lead={lead}
+                        stages={stages}
+                        onEdit={openEditLead}
+                        onDelete={handleDeleteLead}
+                        onView={handleViewLead}
+                      />
+                    ))}
+                    {stageLeads.length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground text-sm">
+                        Arraste leads para cá
+                      </div>
+                    )}
+                  </DroppableStageColumn>
+                );
+              })}
+            </div>
+            <DragOverlay>
+              {activeDragId ? (
+                <div className="bg-card border rounded-lg p-3 shadow-lg opacity-90">
+                  <span className="font-medium text-sm">
+                    {leads.find(l => l.id === activeDragId)?.name}
+                  </span>
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
+        </div>
+      ) : (
+        <Card className="p-12">
+          <div className="text-center">
+            <BarChart3 className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Nenhum funil selecionado</h3>
+            <p className="text-muted-foreground mb-4">Crie seu primeiro funil de vendas para começar</p>
+            <Button onClick={() => setShowFunnelDialog(true)}>
+              <Plus className="w-4 h-4 mr-1" />
+              Criar Funil
+            </Button>
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+}
