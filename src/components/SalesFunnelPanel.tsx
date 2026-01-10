@@ -14,6 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Settings, Trash2, Edit, ArrowRight, GripVertical, User, Phone, Mail, Building, DollarSign, Calendar, Tag, ChevronRight, Filter, BarChart3, Eye, History, Pencil } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragOverlay, DragStartEvent, useDroppable, useDraggable } from '@dnd-kit/core';
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -58,6 +60,55 @@ interface LeadHistory {
   to_stage_id: string;
   notes: string | null;
   created_at: string;
+}
+
+// Sortable Stage Item Component
+function SortableStageItem({ stage, leadsCount, onEdit, onDelete }: {
+  stage: FunnelStage;
+  leadsCount: number;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: stage.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1000 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-2 p-3 bg-muted rounded-lg ${isDragging ? 'ring-2 ring-primary shadow-lg' : ''}`}
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted-foreground/10 rounded"
+      >
+        <GripVertical className="w-4 h-4 text-muted-foreground" />
+      </div>
+      <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: stage.color }} />
+      <span className="flex-1 font-medium">{stage.name}</span>
+      <Badge variant="secondary">{leadsCount} leads</Badge>
+      <Button variant="ghost" size="icon" onClick={onEdit}>
+        <Edit className="w-4 h-4" />
+      </Button>
+      <Button variant="ghost" size="icon" className="text-destructive" onClick={onDelete}>
+        <Trash2 className="w-4 h-4" />
+      </Button>
+    </div>
+  );
 }
 
 // Draggable Lead Card Component
@@ -238,6 +289,48 @@ export default function SalesFunnelPanel() {
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor)
   );
+
+  const stageSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  // Handle stage reordering
+  const handleStageDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id || !selectedFunnel) return;
+
+    const oldIndex = stages.findIndex((s) => s.id === active.id);
+    const newIndex = stages.findIndex((s) => s.id === over.id);
+
+    const newStages = arrayMove(stages, oldIndex, newIndex);
+    
+    // Optimistic update
+    setStages(newStages);
+
+    try {
+      // Update order_index for all affected stages
+      const updates = newStages.map((stage, index) => ({
+        id: stage.id,
+        order_index: index,
+      }));
+
+      for (const update of updates) {
+        await supabase
+          .from('funnel_stages')
+          .update({ order_index: update.order_index })
+          .eq('id', update.id);
+      }
+
+      toast.success('Ordem das etapas atualizada!');
+    } catch (error) {
+      console.error('Error reordering stages:', error);
+      toast.error('Erro ao reordenar etapas');
+      // Revert on error
+      loadStages(selectedFunnel.id);
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -837,21 +930,25 @@ export default function SalesFunnelPanel() {
                     Adicionar
                   </Button>
                 </div>
-                <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                  {stages.map((stage) => (
-                    <div key={stage.id} className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                      <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: stage.color }} />
-                      <span className="flex-1 font-medium">{stage.name}</span>
-                      <Badge variant="secondary">{leads.filter(l => l.stage_id === stage.id).length} leads</Badge>
-                      <Button variant="ghost" size="icon" onClick={() => openEditStage(stage)}>
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteStage(stage.id)}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                <DndContext
+                  sensors={stageSensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleStageDragEnd}
+                >
+                  <SortableContext items={stages.map(s => s.id)} strategy={verticalListSortingStrategy}>
+                    <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                      {stages.map((stage) => (
+                        <SortableStageItem
+                          key={stage.id}
+                          stage={stage}
+                          leadsCount={leads.filter(l => l.stage_id === stage.id).length}
+                          onEdit={() => openEditStage(stage)}
+                          onDelete={() => handleDeleteStage(stage.id)}
+                        />
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </SortableContext>
+                </DndContext>
               </div>
             </DialogContent>
           </Dialog>
