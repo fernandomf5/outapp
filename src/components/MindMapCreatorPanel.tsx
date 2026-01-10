@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -1415,13 +1416,29 @@ export const MindMapCreatorPanel = () => {
               />
             </div>
             <div>
-              <Label>Descrição</Label>
-              <textarea 
+              <Label className="flex items-center justify-between">
+                <span>Descrição</span>
+                <span className="text-xs text-muted-foreground font-normal">
+                  {editDescription.length} caracteres
+                </span>
+              </Label>
+              <Textarea 
                 value={editDescription} 
                 onChange={(e) => setEditDescription(e.target.value)}
-                placeholder="Descrição adicional (opcional)"
-                className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm min-h-[60px] resize-none"
+                placeholder="Digite a descrição aqui...&#10;&#10;Use Enter para quebrar linhas e organizar melhor o conteúdo."
+                className="mt-1.5 min-h-[120px] resize-y text-sm leading-relaxed"
+                rows={5}
               />
+              {editDescription && (
+                <div className="mt-2 p-3 bg-muted/50 rounded-lg border border-border">
+                  <Label className="text-xs text-muted-foreground mb-2 block">Pré-visualização:</Label>
+                  <div 
+                    className="text-sm whitespace-pre-wrap break-words text-foreground/80 max-h-[100px] overflow-y-auto"
+                  >
+                    {editDescription}
+                  </div>
+                </div>
+              )}
             </div>
             <div>
               <Label>Tamanho Pré-definido</Label>
