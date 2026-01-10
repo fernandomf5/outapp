@@ -137,7 +137,7 @@ export function UserSidebar() {
     { title: "Botão Flutuante Multi-Links", icon: Zap, path: "/dashboard", tab: "floating-button", hideForTeamMember: true },
     { title: t('link_shortener_title'), icon: Link2, path: "/dashboard", tab: "shortlinks", feature: "link_shortener", hideForTeamMember: true },
     { title: "Gerador QR Code", icon: QrCode, path: "/dashboard", tab: "qrcode", hideForTeamMember: true },
-    { title: "Disparador Manual", icon: Zap, path: "/dashboard", tab: "disparador", hideForTeamMember: true },
+    { title: "Disparador Zap Manual", icon: Zap, path: "/dashboard", tab: "disparador", hideForTeamMember: true },
   ];
 
   const advancedResourcesItems: MenuItem[] = [
