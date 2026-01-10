@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Plus, Save, FolderOpen, Trash2, Edit3, ZoomIn, ZoomOut, RotateCcw, Brain, Sparkles, LayoutGrid, Move, Link2, Copy, ChevronDown, GitBranch, ArrowRight, Circle, TreePine, Unlink, ChevronRight, ChevronUp, Focus, Maximize2 } from 'lucide-react';
+import { Plus, Save, FolderOpen, Trash2, Edit3, ZoomIn, ZoomOut, RotateCcw, Brain, Sparkles, LayoutGrid, Move, Link2, Copy, ChevronDown, GitBranch, ArrowRight, Circle, TreePine, Unlink, ChevronRight, ChevronUp, Focus, Maximize2, Lock, Unlock } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -24,6 +25,8 @@ interface MindMapNode {
   icon?: string;
   collapsed?: boolean;
   size?: 'small' | 'medium' | 'large';
+  customWidth?: number;
+  customHeight?: number;
 }
 
 interface MindMap {
@@ -122,12 +125,15 @@ export const MindMapCreatorPanel = () => {
   const [editIcon, setEditIcon] = useState('');
   const [editColor, setEditColor] = useState('');
   const [editSize, setEditSize] = useState<'small' | 'medium' | 'large'>('medium');
+  const [editCustomWidth, setEditCustomWidth] = useState<number>(140);
+  const [editCustomHeight, setEditCustomHeight] = useState<number>(80);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [draggedNode, setDraggedNode] = useState<string | null>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
   const [connectingFrom, setConnectingFrom] = useState<string | null>(null);
+  const [isLocked, setIsLocked] = useState(false);
 
   useEffect(() => {
     fetchSavedMaps();
@@ -274,6 +280,8 @@ export const MindMapCreatorPanel = () => {
     setEditIcon(node.icon || '');
     setEditColor(node.color);
     setEditSize(node.size || 'medium');
+    setEditCustomWidth(node.customWidth || 140);
+    setEditCustomHeight(node.customHeight || 80);
     setIsEditDialogOpen(true);
   };
 
@@ -281,7 +289,16 @@ export const MindMapCreatorPanel = () => {
     if (!editingNode) return;
     setNodes(nodes.map(n => 
       n.id === editingNode.id 
-        ? { ...n, text: editText, description: editDescription, icon: editIcon, color: editColor, size: editSize } 
+        ? { 
+            ...n, 
+            text: editText, 
+            description: editDescription, 
+            icon: editIcon, 
+            color: editColor, 
+            size: editSize,
+            customWidth: editCustomWidth,
+            customHeight: editCustomHeight
+          } 
         : n
     ));
     setIsEditDialogOpen(false);
@@ -298,6 +315,7 @@ export const MindMapCreatorPanel = () => {
   };
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (isLocked) return;
     if (draggedNode) {
       const dx = (e.clientX - lastMousePos.x) / scale;
       const dy = (e.clientY - lastMousePos.y) / scale;
@@ -311,7 +329,7 @@ export const MindMapCreatorPanel = () => {
       setOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
       setLastMousePos({ x: e.clientX, y: e.clientY });
     }
-  }, [draggedNode, isPanning, lastMousePos, scale]);
+  }, [draggedNode, isPanning, lastMousePos, scale, isLocked]);
 
   const handlePointerUp = useCallback(() => {
     setDraggedNode(null);
@@ -319,6 +337,7 @@ export const MindMapCreatorPanel = () => {
   }, []);
 
   const handlePointerDown = useCallback((e: React.PointerEvent, nodeId?: string) => {
+    if (isLocked && !nodeId) return; // Prevent panning when locked, but allow node interactions
     e.preventDefault();
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
     
@@ -353,19 +372,20 @@ export const MindMapCreatorPanel = () => {
           }
         }
         setConnectingFrom(null);
-      } else {
+      } else if (!isLocked) {
         setDraggedNode(nodeId);
       }
-    } else {
+    } else if (!isLocked) {
       setIsPanning(true);
     }
     setLastMousePos({ x: e.clientX, y: e.clientY });
-  }, [connectingFrom, nodes]);
+  }, [connectingFrom, nodes, isLocked]);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
+    if (isLocked) return;
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
     setScale(prev => Math.max(0.3, Math.min(2, prev + delta)));
-  }, []);
+  }, [isLocked]);
 
   const startConnecting = (nodeId: string) => {
     setConnectingFrom(nodeId);
@@ -1142,9 +1162,26 @@ export const MindMapCreatorPanel = () => {
           >
             <Focus className="h-4 w-4" />
           </Button>
+          <Button 
+            variant={isLocked ? "default" : "outline"} 
+            size="sm" 
+            onClick={() => {
+              setIsLocked(!isLocked);
+              toast.info(isLocked ? 'Mapa desbloqueado!' : 'Mapa travado - scroll e arraste desabilitados');
+            }}
+            title={isLocked ? "Desbloquear mapa" : "Travar mapa (impede zoom/pan)"}
+            className={isLocked ? "bg-orange-500 hover:bg-orange-600 text-white" : ""}
+          >
+            {isLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+          </Button>
           {connectingFrom && (
             <Badge variant="secondary" className="ml-2">
               🔗 Conectando... (clique em outro nó)
+            </Badge>
+          )}
+          {isLocked && (
+            <Badge variant="outline" className="ml-2 bg-orange-500/10 border-orange-500/30 text-orange-500">
+              🔒 Mapa Travado
             </Badge>
           )}
         </div>
@@ -1152,10 +1189,10 @@ export const MindMapCreatorPanel = () => {
         {/* Canvas */}
         <div
           ref={canvasRef}
-          className="relative w-full h-[700px] rounded-xl border-2 border-border overflow-hidden touch-none"
+          className={`relative w-full h-[700px] rounded-xl border-2 overflow-hidden touch-none ${isLocked ? 'border-orange-500/50' : 'border-border'}`}
           style={{ 
             backgroundColor: theme.bg,
-            cursor: isPanning ? 'grabbing' : draggedNode ? 'move' : 'grab',
+            cursor: isLocked ? 'default' : (isPanning ? 'grabbing' : draggedNode ? 'move' : 'grab'),
           }}
           onPointerDown={(e) => {
             if (e.target === canvasRef.current || (e.target as HTMLElement).classList.contains('canvas-area')) {
@@ -1216,11 +1253,13 @@ export const MindMapCreatorPanel = () => {
                 >
                   {/* Node card */}
                   <div
-                    className={`relative rounded-2xl shadow-lg cursor-move transition-all duration-200 hover:scale-105 ${sizeClasses.minWidth}`}
+                    className={`relative rounded-2xl shadow-lg transition-all duration-200 hover:scale-105 flex flex-col items-center justify-center ${isLocked ? 'cursor-default' : 'cursor-move'}`}
                     style={{
                       backgroundColor: node.color,
                       boxShadow: `0 4px 20px ${node.color}60, 0 0 40px ${node.color}30`,
                       border: connectingFrom === node.id ? '3px solid white' : '2px solid rgba(255,255,255,0.3)',
+                      width: node.customWidth || (node.size === 'small' ? 80 : node.size === 'large' ? 200 : 140),
+                      minHeight: node.customHeight || (node.size === 'small' ? 50 : node.size === 'large' ? 110 : 80),
                     }}
                   >
                     <div className={`${sizeClasses.padding} text-center`}>
@@ -1231,7 +1270,7 @@ export const MindMapCreatorPanel = () => {
                       {node.description && (
                         <p 
                           className={`text-white/80 mt-1 ${sizeClasses.descSize} whitespace-pre-wrap break-words`}
-                          style={{ maxWidth: '120px' }}
+                          style={{ maxWidth: (node.customWidth || 140) - 20 }}
                         >
                           {node.description}
                         </p>
@@ -1355,6 +1394,8 @@ export const MindMapCreatorPanel = () => {
           <Badge variant="outline">📂 Botão inferior expande/recolhe filhos</Badge>
           <Badge variant="outline">✏️ Duplo clique para editar</Badge>
           <Badge variant="outline">🔍 Scroll para zoom</Badge>
+          <Badge variant="outline">🔒 Trave o mapa para não mover sem querer</Badge>
+          <Badge variant="outline">📐 Edite para ajustar dimensões</Badge>
         </div>
       </CardContent>
 
@@ -1383,17 +1424,61 @@ export const MindMapCreatorPanel = () => {
               />
             </div>
             <div>
-              <Label>Tamanho</Label>
+              <Label>Tamanho Pré-definido</Label>
               <div className="flex gap-2 mt-2">
                 {(['small', 'medium', 'large'] as const).map(size => (
                   <button
                     key={size}
-                    onClick={() => setEditSize(size)}
+                    onClick={() => {
+                      setEditSize(size);
+                      // Reset custom dimensions based on size
+                      const widths = { small: 80, medium: 140, large: 200 };
+                      const heights = { small: 50, medium: 80, large: 110 };
+                      setEditCustomWidth(widths[size]);
+                      setEditCustomHeight(heights[size]);
+                    }}
                     className={`flex-1 px-3 py-2 rounded-md border text-sm ${editSize === size ? 'border-primary bg-primary/10 text-primary' : 'border-border'}`}
                   >
                     {size === 'small' ? 'Pequeno' : size === 'medium' ? 'Médio' : 'Grande'}
                   </button>
                 ))}
+              </div>
+            </div>
+            <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
+              <Label className="flex items-center gap-2">
+                📐 Dimensões Personalizadas
+              </Label>
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-muted-foreground w-16">Largura:</span>
+                  <Slider
+                    value={[editCustomWidth]}
+                    onValueChange={(v) => setEditCustomWidth(v[0])}
+                    min={60}
+                    max={400}
+                    step={10}
+                    className="flex-1"
+                  />
+                  <span className="text-xs text-muted-foreground w-12">{editCustomWidth}px</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-muted-foreground w-16">Altura:</span>
+                  <Slider
+                    value={[editCustomHeight]}
+                    onValueChange={(v) => setEditCustomHeight(v[0])}
+                    min={40}
+                    max={300}
+                    step={10}
+                    className="flex-1"
+                  />
+                  <span className="text-xs text-muted-foreground w-12">{editCustomHeight}px</span>
+                </div>
+              </div>
+              <div 
+                className="border-2 border-dashed border-primary/30 rounded-lg flex items-center justify-center text-xs text-muted-foreground"
+                style={{ width: Math.min(editCustomWidth, 200), height: Math.min(editCustomHeight, 100) }}
+              >
+                Preview
               </div>
             </div>
             <div>
