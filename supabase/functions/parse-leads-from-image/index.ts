@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-type Lead = { name: string; phone: string };
+type Lead = { name: string; phone: string; email?: string };
 
 function normalizePhone(input: unknown): string {
   const digits = String(input ?? "").replace(/\D/g, "");
@@ -90,13 +90,13 @@ serve(async (req) => {
       );
     }
 
-    const prompt = `Analise esta imagem e extraia todos os nomes e números de telefone que encontrar.
+    const prompt = `Analise esta imagem e extraia todos os nomes, números de telefone e emails que encontrar.
 
 Retorne APENAS no formato JSON, sem markdown, sem explicações:
 {
   "leads": [
-    {"name": "Nome da Pessoa", "phone": "5585999999999"},
-    {"name": "Outro Nome", "phone": "5588888888888"}
+    {"name": "Nome da Pessoa", "phone": "5585999999999", "email": "email@exemplo.com"},
+    {"name": "Outro Nome", "phone": "5588888888888", "email": ""}
   ]
 }
 
@@ -105,7 +105,9 @@ Se não encontrar nomes ou números, retorne: {"leads": []}
 Importante:
 - Números devem conter apenas dígitos
 - Adicione o código do país 55 se não estiver presente
-- Se houver apenas número sem nome, use "Lead" + número sequencial como nome`;
+- Se houver apenas número sem nome, use "Lead" + número sequencial como nome
+- Se não encontrar email, deixe o campo vazio
+- Extraia todos os emails que encontrar na imagem`;
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -156,14 +158,16 @@ Importante:
       .map((l: any) => ({
         name: String(l?.name ?? "").trim(),
         phone: normalizePhone(l?.phone),
+        email: String(l?.email ?? "").trim(),
       }))
-      .filter((l: Lead) => l.phone.length >= 10);
+      .filter((l: Lead) => l.phone.length >= 10 || l.email);
 
     // Fill missing names
     let counter = 1;
     const withNames = leads.map((l) => ({
       ...l,
       name: l.name ? l.name : `Lead ${counter++}`,
+      email: l.email || "",
     }));
 
     return new Response(
