@@ -555,8 +555,19 @@ export function ManualDispatcherPanel() {
 
           if (error) {
             console.error('Edge function error:', error);
-            throw new Error(error.message || 'Erro ao processar imagem');
+            const ctx: any = (error as any)?.context;
+            const serverMsg =
+              ctx?.json?.error ||
+              ctx?.body?.error ||
+              (typeof ctx?.body === "string" ? ctx.body : "") ||
+              (data as any)?.error;
+            throw new Error(serverMsg || error.message || 'Erro ao processar imagem');
           }
+
+          if ((data as any)?.error) {
+            throw new Error(String((data as any).error));
+          }
+
 
           const extractedLeads = (data as any)?.leads;
 

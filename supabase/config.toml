@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.team-member-auth]
 verify_jwt = false
+
+[functions.parse-leads-from-image]
+verify_jwt = false
