@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Plus, 
   Camera, 
@@ -26,7 +27,17 @@ import {
   List,
   FileText,
   RotateCcw,
-  RefreshCw
+  RefreshCw,
+  Bold,
+  Italic,
+  Strikethrough,
+  Code,
+  Image,
+  Video,
+  File,
+  X,
+  Eye,
+  Edit3
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -45,6 +56,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Lead {
   id: string;
@@ -69,8 +86,16 @@ interface SavedMessage {
   id: string;
   name: string;
   content: string;
+  media_urls?: string[];
+  media_type?: 'image' | 'video' | 'document' | null;
   created_at: string;
   updated_at: string;
+}
+
+interface MediaAttachment {
+  url: string;
+  type: 'image' | 'video' | 'document';
+  name?: string;
 }
 
 export function ManualDispatcherPanel() {
@@ -105,6 +130,12 @@ export function ManualDispatcherPanel() {
   const [isSavingMessage, setIsSavingMessage] = useState(false);
   const [currentMessageId, setCurrentMessageId] = useState<string | null>(null);
   const [currentMessageName, setCurrentMessageName] = useState<string | null>(null);
+
+  // Media attachments state
+  const [mediaAttachments, setMediaAttachments] = useState<MediaAttachment[]>([]);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const mediaInputRef = useRef<HTMLInputElement>(null);
+  const [editorTab, setEditorTab] = useState<'edit' | 'preview'>('edit');
 
   const generateId = () => Math.random().toString(36).substring(2, 9);
 
@@ -430,8 +461,116 @@ export function ManualDispatcherPanel() {
 
   const handleNewMessage = () => {
     setMessage('');
+    setMediaAttachments([]);
     setCurrentMessageId(null);
     setCurrentMessageName(null);
+  };
+
+  // Format text functions
+  const insertFormatting = (prefix: string, suffix: string = prefix) => {
+    const textarea = document.querySelector('textarea[data-message-editor]') as HTMLTextAreaElement;
+    if (!textarea) return;
+    
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = message.substring(start, end);
+    const newText = message.substring(0, start) + prefix + selectedText + suffix + message.substring(end);
+    setMessage(newText);
+    
+    // Set cursor position after formatting
+    setTimeout(() => {
+      textarea.focus();
+      if (selectedText) {
+        textarea.setSelectionRange(start + prefix.length, end + prefix.length);
+      } else {
+        textarea.setSelectionRange(start + prefix.length, start + prefix.length);
+      }
+    }, 0);
+  };
+
+  const addBold = () => insertFormatting('*');
+  const addItalic = () => insertFormatting('_');
+  const addStrikethrough = () => insertFormatting('~');
+  const addMonospace = () => insertFormatting('```');
+
+  // Media upload
+  const handleMediaUpload = async (event: React.ChangeEvent<HTMLInputElement>, mediaType: 'image' | 'video' | 'document') => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (max 16MB for WhatsApp)
+    const maxSize = 16 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "O arquivo deve ter no máximo 16MB para WhatsApp.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Não autenticado",
+        description: "Faça login para enviar arquivos.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsUploadingMedia(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from('dispatcher-media')
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from('dispatcher-media')
+        .getPublicUrl(fileName);
+
+      const newAttachment: MediaAttachment = {
+        url: urlData.publicUrl,
+        type: mediaType,
+        name: file.name
+      };
+
+      setMediaAttachments(prev => [...prev, newAttachment]);
+
+      toast({
+        title: "Arquivo anexado!",
+        description: `${file.name} foi adicionado à mensagem.`
+      });
+    } catch (error) {
+      console.error('Error uploading media:', error);
+      toast({
+        title: "Erro no upload",
+        description: "Não foi possível enviar o arquivo.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploadingMedia(false);
+      if (mediaInputRef.current) {
+        mediaInputRef.current.value = '';
+      }
+    }
+  };
+
+  const removeMediaAttachment = (index: number) => {
+    setMediaAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Format message preview with WhatsApp formatting
+  const formatWhatsAppPreview = (text: string) => {
+    return text
+      .replace(/\*([^*]+)\*/g, '<strong>$1</strong>')
+      .replace(/_([^_]+)_/g, '<em>$1</em>')
+      .replace(/~([^~]+)~/g, '<del>$1</del>')
+      .replace(/```([^`]+)```/g, '<code class="bg-muted px-1 rounded">$1</code>');
   };
 
   const handleResetSentStatus = () => {
@@ -934,23 +1073,239 @@ export function ManualDispatcherPanel() {
         {/* Bloco 3 - Mensagem */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
-              Mensagem Personalizada
-            </CardTitle>
-            <CardDescription>
-              Escreva sua mensagem usando variáveis
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
+                  Mensagem Personalizada
+                </CardTitle>
+                <CardDescription>
+                  Use formatação WhatsApp e anexe mídias
+                </CardDescription>
+              </div>
+              <Tabs value={editorTab} onValueChange={(v) => setEditorTab(v as 'edit' | 'preview')}>
+                <TabsList className="h-8">
+                  <TabsTrigger value="edit" className="h-7 px-2 text-xs gap-1">
+                    <Edit3 className="w-3 h-3" />
+                    Editar
+                  </TabsTrigger>
+                  <TabsTrigger value="preview" className="h-7 px-2 text-xs gap-1">
+                    <Eye className="w-3 h-3" />
+                    Preview
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Textarea
-              placeholder="Olá {nome}, tudo bem?&#10;Tenho uma oportunidade especial para você..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              rows={5}
-              className="text-sm resize-none"
-            />
+            {/* Formatting toolbar */}
+            <div className="flex items-center gap-1 flex-wrap p-2 rounded-lg bg-muted/50 border border-border">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={addBold}>
+                      <Bold className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Negrito (*texto*)</TooltipContent>
+                </Tooltip>
 
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={addItalic}>
+                      <Italic className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Itálico (_texto_)</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={addStrikethrough}>
+                      <Strikethrough className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Riscado (~texto~)</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={addMonospace}>
+                      <Code className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Monoespaçado (```texto```)</TooltipContent>
+                </Tooltip>
+
+                <div className="w-px h-6 bg-border mx-1" />
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  id="media-image-input"
+                  onChange={(e) => handleMediaUpload(e, 'image')}
+                />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0"
+                      onClick={() => document.getElementById('media-image-input')?.click()}
+                      disabled={isUploadingMedia}
+                    >
+                      <Image className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Adicionar imagem</TooltipContent>
+                </Tooltip>
+
+                <input
+                  type="file"
+                  accept="video/*"
+                  className="hidden"
+                  id="media-video-input"
+                  onChange={(e) => handleMediaUpload(e, 'video')}
+                />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0"
+                      onClick={() => document.getElementById('media-video-input')?.click()}
+                      disabled={isUploadingMedia}
+                    >
+                      <Video className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Adicionar vídeo</TooltipContent>
+                </Tooltip>
+
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
+                  className="hidden"
+                  id="media-doc-input"
+                  onChange={(e) => handleMediaUpload(e, 'document')}
+                />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0"
+                      onClick={() => document.getElementById('media-doc-input')?.click()}
+                      disabled={isUploadingMedia}
+                    >
+                      <File className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Adicionar documento</TooltipContent>
+                </Tooltip>
+
+                {isUploadingMedia && (
+                  <Loader2 className="w-4 h-4 animate-spin ml-2 text-muted-foreground" />
+                )}
+              </TooltipProvider>
+            </div>
+
+            {/* Media attachments preview */}
+            {mediaAttachments.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Anexos ({mediaAttachments.length})</Label>
+                <div className="flex flex-wrap gap-2">
+                  {mediaAttachments.map((media, index) => (
+                    <div
+                      key={index}
+                      className="relative group flex items-center gap-2 p-2 rounded-lg border bg-muted/30"
+                    >
+                      {media.type === 'image' && (
+                        <img src={media.url} alt="" className="w-12 h-12 object-cover rounded" />
+                      )}
+                      {media.type === 'video' && (
+                        <div className="w-12 h-12 flex items-center justify-center bg-primary/10 rounded">
+                          <Video className="w-6 h-6 text-primary" />
+                        </div>
+                      )}
+                      {media.type === 'document' && (
+                        <div className="w-12 h-12 flex items-center justify-center bg-orange-500/10 rounded">
+                          <File className="w-6 h-6 text-orange-500" />
+                        </div>
+                      )}
+                      <span className="text-xs text-muted-foreground max-w-[80px] truncate">
+                        {media.name || 'Arquivo'}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => removeMediaAttachment(index)}
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Editor / Preview tabs content */}
+            {editorTab === 'edit' ? (
+              <Textarea
+                data-message-editor
+                placeholder="Olá {nome}, tudo bem?&#10;&#10;Use *negrito*, _itálico_, ~riscado~&#10;&#10;Tenho uma oportunidade especial para você..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                rows={6}
+                className="text-sm resize-y min-h-[120px]"
+              />
+            ) : (
+              <div className="p-4 rounded-lg bg-muted/30 border min-h-[120px]">
+                {message ? (
+                  <div className="space-y-3">
+                    {/* Media preview */}
+                    {mediaAttachments.length > 0 && (
+                      <div className="flex flex-wrap gap-2 pb-3 border-b">
+                        {mediaAttachments.map((media, index) => (
+                          <div key={index} className="relative">
+                            {media.type === 'image' && (
+                              <img src={media.url} alt="" className="w-20 h-20 object-cover rounded-lg" />
+                            )}
+                            {media.type === 'video' && (
+                              <div className="w-20 h-20 flex items-center justify-center bg-primary/10 rounded-lg">
+                                <Video className="w-8 h-8 text-primary" />
+                              </div>
+                            )}
+                            {media.type === 'document' && (
+                              <div className="w-20 h-20 flex items-center justify-center bg-orange-500/10 rounded-lg">
+                                <File className="w-8 h-8 text-orange-500" />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {/* Text preview with formatting */}
+                    <p 
+                      className="text-sm whitespace-pre-wrap"
+                      dangerouslySetInnerHTML={{ 
+                        __html: formatWhatsAppPreview(
+                          leads.length > 0 
+                            ? replaceVariables(message, leads[0]) 
+                            : message.replace(/{nome}/gi, 'João').replace(/{numero}/gi, '5511999999999')
+                        ) 
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Escreva uma mensagem para visualizar...</p>
+                )}
+              </div>
+            )}
+
+            {/* Variables */}
             <div className="space-y-2">
               <p className="text-xs font-medium text-muted-foreground">Variáveis disponíveis:</p>
               <div className="flex flex-wrap gap-2">
@@ -968,6 +1323,15 @@ export function ManualDispatcherPanel() {
                 >
                   {'{numero}'}
                 </Badge>
+              </div>
+            </div>
+
+            {/* WhatsApp Web limitation note */}
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-500/5 border border-blue-500/20">
+              <Info className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+              <div className="text-xs text-muted-foreground">
+                <p className="font-medium text-blue-600 mb-1">Sobre mídias no WhatsApp Web:</p>
+                <p>A formatação (*negrito*, _itálico_) funciona automaticamente. Para mídias, você precisará anexar manualmente no WhatsApp Web após abrir a conversa, pois o link direto não suporta envio de arquivos.</p>
               </div>
             </div>
 
@@ -1000,17 +1364,6 @@ export function ManualDispatcherPanel() {
                     Nova
                   </Button>
                 )}
-              </div>
-            )}
-
-            {message && leads.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground">Preview (primeiro lead):</p>
-                <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-                  <p className="text-sm whitespace-pre-wrap">
-                    {replaceVariables(message, leads[0])}
-                  </p>
-                </div>
               </div>
             )}
           </CardContent>
