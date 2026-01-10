@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Settings, Trash2, Edit, ArrowRight, GripVertical, User, Phone, Mail, Building, DollarSign, Calendar, Tag, ChevronRight, Filter, BarChart3, Eye, History, Pencil } from 'lucide-react';
+import { Plus, Settings, Trash2, Edit, ArrowRight, GripVertical, User, Phone, Mail, Building, DollarSign, Calendar, Tag, ChevronRight, Filter, BarChart3, Eye, History, Pencil, Camera, Loader2 } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragOverlay, DragStartEvent, useDroppable, useDraggable } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -242,12 +242,14 @@ function DroppableStageColumn({ stage, leads, children, onAddLead }: {
 
 export default function SalesFunnelPanel() {
   const { user } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [funnels, setFunnels] = useState<SalesFunnel[]>([]);
   const [selectedFunnel, setSelectedFunnel] = useState<SalesFunnel | null>(null);
   const [stages, setStages] = useState<FunnelStage[]>([]);
   const [leads, setLeads] = useState<FunnelLead[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('kanban');
+  const [isProcessingOCR, setIsProcessingOCR] = useState(false);
   
   // Dialog states
   const [showFunnelDialog, setShowFunnelDialog] = useState(false);
@@ -773,6 +775,127 @@ export default function SalesFunnelPanel() {
     setShowLeadDialog(true);
   };
 
+  // OCR Function
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor, selecione uma imagem.');
+      return;
+    }
+
+    if (!selectedFunnel) {
+      toast.error('Selecione um funil primeiro.');
+      return;
+    }
+
+    if (stages.length === 0) {
+      toast.error('Crie pelo menos uma etapa no funil primeiro.');
+      return;
+    }
+
+    const { data: sessionCheck } = await supabase.auth.getSession();
+    if (!sessionCheck.session?.access_token) {
+      toast.error('Sessão expirada. Por favor, faça login novamente.');
+      return;
+    }
+
+    setIsProcessingOCR(true);
+
+    try {
+      const reader = new FileReader();
+      
+      reader.onerror = () => {
+        toast.error('Não foi possível ler o arquivo selecionado.');
+        setIsProcessingOCR(false);
+      };
+
+      reader.onloadend = async () => {
+        try {
+          const base64Image = reader.result as string;
+
+          if (!base64Image) {
+            throw new Error('Imagem vazia');
+          }
+
+          const { data, error } = await supabase.functions.invoke('parse-leads-from-image', {
+            body: { imageDataUrl: base64Image }
+          });
+
+          if (error) {
+            const ctx: any = (error as any)?.context;
+            const serverMsg = ctx?.json?.error || ctx?.body?.error || (data as any)?.error;
+            throw new Error(serverMsg || error.message || 'Erro ao processar imagem');
+          }
+
+          if ((data as any)?.error) {
+            throw new Error(String((data as any).error));
+          }
+
+          const extractedLeads = (data as any)?.leads;
+          const firstStageId = stages[0].id;
+
+          if (Array.isArray(extractedLeads) && extractedLeads.length > 0) {
+            let addedCount = 0;
+            for (const lead of extractedLeads) {
+              if (lead.name || lead.phone || lead.email) {
+                const { data: newLead, error: insertError } = await supabase
+                  .from('funnel_leads')
+                  .insert({
+                    funnel_id: selectedFunnel.id,
+                    stage_id: firstStageId,
+                    name: lead.name || 'Lead',
+                    phone: lead.phone || null,
+                    email: lead.email || null,
+                    priority: 'medium',
+                    value: 0,
+                  })
+                  .select()
+                  .single();
+
+                if (!insertError && newLead) {
+                  await supabase
+                    .from('funnel_lead_history')
+                    .insert({
+                      lead_id: newLead.id,
+                      to_stage_id: firstStageId,
+                      notes: 'Lead criado via OCR',
+                    });
+                  addedCount++;
+                }
+              }
+            }
+
+            if (addedCount > 0) {
+              toast.success(`${addedCount} lead(s) adicionado(s) via OCR!`);
+              loadLeads(selectedFunnel.id);
+            } else {
+              toast.error('Nenhum lead válido foi encontrado na imagem.');
+            }
+          } else {
+            toast.error('Não foi possível identificar contatos na imagem.');
+          }
+        } catch (error) {
+          console.error('Erro no processamento OCR:', error);
+          toast.error(error instanceof Error ? error.message : 'Não foi possível extrair os dados da imagem.');
+        } finally {
+          setIsProcessingOCR(false);
+        }
+      };
+
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Erro no OCR:', error);
+      toast.error('Não foi possível processar a imagem.');
+      setIsProcessingOCR(false);
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   // Calculate stats
   const totalLeads = leads.length;
   const totalValue = leads.reduce((acc, l) => acc + (l.value || 0), 0);
@@ -788,6 +911,13 @@ export default function SalesFunnelPanel() {
 
   return (
     <div className="space-y-4">
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept="image/*"
+        className="hidden"
+        onChange={handleImageUpload}
+      />
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -952,6 +1082,19 @@ export default function SalesFunnelPanel() {
               </div>
             </DialogContent>
           </Dialog>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isProcessingOCR}
+          >
+            {isProcessingOCR ? (
+              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+            ) : (
+              <Camera className="w-4 h-4 mr-1" />
+            )}
+            {isProcessingOCR ? 'Processando...' : 'Adicionar por Foto'}
+          </Button>
           <Dialog open={showLeadDialog} onOpenChange={(open) => { setShowLeadDialog(open); if (!open) resetLeadForm(); }}>
             <DialogTrigger asChild>
               <Button size="sm">

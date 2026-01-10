@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { UserPlus, Edit, Trash2, Download, Phone, Mail, Search, Filter, X, Building, Briefcase, MapPin, Globe, Tag } from "lucide-react";
+import { UserPlus, Edit, Trash2, Download, Phone, Mail, Search, Filter, X, Building, Briefcase, MapPin, Globe, Tag, Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Customer {
@@ -63,6 +63,7 @@ interface ClientsManagementPanelProps {
 
 export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelProps) {
   const { user } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,6 +78,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
   const [allTags, setAllTags] = useState<string[]>([]);
+  const [isProcessingOCR, setIsProcessingOCR] = useState(false);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -369,8 +371,111 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
     toast.success('E-mails exportados!');
   };
 
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor, selecione uma imagem.');
+      return;
+    }
+
+    const { data: sessionCheck } = await supabase.auth.getSession();
+    if (!sessionCheck.session?.access_token) {
+      toast.error('Sessão expirada. Por favor, faça login novamente.');
+      return;
+    }
+
+    setIsProcessingOCR(true);
+
+    try {
+      const reader = new FileReader();
+      
+      reader.onerror = () => {
+        toast.error('Não foi possível ler o arquivo selecionado.');
+        setIsProcessingOCR(false);
+      };
+
+      reader.onloadend = async () => {
+        try {
+          const base64Image = reader.result as string;
+
+          if (!base64Image) {
+            throw new Error('Imagem vazia');
+          }
+
+          const { data, error } = await supabase.functions.invoke('parse-leads-from-image', {
+            body: { imageDataUrl: base64Image }
+          });
+
+          if (error) {
+            const ctx: any = (error as any)?.context;
+            const serverMsg = ctx?.json?.error || ctx?.body?.error || (data as any)?.error;
+            throw new Error(serverMsg || error.message || 'Erro ao processar imagem');
+          }
+
+          if ((data as any)?.error) {
+            throw new Error(String((data as any).error));
+          }
+
+          const extractedLeads = (data as any)?.leads;
+
+          if (Array.isArray(extractedLeads) && extractedLeads.length > 0) {
+            let addedCount = 0;
+            for (const lead of extractedLeads) {
+              if (lead.name || lead.phone || lead.email) {
+                const { error: insertError } = await supabase
+                  .from('customers')
+                  .insert({
+                    user_id: user?.id,
+                    name: lead.name || 'Cliente',
+                    phone: lead.phone || null,
+                    email: lead.email || null,
+                    status: 'lead',
+                  });
+
+                if (!insertError) addedCount++;
+              }
+            }
+
+            if (addedCount > 0) {
+              toast.success(`${addedCount} cliente(s) adicionado(s) via OCR!`);
+              fetchCustomers();
+            } else {
+              toast.error('Nenhum cliente válido foi encontrado na imagem.');
+            }
+          } else {
+            toast.error('Não foi possível identificar contatos na imagem.');
+          }
+        } catch (error) {
+          console.error('Erro no processamento OCR:', error);
+          toast.error(error instanceof Error ? error.message : 'Não foi possível extrair os dados da imagem.');
+        } finally {
+          setIsProcessingOCR(false);
+        }
+      };
+
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Erro no OCR:', error);
+      toast.error('Não foi possível processar a imagem.');
+      setIsProcessingOCR(false);
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <div className="space-y-6">
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept="image/*"
+        className="hidden"
+        onChange={handleImageUpload}
+      />
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -380,10 +485,25 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
                 Gerencie todos os seus clientes em um só lugar
               </CardDescription>
             </div>
-            <Button onClick={openAddDialog} className="w-full sm:w-auto">
-              <UserPlus className="h-4 w-4 mr-2" />
-              Adicionar Cliente
-            </Button>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button 
+                variant="outline" 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isProcessingOCR}
+                className="flex-1 sm:flex-none"
+              >
+                {isProcessingOCR ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Camera className="h-4 w-4 mr-2" />
+                )}
+                {isProcessingOCR ? 'Processando...' : 'Adicionar por Foto'}
+              </Button>
+              <Button onClick={openAddDialog} className="flex-1 sm:flex-none">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Adicionar Cliente
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
