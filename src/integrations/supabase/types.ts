@@ -3269,9 +3269,37 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_categories: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           address: string | null
+          category_id: string | null
           city: string | null
           company: string | null
           country: string | null
@@ -3293,6 +3321,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          category_id?: string | null
           city?: string | null
           company?: string | null
           country?: string | null
@@ -3314,6 +3343,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          category_id?: string | null
           city?: string | null
           company?: string | null
           country?: string | null
@@ -3333,7 +3363,15 @@ export type Database = {
           user_id?: string
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "customers_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "customer_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       digital_products: {
         Row: {
