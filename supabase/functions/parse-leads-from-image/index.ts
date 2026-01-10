@@ -60,9 +60,9 @@ serve(async (req) => {
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    // Use service role for admin auth calls; do NOT override Authorization header with user token
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
 
     const { data: userData, error: userErr } = await supabase.auth.getUser(token);
     if (userErr || !userData?.user) {
