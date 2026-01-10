@@ -137,6 +137,7 @@ export function UserSidebar() {
     { title: "Botão Flutuante Multi-Links", icon: Zap, path: "/dashboard", tab: "floating-button", hideForTeamMember: true },
     { title: t('link_shortener_title'), icon: Link2, path: "/dashboard", tab: "shortlinks", feature: "link_shortener", hideForTeamMember: true },
     { title: "Gerador QR Code", icon: QrCode, path: "/dashboard", tab: "qrcode", hideForTeamMember: true },
+    { title: "Disparador Manual", icon: Zap, path: "/dashboard", tab: "disparador", hideForTeamMember: true },
   ];
 
   const advancedResourcesItems: MenuItem[] = [
@@ -151,7 +152,6 @@ export function UserSidebar() {
     { title: "Criador de Propostas", icon: FileCheck, path: "/dashboard", tab: "propostas", hideForTeamMember: true },
     { title: "Criador de Portfólio", icon: Layers, path: "/dashboard", tab: "portfolio", moduleKey: "portfolio" },
     { title: "Aprova Job", icon: ClipboardCheck, path: "/dashboard", tab: "aprova-job", hideForTeamMember: true },
-    { title: "Disparador Manual", icon: Zap, path: "/dashboard", tab: "disparador", hideForTeamMember: true },
   ];
 
   // Support items - all hidden for team members
