@@ -99,6 +99,10 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
   const [deleteCategoryDialogOpen, setDeleteCategoryDialogOpen] = useState(false);
   
+  // Selected category for adding clients
+  const [selectedCategoryForAdd, setSelectedCategoryForAdd] = useState<Category | null>(null);
+  const categoryFileInputRef = useRef<HTMLInputElement>(null);
+  
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -332,9 +336,129 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
       country: "",
       postal_code: "",
       website: "",
-      category_id: "",
+      category_id: selectedCategoryForAdd?.id || "",
     });
     setNewTag("");
+  };
+
+  const openAddDialogForCategory = (category: Category | null) => {
+    setSelectedCategoryForAdd(category);
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      company: "",
+      position: "",
+      status: "lead",
+      tags: [],
+      notes: "",
+      address: "",
+      city: "",
+      state: "",
+      country: "",
+      postal_code: "",
+      website: "",
+      category_id: category?.id || "",
+    });
+    setNewTag("");
+    setAddDialogOpen(true);
+  };
+
+  const handleImageUploadForCategory = async (event: React.ChangeEvent<HTMLInputElement>, category: Category | null) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor, selecione uma imagem.');
+      return;
+    }
+
+    const { data: sessionCheck } = await supabase.auth.getSession();
+    if (!sessionCheck.session?.access_token) {
+      toast.error('Sessão expirada. Por favor, faça login novamente.');
+      return;
+    }
+
+    setIsProcessingOCR(true);
+
+    try {
+      const reader = new FileReader();
+      
+      reader.onerror = () => {
+        toast.error('Não foi possível ler o arquivo selecionado.');
+        setIsProcessingOCR(false);
+      };
+
+      reader.onloadend = async () => {
+        try {
+          const base64Image = reader.result as string;
+
+          if (!base64Image) {
+            throw new Error('Imagem vazia');
+          }
+
+          const { data, error } = await supabase.functions.invoke('parse-leads-from-image', {
+            body: { imageDataUrl: base64Image }
+          });
+
+          if (error) {
+            const ctx: any = (error as any)?.context;
+            const serverMsg = ctx?.json?.error || ctx?.body?.error || (data as any)?.error;
+            throw new Error(serverMsg || error.message || 'Erro ao processar imagem');
+          }
+
+          if ((data as any)?.error) {
+            throw new Error(String((data as any).error));
+          }
+
+          const extractedLeads = (data as any)?.leads;
+
+          if (Array.isArray(extractedLeads) && extractedLeads.length > 0) {
+            let addedCount = 0;
+            for (const lead of extractedLeads) {
+              if (lead.name || lead.phone || lead.email) {
+                const { error: insertError } = await supabase
+                  .from('customers')
+                  .insert({
+                    user_id: user?.id,
+                    name: lead.name || 'Cliente',
+                    phone: lead.phone || null,
+                    email: lead.email || null,
+                    status: 'lead',
+                    category_id: category?.id || null,
+                  });
+
+                if (!insertError) addedCount++;
+              }
+            }
+
+            if (addedCount > 0) {
+              toast.success(`${addedCount} cliente(s) adicionado(s)${category ? ` na categoria "${category.name}"` : ''}!`);
+              fetchCustomers();
+            } else {
+              toast.error('Nenhum cliente válido foi encontrado na imagem.');
+            }
+          } else {
+            toast.error('Não foi possível identificar contatos na imagem.');
+          }
+        } catch (error) {
+          console.error('Erro no processamento OCR:', error);
+          toast.error(error instanceof Error ? error.message : 'Não foi possível extrair os dados da imagem.');
+        } finally {
+          setIsProcessingOCR(false);
+        }
+      };
+
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Erro no OCR:', error);
+      toast.error('Não foi possível processar a imagem.');
+      setIsProcessingOCR(false);
+    }
+
+    if (categoryFileInputRef.current) {
+      categoryFileInputRef.current.value = '';
+    }
   };
 
   const handleAddCustomer = async () => {
@@ -622,6 +746,13 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
         className="hidden"
         onChange={handleImageUpload}
       />
+      <input
+        type="file"
+        ref={categoryFileInputRef}
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => handleImageUploadForCategory(e, selectedCategoryForAdd)}
+      />
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -634,24 +765,11 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
             <div className="flex gap-2 w-full sm:w-auto">
               <Button 
                 variant="outline" 
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isProcessingOCR}
-                className="flex-1 sm:flex-none"
-              >
-                {isProcessingOCR ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Camera className="h-4 w-4 mr-2" />
-                )}
-                {isProcessingOCR ? 'Processando...' : 'Adicionar por Foto'}
-              </Button>
-              <Button 
-                variant="outline" 
                 onClick={() => setCategoriesDialogOpen(true)}
                 className="flex-1 sm:flex-none"
               >
                 <Settings2 className="h-4 w-4 mr-2" />
-                Categorias
+                Gerenciar Categorias
               </Button>
               <Button onClick={openAddDialog} className="flex-1 sm:flex-none">
                 <UserPlus className="h-4 w-4 mr-2" />
@@ -661,6 +779,115 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
           </div>
         </CardHeader>
         <CardContent>
+          {/* Categorias como Cards Clicáveis */}
+          {categories.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-3">Adicionar clientes por categoria:</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                {categories.map((category) => {
+                  const categoryCustomerCount = customers.filter(c => c.category_id === category.id).length;
+                  return (
+                    <div
+                      key={category.id}
+                      className="relative group rounded-lg border p-4 hover:shadow-md transition-all cursor-pointer"
+                      style={{ borderColor: category.color, backgroundColor: `${category.color}10` }}
+                    >
+                      <div className="flex flex-col items-center text-center">
+                        <Folder className="h-8 w-8 mb-2" style={{ color: category.color }} />
+                        <span className="font-medium text-sm truncate w-full" style={{ color: category.color }}>
+                          {category.name}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{categoryCustomerCount} clientes</span>
+                      </div>
+                      
+                      {/* Botões de ação */}
+                      <div className="absolute inset-0 bg-background/90 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openAddDialogForCategory(category);
+                          }}
+                          className="text-xs"
+                        >
+                          <UserPlus className="h-3 w-3 mr-1" />
+                          Manual
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedCategoryForAdd(category);
+                            categoryFileInputRef.current?.click();
+                          }}
+                          disabled={isProcessingOCR}
+                          className="text-xs"
+                        >
+                          {isProcessingOCR ? (
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                          ) : (
+                            <Camera className="h-3 w-3 mr-1" />
+                          )}
+                          Foto
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+                
+                {/* Card para Sem Categoria */}
+                <div
+                  className="relative group rounded-lg border border-dashed p-4 hover:shadow-md transition-all cursor-pointer border-muted-foreground/30"
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <Folder className="h-8 w-8 mb-2 text-muted-foreground" />
+                    <span className="font-medium text-sm truncate w-full text-muted-foreground">
+                      Sem Categoria
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {customers.filter(c => !c.category_id).length} clientes
+                    </span>
+                  </div>
+                  
+                  <div className="absolute inset-0 bg-background/90 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openAddDialogForCategory(null);
+                      }}
+                      className="text-xs"
+                    >
+                      <UserPlus className="h-3 w-3 mr-1" />
+                      Manual
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedCategoryForAdd(null);
+                        categoryFileInputRef.current?.click();
+                      }}
+                      disabled={isProcessingOCR}
+                      className="text-xs"
+                    >
+                      {isProcessingOCR ? (
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      ) : (
+                        <Camera className="h-3 w-3 mr-1" />
+                      )}
+                      Foto
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Filtros e Busca */}
           <div className="flex flex-col gap-4 mb-6">
             <div className="flex flex-col sm:flex-row gap-2">
@@ -877,12 +1104,33 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
       </Card>
 
       {/* Dialog: Adicionar Cliente */}
-      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+      <Dialog open={addDialogOpen} onOpenChange={(open) => {
+        setAddDialogOpen(open);
+        if (!open) setSelectedCategoryForAdd(null);
+      }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Adicionar Novo Cliente</DialogTitle>
+            <DialogTitle>
+              Adicionar Novo Cliente
+              {selectedCategoryForAdd && (
+                <Badge 
+                  variant="outline" 
+                  className="ml-2"
+                  style={{ 
+                    borderColor: selectedCategoryForAdd.color, 
+                    color: selectedCategoryForAdd.color,
+                    backgroundColor: `${selectedCategoryForAdd.color}15`
+                  }}
+                >
+                  {selectedCategoryForAdd.name}
+                </Badge>
+              )}
+            </DialogTitle>
             <DialogDescription>
-              Preencha os dados do novo cliente
+              {selectedCategoryForAdd 
+                ? `O cliente será adicionado na categoria "${selectedCategoryForAdd.name}"`
+                : 'Preencha os dados do novo cliente'
+              }
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
