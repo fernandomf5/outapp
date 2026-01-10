@@ -971,19 +971,36 @@ export function ManualDispatcherPanel() {
               </div>
             </div>
 
-            {/* Save message button */}
+            {/* Save message buttons */}
             {message.trim() && (
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setNewMessageName(currentMessageName || '');
-                  setShowSaveMessageDialog(true);
-                }}
-                className="w-full h-9 text-sm gap-1.5"
-              >
-                <Save className="w-4 h-4" />
-                {currentMessageId ? 'Salvar Mensagem' : 'Salvar Nova Mensagem'}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setNewMessageName(currentMessageId ? currentMessageName || '' : '');
+                    setShowSaveMessageDialog(true);
+                  }}
+                  className="flex-1 h-9 text-sm gap-1.5"
+                >
+                  <Save className="w-4 h-4" />
+                  {currentMessageId ? 'Atualizar Mensagem' : 'Salvar Mensagem'}
+                </Button>
+                {currentMessageId && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setCurrentMessageId(null);
+                      setCurrentMessageName(null);
+                      setNewMessageName('');
+                      setShowSaveMessageDialog(true);
+                    }}
+                    className="h-9 text-sm gap-1.5"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Nova
+                  </Button>
+                )}
+              </div>
             )}
 
             {message && leads.length > 0 && (
