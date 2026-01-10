@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Brain, ZoomIn, ZoomOut, RotateCcw, Save, Plus, Trash2, Link2, Unlink, ChevronRight, ChevronUp, Focus, Palette, ArrowLeft, ExternalLink, LayoutGrid, ChevronDown, Circle, ArrowRight, GitBranch, TreePine, Sparkles, Lock, Unlock, Move } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -935,8 +936,27 @@ export default function MindMapFullEditor() {
               </div>
               
               <div>
-                <Label className="text-white/80 text-xs">Descrição</Label>
-                <Input value={selectedNode.description || ''} onChange={(e) => updateNode(selectedNode.id, { description: e.target.value })} className="bg-white/10 border-white/20 text-white text-sm" placeholder="Descrição opcional" />
+                <Label className="text-white/80 text-xs flex items-center justify-between">
+                  <span>Descrição</span>
+                  <span className="text-[10px] text-white/50">
+                    {(selectedNode.description || '').length} chars
+                  </span>
+                </Label>
+                <Textarea 
+                  value={selectedNode.description || ''} 
+                  onChange={(e) => updateNode(selectedNode.id, { description: e.target.value })} 
+                  className="bg-white/10 border-white/20 text-white text-sm min-h-[80px] resize-y placeholder:text-white/40" 
+                  placeholder="Digite a descrição...&#10;Use Enter para quebrar linhas."
+                  rows={3}
+                />
+                {selectedNode.description && (
+                  <div className="mt-2 p-2 bg-white/5 rounded border border-white/10 max-h-[60px] overflow-y-auto">
+                    <span className="text-[10px] text-white/40 block mb-1">Preview:</span>
+                    <p className="text-[11px] text-white/70 whitespace-pre-wrap break-words">
+                      {selectedNode.description}
+                    </p>
+                  </div>
+                )}
               </div>
               
               <div>
