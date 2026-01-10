@@ -1141,45 +1141,6 @@ export function ManualDispatcherPanel() {
         </Card>
       )}
 
-      {/* Bloco 4 - Ação */}
-      <Card className="border-primary/30 bg-primary/5">
-        <CardContent className="pt-4 pb-4">
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            <div className="flex-1 text-center sm:text-left">
-              <p className="font-medium text-sm sm:text-base">
-                {isDispatching 
-                  ? `Disparando... ${currentDispatchIndex}/${selectedCount}`
-                  : selectedCount > 0 
-                    ? `${selectedCount} lead(s) pronto(s) para disparo`
-                    : 'Adicione e selecione leads para disparar'
-                }
-              </p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Cada conversa será aberta em uma nova aba do WhatsApp Web
-              </p>
-            </div>
-            
-            <Button
-              size="lg"
-              onClick={handleDispatch}
-              disabled={isDispatching || selectedCount === 0 || !message.trim()}
-              className="w-full sm:w-auto h-11 sm:h-12 text-sm sm:text-base px-6 sm:px-8"
-            >
-              {isDispatching ? (
-                <>
-                  <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
-                  Disparando...
-                </>
-              ) : (
-                <>
-                  <Rocket className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                  Disparar Manualmente
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Save List Dialog */}
       <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
