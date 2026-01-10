@@ -11,8 +11,17 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { UserPlus, Edit, Trash2, Download, Phone, Mail, Search, Filter, X, Building, Briefcase, MapPin, Globe, Tag, Camera, Loader2 } from "lucide-react";
+import { UserPlus, Edit, Trash2, Download, Phone, Mail, Search, Filter, X, Building, Briefcase, MapPin, Globe, Tag, Camera, Loader2, FolderPlus, Settings2, Folder } from "lucide-react";
 import { toast } from "sonner";
+
+interface Category {
+  id: string;
+  user_id: string;
+  name: string;
+  color: string;
+  created_at: string;
+  updated_at: string;
+}
 
 interface Customer {
   id: string;
@@ -34,6 +43,7 @@ interface Customer {
   created_at: string;
   updated_at: string;
   last_contact_at: string | null;
+  category_id: string | null;
 }
 
 const statusColors = {
@@ -70,6 +80,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [tagFilter, setTagFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<string>("date-desc");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -79,6 +90,14 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
   const [allTags, setAllTags] = useState<string[]>([]);
   const [isProcessingOCR, setIsProcessingOCR] = useState(false);
+  
+  // Categories state
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesDialogOpen, setCategoriesDialogOpen] = useState(false);
+  const [categoryFormData, setCategoryFormData] = useState({ name: "", color: "#3b82f6" });
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const [deleteCategoryDialogOpen, setDeleteCategoryDialogOpen] = useState(false);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -95,6 +114,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
     country: "",
     postal_code: "",
     website: "",
+    category_id: "" as string,
   });
 
   const [newTag, setNewTag] = useState("");
@@ -102,11 +122,28 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
   useEffect(() => {
     if (!user) return;
     fetchCustomers();
+    fetchCategories();
   }, [user]);
 
   useEffect(() => {
     filterCustomers();
-  }, [customers, searchTerm, statusFilter, tagFilter, sortOrder]);
+  }, [customers, searchTerm, statusFilter, tagFilter, categoryFilter, sortOrder]);
+
+  const fetchCategories = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('customer_categories')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('name');
+
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error: any) {
+      console.error('Erro ao buscar categorias:', error);
+    }
+  };
 
   const fetchCustomers = async () => {
     if (!user) return;
@@ -161,6 +198,15 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
       filtered = filtered.filter(customer => customer.tags?.includes(tagFilter));
     }
 
+    // Filtro por categoria
+    if (categoryFilter !== "all") {
+      if (categoryFilter === "none") {
+        filtered = filtered.filter(customer => !customer.category_id);
+      } else {
+        filtered = filtered.filter(customer => customer.category_id === categoryFilter);
+      }
+    }
+
     // Ordenação
     switch (sortOrder) {
       case "name-asc":
@@ -180,6 +226,96 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
     setFilteredCustomers(filtered);
   };
 
+  // Category CRUD
+  const handleAddCategory = async () => {
+    if (!user || !categoryFormData.name.trim()) {
+      toast.error('Nome da categoria é obrigatório');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('customer_categories')
+        .insert({
+          user_id: user.id,
+          name: categoryFormData.name.trim(),
+          color: categoryFormData.color,
+        });
+
+      if (error) throw error;
+
+      toast.success('Categoria criada com sucesso!');
+      setCategoryFormData({ name: "", color: "#3b82f6" });
+      fetchCategories();
+    } catch (error: any) {
+      console.error('Erro ao criar categoria:', error);
+      toast.error('Erro ao criar categoria');
+    }
+  };
+
+  const handleUpdateCategory = async () => {
+    if (!editingCategory || !categoryFormData.name.trim()) {
+      toast.error('Nome da categoria é obrigatório');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('customer_categories')
+        .update({
+          name: categoryFormData.name.trim(),
+          color: categoryFormData.color,
+        })
+        .eq('id', editingCategory.id);
+
+      if (error) throw error;
+
+      toast.success('Categoria atualizada!');
+      setEditingCategory(null);
+      setCategoryFormData({ name: "", color: "#3b82f6" });
+      fetchCategories();
+    } catch (error: any) {
+      console.error('Erro ao atualizar categoria:', error);
+      toast.error('Erro ao atualizar categoria');
+    }
+  };
+
+  const handleDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('customer_categories')
+        .delete()
+        .eq('id', categoryToDelete.id);
+
+      if (error) throw error;
+
+      toast.success('Categoria excluída!');
+      setDeleteCategoryDialogOpen(false);
+      setCategoryToDelete(null);
+      fetchCategories();
+    } catch (error: any) {
+      console.error('Erro ao excluir categoria:', error);
+      toast.error('Erro ao excluir categoria');
+    }
+  };
+
+  const startEditCategory = (category: Category) => {
+    setEditingCategory(category);
+    setCategoryFormData({ name: category.name, color: category.color });
+  };
+
+  const cancelEditCategory = () => {
+    setEditingCategory(null);
+    setCategoryFormData({ name: "", color: "#3b82f6" });
+  };
+
+  const getCategoryById = (id: string | null) => {
+    if (!id) return null;
+    return categories.find(c => c.id === id);
+  };
+
   const resetForm = () => {
     setFormData({
       name: "",
@@ -196,6 +332,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
       country: "",
       postal_code: "",
       website: "",
+      category_id: "",
     });
     setNewTag("");
   };
@@ -207,12 +344,15 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
     }
 
     try {
-      const { data, error } = await supabase
+      const customerData = {
+        ...formData,
+        user_id: user.id,
+        category_id: formData.category_id || null,
+      };
+
+      const { error } = await supabase
         .from('customers')
-        .insert([{
-          user_id: user.id,
-          ...formData,
-        }])
+        .insert([customerData])
         .select()
         .single();
 
@@ -235,9 +375,14 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
     }
 
     try {
+      const updateData = {
+        ...formData,
+        category_id: formData.category_id || null,
+      };
+
       const { error } = await supabase
         .from('customers')
-        .update(formData)
+        .update(updateData)
         .eq('id', selectedCustomer.id);
 
       if (error) throw error;
@@ -296,6 +441,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
       country: customer.country || "",
       postal_code: customer.postal_code || "",
       website: customer.website || "",
+      category_id: customer.category_id || "",
     });
     setEditDialogOpen(true);
   };
@@ -499,6 +645,14 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
                 )}
                 {isProcessingOCR ? 'Processando...' : 'Adicionar por Foto'}
               </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setCategoriesDialogOpen(true)}
+                className="flex-1 sm:flex-none"
+              >
+                <Settings2 className="h-4 w-4 mr-2" />
+                Categorias
+              </Button>
               <Button onClick={openAddDialog} className="flex-1 sm:flex-none">
                 <UserPlus className="h-4 w-4 mr-2" />
                 Adicionar Cliente
@@ -545,6 +699,24 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
                   ))}
                 </SelectContent>
               </Select>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <Folder className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Filtrar por categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Categorias</SelectItem>
+                  <SelectItem value="none">Sem Categoria</SelectItem>
+                  {categories.map(cat => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
+                        {cat.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -584,10 +756,10 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
             </div>
           ) : filteredCustomers.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              {searchTerm || statusFilter !== "all" || tagFilter !== "all"
-                ? "Nenhum cliente encontrado com os filtros aplicados"
-                : "Nenhum cliente cadastrado ainda"}
-            </div>
+            {searchTerm || statusFilter !== "all" || tagFilter !== "all" || categoryFilter !== "all"
+              ? "Nenhum cliente encontrado com os filtros aplicados"
+              : "Nenhum cliente cadastrado ainda"}
+          </div>
           ) : (
             <div className="overflow-x-auto rounded-md border">
               <Table>
@@ -596,6 +768,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
                     <TableHead>Nome</TableHead>
                     <TableHead>Contato</TableHead>
                     <TableHead>Empresa</TableHead>
+                    <TableHead>Categoria</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Tags</TableHead>
                     <TableHead>Cadastro</TableHead>
@@ -619,6 +792,26 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
                             {customer.position && <span className="text-sm text-muted-foreground">{customer.position}</span>}
                           </div>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        {(() => {
+                          const category = getCategoryById(customer.category_id);
+                          return category ? (
+                            <Badge 
+                              variant="outline" 
+                              className="border"
+                              style={{ 
+                                borderColor: category.color, 
+                                color: category.color,
+                                backgroundColor: `${category.color}15`
+                              }}
+                            >
+                              {category.name}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">-</span>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className={statusColors[customer.status]}>
@@ -751,6 +944,25 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
                   <SelectItem value="customer">Cliente</SelectItem>
                   <SelectItem value="vip">VIP</SelectItem>
                   <SelectItem value="inactive">Inativo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="category">Categoria</Label>
+              <Select value={formData.category_id || "none"} onValueChange={(value) => setFormData({ ...formData, category_id: value === "none" ? "" : value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem Categoria</SelectItem>
+                  {categories.map(cat => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
+                        {cat.name}
+                      </div>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -912,6 +1124,25 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
                   <SelectItem value="customer">Cliente</SelectItem>
                   <SelectItem value="vip">VIP</SelectItem>
                   <SelectItem value="inactive">Inativo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-category">Categoria</Label>
+              <Select value={formData.category_id || "none"} onValueChange={(value) => setFormData({ ...formData, category_id: value === "none" ? "" : value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem Categoria</SelectItem>
+                  {categories.map(cat => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
+                        {cat.name}
+                      </div>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -1128,6 +1359,118 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteCustomer} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog: Gerenciar Categorias */}
+      <Dialog open={categoriesDialogOpen} onOpenChange={setCategoriesDialogOpen}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Categorias</DialogTitle>
+            <DialogDescription>
+              Crie e gerencie as categorias de clientes
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {/* Formulário para adicionar/editar categoria */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="Nome da categoria"
+                value={categoryFormData.name}
+                onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                className="flex-1"
+              />
+              <input
+                type="color"
+                value={categoryFormData.color}
+                onChange={(e) => setCategoryFormData({ ...categoryFormData, color: e.target.value })}
+                className="w-10 h-10 rounded border cursor-pointer"
+              />
+              {editingCategory ? (
+                <>
+                  <Button onClick={handleUpdateCategory} size="sm">
+                    Salvar
+                  </Button>
+                  <Button onClick={cancelEditCategory} variant="outline" size="sm">
+                    Cancelar
+                  </Button>
+                </>
+              ) : (
+                <Button onClick={handleAddCategory} size="sm">
+                  <FolderPlus className="h-4 w-4 mr-1" />
+                  Criar
+                </Button>
+              )}
+            </div>
+
+            {/* Lista de categorias */}
+            <div className="space-y-2">
+              {categories.length === 0 ? (
+                <p className="text-center text-muted-foreground py-4">
+                  Nenhuma categoria criada ainda
+                </p>
+              ) : (
+                categories.map(category => (
+                  <div
+                    key={category.id}
+                    className="flex items-center justify-between p-3 rounded-lg border bg-card"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: category.color }}
+                      />
+                      <span className="font-medium">{category.name}</span>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => startEditCategory(category)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setCategoryToDelete(category);
+                          setDeleteCategoryDialogOpen(true);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCategoriesDialogOpen(false)}>
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Confirmar Exclusão de Categoria */}
+      <AlertDialog open={deleteCategoryDialogOpen} onOpenChange={setDeleteCategoryDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Categoria</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir a categoria <strong>{categoryToDelete?.name}</strong>? Os clientes desta categoria ficarão sem categoria.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteCategory} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
