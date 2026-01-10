@@ -12,7 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Settings, Trash2, Edit, ArrowRight, GripVertical, User, Phone, Mail, Building, DollarSign, Calendar, Tag, ChevronRight, Filter, BarChart3, Eye, History, Pencil, Camera, Loader2 } from 'lucide-react';
+import { Plus, Settings, Trash2, Edit, ArrowRight, GripVertical, User, Phone, Mail, Building, DollarSign, Calendar, Tag, ChevronRight, Filter, BarChart3, Eye, History, Pencil, Camera, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import FunnelChart from './FunnelChart';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragOverlay, DragStartEvent, useDroppable, useDraggable } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -250,6 +251,7 @@ export default function SalesFunnelPanel() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('kanban');
   const [isProcessingOCR, setIsProcessingOCR] = useState(false);
+  const [showFunnelChart, setShowFunnelChart] = useState(true);
   
   // Dialog states
   const [showFunnelDialog, setShowFunnelDialog] = useState(false);
@@ -1030,6 +1032,32 @@ export default function SalesFunnelPanel() {
               </div>
             </CardContent>
           </Card>
+        </div>
+      )}
+
+      {/* Funnel Chart Visualization */}
+      {selectedFunnel && stages.length > 0 && (
+        <div className="space-y-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full flex items-center justify-between hover:bg-muted/50"
+            onClick={() => setShowFunnelChart(!showFunnelChart)}
+          >
+            <span className="flex items-center gap-2 text-sm font-medium">
+              <BarChart3 className="w-4 h-4" />
+              Gráfico do Funil
+            </span>
+            {showFunnelChart ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </Button>
+          
+          {showFunnelChart && (
+            <FunnelChart stages={stages} leads={leads} />
+          )}
         </div>
       )}
 
