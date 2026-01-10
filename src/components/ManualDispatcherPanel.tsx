@@ -548,74 +548,20 @@ export function ManualDispatcherPanel() {
           }
 
           console.log('Iniciando processamento OCR...');
-          console.log('Usando token da sessão...');
-          
-          const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${sessionCheck.session.access_token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'gpt-4o-mini',
-              messages: [
-                {
-                  role: 'user',
-                  content: [
-                    {
-                      type: 'text',
-                      text: `Analise esta imagem e extraia todos os nomes e números de telefone que encontrar. 
-                      
-Retorne APENAS no formato JSON, sem markdown, sem explicações:
-{
-  "leads": [
-    {"name": "Nome da Pessoa", "phone": "5585999999999"},
-    {"name": "Outro Nome", "phone": "5588888888888"}
-  ]
-}
 
-Se não encontrar nomes ou números, retorne: {"leads": []}
-
-Importante:
-- Números devem conter apenas dígitos
-- Adicione o código do país 55 se não estiver presente
-- Se houver apenas número sem nome, use "Lead" + número sequencial como nome`
-                    },
-                    {
-                      type: 'image_url',
-                      image_url: { url: base64Image }
-                    }
-                  ]
-                }
-              ],
-              max_tokens: 1000
-            })
+          const { data, error } = await supabase.functions.invoke('parse-leads-from-image', {
+            body: { imageDataUrl: base64Image }
           });
 
-          console.log('Resposta recebida, status:', response.status);
-
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Erro na API:', errorText);
-            throw new Error(`Erro ao processar imagem: ${response.status}`);
+          if (error) {
+            console.error('Edge function error:', error);
+            throw new Error(error.message || 'Erro ao processar imagem');
           }
 
-          const data = await response.json();
-          console.log('Dados recebidos:', data);
-          
-          const content = data.choices?.[0]?.message?.content || '';
+          const extractedLeads = (data as any)?.leads;
 
-          if (!content) {
-            throw new Error('Resposta vazia da API');
-          }
-
-          const cleanContent = content.replace(/```json\n?|\n?```/g, '').trim();
-          console.log('Conteúdo limpo:', cleanContent);
-          
-          const parsed = JSON.parse(cleanContent);
-
-          if (parsed.leads && Array.isArray(parsed.leads) && parsed.leads.length > 0) {
-            const newLeads: Lead[] = parsed.leads.map((lead: { name: string; phone: string }) => ({
+          if (Array.isArray(extractedLeads) && extractedLeads.length > 0) {
+            const newLeads: Lead[] = extractedLeads.map((lead: { name: string; phone: string }) => ({
               id: generateId(),
               name: lead.name || 'Lead',
               phone: formatPhone(lead.phone),
