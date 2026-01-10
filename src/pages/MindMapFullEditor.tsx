@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Brain, ZoomIn, ZoomOut, RotateCcw, Save, Plus, Trash2, Link2, Unlink, ChevronRight, ChevronUp, Focus, Palette, ArrowLeft, ExternalLink, LayoutGrid, ChevronDown, Circle, ArrowRight, GitBranch, TreePine, Sparkles } from 'lucide-react';
+import { Brain, ZoomIn, ZoomOut, RotateCcw, Save, Plus, Trash2, Link2, Unlink, ChevronRight, ChevronUp, Focus, Palette, ArrowLeft, ExternalLink, LayoutGrid, ChevronDown, Circle, ArrowRight, GitBranch, TreePine, Sparkles, Lock, Unlock, Move } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Slider } from '@/components/ui/slider';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type OrganizationType = 'radial' | 'horizontal' | 'vertical' | 'tree' | 'mindmap';
 import { toast } from 'sonner';
@@ -25,6 +27,8 @@ interface MindMapNode {
   icon?: string;
   collapsed?: boolean;
   size?: 'small' | 'medium' | 'large';
+  customWidth?: number;
+  customHeight?: number;
 }
 
 interface MindMap {
@@ -75,6 +79,7 @@ export default function MindMapFullEditor() {
   const [draggedNode, setDraggedNode] = useState<string | null>(null);
   const [connectingFrom, setConnectingFrom] = useState<string | null>(null);
   const [currentTheme, setCurrentTheme] = useState('default');
+  const [isLocked, setIsLocked] = useState(false);
 
   useEffect(() => {
     if (id) fetchMap();
@@ -581,12 +586,14 @@ export default function MindMapFullEditor() {
   };
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    if (isLocked) return;
     e.preventDefault();
     setIsPanning(true);
     setLastMousePos({ x: e.clientX, y: e.clientY });
-  }, []);
+  }, [isLocked]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (isLocked) return;
     if (draggedNode) {
       const dx = (e.clientX - lastMousePos.x) / scale;
       const dy = (e.clientY - lastMousePos.y) / scale;
@@ -598,7 +605,7 @@ export default function MindMapFullEditor() {
       setOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
       setLastMousePos({ x: e.clientX, y: e.clientY });
     }
-  }, [isPanning, draggedNode, lastMousePos, scale]);
+  }, [isPanning, draggedNode, lastMousePos, scale, isLocked]);
 
   const handlePointerUp = useCallback(() => {
     setIsPanning(false);
@@ -606,9 +613,10 @@ export default function MindMapFullEditor() {
   }, []);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
+    if (isLocked) return;
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
     setScale(prev => Math.max(0.3, Math.min(3, prev + delta)));
-  }, []);
+  }, [isLocked]);
 
   const handleNodePointerDown = (e: React.PointerEvent, nodeId: string) => {
     e.stopPropagation();
@@ -678,128 +686,197 @@ export default function MindMapFullEditor() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: theme.bg }}>
-      {/* Header */}
-      <header className="flex items-center justify-between p-3 bg-black/30 backdrop-blur-sm border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => window.close()} className="text-white hover:bg-white/10">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Fechar
+      {/* Header - Compacto */}
+      <header className="flex items-center justify-between px-2 py-2 bg-black/30 backdrop-blur-sm border-b border-white/10 gap-1 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => window.close()} className="text-white hover:bg-white/10 h-8 w-8">
+            <ArrowLeft className="w-4 h-4" />
           </Button>
-          <div className="p-2 bg-primary/20 rounded-xl">
-            <Brain className="w-5 h-5 text-primary" />
+          <div className="p-1.5 bg-primary/20 rounded-lg">
+            <Brain className="w-4 h-4 text-primary" />
           </div>
-          <div>
-            <h1 className="text-base font-bold text-white">{map.name}</h1>
-            <p className="text-xs text-white/60">Editor em tela cheia</p>
-          </div>
+          <span className="text-sm font-bold text-white truncate max-w-[120px] hidden sm:block">{map.name}</span>
         </div>
         
-        <div className="flex items-center gap-2">
-          <Select value={currentTheme} onValueChange={setCurrentTheme}>
-            <SelectTrigger className="w-[130px] bg-white/10 border-white/20 text-white text-xs">
-              <Palette className="w-3 h-3 mr-1" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(THEMES).map(([key, t]) => (
-                <SelectItem key={key} value={key}>{t.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Button variant="outline" size="sm" onClick={createRootNode} disabled={nodes.some(n => n.isRoot)} className="bg-white/10 border-white/20 text-white hover:bg-white/20 disabled:opacity-50">
-            <Sparkles className="h-4 w-4 mr-1" /> Central
-          </Button>
-          <Button variant="outline" size="sm" onClick={addNode} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-            <Plus className="h-4 w-4 mr-1" /> Filho
-          </Button>
-          <Button variant="outline" size="sm" onClick={addIndependentNode} className="bg-emerald-500/20 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/30">
-            <Plus className="h-4 w-4 mr-1" /> Independente
-          </Button>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                <LayoutGrid className="w-4 h-4 mr-1" />
-                Organizar
-                <ChevronDown className="w-3 h-3 ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              <DropdownMenuItem onClick={() => applyOrganization('radial')}>
-                <Circle className="w-4 h-4 mr-2" />
-                Radial (Circular)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => applyOrganization('horizontal')}>
-                <ArrowRight className="w-4 h-4 mr-2" />
-                Horizontal
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => applyOrganization('vertical')}>
-                <GitBranch className="w-4 h-4 mr-2 rotate-180" />
-                Vertical
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => applyOrganization('tree')}>
-                <TreePine className="w-4 h-4 mr-2" />
-                Árvore
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => applyOrganization('mindmap')}>
-                <Brain className="w-4 h-4 mr-2" />
-                Mapa Mental
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <TooltipProvider delayDuration={200}>
+          <div className="flex items-center gap-1 flex-wrap justify-center">
+            {/* Tema */}
+            <Select value={currentTheme} onValueChange={setCurrentTheme}>
+              <SelectTrigger className="w-[100px] h-8 bg-white/10 border-white/20 text-white text-xs">
+                <Palette className="w-3 h-3 mr-1" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(THEMES).map(([key, t]) => (
+                  <SelectItem key={key} value={key}>{t.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            {/* Adicionar - Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="h-8 bg-white/10 border-white/20 text-white hover:bg-white/20 text-xs px-2">
+                  <Plus className="w-4 h-4 mr-1" />
+                  Adicionar
+                  <ChevronDown className="w-3 h-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={createRootNode} disabled={nodes.some(n => n.isRoot)}>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Nó Central
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={addNode}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nó Filho
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={addIndependentNode}>
+                  <Circle className="w-4 h-4 mr-2" />
+                  Nó Independente
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            {/* Organizar - Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="h-8 bg-white/10 border-white/20 text-white hover:bg-white/20 text-xs px-2">
+                  <LayoutGrid className="w-4 h-4 mr-1" />
+                  <span className="hidden sm:inline">Organizar</span>
+                  <ChevronDown className="w-3 h-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={() => applyOrganization('radial')}>
+                  <Circle className="w-4 h-4 mr-2" />
+                  Radial
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => applyOrganization('horizontal')}>
+                  <ArrowRight className="w-4 h-4 mr-2" />
+                  Horizontal
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => applyOrganization('vertical')}>
+                  <GitBranch className="w-4 h-4 mr-2 rotate-180" />
+                  Vertical
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => applyOrganization('tree')}>
+                  <TreePine className="w-4 h-4 mr-2" />
+                  Árvore
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => applyOrganization('mindmap')}>
+                  <Brain className="w-4 h-4 mr-2" />
+                  Mapa Mental
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-          {savedNodes && (
-            <Button onClick={restoreToSaved} size="sm" variant="outline" className="bg-orange-500/20 border-orange-500/30 text-orange-400 hover:bg-orange-500/30">
-              <RotateCcw className="w-4 h-4 mr-1" />
-              Restaurar
+            {/* Restaurar */}
+            {savedNodes && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button onClick={restoreToSaved} size="icon" variant="outline" className="h-8 w-8 bg-orange-500/20 border-orange-500/30 text-orange-400 hover:bg-orange-500/30">
+                    <RotateCcw className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Restaurar</TooltipContent>
+              </Tooltip>
+            )}
+            
+            {/* Separador visual */}
+            <div className="w-px h-6 bg-white/20 mx-1 hidden sm:block" />
+            
+            {/* Lock/Unlock */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  onClick={() => setIsLocked(!isLocked)} 
+                  size="icon" 
+                  variant="outline" 
+                  className={`h-8 w-8 ${isLocked ? 'bg-red-500/30 border-red-500/50 text-red-400' : 'bg-white/10 border-white/20 text-white'} hover:bg-white/20`}
+                >
+                  {isLocked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{isLocked ? 'Desbloquear mapa' : 'Bloquear mapa'}</TooltipContent>
+            </Tooltip>
+            
+            {/* Zoom controls */}
+            <div className="flex items-center gap-0.5 bg-white/5 rounded-md p-0.5">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={() => setScale(s => Math.max(0.3, s - 0.2))} className="h-7 w-7 text-white hover:bg-white/20">
+                    <ZoomOut className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Diminuir zoom</TooltipContent>
+              </Tooltip>
+              <span className="text-xs text-white/60 w-8 text-center">{Math.round(scale * 100)}%</span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={() => setScale(s => Math.min(3, s + 0.2))} className="h-7 w-7 text-white hover:bg-white/20">
+                    <ZoomIn className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Aumentar zoom</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={() => {
+                    const rootNode = nodes.find(n => n.isRoot);
+                    if (rootNode && canvasRef.current) {
+                      const rect = canvasRef.current.getBoundingClientRect();
+                      setScale(1);
+                      setOffset({ x: rect.width / 2 - rootNode.x, y: rect.height / 2 - rootNode.y });
+                    }
+                  }} className="h-7 w-7 text-white hover:bg-white/20">
+                    <Focus className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Centralizar</TooltipContent>
+              </Tooltip>
+            </div>
+            
+            {connectingFrom && (
+              <Badge variant="secondary" className="text-xs h-6">🔗 Conectando...</Badge>
+            )}
+            
+            {/* Salvar */}
+            <Button onClick={saveMap} size="sm" className="h-8 bg-green-500 hover:bg-green-600 text-white text-xs px-3">
+              <Save className="h-4 w-4 mr-1" /> 
+              <span className="hidden sm:inline">Salvar</span>
             </Button>
-          )}
-          
-          <Button variant="outline" size="sm" onClick={() => setScale(s => Math.max(0.3, s - 0.2))} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-            <ZoomOut className="h-4 w-4" />
-          </Button>
-          <span className="text-xs text-white/60 w-10 text-center">{Math.round(scale * 100)}%</span>
-          <Button variant="outline" size="sm" onClick={() => setScale(s => Math.min(3, s + 0.2))} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-            <ZoomIn className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => {
-            const rootNode = nodes.find(n => n.isRoot);
-            if (rootNode && canvasRef.current) {
-              const rect = canvasRef.current.getBoundingClientRect();
-              setScale(1);
-              setOffset({ x: rect.width / 2 - rootNode.x, y: rect.height / 2 - rootNode.y });
-            }
-          }} className="bg-white/10 border-white/20 text-white hover:bg-white/20" title="Centralizar">
-            <Focus className="h-4 w-4" />
-          </Button>
-          
-          {connectingFrom && (
-            <Badge variant="secondary" className="text-xs">🔗 Conectando...</Badge>
-          )}
-          
-          <Button onClick={saveMap} size="sm" className="bg-green-500 hover:bg-green-600 text-white">
-            <Save className="h-4 w-4 mr-1" /> Salvar
-          </Button>
-          
-          <Button variant="outline" size="sm" onClick={() => window.open(`/mindmap/${map.id}`, '_blank')} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-            <ExternalLink className="h-4 w-4" />
-          </Button>
-        </div>
+            
+            {/* Abrir externa */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="icon" onClick={() => window.open(`/mindmap/${map.id}`, '_blank')} className="h-8 w-8 bg-white/10 border-white/20 text-white hover:bg-white/20">
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Abrir apresentação</TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
       </header>
 
       <div className="flex flex-1">
         {/* Canvas */}
         <div
           ref={canvasRef}
-          className="flex-1 relative overflow-hidden touch-none"
-          style={{ cursor: isPanning ? 'grabbing' : draggedNode ? 'move' : 'grab' }}
+          className={`flex-1 relative overflow-hidden touch-none ${isLocked ? 'cursor-not-allowed' : ''}`}
+          style={{ cursor: isLocked ? 'not-allowed' : isPanning ? 'grabbing' : draggedNode ? 'move' : 'grab' }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
           onWheel={handleWheel}
         >
+          {isLocked && (
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 bg-red-500/80 text-white text-xs px-3 py-1 rounded-full flex items-center gap-1.5">
+              <Lock className="w-3 h-3" /> Mapa Bloqueado
+            </div>
+          )}
           <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: `radial-gradient(circle, ${theme.line}33 1px, transparent 1px)`, backgroundSize: '30px 30px' }} />
           
           <div className="absolute inset-0" style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`, transformOrigin: 'center center' }}>
@@ -810,6 +887,8 @@ export default function MindMapFullEditor() {
             {nodes.filter(node => isNodeVisible(node)).map(node => {
               const sizeClasses = getNodeSizeClasses(node.size, node.isRoot);
               const childCount = getDirectChildCount(node.id);
+              const nodeWidth = node.customWidth ? `${node.customWidth}px` : undefined;
+              const nodeMinWidth = node.customWidth ? undefined : sizeClasses.minWidth;
               return (
                 <div
                   key={node.id}
@@ -818,13 +897,19 @@ export default function MindMapFullEditor() {
                   onPointerDown={(e) => handleNodePointerDown(e, node.id)}
                 >
                   <div
-                    className={`relative rounded-2xl shadow-lg ${sizeClasses.minWidth} ${selectedNode?.id === node.id ? 'ring-4 ring-white/50' : ''}`}
-                    style={{ backgroundColor: node.color, boxShadow: `0 4px 20px ${node.color}60`, border: '2px solid rgba(255,255,255,0.3)' }}
+                    className={`relative rounded-2xl shadow-lg ${nodeMinWidth || ''} ${selectedNode?.id === node.id ? 'ring-4 ring-white/50' : ''}`}
+                    style={{ 
+                      backgroundColor: node.color, 
+                      boxShadow: `0 4px 20px ${node.color}60`, 
+                      border: '2px solid rgba(255,255,255,0.3)',
+                      width: nodeWidth,
+                      minHeight: node.customHeight ? `${node.customHeight}px` : undefined
+                    }}
                   >
                     <div className={`${sizeClasses.padding} text-center`}>
                       {node.icon && <span className={`${sizeClasses.iconSize} mb-1 block`}>{node.icon}</span>}
                       <p className={`text-white font-semibold ${sizeClasses.textSize}`}>{node.text}</p>
-                      {node.description && <p className={`text-white/80 mt-1 ${sizeClasses.descSize} whitespace-pre-wrap break-words`} style={{ maxWidth: '120px' }}>{node.description}</p>}
+                      {node.description && <p className={`text-white/80 mt-1 ${sizeClasses.descSize} whitespace-pre-wrap break-words`}>{node.description}</p>}
                     </div>
                     {childCount > 0 && (
                       <button onClick={(e) => toggleCollapse(node.id, e)} onPointerDown={(e) => e.stopPropagation()} className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center border border-white/30">
@@ -866,6 +951,64 @@ export default function MindMapFullEditor() {
                     <SelectItem value="large">Grande</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              
+              {/* Dimensões flexíveis */}
+              <div className="border-t border-white/10 pt-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Move className="w-3 h-3 text-white/60" />
+                  <Label className="text-white/80 text-xs">Dimensões Personalizadas</Label>
+                </div>
+                
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[10px] text-white/50">Largura</span>
+                      <span className="text-[10px] text-white/70">{selectedNode.customWidth || 'Auto'}px</span>
+                    </div>
+                    <Slider
+                      value={[selectedNode.customWidth || 120]}
+                      onValueChange={([v]) => updateNode(selectedNode.id, { customWidth: v })}
+                      min={80}
+                      max={400}
+                      step={10}
+                      className="w-full"
+                    />
+                  </div>
+                  
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[10px] text-white/50">Altura mín.</span>
+                      <span className="text-[10px] text-white/70">{selectedNode.customHeight || 'Auto'}px</span>
+                    </div>
+                    <Slider
+                      value={[selectedNode.customHeight || 60]}
+                      onValueChange={([v]) => updateNode(selectedNode.id, { customHeight: v })}
+                      min={40}
+                      max={300}
+                      step={10}
+                      className="w-full"
+                    />
+                  </div>
+                  
+                  <div className="flex gap-1 flex-wrap">
+                    <Button size="sm" variant="outline" onClick={() => updateNode(selectedNode.id, { customWidth: undefined, customHeight: undefined })} className="text-[10px] h-6 px-2 bg-white/10 border-white/20 text-white hover:bg-white/20">
+                      Auto
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => updateNode(selectedNode.id, { customWidth: 100, customHeight: 60 })} className="text-[10px] h-6 px-2 bg-white/10 border-white/20 text-white hover:bg-white/20">
+                      P
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => updateNode(selectedNode.id, { customWidth: 160, customHeight: 80 })} className="text-[10px] h-6 px-2 bg-white/10 border-white/20 text-white hover:bg-white/20">
+                      M
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => updateNode(selectedNode.id, { customWidth: 220, customHeight: 100 })} className="text-[10px] h-6 px-2 bg-white/10 border-white/20 text-white hover:bg-white/20">
+                      G
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => updateNode(selectedNode.id, { customWidth: 300, customHeight: 120 })} className="text-[10px] h-6 px-2 bg-white/10 border-white/20 text-white hover:bg-white/20">
+                      XG
+                    </Button>
+                  </div>
+                </div>
               </div>
               
               <div>
