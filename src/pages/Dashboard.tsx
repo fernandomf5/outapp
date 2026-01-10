@@ -62,6 +62,7 @@ import { AprovaJobPanel } from "@/components/AprovaJobPanel";
 import { GlobalChatNotification } from "@/components/GlobalChatNotification";
 import { PortfolioCreatorPanel } from "@/components/PortfolioCreatorPanel";
 import { ManualDispatcherPanel } from "@/components/ManualDispatcherPanel";
+import SalesFunnelPanel from "@/components/SalesFunnelPanel";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { TeamMemberBanner } from "@/components/TeamMemberBanner";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
@@ -1111,6 +1112,10 @@ const Dashboard = () => {
 
           <TabsContent value="disparador">
             <ManualDispatcherPanel />
+          </TabsContent>
+
+          <TabsContent value="funil-vendas">
+            <SalesFunnelPanel />
           </TabsContent>
 
           <TabsContent value="management">
