@@ -17,10 +17,9 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, DragEndEvent, MeasuringStrategy } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Business {
@@ -76,20 +75,21 @@ const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMod
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 100 : undefined,
-    opacity: isDragging ? 0.8 : 1,
-    position: isDragging ? 'relative' as const : undefined,
+    transition: transition || 'transform 200ms ease',
+    zIndex: isDragging ? 9999 : 'auto',
+    opacity: isDragging ? 0.95 : 1,
+    position: 'relative' as const,
+    boxShadow: isDragging ? '0 10px 30px rgba(0,0,0,0.3)' : undefined,
   };
 
   return (
     <>
       {/* Desktop Row */}
       <TableRow ref={setNodeRef} style={style} className={cn(
-        "hidden md:table-row touch-none",
+        "hidden md:table-row",
         transaction.status === 'paid' ? 'bg-green-500/15 hover:bg-green-500/20' : '',
         isSelected ? 'bg-primary/10 hover:bg-primary/15' : '',
-        isDragging ? 'shadow-lg bg-background border-2 border-primary' : ''
+        isDragging ? 'bg-background border-2 border-primary rounded' : ''
       )}>
         {autoSumMode && (
           <TableCell className="w-[40px]">
@@ -101,9 +101,9 @@ const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMod
         )}
         <TableCell>
           <div className="flex items-center gap-2">
-            <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 -m-1 hover:bg-muted rounded touch-none">
-              <GripVertical className="w-5 h-5 text-muted-foreground" />
-            </div>
+            <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-2 -m-1 hover:bg-muted rounded select-none">
+              <GripVertical className="w-5 h-5 text-muted-foreground pointer-events-none" />
+            </button>
             <div>
               <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'}>
                 {transaction.type === 'income' ? 'Receita' : 'Despesa'}
@@ -142,10 +142,10 @@ const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMod
 
       {/* Mobile Card */}
       <tr ref={setNodeRef} style={style} className={cn(
-        "md:hidden block touch-none",
+        "md:hidden block",
         transaction.status === 'paid' ? 'bg-green-500/15' : '',
         isSelected ? 'bg-primary/10' : '',
-        isDragging ? 'shadow-lg bg-background border-2 border-primary rounded-lg' : ''
+        isDragging ? 'bg-background border-2 border-primary rounded-lg' : ''
       )}>
         <td colSpan={8} className="p-0">
           <div className="p-3 border-b space-y-3">
@@ -157,9 +157,9 @@ const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMod
                     onCheckedChange={(checked) => onSelect?.(transaction.id, !!checked)}
                   />
                 )}
-                <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing shrink-0 p-2 -m-1 hover:bg-muted rounded touch-none">
-                  <GripVertical className="w-5 h-5 text-muted-foreground" />
-                </div>
+                <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing shrink-0 p-2 -m-1 hover:bg-muted rounded select-none">
+                  <GripVertical className="w-5 h-5 text-muted-foreground pointer-events-none" />
+                </button>
                 <div className="min-w-0 flex-1">
                   <p className="font-medium truncate">{transaction.description}</p>
                   <p className="text-xs text-muted-foreground">{transaction.category}</p>
@@ -272,13 +272,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // Precisa arrastar 8px para ativar
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 200, // Delay de 200ms para touch
-        tolerance: 5, // Tolerância de movimento durante o delay
+        distance: 3,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -1159,7 +1153,6 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
-            modifiers={[restrictToVerticalAxis]}
           >
             <Table>
               <TableHeader className="hidden md:table-header-group">
