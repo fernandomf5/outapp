@@ -17,9 +17,28 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import {
+  DndContext,
+  closestCenter,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  KeyboardSensor,
+  MeasuringStrategy,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Business {
@@ -75,11 +94,10 @@ const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMod
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: transition || 'transform 200ms ease',
-    zIndex: isDragging ? 9999 : 'auto',
-    opacity: isDragging ? 0.95 : 1,
-    position: 'relative' as const,
-    boxShadow: isDragging ? '0 10px 30px rgba(0,0,0,0.3)' : undefined,
+    transition: transition || "transform 150ms ease",
+    zIndex: isDragging ? 9999 : "auto",
+    opacity: isDragging ? 0.25 : 1,
+    position: "relative" as const,
   };
 
   return (
@@ -101,7 +119,12 @@ const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMod
         )}
         <TableCell>
           <div className="flex items-center gap-2">
-            <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-2 -m-1 hover:bg-muted rounded select-none">
+            <button
+              type="button"
+              {...attributes}
+              {...listeners}
+              className="cursor-grab active:cursor-grabbing p-2 -m-1 hover:bg-muted rounded select-none touch-none"
+            >
               <GripVertical className="w-5 h-5 text-muted-foreground pointer-events-none" />
             </button>
             <div>
@@ -157,7 +180,12 @@ const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMod
                     onCheckedChange={(checked) => onSelect?.(transaction.id, !!checked)}
                   />
                 )}
-                <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing shrink-0 p-2 -m-1 hover:bg-muted rounded select-none">
+                <button
+                  type="button"
+                  {...attributes}
+                  {...listeners}
+                  className="cursor-grab active:cursor-grabbing shrink-0 p-2 -m-1 hover:bg-muted rounded select-none touch-none"
+                >
                   <GripVertical className="w-5 h-5 text-muted-foreground pointer-events-none" />
                 </button>
                 <div className="min-w-0 flex-1">
@@ -241,6 +269,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [loading, setLoading] = useState(false);
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
   
   // Filtro por data
   const [dateFilterStart, setDateFilterStart] = useState<Date | undefined>(undefined);
@@ -272,7 +301,13 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 3,
+        distance: 6,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 180,
+        tolerance: 6,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -760,12 +795,16 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
 
   // Ajustar totais considerando o status específico por mês
   const transactionsWithMonthStatus = monthTransactions
-    .map(t => ({
+    .map((t) => ({
       ...t,
-      status: getTransactionStatus(t)
+      status: getTransactionStatus(t),
     }))
-    .filter(t => statusFilter === 'all' || t.status === statusFilter)
+    .filter((t) => statusFilter === "all" || t.status === statusFilter)
     .sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+
+  const activeTransaction = activeDragId
+    ? transactionsWithMonthStatus.find((t) => t.id === activeDragId) ?? null
+    : null;
 
   const totalIncome = transactionsWithMonthStatus
     .filter(t => t.type === 'income' && t.status === 'paid')
@@ -1152,7 +1191,14 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
+            measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
+            modifiers={[restrictToVerticalAxis]}
+            onDragStart={({ active }: DragStartEvent) => setActiveDragId(String(active.id))}
+            onDragCancel={() => setActiveDragId(null)}
+            onDragEnd={(event: DragEndEvent) => {
+              setActiveDragId(null);
+              void handleDragEnd(event);
+            }}
           >
             <Table>
               <TableHeader className="hidden md:table-header-group">
@@ -1194,6 +1240,21 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                 )}
               </TableBody>
             </Table>
+
+            <DragOverlay>
+              {activeTransaction ? (
+                <div className="w-[min(520px,90vw)] rounded-md border bg-background p-3 shadow-lg">
+                  <div className="flex items-start gap-2">
+                    <GripVertical className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">{activeTransaction.description}</p>
+                      <p className="text-xs text-muted-foreground truncate">{activeTransaction.category}</p>
+                      <p className="mt-1 font-semibold">R$ {Number(activeTransaction.amount).toFixed(2)}</p>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </DragOverlay>
           </DndContext>
         </CardContent>
       </Card>
