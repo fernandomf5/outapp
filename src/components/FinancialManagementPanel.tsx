@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Plus, Edit2, Trash2, Check, GripVertical, Calculator, CalendarIcon } from "lucide-react";
+import { DollarSign, Plus, Edit2, Trash2, Check, Calculator, CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -20,25 +20,15 @@ import { Switch } from "@/components/ui/switch";
 import {
   DndContext,
   closestCenter,
-  DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
-  KeyboardSensor,
   MeasuringStrategy,
-  PointerSensor,
-  TouchSensor,
-  useSensor,
   useSensors,
 } from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
-  sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Business {
@@ -72,8 +62,6 @@ const MONTHS = [
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
 ];
 
-type TransactionSort = "manual" | "amount_desc" | "amount_asc";
-
 interface SortableRowProps {
   transaction: Transaction;
   onStatusChange: (transaction: Transaction, status: 'paid' | 'pending' | 'cancelled') => void;
@@ -82,37 +70,22 @@ interface SortableRowProps {
   autoSumMode?: boolean;
   isSelected?: boolean;
   onSelect?: (id: string, selected: boolean) => void;
-  dragDisabled?: boolean;
+  totalCount: number;
+  onChangeOrder: (transactionId: string, newOrder1Based: number) => void;
 }
 
-const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMode, isSelected, onSelect, dragDisabled }: SortableRowProps) => {
+const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMode, isSelected, onSelect, totalCount, onChangeOrder }: SortableRowProps) => {
   const {
-    attributes,
-    listeners,
     setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: transaction.id, disabled: dragDisabled });
-
-  const dragHandleProps = dragDisabled ? {} : { ...attributes, ...listeners };
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition: transition || "transform 150ms ease",
-    zIndex: isDragging ? 9999 : "auto",
-    opacity: isDragging ? 0.25 : 1,
-    position: "relative" as const,
-  };
+  } = useSortable({ id: transaction.id, disabled: true });
 
   return (
     <>
       {/* Desktop Row */}
-      <TableRow ref={setNodeRef} style={style} className={cn(
+      <TableRow ref={setNodeRef} className={cn(
         "hidden md:table-row",
         transaction.status === 'paid' ? 'bg-green-500/15 hover:bg-green-500/20' : '',
-        isSelected ? 'bg-primary/10 hover:bg-primary/15' : '',
-        isDragging ? 'bg-background border-2 border-primary rounded' : ''
+        isSelected ? 'bg-primary/10 hover:bg-primary/15' : ''
       )}>
         {autoSumMode && (
           <TableCell className="w-[40px]">
@@ -122,18 +95,23 @@ const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMod
             />
           </TableCell>
         )}
+        <TableCell className="w-[70px]">
+          <Input
+            type="number"
+            min={1}
+            max={totalCount}
+            value={(transaction.order_index ?? 0) + 1}
+            onChange={(e) => {
+              const val = parseInt(e.currentTarget.value, 10);
+              if (!Number.isFinite(val)) return;
+              const clamped = Math.max(1, Math.min(totalCount, val));
+              onChangeOrder(transaction.id, clamped);
+            }}
+            className="h-8 w-14 text-center font-semibold"
+          />
+        </TableCell>
         <TableCell>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              {...dragHandleProps}
-              className={cn(
-                "p-2 -m-1 hover:bg-muted rounded select-none touch-none",
-                dragDisabled ? "cursor-not-allowed opacity-50" : "cursor-grab active:cursor-grabbing"
-              )}
-            >
-              <GripVertical className="w-5 h-5 text-muted-foreground pointer-events-none" />
-            </button>
             <div>
               <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'}>
                 {transaction.type === 'income' ? 'Receita' : 'Despesa'}
@@ -171,13 +149,12 @@ const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMod
       </TableRow>
 
       {/* Mobile Card */}
-      <tr ref={setNodeRef} style={style} className={cn(
+      <tr ref={setNodeRef} className={cn(
         "md:hidden block",
         transaction.status === 'paid' ? 'bg-green-500/15' : '',
-        isSelected ? 'bg-primary/10' : '',
-        isDragging ? 'bg-background border-2 border-primary rounded-lg' : ''
+        isSelected ? 'bg-primary/10' : ''
       )}>
-        <td colSpan={8} className="p-0">
+        <td colSpan={9} className="p-0">
           <div className="p-3 border-b space-y-3">
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -187,16 +164,19 @@ const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMod
                     onCheckedChange={(checked) => onSelect?.(transaction.id, !!checked)}
                   />
                 )}
-                <button
-                  type="button"
-                  {...dragHandleProps}
-                  className={cn(
-                    "shrink-0 p-2 -m-1 hover:bg-muted rounded select-none touch-none",
-                    dragDisabled ? "cursor-not-allowed opacity-50" : "cursor-grab active:cursor-grabbing"
-                  )}
-                >
-                  <GripVertical className="w-5 h-5 text-muted-foreground pointer-events-none" />
-                </button>
+                <Input
+                  type="number"
+                  min={1}
+                  max={totalCount}
+                  value={(transaction.order_index ?? 0) + 1}
+                  onChange={(e) => {
+                    const val = parseInt(e.currentTarget.value, 10);
+                    if (!Number.isFinite(val)) return;
+                    const clamped = Math.max(1, Math.min(totalCount, val));
+                    onChangeOrder(transaction.id, clamped);
+                  }}
+                  className="h-8 w-14 text-center font-semibold shrink-0"
+                />
                 <div className="min-w-0 flex-1">
                   <p className="font-medium truncate">{transaction.description}</p>
                   <p className="text-xs text-muted-foreground">{transaction.category}</p>
@@ -264,7 +244,6 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [sortMode, setSortMode] = useState<TransactionSort>("manual");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isBusinessDialogOpen, setIsBusinessDialogOpen] = useState(false);
@@ -279,9 +258,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [loading, setLoading] = useState(false);
-  const [activeDragId, setActiveDragId] = useState<string | null>(null);
-
-  const isManualSort = sortMode === "manual";
+  
   
   // Filtro por data
   const [dateFilterStart, setDateFilterStart] = useState<Date | undefined>(undefined);
@@ -310,25 +287,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     business_id: ''
   });
 
-  const disabledSensors = useSensors();
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 6,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 180,
-        tolerance: 6,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const effectiveSensors = isManualSort ? sensors : disabledSensors;
+  const sensors = useSensors();
 
   useEffect(() => {
     loadBusinesses();
@@ -752,36 +711,29 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     return transaction.status;
   };
 
-  const handleDragEnd = async (event: DragEndEvent) => {
-    if (!isManualSort) return;
+  // Função para alterar a ordem de uma transação por número
+  const handleChangeOrder = async (transactionId: string, newOrder1Based: number) => {
+    const currentList = [...transactionsWithMonthStatus];
+    const currentIndex = currentList.findIndex((t) => t.id === transactionId);
+    if (currentIndex === -1) return;
 
-    const { active, over } = event;
+    const newIndex = Math.max(0, Math.min(currentList.length - 1, newOrder1Based - 1));
+    if (currentIndex === newIndex) return;
 
-    if (!over || active.id === over.id) {
-      return;
-    }
+    const newList = arrayMove(currentList, currentIndex, newIndex);
 
-    const oldIndex = transactionsWithMonthStatus.findIndex((t) => t.id === active.id);
-    const newIndex = transactionsWithMonthStatus.findIndex((t) => t.id === over.id);
-
-    const newOrder = arrayMove(transactionsWithMonthStatus, oldIndex, newIndex);
-    
-    // Atualizar order_index de todas as transações afetadas
-    const updates = newOrder.map((transaction, index) => ({
+    const updates = newList.map((transaction, index) => ({
       id: transaction.id,
-      order_index: index
+      order_index: index,
     }));
 
     try {
-      // Atualizar no banco de dados
       for (const update of updates) {
         await supabase
           .from('financial_transactions')
           .update({ order_index: update.order_index })
           .eq('id', update.id);
       }
-
-      // Recarregar transações
       await loadTransactions();
       toast.success('Ordem atualizada');
     } catch (error) {
@@ -819,21 +771,9 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     .filter((t) => statusFilter === "all" || t.status === statusFilter);
 
   const transactionsWithMonthStatus = [...baseTransactionsWithMonthStatus].sort((a, b) => {
-    if (sortMode === "amount_desc") {
-      return Number(b.amount) - Number(a.amount) || (a.order_index || 0) - (b.order_index || 0);
-    }
-
-    if (sortMode === "amount_asc") {
-      return Number(a.amount) - Number(b.amount) || (a.order_index || 0) - (b.order_index || 0);
-    }
-
-    // manual
     return (a.order_index || 0) - (b.order_index || 0);
   });
 
-  const activeTransaction = activeDragId
-    ? transactionsWithMonthStatus.find((t) => t.id === activeDragId) ?? null
-    : null;
 
   const totalIncome = transactionsWithMonthStatus
     .filter(t => t.type === 'income' && t.status === 'paid')
@@ -1093,19 +1033,6 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
             </div>
             
             <div className="ml-4 flex flex-wrap items-center justify-end gap-2">
-              <div className="min-w-[180px]">
-                <Select value={sortMode} onValueChange={(v) => setSortMode(v as TransactionSort)}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Ordenar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="manual">Ordem manual</SelectItem>
-                    <SelectItem value="amount_desc">Valor (maior → menor)</SelectItem>
-                    <SelectItem value="amount_asc">Valor (menor → maior)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
               {(dateFilterStart || dateFilterEnd) && (
                 <Button
                   variant="ghost"
@@ -1227,28 +1154,19 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base sm:text-lg">{selectedMonth} {selectedYear}</CardTitle>
-          <CardDescription className="text-xs sm:text-sm">Transações do mês selecionado e transações fixas</CardDescription>
+          <CardDescription className="text-xs sm:text-sm">Transações do mês selecionado e transações fixas. Use o campo "Nº" para definir a ordem.</CardDescription>
         </CardHeader>
         <CardContent className="p-0 sm:p-6">
           <DndContext
-            sensors={effectiveSensors}
+            sensors={sensors}
             collisionDetection={closestCenter}
             measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
-            modifiers={isManualSort ? [restrictToVerticalAxis] : undefined}
-            onDragStart={({ active }: DragStartEvent) => {
-              if (!isManualSort) return;
-              setActiveDragId(String(active.id));
-            }}
-            onDragCancel={() => setActiveDragId(null)}
-            onDragEnd={(event: DragEndEvent) => {
-              setActiveDragId(null);
-              void handleDragEnd(event);
-            }}
           >
             <Table>
               <TableHeader className="hidden md:table-header-group">
                 <TableRow>
                   {autoSumMode && <TableHead className="w-[40px]">Sel.</TableHead>}
+                  <TableHead className="w-[70px]">Nº</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Descrição</TableHead>
                   <TableHead>Categoria</TableHead>
@@ -1273,13 +1191,14 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                       autoSumMode={autoSumMode}
                       isSelected={selectedTransactionIds.has(transaction.id)}
                       onSelect={handleTransactionSelect}
-                      dragDisabled={!isManualSort}
+                      totalCount={transactionsWithMonthStatus.length}
+                      onChangeOrder={handleChangeOrder}
                     />
                   ))}
                 </SortableContext>
                 {transactionsWithMonthStatus.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={autoSumMode ? 8 : 7} className="text-center text-muted-foreground py-8 text-sm">
+                    <TableCell colSpan={autoSumMode ? 9 : 8} className="text-center text-muted-foreground py-8 text-sm">
                       Nenhuma transação neste mês
                     </TableCell>
                   </TableRow>
@@ -1287,20 +1206,6 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
               </TableBody>
             </Table>
 
-            <DragOverlay>
-              {activeTransaction ? (
-                <div className="w-[min(520px,90vw)] rounded-md border bg-background p-3 shadow-lg">
-                  <div className="flex items-start gap-2">
-                    <GripVertical className="mt-0.5 h-4 w-4 text-muted-foreground" />
-                    <div className="min-w-0">
-                      <p className="font-medium truncate">{activeTransaction.description}</p>
-                      <p className="text-xs text-muted-foreground truncate">{activeTransaction.category}</p>
-                      <p className="mt-1 font-semibold">R$ {Number(activeTransaction.amount).toFixed(2)}</p>
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-            </DragOverlay>
           </DndContext>
         </CardContent>
       </Card>
