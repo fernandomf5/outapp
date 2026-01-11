@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,18 +17,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
-import {
-  DndContext,
-  closestCenter,
-  MeasuringStrategy,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { arrayMove } from "@dnd-kit/sortable";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Business {
@@ -71,19 +60,48 @@ interface SortableRowProps {
   isSelected?: boolean;
   onSelect?: (id: string, selected: boolean) => void;
   totalCount: number;
+  displayOrder: number;
   onChangeOrder: (transactionId: string, newOrder1Based: number) => void;
 }
 
-const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMode, isSelected, onSelect, totalCount, onChangeOrder }: SortableRowProps) => {
-  const {
-    setNodeRef,
-  } = useSortable({ id: transaction.id, disabled: true });
+const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMode, isSelected, onSelect, totalCount, displayOrder, onChangeOrder }: SortableRowProps) => {
+  const [localOrder, setLocalOrder] = useState(displayOrder.toString());
+  
+  // Sync with external displayOrder when it changes
+  useEffect(() => {
+    setLocalOrder(displayOrder.toString());
+  }, [displayOrder]);
+
+  const handleOrderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setLocalOrder(value);
+  };
+
+  const handleOrderBlur = () => {
+    const val = parseInt(localOrder, 10);
+    if (!Number.isFinite(val) || val < 1) {
+      setLocalOrder(displayOrder.toString());
+      return;
+    }
+    const clamped = Math.max(1, Math.min(totalCount, val));
+    if (clamped !== displayOrder) {
+      onChangeOrder(transaction.id, clamped);
+    } else {
+      setLocalOrder(displayOrder.toString());
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.currentTarget.blur();
+    }
+  };
 
   return (
     <>
       {/* Desktop Row */}
-      <TableRow ref={setNodeRef} className={cn(
-        "hidden md:table-row",
+      <TableRow className={cn(
+        "hidden md:table-row transition-all duration-300 ease-in-out",
         transaction.status === 'paid' ? 'bg-green-500/15 hover:bg-green-500/20' : '',
         isSelected ? 'bg-primary/10 hover:bg-primary/15' : ''
       )}>
@@ -100,13 +118,10 @@ const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMod
             type="number"
             min={1}
             max={totalCount}
-            value={(transaction.order_index ?? 0) + 1}
-            onChange={(e) => {
-              const val = parseInt(e.currentTarget.value, 10);
-              if (!Number.isFinite(val)) return;
-              const clamped = Math.max(1, Math.min(totalCount, val));
-              onChangeOrder(transaction.id, clamped);
-            }}
+            value={localOrder}
+            onChange={handleOrderChange}
+            onBlur={handleOrderBlur}
+            onKeyDown={handleKeyDown}
             className="h-8 w-14 text-center font-semibold"
           />
         </TableCell>
@@ -149,8 +164,8 @@ const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMod
       </TableRow>
 
       {/* Mobile Card */}
-      <tr ref={setNodeRef} className={cn(
-        "md:hidden block",
+      <tr className={cn(
+        "md:hidden block transition-all duration-300 ease-in-out",
         transaction.status === 'paid' ? 'bg-green-500/15' : '',
         isSelected ? 'bg-primary/10' : ''
       )}>
@@ -168,13 +183,10 @@ const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMod
                   type="number"
                   min={1}
                   max={totalCount}
-                  value={(transaction.order_index ?? 0) + 1}
-                  onChange={(e) => {
-                    const val = parseInt(e.currentTarget.value, 10);
-                    if (!Number.isFinite(val)) return;
-                    const clamped = Math.max(1, Math.min(totalCount, val));
-                    onChangeOrder(transaction.id, clamped);
-                  }}
+                  value={localOrder}
+                  onChange={handleOrderChange}
+                  onBlur={handleOrderBlur}
+                  onKeyDown={handleKeyDown}
                   className="h-8 w-14 text-center font-semibold shrink-0"
                 />
                 <div className="min-w-0 flex-1">
@@ -287,7 +299,8 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     business_id: ''
   });
 
-  const sensors = useSensors();
+  // State for optimistic UI updates
+  const [localTransactions, setLocalTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {
     loadBusinesses();
@@ -711,36 +724,43 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     return transaction.status;
   };
 
-  // Função para alterar a ordem de uma transação por número
-  const handleChangeOrder = async (transactionId: string, newOrder1Based: number) => {
-    const currentList = [...transactionsWithMonthStatus];
+  // Função para alterar a ordem de uma transação por número (com atualização otimista)
+  const handleChangeOrder = useCallback(async (transactionId: string, newOrder1Based: number) => {
+    // Work with current local state for optimistic update
+    const currentList = [...localTransactions];
     const currentIndex = currentList.findIndex((t) => t.id === transactionId);
     if (currentIndex === -1) return;
 
     const newIndex = Math.max(0, Math.min(currentList.length - 1, newOrder1Based - 1));
     if (currentIndex === newIndex) return;
 
-    const newList = arrayMove(currentList, currentIndex, newIndex);
-
-    const updates = newList.map((transaction, index) => ({
-      id: transaction.id,
-      order_index: index,
+    // Optimistically update local state with animation
+    const newList = arrayMove(currentList, currentIndex, newIndex).map((t, idx) => ({
+      ...t,
+      order_index: idx
     }));
+    setLocalTransactions(newList);
 
+    // Persist to database in background
     try {
+      const updates = newList.map((transaction, index) => ({
+        id: transaction.id,
+        order_index: index,
+      }));
+
       for (const update of updates) {
         await supabase
           .from('financial_transactions')
           .update({ order_index: update.order_index })
           .eq('id', update.id);
       }
-      await loadTransactions();
-      toast.success('Ordem atualizada');
     } catch (error) {
       console.error('Erro ao atualizar ordem:', error);
       toast.error('Erro ao atualizar ordem');
+      // Revert on error
+      loadTransactions();
     }
-  };
+  }, [localTransactions]);
 
   // Filtrar transações fixas apenas a partir do mês adicionado
   const getMonthIndex = (month: string) => MONTHS.indexOf(month);
@@ -770,9 +790,16 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     }))
     .filter((t) => statusFilter === "all" || t.status === statusFilter);
 
-  const transactionsWithMonthStatus = [...baseTransactionsWithMonthStatus].sort((a, b) => {
-    return (a.order_index || 0) - (b.order_index || 0);
-  });
+  // Sync local transactions when base data changes
+  useEffect(() => {
+    const sorted = [...baseTransactionsWithMonthStatus].sort((a, b) => {
+      return (a.order_index || 0) - (b.order_index || 0);
+    });
+    setLocalTransactions(sorted);
+  }, [transactions, selectedMonth, selectedYear, selectedCategory, statusFilter]);
+
+  // Use localTransactions for display
+  const transactionsWithMonthStatus = localTransactions;
 
 
   const totalIncome = transactionsWithMonthStatus
@@ -1157,11 +1184,6 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
           <CardDescription className="text-xs sm:text-sm">Transações do mês selecionado e transações fixas. Use o campo "Nº" para definir a ordem.</CardDescription>
         </CardHeader>
         <CardContent className="p-0 sm:p-6">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
-          >
             <Table>
               <TableHeader className="hidden md:table-header-group">
                 <TableRow>
@@ -1177,25 +1199,21 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <SortableContext
-                  items={transactionsWithMonthStatus.map((t) => t.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  {transactionsWithMonthStatus.map((transaction) => (
-                    <SortableRow
-                      key={transaction.id}
-                      transaction={transaction}
-                      onStatusChange={handleStatusChange}
-                      onEdit={openEdit}
-                      onDelete={handleDelete}
-                      autoSumMode={autoSumMode}
-                      isSelected={selectedTransactionIds.has(transaction.id)}
-                      onSelect={handleTransactionSelect}
-                      totalCount={transactionsWithMonthStatus.length}
-                      onChangeOrder={handleChangeOrder}
-                    />
-                  ))}
-                </SortableContext>
+                {transactionsWithMonthStatus.map((transaction, index) => (
+                  <SortableRow
+                    key={transaction.id}
+                    transaction={transaction}
+                    onStatusChange={handleStatusChange}
+                    onEdit={openEdit}
+                    onDelete={handleDelete}
+                    autoSumMode={autoSumMode}
+                    isSelected={selectedTransactionIds.has(transaction.id)}
+                    onSelect={handleTransactionSelect}
+                    totalCount={transactionsWithMonthStatus.length}
+                    displayOrder={index + 1}
+                    onChangeOrder={handleChangeOrder}
+                  />
+                ))}
                 {transactionsWithMonthStatus.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={autoSumMode ? 9 : 8} className="text-center text-muted-foreground py-8 text-sm">
@@ -1205,8 +1223,6 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                 )}
               </TableBody>
             </Table>
-
-          </DndContext>
         </CardContent>
       </Card>
 
