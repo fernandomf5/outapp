@@ -72,6 +72,8 @@ const MONTHS = [
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
 ];
 
+type TransactionSort = "manual" | "amount_desc" | "amount_asc";
+
 interface SortableRowProps {
   transaction: Transaction;
   onStatusChange: (transaction: Transaction, status: 'paid' | 'pending' | 'cancelled') => void;
@@ -80,9 +82,10 @@ interface SortableRowProps {
   autoSumMode?: boolean;
   isSelected?: boolean;
   onSelect?: (id: string, selected: boolean) => void;
+  dragDisabled?: boolean;
 }
 
-const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMode, isSelected, onSelect }: SortableRowProps) => {
+const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMode, isSelected, onSelect, dragDisabled }: SortableRowProps) => {
   const {
     attributes,
     listeners,
@@ -90,7 +93,9 @@ const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMod
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: transaction.id });
+  } = useSortable({ id: transaction.id, disabled: dragDisabled });
+
+  const dragHandleProps = dragDisabled ? {} : { ...attributes, ...listeners };
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -121,9 +126,11 @@ const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMod
           <div className="flex items-center gap-2">
             <button
               type="button"
-              {...attributes}
-              {...listeners}
-              className="cursor-grab active:cursor-grabbing p-2 -m-1 hover:bg-muted rounded select-none touch-none"
+              {...dragHandleProps}
+              className={cn(
+                "p-2 -m-1 hover:bg-muted rounded select-none touch-none",
+                dragDisabled ? "cursor-not-allowed opacity-50" : "cursor-grab active:cursor-grabbing"
+              )}
             >
               <GripVertical className="w-5 h-5 text-muted-foreground pointer-events-none" />
             </button>
@@ -182,9 +189,11 @@ const SortableRow = ({ transaction, onStatusChange, onEdit, onDelete, autoSumMod
                 )}
                 <button
                   type="button"
-                  {...attributes}
-                  {...listeners}
-                  className="cursor-grab active:cursor-grabbing shrink-0 p-2 -m-1 hover:bg-muted rounded select-none touch-none"
+                  {...dragHandleProps}
+                  className={cn(
+                    "shrink-0 p-2 -m-1 hover:bg-muted rounded select-none touch-none",
+                    dragDisabled ? "cursor-not-allowed opacity-50" : "cursor-grab active:cursor-grabbing"
+                  )}
                 >
                   <GripVertical className="w-5 h-5 text-muted-foreground pointer-events-none" />
                 </button>
@@ -255,6 +264,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [sortMode, setSortMode] = useState<TransactionSort>("manual");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isBusinessDialogOpen, setIsBusinessDialogOpen] = useState(false);
@@ -270,6 +280,8 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
+
+  const isManualSort = sortMode === "manual";
   
   // Filtro por data
   const [dateFilterStart, setDateFilterStart] = useState<Date | undefined>(undefined);
@@ -298,6 +310,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     business_id: ''
   });
 
+  const disabledSensors = useSensors();
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -314,6 +327,8 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  const effectiveSensors = isManualSort ? sensors : disabledSensors;
 
   useEffect(() => {
     loadBusinesses();
@@ -738,6 +753,8 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
+    if (!isManualSort) return;
+
     const { active, over } = event;
 
     if (!over || active.id === over.id) {
@@ -794,13 +811,25 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   }).filter(t => selectedCategory === 'all' || t.category === selectedCategory);
 
   // Ajustar totais considerando o status específico por mês
-  const transactionsWithMonthStatus = monthTransactions
+  const baseTransactionsWithMonthStatus = monthTransactions
     .map((t) => ({
       ...t,
       status: getTransactionStatus(t),
     }))
-    .filter((t) => statusFilter === "all" || t.status === statusFilter)
-    .sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+    .filter((t) => statusFilter === "all" || t.status === statusFilter);
+
+  const transactionsWithMonthStatus = [...baseTransactionsWithMonthStatus].sort((a, b) => {
+    if (sortMode === "amount_desc") {
+      return Number(b.amount) - Number(a.amount) || (a.order_index || 0) - (b.order_index || 0);
+    }
+
+    if (sortMode === "amount_asc") {
+      return Number(a.amount) - Number(b.amount) || (a.order_index || 0) - (b.order_index || 0);
+    }
+
+    // manual
+    return (a.order_index || 0) - (b.order_index || 0);
+  });
 
   const activeTransaction = activeDragId
     ? transactionsWithMonthStatus.find((t) => t.id === activeDragId) ?? null
@@ -1063,7 +1092,20 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
               </Tabs>
             </div>
             
-            <div className="ml-4 flex items-center gap-2">
+            <div className="ml-4 flex flex-wrap items-center justify-end gap-2">
+              <div className="min-w-[180px]">
+                <Select value={sortMode} onValueChange={(v) => setSortMode(v as TransactionSort)}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Ordenar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manual">Ordem manual</SelectItem>
+                    <SelectItem value="amount_desc">Valor (maior → menor)</SelectItem>
+                    <SelectItem value="amount_asc">Valor (menor → maior)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {(dateFilterStart || dateFilterEnd) && (
                 <Button
                   variant="ghost"
@@ -1189,11 +1231,14 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
         </CardHeader>
         <CardContent className="p-0 sm:p-6">
           <DndContext
-            sensors={sensors}
+            sensors={effectiveSensors}
             collisionDetection={closestCenter}
             measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
-            modifiers={[restrictToVerticalAxis]}
-            onDragStart={({ active }: DragStartEvent) => setActiveDragId(String(active.id))}
+            modifiers={isManualSort ? [restrictToVerticalAxis] : undefined}
+            onDragStart={({ active }: DragStartEvent) => {
+              if (!isManualSort) return;
+              setActiveDragId(String(active.id));
+            }}
             onDragCancel={() => setActiveDragId(null)}
             onDragEnd={(event: DragEndEvent) => {
               setActiveDragId(null);
@@ -1228,6 +1273,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                       autoSumMode={autoSumMode}
                       isSelected={selectedTransactionIds.has(transaction.id)}
                       onSelect={handleTransactionSelect}
+                      dragDisabled={!isManualSort}
                     />
                   ))}
                 </SortableContext>
