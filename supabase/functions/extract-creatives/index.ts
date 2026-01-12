@@ -1,8 +1,8 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
 interface ExtractedMedia {
@@ -14,8 +14,171 @@ interface ExtractedMedia {
   pageName?: string;
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
+function extractMediaFromContent(html: string, markdown: string): ExtractedMedia[] {
+  const media: ExtractedMedia[] = [];
+  const seenUrls = new Set<string>();
+
+  // Extract from HTML and markdown combined
+  const content = html + ' ' + markdown;
+
+  // Image patterns - Meta/Facebook CDN patterns
+  const imagePatterns = [
+    /https:\/\/scontent[^"\s\)>]+\.(jpg|jpeg|png|gif|webp)[^"\s\)>]*/gi,
+    /https:\/\/[a-z0-9\-]+\.fbcdn\.net\/[^"\s\)>]+\.(jpg|jpeg|png|gif|webp)[^"\s\)>]*/gi,
+    /https:\/\/external[^"\s\)>]+\.(jpg|jpeg|png|gif|webp)[^"\s\)>]*/gi,
+    /https:\/\/lookaside\.fbsbx\.com\/[^"\s\)>]+/gi,
+    /https:\/\/[^"\s\)>]+fbcdn[^"\s\)>]+\.(jpg|jpeg|png|gif|webp)[^"\s\)>]*/gi,
+    /https:\/\/lookaside\.facebook\.com\/[^"\s\)>]+/gi,
+  ];
+
+  // Video patterns
+  const videoPatterns = [
+    /https:\/\/video[^"\s\)>]+\.mp4[^"\s\)>]*/gi,
+    /https:\/\/[a-z0-9\-]+\.fbcdn\.net\/[^"\s\)>]+\.mp4[^"\s\)>]*/gi,
+    /https:\/\/scontent[^"\s\)>]+\.mp4[^"\s\)>]*/gi,
+  ];
+
+  // Extract images
+  imagePatterns.forEach(pattern => {
+    const matches = content.match(pattern) || [];
+    matches.forEach(url => {
+      const cleanUrl = cleanMediaUrl(url);
+      if (!seenUrls.has(cleanUrl) && isValidMediaUrl(cleanUrl)) {
+        seenUrls.add(cleanUrl);
+        media.push({
+          id: `img_${Date.now()}_${media.length}`,
+          type: 'image',
+          url: cleanUrl,
+          thumbnailUrl: cleanUrl
+        });
+      }
+    });
+  });
+
+  // Extract videos
+  videoPatterns.forEach(pattern => {
+    const matches = content.match(pattern) || [];
+    matches.forEach(url => {
+      const cleanUrl = cleanMediaUrl(url);
+      if (!seenUrls.has(cleanUrl) && isValidMediaUrl(cleanUrl)) {
+        seenUrls.add(cleanUrl);
+        media.push({
+          id: `vid_${Date.now()}_${media.length}`,
+          type: 'video',
+          url: cleanUrl,
+          thumbnailUrl: cleanUrl
+        });
+      }
+    });
+  });
+
+  // Try to extract from JSON-like structures in the content
+  const jsonPatterns = [
+    /"(?:image|video|src|url|preview|original)(?:_url)?"\s*:\s*"([^"]+)"/gi,
+    /"(?:hd_src|sd_src|thumbnail_url|image_url)"\s*:\s*"([^"]+)"/gi,
+    /"(?:videoHD|videoSD|previewUrl|imageUrl)"\s*:\s*"([^"]+)"/gi,
+  ];
+
+  jsonPatterns.forEach(pattern => {
+    let match;
+    while ((match = pattern.exec(content)) !== null) {
+      const url = cleanMediaUrl(match[1]);
+      
+      if (!seenUrls.has(url) && isValidMediaUrl(url)) {
+        seenUrls.add(url);
+        const isVideo = url.includes('.mp4') || url.includes('video');
+        media.push({
+          id: `${isVideo ? 'vid' : 'img'}_${Date.now()}_${media.length}`,
+          type: isVideo ? 'video' : 'image',
+          url: url,
+          thumbnailUrl: url
+        });
+      }
+    }
+  });
+
+  // Extract page name if available
+  const pageNameMatch = content.match(/"page_name"\s*:\s*"([^"]+)"/);
+  const pageName = pageNameMatch ? pageNameMatch[1] : undefined;
+
+  if (pageName) {
+    media.forEach(m => {
+      m.pageName = pageName;
+    });
+  }
+
+  return media.slice(0, 50); // Limit to 50 items
+}
+
+function cleanMediaUrl(url: string): string {
+  return url
+    .replace(/\\u0026/g, '&')
+    .replace(/\\u003c/g, '<')
+    .replace(/\\u003e/g, '>')
+    .replace(/\\\//g, '/')
+    .replace(/&amp;/g, '&')
+    .replace(/["\s\)\\>]+$/, '')
+    .replace(/[,;}\]"')]+$/, '')
+    .trim();
+}
+
+function isValidMediaUrl(url: string): boolean {
+  if (!url || url.length < 40) return false;
+  
+  // Must be http(s)
+  if (!url.startsWith('http')) return false;
+  
+  // Skip tracking/analytics and small images
+  const invalidPatterns = [
+    'facebook.com/tr',
+    'pixel',
+    'tracking',
+    'analytics',
+    '/static/',
+    'emoji',
+    'rsrc.php',
+    '/images/fb_icon',
+    'static.xx.fbcdn.net',
+    '/xp/icon',
+    'favicon',
+    'sprite',
+    '.svg',
+    'data:image',
+    'platform-lookaside',
+    's75x75',
+    's32x32',
+    'p50x50',
+    's100x100',
+    'safe_image.php',
+    'avatar',
+    'logo192',
+    '/icon',
+  ];
+  
+  const lowerUrl = url.toLowerCase();
+  for (const pattern of invalidPatterns) {
+    if (lowerUrl.includes(pattern)) return false;
+  }
+  
+  // Must contain typical CDN patterns or file extensions
+  const validPatterns = [
+    'scontent',
+    'fbcdn.net',
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.gif',
+    '.webp',
+    '.mp4',
+    'lookaside.fbsbx.com',
+    'lookaside.facebook.com',
+  ];
+  
+  return validPatterns.some(pattern => lowerUrl.includes(pattern));
+}
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
@@ -24,171 +187,80 @@ serve(async (req) => {
 
     if (!url) {
       return new Response(
-        JSON.stringify({ success: false, error: "URL is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ success: false, error: 'URL is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     console.log('Extracting creatives from:', url);
 
-    // Extract ad ID from URL - try multiple patterns
-    let adId: string | null = null;
+    const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
     
-    // Pattern 1: ?id=123456
-    const idMatch = url.match(/[?&]id=(\d+)/);
-    if (idMatch) {
-      adId = idMatch[1];
-    }
-    
-    // Pattern 2: /ads/library/?...&id=... or similar
-    if (!adId) {
-      const altMatch = url.match(/(\d{10,})/);
-      if (altMatch) {
-        adId = altMatch[1];
-      }
-    }
-
-    console.log('Ad ID extracted:', adId);
-
-    const accessToken = Deno.env.get('META_ADS_ACCESS_TOKEN');
-    
-    // If we have an access token and ad ID, try the official API first
-    if (accessToken && adId) {
-      console.log('Trying Meta Ads Library API...');
-      
-      try {
-        const apiUrl = `https://graph.facebook.com/v18.0/ads_archive?access_token=${accessToken}&ad_archive_id=${adId}&fields=ad_creative_bodies,ad_creative_link_captions,ad_creative_link_descriptions,ad_creative_link_titles,ad_snapshot_url,page_name`;
-        
-        const apiResponse = await fetch(apiUrl);
-        const apiData = await apiResponse.json();
-        
-        console.log('API Response:', JSON.stringify(apiData));
-        
-        if (apiData.data && apiData.data.length > 0) {
-          const ad = apiData.data[0];
-          const media: ExtractedMedia[] = [];
-          
-          // Get the snapshot URL which often contains the creative
-          if (ad.ad_snapshot_url) {
-            media.push({
-              id: `snapshot_${adId}`,
-              type: 'image',
-              url: ad.ad_snapshot_url,
-              thumbnailUrl: ad.ad_snapshot_url,
-              adId: adId,
-              pageName: ad.page_name
-            });
-          }
-          
-          if (media.length > 0) {
-            return new Response(
-              JSON.stringify({ 
-                success: true, 
-                media,
-                source: 'api'
-              }),
-              { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-          }
-        }
-      } catch (apiError) {
-        console.error('API Error:', apiError);
-      }
-    }
-
-    // Fallback: Try to fetch the ad snapshot URL directly if we have an ad ID
-    if (adId) {
-      console.log('Trying direct ad snapshot URL...');
-      
-      const snapshotUrl = `https://www.facebook.com/ads/archive/render_ad/?id=${adId}&access_token=${accessToken || ''}`;
-      
-      try {
-        const snapshotResponse = await fetch(snapshotUrl, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Cache-Control': 'no-cache',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none',
-            'Sec-Fetch-User': '?1',
-            'Upgrade-Insecure-Requests': '1',
-          },
-        });
-
-        if (snapshotResponse.ok) {
-          const html = await snapshotResponse.text();
-          const media = extractMediaFromHtml(html, adId);
-          
-          if (media.length > 0) {
-            return new Response(
-              JSON.stringify({ 
-                success: true, 
-                media,
-                source: 'snapshot'
-              }),
-              { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-          }
-        }
-      } catch (snapshotError) {
-        console.error('Snapshot fetch error:', snapshotError);
-      }
-    }
-
-    // Try fetching the original URL with enhanced headers
-    console.log('Trying direct page fetch...');
-    
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-        'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache',
-        'Sec-Ch-Ua': '"Not A(Brand";v="99", "Google Chrome";v="121", "Chromium";v="121"',
-        'Sec-Ch-Ua-Mobile': '?0',
-        'Sec-Ch-Ua-Platform': '"Windows"',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-User': '?1',
-        'Upgrade-Insecure-Requests': '1',
-      },
-    });
-
-    if (!response.ok) {
-      console.error('Failed to fetch page:', response.status);
-      
-      // Return helpful manual instructions
+    if (!firecrawlApiKey) {
+      console.error('FIRECRAWL_API_KEY not configured');
       return new Response(
         JSON.stringify({ 
-          success: true, 
-          media: [],
-          message: "A biblioteca de anúncios do Meta bloqueia acesso automatizado. Para extrair os criativos manualmente:\n\n1. Abra o anúncio no navegador\n2. Clique em 'Ver detalhes do anúncio'\n3. Clique com botão direito na imagem/vídeo\n4. Selecione 'Copiar endereço da imagem' ou 'Salvar vídeo como...'\n\nDica: Use a extensão 'Meta Ad Library Downloader' no Chrome para facilitar."
+          success: false, 
+          error: 'Firecrawl não configurado',
+          message: 'Configure o conector Firecrawl nas configurações. Use a aba "Adicionar Manual" para colar URLs diretamente.'
         }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const html = await response.text();
+    console.log('Using Firecrawl to scrape the page with JavaScript rendering...');
+
+    // Use Firecrawl to scrape the page with JavaScript rendering
+    const scrapeResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${firecrawlApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        url: url,
+        formats: ['markdown', 'html'],
+        onlyMainContent: false,
+        waitFor: 5000, // Wait 5 seconds for JavaScript to render
+      }),
+    });
+
+    const scrapeData = await scrapeResponse.json();
+
+    if (!scrapeResponse.ok) {
+      console.error('Firecrawl API error:', scrapeData);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: scrapeData.error || 'Erro ao acessar a página',
+          message: 'A página pode estar bloqueando acesso. Use a aba "Adicionar Manual" para colar URLs diretamente.'
+        }),
+        { status: scrapeResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Firecrawl scrape successful');
+
+    // Extract content from response - handle both nested and flat structure
+    const html = scrapeData.data?.html || scrapeData.html || '';
+    const markdown = scrapeData.data?.markdown || scrapeData.markdown || '';
+
     console.log('HTML length:', html.length);
+    console.log('Markdown length:', markdown.length);
 
-    const media = extractMediaFromHtml(html, adId);
+    // Extract media from the content
+    const media = extractMediaFromContent(html, markdown);
 
-    console.log('Returning media count:', media.length);
+    console.log('Extracted media count:', media.length);
 
     if (media.length === 0) {
       return new Response(
         JSON.stringify({ 
           success: true, 
           media: [],
-          message: "A biblioteca de anúncios do Meta carrega o conteúdo via JavaScript. Para extrair os criativos:\n\n1. Abra o anúncio no navegador\n2. Clique em 'Ver detalhes do anúncio'\n3. Clique com botão direito na imagem/vídeo\n4. Selecione 'Copiar endereço da imagem' ou 'Salvar vídeo como...'\n\nAlternativa: Use extensões como 'Meta Ad Library Downloader' ou 'Video DownloadHelper'"
+          message: 'Nenhuma mídia encontrada automaticamente. A Biblioteca de Anúncios do Meta usa carregamento dinâmico complexo.\n\nPara extrair manualmente:\n1. Abra o anúncio específico (com ?id=...)\n2. Clique em "Ver detalhes do anúncio"\n3. Clique com botão direito na imagem/vídeo\n4. Selecione "Copiar endereço da imagem"\n5. Cole na aba "Adicionar Manual"'
         }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -196,146 +268,20 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         media,
-        total: media.length
+        message: `${media.length} mídia(s) encontrada(s)!`
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error("extract-creatives error:", error);
+    console.error('Error extracting creatives:', error);
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error instanceof Error ? error.message : "Unknown error",
-        media: [],
-        message: "Erro ao processar. Tente:\n\n1. Copiar o link correto do anúncio (com ?id=...)\n2. Usar um link de anúncio específico, não de busca\n3. Extrair manualmente clicando com botão direito na mídia"
+        error: error instanceof Error ? error.message : 'Erro desconhecido',
+        message: 'Erro ao processar. Use a aba "Adicionar Manual" para colar URLs diretamente.'
       }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
-
-function extractMediaFromHtml(html: string, adId: string | null): ExtractedMedia[] {
-  const media: ExtractedMedia[] = [];
-  const foundUrls = new Set<string>();
-  
-  // Pattern for images
-  const imgPatterns = [
-    /https:\/\/scontent[^"'\s\\]+\.(?:jpg|jpeg|png|webp|gif)/gi,
-    /https:\/\/external[^"'\s\\]+\.(?:jpg|jpeg|png|webp|gif)/gi,
-    /https:\/\/lookaside\.facebook\.com[^"'\s\\]+/gi,
-    /https:\/\/[^"'\s\\]*fbcdn[^"'\s\\]*\.(?:jpg|jpeg|png|webp|gif)/gi,
-    /https:\/\/[^"'\s\\]*fb\.com[^"'\s\\]*\.(?:jpg|jpeg|png|webp|gif)/gi,
-  ];
-
-  for (const pattern of imgPatterns) {
-    const matches = html.match(pattern) || [];
-    matches.forEach(match => {
-      let cleanUrl = cleanMediaUrl(match);
-      if (isValidMediaUrl(cleanUrl, 'image')) {
-        foundUrls.add(cleanUrl);
-      }
-    });
-  }
-
-  // Pattern for videos
-  const videoPatterns = [
-    /https:\/\/video[^"'\s\\]+\.mp4/gi,
-    /https:\/\/[^"'\s\\]*fbcdn[^"'\s\\]*\.mp4/gi,
-    /https:\/\/scontent[^"'\s\\]+\.mp4/gi,
-    /https:\/\/[^"'\s\\]*fb\.com[^"'\s\\]*\.mp4/gi,
-  ];
-
-  const videoUrls = new Set<string>();
-  for (const pattern of videoPatterns) {
-    const matches = html.match(pattern) || [];
-    matches.forEach(match => {
-      let cleanUrl = cleanMediaUrl(match);
-      if (cleanUrl.length > 50) {
-        videoUrls.add(cleanUrl);
-      }
-    });
-  }
-
-  // Extract from JSON data embedded in the page
-  const jsonPatterns = [
-    /"(?:image|video|media|src|source)(?:_url|Url|URL|_src)?"\s*:\s*"([^"]+)"/gi,
-    /"hd_src"\s*:\s*"([^"]+)"/gi,
-    /"sd_src"\s*:\s*"([^"]+)"/gi,
-  ];
-
-  for (const pattern of jsonPatterns) {
-    let match;
-    while ((match = pattern.exec(html)) !== null) {
-      const extractedUrl = cleanMediaUrl(match[1]);
-      if (extractedUrl.includes('.mp4')) {
-        videoUrls.add(extractedUrl);
-      } else if (extractedUrl.match(/\.(jpg|jpeg|png|webp|gif)/i)) {
-        if (isValidMediaUrl(extractedUrl, 'image')) {
-          foundUrls.add(extractedUrl);
-        }
-      }
-    }
-  }
-
-  // Extract page name if available
-  const pageNameMatch = html.match(/"page_name"\s*:\s*"([^"]+)"/);
-  const pageName = pageNameMatch ? pageNameMatch[1] : undefined;
-
-  // Add images
-  let index = 0;
-  foundUrls.forEach(imageUrl => {
-    media.push({
-      id: `img_${index++}`,
-      type: 'image',
-      url: imageUrl,
-      thumbnailUrl: imageUrl,
-      adId: adId || undefined,
-      pageName: pageName
-    });
-  });
-
-  // Add videos
-  videoUrls.forEach(videoUrl => {
-    media.push({
-      id: `vid_${index++}`,
-      type: 'video',
-      url: videoUrl,
-      adId: adId || undefined,
-      pageName: pageName
-    });
-  });
-
-  // Limit results
-  return media.slice(0, 30);
-}
-
-function cleanMediaUrl(url: string): string {
-  return url
-    .replace(/\\u0026/g, '&')
-    .replace(/\\u003c/g, '<')
-    .replace(/\\u003e/g, '>')
-    .replace(/\\/g, '')
-    .replace(/[,;}\]"')]+$/, '')
-    .trim();
-}
-
-function isValidMediaUrl(url: string, type: 'image' | 'video'): boolean {
-  // Filter out small images, icons, emojis
-  const invalidPatterns = [
-    'emoji', 'icon', 'logo', 'avatar',
-    's75x75', 's32x32', 'p50x50', 's100x100',
-    'rsrc.php', 'static.xx', 'platform-lookaside',
-    'safe_image.php'
-  ];
-  
-  const urlLower = url.toLowerCase();
-  
-  for (const pattern of invalidPatterns) {
-    if (urlLower.includes(pattern)) {
-      return false;
-    }
-  }
-  
-  return url.length > 60;
-}
