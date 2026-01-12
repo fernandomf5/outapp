@@ -1,4 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+/// <reference types="https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts" />
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -31,11 +31,15 @@ function extractMediaFromContent(html: string, markdown: string): ExtractedMedia
     /https:\/\/lookaside\.facebook\.com\/[^"\s\)>]+/gi,
   ];
 
-  // Video patterns
+  // Video patterns - expanded for Meta/Facebook videos
   const videoPatterns = [
     /https:\/\/video[^"\s\)>]+\.mp4[^"\s\)>]*/gi,
     /https:\/\/[a-z0-9\-]+\.fbcdn\.net\/[^"\s\)>]+\.mp4[^"\s\)>]*/gi,
     /https:\/\/scontent[^"\s\)>]+\.mp4[^"\s\)>]*/gi,
+    /https:\/\/[a-z0-9\-]+\.xx\.fbcdn\.net\/v\/[^"\s\)>]+/gi,
+    /https:\/\/video\.xx\.fbcdn\.net\/[^"\s\)>]+/gi,
+    /https:\/\/[a-z0-9\-]+\.cdninstagram\.com\/[^"\s\)>]+\.mp4[^"\s\)>]*/gi,
+    /https:\/\/video[^"\s\)>]+fbcdn\.net\/[^"\s\)>]+/gi,
   ];
 
   // Extract images
@@ -72,21 +76,47 @@ function extractMediaFromContent(html: string, markdown: string): ExtractedMedia
     });
   });
 
-  // Try to extract from JSON-like structures in the content
-  const jsonPatterns = [
-    /"(?:image|video|src|url|preview|original)(?:_url)?"\s*:\s*"([^"]+)"/gi,
-    /"(?:hd_src|sd_src|thumbnail_url|image_url)"\s*:\s*"([^"]+)"/gi,
-    /"(?:videoHD|videoSD|previewUrl|imageUrl)"\s*:\s*"([^"]+)"/gi,
+  // Try to extract from JSON-like structures in the content - especially video URLs
+  const jsonVideoPatterns = [
+    /"(?:hd_src|sd_src|browser_native_hd_url|browser_native_sd_url)"\s*:\s*"([^"]+)"/gi,
+    /"(?:playable_url|playable_url_quality_hd)"\s*:\s*"([^"]+)"/gi,
+    /"(?:video_url|video_hd_url|video_sd_url)"\s*:\s*"([^"]+)"/gi,
+    /"(?:videoHD|videoSD)"\s*:\s*"([^"]+)"/gi,
   ];
 
-  jsonPatterns.forEach(pattern => {
+  jsonVideoPatterns.forEach(pattern => {
     let match;
-    while ((match = pattern.exec(content)) !== null) {
+    const regex = new RegExp(pattern.source, pattern.flags);
+    while ((match = regex.exec(content)) !== null) {
       const url = cleanMediaUrl(match[1]);
       
       if (!seenUrls.has(url) && isValidMediaUrl(url)) {
         seenUrls.add(url);
-        const isVideo = url.includes('.mp4') || url.includes('video');
+        media.push({
+          id: `vid_${Date.now()}_${media.length}`,
+          type: 'video',
+          url: url,
+          thumbnailUrl: url
+        });
+      }
+    }
+  });
+
+  // Try to extract from JSON-like structures - images
+  const jsonImagePatterns = [
+    /"(?:image|src|url|preview|original)(?:_url)?"\s*:\s*"([^"]+)"/gi,
+    /"(?:thumbnail_url|image_url|previewUrl|imageUrl)"\s*:\s*"([^"]+)"/gi,
+  ];
+
+  jsonImagePatterns.forEach(pattern => {
+    let match;
+    const regex = new RegExp(pattern.source, pattern.flags);
+    while ((match = regex.exec(content)) !== null) {
+      const url = cleanMediaUrl(match[1]);
+      
+      if (!seenUrls.has(url) && isValidMediaUrl(url)) {
+        seenUrls.add(url);
+        const isVideo = url.includes('.mp4') || url.includes('video') || url.includes('/v/t');
         media.push({
           id: `${isVideo ? 'vid' : 'img'}_${Date.now()}_${media.length}`,
           type: isVideo ? 'video' : 'image',
@@ -106,6 +136,8 @@ function extractMediaFromContent(html: string, markdown: string): ExtractedMedia
       m.pageName = pageName;
     });
   }
+
+  console.log(`Found ${media.filter(m => m.type === 'image').length} images and ${media.filter(m => m.type === 'video').length} videos`);
 
   return media.slice(0, 50); // Limit to 50 items
 }
@@ -172,6 +204,9 @@ function isValidMediaUrl(url: string): boolean {
     '.mp4',
     'lookaside.fbsbx.com',
     'lookaside.facebook.com',
+    'video.xx.fbcdn.net',
+    'cdninstagram.com',
+    '/v/t',  // Facebook video path pattern
   ];
   
   return validPatterns.some(pattern => lowerUrl.includes(pattern));
@@ -221,7 +256,7 @@ Deno.serve(async (req) => {
         url: url,
         formats: ['markdown', 'html'],
         onlyMainContent: false,
-        waitFor: 5000, // Wait 5 seconds for JavaScript to render
+        waitFor: 8000, // Wait 8 seconds for JavaScript to render videos
       }),
     });
 
@@ -258,17 +293,20 @@ Deno.serve(async (req) => {
         JSON.stringify({ 
           success: true, 
           media: [],
-          message: 'Nenhuma mídia encontrada automaticamente. A Biblioteca de Anúncios do Meta usa carregamento dinâmico complexo.\n\nPara extrair manualmente:\n1. Abra o anúncio específico (com ?id=...)\n2. Clique em "Ver detalhes do anúncio"\n3. Clique com botão direito na imagem/vídeo\n4. Selecione "Copiar endereço da imagem"\n5. Cole na aba "Adicionar Manual"'
+          message: 'Nenhuma mídia encontrada automaticamente. A Biblioteca de Anúncios do Meta usa carregamento dinâmico complexo.\n\nPara extrair manualmente:\n1. Abra o anúncio específico (com ?id=...)\n2. Clique em "Ver detalhes do anúncio"\n3. Clique com botão direito na imagem/vídeo\n4. Selecione "Copiar endereço da imagem/vídeo"\n5. Cole na aba "Adicionar Manual"'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    const imageCount = media.filter(m => m.type === 'image').length;
+    const videoCount = media.filter(m => m.type === 'video').length;
+
     return new Response(
       JSON.stringify({ 
         success: true, 
         media,
-        message: `${media.length} mídia(s) encontrada(s)!`
+        message: `Encontrado(s): ${imageCount} imagem(ns) e ${videoCount} vídeo(s)!`
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
