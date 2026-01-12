@@ -45,6 +45,7 @@ import { AdsManagementPanel } from "@/components/AdsManagementPanel";
 import { TaskOrganizerPanel } from "@/components/TaskOrganizerPanel";
 import { PopupCreatorPanel } from "@/components/PopupCreatorPanel";
 import { AdSpyPanel } from "@/components/AdSpyPanel";
+import CreativeExtractorPanel from "@/components/CreativeExtractorPanel";
 import { QuizCreatorPanel } from "@/components/QuizCreatorPanel";
 import { BriefingResponsesPanel } from "@/components/BriefingResponsesPanel";
 import { BriefingCreatorPanel } from "@/components/BriefingCreatorPanel";
@@ -1281,6 +1282,10 @@ const Dashboard = () => {
             <FeatureGate featureKey="ads_management">
               <AdsManagementPanel teamContext={getTeamContext('ads')} />
             </FeatureGate>
+          </TabsContent>
+
+          <TabsContent value="extrator-criativos">
+            <CreativeExtractorPanel />
           </TabsContent>
 
           <TabsContent value="tarefas">
