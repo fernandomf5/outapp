@@ -50,3 +50,9 @@ verify_jwt = false
 
 [functions.parse-leads-from-image]
 verify_jwt = false
+
+[functions.extract-creatives]
+verify_jwt = false
+
+[functions.ad-spy-search]
+verify_jwt = false

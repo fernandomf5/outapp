@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck, Layers, LogIn, Filter } from "lucide-react";
+import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck, Layers, LogIn, Filter, Download } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import logoLight from "@/assets/logo-light.png";
@@ -152,6 +152,7 @@ export function UserSidebar() {
     { title: "Criador de Propostas", icon: FileCheck, path: "/dashboard", tab: "propostas", hideForTeamMember: true },
     { title: "Criador de Portfólio", icon: Layers, path: "/dashboard", tab: "portfolio", moduleKey: "portfolio" },
     { title: "Aprova Job", icon: ClipboardCheck, path: "/dashboard", tab: "aprova-job", hideForTeamMember: true },
+    { title: "Extrator de Criativos", icon: Download, path: "/dashboard", tab: "extrator-criativos", hideForTeamMember: true },
   ];
 
   // Support items - all hidden for team members
