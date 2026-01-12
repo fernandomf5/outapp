@@ -34,7 +34,8 @@ import {
   Strikethrough,
   Code,
   Eye,
-  Edit3
+  Edit3,
+  Pencil
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -121,6 +122,11 @@ export function ManualDispatcherPanel() {
   const [currentMessageName, setCurrentMessageName] = useState<string | null>(null);
 
   const [editorTab, setEditorTab] = useState<'edit' | 'preview'>('edit');
+
+  // Edit lead state
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [editLeadName, setEditLeadName] = useState('');
+  const [showEditLeadDialog, setShowEditLeadDialog] = useState(false);
 
   const generateId = () => Math.random().toString(36).substring(2, 9);
 
@@ -540,6 +546,36 @@ export function ManualDispatcherPanel() {
 
   const handleRemoveLead = (id: string) => {
     setLeads(prev => prev.filter(lead => lead.id !== id));
+  };
+
+  const handleEditLead = (lead: Lead) => {
+    setEditingLead(lead);
+    setEditLeadName(lead.name);
+    setShowEditLeadDialog(true);
+  };
+
+  const handleSaveLeadEdit = () => {
+    if (!editingLead || !editLeadName.trim()) {
+      toast({
+        title: "Nome obrigatório",
+        description: "O nome do lead não pode estar vazio.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLeads(prev => prev.map(lead => 
+      lead.id === editingLead.id ? { ...lead, name: editLeadName.trim() } : lead
+    ));
+
+    toast({
+      title: "Lead atualizado",
+      description: `Nome alterado para "${editLeadName.trim()}".`
+    });
+
+    setShowEditLeadDialog(false);
+    setEditingLead(null);
+    setEditLeadName('');
   };
 
   const handleToggleLead = (id: string) => {
@@ -1251,6 +1287,15 @@ export function ManualDispatcherPanel() {
                     ) : (
                       <>
                         <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditLead(lead)}
+                          className="h-8 w-8"
+                          title="Editar nome"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
                           variant="outline"
                           size="sm"
                           onClick={() => {
@@ -1560,6 +1605,51 @@ export function ManualDispatcherPanel() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowMessagesDialog(false)}>
               Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Lead Dialog */}
+      <Dialog open={showEditLeadDialog} onOpenChange={setShowEditLeadDialog}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="w-5 h-5" />
+              Editar Lead
+            </DialogTitle>
+            <DialogDescription>
+              Altere o nome do lead abaixo.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="editLeadName">Nome do Lead</Label>
+              <Input
+                id="editLeadName"
+                placeholder="Nome do cliente"
+                value={editLeadName}
+                onChange={(e) => setEditLeadName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSaveLeadEdit();
+                  }
+                }}
+              />
+            </div>
+            {editingLead && (
+              <div className="text-sm text-muted-foreground">
+                <p>Telefone: {editingLead.phone}</p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditLeadDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveLeadEdit}>
+              <Save className="w-4 h-4 mr-2" />
+              Salvar
             </Button>
           </DialogFooter>
         </DialogContent>
