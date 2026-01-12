@@ -1221,7 +1221,7 @@ export function ManualDispatcherPanel() {
               {leads.map((lead) => (
                 <div
                   key={lead.id}
-                  className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
+                  className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-lg border transition-colors ${
                     lead.sent 
                       ? 'bg-green-500/5 border-green-500/30' 
                       : lead.selected 
@@ -1229,18 +1229,20 @@ export function ManualDispatcherPanel() {
                         : 'bg-muted/30 border-border'
                   }`}
                 >
-                  <Checkbox
-                    checked={lead.selected}
-                    onCheckedChange={() => handleToggleLead(lead.id)}
-                    disabled={lead.sent}
-                  />
-                  
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{lead.name}</p>
-                    <p className="text-xs text-muted-foreground">{lead.phone}</p>
+                  <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                    <Checkbox
+                      checked={lead.selected}
+                      onCheckedChange={() => handleToggleLead(lead.id)}
+                      disabled={lead.sent}
+                    />
+                    
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm break-words">{lead.name}</p>
+                      <p className="text-xs text-muted-foreground">{lead.phone}</p>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 ml-6 sm:ml-0 flex-wrap sm:flex-nowrap">
                     {lead.sent ? (
                       <Badge variant="secondary" className="bg-green-500/10 text-green-600 text-xs">
                         <CheckCircle2 className="w-3 h-3 mr-1" />
@@ -1255,20 +1257,20 @@ export function ManualDispatcherPanel() {
                             const cleanPhone = lead.phone.replace(/\D/g, '');
                             window.open(`tel:${cleanPhone}`, '_self');
                           }}
-                          className="h-8 text-xs gap-1.5"
+                          className="h-8 text-xs gap-1 sm:gap-1.5 px-2 sm:px-3"
                           title="Ligar para este contato"
                         >
                           <PhoneCall className="w-3.5 h-3.5" />
-                          Ligar
+                          <span className="hidden xs:inline">Ligar</span>
                         </Button>
                         <Button
                           variant="default"
                           size="sm"
                           onClick={() => openWhatsApp(lead, true)}
-                          className="h-8 text-xs gap-1.5"
+                          className="h-8 text-xs gap-1 sm:gap-1.5 px-2 sm:px-3"
                         >
                           <Send className="w-3.5 h-3.5" />
-                          Disparar
+                          <span className="hidden xs:inline">Disparar</span>
                         </Button>
                         <Button
                           variant="ghost"
