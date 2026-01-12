@@ -14,7 +14,8 @@ import {
   Trash2, 
   Send, 
   User, 
-  Phone, 
+  Phone,
+  PhoneCall,
   MessageSquare,
   Loader2,
   CheckCircle2,
@@ -1247,6 +1248,19 @@ export function ManualDispatcherPanel() {
                       </Badge>
                     ) : (
                       <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const cleanPhone = lead.phone.replace(/\D/g, '');
+                            window.open(`tel:${cleanPhone}`, '_self');
+                          }}
+                          className="h-8 text-xs gap-1.5"
+                          title="Ligar para este contato"
+                        >
+                          <PhoneCall className="w-3.5 h-3.5" />
+                          Ligar
+                        </Button>
                         <Button
                           variant="default"
                           size="sm"
