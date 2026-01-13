@@ -14,32 +14,44 @@ interface ExtractedMedia {
   pageName?: string;
 }
 
-function extractMediaFromContent(html: string, markdown: string): ExtractedMedia[] {
+function extractMediaFromContent(html: string, markdown: string, rawHtml: string = ''): ExtractedMedia[] {
   const media: ExtractedMedia[] = [];
   const seenUrls = new Set<string>();
 
-  // Extract from HTML and markdown combined
-  const content = html + ' ' + markdown;
+  // Extract from HTML, markdown and rawHtml combined
+  const content = html + ' ' + markdown + ' ' + rawHtml;
 
   // Image patterns - Meta/Facebook CDN patterns
   const imagePatterns = [
-    /https:\/\/scontent[^"\s\)>]+\.(jpg|jpeg|png|gif|webp)[^"\s\)>]*/gi,
-    /https:\/\/[a-z0-9\-]+\.fbcdn\.net\/[^"\s\)>]+\.(jpg|jpeg|png|gif|webp)[^"\s\)>]*/gi,
-    /https:\/\/external[^"\s\)>]+\.(jpg|jpeg|png|gif|webp)[^"\s\)>]*/gi,
-    /https:\/\/lookaside\.fbsbx\.com\/[^"\s\)>]+/gi,
-    /https:\/\/[^"\s\)>]+fbcdn[^"\s\)>]+\.(jpg|jpeg|png|gif|webp)[^"\s\)>]*/gi,
-    /https:\/\/lookaside\.facebook\.com\/[^"\s\)>]+/gi,
+    /https:\/\/scontent[^"\s\)>\\]+\.(jpg|jpeg|png|gif|webp)[^"\s\)>\\]*/gi,
+    /https:\/\/[a-z0-9\-]+\.fbcdn\.net\/[^"\s\)>\\]+\.(jpg|jpeg|png|gif|webp)[^"\s\)>\\]*/gi,
+    /https:\/\/external[^"\s\)>\\]+\.(jpg|jpeg|png|gif|webp)[^"\s\)>\\]*/gi,
+    /https:\/\/lookaside\.fbsbx\.com\/[^"\s\)>\\]+/gi,
+    /https:\/\/[^"\s\)>\\]+fbcdn[^"\s\)>\\]+\.(jpg|jpeg|png|gif|webp)[^"\s\)>\\]*/gi,
+    /https:\/\/lookaside\.facebook\.com\/[^"\s\)>\\]+/gi,
   ];
 
   // Video patterns - expanded for Meta/Facebook videos
   const videoPatterns = [
-    /https:\/\/video[^"\s\)>]+\.mp4[^"\s\)>]*/gi,
-    /https:\/\/[a-z0-9\-]+\.fbcdn\.net\/[^"\s\)>]+\.mp4[^"\s\)>]*/gi,
-    /https:\/\/scontent[^"\s\)>]+\.mp4[^"\s\)>]*/gi,
-    /https:\/\/[a-z0-9\-]+\.xx\.fbcdn\.net\/v\/[^"\s\)>]+/gi,
-    /https:\/\/video\.xx\.fbcdn\.net\/[^"\s\)>]+/gi,
-    /https:\/\/[a-z0-9\-]+\.cdninstagram\.com\/[^"\s\)>]+\.mp4[^"\s\)>]*/gi,
-    /https:\/\/video[^"\s\)>]+fbcdn\.net\/[^"\s\)>]+/gi,
+    // Direct mp4 links
+    /https:\/\/video[^"\s\)>\\]+\.mp4[^"\s\)>\\]*/gi,
+    /https:\/\/[a-z0-9\-]+\.fbcdn\.net\/[^"\s\)>\\]+\.mp4[^"\s\)>\\]*/gi,
+    /https:\/\/scontent[^"\s\)>\\]+\.mp4[^"\s\)>\\]*/gi,
+    // Facebook video CDN patterns
+    /https:\/\/[a-z0-9\-]+\.xx\.fbcdn\.net\/v\/[^"\s\)>\\]+/gi,
+    /https:\/\/video\.xx\.fbcdn\.net\/[^"\s\)>\\]+/gi,
+    /https:\/\/video\-[a-z0-9\-]+\.xx\.fbcdn\.net\/[^"\s\)>\\]+/gi,
+    /https:\/\/scontent\-[a-z0-9\-]+\.xx\.fbcdn\.net\/v\/[^"\s\)>\\]+/gi,
+    // Instagram video CDN
+    /https:\/\/[a-z0-9\-]+\.cdninstagram\.com\/[^"\s\)>\\]+\.mp4[^"\s\)>\\]*/gi,
+    /https:\/\/scontent\.cdninstagram\.com\/[^"\s\)>\\]+/gi,
+    // Generic video fbcdn patterns
+    /https:\/\/video[^"\s\)>\\]+fbcdn\.net\/[^"\s\)>\\]+/gi,
+    // Video with /v/t patterns (common Facebook format)
+    /https:\/\/[^"\s\)>\\]+fbcdn\.net\/v\/t[^"\s\)>\\]+/gi,
+    // Escaped URLs (common in JSON)
+    /https:\\u002F\\u002F[^"\s]+?\.mp4[^"\s]*/gi,
+    /https:\\\/\\\/[^"\s]+?\.mp4[^"\s]*/gi,
   ];
 
   // Extract images
@@ -64,7 +76,7 @@ function extractMediaFromContent(html: string, markdown: string): ExtractedMedia
     const matches = content.match(pattern) || [];
     matches.forEach(url => {
       const cleanUrl = cleanMediaUrl(url);
-      if (!seenUrls.has(cleanUrl) && isValidMediaUrl(cleanUrl)) {
+      if (!seenUrls.has(cleanUrl) && isValidVideoUrl(cleanUrl)) {
         seenUrls.add(cleanUrl);
         media.push({
           id: `vid_${Date.now()}_${media.length}`,
@@ -79,9 +91,12 @@ function extractMediaFromContent(html: string, markdown: string): ExtractedMedia
   // Try to extract from JSON-like structures in the content - especially video URLs
   const jsonVideoPatterns = [
     /"(?:hd_src|sd_src|browser_native_hd_url|browser_native_sd_url)"\s*:\s*"([^"]+)"/gi,
-    /"(?:playable_url|playable_url_quality_hd)"\s*:\s*"([^"]+)"/gi,
-    /"(?:video_url|video_hd_url|video_sd_url)"\s*:\s*"([^"]+)"/gi,
-    /"(?:videoHD|videoSD)"\s*:\s*"([^"]+)"/gi,
+    /"(?:playable_url|playable_url_quality_hd|playable_url_dash)"\s*:\s*"([^"]+)"/gi,
+    /"(?:video_url|video_hd_url|video_sd_url|videoUrl)"\s*:\s*"([^"]+)"/gi,
+    /"(?:videoHD|videoSD|video_src)"\s*:\s*"([^"]+)"/gi,
+    /"(?:dash_manifest|stream_url|progressive_url)"\s*:\s*"([^"]+)"/gi,
+    /"(?:source|src)"\s*:\s*"(https[^"]+\.mp4[^"]*)"/gi,
+    /"(?:contentUrl|embedUrl|video)"\s*:\s*"(https[^"]+(?:\.mp4|video)[^"]*)"/gi,
   ];
 
   jsonVideoPatterns.forEach(pattern => {
@@ -90,7 +105,7 @@ function extractMediaFromContent(html: string, markdown: string): ExtractedMedia
     while ((match = regex.exec(content)) !== null) {
       const url = cleanMediaUrl(match[1]);
       
-      if (!seenUrls.has(url) && isValidMediaUrl(url)) {
+      if (!seenUrls.has(url) && isValidVideoUrl(url)) {
         seenUrls.add(url);
         media.push({
           id: `vid_${Date.now()}_${media.length}`,
@@ -116,7 +131,7 @@ function extractMediaFromContent(html: string, markdown: string): ExtractedMedia
       
       if (!seenUrls.has(url) && isValidMediaUrl(url)) {
         seenUrls.add(url);
-        const isVideo = url.includes('.mp4') || url.includes('video') || url.includes('/v/t');
+        const isVideo = isVideoUrl(url);
         media.push({
           id: `${isVideo ? 'vid' : 'img'}_${Date.now()}_${media.length}`,
           type: isVideo ? 'video' : 'image',
@@ -140,6 +155,57 @@ function extractMediaFromContent(html: string, markdown: string): ExtractedMedia
   console.log(`Found ${media.filter(m => m.type === 'image').length} images and ${media.filter(m => m.type === 'video').length} videos`);
 
   return media.slice(0, 50); // Limit to 50 items
+}
+
+function isVideoUrl(url: string): boolean {
+  const lowerUrl = url.toLowerCase();
+  return lowerUrl.includes('.mp4') || 
+         lowerUrl.includes('video') || 
+         lowerUrl.includes('/v/t') ||
+         lowerUrl.includes('playable') ||
+         lowerUrl.includes('stream');
+}
+
+function isValidVideoUrl(url: string): boolean {
+  if (!url || url.length < 40) return false;
+  if (!url.startsWith('http')) return false;
+  
+  const lowerUrl = url.toLowerCase();
+  
+  // Skip invalid patterns
+  const invalidPatterns = [
+    'facebook.com/tr',
+    'pixel',
+    'tracking',
+    'analytics',
+    '/static/',
+    'rsrc.php',
+    'static.xx.fbcdn.net',
+    'favicon',
+    'sprite',
+    '.svg',
+    'data:image',
+    'platform-lookaside',
+    'safe_image.php',
+    'avatar',
+  ];
+  
+  for (const pattern of invalidPatterns) {
+    if (lowerUrl.includes(pattern)) return false;
+  }
+  
+  // Must contain video-related patterns
+  const validVideoPatterns = [
+    '.mp4',
+    'video',
+    '/v/t',
+    'playable',
+    'stream',
+    'fbcdn.net/v/',
+    'xx.fbcdn.net/v/',
+  ];
+  
+  return validVideoPatterns.some(pattern => lowerUrl.includes(pattern));
 }
 
 function cleanMediaUrl(url: string): string {
@@ -254,9 +320,9 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         url: url,
-        formats: ['markdown', 'html'],
+        formats: ['markdown', 'html', 'rawHtml'], // Include rawHtml for video detection
         onlyMainContent: false,
-        waitFor: 8000, // Wait 8 seconds for JavaScript to render videos
+        waitFor: 10000, // Wait 10 seconds for JavaScript to render videos
       }),
     });
 
@@ -279,12 +345,14 @@ Deno.serve(async (req) => {
     // Extract content from response - handle both nested and flat structure
     const html = scrapeData.data?.html || scrapeData.html || '';
     const markdown = scrapeData.data?.markdown || scrapeData.markdown || '';
+    const rawHtml = scrapeData.data?.rawHtml || scrapeData.rawHtml || '';
 
     console.log('HTML length:', html.length);
     console.log('Markdown length:', markdown.length);
+    console.log('RawHtml length:', rawHtml.length);
 
-    // Extract media from the content
-    const media = extractMediaFromContent(html, markdown);
+    // Extract media from the content - include rawHtml for better video detection
+    const media = extractMediaFromContent(html, markdown, rawHtml);
 
     console.log('Extracted media count:', media.length);
 
