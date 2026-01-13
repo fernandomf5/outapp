@@ -102,6 +102,7 @@ export function ManualDispatcherPanel() {
   const [isProcessingOCR, setIsProcessingOCR] = useState(false);
   const [isDispatching, setIsDispatching] = useState(false);
   const [currentDispatchIndex, setCurrentDispatchIndex] = useState(0);
+  const [whatsappType, setWhatsappType] = useState<'normal' | 'business'>('normal');
 
   // Saved lists state
   const [savedLists, setSavedLists] = useState<SavedList[]>([]);
@@ -718,6 +719,13 @@ export function ManualDispatcherPanel() {
       .replace(/{numero}/gi, lead.phone);
   };
 
+  const getWhatsAppUrl = (phone: string, encodedMessage: string) => {
+    if (whatsappType === 'business') {
+      return `https://web.whatsapp.com/send?phone=${phone}&text=${encodedMessage}&app=business`;
+    }
+    return `https://web.whatsapp.com/send?phone=${phone}&text=${encodedMessage}`;
+  };
+
   const openWhatsApp = (lead: Lead, markAsSent: boolean = false) => {
     if (!message.trim()) {
       toast({
@@ -730,7 +738,7 @@ export function ManualDispatcherPanel() {
 
     const personalizedMessage = replaceVariables(message, lead);
     const encodedMessage = encodeURIComponent(personalizedMessage);
-    const whatsappUrl = `https://web.whatsapp.com/send?phone=${lead.phone}&text=${encodedMessage}`;
+    const whatsappUrl = getWhatsAppUrl(lead.phone, encodedMessage);
     const newWindow = window.open(whatsappUrl, '_blank');
 
     if (markAsSent && newWindow) {
@@ -788,7 +796,7 @@ export function ManualDispatcherPanel() {
       
       const personalizedMessage = replaceVariables(message, lead);
       const encodedMessage = encodeURIComponent(personalizedMessage);
-      const whatsappUrl = `https://web.whatsapp.com/send?phone=${lead.phone}&text=${encodedMessage}`;
+      const whatsappUrl = getWhatsAppUrl(lead.phone, encodedMessage);
       
       const newWindow = window.open(whatsappUrl, '_blank');
       
@@ -985,6 +993,42 @@ END:VCARD`;
           </CardContent>
         </Card>
       )}
+
+      {/* WhatsApp Type Selector */}
+      <Card className="border-green-500/50 bg-green-500/5">
+        <CardContent className="pt-4 pb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex items-start gap-3 flex-1">
+              <MessageSquare className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm">
+                <p className="font-medium text-green-600">Qual WhatsApp usar?</p>
+                <p className="text-muted-foreground mt-1">
+                  Escolha qual aplicativo do WhatsApp será aberto ao disparar.
+                </p>
+              </div>
+            </div>
+            <Select value={whatsappType} onValueChange={(value: 'normal' | 'business') => setWhatsappType(value)}>
+              <SelectTrigger className="w-[180px] h-9 border-green-500/50">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="normal">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4" />
+                    WhatsApp Normal
+                  </div>
+                </SelectItem>
+                <SelectItem value="business">
+                  <div className="flex items-center gap-2">
+                    <Rocket className="w-4 h-4" />
+                    WhatsApp Business
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Aviso importante */}
       <Card className="border-amber-500/50 bg-amber-500/5">
