@@ -35,7 +35,9 @@ import {
   Code,
   Eye,
   Edit3,
-  Pencil
+  Pencil,
+  Download,
+  Contact
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -828,6 +830,48 @@ export function ManualDispatcherPanel() {
   const selectedCount = leads.filter(l => l.selected && !l.sent).length;
   const sentCount = leads.filter(l => l.sent).length;
 
+  // Export leads as VCF (vCard) file for importing to phone contacts
+  const exportAsVCF = () => {
+    if (leads.length === 0) {
+      toast({
+        title: "Nenhum lead",
+        description: "Adicione leads antes de exportar.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Generate vCard format for each lead
+    const vcfContent = leads.map(lead => {
+      const nameParts = lead.name.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      return `BEGIN:VCARD
+VERSION:3.0
+FN:${lead.name}
+N:${lastName};${firstName};;;
+TEL;TYPE=CELL:${lead.phone}
+END:VCARD`;
+    }).join('\n');
+
+    // Create and download file
+    const blob = new Blob([vcfContent], { type: 'text/vcard;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `leads_${new Date().toISOString().split('T')[0]}.vcf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Contatos exportados!",
+      description: `${leads.length} contato(s) exportado(s). Importe o arquivo .vcf no seu celular.`
+    });
+  };
+
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Header */}
@@ -912,6 +956,34 @@ export function ManualDispatcherPanel() {
             </Button>
           )}
         </div>
+      )}
+
+      {/* Tip for adding contacts */}
+      {leads.length > 0 && (
+        <Card className="border-blue-500/50 bg-blue-500/5">
+          <CardContent className="pt-4 pb-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="flex items-start gap-3 flex-1">
+                <Contact className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium text-blue-600">Dica: Adicione aos contatos primeiro</p>
+                  <p className="text-muted-foreground mt-1">
+                    Para evitar restrições do WhatsApp, salve os leads como contatos no celular antes de disparar.
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportAsVCF}
+                className="h-8 text-xs gap-1.5 border-blue-500/50 text-blue-600 hover:bg-blue-500/10"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Exportar Contatos (.vcf)
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Aviso importante */}
