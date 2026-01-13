@@ -838,6 +838,36 @@ export function ManualDispatcherPanel() {
   const selectedCount = leads.filter(l => l.selected && !l.sent).length;
   const sentCount = leads.filter(l => l.sent).length;
 
+  // Export single lead as VCF (vCard) file
+  const exportSingleVCF = (lead: Lead) => {
+    const nameParts = lead.name.trim().split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+    
+    const vcfContent = `BEGIN:VCARD
+VERSION:3.0
+FN:${lead.name}
+N:${lastName};${firstName};;;
+TEL;TYPE=CELL:${lead.phone}
+END:VCARD`;
+
+    // Create and download file
+    const blob = new Blob([vcfContent], { type: 'text/vcard;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${lead.name.replace(/\s+/g, '_')}.vcf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Contato exportado!",
+      description: `${lead.name} exportado. Importe o arquivo .vcf no seu celular.`
+    });
+  };
+
   // Export leads as VCF (vCard) file for importing to phone contacts
   const exportAsVCF = () => {
     if (leads.length === 0) {
@@ -1410,6 +1440,15 @@ END:VCARD`;
                           title="Editar nome"
                         >
                           <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => exportSingleVCF(lead)}
+                          className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-500/10"
+                          title="Salvar contato (.vcf)"
+                        >
+                          <Contact className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="outline"
