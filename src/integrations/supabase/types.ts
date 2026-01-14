@@ -6065,38 +6065,34 @@ export type Database = {
           },
         ]
       }
-      task_clients: {
+      task_client_links: {
         Row: {
           created_at: string
-          email: string | null
+          customer_id: string
           id: string
-          name: string
-          notes: string | null
-          phone: string | null
-          updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
-          email?: string | null
+          customer_id: string
           id?: string
-          name: string
-          notes?: string | null
-          phone?: string | null
-          updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
-          email?: string | null
+          customer_id?: string
           id?: string
-          name?: string
-          notes?: string | null
-          phone?: string | null
-          updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "task_client_links_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tasks: {
         Row: {
