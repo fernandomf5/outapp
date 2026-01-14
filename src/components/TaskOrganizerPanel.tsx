@@ -8,13 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, Calendar, Flag, MoreVertical, ChevronLeft, ChevronRight, MoveRight } from "lucide-react";
+import { Plus, Edit2, Trash2, Calendar, Flag, MoreVertical, ChevronLeft, ChevronRight, MoveRight, Users, UserPlus } from "lucide-react";
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, pointerWithin, closestCenter, PointerSensor, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 interface Task {
   id: string;
   title: string;
@@ -273,7 +273,7 @@ interface TaskOrganizerPanelProps {
 export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [blocks, setBlocks] = useState<TaskBlock[]>([]);
-  const [clients, setClients] = useState<Array<{id: string, name: string}>>([]);
+  const [clients, setClients] = useState<Array<{id: string, name: string, email?: string, phone?: string, notes?: string}>>([]);
   const [loading, setLoading] = useState(true);
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
@@ -303,6 +303,14 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
   });
 
   const [taskClientCategories, setTaskClientCategories] = useState<Array<{id:string; name:string}>>([]);
+
+  // Task client management state
+  const [showClientManager, setShowClientManager] = useState(false);
+  const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState<{id: string, name: string, email?: string, phone?: string, notes?: string} | null>(null);
+  const [clientForm, setClientForm] = useState({ name: "", email: "", phone: "", notes: "" });
+  const [clientToDelete, setClientToDelete] = useState<string | null>(null);
+
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -349,9 +357,10 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
       const userId = await getTargetUserId();
       if (!userId) return;
 
+      // Use task_clients table instead of customers
       let query = supabase
-        .from("customers")
-        .select("id, name")
+        .from("task_clients")
+        .select("id, name, email, phone, notes")
         .eq("user_id", userId)
         .order("name", { ascending: true });
 
@@ -368,6 +377,90 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
       console.error("Erro ao carregar clientes:", error?.message || error);
       setClients([]);
     }
+  };
+
+  // Task client CRUD functions
+  const handleAddClient = async () => {
+    try {
+      if (!clientForm.name.trim()) {
+        toast.error("Por favor, preencha o nome do cliente");
+        return;
+      }
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const userId = await getTargetUserId();
+
+      if (editingClient) {
+        const { error } = await supabase
+          .from("task_clients")
+          .update({
+            name: clientForm.name,
+            email: clientForm.email || null,
+            phone: clientForm.phone || null,
+            notes: clientForm.notes || null,
+          })
+          .eq("id", editingClient.id);
+
+        if (error) throw error;
+        toast.success("Cliente atualizado!");
+      } else {
+        const { error } = await supabase
+          .from("task_clients")
+          .insert({
+            user_id: userId,
+            name: clientForm.name,
+            email: clientForm.email || null,
+            phone: clientForm.phone || null,
+            notes: clientForm.notes || null,
+          });
+
+        if (error) throw error;
+        toast.success("Cliente adicionado ao organizador de tarefas!");
+      }
+
+      setIsClientDialogOpen(false);
+      setEditingClient(null);
+      setClientForm({ name: "", email: "", phone: "", notes: "" });
+      loadClients();
+    } catch (error: any) {
+      toast.error("Erro ao salvar cliente: " + error.message);
+    }
+  };
+
+  const handleDeleteClient = async (clientId: string) => {
+    try {
+      // First, unlink all tasks from this client
+      await supabase
+        .from("tasks")
+        .update({ client_id: null })
+        .eq("client_id", clientId);
+
+      // Delete the client
+      const { error } = await supabase
+        .from("task_clients")
+        .delete()
+        .eq("id", clientId);
+
+      if (error) throw error;
+      toast.success("Cliente removido do organizador!");
+      setClientToDelete(null);
+      loadClients();
+    } catch (error: any) {
+      toast.error("Erro ao remover cliente: " + error.message);
+    }
+  };
+
+  const openEditClient = (client: typeof clients[0]) => {
+    setEditingClient(client);
+    setClientForm({
+      name: client.name,
+      email: client.email || "",
+      phone: client.phone || "",
+      notes: client.notes || "",
+    });
+    setIsClientDialogOpen(true);
   };
 
   const loadClientCategories = async (clientId: string) => {
@@ -865,75 +958,249 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
   // Check if this is a team member context
   const isTeamMember = !!teamContext?.allowedIds && teamContext.allowedIds.length > 0;
 
-  // Show client selection screen if no client selected
-  if (!selectedClientFilter) {
+  // Show client selection screen if no client selected or client manager
+  if (!selectedClientFilter || showClientManager) {
     return (
       <div className="space-y-6">
         <div className="text-center">
           <h2 className="text-3xl font-bold mb-2">Organizador de Tarefas</h2>
-          <p className="text-muted-foreground mb-8">Selecione um cliente para visualizar suas tarefas</p>
+          <p className="text-muted-foreground mb-8">
+            {showClientManager ? "Gerencie os clientes do organizador de tarefas" : "Selecione um cliente para visualizar suas tarefas"}
+          </p>
         </div>
         
         <div className="max-w-2xl mx-auto">
           <Card>
             <CardHeader>
-              <CardTitle>Selecione o Cliente</CardTitle>
-              <CardDescription>Escolha um cliente para gerenciar suas tarefas</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>{showClientManager ? "Gerenciar Clientes" : "Selecione o Cliente"}</CardTitle>
+                  <CardDescription>
+                    {showClientManager 
+                      ? "Adicione, edite ou remova clientes do organizador de tarefas"
+                      : "Escolha um cliente para gerenciar suas tarefas"
+                    }
+                  </CardDescription>
+                </div>
+                {!isTeamMember && (
+                  <div className="flex gap-2">
+                    {showClientManager ? (
+                      <Button variant="outline" onClick={() => setShowClientManager(false)}>
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        Voltar
+                      </Button>
+                    ) : (
+                      <Button variant="outline" onClick={() => setShowClientManager(true)}>
+                        <Users className="mr-2 h-4 w-4" />
+                        Gerenciar Clientes
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-3">
-                {/* Only show "Todos" and "Sem Cliente" for non-team members */}
-                {!isTeamMember && (
-                  <>
-                    <Button 
-                      variant="outline" 
-                      className="justify-start h-auto py-4 px-4"
-                      onClick={() => setSelectedClientFilter("all")}
-                    >
-                      <div className="text-left">
-                        <div className="font-semibold">Todos os Clientes</div>
-                        <div className="text-sm text-muted-foreground">Ver tarefas de todos os clientes</div>
-                      </div>
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="justify-start h-auto py-4 px-4"
-                      onClick={() => setSelectedClientFilter("none")}
-                    >
-                      <div className="text-left">
-                        <div className="font-semibold">Sem Cliente</div>
-                        <div className="text-sm text-muted-foreground">Tarefas não vinculadas a clientes</div>
-                      </div>
-                    </Button>
-                  </>
-                )}
-                {clients.map(client => (
+              {showClientManager ? (
+                <>
+                  {/* Add client button */}
                   <Button 
-                    key={client.id}
-                    variant="outline" 
-                    className="justify-start h-auto py-4 px-4"
-                    onClick={() => setSelectedClientFilter(client.id)}
+                    className="w-full" 
+                    onClick={() => {
+                      setEditingClient(null);
+                      setClientForm({ name: "", email: "", phone: "", notes: "" });
+                      setIsClientDialogOpen(true);
+                    }}
                   >
-                    <div className="text-left">
-                      <div className="font-semibold">{client.name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {tasks.filter(t => t.client_id === client.id).length} tarefas
-                      </div>
-                    </div>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Adicionar Novo Cliente
                   </Button>
-                ))}
-              </div>
-              {clients.length === 0 && (
-                <p className="text-center text-muted-foreground py-4">
-                  {isTeamMember 
-                    ? "Nenhum cliente foi delegado a você. Peça ao administrador para delegar clientes."
-                    : "Nenhum cliente cadastrado. Crie um cliente primeiro ou selecione \"Sem Cliente\"."
-                  }
-                </p>
+                  
+                  {/* Clients list */}
+                  <div className="grid gap-3 mt-4">
+                    {clients.map(client => (
+                      <Card key={client.id} className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-semibold">{client.name}</h4>
+                            {client.email && (
+                              <p className="text-sm text-muted-foreground">{client.email}</p>
+                            )}
+                            {client.phone && (
+                              <p className="text-sm text-muted-foreground">{client.phone}</p>
+                            )}
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {tasks.filter(t => t.client_id === client.id).length} tarefas vinculadas
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => openEditClient(client)}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => setClientToDelete(client.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                    {clients.length === 0 && (
+                      <p className="text-center text-muted-foreground py-4">
+                        Nenhum cliente cadastrado. Clique em "Adicionar Novo Cliente" para começar.
+                      </p>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="grid gap-3">
+                  {/* Only show "Todos" and "Sem Cliente" for non-team members */}
+                  {!isTeamMember && (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        className="justify-start h-auto py-4 px-4"
+                        onClick={() => setSelectedClientFilter("all")}
+                      >
+                        <div className="text-left">
+                          <div className="font-semibold">Todos os Clientes</div>
+                          <div className="text-sm text-muted-foreground">Ver tarefas de todos os clientes</div>
+                        </div>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="justify-start h-auto py-4 px-4"
+                        onClick={() => setSelectedClientFilter("none")}
+                      >
+                        <div className="text-left">
+                          <div className="font-semibold">Sem Cliente</div>
+                          <div className="text-sm text-muted-foreground">Tarefas não vinculadas a clientes</div>
+                        </div>
+                      </Button>
+                    </>
+                  )}
+                  {clients.map(client => (
+                    <Button 
+                      key={client.id}
+                      variant="outline" 
+                      className="justify-start h-auto py-4 px-4"
+                      onClick={() => setSelectedClientFilter(client.id)}
+                    >
+                      <div className="text-left">
+                        <div className="font-semibold">{client.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {tasks.filter(t => t.client_id === client.id).length} tarefas
+                        </div>
+                      </div>
+                    </Button>
+                  ))}
+                  {clients.length === 0 && !isTeamMember && (
+                    <div className="text-center py-4">
+                      <p className="text-muted-foreground mb-4">
+                        Nenhum cliente cadastrado no organizador de tarefas.
+                      </p>
+                      <Button onClick={() => setShowClientManager(true)}>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Adicionar Cliente
+                      </Button>
+                    </div>
+                  )}
+                  {clients.length === 0 && isTeamMember && (
+                    <p className="text-center text-muted-foreground py-4">
+                      Nenhum cliente foi delegado a você. Peça ao administrador para delegar clientes.
+                    </p>
+                  )}
+                </div>
               )}
             </CardContent>
           </Card>
         </div>
+
+        {/* Add/Edit Client Dialog */}
+        <Dialog open={isClientDialogOpen} onOpenChange={setIsClientDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{editingClient ? "Editar Cliente" : "Novo Cliente"}</DialogTitle>
+              <DialogDescription>
+                {editingClient 
+                  ? "Edite as informações do cliente" 
+                  : "Adicione um novo cliente ao organizador de tarefas"
+                }
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="clientName">Nome *</Label>
+                <Input
+                  id="clientName"
+                  value={clientForm.name}
+                  onChange={(e) => setClientForm({ ...clientForm, name: e.target.value })}
+                  placeholder="Nome do cliente"
+                />
+              </div>
+              <div>
+                <Label htmlFor="clientEmail">Email</Label>
+                <Input
+                  id="clientEmail"
+                  type="email"
+                  value={clientForm.email}
+                  onChange={(e) => setClientForm({ ...clientForm, email: e.target.value })}
+                  placeholder="email@exemplo.com"
+                />
+              </div>
+              <div>
+                <Label htmlFor="clientPhone">Telefone</Label>
+                <Input
+                  id="clientPhone"
+                  value={clientForm.phone}
+                  onChange={(e) => setClientForm({ ...clientForm, phone: e.target.value })}
+                  placeholder="(00) 00000-0000"
+                />
+              </div>
+              <div>
+                <Label htmlFor="clientNotes">Observações</Label>
+                <Textarea
+                  id="clientNotes"
+                  value={clientForm.notes}
+                  onChange={(e) => setClientForm({ ...clientForm, notes: e.target.value })}
+                  placeholder="Notas sobre o cliente"
+                  rows={3}
+                />
+              </div>
+              <Button onClick={handleAddClient} className="w-full">
+                {editingClient ? "Atualizar Cliente" : "Adicionar Cliente"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Client Confirmation */}
+        <AlertDialog open={!!clientToDelete} onOpenChange={(open) => !open && setClientToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Remover cliente?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Isso irá remover o cliente do organizador de tarefas. As tarefas vinculadas a este cliente não serão excluídas, apenas desvinculadas.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction 
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => clientToDelete && handleDeleteClient(clientToDelete)}
+              >
+                Remover
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     );
   }
