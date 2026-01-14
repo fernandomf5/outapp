@@ -306,10 +306,9 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
 
   // Task client management state
   const [showClientManager, setShowClientManager] = useState(false);
-  const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
-  const [editingClient, setEditingClient] = useState<{id: string, name: string, email?: string, phone?: string, notes?: string} | null>(null);
-  const [clientForm, setClientForm] = useState({ name: "", email: "", phone: "", notes: "" });
-  const [clientToDelete, setClientToDelete] = useState<string | null>(null);
+  const [isAddClientDialogOpen, setIsAddClientDialogOpen] = useState(false);
+  const [allCustomers, setAllCustomers] = useState<Array<{id: string, name: string, email?: string | null, phone?: string | null}>>([]);
+  const [clientToRemove, setClientToRemove] = useState<string | null>(null);
 
 
   const sensors = useSensors(
@@ -357,11 +356,26 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
       const userId = await getTargetUserId();
       if (!userId) return;
 
-      // Use task_clients table instead of customers
+      // Get linked customers via task_client_links
+      const { data: links, error: linksError } = await supabase
+        .from("task_client_links")
+        .select("customer_id")
+        .eq("user_id", userId);
+
+      if (linksError) throw linksError;
+
+      if (!links || links.length === 0) {
+        setClients([]);
+        return;
+      }
+
+      const customerIds = links.map(l => l.customer_id);
+
+      // Get customer details
       let query = supabase
-        .from("task_clients")
-        .select("id, name, email, phone, notes")
-        .eq("user_id", userId)
+        .from("customers")
+        .select("id, name, email, phone")
+        .in("id", customerIds)
         .order("name", { ascending: true });
 
       // If team member with restrictions, filter by allowed client IDs
@@ -372,95 +386,85 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
       const { data, error } = await query;
 
       if (error) throw error;
-      setClients(data || []);
+      setClients((data || []).map(c => ({
+        id: c.id,
+        name: c.name,
+        email: c.email || undefined,
+        phone: c.phone || undefined
+      })));
     } catch (error: any) {
       console.error("Erro ao carregar clientes:", error?.message || error);
       setClients([]);
     }
   };
 
-  // Task client CRUD functions
-  const handleAddClient = async () => {
+  // Load all customers for selection
+  const loadAllCustomers = async () => {
     try {
-      if (!clientForm.name.trim()) {
-        toast.error("Por favor, preencha o nome do cliente");
-        return;
-      }
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
       const userId = await getTargetUserId();
+      if (!userId) return;
 
-      if (editingClient) {
-        const { error } = await supabase
-          .from("task_clients")
-          .update({
-            name: clientForm.name,
-            email: clientForm.email || null,
-            phone: clientForm.phone || null,
-            notes: clientForm.notes || null,
-          })
-          .eq("id", editingClient.id);
+      const { data, error } = await supabase
+        .from("customers")
+        .select("id, name, email, phone")
+        .eq("user_id", userId)
+        .order("name", { ascending: true });
 
-        if (error) throw error;
-        toast.success("Cliente atualizado!");
-      } else {
-        const { error } = await supabase
-          .from("task_clients")
-          .insert({
-            user_id: userId,
-            name: clientForm.name,
-            email: clientForm.email || null,
-            phone: clientForm.phone || null,
-            notes: clientForm.notes || null,
-          });
-
-        if (error) throw error;
-        toast.success("Cliente adicionado ao organizador de tarefas!");
-      }
-
-      setIsClientDialogOpen(false);
-      setEditingClient(null);
-      setClientForm({ name: "", email: "", phone: "", notes: "" });
-      loadClients();
+      if (error) throw error;
+      setAllCustomers(data || []);
     } catch (error: any) {
-      toast.error("Erro ao salvar cliente: " + error.message);
+      console.error("Erro ao carregar clientes disponíveis:", error?.message || error);
+      setAllCustomers([]);
     }
   };
 
-  const handleDeleteClient = async (clientId: string) => {
+  // Add customer link to task organizer
+  const handleLinkCustomer = async (customerId: string) => {
     try {
-      // First, unlink all tasks from this client
-      await supabase
-        .from("tasks")
-        .update({ client_id: null })
-        .eq("client_id", clientId);
+      const userId = await getTargetUserId();
+      if (!userId) return;
 
-      // Delete the client
+      // Check if already linked
+      const isLinked = clients.some(c => c.id === customerId);
+      if (isLinked) {
+        toast.error("Este cliente já está no organizador de tarefas");
+        return;
+      }
+
       const { error } = await supabase
-        .from("task_clients")
-        .delete()
-        .eq("id", clientId);
+        .from("task_client_links")
+        .insert({
+          user_id: userId,
+          customer_id: customerId
+        });
 
       if (error) throw error;
-      toast.success("Cliente removido do organizador!");
-      setClientToDelete(null);
+      toast.success("Cliente adicionado ao organizador de tarefas!");
+      loadClients();
+    } catch (error: any) {
+      toast.error("Erro ao adicionar cliente: " + error.message);
+    }
+  };
+
+  // Remove customer link from task organizer
+  const handleUnlinkCustomer = async (customerId: string) => {
+    try {
+      const userId = await getTargetUserId();
+      if (!userId) return;
+
+      const { error } = await supabase
+        .from("task_client_links")
+        .delete()
+        .eq("user_id", userId)
+        .eq("customer_id", customerId);
+
+      if (error) throw error;
+      toast.success("Cliente removido do organizador de tarefas!");
+      setClientToRemove(null);
       loadClients();
     } catch (error: any) {
       toast.error("Erro ao remover cliente: " + error.message);
     }
-  };
-
-  const openEditClient = (client: typeof clients[0]) => {
-    setEditingClient(client);
-    setClientForm({
-      name: client.name,
-      email: client.email || "",
-      phone: client.phone || "",
-      notes: client.notes || "",
-    });
-    setIsClientDialogOpen(true);
   };
 
   const loadClientCategories = async (clientId: string) => {
@@ -1006,16 +1010,15 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
                   <Button 
                     className="w-full" 
                     onClick={() => {
-                      setEditingClient(null);
-                      setClientForm({ name: "", email: "", phone: "", notes: "" });
-                      setIsClientDialogOpen(true);
+                      loadAllCustomers();
+                      setIsAddClientDialogOpen(true);
                     }}
                   >
                     <UserPlus className="mr-2 h-4 w-4" />
-                    Adicionar Novo Cliente
+                    Adicionar Cliente da Gestão
                   </Button>
                   
-                  {/* Clients list */}
+                  {/* Linked clients list */}
                   <div className="grid gap-3 mt-4">
                     {clients.map(client => (
                       <Card key={client.id} className="p-4">
@@ -1036,15 +1039,8 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
                             <Button 
                               variant="ghost" 
                               size="icon"
-                              onClick={() => openEditClient(client)}
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
                               className="text-destructive hover:text-destructive"
-                              onClick={() => setClientToDelete(client.id)}
+                              onClick={() => setClientToRemove(client.id)}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -1054,7 +1050,7 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
                     ))}
                     {clients.length === 0 && (
                       <p className="text-center text-muted-foreground py-4">
-                        Nenhum cliente cadastrado. Clique em "Adicionar Novo Cliente" para começar.
+                        Nenhum cliente adicionado ao organizador. Clique em "Adicionar Cliente da Gestão" para selecionar.
                       </p>
                     )}
                   </div>
@@ -1123,78 +1119,62 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
           </Card>
         </div>
 
-        {/* Add/Edit Client Dialog */}
-        <Dialog open={isClientDialogOpen} onOpenChange={setIsClientDialogOpen}>
-          <DialogContent>
+        {/* Add Client from Customers Dialog */}
+        <Dialog open={isAddClientDialogOpen} onOpenChange={setIsAddClientDialogOpen}>
+          <DialogContent className="max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingClient ? "Editar Cliente" : "Novo Cliente"}</DialogTitle>
+              <DialogTitle>Selecionar Cliente</DialogTitle>
               <DialogDescription>
-                {editingClient 
-                  ? "Edite as informações do cliente" 
-                  : "Adicione um novo cliente ao organizador de tarefas"
-                }
+                Escolha um cliente da gestão de clientes para adicionar ao organizador de tarefas
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="clientName">Nome *</Label>
-                <Input
-                  id="clientName"
-                  value={clientForm.name}
-                  onChange={(e) => setClientForm({ ...clientForm, name: e.target.value })}
-                  placeholder="Nome do cliente"
-                />
-              </div>
-              <div>
-                <Label htmlFor="clientEmail">Email</Label>
-                <Input
-                  id="clientEmail"
-                  type="email"
-                  value={clientForm.email}
-                  onChange={(e) => setClientForm({ ...clientForm, email: e.target.value })}
-                  placeholder="email@exemplo.com"
-                />
-              </div>
-              <div>
-                <Label htmlFor="clientPhone">Telefone</Label>
-                <Input
-                  id="clientPhone"
-                  value={clientForm.phone}
-                  onChange={(e) => setClientForm({ ...clientForm, phone: e.target.value })}
-                  placeholder="(00) 00000-0000"
-                />
-              </div>
-              <div>
-                <Label htmlFor="clientNotes">Observações</Label>
-                <Textarea
-                  id="clientNotes"
-                  value={clientForm.notes}
-                  onChange={(e) => setClientForm({ ...clientForm, notes: e.target.value })}
-                  placeholder="Notas sobre o cliente"
-                  rows={3}
-                />
-              </div>
-              <Button onClick={handleAddClient} className="w-full">
-                {editingClient ? "Atualizar Cliente" : "Adicionar Cliente"}
-              </Button>
+            <div className="space-y-3">
+              {allCustomers.filter(c => !clients.some(linked => linked.id === c.id)).map(customer => (
+                <Card 
+                  key={customer.id} 
+                  className="p-4 cursor-pointer hover:bg-accent transition-colors"
+                  onClick={() => {
+                    handleLinkCustomer(customer.id);
+                    setIsAddClientDialogOpen(false);
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-semibold">{customer.name}</h4>
+                      {customer.email && (
+                        <p className="text-sm text-muted-foreground">{customer.email}</p>
+                      )}
+                    </div>
+                    <Plus className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                </Card>
+              ))}
+              {allCustomers.filter(c => !clients.some(linked => linked.id === c.id)).length === 0 && (
+                <p className="text-center text-muted-foreground py-4">
+                  {allCustomers.length === 0 
+                    ? "Nenhum cliente cadastrado na gestão de clientes." 
+                    : "Todos os clientes já foram adicionados ao organizador."
+                  }
+                </p>
+              )}
             </div>
           </DialogContent>
         </Dialog>
 
-        {/* Delete Client Confirmation */}
-        <AlertDialog open={!!clientToDelete} onOpenChange={(open) => !open && setClientToDelete(null)}>
+        {/* Remove Client Confirmation */}
+        <AlertDialog open={!!clientToRemove} onOpenChange={(open) => !open && setClientToRemove(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Remover cliente?</AlertDialogTitle>
+              <AlertDialogTitle>Remover cliente do organizador?</AlertDialogTitle>
               <AlertDialogDescription>
-                Isso irá remover o cliente do organizador de tarefas. As tarefas vinculadas a este cliente não serão excluídas, apenas desvinculadas.
+                Isso irá remover o cliente do organizador de tarefas. O cliente continuará existindo na gestão de clientes e as tarefas vinculadas não serão excluídas.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
               <AlertDialogAction 
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                onClick={() => clientToDelete && handleDeleteClient(clientToDelete)}
+                onClick={() => clientToRemove && handleUnlinkCustomer(clientToRemove)}
               >
                 Remover
               </AlertDialogAction>
