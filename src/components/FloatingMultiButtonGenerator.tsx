@@ -31,6 +31,10 @@ interface SavedButton {
   sub_buttons: SubButton[];
   generated_code: string;
   created_at: string;
+  button_style?: string;
+  dialog_title?: string;
+  dialog_subtitle?: string;
+  secondary_color?: string;
 }
 
 type ButtonStyle = 'circular' | 'dialog' | 'bubble';
@@ -77,7 +81,11 @@ export const FloatingMultiButtonGenerator = () => {
     setSavedButtons(data?.map(item => ({
       ...item,
       sub_buttons: (item.sub_buttons as unknown) as SubButton[],
-      generated_code: item.generated_code || ''
+      generated_code: item.generated_code || '',
+      button_style: item.button_style || 'circular',
+      dialog_title: item.dialog_title || 'Olá!',
+      dialog_subtitle: item.dialog_subtitle || 'Como podemos ajudar?',
+      secondary_color: item.secondary_color || '#ffffff',
     })) || []);
   };
 
@@ -105,6 +113,11 @@ export const FloatingMultiButtonGenerator = () => {
     setSubButtons(config.sub_buttons);
     setEditingId(config.id);
     setShowForm(true);
+    // Carregar campos extras
+    setButtonStyle((config.button_style as ButtonStyle) || 'circular');
+    setDialogTitle(config.dialog_title || "Olá!");
+    setDialogSubtitle(config.dialog_subtitle || "Como podemos ajudar?");
+    setSecondaryColor(config.secondary_color || "#ffffff");
   };
 
   const saveConfig = async () => {
@@ -129,6 +142,10 @@ export const FloatingMultiButtonGenerator = () => {
       position,
       sub_buttons: JSON.parse(JSON.stringify(subButtons)),
       generated_code: generatedCode,
+      button_style: buttonStyle,
+      dialog_title: dialogTitle,
+      dialog_subtitle: dialogSubtitle,
+      secondary_color: secondaryColor,
     };
 
     if (editingId) {
