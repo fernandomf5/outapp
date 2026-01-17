@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Copy, Plus, Trash2, Zap, Save, Edit2, X, MessageCircle, Circle, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +17,8 @@ interface SubButton {
   link: string;
   icon: string;
   imageUrl?: string;
+  isWhatsApp?: boolean;
+  whatsappNumber?: string;
 }
 
 interface SavedButton {
@@ -41,7 +44,7 @@ export const FloatingMultiButtonGenerator = () => {
   const [mainButtonColor, setMainButtonColor] = useState("#25d366");
   const [position, setPosition] = useState<'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'>('bottom-right');
   const [subButtons, setSubButtons] = useState<SubButton[]>([
-    { id: '1', text: 'WhatsApp', link: '', icon: 'whatsapp', imageUrl: undefined }
+    { id: '1', text: 'WhatsApp', link: '', icon: 'whatsapp', imageUrl: undefined, isWhatsApp: false, whatsappNumber: '' }
   ]);
   const [isOpen, setIsOpen] = useState(false);
   const [savedButtons, setSavedButtons] = useState<SavedButton[]>([]);
@@ -85,7 +88,7 @@ export const FloatingMultiButtonGenerator = () => {
     setMainButtonColor("#25d366");
     setSecondaryColor("#ffffff");
     setPosition("bottom-right");
-    setSubButtons([{ id: '1', text: 'WhatsApp', link: '', icon: 'whatsapp', imageUrl: undefined }]);
+    setSubButtons([{ id: '1', text: 'WhatsApp', link: '', icon: 'whatsapp', imageUrl: undefined, isWhatsApp: false, whatsappNumber: '' }]);
     setEditingId(null);
     setShowForm(false);
     setButtonStyle('circular');
@@ -179,7 +182,9 @@ export const FloatingMultiButtonGenerator = () => {
       text: '',
       link: '',
       icon: 'link',
-      imageUrl: undefined
+      imageUrl: undefined,
+      isWhatsApp: false,
+      whatsappNumber: ''
     }]);
   };
 
@@ -187,10 +192,29 @@ export const FloatingMultiButtonGenerator = () => {
     setSubButtons(subButtons.filter(btn => btn.id !== id));
   };
 
-  const updateSubButton = (id: string, field: keyof SubButton, value: string) => {
-    setSubButtons(subButtons.map(btn => 
-      btn.id === id ? { ...btn, [field]: value } : btn
-    ));
+  const updateSubButton = (id: string, field: keyof SubButton, value: string | boolean) => {
+    setSubButtons(subButtons.map(btn => {
+      if (btn.id !== id) return btn;
+      
+      const updated = { ...btn, [field]: value };
+      
+      // Se ativou WhatsApp, atualiza o link automaticamente
+      if (field === 'isWhatsApp' && value === true) {
+        updated.icon = 'whatsapp';
+        if (updated.whatsappNumber) {
+          const cleanNumber = updated.whatsappNumber.replace(/\D/g, '');
+          updated.link = `https://wa.me/${cleanNumber}`;
+        }
+      }
+      
+      // Se alterou o número do WhatsApp, atualiza o link
+      if (field === 'whatsappNumber' && btn.isWhatsApp) {
+        const cleanNumber = (value as string).replace(/\D/g, '');
+        updated.link = cleanNumber ? `https://wa.me/${cleanNumber}` : '';
+      }
+      
+      return updated;
+    }));
   };
 
   const handleImageUpload = async (id: string, file: File) => {
@@ -831,15 +855,40 @@ function hideBubbleTooltip() {
                     onChange={(e) => updateSubButton(btn.id, 'text', e.target.value)}
                   />
 
-                  <Input
-                    placeholder="Link (URL completa)"
-                    value={btn.link}
-                    onChange={(e) => updateSubButton(btn.id, 'link', e.target.value)}
-                  />
+                  {/* Switch para Link do WhatsApp */}
+                  <div className="flex items-center justify-between p-2 bg-accent/30 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm font-medium">Link do WhatsApp</Label>
+                    </div>
+                    <Switch
+                      checked={btn.isWhatsApp || false}
+                      onCheckedChange={(checked) => updateSubButton(btn.id, 'isWhatsApp', checked)}
+                    />
+                  </div>
+
+                  {btn.isWhatsApp ? (
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="Número do WhatsApp (ex: 5511999999999)"
+                        value={btn.whatsappNumber || ''}
+                        onChange={(e) => updateSubButton(btn.id, 'whatsappNumber', e.target.value)}
+                      />
+                      <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
+                        URL gerada: {btn.link || 'https://wa.me/[número]'}
+                      </div>
+                    </div>
+                  ) : (
+                    <Input
+                      placeholder="Link (URL completa)"
+                      value={btn.link}
+                      onChange={(e) => updateSubButton(btn.id, 'link', e.target.value)}
+                    />
+                  )}
 
                   <Select
                     value={btn.icon}
                     onValueChange={(val) => updateSubButton(btn.id, 'icon', val)}
+                    disabled={btn.isWhatsApp}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione o ícone" />
