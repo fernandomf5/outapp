@@ -3694,7 +3694,10 @@ export type Database = {
       }
       floating_buttons: {
         Row: {
+          button_style: string | null
           created_at: string
+          dialog_subtitle: string | null
+          dialog_title: string | null
           generated_code: string | null
           id: string
           main_button_color: string
@@ -3702,12 +3705,16 @@ export type Database = {
           main_button_text: string
           name: string
           position: string
+          secondary_color: string | null
           sub_buttons: Json
           updated_at: string
           user_id: string
         }
         Insert: {
+          button_style?: string | null
           created_at?: string
+          dialog_subtitle?: string | null
+          dialog_title?: string | null
           generated_code?: string | null
           id?: string
           main_button_color?: string
@@ -3715,12 +3722,16 @@ export type Database = {
           main_button_text?: string
           name: string
           position?: string
+          secondary_color?: string | null
           sub_buttons?: Json
           updated_at?: string
           user_id: string
         }
         Update: {
+          button_style?: string | null
           created_at?: string
+          dialog_subtitle?: string | null
+          dialog_title?: string | null
           generated_code?: string | null
           id?: string
           main_button_color?: string
@@ -3728,6 +3739,7 @@ export type Database = {
           main_button_text?: string
           name?: string
           position?: string
+          secondary_color?: string | null
           sub_buttons?: Json
           updated_at?: string
           user_id?: string
