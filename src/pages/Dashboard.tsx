@@ -600,393 +600,9 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* All Resources Grid */}
-        <div className="space-y-2 xs:space-y-3 sm:space-y-4 lg:space-y-6">
-          <h2 className="text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl 3xl:text-4xl font-bold">Todos os Recursos</h2>
-          <div className="grid gap-1.5 xs:gap-2 sm:gap-3 md:gap-4 lg:gap-5 grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6">
-            {/* Chat Online e Agente IA */}
-            {hasFeature('ai_agent') && (
-              <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("ai-agents")}>
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <MessageSquare className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base">Chat Online</CardTitle>
-                      <p className="text-xs text-muted-foreground">{stats.totalAgents} criados</p>
-                    </div>
-                  </div>
-                </CardHeader>
-              </Card>
-            )}
-
-            {/* Área de Membros */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("area-membros")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Users className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Área de Membros</CardTitle>
-                    <p className="text-xs text-muted-foreground">{stats.totalMembersAreas} áreas</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Encurtador de Links */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("shortlinks")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Link2 className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Encurtador de Links</CardTitle>
-                    <p className="text-xs text-muted-foreground">{stats.totalShortLinks} links</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Link na Bio */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("linkbio")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <LinkIcon className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Link na Bio</CardTitle>
-                    <p className="text-xs text-muted-foreground">{stats.totalLinkBios} bios</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Clonador de Páginas */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("cloner")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Copy className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Clonador de Páginas</CardTitle>
-                    <p className="text-xs text-muted-foreground">{stats.totalClonedPages} páginas</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Quiz */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("criador-quizz")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <HelpCircle className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Quiz</CardTitle>
-                    <p className="text-xs text-muted-foreground">{stats.totalQuizzes} quizzes</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Criador de Briefing */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("briefing")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <FileText className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Criador de Briefing</CardTitle>
-                    <p className="text-xs text-muted-foreground">{stats.totalBriefings} briefings</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Pop-up */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("popups")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Layers className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Criador de Pop-up</CardTitle>
-                    <p className="text-xs text-muted-foreground">{stats.totalPopups} pop-ups</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Gerador de QR Code */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("qrcode")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <QrCode className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Gerador de QR Code</CardTitle>
-                    <p className="text-xs text-muted-foreground">Criar QR codes</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Botão Flutuante Multi-Links */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("floating-button")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <MousePointer className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Botão Flutuante Multi-Links</CardTitle>
-                    <p className="text-xs text-muted-foreground">Multi botões</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* CRM */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("crm-geral")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Users className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">CRM</CardTitle>
-                    <p className="text-xs text-muted-foreground">Gestão de clientes</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Gerenciamento Financeiro */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("financeiro")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <DollarSign className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Gerenciamento Financeiro</CardTitle>
-                    <p className="text-xs text-muted-foreground">Controle financeiro</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Organizador de Tarefas */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("tarefas")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <CheckSquare className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Organizador de Tarefas</CardTitle>
-                    <p className="text-xs text-muted-foreground">Gerencie tarefas</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-
-            {/* Gerenciador de Anúncios */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("anuncios")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Megaphone className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Gerenciador de Anúncios</CardTitle>
-                    <p className="text-xs text-muted-foreground">Gestão de campanhas</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Gerador de Link para WhatsApp */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("tools")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <MessageSquare className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Gerador de Link WhatsApp</CardTitle>
-                    <p className="text-xs text-muted-foreground">Links personalizados</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Gestão de Clientes */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("clientes")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Users className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Gestão de Clientes</CardTitle>
-                    <p className="text-xs text-muted-foreground">Gerencie seus clientes</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Gestão de Equipe */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("equipe")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <UserCog className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Gestão de Equipe</CardTitle>
-                    <p className="text-xs text-muted-foreground">Gerencie sua equipe</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Criador de Mapa Mental */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("mapa-mental")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Brain className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Criador de Mapa Mental</CardTitle>
-                    <p className="text-xs text-muted-foreground">Organize suas ideias</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Criador de Propostas */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("propostas")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <FileCheck className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Criador de Propostas</CardTitle>
-                    <p className="text-xs text-muted-foreground">Propostas comerciais</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Agenda */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("agenda")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Calendar className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Agenda</CardTitle>
-                    <p className="text-xs text-muted-foreground">Organize seus eventos</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Funil de Vendas */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("funil-vendas")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Filter className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Funil de Vendas</CardTitle>
-                    <p className="text-xs text-muted-foreground">Gerencie seu funil</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Disparador Zap Manual */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("disparador")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Zap className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Disparador Zap Manual</CardTitle>
-                    <p className="text-xs text-muted-foreground">Envie mensagens em massa</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Criador de Portfólio */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("portfolio")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Briefcase className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Criador de Portfólio</CardTitle>
-                    <p className="text-xs text-muted-foreground">Mostre seus trabalhos</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Aprova Job */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("aprova-job")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <ClipboardCheck className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Aprova Job</CardTitle>
-                    <p className="text-xs text-muted-foreground">Aprovação de trabalhos</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Extrator de Criativos */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("extrator-criativos")}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Download className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Extrator de Criativos</CardTitle>
-                    <p className="text-xs text-muted-foreground">Extraia criativos de anúncios</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        {/* All Resources Grid - Card Style */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {/* Chat Online */}
           {hasFeature('ai_agent') && (
             <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => navigate("/ai-agent")}>
               <div className="flex items-start justify-between mb-3 sm:mb-4">
@@ -1006,6 +622,7 @@ const Dashboard = () => {
             </Card>
           )}
 
+          {/* Gerenciador de Links */}
           <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('tools')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
@@ -1023,6 +640,7 @@ const Dashboard = () => {
             </Button>
           </Card>
 
+          {/* Link na Bio */}
           <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('linkbio')}>
             <div className="flex items-start justify-between mb-3 sm:mb-4">
               <div className="flex-1">
@@ -1040,6 +658,7 @@ const Dashboard = () => {
             </Button>
           </Card>
 
+          {/* Encurtador de Links */}
           {hasFeature('link_shortener') && (
             <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('shortlinks')}>
               <div className="flex items-start justify-between mb-3 sm:mb-4">
@@ -1059,6 +678,7 @@ const Dashboard = () => {
             </Card>
           )}
 
+          {/* Clonador de Páginas */}
           {hasFeature('page_cloner') && (
             <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('cloner')}>
               <div className="flex items-start justify-between mb-3 sm:mb-4">
@@ -1077,6 +697,366 @@ const Dashboard = () => {
               </Button>
             </Card>
           )}
+
+          {/* Área de Membros */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('area-membros')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Área de Membros</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Crie sua área de membros exclusiva
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <Users className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Criar Área
+            </Button>
+          </Card>
+
+          {/* Quiz */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('criador-quizz')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Quiz</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Crie quizzes interativos para engajar seu público
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <HelpCircle className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Criar Quiz
+            </Button>
+          </Card>
+
+          {/* Criador de Briefing */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('briefing')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Briefing</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Colete informações de forma organizada
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Criar Briefing
+            </Button>
+          </Card>
+
+          {/* Pop-up */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('popups')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Pop-up</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Crie pop-ups personalizados para capturar leads
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <Layers className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Criar Pop-up
+            </Button>
+          </Card>
+
+          {/* Gerador de QR Code */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('qrcode')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Gerador de QR Code</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Crie QR codes personalizados
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <QrCode className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Gerar QR Code
+            </Button>
+          </Card>
+
+          {/* Botão Flutuante Multi-Links */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('floating-button')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Botão Flutuante</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Crie botões flutuantes com múltiplos links
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <MousePointer className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Criar Botão
+            </Button>
+          </Card>
+
+          {/* CRM Geral */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('crm-geral')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">CRM</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Gerencie seus leads e contatos
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <Users className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Acessar CRM
+            </Button>
+          </Card>
+
+          {/* Gerenciamento Financeiro */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('financeiro')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Financeiro</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Controle suas finanças
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <DollarSign className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Acessar
+            </Button>
+          </Card>
+
+          {/* Organizador de Tarefas */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('tarefas')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Organizador de Tarefas</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Organize e gerencie suas tarefas
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <CheckSquare className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Acessar
+            </Button>
+          </Card>
+
+          {/* Gerenciador de Anúncios */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('anuncios')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Gerenciador de Anúncios</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Gerencie suas campanhas de anúncios
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <Megaphone className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Acessar
+            </Button>
+          </Card>
+
+          {/* Gestão de Clientes */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('clientes')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Gestão de Clientes</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Gerencie seus clientes
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <Users className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Acessar
+            </Button>
+          </Card>
+
+          {/* Gestão de Equipe */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('equipe')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Gestão de Equipe</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Gerencie sua equipe
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <UserCog className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Acessar
+            </Button>
+          </Card>
+
+          {/* Criador de Mapa Mental */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('mapa-mental')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Mapa Mental</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Organize suas ideias visualmente
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <Brain className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Criar Mapa
+            </Button>
+          </Card>
+
+          {/* Criador de Propostas */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('propostas')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Propostas</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Crie propostas comerciais profissionais
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <FileCheck className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Criar Proposta
+            </Button>
+          </Card>
+
+          {/* Agenda */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('agenda')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Agenda</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Organize seus eventos e lembretes
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <Calendar className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Acessar
+            </Button>
+          </Card>
+
+          {/* Funil de Vendas */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('funil-vendas')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Funil de Vendas</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Gerencie seu funil de vendas
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <Filter className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Acessar
+            </Button>
+          </Card>
+
+          {/* Disparador Zap Manual */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('disparador')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Disparador Zap Manual</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Envie mensagens em massa
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <Zap className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Acessar
+            </Button>
+          </Card>
+
+          {/* Criador de Portfólio */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('portfolio')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Criador de Portfólio</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Mostre seus trabalhos profissionalmente
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <Briefcase className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Criar Portfólio
+            </Button>
+          </Card>
+
+          {/* Aprova Job */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('aprova-job')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Aprova Job</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Aprovação de trabalhos com clientes
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <ClipboardCheck className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Acessar
+            </Button>
+          </Card>
+
+          {/* Extrator de Criativos */}
+          <Card className="p-4 sm:p-6 glass hover:shadow-glow transition-smooth cursor-pointer" onClick={() => handleTabChange('extrator-criativos')}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2">Extrator de Criativos</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
+                  Extraia criativos de anúncios
+                </p>
+              </div>
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl ml-2">
+                <Download className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              </div>
+            </div>
+            <Button className="w-full mt-2 sm:mt-4 gradient-primary shadow-glow">
+              Acessar
+            </Button>
+          </Card>
         </div>
 
         {/* Meus Chats Section */}
