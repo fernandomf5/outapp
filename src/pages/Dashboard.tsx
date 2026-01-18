@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText, QrCode, Calendar, ShoppingBag, ArrowLeft, Calculator, Brain, Globe, Users, HelpCircle, LinkIcon, Layers, MousePointer, DollarSign, CheckSquare, StickyNote, Eye, Megaphone, Code, UserCog, FileCheck } from "lucide-react";
+import { Zap, MessageSquare, Settings, LogOut, Pencil, Trash2, Sparkles, CreditCard, Link2, Copy, ExternalLink, UserCircle, Scissors, FileText, QrCode, Calendar, ShoppingBag, ArrowLeft, Calculator, Brain, Globe, Users, HelpCircle, LinkIcon, Layers, MousePointer, DollarSign, CheckSquare, StickyNote, Eye, Megaphone, Code, UserCog, FileCheck, Filter, Download, ClipboardCheck, Briefcase } from "lucide-react";
 import { useTheme } from "next-themes";
 import logoLight from "@/assets/logo-light.png";
 import logoDark from "@/assets/logo-dark.png";
@@ -887,6 +887,96 @@ const Dashboard = () => {
                   <div>
                     <CardTitle className="text-base">Criador de Propostas</CardTitle>
                     <p className="text-xs text-muted-foreground">Propostas comerciais</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Agenda */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("agenda")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Calendar className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Agenda</CardTitle>
+                    <p className="text-xs text-muted-foreground">Organize seus eventos</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Funil de Vendas */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("funil-vendas")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Filter className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Funil de Vendas</CardTitle>
+                    <p className="text-xs text-muted-foreground">Gerencie seu funil</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Disparador Zap Manual */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("disparador")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Zap className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Disparador Zap Manual</CardTitle>
+                    <p className="text-xs text-muted-foreground">Envie mensagens em massa</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Criador de Portfólio */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("portfolio")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Briefcase className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Criador de Portfólio</CardTitle>
+                    <p className="text-xs text-muted-foreground">Mostre seus trabalhos</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Aprova Job */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("aprova-job")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <ClipboardCheck className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Aprova Job</CardTitle>
+                    <p className="text-xs text-muted-foreground">Aprovação de trabalhos</p>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Extrator de Criativos */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleTabChange("extrator-criativos")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Download className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Extrator de Criativos</CardTitle>
+                    <p className="text-xs text-muted-foreground">Extraia criativos de anúncios</p>
                   </div>
                 </div>
               </CardHeader>
