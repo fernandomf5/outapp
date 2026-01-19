@@ -7,18 +7,34 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Settings, Trash2, Edit, ArrowRight, GripVertical, User, Phone, Mail, Building, DollarSign, Calendar, Tag, ChevronRight, Filter, BarChart3, Eye, History, Pencil, Camera, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, Settings, Trash2, Edit, ArrowRight, GripVertical, User, Phone, Mail, Building, DollarSign, Calendar, Tag, ChevronRight, Filter, BarChart3, Eye, History, Pencil, Camera, Loader2, ChevronDown, ChevronUp, Users, Folder, FolderOpen, Search, UserPlus } from 'lucide-react';
 import FunnelChart from './FunnelChart';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragOverlay, DragStartEvent, useDroppable, useDraggable } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+
+interface CustomerCategory {
+  id: string;
+  name: string;
+  color: string;
+}
+
+interface Customer {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  company: string | null;
+  category_id: string | null;
+}
 
 interface SalesFunnel {
   id: string;
@@ -259,6 +275,7 @@ export default function SalesFunnelPanel() {
   const [showLeadDialog, setShowLeadDialog] = useState(false);
   const [showLeadDetailDialog, setShowLeadDetailDialog] = useState(false);
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
   
   // Edit states
   const [editingFunnel, setEditingFunnel] = useState<SalesFunnel | null>(null);
@@ -266,6 +283,16 @@ export default function SalesFunnelPanel() {
   const [editingLead, setEditingLead] = useState<FunnelLead | null>(null);
   const [viewingLead, setViewingLead] = useState<FunnelLead | null>(null);
   const [leadHistory, setLeadHistory] = useState<LeadHistory[]>([]);
+  
+  // Import from clients states
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [categories, setCategories] = useState<CustomerCategory[]>([]);
+  const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
+  const [importCategoryFilter, setImportCategoryFilter] = useState<string>("all");
+  const [importSearchTerm, setImportSearchTerm] = useState("");
+  const [importStageId, setImportStageId] = useState<string>("");
+  const [isImporting, setIsImporting] = useState(false);
+  const [loadingCustomers, setLoadingCustomers] = useState(false);
   
   // Form states
   const [funnelName, setFunnelName] = useState('');
@@ -398,6 +425,220 @@ export default function SalesFunnelPanel() {
       setLeads(data || []);
     } catch (error) {
       console.error('Error loading leads:', error);
+    }
+  };
+
+  // Load customers and categories for import
+  const loadCustomersAndCategories = async () => {
+    if (!user) return;
+    setLoadingCustomers(true);
+    
+    try {
+      const [customersRes, categoriesRes] = await Promise.all([
+        supabase
+          .from('customers')
+          .select('id, name, email, phone, company, category_id')
+          .eq('user_id', user.id)
+          .order('name'),
+        supabase
+          .from('customer_categories')
+          .select('id, name, color')
+          .eq('user_id', user.id)
+          .order('name')
+      ]);
+
+      if (customersRes.error) throw customersRes.error;
+      if (categoriesRes.error) throw categoriesRes.error;
+
+      setCustomers(customersRes.data || []);
+      setCategories(categoriesRes.data || []);
+    } catch (error) {
+      console.error('Error loading customers:', error);
+      toast.error('Erro ao carregar clientes');
+    } finally {
+      setLoadingCustomers(false);
+    }
+  };
+
+  // Open import dialog
+  const openImportDialog = () => {
+    setSelectedCustomers([]);
+    setImportCategoryFilter("all");
+    setImportSearchTerm("");
+    setImportStageId(stages[0]?.id || "");
+    loadCustomersAndCategories();
+    setShowImportDialog(true);
+  };
+
+  // Get filtered customers for import
+  const getFilteredCustomersForImport = () => {
+    let filtered = [...customers];
+    
+    // Filter by category
+    if (importCategoryFilter !== "all") {
+      if (importCategoryFilter === "none") {
+        filtered = filtered.filter(c => !c.category_id);
+      } else {
+        filtered = filtered.filter(c => c.category_id === importCategoryFilter);
+      }
+    }
+    
+    // Filter by search
+    if (importSearchTerm) {
+      const term = importSearchTerm.toLowerCase();
+      filtered = filtered.filter(c =>
+        c.name.toLowerCase().includes(term) ||
+        c.email?.toLowerCase().includes(term) ||
+        c.phone?.includes(term) ||
+        c.company?.toLowerCase().includes(term)
+      );
+    }
+    
+    return filtered;
+  };
+
+  // Toggle customer selection
+  const toggleCustomerSelection = (customerId: string) => {
+    setSelectedCustomers(prev => 
+      prev.includes(customerId)
+        ? prev.filter(id => id !== customerId)
+        : [...prev, customerId]
+    );
+  };
+
+  // Select all filtered customers
+  const selectAllFilteredCustomers = () => {
+    const filtered = getFilteredCustomersForImport();
+    const allIds = filtered.map(c => c.id);
+    setSelectedCustomers(allIds);
+  };
+
+  // Clear selection
+  const clearSelection = () => {
+    setSelectedCustomers([]);
+  };
+
+  // Import selected customers as leads
+  const handleImportCustomers = async () => {
+    if (!selectedFunnel || selectedCustomers.length === 0) {
+      toast.error('Selecione pelo menos um cliente para importar');
+      return;
+    }
+
+    const targetStageId = importStageId || stages[0]?.id;
+    if (!targetStageId) {
+      toast.error('Crie pelo menos uma etapa no funil primeiro');
+      return;
+    }
+
+    setIsImporting(true);
+
+    try {
+      const customersToImport = customers.filter(c => selectedCustomers.includes(c.id));
+      let importedCount = 0;
+
+      for (const customer of customersToImport) {
+        const { data: newLead, error } = await supabase
+          .from('funnel_leads')
+          .insert({
+            funnel_id: selectedFunnel.id,
+            stage_id: targetStageId,
+            name: customer.name,
+            email: customer.email,
+            phone: customer.phone,
+            company: customer.company,
+            priority: 'medium',
+            value: 0,
+          })
+          .select()
+          .single();
+
+        if (!error && newLead) {
+          await supabase
+            .from('funnel_lead_history')
+            .insert({
+              lead_id: newLead.id,
+              to_stage_id: targetStageId,
+              notes: 'Lead importado da Gestão de Clientes',
+            });
+          importedCount++;
+        }
+      }
+
+      if (importedCount > 0) {
+        toast.success(`${importedCount} lead(s) importado(s) com sucesso!`);
+        loadLeads(selectedFunnel.id);
+        setShowImportDialog(false);
+      } else {
+        toast.error('Nenhum lead foi importado');
+      }
+    } catch (error) {
+      console.error('Error importing customers:', error);
+      toast.error('Erro ao importar clientes');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  // Import all customers from a category
+  const handleImportCategory = async (categoryId: string) => {
+    if (!selectedFunnel) return;
+
+    const targetStageId = importStageId || stages[0]?.id;
+    if (!targetStageId) {
+      toast.error('Crie pelo menos uma etapa no funil primeiro');
+      return;
+    }
+
+    const categoryCustomers = customers.filter(c => c.category_id === categoryId);
+    if (categoryCustomers.length === 0) {
+      toast.error('Nenhum cliente nesta categoria');
+      return;
+    }
+
+    setIsImporting(true);
+
+    try {
+      let importedCount = 0;
+
+      for (const customer of categoryCustomers) {
+        const { data: newLead, error } = await supabase
+          .from('funnel_leads')
+          .insert({
+            funnel_id: selectedFunnel.id,
+            stage_id: targetStageId,
+            name: customer.name,
+            email: customer.email,
+            phone: customer.phone,
+            company: customer.company,
+            priority: 'medium',
+            value: 0,
+          })
+          .select()
+          .single();
+
+        if (!error && newLead) {
+          await supabase
+            .from('funnel_lead_history')
+            .insert({
+              lead_id: newLead.id,
+              to_stage_id: targetStageId,
+              notes: `Lead importado da categoria "${categories.find(c => c.id === categoryId)?.name}"`,
+            });
+          importedCount++;
+        }
+      }
+
+      if (importedCount > 0) {
+        toast.success(`${importedCount} lead(s) importado(s) da categoria!`);
+        loadLeads(selectedFunnel.id);
+        setShowImportDialog(false);
+      }
+    } catch (error) {
+      console.error('Error importing category:', error);
+      toast.error('Erro ao importar categoria');
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -1123,6 +1364,14 @@ export default function SalesFunnelPanel() {
             )}
             {isProcessingOCR ? 'Processando...' : 'Adicionar por Foto'}
           </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={openImportDialog}
+          >
+            <Users className="w-4 h-4 mr-1" />
+            Importar de Clientes
+          </Button>
           <Dialog open={showLeadDialog} onOpenChange={(open) => { setShowLeadDialog(open); if (!open) resetLeadForm(); }}>
             <DialogTrigger asChild>
               <Button size="sm">
@@ -1313,6 +1562,256 @@ export default function SalesFunnelPanel() {
             <Button onClick={() => { setShowLeadDetailDialog(false); if (viewingLead) openEditLead(viewingLead); }}>
               <Edit className="w-4 h-4 mr-1" />
               Editar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Import from Clients Dialog */}
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Importar da Gestão de Clientes
+            </DialogTitle>
+            <DialogDescription>
+              Selecione clientes individualmente ou importe uma categoria inteira para o funil.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {loadingCustomers ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Stage Selection */}
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <Label>Etapa de Destino</Label>
+                  <Select value={importStageId} onValueChange={setImportStageId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a etapa" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stages.map(stage => (
+                        <SelectItem key={stage.id} value={stage.id}>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: stage.color }} />
+                            {stage.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Tabs for Import Options */}
+              <Tabs defaultValue="individual" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="individual" className="flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Clientes Individuais
+                  </TabsTrigger>
+                  <TabsTrigger value="category" className="flex items-center gap-2">
+                    <Folder className="w-4 h-4" />
+                    Por Categoria
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="individual" className="space-y-4 mt-4">
+                  {/* Filters */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex-1 min-w-[200px]">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input 
+                          value={importSearchTerm}
+                          onChange={(e) => setImportSearchTerm(e.target.value)}
+                          placeholder="Buscar cliente..."
+                          className="pl-9"
+                        />
+                      </div>
+                    </div>
+                    <Select value={importCategoryFilter} onValueChange={setImportCategoryFilter}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas as categorias</SelectItem>
+                        <SelectItem value="none">Sem categoria</SelectItem>
+                        {categories.map(cat => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
+                              {cat.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Selection Actions */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={selectAllFilteredCustomers}>
+                        Selecionar Todos ({getFilteredCustomersForImport().length})
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={clearSelection}>
+                        Limpar Seleção
+                      </Button>
+                    </div>
+                    <Badge variant="secondary">
+                      {selectedCustomers.length} selecionado(s)
+                    </Badge>
+                  </div>
+
+                  {/* Customers List */}
+                  <ScrollArea className="h-[300px] border rounded-lg">
+                    <div className="p-2 space-y-1">
+                      {getFilteredCustomersForImport().length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                          <p>Nenhum cliente encontrado</p>
+                        </div>
+                      ) : (
+                        getFilteredCustomersForImport().map(customer => {
+                          const category = categories.find(c => c.id === customer.category_id);
+                          return (
+                            <div 
+                              key={customer.id}
+                              className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                                selectedCustomers.includes(customer.id) 
+                                  ? 'bg-primary/10 border-primary' 
+                                  : 'hover:bg-muted border-transparent'
+                              }`}
+                              onClick={() => toggleCustomerSelection(customer.id)}
+                            >
+                              <Checkbox 
+                                checked={selectedCustomers.includes(customer.id)}
+                                onCheckedChange={() => toggleCustomerSelection(customer.id)}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium truncate">{customer.name}</span>
+                                  {category && (
+                                    <Badge 
+                                      variant="outline" 
+                                      className="text-[10px] px-1.5"
+                                      style={{ borderColor: category.color, color: category.color }}
+                                    >
+                                      {category.name}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                                  {customer.email && (
+                                    <span className="flex items-center gap-1">
+                                      <Mail className="w-3 h-3" />
+                                      {customer.email}
+                                    </span>
+                                  )}
+                                  {customer.phone && (
+                                    <span className="flex items-center gap-1">
+                                      <Phone className="w-3 h-3" />
+                                      {customer.phone}
+                                    </span>
+                                  )}
+                                  {customer.company && (
+                                    <span className="flex items-center gap-1">
+                                      <Building className="w-3 h-3" />
+                                      {customer.company}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </ScrollArea>
+                </TabsContent>
+
+                <TabsContent value="category" className="mt-4">
+                  <ScrollArea className="h-[400px]">
+                    <div className="grid grid-cols-2 gap-3 p-1">
+                      {categories.length === 0 ? (
+                        <div className="col-span-2 text-center py-8 text-muted-foreground">
+                          <Folder className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                          <p>Nenhuma categoria encontrada</p>
+                          <p className="text-sm">Crie categorias na Gestão de Clientes</p>
+                        </div>
+                      ) : (
+                        categories.map(category => {
+                          const categoryCustomers = customers.filter(c => c.category_id === category.id);
+                          return (
+                            <Card 
+                              key={category.id} 
+                              className="cursor-pointer hover:border-primary transition-colors"
+                              onClick={() => handleImportCategory(category.id)}
+                            >
+                              <CardContent className="p-4">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <div 
+                                    className="w-10 h-10 rounded-lg flex items-center justify-center"
+                                    style={{ backgroundColor: category.color + '20' }}
+                                  >
+                                    <FolderOpen className="w-5 h-5" style={{ color: category.color }} />
+                                  </div>
+                                  <div>
+                                    <h4 className="font-semibold">{category.name}</h4>
+                                    <p className="text-xs text-muted-foreground">
+                                      {categoryCustomers.length} cliente(s)
+                                    </p>
+                                  </div>
+                                </div>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="w-full"
+                                  disabled={isImporting || categoryCustomers.length === 0}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleImportCategory(category.id);
+                                  }}
+                                >
+                                  {isImporting ? (
+                                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                  ) : (
+                                    <UserPlus className="w-4 h-4 mr-1" />
+                                  )}
+                                  Importar Categoria
+                                </Button>
+                              </CardContent>
+                            </Card>
+                          );
+                        })
+                      )}
+                    </div>
+                  </ScrollArea>
+                </TabsContent>
+              </Tabs>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowImportDialog(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleImportCustomers}
+              disabled={isImporting || selectedCustomers.length === 0}
+            >
+              {isImporting ? (
+                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+              ) : (
+                <UserPlus className="w-4 h-4 mr-1" />
+              )}
+              Importar {selectedCustomers.length > 0 ? `(${selectedCustomers.length})` : 'Selecionados'}
             </Button>
           </DialogFooter>
         </DialogContent>
