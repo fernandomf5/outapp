@@ -1395,16 +1395,139 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
           </Dialog>
 
           {!isTeamMember && (
-            <Button 
-              variant="outline"
-              onClick={() => {
-                loadAllCustomers();
-                setIsAddClientDialogOpen(true);
-              }}
-            >
-              <UserPlus className="mr-2 h-4 w-4" />
-              Adicionar Cliente
-            </Button>
+            <>
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  loadAllCustomers();
+                  setIsAddClientDialogOpen(true);
+                }}
+              >
+                <UserPlus className="mr-2 h-4 w-4" />
+                Adicionar Cliente
+              </Button>
+
+              {/* Add Client from Customers Dialog - Main View */}
+              <Dialog open={isAddClientDialogOpen} onOpenChange={(open) => {
+                setIsAddClientDialogOpen(open);
+                if (!open) setSelectedCategoryFilter("all");
+              }}>
+                <DialogContent className="max-h-[80vh] overflow-y-auto max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Selecionar Cliente</DialogTitle>
+                    <DialogDescription>
+                      Escolha um cliente da gestão de clientes para adicionar ao organizador de tarefas
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  {/* Category Filter Buttons */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <Button
+                      variant={selectedCategoryFilter === "all" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedCategoryFilter("all")}
+                    >
+                      Todos
+                    </Button>
+                    <Button
+                      variant={selectedCategoryFilter === "uncategorized" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedCategoryFilter("uncategorized")}
+                    >
+                      Sem Categoria
+                    </Button>
+                    {customerCategories.map((category) => (
+                      <Button
+                        key={category.id}
+                        variant={selectedCategoryFilter === category.id ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedCategoryFilter(category.id)}
+                        style={{
+                          backgroundColor: selectedCategoryFilter === category.id ? category.color : 'transparent',
+                          borderColor: category.color,
+                          color: selectedCategoryFilter === category.id ? 'white' : category.color
+                        }}
+                      >
+                        {category.name}
+                      </Button>
+                    ))}
+                  </div>
+
+                  <div className="grid gap-3 max-h-96 overflow-y-auto">
+                    {allCustomers.length === 0 ? (
+                      <p className="text-center text-muted-foreground py-4">
+                        Nenhum cliente disponível na gestão de clientes.
+                      </p>
+                    ) : (() => {
+                      const linkedIds = clients.map(c => c.id);
+                      const availableCustomers = allCustomers.filter(c => !linkedIds.includes(c.id));
+                      
+                      const filteredCustomers = availableCustomers.filter(customer => {
+                        if (selectedCategoryFilter === "all") return true;
+                        if (selectedCategoryFilter === "uncategorized") return !customer.category_id;
+                        return customer.category_id === selectedCategoryFilter;
+                      });
+
+                      if (availableCustomers.length === 0) {
+                        return (
+                          <p className="text-center text-muted-foreground py-4">
+                            Todos os clientes já foram adicionados ao organizador.
+                          </p>
+                        );
+                      }
+
+                      if (filteredCustomers.length === 0) {
+                        return (
+                          <p className="text-center text-muted-foreground py-4">
+                            Nenhum cliente encontrado nesta categoria.
+                          </p>
+                        );
+                      }
+                      
+                      return filteredCustomers.map(customer => {
+                        const category = customerCategories.find(c => c.id === customer.category_id);
+                        return (
+                          <Card 
+                            key={customer.id} 
+                            className="p-4 cursor-pointer hover:bg-accent transition-colors"
+                            onClick={() => {
+                              handleLinkCustomer(customer.id);
+                              setIsAddClientDialogOpen(false);
+                              setSelectedCategoryFilter("all");
+                            }}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-semibold">{customer.name}</h4>
+                                  {category && (
+                                    <Badge 
+                                      variant="secondary" 
+                                      className="text-xs"
+                                      style={{ 
+                                        backgroundColor: `${category.color}20`, 
+                                        color: category.color,
+                                        borderColor: category.color 
+                                      }}
+                                    >
+                                      {category.name}
+                                    </Badge>
+                                  )}
+                                </div>
+                                {customer.email && (
+                                  <p className="text-sm text-muted-foreground">{customer.email}</p>
+                                )}
+                              </div>
+                              <Plus className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                          </Card>
+                        );
+                      });
+                    })()}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </>
           )}
 
           <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
