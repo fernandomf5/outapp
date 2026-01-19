@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, Copy, Check, Save, Trash2, Edit2 } from 'lucide-react';
+import { Download, Copy, Check, Save, Trash2, Edit2, ImagePlus, X, Printer } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,6 +16,14 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { FaInstagram, FaFacebook, FaTiktok, FaYoutube, FaTwitter, FaLinkedin } from 'react-icons/fa';
 
 interface SavedQRCode {
   id: string;
@@ -25,6 +33,15 @@ interface SavedQRCode {
   fg_color: string;
   bg_color: string;
   created_at: string;
+}
+
+interface SocialMedia {
+  instagram: string;
+  facebook: string;
+  tiktok: string;
+  youtube: string;
+  twitter: string;
+  linkedin: string;
 }
 
 export function QRCodeGenerator() {
@@ -38,6 +55,31 @@ export function QRCodeGenerator() {
   const [qrName, setQrName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState<string | null>(null);
+  
+  // Advanced customization states
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string>('');
+  const [logoSize, setLogoSize] = useState(50);
+  const [showLogo, setShowLogo] = useState(false);
+  const [borderColor, setBorderColor] = useState('#000000');
+  const [showBorder, setShowBorder] = useState(false);
+  const [borderWidth, setBorderWidth] = useState(8);
+  const [cornerRadius, setCornerRadius] = useState(0);
+  const [padding, setPadding] = useState(16);
+  const [showSocialMedia, setShowSocialMedia] = useState(false);
+  const [socialMedia, setSocialMedia] = useState<SocialMedia>({
+    instagram: '',
+    facebook: '',
+    tiktok: '',
+    youtube: '',
+    twitter: '',
+    linkedin: '',
+  });
+  const [businessName, setBusinessName] = useState('');
+  
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const printRef = useRef<HTMLDivElement>(null);
+  
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -104,6 +146,164 @@ export function QRCodeGenerator() {
       title: 'QR Code baixado',
       description: `Arquivo ${format.toUpperCase()} salvo com sucesso`,
     });
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast({
+          title: 'Erro',
+          description: 'A imagem deve ter no máximo 2MB',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setLogoUrl(event.target?.result as string);
+        setShowLogo(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeLogo = () => {
+    setLogoUrl('');
+    setShowLogo(false);
+    if (logoInputRef.current) {
+      logoInputRef.current.value = '';
+    }
+  };
+
+  const handlePrint = () => {
+    if (!printRef.current) return;
+    
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível abrir a janela de impressão. Verifique se popups estão habilitados.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const activeSocials = Object.entries(socialMedia).filter(([_, value]) => value.trim() !== '');
+    
+    const socialIconsHtml = activeSocials.map(([platform, handle]) => {
+      const colors: Record<string, string> = {
+        instagram: '#E4405F',
+        facebook: '#1877F2',
+        tiktok: '#000000',
+        youtube: '#FF0000',
+        twitter: '#1DA1F2',
+        linkedin: '#0A66C2',
+      };
+      return `<div style="display: flex; align-items: center; gap: 6px; font-size: 14px;">
+        <span style="color: ${colors[platform]}; font-weight: bold;">@${handle}</span>
+      </div>`;
+    }).join('');
+
+    const qrSvg = document.getElementById('qr-code-svg');
+    const svgData = qrSvg ? new XMLSerializer().serializeToString(qrSvg) : '';
+    
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>QR Code - ${businessName || 'Imprimir'}</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              min-height: 100vh;
+              margin: 0;
+              padding: 20px;
+              box-sizing: border-box;
+            }
+            .container {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              padding: ${padding}px;
+              ${showBorder ? `border: ${borderWidth}px solid ${borderColor}; border-radius: ${cornerRadius}px;` : ''}
+              background-color: ${bgColor};
+            }
+            .business-name {
+              font-size: 24px;
+              font-weight: bold;
+              margin-bottom: 16px;
+              color: ${fgColor};
+            }
+            .qr-wrapper {
+              position: relative;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .logo-overlay {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              background: white;
+              padding: 4px;
+              border-radius: 8px;
+            }
+            .logo-overlay img {
+              width: ${logoSize}px;
+              height: ${logoSize}px;
+              object-fit: contain;
+            }
+            .socials {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 12px;
+              margin-top: 16px;
+              justify-content: center;
+            }
+            @media print {
+              body {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            ${businessName ? `<div class="business-name">${businessName}</div>` : ''}
+            <div class="qr-wrapper">
+              ${svgData}
+              ${showLogo && logoUrl ? `
+                <div class="logo-overlay">
+                  <img src="${logoUrl}" alt="Logo" />
+                </div>
+              ` : ''}
+            </div>
+            ${showSocialMedia && activeSocials.length > 0 ? `
+              <div class="socials">
+                ${socialIconsHtml}
+              </div>
+            ` : ''}
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() {
+                window.close();
+              };
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   };
 
   const copyToClipboard = async () => {
@@ -180,6 +380,25 @@ export function QRCodeGenerator() {
     setBgColor('#ffffff');
     setEditingId(null);
     setEditingName(null);
+    // Reset advanced options
+    setLogoUrl('');
+    setShowLogo(false);
+    setLogoSize(50);
+    setBorderColor('#000000');
+    setShowBorder(false);
+    setBorderWidth(8);
+    setCornerRadius(0);
+    setPadding(16);
+    setShowSocialMedia(false);
+    setSocialMedia({
+      instagram: '',
+      facebook: '',
+      tiktok: '',
+      youtube: '',
+      twitter: '',
+      linkedin: '',
+    });
+    setBusinessName('');
   };
 
   const saveQRCode = async () => {
@@ -347,10 +566,10 @@ export function QRCodeGenerator() {
             </TabsContent>
           </Tabs>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
             {/* Settings */}
             <div className="space-y-4">
-              <h3 className="font-semibold text-lg">Personalização</h3>
+              <h3 className="font-semibold text-lg">Personalização Básica</h3>
               
               <div className="space-y-2">
                 <Label htmlFor="size-input">Tamanho (px)</Label>
@@ -402,6 +621,213 @@ export function QRCodeGenerator() {
                 </div>
               </div>
 
+              {/* Advanced Customization Toggle */}
+              <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between">
+                    Personalização Avançada
+                    <span className={`transition-transform ${showAdvanced ? 'rotate-180' : ''}`}>▼</span>
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-4 mt-4">
+                  {/* Business Name */}
+                  <div className="space-y-2">
+                    <Label>Nome do Negócio</Label>
+                    <Input
+                      placeholder="Minha Empresa"
+                      value={businessName}
+                      onChange={(e) => setBusinessName(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Aparece acima do QR Code na impressão
+                    </p>
+                  </div>
+
+                  {/* Logo Upload */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Logo da Marca</Label>
+                      <Switch
+                        checked={showLogo}
+                        onCheckedChange={(checked) => {
+                          setShowLogo(checked);
+                          if (!checked) removeLogo();
+                        }}
+                        disabled={!logoUrl}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        ref={logoInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => logoInputRef.current?.click()}
+                      >
+                        <ImagePlus className="w-4 h-4 mr-2" />
+                        {logoUrl ? 'Trocar Logo' : 'Enviar Logo'}
+                      </Button>
+                      {logoUrl && (
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          onClick={removeLogo}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                    {logoUrl && (
+                      <div className="space-y-2">
+                        <Label>Tamanho do Logo: {logoSize}px</Label>
+                        <Slider
+                          value={[logoSize]}
+                          onValueChange={(value) => setLogoSize(value[0])}
+                          min={30}
+                          max={100}
+                          step={5}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Border Settings */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Borda ao Redor</Label>
+                      <Switch
+                        checked={showBorder}
+                        onCheckedChange={setShowBorder}
+                      />
+                    </div>
+                    {showBorder && (
+                      <div className="space-y-3 pl-4 border-l-2 border-primary/20">
+                        <div className="space-y-2">
+                          <Label>Cor da Borda</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              type="color"
+                              value={borderColor}
+                              onChange={(e) => setBorderColor(e.target.value)}
+                              className="w-20 h-10 cursor-pointer"
+                            />
+                            <Input
+                              type="text"
+                              value={borderColor}
+                              onChange={(e) => setBorderColor(e.target.value)}
+                              placeholder="#000000"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Espessura: {borderWidth}px</Label>
+                          <Slider
+                            value={[borderWidth]}
+                            onValueChange={(value) => setBorderWidth(value[0])}
+                            min={2}
+                            max={20}
+                            step={1}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Arredondamento: {cornerRadius}px</Label>
+                          <Slider
+                            value={[cornerRadius]}
+                            onValueChange={(value) => setCornerRadius(value[0])}
+                            min={0}
+                            max={30}
+                            step={2}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Padding */}
+                  <div className="space-y-2">
+                    <Label>Espaçamento Interno: {padding}px</Label>
+                    <Slider
+                      value={[padding]}
+                      onValueChange={(value) => setPadding(value[0])}
+                      min={0}
+                      max={40}
+                      step={4}
+                    />
+                  </div>
+
+                  {/* Social Media */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Redes Sociais</Label>
+                      <Switch
+                        checked={showSocialMedia}
+                        onCheckedChange={setShowSocialMedia}
+                      />
+                    </div>
+                    {showSocialMedia && (
+                      <div className="space-y-3 pl-4 border-l-2 border-primary/20">
+                        <div className="flex items-center gap-2">
+                          <FaInstagram className="w-5 h-5 text-pink-500" />
+                          <Input
+                            placeholder="seu_instagram"
+                            value={socialMedia.instagram}
+                            onChange={(e) => setSocialMedia({ ...socialMedia, instagram: e.target.value })}
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <FaFacebook className="w-5 h-5 text-blue-600" />
+                          <Input
+                            placeholder="seu_facebook"
+                            value={socialMedia.facebook}
+                            onChange={(e) => setSocialMedia({ ...socialMedia, facebook: e.target.value })}
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <FaTiktok className="w-5 h-5" />
+                          <Input
+                            placeholder="seu_tiktok"
+                            value={socialMedia.tiktok}
+                            onChange={(e) => setSocialMedia({ ...socialMedia, tiktok: e.target.value })}
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <FaYoutube className="w-5 h-5 text-red-600" />
+                          <Input
+                            placeholder="seu_canal"
+                            value={socialMedia.youtube}
+                            onChange={(e) => setSocialMedia({ ...socialMedia, youtube: e.target.value })}
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <FaTwitter className="w-5 h-5 text-sky-500" />
+                          <Input
+                            placeholder="seu_twitter"
+                            value={socialMedia.twitter}
+                            onChange={(e) => setSocialMedia({ ...socialMedia, twitter: e.target.value })}
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <FaLinkedin className="w-5 h-5 text-blue-700" />
+                          <Input
+                            placeholder="seu_linkedin"
+                            value={socialMedia.linkedin}
+                            onChange={(e) => setSocialMedia({ ...socialMedia, linkedin: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+
+              {/* Action Buttons */}
               <div className="flex gap-2 pt-4">
                 <Button
                   onClick={() => downloadQRCode('png')}
@@ -409,7 +835,7 @@ export function QRCodeGenerator() {
                   className="flex-1"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Baixar PNG
+                  PNG
                 </Button>
                 <Button
                   onClick={() => downloadQRCode('svg')}
@@ -418,7 +844,16 @@ export function QRCodeGenerator() {
                   className="flex-1"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Baixar SVG
+                  SVG
+                </Button>
+                <Button
+                  onClick={handlePrint}
+                  disabled={!text}
+                  variant="secondary"
+                  className="flex-1"
+                >
+                  <Printer className="w-4 h-4 mr-2" />
+                  Imprimir
                 </Button>
               </div>
 
@@ -470,30 +905,112 @@ export function QRCodeGenerator() {
             </div>
 
             {/* Preview */}
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <h3 className="font-semibold text-lg">Visualização</h3>
-              <div className="p-6 bg-muted rounded-lg">
-                {text ? (
-                  <QRCodeSVG
-                    id="qr-code-svg"
-                    value={text}
-                    size={Math.min(size, 300)}
-                    fgColor={fgColor}
-                    bgColor={bgColor}
-                    level="H"
-                    includeMargin
-                  />
-                ) : (
-                  <div
-                    className="flex items-center justify-center bg-muted-foreground/10 rounded"
-                    style={{ width: 256, height: 256 }}
+            <div className="flex flex-col items-center justify-start space-y-4">
+              <h3 className="font-semibold text-lg">Visualização para Impressão</h3>
+              <div 
+                ref={printRef}
+                className="flex flex-col items-center"
+                style={{
+                  padding: `${padding}px`,
+                  backgroundColor: bgColor,
+                  border: showBorder ? `${borderWidth}px solid ${borderColor}` : 'none',
+                  borderRadius: `${cornerRadius}px`,
+                }}
+              >
+                {businessName && (
+                  <p 
+                    className="font-bold text-lg mb-3"
+                    style={{ color: fgColor }}
                   >
-                    <p className="text-muted-foreground text-center px-4">
-                      Digite um texto para gerar o QR Code
-                    </p>
+                    {businessName}
+                  </p>
+                )}
+                
+                <div className="relative">
+                  {text ? (
+                    <>
+                      <QRCodeSVG
+                        id="qr-code-svg"
+                        value={text}
+                        size={Math.min(size, 280)}
+                        fgColor={fgColor}
+                        bgColor={bgColor}
+                        level="H"
+                        includeMargin={false}
+                      />
+                      {showLogo && logoUrl && (
+                        <div 
+                          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-1 rounded-lg"
+                        >
+                          <img 
+                            src={logoUrl} 
+                            alt="Logo" 
+                            style={{ 
+                              width: logoSize, 
+                              height: logoSize, 
+                              objectFit: 'contain' 
+                            }} 
+                          />
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div
+                      className="flex items-center justify-center bg-muted-foreground/10 rounded"
+                      style={{ width: 256, height: 256 }}
+                    >
+                      <p className="text-muted-foreground text-center px-4">
+                        Digite um texto para gerar o QR Code
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {showSocialMedia && Object.entries(socialMedia).some(([_, v]) => v.trim()) && (
+                  <div className="flex flex-wrap justify-center gap-2 mt-3">
+                    {socialMedia.instagram && (
+                      <div className="flex items-center gap-1 text-xs">
+                        <FaInstagram className="w-3 h-3 text-pink-500" />
+                        <span>@{socialMedia.instagram}</span>
+                      </div>
+                    )}
+                    {socialMedia.facebook && (
+                      <div className="flex items-center gap-1 text-xs">
+                        <FaFacebook className="w-3 h-3 text-blue-600" />
+                        <span>@{socialMedia.facebook}</span>
+                      </div>
+                    )}
+                    {socialMedia.tiktok && (
+                      <div className="flex items-center gap-1 text-xs">
+                        <FaTiktok className="w-3 h-3" />
+                        <span>@{socialMedia.tiktok}</span>
+                      </div>
+                    )}
+                    {socialMedia.youtube && (
+                      <div className="flex items-center gap-1 text-xs">
+                        <FaYoutube className="w-3 h-3 text-red-600" />
+                        <span>@{socialMedia.youtube}</span>
+                      </div>
+                    )}
+                    {socialMedia.twitter && (
+                      <div className="flex items-center gap-1 text-xs">
+                        <FaTwitter className="w-3 h-3 text-sky-500" />
+                        <span>@{socialMedia.twitter}</span>
+                      </div>
+                    )}
+                    {socialMedia.linkedin && (
+                      <div className="flex items-center gap-1 text-xs">
+                        <FaLinkedin className="w-3 h-3 text-blue-700" />
+                        <span>@{socialMedia.linkedin}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
+              
+              <p className="text-xs text-muted-foreground text-center">
+                Esta é a visualização de como ficará na impressão
+              </p>
             </div>
           </div>
         </CardContent>
