@@ -1709,7 +1709,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
 
       {/* Dialog: Confirmar Exclusão de Categoria */}
       <AlertDialog open={deleteCategoryDialogOpen} onOpenChange={setDeleteCategoryDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="z-[200]">
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Categoria</AlertDialogTitle>
             <AlertDialogDescription>
