@@ -307,7 +307,9 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
   // Task client management state
   const [showClientManager, setShowClientManager] = useState(false);
   const [isAddClientDialogOpen, setIsAddClientDialogOpen] = useState(false);
-  const [allCustomers, setAllCustomers] = useState<Array<{id: string, name: string, email?: string | null, phone?: string | null}>>([]);
+  const [allCustomers, setAllCustomers] = useState<Array<{id: string, name: string, email?: string | null, phone?: string | null, category_id?: string | null}>>([]);
+  const [customerCategories, setCustomerCategories] = useState<Array<{id: string, name: string, color: string}>>([]);
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("all");
   const [clientToRemove, setClientToRemove] = useState<string | null>(null);
 
 
@@ -404,9 +406,20 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
       const userId = await getTargetUserId();
       if (!userId) return;
 
+      // Load categories first
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from("customer_categories")
+        .select("id, name, color")
+        .eq("user_id", userId)
+        .order("name", { ascending: true });
+
+      if (categoriesError) throw categoriesError;
+      setCustomerCategories(categoriesData || []);
+
+      // Load customers with category
       const { data, error } = await supabase
         .from("customers")
-        .select("id, name, email, phone")
+        .select("id, name, email, phone, category_id")
         .eq("user_id", userId)
         .order("name", { ascending: true });
 
@@ -415,6 +428,7 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
     } catch (error: any) {
       console.error("Erro ao carregar clientes disponíveis:", error?.message || error);
       setAllCustomers([]);
+      setCustomerCategories([]);
     }
   };
 
@@ -1123,46 +1137,119 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
         </div>
 
         {/* Add Client from Customers Dialog */}
-        <Dialog open={isAddClientDialogOpen} onOpenChange={setIsAddClientDialogOpen}>
-          <DialogContent className="max-h-[80vh] overflow-y-auto">
+        <Dialog open={isAddClientDialogOpen} onOpenChange={(open) => {
+          setIsAddClientDialogOpen(open);
+          if (!open) setSelectedCategoryFilter("all");
+        }}>
+          <DialogContent className="max-h-[80vh] overflow-y-auto max-w-2xl">
             <DialogHeader>
               <DialogTitle>Selecionar Cliente</DialogTitle>
               <DialogDescription>
                 Escolha um cliente da gestão de clientes para adicionar ao organizador de tarefas
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-3">
-              {allCustomers.filter(c => !clients.some(linked => linked.id === c.id)).map(customer => (
-                <Card 
-                  key={customer.id} 
-                  className="p-4 cursor-pointer hover:bg-accent transition-colors"
-                  onClick={() => {
-                    handleLinkCustomer(customer.id);
-                    setIsAddClientDialogOpen(false);
-                  }}
+            
+            {/* Category filter */}
+            {customerCategories.length > 0 && (
+              <div className="flex flex-wrap gap-2 pb-2 border-b">
+                <Button
+                  variant={selectedCategoryFilter === "all" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategoryFilter("all")}
                 >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-semibold">{customer.name}</h4>
-                      {customer.email && (
-                        <p className="text-sm text-muted-foreground">{customer.email}</p>
-                      )}
-                    </div>
-                    <Plus className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                </Card>
-              ))}
-              {allCustomers.filter(c => !clients.some(linked => linked.id === c.id)).length === 0 && (
-                <p className="text-center text-muted-foreground py-4">
-                  {allCustomers.length === 0 
-                    ? "Nenhum cliente cadastrado na gestão de clientes." 
-                    : "Todos os clientes já foram adicionados ao organizador."
-                  }
-                </p>
-              )}
+                  Todos
+                </Button>
+                <Button
+                  variant={selectedCategoryFilter === "none" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategoryFilter("none")}
+                >
+                  Sem Categoria
+                </Button>
+                {customerCategories.map(cat => (
+                  <Button
+                    key={cat.id}
+                    variant={selectedCategoryFilter === cat.id ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedCategoryFilter(cat.id)}
+                    className="gap-2"
+                  >
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: cat.color }}
+                    />
+                    {cat.name}
+                  </Button>
+                ))}
+              </div>
+            )}
+
+            <div className="space-y-3 max-h-[50vh] overflow-y-auto">
+              {(() => {
+                const availableCustomers = allCustomers.filter(c => !clients.some(linked => linked.id === c.id));
+                const filteredCustomers = selectedCategoryFilter === "all" 
+                  ? availableCustomers
+                  : selectedCategoryFilter === "none"
+                    ? availableCustomers.filter(c => !c.category_id)
+                    : availableCustomers.filter(c => c.category_id === selectedCategoryFilter);
+                
+                if (filteredCustomers.length === 0) {
+                  return (
+                    <p className="text-center text-muted-foreground py-4">
+                      {availableCustomers.length === 0 
+                        ? allCustomers.length === 0 
+                          ? "Nenhum cliente cadastrado na gestão de clientes." 
+                          : "Todos os clientes já foram adicionados ao organizador."
+                        : "Nenhum cliente encontrado nesta categoria."
+                      }
+                    </p>
+                  );
+                }
+
+                return filteredCustomers.map(customer => {
+                  const category = customerCategories.find(c => c.id === customer.category_id);
+                  return (
+                    <Card 
+                      key={customer.id} 
+                      className="p-4 cursor-pointer hover:bg-accent transition-colors"
+                      onClick={() => {
+                        handleLinkCustomer(customer.id);
+                        setIsAddClientDialogOpen(false);
+                        setSelectedCategoryFilter("all");
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-semibold">{customer.name}</h4>
+                            {category && (
+                              <Badge 
+                                variant="secondary" 
+                                className="text-xs"
+                                style={{ 
+                                  backgroundColor: `${category.color}20`, 
+                                  color: category.color,
+                                  borderColor: category.color 
+                                }}
+                              >
+                                {category.name}
+                              </Badge>
+                            )}
+                          </div>
+                          {customer.email && (
+                            <p className="text-sm text-muted-foreground">{customer.email}</p>
+                          )}
+                        </div>
+                        <Plus className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    </Card>
+                  );
+                });
+              })()}
             </div>
           </DialogContent>
         </Dialog>
+
 
         {/* Remove Client Confirmation */}
         <AlertDialog open={!!clientToRemove} onOpenChange={(open) => !open && setClientToRemove(null)}>
