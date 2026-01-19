@@ -21,7 +21,11 @@ import {
   Percent,
   Building2,
   Edit,
-  Sparkles
+  Sparkles,
+  ArrowLeft,
+  ArrowRight,
+  User,
+  Briefcase
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
@@ -103,6 +107,8 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
   const [startDateFilter, setStartDateFilter] = useState<string>('');
   const [endDateFilter, setEndDateFilter] = useState<string>('');
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'selection' | 'management'>('selection');
+  const [activeClientId, setActiveClientId] = useState<string | null>(null);
   
   const [clientFormData, setClientFormData] = useState({
     name: '',
@@ -1000,12 +1006,254 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
     return { status, message, icon, metrics, score, maxScore, percentage };
   };
 
+  const handleSelectClient = (clientId: string) => {
+    setActiveClientId(clientId);
+    setSelectedClientId(clientId === 'all' ? 'all' : clientId);
+    setViewMode('management');
+  };
+
+  const handleBackToSelection = () => {
+    setViewMode('selection');
+    setActiveClientId(null);
+    setSelectedClientId('all');
+    setSelectedCampaignId(null);
+  };
+
+  const handleCreateClientFromSelector = async (data: { name: string; client_type: 'personal' | 'company'; description: string; cashbox: string }) => {
+    try {
+      const userId = await getTargetUserId();
+      if (!userId) return;
+
+      const { data: newClient, error } = await supabase
+        .from('ad_clients')
+        .insert([{
+          user_id: userId,
+          name: data.name,
+          client_type: data.client_type,
+          description: data.description || null,
+          cashbox: parseFloat(data.cashbox) || 0
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success("Cliente criado com sucesso!");
+      await loadData();
+      
+      if (newClient) {
+        handleSelectClient(newClient.id);
+      }
+    } catch (error: any) {
+      toast.error("Erro ao criar cliente");
+    }
+  };
+
+  const activeClient = activeClientId ? clients.find(c => c.id === activeClientId) : null;
+
   if (loading) {
     return <div className="flex items-center justify-center p-8">Carregando...</div>;
   }
 
+  // Client Selection Screen
+  if (viewMode === 'selection') {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold tracking-tight">Gestão de Anúncios</h2>
+          <p className="text-muted-foreground mt-2">
+            Selecione um cliente para gerenciar suas campanhas de anúncios
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* All Clients Option */}
+          <Card 
+            className="cursor-pointer hover:border-primary transition-all hover:shadow-md"
+            onClick={() => handleSelectClient('all')}
+          >
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <BarChart3 className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Todos os Clientes</CardTitle>
+                  <p className="text-sm text-muted-foreground">Ver campanhas de todos</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <Badge variant="secondary">{campaigns.length} campanhas</Badge>
+                <ArrowRight className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {clients.map((client) => {
+            const clientCampaigns = campaigns.filter(c => c.client_id === client.id);
+            const clientSpent = clientCampaigns.reduce((sum, c) => sum + c.spent, 0);
+            const clientRevenue = clientCampaigns.reduce((sum, c) => sum + (c.revenue || 0), 0);
+            
+            return (
+              <Card 
+                key={client.id}
+                className="cursor-pointer hover:border-primary transition-all hover:shadow-md"
+                onClick={() => handleSelectClient(client.id)}
+              >
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                      {client.client_type === 'company' ? (
+                        <Building2 className="h-6 w-6 text-primary" />
+                      ) : (
+                        <User className="h-6 w-6 text-primary" />
+                      )}
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">{client.name}</CardTitle>
+                      <Badge variant="outline" className="text-xs">
+                        {client.client_type === 'personal' ? 'Pessoal' : 'Empresa'}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 text-sm mb-3">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Caixa:</span>
+                      <span className="font-medium">R$ {client.cashbox.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Gasto:</span>
+                      <span className="font-medium text-destructive">R$ {clientSpent.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Faturado:</span>
+                      <span className="font-medium text-success">R$ {clientRevenue.toFixed(2)}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary">{clientCampaigns.length} campanhas</Badge>
+                    <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+
+          {/* Create New Client Card */}
+          <Card 
+            className="cursor-pointer border-dashed hover:border-primary transition-all hover:shadow-md"
+            onClick={() => setIsAddClientDialogOpen(true)}
+          >
+            <CardContent className="flex flex-col items-center justify-center h-full min-h-[200px] py-8">
+              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                <Plus className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <p className="font-medium">Criar Novo Cliente</p>
+              <p className="text-sm text-muted-foreground">Adicionar novo cliente para gestão</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Add Client Dialog - reused from existing */}
+        <Dialog open={isAddClientDialogOpen} onOpenChange={setIsAddClientDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Novo Cliente</DialogTitle>
+              <DialogDescription>Adicione um novo cliente para gerenciar campanhas</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label>Nome *</Label>
+                <Input 
+                  value={clientFormData.name}
+                  onChange={(e) => setClientFormData({...clientFormData, name: e.target.value})}
+                  placeholder="Ex: Loja ABC"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Tipo</Label>
+                <Select value={clientFormData.client_type} onValueChange={(value: any) => setClientFormData({...clientFormData, client_type: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="personal">Pessoal</SelectItem>
+                    <SelectItem value="company">Empresa</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Descrição</Label>
+                <Input 
+                  value={clientFormData.description}
+                  onChange={(e) => setClientFormData({...clientFormData, description: e.target.value})}
+                  placeholder="Informações adicionais"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Caixa para Anúncios (R$) *</Label>
+                <Input 
+                  type="number"
+                  step="0.01"
+                  value={clientFormData.cashbox}
+                  onChange={(e) => setClientFormData({...clientFormData, cashbox: e.target.value})}
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAddClientDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={() => {
+                handleCreateClientFromSelector({
+                  name: clientFormData.name,
+                  client_type: clientFormData.client_type,
+                  description: clientFormData.description,
+                  cashbox: clientFormData.cashbox
+                });
+                setClientFormData({ name: '', client_type: 'personal', description: '', cashbox: '' });
+                setIsAddClientDialogOpen(false);
+              }} className="gradient-primary">
+                Criar Cliente
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Header with back button and client info */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={handleBackToSelection}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-2xl font-bold">
+                {activeClientId === 'all' || !activeClient ? 'Todos os Clientes' : activeClient.name}
+              </h2>
+              {activeClient && (
+                <Badge variant="outline">
+                  {activeClient.client_type === 'personal' ? 'Pessoal' : 'Empresa'}
+                </Badge>
+              )}
+            </div>
+            <p className="text-muted-foreground">
+              Gestão de campanhas de anúncios
+            </p>
+          </div>
+        </div>
+      </div>
+      
       <Tabs defaultValue="campaigns" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="clients">Clientes</TabsTrigger>
