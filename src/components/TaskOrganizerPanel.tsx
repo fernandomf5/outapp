@@ -1394,6 +1394,19 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
             </DialogContent>
           </Dialog>
 
+          {!isTeamMember && (
+            <Button 
+              variant="outline"
+              onClick={() => {
+                loadAllCustomers();
+                setIsAddClientDialogOpen(true);
+              }}
+            >
+              <UserPlus className="mr-2 h-4 w-4" />
+              Adicionar Cliente
+            </Button>
+          )}
+
           <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={() => {
