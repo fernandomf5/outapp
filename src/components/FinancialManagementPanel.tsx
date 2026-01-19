@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Plus, Edit2, Trash2, Check, Calculator, CalendarIcon } from "lucide-react";
+import { DollarSign, Plus, Edit2, Trash2, Check, Calculator, CalendarIcon, BarChart3, ArrowLeft, TableIcon, LineChart } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -18,7 +18,9 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
 import { arrayMove } from "@dnd-kit/sortable";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { BusinessSelector } from "@/components/financial/BusinessSelector";
+import { FinancialAnalyticsPanel } from "@/components/financial/FinancialAnalyticsPanel";
 
 interface Business {
   id: string;
@@ -271,6 +273,10 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [loading, setLoading] = useState(false);
   
+  // View modes
+  const [viewMode, setViewMode] = useState<'selection' | 'management'>('selection');
+  const [activeTab, setActiveTab] = useState<'table' | 'analytics'>('table');
+  
   
   // Filtro por data
   const [dateFilterStart, setDateFilterStart] = useState<Date | undefined>(undefined);
@@ -337,11 +343,50 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       if (error) throw error;
       setBusinesses((data || []) as Business[]);
       
-      if (data && data.length > 0) {
-        setSelectedBusinessId(data[0].id);
-      }
+      // Don't auto-select - let user choose
     } catch (error: any) {
       toast.error('Erro ao carregar negócios');
+    }
+  };
+
+  const handleSelectBusiness = (businessId: string) => {
+    setSelectedBusinessId(businessId);
+    setViewMode('management');
+  };
+
+  const handleBackToSelection = () => {
+    setViewMode('selection');
+    setSelectedBusinessId('');
+  };
+
+  const handleCreateBusinessFromSelector = async (data: { name: string; business_type: 'personal' | 'company'; description: string }) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: newBusiness, error } = await supabase
+        .from('financial_businesses')
+        .insert({
+          user_id: user.id,
+          name: data.name,
+          business_type: data.business_type,
+          description: data.description || null
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success('Negócio criado com sucesso!');
+      loadBusinesses();
+      
+      // Auto-select the new business
+      if (newBusiness) {
+        setSelectedBusinessId(newBusiness.id);
+        setViewMode('management');
+      }
+    } catch (error: any) {
+      toast.error('Erro ao criar negócio');
     }
   };
 
@@ -839,113 +884,82 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     }
   };
 
-  if (businesses.length === 0) {
+  // Show business selector when in selection mode or no business selected
+  if (viewMode === 'selection' || !selectedBusinessId) {
     return (
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Gestão Financeira</CardTitle>
-            <CardDescription>Primeiro, crie um negócio para começar</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <DollarSign className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-4">Nenhum negócio cadastrado</p>
-            <Button onClick={() => setIsBusinessDialogOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Criar Primeiro Negócio
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Dialog open={isBusinessDialogOpen} onOpenChange={setIsBusinessDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Criar Negócio</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4">
-              <div>
-                <Label>Nome</Label>
-                <Input
-                  value={businessFormData.name}
-                  onChange={(e) => setBusinessFormData({ ...businessFormData, name: e.target.value })}
-                  placeholder="Ex: Meu Negócio"
-                />
-              </div>
-              <div>
-                <Label>Tipo</Label>
-                <Select value={businessFormData.business_type} onValueChange={(v: any) => setBusinessFormData({ ...businessFormData, business_type: v })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="personal">Pessoa Física</SelectItem>
-                    <SelectItem value="company">Pessoa Jurídica</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Descrição</Label>
-                <Input
-                  value={businessFormData.description}
-                  onChange={(e) => setBusinessFormData({ ...businessFormData, description: e.target.value })}
-                  placeholder="Opcional"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsBusinessDialogOpen(false)}>Cancelar</Button>
-              <Button onClick={handleAddBusiness}>Criar</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+      <BusinessSelector
+        businesses={businesses}
+        onSelectBusiness={handleSelectBusiness}
+        onCreateBusiness={handleCreateBusinessFromSelector}
+      />
     );
   }
 
+  const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold">Gestão Financeira</h2>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => setIsCategoryDialogOpen(true)} className="text-xs sm:text-sm">
-            Categorias
-          </Button>
-          <Select value={selectedBusinessId} onValueChange={setSelectedBusinessId}>
-            <SelectTrigger className="w-full sm:w-[180px] text-xs sm:text-sm">
-              <SelectValue placeholder="Selecione o negócio" />
-            </SelectTrigger>
-            <SelectContent>
-              {businesses.map((b) => (
-                <SelectItem key={b.id} value={b.id}>
-                  {b.name} ({b.business_type === 'personal' ? 'PF' : 'PJ'})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="flex gap-1">
-            <Button variant="outline" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => setIsBusinessDialogOpen(true)}>
-              <Plus className="w-4 h-4" />
+      {/* Header with back button and tabs */}
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={handleBackToSelection}>
+              <ArrowLeft className="w-5 h-5" />
             </Button>
-            <Button variant="outline" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => {
-              const current = businesses.find(b => b.id === selectedBusinessId);
-              if (current) openEditBusiness(current);
-            }}>
-              <Edit2 className="w-4 h-4" />
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold">{selectedBusiness?.name || 'Gestão Financeira'}</h2>
+              <p className="text-sm text-muted-foreground">
+                {selectedBusiness?.business_type === 'company' ? 'Pessoa Jurídica' : 'Pessoa Física'}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => setIsCategoryDialogOpen(true)} className="text-xs sm:text-sm">
+              Categorias
             </Button>
-            <Button variant="outline" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => {
-              if (selectedBusinessId) handleDeleteBusiness(selectedBusinessId);
-            }}>
-              <Trash2 className="w-4 h-4" />
+            <div className="flex gap-1">
+              <Button variant="outline" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => {
+                if (selectedBusiness) openEditBusiness(selectedBusiness);
+              }}>
+                <Edit2 className="w-4 h-4" />
+              </Button>
+              <Button variant="outline" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => {
+                if (selectedBusinessId) handleDeleteBusiness(selectedBusinessId);
+              }}>
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+            <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="text-xs sm:text-sm">
+              <Plus className="w-4 h-4 mr-1" />
+              <span className="hidden xs:inline">Nova </span>Transação
             </Button>
           </div>
-          <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="text-xs sm:text-sm">
-            <Plus className="w-4 h-4 mr-1" />
-            <span className="hidden xs:inline">Nova </span>Transação
-          </Button>
         </div>
-      </div>
 
-      {/* Seletores de Ano, Mês e Categoria */}
+        {/* View Mode Tabs */}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'table' | 'analytics')} className="w-full">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="table" className="flex items-center gap-2">
+              <TableIcon className="w-4 h-4" />
+              Planilha
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <LineChart className="w-4 h-4" />
+              Gráficos & Análise
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Analytics Tab Content */}
+          <TabsContent value="analytics" className="mt-6">
+            <FinancialAnalyticsPanel
+              transactions={transactions}
+              selectedYear={selectedYear}
+              businessName={selectedBusiness?.name || ''}
+            />
+          </TabsContent>
+
+          {/* Table Tab Content */}
+          <TabsContent value="table" className="mt-6 space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Filtros</CardTitle>
@@ -1726,6 +1740,9 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
           </DialogFooter>
         </DialogContent>
       </Dialog>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };
