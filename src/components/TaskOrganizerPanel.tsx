@@ -1102,7 +1102,10 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
                       <p className="text-muted-foreground mb-4">
                         Nenhum cliente cadastrado no organizador de tarefas.
                       </p>
-                      <Button onClick={() => setShowClientManager(true)}>
+                      <Button onClick={() => {
+                        loadAllCustomers();
+                        setIsAddClientDialogOpen(true);
+                      }}>
                         <UserPlus className="mr-2 h-4 w-4" />
                         Adicionar Cliente
                       </Button>
