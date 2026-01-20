@@ -1491,12 +1491,26 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                   <SelectContent>
                     <SelectItem value="pix">PIX</SelectItem>
                     <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                    <SelectItem value="credito">Crédito</SelectItem>
-                    <SelectItem value="debito">Débito</SelectItem>
+                    <SelectItem value="cartao_credito">💳 Cartão de Crédito</SelectItem>
+                    <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
+                    <SelectItem value="boleto">Boleto</SelectItem>
+                    <SelectItem value="transferencia">Transferência</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
+            {formData.payment_method === 'cartao_credito' && (
+              <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">💳</span>
+                  <Label className="text-base font-medium">Informação do Cartão</Label>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Esta transação foi registrada como pagamento no cartão de crédito. 
+                  Para editar parcelas, modifique cada transação individualmente na lista.
+                </p>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Mês</Label>
