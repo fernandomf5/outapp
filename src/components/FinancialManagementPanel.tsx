@@ -302,7 +302,8 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     status: 'pending' as 'paid' | 'pending' | 'cancelled',
     is_recurring: false,
     reminder_enabled: false,
-    business_id: ''
+    business_id: '',
+    installments: 1
   });
 
   // State for optimistic UI updates
@@ -595,36 +596,61 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Converte a data para o formato correto sem problemas de timezone
-      const dueDate = new Date(formData.due_date + 'T12:00:00');
-
-      const { error } = await supabase
-        .from('financial_transactions')
-        .insert({
+      const isCardPayment = formData.payment_method === 'credito';
+      const installments = isCardPayment ? Math.max(1, formData.installments) : 1;
+      const totalAmount = parseFloat(formData.amount);
+      const installmentAmount = totalAmount / installments;
+      
+      const baseDueDate = new Date(formData.due_date + 'T12:00:00');
+      
+      const transactionsToInsert = [];
+      
+      for (let i = 0; i < installments; i++) {
+        const installmentDate = new Date(baseDueDate);
+        installmentDate.setMonth(installmentDate.getMonth() + i);
+        
+        const monthIndex = installmentDate.getMonth();
+        const installmentMonth = MONTHS[monthIndex];
+        const installmentYear = installmentDate.getFullYear();
+        
+        const description = installments > 1 
+          ? `${formData.description} (${i + 1}/${installments})`
+          : formData.description;
+        
+        transactionsToInsert.push({
           user_id: user.id,
           business_id: selectedBusinessId,
           type: formData.type,
           category: formData.category,
-          description: formData.description,
-          amount: parseFloat(formData.amount),
-          month: formData.month,
-          due_date: dueDate.toISOString().split('T')[0],
+          description: description,
+          amount: parseFloat(installmentAmount.toFixed(2)),
+          month: installmentMonth,
+          due_date: installmentDate.toISOString().split('T')[0],
           payment_method: formData.payment_method,
           status: formData.status,
           is_recurring: formData.is_recurring,
           reminder_enabled: formData.reminder_enabled,
-          year: selectedYear,
+          year: installmentYear,
           date: new Date().toISOString(),
           status_history: [{
             status: formData.status,
             changed_at: new Date().toISOString(),
-            note: 'Transação criada'
+            note: installments > 1 ? `Parcela ${i + 1} de ${installments} criada` : 'Transação criada'
           }]
         });
+      }
+
+      const { error } = await supabase
+        .from('financial_transactions')
+        .insert(transactionsToInsert);
 
       if (error) throw error;
 
-      toast.success('Transação adicionada!');
+      const successMessage = installments > 1 
+        ? `${installments} parcelas adicionadas com sucesso!`
+        : 'Transação adicionada!';
+      
+      toast.success(successMessage);
       setIsAddDialogOpen(false);
       resetForm();
       loadTransactions();
@@ -738,7 +764,8 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       status: 'pending',
       is_recurring: false,
       reminder_enabled: false,
-      business_id: selectedBusinessId
+      business_id: selectedBusinessId,
+      installments: 1
     });
   };
 
@@ -755,7 +782,8 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       status: transaction.status,
       is_recurring: transaction.is_recurring,
       reminder_enabled: transaction.reminder_enabled,
-      business_id: transaction.business_id || selectedBusinessId
+      business_id: transaction.business_id || selectedBusinessId,
+      installments: 1
     });
     setIsEditDialogOpen(true);
   };
@@ -1295,7 +1323,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
               </div>
               <div>
                 <Label>Método de Pagamento</Label>
-                <Select value={formData.payment_method} onValueChange={(v) => setFormData({ ...formData, payment_method: v })}>
+                <Select value={formData.payment_method} onValueChange={(v) => setFormData({ ...formData, payment_method: v, installments: v === 'credito' ? formData.installments : 1 })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -1308,6 +1336,28 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                 </Select>
               </div>
             </div>
+            {formData.payment_method === 'credito' && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Número de Parcelas</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="48"
+                    value={formData.installments}
+                    onChange={(e) => setFormData({ ...formData, installments: parseInt(e.target.value) || 1 })}
+                    placeholder="1"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <p className="text-sm text-muted-foreground pb-2">
+                    {formData.amount && formData.installments > 1 && (
+                      <>Valor por parcela: <span className="font-semibold">R$ {(parseFloat(formData.amount) / formData.installments).toFixed(2)}</span></>
+                    )}
+                  </p>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Mês</Label>
