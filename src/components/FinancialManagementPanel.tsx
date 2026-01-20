@@ -596,7 +596,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const isCardPayment = formData.payment_method === 'credito';
+      const isCardPayment = formData.payment_method === 'cartao_credito';
       const installments = isCardPayment ? Math.max(1, formData.installments) : 1;
       const totalAmount = parseFloat(formData.amount);
       const installmentAmount = totalAmount / installments;
@@ -1323,39 +1323,65 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
               </div>
               <div>
                 <Label>Método de Pagamento</Label>
-                <Select value={formData.payment_method} onValueChange={(v) => setFormData({ ...formData, payment_method: v, installments: v === 'credito' ? formData.installments : 1 })}>
+                <Select value={formData.payment_method} onValueChange={(v) => setFormData({ ...formData, payment_method: v, installments: (v === 'cartao_credito') ? formData.installments : 1 })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pix">PIX</SelectItem>
                     <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                    <SelectItem value="credito">Crédito</SelectItem>
-                    <SelectItem value="debito">Débito</SelectItem>
+                    <SelectItem value="cartao_credito">💳 Cartão de Crédito</SelectItem>
+                    <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
+                    <SelectItem value="boleto">Boleto</SelectItem>
+                    <SelectItem value="transferencia">Transferência</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            {formData.payment_method === 'credito' && (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Número de Parcelas</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="48"
-                    value={formData.installments}
-                    onChange={(e) => setFormData({ ...formData, installments: parseInt(e.target.value) || 1 })}
-                    placeholder="1"
-                  />
+            {formData.payment_method === 'cartao_credito' && (
+              <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">💳</span>
+                  <Label className="text-base font-medium">Parcelamento no Cartão</Label>
                 </div>
-                <div className="flex items-end">
-                  <p className="text-sm text-muted-foreground pb-2">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Número de Parcelas</Label>
+                    <Select 
+                      value={formData.installments.toString()} 
+                      onValueChange={(v) => setFormData({ ...formData, installments: parseInt(v) })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24, 36, 48].map(num => (
+                          <SelectItem key={num} value={num.toString()}>
+                            {num}x {formData.amount ? `de R$ ${(parseFloat(formData.amount) / num).toFixed(2)}` : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col justify-end">
                     {formData.amount && formData.installments > 1 && (
-                      <>Valor por parcela: <span className="font-semibold">R$ {(parseFloat(formData.amount) / formData.installments).toFixed(2)}</span></>
+                      <div className="p-2 bg-primary/10 rounded-md">
+                        <p className="text-xs text-muted-foreground">Valor por parcela</p>
+                        <p className="text-lg font-bold text-primary">
+                          R$ {(parseFloat(formData.amount) / formData.installments).toFixed(2)}
+                        </p>
+                      </div>
                     )}
-                  </p>
+                    {formData.amount && formData.installments === 1 && (
+                      <p className="text-sm text-muted-foreground">Pagamento à vista</p>
+                    )}
+                  </div>
                 </div>
+                {formData.installments > 1 && (
+                  <p className="text-xs text-muted-foreground">
+                    Serão criadas {formData.installments} transações com vencimentos mensais consecutivos
+                  </p>
+                )}
               </div>
             )}
             <div className="grid grid-cols-2 gap-4">
