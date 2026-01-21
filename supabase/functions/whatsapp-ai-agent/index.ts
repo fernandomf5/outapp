@@ -28,22 +28,42 @@ serve(async (req) => {
     switch (action) {
       case 'create_instance': {
         // Create a new WhatsApp instance
-        const { userId, agentId, instanceName } = params;
+        const { userId, agentId, instanceName, demoMode } = params;
         const evolutionUrl = getEvolutionApiUrl();
         const evolutionKey = getEvolutionApiKey();
+        const instanceKey = `wa_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-        if (!evolutionUrl || !evolutionKey) {
+        // Modo DEMO - sem Evolution API
+        if (!evolutionUrl || !evolutionKey || demoMode) {
+          console.log('Creating instance in DEMO mode (no Evolution API)');
+          
+          // Save instance to database in demo mode
+          const { data: instance, error: instanceError } = await supabase
+            .from('whatsapp_instances')
+            .insert({
+              user_id: userId,
+              agent_id: agentId,
+              instance_name: instanceName,
+              instance_key: instanceKey,
+              status: 'demo',
+              webhook_url: `${supabaseUrl}/functions/v1/whatsapp-ai-agent`,
+            })
+            .select()
+            .single();
+
+          if (instanceError) throw instanceError;
+
           return new Response(JSON.stringify({ 
-            error: 'Evolution API não configurada. Configure EVOLUTION_API_URL e EVOLUTION_API_KEY nos secrets.' 
+            success: true, 
+            instance,
+            demoMode: true,
+            message: 'Instância criada em modo DEMO. Configure Evolution API para conectar WhatsApp real.'
           }), {
-            status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
 
-        // Create instance in Evolution API
-        const instanceKey = `wa_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        
+        // Modo PRODUÇÃO - com Evolution API
         try {
           const evolutionResponse = await fetch(`${evolutionUrl}/instance/create`, {
             method: 'POST',
@@ -109,6 +129,107 @@ serve(async (req) => {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
+      }
+
+      case 'test_chat': {
+        // Test chat in DEMO mode - simulate WhatsApp conversation
+        const { agentId, message, conversationHistory } = params;
+        
+        // Get agent info
+        const { data: agent, error: agentError } = await supabase
+          .from('ai_agents')
+          .select('*')
+          .eq('id', agentId)
+          .single();
+
+        if (agentError || !agent) {
+          return new Response(JSON.stringify({ error: 'Agente não encontrado' }), {
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Get knowledge base
+        const { data: knowledgeBase } = await supabase
+          .from('agent_knowledge_base')
+          .select('*')
+          .eq('agent_id', agentId)
+          .eq('is_active', true);
+
+        // Build knowledge context
+        let knowledgeContext = '';
+        if (knowledgeBase && knowledgeBase.length > 0) {
+          knowledgeContext = '\n\n### Base de Conhecimento:\n';
+          knowledgeBase.forEach((kb: any) => {
+            if (kb.content_type === 'faq') {
+              knowledgeContext += `\nPergunta: ${kb.title}\nResposta: ${kb.content}\n`;
+            } else {
+              knowledgeContext += `\n${kb.title}: ${kb.content}\n`;
+            }
+          });
+        }
+
+        // Build system prompt
+        const agentConfig = agent.config || {};
+        const systemPrompt = `Você é ${agent.attendant_name || agent.name}, um assistente virtual inteligente para WhatsApp.
+
+Nicho/Área: ${agent.niche}
+${agent.description ? `Descrição: ${agent.description}` : ''}
+
+${agentConfig.personality ? `Personalidade: ${agentConfig.personality}` : ''}
+${agentConfig.tone ? `Tom de voz: ${agentConfig.tone}` : ''}
+${agentConfig.language ? `Idioma: ${agentConfig.language}` : 'Responda sempre em português brasileiro.'}
+
+${knowledgeContext}
+
+### Instruções:
+- Responda de forma natural e amigável, como se estivesse conversando no WhatsApp
+- Use emojis quando apropriado para deixar a conversa mais leve
+- Seja conciso mas completo nas respostas
+- Se não souber algo, seja honesto e ofereça ajuda alternativa
+- Sempre tente ajudar o cliente da melhor forma possível`;
+
+        // Build messages array
+        const messages = [
+          { role: 'system', content: systemPrompt },
+          ...(conversationHistory || []),
+          { role: 'user', content: message }
+        ];
+
+        // Call Lovable AI
+        const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-3-flash-preview',
+            messages,
+          }),
+        });
+
+        if (!aiResponse.ok) {
+          const errorText = await aiResponse.text();
+          console.error('AI API error:', aiResponse.status, errorText);
+          return new Response(JSON.stringify({ 
+            error: 'Erro ao gerar resposta da IA',
+            status: aiResponse.status 
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const aiData = await aiResponse.json();
+        const responseText = aiData.choices?.[0]?.message?.content || 'Desculpe, não consegui processar sua mensagem.';
+
+        return new Response(JSON.stringify({ 
+          response: responseText,
+          agent: agent.name
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
 
       case 'get_qrcode': {
