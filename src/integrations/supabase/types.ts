@@ -786,6 +786,50 @@ export type Database = {
           },
         ]
       }
+      agent_knowledge_base: {
+        Row: {
+          agent_id: string
+          content: string
+          content_type: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          metadata: Json | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          agent_id: string
+          content: string
+          content_type?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          agent_id?: string
+          content?: string
+          content_type?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_knowledge_base_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_messages: {
         Row: {
           content: string
@@ -6910,6 +6954,131 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      whatsapp_instances: {
+        Row: {
+          agent_id: string | null
+          created_at: string | null
+          id: string
+          instance_key: string | null
+          instance_name: string
+          phone_number: string | null
+          qr_code: string | null
+          qr_code_expires_at: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+          webhook_url: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          created_at?: string | null
+          id?: string
+          instance_key?: string | null
+          instance_name: string
+          phone_number?: string | null
+          qr_code?: string | null
+          qr_code_expires_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+          webhook_url?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          created_at?: string | null
+          id?: string
+          instance_key?: string | null
+          instance_name?: string
+          phone_number?: string | null
+          qr_code?: string | null
+          qr_code_expires_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_instances_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_messages: {
+        Row: {
+          ai_response: string | null
+          content: string | null
+          conversation_id: string | null
+          created_at: string | null
+          direction: string | null
+          from_number: string
+          id: string
+          instance_id: string
+          media_analysis: string | null
+          media_transcription: string | null
+          media_url: string | null
+          message_type: string | null
+          status: string | null
+          to_number: string | null
+          transferred_to_human: boolean | null
+          whatsapp_message_id: string | null
+        }
+        Insert: {
+          ai_response?: string | null
+          content?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          direction?: string | null
+          from_number: string
+          id?: string
+          instance_id: string
+          media_analysis?: string | null
+          media_transcription?: string | null
+          media_url?: string | null
+          message_type?: string | null
+          status?: string | null
+          to_number?: string | null
+          transferred_to_human?: boolean | null
+          whatsapp_message_id?: string | null
+        }
+        Update: {
+          ai_response?: string | null
+          content?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          direction?: string | null
+          from_number?: string
+          id?: string
+          instance_id?: string
+          media_analysis?: string | null
+          media_transcription?: string | null
+          media_url?: string | null
+          message_type?: string | null
+          status?: string | null
+          to_number?: string | null
+          transferred_to_human?: boolean | null
+          whatsapp_message_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "agent_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_instance_id_fkey"
+            columns: ["instance_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_instances"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
