@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,15 +30,24 @@ import {
   Edit,
   FileText,
   Link as LinkIcon,
-  HelpCircle
+  HelpCircle,
+  Play,
+  Bot,
+  User
 } from 'lucide-react';
 import { useWhatsAppAgent, WhatsAppInstance, KnowledgeBase } from '@/hooks/useWhatsAppAgent';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface WhatsAppAgentPanelProps {
   agentId: string;
   agentName: string;
+}
+
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
 }
 
 export function WhatsAppAgentPanel({ agentId, agentName }: WhatsAppAgentPanelProps) {
@@ -62,7 +71,7 @@ export function WhatsAppAgentPanel({ agentId, agentName }: WhatsAppAgentPanelPro
     setQrCode,
   } = useWhatsAppAgent(agentId);
 
-  const [activeTab, setActiveTab] = useState('connection');
+  const [activeTab, setActiveTab] = useState('test');
   const [newInstanceName, setNewInstanceName] = useState('');
   const [showNewInstanceDialog, setShowNewInstanceDialog] = useState(false);
   const [selectedInstance, setSelectedInstance] = useState<WhatsAppInstance | null>(null);
@@ -74,6 +83,12 @@ export function WhatsAppAgentPanel({ agentId, agentName }: WhatsAppAgentPanelPro
   const [knowledgeTitle, setKnowledgeTitle] = useState('');
   const [knowledgeContent, setKnowledgeContent] = useState('');
   const [knowledgeType, setKnowledgeType] = useState<'text' | 'faq' | 'document' | 'url'>('text');
+
+  // Test chat
+  const [testMessages, setTestMessages] = useState<ChatMessage[]>([]);
+  const [testInput, setTestInput] = useState('');
+  const [isTestLoading, setIsTestLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Poll for QR code updates
   useEffect(() => {
@@ -92,6 +107,54 @@ export function WhatsAppAgentPanel({ agentId, agentName }: WhatsAppAgentPanelPro
       if (interval) clearInterval(interval);
     };
   }, [selectedInstance, connectionStatus, isPollingQr, checkConnection]);
+
+  // Scroll to bottom when new messages arrive
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [testMessages]);
+
+  // Handle test chat submission
+  const handleTestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!testInput.trim() || isTestLoading) return;
+
+    const userMessage = testInput.trim();
+    setTestInput('');
+    setTestMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setIsTestLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('whatsapp-ai-agent', {
+        body: {
+          action: 'test_chat',
+          agentId,
+          message: userMessage,
+          conversationHistory: testMessages.map(m => ({ role: m.role, content: m.content })),
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        toast({
+          title: "Erro",
+          description: data.error,
+          variant: "destructive",
+        });
+      } else {
+        setTestMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+      }
+    } catch (error) {
+      console.error('Test chat error:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível enviar a mensagem.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsTestLoading(false);
+    }
+  };
 
   const handleCreateInstance = async () => {
     if (!user?.id || !newInstanceName.trim()) return;
@@ -203,17 +266,116 @@ export function WhatsAppAgentPanel({ agentId, agentName }: WhatsAppAgentPanelPro
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-3 w-full max-w-md">
-          <TabsTrigger value="connection" className="flex items-center gap-2">
-            <Phone className="w-4 h-4" /> Conexão
+        <TabsList className="grid grid-cols-4 w-full max-w-lg">
+          <TabsTrigger value="test" className="flex items-center gap-2">
+            <Play className="w-4 h-4" /> Testar
           </TabsTrigger>
           <TabsTrigger value="training" className="flex items-center gap-2">
             <Brain className="w-4 h-4" /> Treinamento
+          </TabsTrigger>
+          <TabsTrigger value="connection" className="flex items-center gap-2">
+            <Phone className="w-4 h-4" /> Conexão
           </TabsTrigger>
           <TabsTrigger value="settings" className="flex items-center gap-2">
             <Settings className="w-4 h-4" /> Config
           </TabsTrigger>
         </TabsList>
+
+        {/* Test Chat Tab */}
+        <TabsContent value="test" className="space-y-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2">
+                <Bot className="w-5 h-5 text-primary" />
+                Simulador de Chat
+              </CardTitle>
+              <CardDescription>
+                Teste seu agente IA antes de conectar ao WhatsApp real. 
+                Adicione conhecimentos na aba "Treinamento" para melhorar as respostas.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Chat Messages */}
+              <div className="border rounded-lg bg-muted/30 h-[400px] flex flex-col">
+                <ScrollArea className="flex-1 p-4">
+                  {testMessages.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
+                      <MessageSquare className="w-12 h-12 mb-4 opacity-50" />
+                      <p className="font-medium">Comece uma conversa de teste</p>
+                      <p className="text-sm">Envie uma mensagem para ver como seu agente responde</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {testMessages.map((msg, idx) => (
+                        <div
+                          key={idx}
+                          className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div
+                            className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                              msg.role === 'user'
+                                ? 'bg-primary text-primary-foreground rounded-br-md'
+                                : 'bg-card border rounded-bl-md'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              {msg.role === 'assistant' ? (
+                                <Bot className="w-4 h-4" />
+                              ) : (
+                                <User className="w-4 h-4" />
+                              )}
+                              <span className="text-xs font-medium">
+                                {msg.role === 'user' ? 'Você' : agentName}
+                              </span>
+                            </div>
+                            <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                          </div>
+                        </div>
+                      ))}
+                      {isTestLoading && (
+                        <div className="flex justify-start">
+                          <div className="bg-card border rounded-2xl rounded-bl-md px-4 py-2">
+                            <div className="flex items-center gap-2">
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <span className="text-sm text-muted-foreground">Digitando...</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      <div ref={chatEndRef} />
+                    </div>
+                  )}
+                </ScrollArea>
+
+                {/* Input */}
+                <form onSubmit={handleTestSubmit} className="p-3 border-t bg-card">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Digite uma mensagem para testar..."
+                      value={testInput}
+                      onChange={(e) => setTestInput(e.target.value)}
+                      disabled={isTestLoading}
+                      className="flex-1"
+                    />
+                    <Button type="submit" disabled={isTestLoading || !testInput.trim()}>
+                      <Send className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Quick Tips */}
+              <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                <p className="text-sm font-medium mb-2">💡 Dicas para testar:</p>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• Pergunte sobre horário de funcionamento, preços, serviços</li>
+                  <li>• Adicione FAQs na aba "Treinamento" para respostas específicas</li>
+                  <li>• Peça para "falar com um humano" para testar transferência</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* Connection Tab */}
         <TabsContent value="connection" className="space-y-4">
