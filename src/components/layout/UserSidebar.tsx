@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck, Layers, LogIn, Filter, Download } from "lucide-react";
+import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck, Layers, LogIn, Filter, Download, Smartphone } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import logoLight from "@/assets/logo-light.png";
@@ -142,6 +142,7 @@ export function UserSidebar() {
 
   const advancedResourcesItems: MenuItem[] = [
     { title: "Chat Online", icon: MessageSquare, path: "/dashboard", tab: "ai-agents", moduleKey: "ai_agents" },
+    { title: "WhatsApp IA", icon: Smartphone, path: "/whatsapp-agent", hideForTeamMember: true },
     { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner", moduleKey: "cloner" },
     { title: "Área de Membros", icon: UserCog, path: "/dashboard", tab: "area-membros", hideForTeamMember: true },
     { title: "Link na Bio", icon: ExternalLink, path: "/dashboard", tab: "linkbio", moduleKey: "link_bio" },
