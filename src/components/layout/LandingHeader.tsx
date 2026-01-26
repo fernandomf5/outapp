@@ -131,10 +131,11 @@ export const LandingHeader = () => {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="lg:hidden px-2"
+              className="lg:hidden px-3 gap-2"
               onClick={() => setMobileMenuOpen(true)}
             >
               <Menu className="w-5 h-5" />
+              <span className="text-sm font-medium">{t('menu')}</span>
             </Button>
           </div>
         </div>
@@ -145,110 +146,129 @@ export const LandingHeader = () => {
         <div className="fixed inset-0 z-[100] lg:hidden">
           {/* Overlay */}
           <div 
-            className="absolute inset-0 bg-black/80"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setMobileMenuOpen(false)}
           />
           
           {/* Menu Panel */}
-          <div className="absolute right-0 top-0 h-full w-[280px] sm:w-[320px] bg-background flex flex-col animate-in slide-in-from-right duration-300">
-            {/* Header com Logo e Botão Fechar */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <div className="flex-1" />
+          <div className="absolute right-0 top-0 h-full w-[300px] sm:w-[340px] bg-gradient-to-b from-background to-background/95 flex flex-col animate-in slide-in-from-right duration-300 shadow-2xl">
+            {/* Header com Botão Fechar */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-border/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Menu className="w-5 h-5 text-primary" />
+                </div>
+                <span className="text-lg font-semibold">{t('menu')}</span>
+              </div>
               <Button 
                 variant="ghost" 
-                size="sm" 
-                className="p-1"
+                size="icon"
+                className="h-9 w-9 rounded-full hover:bg-destructive/10 hover:text-destructive transition-all"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <X className="w-5 h-5" />
               </Button>
             </div>
 
-            {/* Logo e Título */}
-            <div className="flex flex-col items-center gap-4 px-6 py-6 border-b border-border">
-              <img 
-                src={logoLion} 
-                alt="Logo" 
-                className="h-24 w-auto object-contain"
-              />
-              <span className="text-xl font-bold">{t('menu')}</span>
+            {/* Logo */}
+            <div className="flex justify-center py-8 border-b border-border/50">
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full" />
+                <img 
+                  src={currentLogo() || logoLion} 
+                  alt="Logo" 
+                  className="h-20 w-auto object-contain relative z-10"
+                />
+              </div>
             </div>
 
             {/* Menu Items */}
-            <ScrollArea className="flex-1 px-6">
-              <nav className="flex flex-col gap-4 py-6">
+            <ScrollArea className="flex-1">
+              <nav className="flex flex-col gap-1 p-4">
                 <a 
                   href="/" 
-                  className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all group"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  {t('home')}
+                  <div className="w-2 h-2 rounded-full bg-primary/50 group-hover:bg-primary transition-colors" />
+                  <span className="font-medium">{t('home')}</span>
                 </a>
                 <a 
                   href="/#recursos" 
-                  className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all group"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  {t('features')}
+                  <div className="w-2 h-2 rounded-full bg-primary/50 group-hover:bg-primary transition-colors" />
+                  <span className="font-medium">{t('features')}</span>
                 </a>
                 <a 
                   href="/#planos" 
-                  className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all group"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  {t('pricing')}
+                  <div className="w-2 h-2 rounded-full bg-primary/50 group-hover:bg-primary transition-colors" />
+                  <span className="font-medium">{t('pricing')}</span>
                 </a>
                 <a 
                   href="/blog" 
-                  className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all group"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Blog
+                  <div className="w-2 h-2 rounded-full bg-primary/50 group-hover:bg-primary transition-colors" />
+                  <span className="font-medium">Blog</span>
                 </a>
                 <a 
                   href="/#faq" 
-                  className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all group"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  {t('faq')}
+                  <div className="w-2 h-2 rounded-full bg-primary/50 group-hover:bg-primary transition-colors" />
+                  <span className="font-medium">{t('faq')}</span>
                 </a>
                 {headerPages.map((page) => (
                   <Link
                     key={page.id}
                     to={`/${page.slug}`}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2"
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all group"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    {page.title}
+                    <div className="w-2 h-2 rounded-full bg-primary/50 group-hover:bg-primary transition-colors" />
+                    <span className="font-medium">{page.title}</span>
                   </Link>
                 ))}
-                
-                <div className="mt-4 pt-4 border-t border-border">
-                  <SocialLinks links={settings.socialLinks} horizontal />
-                </div>
-                
-                <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-border">
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => { navigate("/auth"); setMobileMenuOpen(false); }} 
-                    className="w-full justify-start"
-                  >
-                    {t('login')}
-                  </Button>
-                  <Button 
-                    onClick={() => { navigate("/auth"); setMobileMenuOpen(false); }} 
-                    className="gradient-primary shadow-glow w-full"
-                  >
-                    {t('start_free')}
-                  </Button>
-                </div>
-                
-                <div className="mt-4 flex gap-2 pb-6">
-                  <ThemeToggle />
-                  <LanguageSelector />
-                </div>
               </nav>
             </ScrollArea>
+
+            {/* Footer Section */}
+            <div className="p-4 border-t border-border/50 space-y-4 bg-muted/30">
+              {/* Social Links */}
+              <div className="flex justify-center">
+                <SocialLinks links={settings.socialLinks} horizontal />
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => { navigate("/auth"); setMobileMenuOpen(false); }} 
+                  className="w-full h-11 rounded-xl font-medium"
+                >
+                  {t('login')}
+                </Button>
+                <Button 
+                  onClick={() => { navigate("/auth"); setMobileMenuOpen(false); }} 
+                  className="gradient-primary shadow-glow w-full h-11 rounded-xl font-medium"
+                >
+                  {t('start_free')}
+                </Button>
+              </div>
+              
+              {/* Theme & Language */}
+              <div className="flex items-center justify-center gap-3 pt-2">
+                <ThemeToggle />
+                <LanguageSelector />
+              </div>
+            </div>
           </div>
         </div>
       )}
