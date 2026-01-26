@@ -897,7 +897,7 @@ const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Da
                 alt="Klic Smart AI" 
                 className="h-5 w-5 object-contain"
               />
-              <span className="font-medium">Klic Smart AI</span>
+              <span className="font-medium">Klic Smart</span>
             </a>
           </div>
         </div>
