@@ -372,9 +372,10 @@ const Index = () => {
   const OffCanvasMenu = ({ headerPages, onPageClick }: { headerPages: CustomPage[], onPageClick: (page: CustomPage) => void }) => (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="sm" className="px-2">
-          <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
-        </Button>
+        <button className="inline-flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors border border-border">
+          <Menu className="w-5 h-5" />
+          <span className="text-sm font-semibold">Menu</span>
+        </button>
       </SheetTrigger>
       <SheetContent side="right" className="w-[280px] sm:w-[320px] lg:w-[380px] p-0 flex flex-col">
         <SheetHeader className="px-6 py-6 border-b border-border">
@@ -555,14 +556,13 @@ const Index = () => {
               )}
             </div>
             
-            {/* Desktop controls - Only theme toggle and language selector */}
-            <div className="hidden lg:flex items-center gap-3">
+            {/* Controls together */}
+            <div className="flex items-center gap-2 sm:gap-3">
               <ThemeToggle />
               <LanguageSelector />
+              {/* Off-canvas Menu - All screen sizes */}
+              <OffCanvasMenu headerPages={headerPages} onPageClick={openPageDialog} />
             </div>
-            
-            {/* Off-canvas Menu - All screen sizes */}
-            <OffCanvasMenu headerPages={headerPages} onPageClick={openPageDialog} />
           </div>
         </div>
       </header>
