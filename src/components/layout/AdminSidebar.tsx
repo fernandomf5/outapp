@@ -95,24 +95,24 @@ export function AdminSidebar() {
     { title: t('landing_page'), icon: Globe, tab: "landing" },
     { title: t('features_manager'), icon: Package, tab: "features-landing" },
     { title: t('faq_manager'), icon: FileText, tab: "faq" },
-    { title: "Blog", icon: FileText, tab: "blog" },
-    { title: "Configurações do Blog", icon: Settings, tab: "blog-settings" },
+    { title: t('blog'), icon: FileText, tab: "blog" },
+    { title: t('blog_settings'), icon: Settings, tab: "blog-settings" },
     { title: t('tutorial_videos'), icon: Video, tab: "videos" },
   ];
 
   const systemItems = [
     { title: t('plans_manager'), icon: Crown, tab: "plans" },
-    { title: "Recursos do Sistema", icon: Package, tab: "features-manager" },
-    { title: "Gerenciar Acesso", icon: Shield, tab: "feature-access" },
-    { title: "Administradores", icon: Shield, tab: "admins" },
-    { title: "Segurança", icon: Shield, tab: "security" },
+    { title: t('features_manager'), icon: Package, tab: "features-manager" },
+    { title: t('plan_features'), icon: Shield, tab: "feature-access" },
+    { title: t('admins'), icon: Shield, tab: "admins" },
+    { title: t('security'), icon: Shield, tab: "security" },
     { title: t('messages'), icon: MessageSquare, tab: "messages" },
     { title: t('tickets'), icon: LifeBuoy, tab: "tickets" },
     { title: t('vouchers'), icon: Package, tab: "vouchers" },
-    { title: "Cupons de Desconto", icon: Ticket, tab: "discount-coupons" },
-    { title: "Criador de páginas", icon: FileText, tab: "page-creator" },
+    { title: t('discount_coupons'), icon: Ticket, tab: "discount-coupons" },
+    { title: t('custom_pages'), icon: FileText, tab: "page-creator" },
     { title: t('integrations'), icon: Settings, tab: "integrations" },
-    { title: "Config da Landing Page", icon: Settings, tab: "settings" },
+    { title: t('site_settings'), icon: Settings, tab: "settings" },
   ];
 
   return (

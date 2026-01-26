@@ -115,45 +115,45 @@ export function UserSidebar() {
   // Main items - overview is always visible, Blog is external
   const mainItems: MenuItem[] = [
     { title: t('overview'), icon: TrendingUp, path: "/dashboard", tab: "overview", hideForTeamMember: true },
-    { title: "Blog", icon: FileText, path: "/blog", hideForTeamMember: true },
+    { title: t('blog'), icon: FileText, path: "/blog", hideForTeamMember: true },
   ];
 
   const managementItems: MenuItem[] = [
-    { title: "Agenda", icon: Calendar, path: "/dashboard", tab: "agenda", moduleKey: "agenda" },
-    { title: "Gestão de Clientes", icon: Users, path: "/dashboard", tab: "clientes", moduleKey: "crm" },
-    { title: "Gestão Financeira", icon: DollarSign, path: "/dashboard", tab: "financeiro", moduleKey: "financial" },
-    { title: "Gestão de Equipe", icon: UserCog, path: "/dashboard", tab: "equipe", hideForTeamMember: true },
-    { title: "Gestão de Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios", moduleKey: "ads" },
-    { title: "Organizador de Tarefas", icon: Target, path: "/dashboard", tab: "tarefas", moduleKey: "tasks" },
-    { title: "Funil de Vendas", icon: Filter, path: "/dashboard", tab: "funil-vendas", moduleKey: "sales_funnel" },
+    { title: t('agenda'), icon: Calendar, path: "/dashboard", tab: "agenda", moduleKey: "agenda" },
+    { title: t('client_management'), icon: Users, path: "/dashboard", tab: "clientes", moduleKey: "crm" },
+    { title: t('financial_management'), icon: DollarSign, path: "/dashboard", tab: "financeiro", moduleKey: "financial" },
+    { title: t('team_management'), icon: UserCog, path: "/dashboard", tab: "equipe", hideForTeamMember: true },
+    { title: t('ads_management'), icon: Megaphone, path: "/dashboard", tab: "anuncios", moduleKey: "ads" },
+    { title: t('task_organizer'), icon: Target, path: "/dashboard", tab: "tarefas", moduleKey: "tasks" },
+    { title: t('sales_funnel'), icon: Filter, path: "/dashboard", tab: "funil-vendas", moduleKey: "sales_funnel" },
   ];
 
   const crmItems: MenuItem[] = [
-    { title: "Controle de Leads", icon: Database, path: "/dashboard", tab: "crm-geral", moduleKey: "crm" },
+    { title: t('lead_control'), icon: Database, path: "/dashboard", tab: "crm-geral", moduleKey: "crm" },
   ];
 
   const basicResourcesItems: MenuItem[] = [
-    { title: "Gerador de Link Whats", icon: Wrench, path: "/dashboard", tab: "tools", hideForTeamMember: true },
-    { title: "Botão Flutuante Multi-Links", icon: Zap, path: "/dashboard", tab: "floating-button", hideForTeamMember: true },
+    { title: t('whatsapp_link_generator'), icon: Wrench, path: "/dashboard", tab: "tools", hideForTeamMember: true },
+    { title: t('floating_multilink_button'), icon: Zap, path: "/dashboard", tab: "floating-button", hideForTeamMember: true },
     { title: t('link_shortener_title'), icon: Link2, path: "/dashboard", tab: "shortlinks", feature: "link_shortener", hideForTeamMember: true },
-    { title: "Gerador QR Code", icon: QrCode, path: "/dashboard", tab: "qrcode", hideForTeamMember: true },
-    { title: "Disparador Zap Manual", icon: Zap, path: "/dashboard", tab: "disparador", hideForTeamMember: true },
+    { title: t('qr_code_generator'), icon: QrCode, path: "/dashboard", tab: "qrcode", hideForTeamMember: true },
+    { title: t('manual_dispatcher'), icon: Zap, path: "/dashboard", tab: "disparador", hideForTeamMember: true },
   ];
 
   const advancedResourcesItems: MenuItem[] = [
-    { title: "Chat Online", icon: MessageSquare, path: "/dashboard", tab: "ai-agents", moduleKey: "ai_agents" },
-    { title: "WhatsApp IA", icon: Smartphone, path: "/whatsapp-agent", hideForTeamMember: true },
+    { title: t('online_chat'), icon: MessageSquare, path: "/dashboard", tab: "ai-agents", moduleKey: "ai_agents" },
+    { title: t('whatsapp_ai'), icon: Smartphone, path: "/whatsapp-agent", hideForTeamMember: true },
     { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner", moduleKey: "cloner" },
-    { title: "Área de Membros", icon: UserCog, path: "/dashboard", tab: "area-membros", hideForTeamMember: true },
-    { title: "Link na Bio", icon: ExternalLink, path: "/dashboard", tab: "linkbio", moduleKey: "link_bio" },
-    { title: "Briefing", icon: FileText, path: "/dashboard", tab: "briefing", moduleKey: "briefings" },
-    { title: "Criador de Quiz", icon: HelpCircle, path: "/dashboard", tab: "criador-quizz", hideForTeamMember: true },
-    { title: "Criador de Pop-ups", icon: Megaphone, path: "/dashboard", tab: "popups", hideForTeamMember: true },
-    { title: "Criador de Mapa Mental", icon: Brain, path: "/dashboard", tab: "mapa-mental", hideForTeamMember: true },
-    { title: "Criador de Propostas", icon: FileCheck, path: "/dashboard", tab: "propostas", hideForTeamMember: true },
-    { title: "Criador de Portfólio", icon: Layers, path: "/dashboard", tab: "portfolio", moduleKey: "portfolio" },
-    { title: "Aprova Job", icon: ClipboardCheck, path: "/dashboard", tab: "aprova-job", hideForTeamMember: true },
-    { title: "Extrator de Criativos", icon: Download, path: "/dashboard", tab: "extrator-criativos", hideForTeamMember: true },
+    { title: t('members_area'), icon: UserCog, path: "/dashboard", tab: "area-membros", hideForTeamMember: true },
+    { title: t('link_in_bio'), icon: ExternalLink, path: "/dashboard", tab: "linkbio", moduleKey: "link_bio" },
+    { title: t('briefing'), icon: FileText, path: "/dashboard", tab: "briefing", moduleKey: "briefings" },
+    { title: t('quiz_creator'), icon: HelpCircle, path: "/dashboard", tab: "criador-quizz", hideForTeamMember: true },
+    { title: t('popup_creator'), icon: Megaphone, path: "/dashboard", tab: "popups", hideForTeamMember: true },
+    { title: t('mind_map'), icon: Brain, path: "/dashboard", tab: "mapa-mental", hideForTeamMember: true },
+    { title: t('proposal_creator'), icon: FileCheck, path: "/dashboard", tab: "propostas", hideForTeamMember: true },
+    { title: t('portfolio'), icon: Layers, path: "/dashboard", tab: "portfolio", moduleKey: "portfolio" },
+    { title: t('aprova_job'), icon: ClipboardCheck, path: "/dashboard", tab: "aprova-job", hideForTeamMember: true },
+    { title: t('creative_extractor'), icon: Download, path: "/dashboard", tab: "extrator-criativos", hideForTeamMember: true },
   ];
 
   // Support items - all hidden for team members
@@ -161,7 +161,7 @@ export function UserSidebar() {
     { title: t('support_ticket'), icon: LifeBuoy, path: "/dashboard", tab: "support", feature: "ticket_system", hideForTeamMember: true },
     { title: t('voucher'), icon: Gift, path: "/dashboard", tab: "voucher", hideForTeamMember: true },
     { title: t('my_plan'), icon: CreditCard, path: "/dashboard", tab: "plan", hideForTeamMember: true },
-    { title: "Tutoriais", icon: Lightbulb, path: "/dashboard", tab: "tutoriais", hideForTeamMember: true },
+    { title: t('tutorial_videos'), icon: Lightbulb, path: "/dashboard", tab: "tutoriais", hideForTeamMember: true },
   ];
 
   // Filter function that checks both feature access and team member permissions
@@ -234,7 +234,7 @@ export function UserSidebar() {
           {/* Management section */}
           {hasVisibleItems(managementItems) && (
             <SidebarGroup>
-              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">Gestão</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">{t('management')}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {managementItems.map((item) => {
@@ -261,7 +261,7 @@ export function UserSidebar() {
           {/* Leads section */}
           {hasVisibleItems(crmItems) && (
             <SidebarGroup>
-              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">Leads</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">{t('captured_leads')}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {crmItems.map((item) => {
@@ -286,7 +286,7 @@ export function UserSidebar() {
           {/* Basic Resources section - hide for team members */}
           {!isTeamMember && hasVisibleItems(basicResourcesItems) && (
             <SidebarGroup>
-              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">Recursos</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">{t('basic_resources')}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   <TooltipProvider delayDuration={300}>
@@ -322,7 +322,7 @@ export function UserSidebar() {
           {/* Advanced Resources section */}
           {hasVisibleItems(advancedResourcesItems) && (
             <SidebarGroup>
-              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">Avançados</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">{t('advanced_resources')}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   <TooltipProvider delayDuration={300}>
