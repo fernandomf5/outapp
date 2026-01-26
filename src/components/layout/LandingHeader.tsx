@@ -90,27 +90,31 @@ export const LandingHeader = () => {
               )}
             </Link>
 
-            {/* Desktop Controls */}
-            <div className="hidden lg:flex items-center gap-4">
-              <SocialLinks links={settings.socialLinks} />
+            {/* Right Side Controls */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Desktop Only Controls */}
+              <div className="hidden lg:flex items-center gap-3">
+                <SocialLinks links={settings.socialLinks} />
+                <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} className="active:scale-95 transition-transform">
+                  {t('login')}
+                </Button>
+                <Button size="sm" onClick={() => navigate("/auth")} className="gradient-primary shadow-glow active:scale-95 transition-transform">
+                  {t('start_free')}
+                </Button>
+              </div>
+              
               <ThemeToggle />
               <LanguageSelector />
-              <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} className="active:scale-95 transition-transform">
-                {t('login')}
-              </Button>
-              <Button size="sm" onClick={() => navigate("/auth")} className="gradient-primary shadow-glow active:scale-95 transition-transform">
-                {t('start_free')}
-              </Button>
+              
+              {/* Menu Button - All Screens */}
+              <button 
+                onClick={() => setMobileMenuOpen(true)}
+                className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors"
+              >
+                <Menu className="w-5 h-5" />
+                <span className="text-sm font-medium">Menu</span>
+              </button>
             </div>
-
-            {/* Menu Button - All Screens */}
-            <button 
-              onClick={() => setMobileMenuOpen(true)}
-              className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors"
-            >
-              <Menu className="w-5 h-5" />
-              <span className="text-sm font-medium">Menu</span>
-            </button>
           </div>
         </div>
       </header>
