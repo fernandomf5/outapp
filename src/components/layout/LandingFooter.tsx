@@ -111,7 +111,7 @@ export const LandingFooter = ({ hideCustomPages = false }: { hideCustomPages?: b
               alt="Klic Smart AI" 
               className="h-5 w-5 object-contain"
             />
-            <span className="font-medium">Klic Smart AI</span>
+            <span className="font-medium">Klic Smart</span>
           </a>
         </div>
       </div>
