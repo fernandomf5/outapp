@@ -66,8 +66,9 @@ export default function WhatsAppAIPage() {
   const [selectedVoiceName, setSelectedVoiceName] = useState<string | null>(null);
 
   // API Config
-  const [evolutionApiUrl, setEvolutionApiUrl] = useState('');
-  const [evolutionApiKey, setEvolutionApiKey] = useState('');
+  const [zapiInstanceId, setZapiInstanceId] = useState('');
+  const [zapiToken, setZapiToken] = useState('');
+  const [zapiSecurityToken, setZapiSecurityToken] = useState('');
   const [elevenLabsApiKey, setElevenLabsApiKey] = useState('');
 
   const loadData = useCallback(async () => {
@@ -279,12 +280,12 @@ export default function WhatsAppAIPage() {
                 </p>
               </div>
 
-              {/* Evolution API */}
+              {/* Z-API */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
                     <Smartphone className="w-4 h-4 text-green-500" />
-                    Evolution API (WhatsApp)
+                    Z-API (WhatsApp)
                   </CardTitle>
                   <CardDescription>
                     Necessária para conectar WhatsApp real via QR Code
@@ -292,27 +293,36 @@ export default function WhatsAppAIPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label>URL da API</Label>
+                    <Label>Instance ID</Label>
                     <Input
-                      placeholder="https://sua-evolution-api.com"
-                      value={evolutionApiUrl}
-                      onChange={(e) => setEvolutionApiUrl(e.target.value)}
+                      placeholder="Seu Instance ID da Z-API"
+                      value={zapiInstanceId}
+                      onChange={(e) => setZapiInstanceId(e.target.value)}
                     />
                   </div>
                   <div>
-                    <Label>API Key</Label>
+                    <Label>Token</Label>
                     <Input
                       type="password"
-                      placeholder="Sua chave de API"
-                      value={evolutionApiKey}
-                      onChange={(e) => setEvolutionApiKey(e.target.value)}
+                      placeholder="Seu Token da Z-API"
+                      value={zapiToken}
+                      onChange={(e) => setZapiToken(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label>Security Token (Client Token)</Label>
+                    <Input
+                      type="password"
+                      placeholder="Seu Security Token da Z-API"
+                      value={zapiSecurityToken}
+                      onChange={(e) => setZapiSecurityToken(e.target.value)}
                     />
                   </div>
                   <div className="p-3 bg-muted rounded-lg">
                     <p className="text-xs text-muted-foreground flex items-start gap-2">
                       <Info className="w-4 h-4 mt-0.5 shrink-0" />
-                      A Evolution API é um projeto open-source que permite conectar ao WhatsApp. 
-                      Você pode hospedar sua própria instância ou contratar um serviço.
+                      Crie uma conta em z-api.io para obter suas credenciais. 
+                      O Instance ID, Token e Security Token estão disponíveis no painel da Z-API.
                     </p>
                   </div>
                 </CardContent>
@@ -355,7 +365,7 @@ export default function WhatsAppAIPage() {
                   <h4 className="font-semibold mb-4">📋 Resumo das APIs Necessárias</h4>
                   <div className="space-y-3 text-sm">
                     <div className="flex items-center justify-between">
-                      <span>Evolution API (WhatsApp)</span>
+                      <span>Z-API (WhatsApp)</span>
                       <span className="text-muted-foreground">Conectar WhatsApp real</span>
                     </div>
                     <div className="flex items-center justify-between">

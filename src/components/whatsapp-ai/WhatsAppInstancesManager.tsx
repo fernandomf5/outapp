@@ -91,7 +91,7 @@ export function WhatsAppInstancesManager({
       toast({
         title: "WhatsApp Criado! 📱",
         description: data.demoMode 
-          ? "Instância criada em modo demo. Configure a Evolution API para conectar ao WhatsApp real."
+          ? "Instância criada em modo demo. Configure a Z-API para conectar ao WhatsApp real."
           : "Escaneie o QR Code para conectar.",
       });
 
