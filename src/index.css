@@ -53,6 +53,7 @@ All colors MUST be HSL.
 
     --primary: 151 90% 38%;
     --primary-foreground: 0 0% 100%;
+    --primary-rgb: 18, 184, 106;
     
     --primary-hover: 151 90% 32%;
     --primary-light: 151 95% 95%;
@@ -118,6 +119,7 @@ All colors MUST be HSL.
 
     --primary: 151 90% 45%;
     --primary-foreground: 0 0% 100%;
+    --primary-rgb: 26, 217, 128;
     
     --primary-hover: 151 90% 50%;
     --primary-light: 151 70% 20%;

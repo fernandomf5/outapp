@@ -372,61 +372,104 @@ const Index = () => {
   const OffCanvasMenu = ({ headerPages, onPageClick }: { headerPages: CustomPage[], onPageClick: (page: CustomPage) => void }) => (
     <Sheet>
       <SheetTrigger asChild>
-        <button className="inline-flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors border border-border">
-          <Menu className="w-5 h-5" />
-          <span className="text-sm font-semibold">Menu</span>
+        <button className="group relative inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/30 hover:border-primary/50 transition-all duration-300 shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)] hover:shadow-[0_0_25px_rgba(var(--primary-rgb),0.5)]">
+          <Menu className="w-5 h-5 text-primary" />
+          <span className="text-sm font-bold text-primary">Menu</span>
+          <div className="absolute inset-0 rounded-xl bg-primary/5 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-[280px] sm:w-[320px] lg:w-[380px] p-0 flex flex-col">
-        <SheetHeader className="px-6 py-6 border-b border-border">
+      <SheetContent side="right" className="w-[300px] sm:w-[350px] lg:w-[400px] p-0 flex flex-col bg-gradient-to-b from-background via-background to-background/95 border-l border-primary/20">
+        {/* Header com Logo */}
+        <SheetHeader className="px-6 py-8 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
           <div className="flex flex-col items-center gap-4">
-            <img src={logoLion} alt="Logo" className="h-20 w-auto object-contain" />
-            <SheetTitle className="text-xl font-bold">{t('menu')}</SheetTitle>
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full animate-pulse" />
+              <img src={logoLion} alt="Logo" className="h-20 w-auto object-contain relative z-10" />
+            </div>
+            <SheetTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              {t('menu')}
+            </SheetTitle>
           </div>
         </SheetHeader>
-        <ScrollArea className="flex-1 px-6">
-          <nav className="flex flex-col gap-4 py-6">
-            <a href="#" className="text-sm lg:text-base text-muted-foreground hover:text-foreground transition-smooth py-2">
-              {t('home')}
+        
+        {/* Menu Items */}
+        <ScrollArea className="flex-1">
+          <nav className="flex flex-col gap-1 p-4">
+            <a 
+              href="#" 
+              className="group flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all duration-200"
+            >
+              <div className="w-2 h-2 rounded-full bg-primary/40 group-hover:bg-primary group-hover:shadow-[0_0_8px_rgba(var(--primary-rgb),0.6)] transition-all duration-200" />
+              <span className="font-medium">{t('home')}</span>
             </a>
-            <a href="#recursos" className="text-sm lg:text-base text-muted-foreground hover:text-foreground transition-smooth py-2">
-              {t('features')}
+            <a 
+              href="#recursos" 
+              className="group flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all duration-200"
+            >
+              <div className="w-2 h-2 rounded-full bg-primary/40 group-hover:bg-primary group-hover:shadow-[0_0_8px_rgba(var(--primary-rgb),0.6)] transition-all duration-200" />
+              <span className="font-medium">{t('features')}</span>
             </a>
-            <a href="#planos" className="text-sm lg:text-base text-muted-foreground hover:text-foreground transition-smooth py-2">
-              {t('pricing')}
+            <a 
+              href="#planos" 
+              className="group flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all duration-200"
+            >
+              <div className="w-2 h-2 rounded-full bg-primary/40 group-hover:bg-primary group-hover:shadow-[0_0_8px_rgba(var(--primary-rgb),0.6)] transition-all duration-200" />
+              <span className="font-medium">{t('pricing')}</span>
             </a>
-            <a href="/blog" className="text-sm lg:text-base text-muted-foreground hover:text-foreground transition-smooth py-2">
-              Blog
+            <a 
+              href="/blog" 
+              className="group flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all duration-200"
+            >
+              <div className="w-2 h-2 rounded-full bg-primary/40 group-hover:bg-primary group-hover:shadow-[0_0_8px_rgba(var(--primary-rgb),0.6)] transition-all duration-200" />
+              <span className="font-medium">Blog</span>
             </a>
-            <a href="#faq" className="text-sm lg:text-base text-muted-foreground hover:text-foreground transition-smooth py-2">
-              {t('faq')}
+            <a 
+              href="#faq" 
+              className="group flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all duration-200"
+            >
+              <div className="w-2 h-2 rounded-full bg-primary/40 group-hover:bg-primary group-hover:shadow-[0_0_8px_rgba(var(--primary-rgb),0.6)] transition-all duration-200" />
+              <span className="font-medium">{t('faq')}</span>
             </a>
             {headerPages.map((page) => (
               <Link
                 key={page.id}
                 to={`/${page.slug}`}
-                className="text-sm lg:text-base text-muted-foreground hover:text-foreground transition-smooth py-2"
+                className="group flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all duration-200"
               >
-                {page.title}
+                <div className="w-2 h-2 rounded-full bg-primary/40 group-hover:bg-primary group-hover:shadow-[0_0_8px_rgba(var(--primary-rgb),0.6)] transition-all duration-200" />
+                <span className="font-medium">{page.title}</span>
               </Link>
             ))}
-            <div className="mt-4 pt-4 border-t border-border">
-              <SocialLinks links={socialLinks} horizontal />
-            </div>
-            <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-border">
-              <Button variant="ghost" onClick={() => navigate("/auth")} className="w-full justify-center">
-                {t('login')}
-              </Button>
-              <Button onClick={() => navigate("/auth")} className="gradient-primary shadow-glow w-full">
-                {t('start_free')}
-              </Button>
-            </div>
-            <div className="mt-4 flex gap-2 pb-6 justify-center">
-              <ThemeToggle />
-              <LanguageSelector />
-            </div>
           </nav>
         </ScrollArea>
+        
+        {/* Footer */}
+        <div className="p-5 border-t border-border/50 space-y-4 bg-muted/30">
+          <div className="flex justify-center">
+            <SocialLinks links={socialLinks} horizontal />
+          </div>
+          
+          <div className="flex flex-col gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate("/auth")} 
+              className="w-full h-11 rounded-xl font-medium border-primary/30 hover:border-primary/50 hover:bg-primary/5"
+            >
+              {t('login')}
+            </Button>
+            <Button 
+              onClick={() => navigate("/auth")} 
+              className="gradient-primary shadow-glow w-full h-11 rounded-xl font-medium"
+            >
+              {t('start_free')}
+            </Button>
+          </div>
+          
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <ThemeToggle />
+            <LanguageSelector />
+          </div>
+        </div>
       </SheetContent>
     </Sheet>
   );
