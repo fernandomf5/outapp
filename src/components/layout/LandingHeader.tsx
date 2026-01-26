@@ -107,11 +107,11 @@ export const LandingHeader = () => {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="px-3 gap-2"
+              className="px-3 flex items-center gap-2"
               onClick={() => setMobileMenuOpen(true)}
             >
-              <Menu className="w-5 h-5" />
-              <span className="text-sm font-medium">{t('menu')}</span>
+              <Menu className="w-5 h-5 flex-shrink-0" />
+              <span className="text-sm font-medium">Menu</span>
             </Button>
           </div>
         </div>
