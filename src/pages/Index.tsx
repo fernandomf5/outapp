@@ -369,14 +369,14 @@ const Index = () => {
 
   const headerPages = customPages;
 
-  const MobileMenu = ({ headerPages, onPageClick }: { headerPages: CustomPage[], onPageClick: (page: CustomPage) => void }) => (
+  const OffCanvasMenu = ({ headerPages, onPageClick }: { headerPages: CustomPage[], onPageClick: (page: CustomPage) => void }) => (
     <Sheet>
-      <SheetTrigger asChild className="lg:hidden">
+      <SheetTrigger asChild>
         <Button variant="ghost" size="sm" className="px-2">
-          <Menu className="w-5 h-5" />
+          <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-[280px] sm:w-[320px] p-0 flex flex-col">
+      <SheetContent side="right" className="w-[280px] sm:w-[320px] lg:w-[380px] p-0 flex flex-col">
         <SheetHeader className="px-6 py-6 border-b border-border">
           <div className="flex flex-col items-center gap-4">
             <img src={logoLion} alt="Logo" className="h-20 w-auto object-contain" />
@@ -385,26 +385,26 @@ const Index = () => {
         </SheetHeader>
         <ScrollArea className="flex-1 px-6">
           <nav className="flex flex-col gap-4 py-6">
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
+            <a href="#" className="text-sm lg:text-base text-muted-foreground hover:text-foreground transition-smooth py-2">
               {t('home')}
             </a>
-            <a href="#recursos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
+            <a href="#recursos" className="text-sm lg:text-base text-muted-foreground hover:text-foreground transition-smooth py-2">
               {t('features')}
             </a>
-            <a href="#planos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
+            <a href="#planos" className="text-sm lg:text-base text-muted-foreground hover:text-foreground transition-smooth py-2">
               {t('pricing')}
             </a>
-            <a href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
+            <a href="/blog" className="text-sm lg:text-base text-muted-foreground hover:text-foreground transition-smooth py-2">
               Blog
             </a>
-            <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2">
+            <a href="#faq" className="text-sm lg:text-base text-muted-foreground hover:text-foreground transition-smooth py-2">
               {t('faq')}
             </a>
             {headerPages.map((page) => (
               <Link
                 key={page.id}
                 to={`/${page.slug}`}
-                className="text-sm text-muted-foreground hover:text-foreground transition-smooth py-2"
+                className="text-sm lg:text-base text-muted-foreground hover:text-foreground transition-smooth py-2"
               >
                 {page.title}
               </Link>
@@ -412,15 +412,15 @@ const Index = () => {
             <div className="mt-4 pt-4 border-t border-border">
               <SocialLinks links={socialLinks} horizontal />
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-border">
-              <Button variant="ghost" onClick={() => navigate("/auth")} className="w-full justify-start">
+            <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-border">
+              <Button variant="ghost" onClick={() => navigate("/auth")} className="w-full justify-center">
                 {t('login')}
               </Button>
               <Button onClick={() => navigate("/auth")} className="gradient-primary shadow-glow w-full">
                 {t('start_free')}
               </Button>
             </div>
-            <div className="mt-4 flex gap-2 pb-6">
+            <div className="mt-4 flex gap-2 pb-6 justify-center">
               <ThemeToggle />
               <LanguageSelector />
             </div>
@@ -555,45 +555,14 @@ const Index = () => {
               )}
             </div>
             
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-3 xl:gap-4 2xl:gap-6 3xl:gap-8">
-              <a href="#" className="text-xs xl:text-sm 2xl:text-base 3xl:text-lg text-muted-foreground hover:text-foreground transition-smooth">
-                {t('home')}
-              </a>
-              <a href="#recursos" className="text-xs xl:text-sm 2xl:text-base 3xl:text-lg text-muted-foreground hover:text-foreground transition-smooth">
-                {t('features')}
-              </a>
-              <a href="#planos" className="text-xs xl:text-sm 2xl:text-base 3xl:text-lg text-muted-foreground hover:text-foreground transition-smooth">
-                {t('pricing')}
-              </a>
-              <a href="/blog" className="text-xs xl:text-sm 2xl:text-base 3xl:text-lg text-muted-foreground hover:text-foreground transition-smooth">
-                Blog
-              </a>
-              <a href="#faq" className="text-xs xl:text-sm 2xl:text-base 3xl:text-lg text-muted-foreground hover:text-foreground transition-smooth">
-                {t('faq')}
-              </a>
-              {headerPages.map((page) => (
-                <Link
-                  key={page.id}
-                  to={`/${page.slug}`}
-                  className="text-xs xl:text-sm 2xl:text-base 3xl:text-lg text-muted-foreground hover:text-foreground transition-smooth"
-                >
-                  {page.title}
-                </Link>
-              ))}
-              <SocialLinks links={socialLinks} />
+            {/* Desktop controls - Only theme toggle and language selector */}
+            <div className="hidden lg:flex items-center gap-3">
               <ThemeToggle />
               <LanguageSelector />
-              <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} className="active:scale-95 transition-transform text-xs xl:text-sm 2xl:text-base">
-                {t('login')}
-              </Button>
-              <Button size="sm" onClick={() => navigate("/auth")} className="gradient-primary shadow-glow active:scale-95 transition-transform text-xs xl:text-sm 2xl:text-base">
-                {t('start_free')}
-              </Button>
-            </nav>
+            </div>
             
-            {/* Mobile/Tablet Navigation */}
-            <MobileMenu headerPages={headerPages} onPageClick={openPageDialog} />
+            {/* Off-canvas Menu - All screen sizes */}
+            <OffCanvasMenu headerPages={headerPages} onPageClick={openPageDialog} />
           </div>
         </div>
       </header>
