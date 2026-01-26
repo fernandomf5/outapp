@@ -92,10 +92,27 @@ export const LandingFooter = ({ hideCustomPages = false }: { hideCustomPages?: b
             </div>
           ))}
         </div>
-        <div className="pt-8 border-t text-center">
+        <div className="pt-8 border-t text-center space-y-3">
           <p className="text-sm text-muted-foreground">
             {settings.footerText || `© ${new Date().getFullYear()} ${settings.siteTitle || 'Automação'}. Todos os direitos reservados.`}
           </p>
+          <p className="text-xs text-muted-foreground">
+            Uma Negócio do Grupo Liberdade Financeira Online - 21.233.977/0001-29
+          </p>
+          <a 
+            href="https://klicsmart.com/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <span>Criado com carinho pela agência</span>
+            <img 
+              src="/klic-smart-logo.png" 
+              alt="Klic Smart AI" 
+              className="h-5 w-5 object-contain"
+            />
+            <span className="font-medium">Klic Smart AI</span>
+          </a>
         </div>
       </div>
     </footer>
