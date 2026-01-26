@@ -90,32 +90,8 @@ export const LandingHeader = () => {
               )}
             </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-6">
-              <a href="/" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
-                {t('home')}
-              </a>
-              <a href="/#recursos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
-                {t('features')}
-              </a>
-              <a href="/#planos" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
-                {t('pricing')}
-              </a>
-              <a href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
-                Blog
-              </a>
-              <a href="/#faq" className="text-sm text-muted-foreground hover:text-foreground transition-smooth">
-                {t('faq')}
-              </a>
-              {headerPages.map((page) => (
-                <Link
-                  key={page.id}
-                  to={`/${page.slug}`}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-smooth"
-                >
-                  {page.title}
-                </Link>
-              ))}
+            {/* Desktop Controls */}
+            <div className="hidden lg:flex items-center gap-4">
               <SocialLinks links={settings.socialLinks} />
               <ThemeToggle />
               <LanguageSelector />
@@ -125,13 +101,13 @@ export const LandingHeader = () => {
               <Button size="sm" onClick={() => navigate("/auth")} className="gradient-primary shadow-glow active:scale-95 transition-transform">
                 {t('start_free')}
               </Button>
-            </nav>
+            </div>
 
-            {/* Mobile Menu Button */}
+            {/* Menu Button - All Screens */}
             <Button 
               variant="ghost" 
               size="sm" 
-              className="lg:hidden px-3 gap-2"
+              className="px-3 gap-2"
               onClick={() => setMobileMenuOpen(true)}
             >
               <Menu className="w-5 h-5" />
@@ -141,9 +117,9 @@ export const LandingHeader = () => {
         </div>
       </header>
 
-      {/* Mobile Off-Canvas Menu */}
+      {/* Off-Canvas Menu - All Screens */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-[100] lg:hidden">
+        <div className="fixed inset-0 z-[100]">
           {/* Overlay */}
           <div 
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
