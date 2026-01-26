@@ -2,10 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { 
   ArrowLeft, 
   MessageSquare, 
@@ -13,9 +11,7 @@ import {
   Smartphone,
   Bot,
   Volume2,
-  Link2,
-  Settings,
-  Info
+  Link2
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -64,12 +60,6 @@ export default function WhatsAppAIPage() {
   // Voice settings
   const [selectedVoiceId, setSelectedVoiceId] = useState<string | null>(null);
   const [selectedVoiceName, setSelectedVoiceName] = useState<string | null>(null);
-
-  // API Config
-  const [zapiInstanceId, setZapiInstanceId] = useState('');
-  const [zapiToken, setZapiToken] = useState('');
-  const [zapiSecurityToken, setZapiSecurityToken] = useState('');
-  const [elevenLabsApiKey, setElevenLabsApiKey] = useState('');
 
   const loadData = useCallback(async () => {
     if (!user?.id) return;
@@ -168,7 +158,7 @@ export default function WhatsAppAIPage() {
                 WhatsApp AI
               </h1>
               <p className="text-sm text-muted-foreground">
-                Gerencie WhatsApps e Agentes IA inteligentes
+                Conecte seu WhatsApp e crie agentes IA inteligentes
               </p>
             </div>
           </div>
@@ -178,7 +168,7 @@ export default function WhatsAppAIPage() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full">
+          <TabsList className="grid grid-cols-4 w-full">
             <TabsTrigger value="whatsapps" className="gap-2">
               <Smartphone className="w-4 h-4" />
               <span className="hidden sm:inline">WhatsApps</span>
@@ -194,10 +184,6 @@ export default function WhatsAppAIPage() {
             <TabsTrigger value="voice" className="gap-2">
               <Volume2 className="w-4 h-4" />
               <span className="hidden sm:inline">Voz</span>
-            </TabsTrigger>
-            <TabsTrigger value="config" className="gap-2">
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Config</span>
             </TabsTrigger>
           </TabsList>
 
@@ -265,121 +251,6 @@ export default function WhatsAppAIPage() {
                 </CardContent>
               </Card>
             )}
-          </TabsContent>
-
-          {/* Tab 5: API Configuration */}
-          <TabsContent value="config">
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-primary" />
-                  Configurações de API
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Configure as APIs necessárias para o funcionamento completo
-                </p>
-              </div>
-
-              {/* Z-API */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Smartphone className="w-4 h-4 text-green-500" />
-                    Z-API (WhatsApp)
-                  </CardTitle>
-                  <CardDescription>
-                    Necessária para conectar WhatsApp real via QR Code
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label>Instance ID</Label>
-                    <Input
-                      placeholder="Seu Instance ID da Z-API"
-                      value={zapiInstanceId}
-                      onChange={(e) => setZapiInstanceId(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label>Token</Label>
-                    <Input
-                      type="password"
-                      placeholder="Seu Token da Z-API"
-                      value={zapiToken}
-                      onChange={(e) => setZapiToken(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label>Security Token (Client Token)</Label>
-                    <Input
-                      type="password"
-                      placeholder="Seu Security Token da Z-API"
-                      value={zapiSecurityToken}
-                      onChange={(e) => setZapiSecurityToken(e.target.value)}
-                    />
-                  </div>
-                  <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-xs text-muted-foreground flex items-start gap-2">
-                      <Info className="w-4 h-4 mt-0.5 shrink-0" />
-                      Crie uma conta em z-api.io para obter suas credenciais. 
-                      O Instance ID, Token e Security Token estão disponíveis no painel da Z-API.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* ElevenLabs API */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Volume2 className="w-4 h-4 text-purple-500" />
-                    ElevenLabs (Voz)
-                  </CardTitle>
-                  <CardDescription>
-                    Necessária para respostas por áudio com vozes realistas
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label>API Key</Label>
-                    <Input
-                      type="password"
-                      placeholder="Sua chave de API do ElevenLabs"
-                      value={elevenLabsApiKey}
-                      onChange={(e) => setElevenLabsApiKey(e.target.value)}
-                    />
-                  </div>
-                  <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-xs text-muted-foreground flex items-start gap-2">
-                      <Info className="w-4 h-4 mt-0.5 shrink-0" />
-                      Crie uma conta gratuita em elevenlabs.io para obter sua API Key.
-                      A versão gratuita inclui um limite de caracteres por mês.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Summary */}
-              <Card className="bg-gradient-to-r from-green-500/10 to-primary/10 border-green-500/20">
-                <CardContent className="p-6">
-                  <h4 className="font-semibold mb-4">📋 Resumo das APIs Necessárias</h4>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex items-center justify-between">
-                      <span>Z-API (WhatsApp)</span>
-                      <span className="text-muted-foreground">Conectar WhatsApp real</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Lovable AI (incluída)</span>
-                      <span className="text-green-500">✓ Já configurada</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>ElevenLabs (opcional)</span>
-                      <span className="text-muted-foreground">Respostas por áudio</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
           </TabsContent>
         </Tabs>
       </main>
