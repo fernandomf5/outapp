@@ -153,13 +153,7 @@ export const LandingHeader = () => {
           {/* Menu Panel */}
           <div className="absolute right-0 top-0 h-full w-[300px] sm:w-[340px] bg-gradient-to-b from-background to-background/95 flex flex-col animate-in slide-in-from-right duration-300 shadow-2xl">
             {/* Header com Botão Fechar */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-border/50">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Menu className="w-5 h-5 text-primary" />
-                </div>
-                <span className="text-lg font-semibold">{t('menu')}</span>
-              </div>
+            <div className="flex items-center justify-end px-6 py-5 border-b border-border/50">
               <Button 
                 variant="ghost" 
                 size="icon"
