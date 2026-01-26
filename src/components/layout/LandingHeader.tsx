@@ -109,10 +109,10 @@ export const LandingHeader = () => {
               {/* Menu Button - All Screens */}
               <button 
                 onClick={() => setMobileMenuOpen(true)}
-                className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors"
+               className="inline-flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors border border-border"
               >
                 <Menu className="w-5 h-5" />
-                <span className="text-sm font-medium">Menu</span>
+               <span className="text-sm font-semibold whitespace-nowrap">Menu</span>
               </button>
             </div>
           </div>
