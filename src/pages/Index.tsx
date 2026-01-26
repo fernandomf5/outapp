@@ -70,7 +70,7 @@ const Index = () => {
     landing_title: "A Solução Tudo em Um<br />para Empreendedores Digitais.",
     hero_title: "Plataforma Completa de Automação<br />e Marketing Digital com IA",
     hero_subtitle: "Construtor visual de automações, CRM, sistema de afiliados, pixels de conversão, agentes IA e muito mais. Tudo em uma plataforma. Teste grátis por 3 dias.",
-    hero_cta_text: "Começar Teste Grátis 🚀",
+    hero_cta_text: "Começar Teste Grátis",
     video_section_title: "Veja a Plataforma em Ação",
     video_section_subtitle: "Descubra como é fácil automatizar seu negócio com nossa plataforma completa",
     features_title: "Tudo que Você Precisa em Uma Plataforma",
@@ -797,7 +797,7 @@ const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Da
               onClick={() => navigate("/auth")}
               className="gradient-primary shadow-glow text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl px-5 xs:px-6 sm:px-8 md:px-10 lg:px-14 py-4 xs:py-5 sm:py-6 md:py-7 lg:py-8 active:scale-95 transition-transform w-full sm:w-auto max-w-md font-semibold"
             >
-              Começar Teste Grátis - 3 Dias 🚀
+              Começar Teste Grátis - 3 Dias
             </Button>
           </div>
         </div>
@@ -878,10 +878,27 @@ const isOfferActive = plan.countdown_enabled && plan.countdown_ends_at && new Da
             </div>
           )}
 
-          <div className="pt-6 xs:pt-8 border-t text-center">
+          <div className="pt-6 xs:pt-8 border-t text-center space-y-3">
             <p className="text-xs xs:text-sm sm:text-base text-muted-foreground">
-              {footerText || `© ${new Date().getFullYear()} ${siteTitle || 'Automação'}. Todos os direitos reservados.`}
+              {footerText || `© ${new Date().getFullYear()} ${siteTitle || 'Out App'}. Todos os direitos reservados.`}
             </p>
+            <p className="text-xs text-muted-foreground">
+              Um Negócio do Grupo Liberdade Financeira Online - 21.233.977/0001-29
+            </p>
+            <a 
+              href="https://klicsmart.com/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <span>Criado com carinho pela agência</span>
+              <img 
+                src="/klic-smart-logo.png" 
+                alt="Klic Smart AI" 
+                className="h-5 w-5 object-contain"
+              />
+              <span className="font-medium">Klic Smart AI</span>
+            </a>
           </div>
         </div>
       </footer>
