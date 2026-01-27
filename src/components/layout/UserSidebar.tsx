@@ -142,7 +142,6 @@ export function UserSidebar() {
 
   const advancedResourcesItems: MenuItem[] = [
     { title: t('online_chat'), icon: MessageSquare, path: "/dashboard", tab: "ai-agents", moduleKey: "ai_agents" },
-    { title: t('whatsapp_ai'), icon: Smartphone, path: "/whatsapp-agent", hideForTeamMember: true },
     { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner", moduleKey: "cloner" },
     { title: t('members_area'), icon: UserCog, path: "/dashboard", tab: "area-membros", hideForTeamMember: true },
     { title: t('link_in_bio'), icon: ExternalLink, path: "/dashboard", tab: "linkbio", moduleKey: "link_bio" },
