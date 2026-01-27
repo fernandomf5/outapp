@@ -606,9 +606,10 @@ const Index = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => navigate("/auth")}
-                className="h-10 rounded-xl font-semibold active:scale-95 transition-transform"
+                className="h-8 sm:h-10 px-2 sm:px-4 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold active:scale-95 transition-transform"
               >
-                Entrar/Cadastre-se
+                <span className="sm:hidden">Entrar</span>
+                <span className="hidden sm:inline">Entrar/Cadastre-se</span>
               </Button>
               {/* Off-canvas Menu - All screen sizes */}
               <OffCanvasMenu headerPages={headerPages} onPageClick={openPageDialog} />
