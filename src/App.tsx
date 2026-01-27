@@ -51,7 +51,6 @@ import TeamMemberAuth from "./pages/TeamMemberAuth";
 import TeamMemberDashboard from "./pages/TeamMemberDashboard";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import PageEditor from "./pages/PageEditor";
-import WhatsAppAIPage from "./pages/WhatsAppAIPage";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { CookieNotice } from "@/components/CookieNotice";
 
@@ -126,11 +125,6 @@ const AppContent = () => {
               <Route path="/ai-agent" element={
                 <ProtectedRoute>
                   <AIAgentBuilder />
-                </ProtectedRoute>
-              } />
-              <Route path="/whatsapp-agent" element={
-                <ProtectedRoute>
-                  <WhatsAppAIPage />
                 </ProtectedRoute>
               } />
               <Route path="/funnel-builder" element={
