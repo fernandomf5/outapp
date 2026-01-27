@@ -92,9 +92,16 @@ export const LandingHeader = () => {
 
             {/* Right Side Controls */}
             <div className="flex items-center gap-2 sm:gap-3">
-              {/* Desktop Only Controls */}
-              <div className="hidden lg:flex items-center gap-3">
+              {/* Desktop Only - Social Links */}
+              <div className="hidden lg:block">
                 <SocialLinks links={settings.socialLinks} />
+              </div>
+              
+              <ThemeToggle />
+              <LanguageSelector />
+              
+              {/* Desktop Only - Login Buttons next to Menu */}
+              <div className="hidden lg:flex items-center gap-2">
                 <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} className="active:scale-95 transition-transform">
                   {t('login')}
                 </Button>
@@ -103,16 +110,13 @@ export const LandingHeader = () => {
                 </Button>
               </div>
               
-              <ThemeToggle />
-              <LanguageSelector />
-              
               {/* Menu Button - All Screens */}
               <button 
                 onClick={() => setMobileMenuOpen(true)}
-               className="inline-flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors border border-border"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors border border-border"
               >
                 <Menu className="w-5 h-5" />
-               <span className="text-sm font-semibold whitespace-nowrap">Menu</span>
+                <span className="text-sm font-semibold whitespace-nowrap">Menu</span>
               </button>
             </div>
           </div>
