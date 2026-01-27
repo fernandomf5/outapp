@@ -100,15 +100,15 @@ export const LandingHeader = () => {
               <ThemeToggle />
               <LanguageSelector />
               
-              {/* Desktop Only - Login Buttons next to Menu */}
-              <div className="hidden lg:flex items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} className="active:scale-95 transition-transform">
-                  {t('login')}
-                </Button>
-                <Button size="sm" onClick={() => navigate("/auth")} className="gradient-primary shadow-glow active:scale-95 transition-transform">
-                  {t('start_free')}
-                </Button>
-              </div>
+              {/* Login Button */}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigate("/auth")} 
+                className="active:scale-95 transition-transform"
+              >
+                Entrar/Cadastre-se
+              </Button>
               
               {/* Menu Button - All Screens */}
               <button 
