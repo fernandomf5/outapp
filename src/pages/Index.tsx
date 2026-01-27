@@ -602,6 +602,14 @@ const Index = () => {
             <div className="flex items-center gap-2 sm:gap-3">
               <ThemeToggle />
               <LanguageSelector />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/auth")}
+                className="h-10 rounded-xl font-semibold active:scale-95 transition-transform"
+              >
+                Entrar/Cadastre-se
+              </Button>
               {/* Off-canvas Menu - All screen sizes */}
               <OffCanvasMenu headerPages={headerPages} onPageClick={openPageDialog} />
             </div>
