@@ -748,14 +748,14 @@ export default function ProductsServicesPanel() {
                     Negócio
                   </Label>
                   <Select
-                    value={productForm.business_id}
-                    onValueChange={(v) => setProductForm({ ...productForm, business_id: v })}
+                    value={productForm.business_id || "none"}
+                    onValueChange={(v) => setProductForm({ ...productForm, business_id: v === "none" ? "" : v })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione um negócio (opcional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Nenhum (pessoal)</SelectItem>
+                      <SelectItem value="none">Nenhum (pessoal)</SelectItem>
                       {businesses.map((business) => (
                         <SelectItem key={business.id} value={business.id}>
                           {business.name}
@@ -1014,14 +1014,14 @@ export default function ProductsServicesPanel() {
                     Negócio
                   </Label>
                   <Select
-                    value={serviceForm.business_id}
-                    onValueChange={(v) => setServiceForm({ ...serviceForm, business_id: v })}
+                    value={serviceForm.business_id || "none"}
+                    onValueChange={(v) => setServiceForm({ ...serviceForm, business_id: v === "none" ? "" : v })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione um negócio (opcional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Nenhum (pessoal)</SelectItem>
+                      <SelectItem value="none">Nenhum (pessoal)</SelectItem>
                       {businesses.map((business) => (
                         <SelectItem key={business.id} value={business.id}>
                           {business.name}
