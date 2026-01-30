@@ -56,7 +56,29 @@ export function GeneralCRMPanel() {
       setLoading(true);
       const allLeads: Lead[] = [];
 
-      // 1. Buscar leads de conversas de chatbots
+      // 1. Buscar clientes da Gestão de Clientes (tabela customers)
+      const { data: customers } = await supabase
+        .from('customers')
+        .select('id, name, email, phone, status, created_at')
+        .eq('user_id', user.id);
+
+      if (customers) {
+        customers.forEach(customer => {
+          allLeads.push({
+            id: `customer-${customer.id}`,
+            originalId: customer.id,
+            originalSource: 'customers',
+            name: customer.name || 'N/A',
+            email: customer.email || 'N/A',
+            phone: customer.phone || 'N/A',
+            source: 'Gestão de Clientes',
+            sourceName: customer.status || 'Cliente',
+            createdAt: customer.created_at
+          });
+        });
+      }
+
+      // 2. Buscar leads de conversas de chatbots
       const { data: chatbots } = await supabase
         .from('chatbots')
         .select('id, name')
@@ -91,7 +113,7 @@ export function GeneralCRMPanel() {
         }
       }
 
-      // 2. Buscar leads de Chat Online (apenas clientes cadastrados/verificados)
+      // 3. Buscar leads de Chat Online (apenas clientes cadastrados/verificados)
       const { data: agents } = await supabase
         .from('ai_agents')
         .select('id, name')
@@ -125,7 +147,7 @@ export function GeneralCRMPanel() {
         }
       }
 
-      // 3. Buscar leads de páginas clonadas
+      // 4. Buscar leads de páginas clonadas
       const { data: clonedPages } = await supabase
         .from('cloned_pages')
         .select('id')
@@ -238,6 +260,12 @@ export function GeneralCRMPanel() {
         visitor_email: editingLead.email,
         visitor_phone: editingLead.phone,
       };
+    } else if (editingLead.originalSource === 'customers') {
+      updateData = {
+        name: editingLead.name,
+        email: editingLead.email || null,
+        phone: editingLead.phone || null,
+      };
     } else {
       updateData = {
         name: editingLead.name,
@@ -284,7 +312,7 @@ export function GeneralCRMPanel() {
         <CardHeader>
           <CardTitle>Controle de Leads</CardTitle>
           <CardDescription>
-            Todos os leads capturados de chatbots, chat online e páginas clonadas
+            Todos os leads e clientes: gestão de clientes, chatbots, chat online e páginas clonadas
           </CardDescription>
         </CardHeader>
         <CardContent>
