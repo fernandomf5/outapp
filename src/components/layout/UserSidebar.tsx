@@ -121,9 +121,9 @@ export function UserSidebar() {
 
   const managementItems: MenuItem[] = [
     { title: "Clientes", icon: Users, path: "/dashboard", tab: "clientes", moduleKey: "crm" },
-    { title: t('team_management'), icon: UserCog, path: "/dashboard", tab: "equipe", hideForTeamMember: true },
-    { title: t('ads_management'), icon: Megaphone, path: "/dashboard", tab: "anuncios", moduleKey: "ads" },
-    { title: t('task_organizer'), icon: Target, path: "/dashboard", tab: "tarefas", moduleKey: "tasks" },
+    { title: "Equipe", icon: UserCog, path: "/dashboard", tab: "equipe", hideForTeamMember: true },
+    { title: "Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios", moduleKey: "ads" },
+    { title: "Tarefas", icon: Target, path: "/dashboard", tab: "tarefas", moduleKey: "tasks" },
   ];
 
   const financialItems: MenuItem[] = [
