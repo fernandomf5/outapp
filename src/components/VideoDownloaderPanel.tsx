@@ -177,8 +177,8 @@ export default function VideoDownloaderPanel() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-red-500 to-pink-500">
-                <Download className="w-5 h-5 text-white" />
+              <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-primary/70">
+                <Download className="w-5 h-5 text-primary-foreground" />
               </div>
               Video Downloader
             </CardTitle>
@@ -270,8 +270,8 @@ export default function VideoDownloaderPanel() {
                           }}
                         />
                       ) : item.type === 'audio' ? (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500">
-                          <Music className="w-16 h-16 text-white" />
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary to-primary/70">
+                          <Music className="w-16 h-16 text-primary-foreground" />
                         </div>
                       ) : (
                         <div className="w-full h-full relative bg-black">
@@ -373,8 +373,8 @@ export default function VideoDownloaderPanel() {
         {media.length === 0 && (
           <Card className="border-dashed">
             <CardContent className="py-12 flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500/20 to-pink-500/20 flex items-center justify-center mb-4">
-                <Video className="w-8 h-8 text-red-500" />
+              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                <Video className="w-8 h-8 text-primary" />
               </div>
               <h3 className="font-medium mb-1">Nenhum vídeo adicionado</h3>
               <p className="text-sm text-muted-foreground max-w-md">
