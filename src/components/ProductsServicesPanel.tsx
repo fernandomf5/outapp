@@ -144,6 +144,7 @@ export default function ProductsServicesPanel() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("products");
   const [searchTerm, setSearchTerm] = useState("");
+  const [businessFilter, setBusinessFilter] = useState<string>("all");
 
   // Businesses state
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -443,18 +444,28 @@ export default function ProductsServicesPanel() {
     setDeleteServiceId(null);
   };
 
-  const filteredProducts = products.filter(
-    (p) =>
+  const filteredProducts = products.filter((p) => {
+    const matchesSearch =
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.sku?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      p.sku?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesBusiness =
+      businessFilter === "all" ||
+      (businessFilter === "none" && !p.business_id) ||
+      p.business_id === businessFilter;
+    return matchesSearch && matchesBusiness;
+  });
 
-  const filteredServices = services.filter(
-    (s) =>
+  const filteredServices = services.filter((s) => {
+    const matchesSearch =
       s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.category?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      s.category?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesBusiness =
+      businessFilter === "all" ||
+      (businessFilter === "none" && !s.business_id) ||
+      s.business_id === businessFilter;
+    return matchesSearch && matchesBusiness;
+  });
 
   const stats = {
     totalProducts: products.length,
@@ -553,8 +564,8 @@ export default function ProductsServicesPanel() {
           </TabsList>
 
           {(activeTab === "products" || activeTab === "services") && (
-            <div className="flex gap-2">
-              <div className="relative flex-1 sm:w-64">
+            <div className="flex flex-wrap gap-2">
+              <div className="relative flex-1 sm:w-48 min-w-[150px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Buscar..."
@@ -563,6 +574,21 @@ export default function ProductsServicesPanel() {
                   className="pl-9"
                 />
               </div>
+              <Select value={businessFilter} onValueChange={setBusinessFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <Building2 className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Filtrar por negócio" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os negócios</SelectItem>
+                  <SelectItem value="none">Sem negócio</SelectItem>
+                  {businesses.map((business) => (
+                    <SelectItem key={business.id} value={business.id}>
+                      {business.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Button
                 onClick={() => {
                   if (activeTab === "products") {
