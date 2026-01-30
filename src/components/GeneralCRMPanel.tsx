@@ -142,6 +142,7 @@ export function GeneralCRMPanel() {
     try {
       setLoading(true);
       const allLeads: Lead[] = [];
+      const existingLeadIds = new Set<string>();
 
       // 1. Buscar clientes da Gestão de Clientes (tabela customers)
       const { data: customers } = await supabase
@@ -151,6 +152,7 @@ export function GeneralCRMPanel() {
 
       if (customers) {
         customers.forEach(customer => {
+          existingLeadIds.add(`customers-${customer.id}`);
           allLeads.push({
             id: `customer-${customer.id}`,
             originalId: customer.id,
@@ -184,6 +186,7 @@ export function GeneralCRMPanel() {
           chatbotConversations.forEach(conv => {
             const chatbot = chatbots.find(c => c.id === conv.chatbot_id);
             if (conv.visitor_name || conv.visitor_email || conv.visitor_phone) {
+              existingLeadIds.add(`chatbot_conversations-${conv.id}`);
               allLeads.push({
                 id: `chatbot-${conv.id}`,
                 originalId: conv.id,
@@ -218,6 +221,7 @@ export function GeneralCRMPanel() {
         if (agentCustomers) {
           agentCustomers.forEach(customer => {
             const agent = agents.find(a => a.id === customer.agent_id);
+            existingLeadIds.add(`agent_customers-${customer.id}`);
             allLeads.push({
               id: `agent-${customer.id}`,
               originalId: customer.id,
@@ -249,6 +253,7 @@ export function GeneralCRMPanel() {
 
         if (pageLeads) {
           pageLeads.forEach(lead => {
+            existingLeadIds.add(`cloned_page_leads-${lead.id}`);
             allLeads.push({
               id: `page-${lead.id}`,
               originalId: lead.id,
@@ -262,6 +267,34 @@ export function GeneralCRMPanel() {
             });
           });
         }
+      }
+
+      // 5. Buscar leads órfãos dos assignments (leads que foram removidos da origem mas ainda têm categoria)
+      const { data: orphanAssignments } = await supabase
+        .from('lead_category_assignments')
+        .select('*, lead_categories!inner(name, color)')
+        .eq('user_id', user.id);
+
+      if (orphanAssignments) {
+        orphanAssignments.forEach(assignment => {
+          const key = `${assignment.lead_source}-${assignment.lead_id}`;
+          // Só adiciona se o lead não existe nas fontes originais
+          if (!existingLeadIds.has(key)) {
+            const category = assignment.lead_categories as any;
+            allLeads.push({
+              id: `orphan-${assignment.lead_id}`,
+              originalId: assignment.lead_id,
+              originalSource: assignment.lead_source,
+              name: 'Lead Categorizado',
+              email: 'N/A',
+              phone: 'N/A',
+              source: 'Categoria',
+              sourceName: category?.name || 'Categoria',
+              createdAt: assignment.created_at,
+              categoryId: assignment.category_id
+            });
+          }
+        });
       }
 
       // Ordenar por data mais recente
