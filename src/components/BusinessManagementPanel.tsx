@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Building2, Edit, Trash2, Globe, Mail, Phone, MapPin, ExternalLink, Settings, MoreVertical, Download } from "lucide-react";
+import { Plus, Search, Building2, Edit, Trash2, Globe, Mail, Phone, MapPin, ExternalLink, Settings, MoreVertical, Download, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -66,6 +66,7 @@ export function BusinessManagementPanel() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -83,6 +84,51 @@ export function BusinessManagementPanel() {
     zip_code: "",
     status: "active"
   });
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor, selecione uma imagem válida');
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('A imagem deve ter no máximo 2MB');
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('business-logos')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('business-logos')
+        .getPublicUrl(fileName);
+
+      setFormData({ ...formData, logo_url: publicUrl });
+      toast.success('Logo enviada com sucesso!');
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      toast.error('Erro ao enviar logo');
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const removeLogo = () => {
+    setFormData({ ...formData, logo_url: "" });
+  };
 
   useEffect(() => {
     if (user) {
@@ -295,6 +341,51 @@ export function BusinessManagementPanel() {
                   </TabsList>
 
                   <TabsContent value="info" className="space-y-4 mt-4">
+                    {/* Logo Upload */}
+                    <div className="space-y-2">
+                      <Label>Logo do Negócio</Label>
+                      <div className="flex items-center gap-4">
+                        {formData.logo_url ? (
+                          <div className="relative">
+                            <img 
+                              src={formData.logo_url} 
+                              alt="Logo" 
+                              className="w-20 h-20 rounded-lg object-cover border"
+                            />
+                            <button
+                              type="button"
+                              onClick={removeLogo}
+                              className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="w-20 h-20 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-muted/30">
+                            <Building2 className="h-8 w-8 text-muted-foreground/50" />
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <label className="cursor-pointer">
+                            <div className="flex items-center gap-2 text-sm text-primary hover:underline">
+                              <Upload className="h-4 w-4" />
+                              {uploadingLogo ? 'Enviando...' : 'Enviar logo'}
+                            </div>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleLogoUpload}
+                              disabled={uploadingLogo}
+                              className="hidden"
+                            />
+                          </label>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            PNG, JPG ou WEBP. Máximo 2MB.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="name">Nome do Negócio *</Label>
