@@ -3406,6 +3406,170 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_payments_history: {
+        Row: {
+          amount: number
+          contact_id: string
+          created_at: string
+          description: string | null
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string | null
+          reference_id: string | null
+          reference_type: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          contact_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          contact_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_payments_history_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_purchases_history: {
+        Row: {
+          contact_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          product_id: string | null
+          product_name: string
+          purchase_date: string
+          quantity: number
+          total_price: number | null
+          unit_price: number | null
+          user_id: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          product_id?: string | null
+          product_name: string
+          purchase_date?: string
+          quantity?: number
+          total_price?: number | null
+          unit_price?: number | null
+          user_id: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          product_id?: string | null
+          product_name?: string
+          purchase_date?: string
+          quantity?: number
+          total_price?: number | null
+          unit_price?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_purchases_history_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_purchases_history_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_services_history: {
+        Row: {
+          contact_id: string
+          created_at: string
+          description: string | null
+          id: string
+          notes: string | null
+          price: number | null
+          service_date: string
+          service_id: string | null
+          service_name: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          notes?: string | null
+          price?: number | null
+          service_date?: string
+          service_id?: string | null
+          service_name: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          notes?: string | null
+          price?: number | null
+          service_date?: string
+          service_id?: string | null
+          service_name?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_services_history_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_services_history_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "user_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address: string | null

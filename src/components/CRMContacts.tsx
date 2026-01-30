@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, UserPlus, Mail, Phone, Building, Edit, Trash2, MessageSquare, Download } from "lucide-react";
+import { Plus, UserPlus, Mail, Phone, Building, Trash2, MessageSquare, Download, History } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CustomerHistoryPanel } from "@/components/crm/CustomerHistoryPanel";
 
 interface Contact {
   id: string;
@@ -454,78 +455,96 @@ export const CRMContacts = () => {
                 )}
               </div>
 
-              <div className="border-t pt-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-semibold">Interações</h4>
-                  <Dialog open={isInteractionDialogOpen} onOpenChange={setIsInteractionDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button size="sm" variant="outline">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Adicionar
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Nova Interação</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4 mt-4">
-                        <div>
-                          <Label>Tipo</Label>
-                          <Select value={newInteraction.type} onValueChange={(v) => setNewInteraction({ ...newInteraction, type: v })}>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="call">Ligação</SelectItem>
-                              <SelectItem value="email">Email</SelectItem>
-                              <SelectItem value="meeting">Reunião</SelectItem>
-                              <SelectItem value="message">Mensagem</SelectItem>
-                              <SelectItem value="other">Outro</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label>Notas</Label>
-                          <Textarea
-                            value={newInteraction.notes}
-                            onChange={(e) => setNewInteraction({ ...newInteraction, notes: e.target.value })}
-                            placeholder="Descreva o que foi discutido..."
-                            rows={4}
-                          />
-                        </div>
-                        <Button onClick={handleAddInteraction} className="w-full gradient-primary">
-                          Salvar Interação
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
+              <Tabs defaultValue="history" className="border-t pt-4">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="history" className="text-xs">
+                    <History className="w-3 h-3 mr-1" /> Histórico
+                  </TabsTrigger>
+                  <TabsTrigger value="interactions" className="text-xs">
+                    <MessageSquare className="w-3 h-3 mr-1" /> Interações
+                  </TabsTrigger>
+                </TabsList>
 
-                <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                  {interactions.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">Nenhuma interação registrada</p>
-                  ) : (
-                    interactions.map((interaction) => (
-                      <Card key={interaction.id} className="p-3">
-                        <div className="flex items-start gap-2">
-                          <MessageSquare className="w-4 h-4 mt-0.5 text-primary" />
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between">
-                              <Badge variant="outline" className="text-xs">
-                                {interaction.type}
-                              </Badge>
-                              <span className="text-xs text-muted-foreground">
-                                {new Date(interaction.created_at).toLocaleDateString('pt-BR')}
-                              </span>
-                            </div>
-                            <p className="text-sm mt-1 text-muted-foreground">{interaction.notes}</p>
+                <TabsContent value="history" className="mt-4">
+                  <CustomerHistoryPanel 
+                    contactId={selectedContact.id} 
+                    contactName={selectedContact.name} 
+                  />
+                </TabsContent>
+
+                <TabsContent value="interactions" className="mt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-semibold text-sm">Interações</h4>
+                    <Dialog open={isInteractionDialogOpen} onOpenChange={setIsInteractionDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button size="sm" variant="outline">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Adicionar
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Nova Interação</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4 mt-4">
+                          <div>
+                            <Label>Tipo</Label>
+                            <Select value={newInteraction.type} onValueChange={(v) => setNewInteraction({ ...newInteraction, type: v })}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="call">Ligação</SelectItem>
+                                <SelectItem value="email">Email</SelectItem>
+                                <SelectItem value="meeting">Reunião</SelectItem>
+                                <SelectItem value="message">Mensagem</SelectItem>
+                                <SelectItem value="other">Outro</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
+                          <div>
+                            <Label>Notas</Label>
+                            <Textarea
+                              value={newInteraction.notes}
+                              onChange={(e) => setNewInteraction({ ...newInteraction, notes: e.target.value })}
+                              placeholder="Descreva o que foi discutido..."
+                              rows={4}
+                            />
+                          </div>
+                          <Button onClick={handleAddInteraction} className="w-full gradient-primary">
+                            Salvar Interação
+                          </Button>
                         </div>
-                      </Card>
-                    ))
-                  )}
-                </div>
-              </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                    {interactions.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">Nenhuma interação registrada</p>
+                    ) : (
+                      interactions.map((interaction) => (
+                        <Card key={interaction.id} className="p-3">
+                          <div className="flex items-start gap-2">
+                            <MessageSquare className="w-4 h-4 mt-0.5 text-primary" />
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between">
+                                <Badge variant="outline" className="text-xs">
+                                  {interaction.type}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground">
+                                  {new Date(interaction.created_at).toLocaleDateString('pt-BR')}
+                                </span>
+                              </div>
+                              <p className="text-sm mt-1 text-muted-foreground">{interaction.notes}</p>
+                            </div>
+                          </div>
+                        </Card>
+                      ))
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
           ) : (
             <div className="flex-1 flex items-center justify-center text-muted-foreground h-full">
