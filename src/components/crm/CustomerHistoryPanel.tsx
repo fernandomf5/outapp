@@ -73,11 +73,15 @@ interface Product {
 }
 
 interface CustomerHistoryPanelProps {
-  contactId: string;
+  contactId?: string;
+  customerId?: string;
   contactName: string;
 }
 
-export const CustomerHistoryPanel = ({ contactId, contactName }: CustomerHistoryPanelProps) => {
+export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: CustomerHistoryPanelProps) => {
+  // Support both contact_id and customer_id
+  const entityId = contactId || customerId;
+  const entityType = contactId ? 'contact' : 'customer';
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -124,18 +128,22 @@ export const CustomerHistoryPanel = ({ contactId, contactName }: CustomerHistory
   });
 
   useEffect(() => {
-    if (user && contactId) {
+    if (user && entityId) {
       fetchAllHistory();
       fetchAvailableData();
     }
-  }, [user, contactId]);
+  }, [user, entityId]);
 
   const fetchAllHistory = async () => {
+    if (!entityId) return;
+    
+    const filterColumn = entityType === 'contact' ? 'contact_id' : 'customer_id';
+    
     // Fetch services history
     const { data: services } = await supabase
       .from('customer_services_history')
       .select('*')
-      .eq('contact_id', contactId)
+      .eq(filterColumn, entityId)
       .order('service_date', { ascending: false });
     if (services) setServicesHistory(services);
 
@@ -143,7 +151,7 @@ export const CustomerHistoryPanel = ({ contactId, contactName }: CustomerHistory
     const { data: purchases } = await supabase
       .from('customer_purchases_history')
       .select('*')
-      .eq('contact_id', contactId)
+      .eq(filterColumn, entityId)
       .order('purchase_date', { ascending: false });
     if (purchases) setPurchasesHistory(purchases);
 
@@ -151,7 +159,7 @@ export const CustomerHistoryPanel = ({ contactId, contactName }: CustomerHistory
     const { data: payments } = await supabase
       .from('customer_payments_history')
       .select('*')
-      .eq('contact_id', contactId)
+      .eq(filterColumn, entityId)
       .order('payment_date', { ascending: false });
     if (payments) setPaymentsHistory(payments);
   };
@@ -173,13 +181,12 @@ export const CustomerHistoryPanel = ({ contactId, contactName }: CustomerHistory
   };
 
   const handleAddService = async () => {
-    if (!newService.service_name) {
+    if (!newService.service_name || !entityId) {
       toast({ title: "Nome do serviço é obrigatório", variant: "destructive" });
       return;
     }
 
-    const { error } = await supabase.from('customer_services_history').insert({
-      contact_id: contactId,
+    const insertData: Record<string, any> = {
       user_id: user!.id,
       service_id: newService.service_id || null,
       service_name: newService.service_name,
@@ -188,7 +195,15 @@ export const CustomerHistoryPanel = ({ contactId, contactName }: CustomerHistory
       service_date: newService.service_date,
       status: newService.status,
       notes: newService.notes || null
-    });
+    };
+    
+    if (entityType === 'contact') {
+      insertData.contact_id = entityId;
+    } else {
+      insertData.customer_id = entityId;
+    }
+
+    const { error } = await supabase.from('customer_services_history').insert(insertData);
 
     if (error) {
       toast({ title: "Erro ao registrar serviço", description: error.message, variant: "destructive" });
@@ -201,15 +216,14 @@ export const CustomerHistoryPanel = ({ contactId, contactName }: CustomerHistory
   };
 
   const handleAddPurchase = async () => {
-    if (!newPurchase.product_name) {
+    if (!newPurchase.product_name || !entityId) {
       toast({ title: "Nome do produto é obrigatório", variant: "destructive" });
       return;
     }
 
     const totalPrice = newPurchase.quantity * newPurchase.unit_price;
 
-    const { error } = await supabase.from('customer_purchases_history').insert({
-      contact_id: contactId,
+    const insertData: Record<string, any> = {
       user_id: user!.id,
       product_id: newPurchase.product_id || null,
       product_name: newPurchase.product_name,
@@ -218,7 +232,15 @@ export const CustomerHistoryPanel = ({ contactId, contactName }: CustomerHistory
       total_price: totalPrice,
       purchase_date: newPurchase.purchase_date,
       notes: newPurchase.notes || null
-    });
+    };
+    
+    if (entityType === 'contact') {
+      insertData.contact_id = entityId;
+    } else {
+      insertData.customer_id = entityId;
+    }
+
+    const { error } = await supabase.from('customer_purchases_history').insert(insertData);
 
     if (error) {
       toast({ title: "Erro ao registrar compra", description: error.message, variant: "destructive" });
@@ -231,20 +253,27 @@ export const CustomerHistoryPanel = ({ contactId, contactName }: CustomerHistory
   };
 
   const handleAddPayment = async () => {
-    if (newPayment.amount <= 0) {
+    if (newPayment.amount <= 0 || !entityId) {
       toast({ title: "Valor deve ser maior que zero", variant: "destructive" });
       return;
     }
 
-    const { error } = await supabase.from('customer_payments_history').insert({
-      contact_id: contactId,
+    const insertData: Record<string, any> = {
       user_id: user!.id,
       amount: newPayment.amount,
       payment_method: newPayment.payment_method,
       payment_date: newPayment.payment_date,
       description: newPayment.description || null,
       notes: newPayment.notes || null
-    });
+    };
+    
+    if (entityType === 'contact') {
+      insertData.contact_id = entityId;
+    } else {
+      insertData.customer_id = entityId;
+    }
+
+    const { error } = await supabase.from('customer_payments_history').insert(insertData);
 
     if (error) {
       toast({ title: "Erro ao registrar pagamento", description: error.message, variant: "destructive" });
