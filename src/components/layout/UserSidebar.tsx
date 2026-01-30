@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck, Layers, LogIn, Filter, Download, Smartphone } from "lucide-react";
+import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck, Layers, LogIn, Filter, Download, Smartphone, RefreshCw, FileType } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import logoLight from "@/assets/logo-light.png";
@@ -153,6 +153,8 @@ export function UserSidebar() {
     { title: t('portfolio'), icon: Layers, path: "/dashboard", tab: "portfolio", moduleKey: "portfolio" },
     { title: t('aprova_job'), icon: ClipboardCheck, path: "/dashboard", tab: "aprova-job", hideForTeamMember: true },
     { title: t('creative_extractor'), icon: Download, path: "/dashboard", tab: "extrator-criativos", hideForTeamMember: true },
+    { title: t('media_converter'), icon: RefreshCw, path: "/dashboard", tab: "conversor-midia", hideForTeamMember: true },
+    { title: t('document_converter'), icon: FileType, path: "/dashboard", tab: "conversor-documentos", hideForTeamMember: true },
   ];
 
   // Support items - all hidden for team members
