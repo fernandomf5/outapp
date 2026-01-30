@@ -116,7 +116,6 @@ export function UserSidebar() {
   const mainItems: MenuItem[] = [
     { title: t('overview'), icon: TrendingUp, path: "/dashboard", tab: "overview", hideForTeamMember: true },
     { title: t('agenda'), icon: Calendar, path: "/dashboard", tab: "agenda", moduleKey: "agenda" },
-    { title: t('blog'), icon: FileText, path: "/blog", hideForTeamMember: true },
   ];
 
   const managementItems: MenuItem[] = [
@@ -163,6 +162,7 @@ export function UserSidebar() {
 
   // Support items - all hidden for team members
   const supportItems: MenuItem[] = [
+    { title: t('blog'), icon: FileText, path: "/blog", hideForTeamMember: true },
     { title: t('support_ticket'), icon: LifeBuoy, path: "/dashboard", tab: "support", feature: "ticket_system", hideForTeamMember: true },
     { title: t('voucher'), icon: Gift, path: "/dashboard", tab: "voucher", hideForTeamMember: true },
     { title: t('my_plan'), icon: CreditCard, path: "/dashboard", tab: "plan", hideForTeamMember: true },
@@ -387,7 +387,7 @@ export function UserSidebar() {
           {/* Support section - hide for team members */}
           {!isTeamMember && (
             <SidebarGroup>
-              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">{t('support')}</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">Suporte e Essenciais</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {supportItems.map((item) => {
