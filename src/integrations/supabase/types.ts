@@ -6983,6 +6983,63 @@ export type Database = {
         }
         Relationships: []
       }
+      user_services: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          max_capacity: number | null
+          metadata: Json | null
+          name: string
+          price: number
+          price_type: string | null
+          requires_scheduling: boolean | null
+          tags: string[] | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          max_capacity?: number | null
+          metadata?: Json | null
+          name: string
+          price?: number
+          price_type?: string | null
+          requires_scheduling?: boolean | null
+          tags?: string[] | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          max_capacity?: number | null
+          metadata?: Json | null
+          name?: string
+          price?: number
+          price_type?: string | null
+          requires_scheduling?: boolean | null
+          tags?: string[] | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_trusted_devices: {
         Row: {
           created_at: string
