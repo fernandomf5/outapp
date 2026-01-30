@@ -120,11 +120,10 @@ export function UserSidebar() {
   ];
 
   const managementItems: MenuItem[] = [
-    { title: t('team_management'), icon: UserCog, path: "/dashboard", tab: "equipe", hideForTeamMember: true },
     { title: "Clientes", icon: Users, path: "/dashboard", tab: "clientes", moduleKey: "crm" },
+    { title: t('team_management'), icon: UserCog, path: "/dashboard", tab: "equipe", hideForTeamMember: true },
     { title: t('ads_management'), icon: Megaphone, path: "/dashboard", tab: "anuncios", moduleKey: "ads" },
     { title: t('task_organizer'), icon: Target, path: "/dashboard", tab: "tarefas", moduleKey: "tasks" },
-    { title: t('sales_funnel'), icon: Filter, path: "/dashboard", tab: "funil-vendas", moduleKey: "sales_funnel" },
   ];
 
   const financialItems: MenuItem[] = [
@@ -144,6 +143,7 @@ export function UserSidebar() {
   ];
 
   const advancedResourcesItems: MenuItem[] = [
+    { title: t('sales_funnel'), icon: Filter, path: "/dashboard", tab: "funil-vendas", moduleKey: "sales_funnel" },
     { title: t('online_chat'), icon: MessageSquare, path: "/dashboard", tab: "ai-agents", moduleKey: "ai_agents" },
     { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner", moduleKey: "cloner" },
     { title: t('members_area'), icon: UserCog, path: "/dashboard", tab: "area-membros", hideForTeamMember: true },
