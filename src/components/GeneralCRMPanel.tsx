@@ -4,13 +4,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Download, Phone, Mail, Edit, Trash2, Filter } from "lucide-react";
+import { Download, Phone, Mail, Edit, Trash2, Filter, FolderPlus, Settings2, Folder, Tag } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface Lead {
   id: string;
@@ -22,6 +24,23 @@ interface Lead {
   createdAt: string;
   originalId?: string;
   originalSource?: string;
+  categoryId?: string;
+}
+
+interface LeadCategory {
+  id: string;
+  user_id: string;
+  name: string;
+  color: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface CategoryAssignment {
+  id: string;
+  category_id: string;
+  lead_source: string;
+  lead_id: string;
 }
 
 export function GeneralCRMPanel() {
@@ -31,6 +50,16 @@ export function GeneralCRMPanel() {
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [sourceFilter, setSourceFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+
+  // Categories state
+  const [categories, setCategories] = useState<LeadCategory[]>([]);
+  const [categoryAssignments, setCategoryAssignments] = useState<CategoryAssignment[]>([]);
+  const [categoriesDialogOpen, setCategoriesDialogOpen] = useState(false);
+  const [categoryFormData, setCategoryFormData] = useState({ name: "", color: "#3b82f6" });
+  const [editingCategory, setEditingCategory] = useState<LeadCategory | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<LeadCategory | null>(null);
+  const [deleteCategoryDialogOpen, setDeleteCategoryDialogOpen] = useState(false);
 
   // Get unique sources for filter dropdown
   const uniqueSources = useMemo(() => {
@@ -38,16 +67,74 @@ export function GeneralCRMPanel() {
     return sources.sort();
   }, [leads]);
 
-  // Filtered leads based on source filter
+  // Filtered leads based on source and category filter
   const filteredLeads = useMemo(() => {
-    if (sourceFilter === "all") return leads;
-    return leads.filter(lead => lead.source === sourceFilter);
-  }, [leads, sourceFilter]);
+    let filtered = leads;
+    
+    if (sourceFilter !== "all") {
+      filtered = filtered.filter(lead => lead.source === sourceFilter);
+    }
+    
+    if (categoryFilter !== "all") {
+      if (categoryFilter === "none") {
+        filtered = filtered.filter(lead => !lead.categoryId);
+      } else {
+        filtered = filtered.filter(lead => lead.categoryId === categoryFilter);
+      }
+    }
+    
+    return filtered;
+  }, [leads, sourceFilter, categoryFilter]);
 
   useEffect(() => {
     if (!user) return;
+    fetchCategories();
+    fetchCategoryAssignments();
     fetchAllLeads();
   }, [user]);
+
+  const fetchCategories = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('lead_categories')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('name');
+
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error: any) {
+      console.error('Erro ao buscar categorias:', error);
+    }
+  };
+
+  const fetchCategoryAssignments = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('lead_category_assignments')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      setCategoryAssignments(data || []);
+    } catch (error: any) {
+      console.error('Erro ao buscar atribuições de categorias:', error);
+    }
+  };
+
+  const getCategoryForLead = (leadSource: string, leadId: string): string | undefined => {
+    const assignment = categoryAssignments.find(
+      a => a.lead_source === leadSource && a.lead_id === leadId
+    );
+    return assignment?.category_id;
+  };
+
+  const getCategoryById = (id: string | undefined) => {
+    if (!id) return null;
+    return categories.find(c => c.id === id);
+  };
 
   const fetchAllLeads = async () => {
     if (!user) return;
@@ -122,7 +209,6 @@ export function GeneralCRMPanel() {
       if (agents && agents.length > 0) {
         const agentIds = agents.map(a => a.id);
         
-        // Buscar apenas clientes que se cadastraram (email_verified = true)
         const { data: agentCustomers } = await supabase
           .from('agent_customers')
           .select('id, name, email, phone, agent_id, created_at, email_verified')
@@ -190,6 +276,136 @@ export function GeneralCRMPanel() {
     }
   };
 
+  // Atualizar leads com categorias quando assignments mudar
+  useEffect(() => {
+    if (leads.length > 0 && categoryAssignments.length >= 0) {
+      setLeads(prevLeads => prevLeads.map(lead => ({
+        ...lead,
+        categoryId: getCategoryForLead(lead.originalSource || '', lead.originalId || '')
+      })));
+    }
+  }, [categoryAssignments]);
+
+  // Category CRUD
+  const handleAddCategory = async () => {
+    if (!user || !categoryFormData.name.trim()) {
+      toast.error('Nome da categoria é obrigatório');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('lead_categories')
+        .insert({
+          user_id: user.id,
+          name: categoryFormData.name.trim(),
+          color: categoryFormData.color,
+        });
+
+      if (error) throw error;
+
+      toast.success('Categoria criada com sucesso!');
+      setCategoryFormData({ name: "", color: "#3b82f6" });
+      fetchCategories();
+    } catch (error: any) {
+      console.error('Erro ao criar categoria:', error);
+      toast.error('Erro ao criar categoria');
+    }
+  };
+
+  const handleUpdateCategory = async () => {
+    if (!editingCategory || !categoryFormData.name.trim()) {
+      toast.error('Nome da categoria é obrigatório');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('lead_categories')
+        .update({
+          name: categoryFormData.name.trim(),
+          color: categoryFormData.color,
+        })
+        .eq('id', editingCategory.id);
+
+      if (error) throw error;
+
+      toast.success('Categoria atualizada!');
+      setEditingCategory(null);
+      setCategoryFormData({ name: "", color: "#3b82f6" });
+      fetchCategories();
+    } catch (error: any) {
+      console.error('Erro ao atualizar categoria:', error);
+      toast.error('Erro ao atualizar categoria');
+    }
+  };
+
+  const handleDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('lead_categories')
+        .delete()
+        .eq('id', categoryToDelete.id);
+
+      if (error) throw error;
+
+      toast.success('Categoria excluída!');
+      setDeleteCategoryDialogOpen(false);
+      setCategoryToDelete(null);
+      fetchCategories();
+      fetchCategoryAssignments();
+    } catch (error: any) {
+      console.error('Erro ao excluir categoria:', error);
+      toast.error('Erro ao excluir categoria');
+    }
+  };
+
+  const startEditCategory = (category: LeadCategory) => {
+    setEditingCategory(category);
+    setCategoryFormData({ name: category.name, color: category.color });
+  };
+
+  const cancelEditCategory = () => {
+    setEditingCategory(null);
+    setCategoryFormData({ name: "", color: "#3b82f6" });
+  };
+
+  const assignCategoryToLead = async (lead: Lead, categoryId: string | null) => {
+    if (!user || !lead.originalSource || !lead.originalId) return;
+
+    try {
+      // Primeiro, remove qualquer atribuição existente
+      await supabase
+        .from('lead_category_assignments')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('lead_source', lead.originalSource)
+        .eq('lead_id', lead.originalId);
+
+      // Se categoryId não é null, cria nova atribuição
+      if (categoryId) {
+        const { error } = await supabase
+          .from('lead_category_assignments')
+          .insert({
+            user_id: user.id,
+            category_id: categoryId,
+            lead_source: lead.originalSource,
+            lead_id: lead.originalId,
+          });
+
+        if (error) throw error;
+      }
+
+      toast.success('Categoria atualizada!');
+      fetchCategoryAssignments();
+    } catch (error: any) {
+      console.error('Erro ao atribuir categoria:', error);
+      toast.error('Erro ao atribuir categoria');
+    }
+  };
+
   const downloadPhones = () => {
     const phones = filteredLeads
       .filter(lead => lead.phone && lead.phone !== 'N/A')
@@ -253,7 +469,6 @@ export function GeneralCRMPanel() {
 
     let updateData: any = {};
     
-    // Mapear campos de acordo com a tabela de origem
     if (editingLead.originalSource === 'chatbot_conversations') {
       updateData = {
         visitor_name: editingLead.name,
@@ -290,10 +505,11 @@ export function GeneralCRMPanel() {
 
   const downloadAllLeads = () => {
     const csv = [
-      'Nome,Email,Telefone,Origem,Fonte,Data',
-      ...filteredLeads.map(lead => 
-        `"${lead.name}","${lead.email}","${lead.phone}","${lead.source}","${lead.sourceName}","${new Date(lead.createdAt).toLocaleString('pt-BR')}"`
-      )
+      'Nome,Email,Telefone,Origem,Fonte,Categoria,Data',
+      ...filteredLeads.map(lead => {
+        const category = getCategoryById(lead.categoryId);
+        return `"${lead.name}","${lead.email}","${lead.phone}","${lead.source}","${lead.sourceName}","${category?.name || ''}","${new Date(lead.createdAt).toLocaleString('pt-BR')}"`;
+      })
     ].join('\n');
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -310,14 +526,22 @@ export function GeneralCRMPanel() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Controle de Leads</CardTitle>
-          <CardDescription>
-            Todos os leads e clientes: gestão de clientes, chatbots, chat online e páginas clonadas
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Controle de Leads</CardTitle>
+              <CardDescription>
+                Todos os leads e clientes: gestão de clientes, chatbots, chat online e páginas clonadas
+              </CardDescription>
+            </div>
+            <Button variant="outline" onClick={() => setCategoriesDialogOpen(true)}>
+              <Settings2 className="h-4 w-4 mr-2" />
+              Gerenciar Categorias
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Filter className="h-4 w-4 text-muted-foreground" />
               <Select value={sourceFilter} onValueChange={setSourceFilter}>
                 <SelectTrigger className="w-[180px]">
@@ -327,6 +551,28 @@ export function GeneralCRMPanel() {
                   <SelectItem value="all">Todas as origens</SelectItem>
                   {uniqueSources.map(source => (
                     <SelectItem key={source} value={source}>{source}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Folder className="h-4 w-4 text-muted-foreground ml-2" />
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filtrar por categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as categorias</SelectItem>
+                  <SelectItem value="none">Sem categoria</SelectItem>
+                  {categories.map(category => (
+                    <SelectItem key={category.id} value={category.id}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: category.color }}
+                        />
+                        {category.name}
+                      </div>
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -353,7 +599,9 @@ export function GeneralCRMPanel() {
             </div>
           ) : filteredLeads.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              {sourceFilter !== "all" ? "Nenhum lead encontrado para esta origem" : "Nenhum lead capturado ainda"}
+              {sourceFilter !== "all" || categoryFilter !== "all" 
+                ? "Nenhum lead encontrado com os filtros selecionados" 
+                : "Nenhum lead capturado ainda"}
             </div>
           ) : (
             <div className="overflow-x-auto rounded-md border">
@@ -364,53 +612,102 @@ export function GeneralCRMPanel() {
                     <TableHead>E-mail</TableHead>
                     <TableHead>Telefone</TableHead>
                     <TableHead>Origem</TableHead>
-                    <TableHead>Fonte</TableHead>
+                    <TableHead>Categoria</TableHead>
                     <TableHead>Data</TableHead>
                     <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredLeads.map((lead) => (
-                    <TableRow key={lead.id}>
-                      <TableCell className="font-medium">{lead.name}</TableCell>
-                      <TableCell>{lead.email}</TableCell>
-                      <TableCell>{lead.phone}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{lead.source}</Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {lead.sourceName}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {new Date(lead.createdAt).toLocaleDateString('pt-BR')}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openEditDialog(lead)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => deleteLead(lead)}
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {filteredLeads.map((lead) => {
+                    const category = getCategoryById(lead.categoryId);
+                    return (
+                      <TableRow key={lead.id}>
+                        <TableCell className="font-medium">{lead.name}</TableCell>
+                        <TableCell>{lead.email}</TableCell>
+                        <TableCell>{lead.phone}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{lead.source}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 px-2">
+                                {category ? (
+                                  <div className="flex items-center gap-2">
+                                    <div 
+                                      className="w-3 h-3 rounded-full" 
+                                      style={{ backgroundColor: category.color }}
+                                    />
+                                    <span className="text-sm">{category.name}</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1 text-muted-foreground">
+                                    <Tag className="h-3 w-3" />
+                                    <span className="text-xs">Adicionar</span>
+                                  </div>
+                                )}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-48 p-2" align="start">
+                              <div className="space-y-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="w-full justify-start"
+                                  onClick={() => assignCategoryToLead(lead, null)}
+                                >
+                                  <span className="text-muted-foreground">Sem categoria</span>
+                                </Button>
+                                {categories.map(cat => (
+                                  <Button
+                                    key={cat.id}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="w-full justify-start"
+                                    onClick={() => assignCategoryToLead(lead, cat.id)}
+                                  >
+                                    <div 
+                                      className="w-3 h-3 rounded-full mr-2" 
+                                      style={{ backgroundColor: cat.color }}
+                                    />
+                                    {cat.name}
+                                  </Button>
+                                ))}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {new Date(lead.createdAt).toLocaleDateString('pt-BR')}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openEditDialog(lead)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => deleteLead(lead)}
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
           )}
 
           <div className="mt-4 text-sm text-muted-foreground">
-            {sourceFilter !== "all" ? (
+            {sourceFilter !== "all" || categoryFilter !== "all" ? (
               <>Mostrando <span className="font-semibold">{filteredLeads.length}</span> de <span className="font-semibold">{leads.length}</span> leads</>
             ) : (
               <>Total de leads: <span className="font-semibold">{leads.length}</span></>
@@ -419,6 +716,7 @@ export function GeneralCRMPanel() {
         </CardContent>
       </Card>
 
+      {/* Dialog de Edição de Lead */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -454,6 +752,116 @@ export function GeneralCRMPanel() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Dialog de Gerenciamento de Categorias */}
+      <Dialog open={categoriesDialogOpen} onOpenChange={setCategoriesDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Categorias de Leads</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Form para adicionar/editar categoria */}
+            <div className="space-y-3 p-4 border rounded-lg">
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <Label>Nome da Categoria</Label>
+                  <Input
+                    value={categoryFormData.name}
+                    onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                    placeholder="Ex: Clientes VIP"
+                  />
+                </div>
+                <div>
+                  <Label>Cor</Label>
+                  <Input
+                    type="color"
+                    value={categoryFormData.color}
+                    onChange={(e) => setCategoryFormData({ ...categoryFormData, color: e.target.value })}
+                    className="w-14 h-10 p-1 cursor-pointer"
+                  />
+                </div>
+              </div>
+              {editingCategory ? (
+                <div className="flex gap-2">
+                  <Button onClick={handleUpdateCategory} className="flex-1">
+                    Salvar
+                  </Button>
+                  <Button variant="outline" onClick={cancelEditCategory}>
+                    Cancelar
+                  </Button>
+                </div>
+              ) : (
+                <Button onClick={handleAddCategory} className="w-full">
+                  <FolderPlus className="h-4 w-4 mr-2" />
+                  Adicionar Categoria
+                </Button>
+              )}
+            </div>
+
+            {/* Lista de categorias existentes */}
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {categories.length === 0 ? (
+                <p className="text-center text-muted-foreground py-4">
+                  Nenhuma categoria criada ainda
+                </p>
+              ) : (
+                categories.map(category => (
+                  <div
+                    key={category.id}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: category.color }}
+                      />
+                      <span>{category.name}</span>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => startEditCategory(category)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setCategoryToDelete(category);
+                          setDeleteCategoryDialogOpen(true);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmação de exclusão de categoria */}
+      <AlertDialog open={deleteCategoryDialogOpen} onOpenChange={setDeleteCategoryDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Categoria</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir a categoria "{categoryToDelete?.name}"? 
+              Todos os leads associados a ela ficarão sem categoria.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteCategory} className="bg-destructive text-destructive-foreground">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
