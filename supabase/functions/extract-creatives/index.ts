@@ -33,25 +33,32 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
 
   // Video patterns - expanded for Meta/Facebook videos
   const videoPatterns = [
-    // Direct mp4 links
+    // Direct mp4/video file links
     /https:\/\/video[^"\s\)>\\]+\.mp4[^"\s\)>\\]*/gi,
     /https:\/\/[a-z0-9\-]+\.fbcdn\.net\/[^"\s\)>\\]+\.mp4[^"\s\)>\\]*/gi,
     /https:\/\/scontent[^"\s\)>\\]+\.mp4[^"\s\)>\\]*/gi,
-    // Facebook video CDN patterns
+    // Facebook video CDN patterns - more permissive
     /https:\/\/[a-z0-9\-]+\.xx\.fbcdn\.net\/v\/[^"\s\)>\\]+/gi,
     /https:\/\/video\.xx\.fbcdn\.net\/[^"\s\)>\\]+/gi,
     /https:\/\/video\-[a-z0-9\-]+\.xx\.fbcdn\.net\/[^"\s\)>\\]+/gi,
     /https:\/\/scontent\-[a-z0-9\-]+\.xx\.fbcdn\.net\/v\/[^"\s\)>\\]+/gi,
+    // Any scontent with /v/ pattern (videos)
+    /https:\/\/scontent[^"\s\)>\\]+\/v\/[^"\s\)>\\]+/gi,
     // Instagram video CDN
     /https:\/\/[a-z0-9\-]+\.cdninstagram\.com\/[^"\s\)>\\]+\.mp4[^"\s\)>\\]*/gi,
     /https:\/\/scontent\.cdninstagram\.com\/[^"\s\)>\\]+/gi,
     // Generic video fbcdn patterns
     /https:\/\/video[^"\s\)>\\]+fbcdn\.net\/[^"\s\)>\\]+/gi,
-    // Video with /v/t patterns (common Facebook format)
-    /https:\/\/[^"\s\)>\\]+fbcdn\.net\/v\/t[^"\s\)>\\]+/gi,
+    // Video with /v/t patterns (common Facebook format for videos)
+    /https:\/\/[^"\s\)>\\]+fbcdn\.net\/v\/t[0-9]+\.[0-9]+\-[0-9]+\/[^"\s\)>\\]+/gi,
+    // More specific /v/t42 and /v/t39 patterns (video containers)
+    /https:\/\/[^"\s\)>\\]+\/v\/t42[^"\s\)>\\]+/gi,
+    /https:\/\/[^"\s\)>\\]+\/v\/t39[^"\s\)>\\]+/gi,
     // Escaped URLs (common in JSON)
     /https:\\u002F\\u002F[^"\s]+?\.mp4[^"\s]*/gi,
     /https:\\\/\\\/[^"\s]+?\.mp4[^"\s]*/gi,
+    // Any URL with bytestart parameter (chunked video)
+    /https:\/\/[^"\s\)>\\]+bytestart[^"\s\)>\\]+/gi,
   ];
 
   // Extract images
@@ -97,6 +104,12 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
     /"(?:dash_manifest|stream_url|progressive_url)"\s*:\s*"([^"]+)"/gi,
     /"(?:source|src)"\s*:\s*"(https[^"]+\.mp4[^"]*)"/gi,
     /"(?:contentUrl|embedUrl|video)"\s*:\s*"(https[^"]+(?:\.mp4|video)[^"]*)"/gi,
+    // Additional patterns for Facebook/Meta video data
+    /"(?:__typename)"\s*:\s*"Video"[^}]*"(?:playable_url|browser_native_hd_url|browser_native_sd_url)"\s*:\s*"([^"]+)"/gi,
+    /"(?:mediaset_token|videoDeliveryLegacyID)"\s*:\s*"[^"]+"/gi,
+    /data-video-url="([^"]+)"/gi,
+    /data-hd="([^"]+)"/gi,
+    /data-sd="([^"]+)"/gi,
   ];
 
   jsonVideoPatterns.forEach(pattern => {
@@ -114,6 +127,22 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
           thumbnailUrl: url
         });
       }
+    }
+  });
+
+  // Special pass: look for any fbcdn video URLs that might have been missed
+  const fbcdnVideoPattern = /https:\/\/[a-z0-9\-\.]+fbcdn\.net\/[^"\s\)>\\]+/gi;
+  const fbcdnMatches = content.match(fbcdnVideoPattern) || [];
+  fbcdnMatches.forEach(url => {
+    const cleanUrl = cleanMediaUrl(url);
+    if (!seenUrls.has(cleanUrl) && isVideoUrl(cleanUrl) && isValidVideoUrl(cleanUrl)) {
+      seenUrls.add(cleanUrl);
+      media.push({
+        id: `vid_${Date.now()}_${media.length}`,
+        type: 'video',
+        url: cleanUrl,
+        thumbnailUrl: cleanUrl
+      });
     }
   });
 
@@ -159,11 +188,33 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
 
 function isVideoUrl(url: string): boolean {
   const lowerUrl = url.toLowerCase();
-  return lowerUrl.includes('.mp4') || 
-         lowerUrl.includes('video') || 
-         lowerUrl.includes('/v/t') ||
-         lowerUrl.includes('playable') ||
-         lowerUrl.includes('stream');
+  
+  // Check for explicit video extensions
+  if (lowerUrl.includes('.mp4') || lowerUrl.includes('.webm') || lowerUrl.includes('.mov')) {
+    return true;
+  }
+  
+  // Check for video CDN patterns
+  if (lowerUrl.includes('video.') || lowerUrl.includes('video-')) {
+    return true;
+  }
+  
+  // Check for /v/t patterns which are typically videos on Facebook
+  if (/\/v\/t\d+/.test(lowerUrl)) {
+    return true;
+  }
+  
+  // Check for video streaming patterns
+  if (lowerUrl.includes('playable') || lowerUrl.includes('stream') || lowerUrl.includes('bytestart')) {
+    return true;
+  }
+  
+  // Check for video mime type hints in URL
+  if (lowerUrl.includes('video/') || lowerUrl.includes('type=video') || lowerUrl.includes('mime=video')) {
+    return true;
+  }
+  
+  return false;
 }
 
 function isValidVideoUrl(url: string): boolean {
