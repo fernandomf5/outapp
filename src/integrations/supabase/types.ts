@@ -5695,6 +5695,90 @@ export type Database = {
         }
         Relationships: []
       }
+      products: {
+        Row: {
+          access_duration_days: number | null
+          barcode: string | null
+          category: string | null
+          cost_price: number | null
+          created_at: string | null
+          description: string | null
+          dimensions_cm: Json | null
+          download_limit: number | null
+          download_url: string | null
+          gallery_urls: Json | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          metadata: Json | null
+          min_stock_alert: number | null
+          name: string
+          price: number
+          product_type: string
+          sku: string | null
+          stock_quantity: number | null
+          tags: string[] | null
+          unit: string | null
+          updated_at: string | null
+          user_id: string
+          weight_kg: number | null
+        }
+        Insert: {
+          access_duration_days?: number | null
+          barcode?: string | null
+          category?: string | null
+          cost_price?: number | null
+          created_at?: string | null
+          description?: string | null
+          dimensions_cm?: Json | null
+          download_limit?: number | null
+          download_url?: string | null
+          gallery_urls?: Json | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          metadata?: Json | null
+          min_stock_alert?: number | null
+          name: string
+          price?: number
+          product_type?: string
+          sku?: string | null
+          stock_quantity?: number | null
+          tags?: string[] | null
+          unit?: string | null
+          updated_at?: string | null
+          user_id: string
+          weight_kg?: number | null
+        }
+        Update: {
+          access_duration_days?: number | null
+          barcode?: string | null
+          category?: string | null
+          cost_price?: number | null
+          created_at?: string | null
+          description?: string | null
+          dimensions_cm?: Json | null
+          download_limit?: number | null
+          download_url?: string | null
+          gallery_urls?: Json | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          metadata?: Json | null
+          min_stock_alert?: number | null
+          name?: string
+          price?: number
+          product_type?: string
+          sku?: string | null
+          stock_quantity?: number | null
+          tags?: string[] | null
+          unit?: string | null
+          updated_at?: string | null
+          user_id?: string
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
