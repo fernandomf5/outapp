@@ -35,6 +35,8 @@ import {
   BarChart3,
   Building2,
   Link,
+  TrendingUp,
+  Warehouse,
 } from "lucide-react";
 import {
   Dialog,
@@ -43,6 +45,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import ProductsAnalyticsPanel from "@/components/products/ProductsAnalyticsPanel";
+import StockManagementPanel from "@/components/products/StockManagementPanel";
 
 interface Business {
   id: string;
@@ -529,7 +533,7 @@ export default function ProductsServicesPanel() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="products" className="gap-2">
               <Package className="h-4 w-4" />
               Produtos
@@ -538,33 +542,43 @@ export default function ProductsServicesPanel() {
               <Wrench className="h-4 w-4" />
               Serviços
             </TabsTrigger>
+            <TabsTrigger value="stock" className="gap-2">
+              <Warehouse className="h-4 w-4" />
+              Estoque
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Analytics
+            </TabsTrigger>
           </TabsList>
 
-          <div className="flex gap-2">
-            <div className="relative flex-1 sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
+          {(activeTab === "products" || activeTab === "services") && (
+            <div className="flex gap-2">
+              <div className="relative flex-1 sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Button
+                onClick={() => {
+                  if (activeTab === "products") {
+                    setEditingProduct(null);
+                    setProductDialogOpen(true);
+                  } else {
+                    setEditingService(null);
+                    setServiceDialogOpen(true);
+                  }
+                }}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Novo {activeTab === "products" ? "Produto" : "Serviço"}
+              </Button>
             </div>
-            <Button
-              onClick={() => {
-                if (activeTab === "products") {
-                  setEditingProduct(null);
-                  setProductDialogOpen(true);
-                } else {
-                  setEditingService(null);
-                  setServiceDialogOpen(true);
-                }
-              }}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Novo {activeTab === "products" ? "Produto" : "Serviço"}
-            </Button>
-          </div>
+          )}
         </div>
 
         <TabsContent value="products" className="mt-6">
@@ -727,6 +741,14 @@ export default function ProductsServicesPanel() {
               ))}
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="stock" className="mt-6">
+          <StockManagementPanel />
+        </TabsContent>
+
+        <TabsContent value="analytics" className="mt-6">
+          <ProductsAnalyticsPanel />
         </TabsContent>
       </Tabs>
 
