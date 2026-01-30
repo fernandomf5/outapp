@@ -69,6 +69,7 @@ import { DocumentConverterPanel } from "@/components/DocumentConverterPanel";
 import VideoDownloaderPanel from "@/components/VideoDownloaderPanel";
 import { SuppliersManagementPanel } from "@/components/SuppliersManagementPanel";
 import { BusinessManagementPanel } from "@/components/BusinessManagementPanel";
+import ProductsServicesPanel from "@/components/ProductsServicesPanel";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { TeamMemberBanner } from "@/components/TeamMemberBanner";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
@@ -1379,6 +1380,10 @@ const Dashboard = () => {
             <FeatureGate featureKey="task_organizer">
               <TaskOrganizerPanel teamContext={getTeamContext('tasks')} />
             </FeatureGate>
+          </TabsContent>
+
+          <TabsContent value="produtos-servicos">
+            <ProductsServicesPanel />
           </TabsContent>
 
           <TabsContent value="popups">

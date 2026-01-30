@@ -205,7 +205,7 @@ export default function ProductsServicesPanel() {
   const loadProducts = async () => {
     setLoadingProducts(true);
     const { data, error } = await supabase
-      .from("products")
+      .from("products" as any)
       .select("*")
       .eq("user_id", user?.id)
       .order("created_at", { ascending: false });
@@ -213,7 +213,7 @@ export default function ProductsServicesPanel() {
     if (error) {
       toast({ title: "Erro ao carregar produtos", description: error.message, variant: "destructive" });
     } else {
-      setProducts(data || []);
+      setProducts((data as any) || []);
     }
     setLoadingProducts(false);
   };
@@ -221,7 +221,7 @@ export default function ProductsServicesPanel() {
   const loadServices = async () => {
     setLoadingServices(true);
     const { data, error } = await supabase
-      .from("user_services")
+      .from("user_services" as any)
       .select("*")
       .eq("user_id", user?.id)
       .order("created_at", { ascending: false });
@@ -229,7 +229,7 @@ export default function ProductsServicesPanel() {
     if (error) {
       toast({ title: "Erro ao carregar serviços", description: error.message, variant: "destructive" });
     } else {
-      setServices(data || []);
+      setServices((data as any) || []);
     }
     setLoadingServices(false);
   };
@@ -322,11 +322,11 @@ export default function ProductsServicesPanel() {
 
     try {
       if (editingProduct) {
-        const { error } = await supabase.from("products").update(productData).eq("id", editingProduct.id);
+        const { error } = await supabase.from("products" as any).update(productData).eq("id", editingProduct.id);
         if (error) throw error;
         toast({ title: "Produto atualizado!" });
       } else {
-        const { error } = await supabase.from("products").insert(productData);
+        const { error } = await supabase.from("products" as any).insert(productData);
         if (error) throw error;
         toast({ title: "Produto criado!" });
       }
@@ -362,11 +362,11 @@ export default function ProductsServicesPanel() {
 
     try {
       if (editingService) {
-        const { error } = await supabase.from("user_services").update(serviceData).eq("id", editingService.id);
+        const { error } = await supabase.from("user_services" as any).update(serviceData).eq("id", editingService.id);
         if (error) throw error;
         toast({ title: "Serviço atualizado!" });
       } else {
-        const { error } = await supabase.from("user_services").insert(serviceData);
+        const { error } = await supabase.from("user_services" as any).insert(serviceData);
         if (error) throw error;
         toast({ title: "Serviço criado!" });
       }
@@ -381,7 +381,7 @@ export default function ProductsServicesPanel() {
 
   const handleDeleteProduct = async () => {
     if (!deleteProductId) return;
-    const { error } = await supabase.from("products").delete().eq("id", deleteProductId);
+    const { error } = await supabase.from("products" as any).delete().eq("id", deleteProductId);
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } else {
@@ -393,7 +393,7 @@ export default function ProductsServicesPanel() {
 
   const handleDeleteService = async () => {
     if (!deleteServiceId) return;
-    const { error } = await supabase.from("user_services").delete().eq("id", deleteServiceId);
+    const { error } = await supabase.from("user_services" as any).delete().eq("id", deleteServiceId);
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } else {
@@ -447,7 +447,7 @@ export default function ProductsServicesPanel() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <Box className="h-8 w-8 text-blue-500" />
+              <Box className="h-8 w-8 text-primary" />
               <div>
                 <p className="text-sm text-muted-foreground">Produtos</p>
                 <p className="text-2xl font-bold">{stats.totalProducts}</p>
@@ -458,7 +458,7 @@ export default function ProductsServicesPanel() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <Download className="h-8 w-8 text-purple-500" />
+              <Download className="h-8 w-8 text-primary" />
               <div>
                 <p className="text-sm text-muted-foreground">Digitais</p>
                 <p className="text-2xl font-bold">{stats.digitalProducts}</p>
@@ -469,7 +469,7 @@ export default function ProductsServicesPanel() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <Wrench className="h-8 w-8 text-green-500" />
+              <Wrench className="h-8 w-8 text-primary" />
               <div>
                 <p className="text-sm text-muted-foreground">Serviços</p>
                 <p className="text-2xl font-bold">{stats.totalServices}</p>
@@ -480,7 +480,7 @@ export default function ProductsServicesPanel() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <BarChart3 className="h-8 w-8 text-orange-500" />
+              <BarChart3 className="h-8 w-8 text-primary" />
               <div>
                 <p className="text-sm text-muted-foreground">Ativos</p>
                 <p className="text-2xl font-bold">{stats.activeProducts + stats.activeServices}</p>
@@ -579,7 +579,7 @@ export default function ProductsServicesPanel() {
                     )}
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <DollarSign className="h-4 w-4 text-green-600" />
+                        <DollarSign className="h-4 w-4 text-primary" />
                         <span className="text-xl font-bold">R$ {Number(product.price).toFixed(2)}</span>
                       </div>
                       {product.product_type === "physical" && (
@@ -657,7 +657,7 @@ export default function ProductsServicesPanel() {
                     )}
                     <div className="flex items-center gap-4 mb-3">
                       <div className="flex items-center gap-2">
-                        <DollarSign className="h-4 w-4 text-green-600" />
+                        <DollarSign className="h-4 w-4 text-primary" />
                         <span className="text-xl font-bold">R$ {Number(service.price).toFixed(2)}</span>
                       </div>
                       <Badge variant="outline">{priceTypeLabels[service.price_type]}</Badge>
