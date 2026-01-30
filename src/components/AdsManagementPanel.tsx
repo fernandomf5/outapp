@@ -95,6 +95,20 @@ interface AdsManagementPanelProps {
   teamContext?: TeamContext;
 }
 
+interface ExistingCustomer {
+  id: string;
+  name: string;
+  email?: string;
+  company?: string;
+}
+
+interface ExistingBusiness {
+  id: string;
+  name: string;
+  company_name?: string;
+  logo_url?: string;
+}
+
 export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => {
   const [clients, setClients] = useState<AdClient[]>([]);
   const [campaigns, setCampaigns] = useState<AdCampaign[]>([]);
@@ -119,6 +133,13 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
   
   const [isEditClientDialogOpen, setIsEditClientDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<AdClient | null>(null);
+  
+  // New states for linking existing entities
+  const [addClientMode, setAddClientMode] = useState<'new' | 'existing_customer' | 'existing_business'>('new');
+  const [existingCustomers, setExistingCustomers] = useState<ExistingCustomer[]>([]);
+  const [existingBusinesses, setExistingBusinesses] = useState<ExistingBusiness[]>([]);
+  const [selectedExistingCustomerId, setSelectedExistingCustomerId] = useState<string>('');
+  const [selectedExistingBusinessId, setSelectedExistingBusinessId] = useState<string>('');
 
   const [campaignFormData, setCampaignFormData] = useState({
     name: '',
@@ -224,6 +245,40 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
     }
   };
 
+  const loadExistingEntities = async () => {
+    try {
+      const userId = await getTargetUserId();
+      if (!userId) return;
+
+      // Load existing customers
+      const { data: customersData } = await supabase
+        .from('customers')
+        .select('id, name, email, company')
+        .eq('user_id', userId)
+        .order('name');
+      
+      setExistingCustomers((customersData || []) as ExistingCustomer[]);
+
+      // Load existing businesses
+      const { data: businessesData } = await supabase
+        .from('businesses')
+        .select('id, name, company_name, logo_url')
+        .eq('user_id', userId)
+        .order('name');
+      
+      setExistingBusinesses((businessesData || []) as ExistingBusiness[]);
+    } catch (error) {
+      console.error('Error loading existing entities:', error);
+    }
+  };
+
+  // Load existing entities when dialog opens
+  useEffect(() => {
+    if (isAddClientDialogOpen) {
+      loadExistingEntities();
+    }
+  }, [isAddClientDialogOpen]);
+
   const handleAddClient = async () => {
     try {
       const userId = await getTargetUserId();
@@ -249,16 +304,80 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
       toast.success("Cliente adicionado com sucesso!");
       setIsAddClientDialogOpen(false);
       loadData();
-      
-      setClientFormData({
-        name: '',
-        client_type: 'personal',
-        description: '',
-        cashbox: ''
-      });
+      resetClientDialog();
     } catch (error: any) {
       toast.error("Erro ao adicionar cliente");
     }
+  };
+
+  const handleAddFromExistingCustomer = async () => {
+    try {
+      const userId = await getTargetUserId();
+      if (!userId || !selectedExistingCustomerId) return;
+
+      const customer = existingCustomers.find(c => c.id === selectedExistingCustomerId);
+      if (!customer) return;
+
+      const { error } = await supabase
+        .from('ad_clients')
+        .insert([{
+          user_id: userId,
+          name: customer.name,
+          client_type: 'personal',
+          description: customer.company || customer.email || null,
+          cashbox: parseFloat(clientFormData.cashbox) || 0
+        }]);
+
+      if (error) throw error;
+
+      toast.success("Cliente vinculado com sucesso!");
+      setIsAddClientDialogOpen(false);
+      loadData();
+      resetClientDialog();
+    } catch (error: any) {
+      toast.error("Erro ao vincular cliente");
+    }
+  };
+
+  const handleAddFromExistingBusiness = async () => {
+    try {
+      const userId = await getTargetUserId();
+      if (!userId || !selectedExistingBusinessId) return;
+
+      const business = existingBusinesses.find(b => b.id === selectedExistingBusinessId);
+      if (!business) return;
+
+      const { error } = await supabase
+        .from('ad_clients')
+        .insert([{
+          user_id: userId,
+          name: business.name,
+          client_type: 'company',
+          description: business.company_name || null,
+          cashbox: parseFloat(clientFormData.cashbox) || 0
+        }]);
+
+      if (error) throw error;
+
+      toast.success("Negócio vinculado com sucesso!");
+      setIsAddClientDialogOpen(false);
+      loadData();
+      resetClientDialog();
+    } catch (error: any) {
+      toast.error("Erro ao vincular negócio");
+    }
+  };
+
+  const resetClientDialog = () => {
+    setClientFormData({
+      name: '',
+      client_type: 'personal',
+      description: '',
+      cashbox: ''
+    });
+    setAddClientMode('new');
+    setSelectedExistingCustomerId('');
+    setSelectedExistingBusinessId('');
   };
 
   const handleEditClient = async () => {
@@ -1099,23 +1218,43 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
             return (
               <Card 
                 key={client.id}
-                className="cursor-pointer hover:border-primary transition-all hover:shadow-md"
+                className="cursor-pointer hover:border-primary transition-all hover:shadow-md group"
                 onClick={() => handleSelectClient(client.id)}
               >
                 <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                      {client.client_type === 'company' ? (
-                        <Building2 className="h-6 w-6 text-primary" />
-                      ) : (
-                        <User className="h-6 w-6 text-primary" />
-                      )}
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                        {client.client_type === 'company' ? (
+                          <Building2 className="h-6 w-6 text-primary" />
+                        ) : (
+                          <User className="h-6 w-6 text-primary" />
+                        )}
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg">{client.name}</CardTitle>
+                        <Badge variant="outline" className="text-xs">
+                          {client.client_type === 'personal' ? 'Pessoal' : 'Empresa'}
+                        </Badge>
+                      </div>
                     </div>
-                    <div>
-                      <CardTitle className="text-lg">{client.name}</CardTitle>
-                      <Badge variant="outline" className="text-xs">
-                        {client.client_type === 'personal' ? 'Pessoal' : 'Empresa'}
-                      </Badge>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => { e.stopPropagation(); openEditClient(client); }}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={(e) => { e.stopPropagation(); setDeleteClientId(client.id); }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 </CardHeader>
@@ -1158,12 +1297,206 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
           </Card>
         </div>
 
-        {/* Add Client Dialog - reused from existing */}
-        <Dialog open={isAddClientDialogOpen} onOpenChange={setIsAddClientDialogOpen}>
+        {/* Add Client Dialog - with options for existing entities */}
+        <Dialog open={isAddClientDialogOpen} onOpenChange={(open) => {
+          setIsAddClientDialogOpen(open);
+          if (!open) resetClientDialog();
+        }}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Novo Cliente para Anúncios</DialogTitle>
+              <DialogDescription>Crie um novo cliente ou vincule um existente</DialogDescription>
+            </DialogHeader>
+            
+            {/* Mode Selection Tabs */}
+            <div className="flex gap-2 border-b pb-4">
+              <Button
+                variant={addClientMode === 'new' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setAddClientMode('new')}
+                className="flex-1"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Criar Novo
+              </Button>
+              <Button
+                variant={addClientMode === 'existing_customer' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setAddClientMode('existing_customer')}
+                className="flex-1"
+                disabled={existingCustomers.length === 0}
+              >
+                <User className="h-4 w-4 mr-1" />
+                Cliente Existente
+              </Button>
+              <Button
+                variant={addClientMode === 'existing_business' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setAddClientMode('existing_business')}
+                className="flex-1"
+                disabled={existingBusinesses.length === 0}
+              >
+                <Building2 className="h-4 w-4 mr-1" />
+                Negócio Existente
+              </Button>
+            </div>
+
+            <div className="grid gap-4 py-4">
+              {addClientMode === 'new' && (
+                <>
+                  <div className="grid gap-2">
+                    <Label>Nome *</Label>
+                    <Input 
+                      value={clientFormData.name}
+                      onChange={(e) => setClientFormData({...clientFormData, name: e.target.value})}
+                      placeholder="Ex: Loja ABC"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Tipo</Label>
+                    <Select value={clientFormData.client_type} onValueChange={(value: any) => setClientFormData({...clientFormData, client_type: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="personal">Pessoal</SelectItem>
+                        <SelectItem value="company">Empresa</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Descrição</Label>
+                    <Input 
+                      value={clientFormData.description}
+                      onChange={(e) => setClientFormData({...clientFormData, description: e.target.value})}
+                      placeholder="Informações adicionais"
+                    />
+                  </div>
+                </>
+              )}
+
+              {addClientMode === 'existing_customer' && (
+                <div className="grid gap-2">
+                  <Label>Selecionar Cliente</Label>
+                  <Select value={selectedExistingCustomerId} onValueChange={setSelectedExistingCustomerId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Escolha um cliente cadastrado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {existingCustomers.map((customer) => (
+                        <SelectItem key={customer.id} value={customer.id}>
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            <span>{customer.name}</span>
+                            {customer.company && (
+                              <span className="text-muted-foreground text-xs">({customer.company})</span>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedExistingCustomerId && (
+                    <p className="text-sm text-muted-foreground">
+                      O cliente será adicionado como Pessoal
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {addClientMode === 'existing_business' && (
+                <div className="grid gap-2">
+                  <Label>Selecionar Negócio</Label>
+                  <Select value={selectedExistingBusinessId} onValueChange={setSelectedExistingBusinessId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Escolha um negócio cadastrado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {existingBusinesses.map((business) => (
+                        <SelectItem key={business.id} value={business.id}>
+                          <div className="flex items-center gap-2">
+                            <Building2 className="h-4 w-4" />
+                            <span>{business.name}</span>
+                            {business.company_name && (
+                              <span className="text-muted-foreground text-xs">({business.company_name})</span>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedExistingBusinessId && (
+                    <p className="text-sm text-muted-foreground">
+                      O negócio será adicionado como Empresa
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div className="grid gap-2">
+                <Label>Caixa para Anúncios (R$) *</Label>
+                <Input 
+                  type="number"
+                  step="0.01"
+                  value={clientFormData.cashbox}
+                  onChange={(e) => setClientFormData({...clientFormData, cashbox: e.target.value})}
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setIsAddClientDialogOpen(false);
+                resetClientDialog();
+              }}>
+                Cancelar
+              </Button>
+              {addClientMode === 'new' && (
+                <Button 
+                  onClick={() => {
+                    handleCreateClientFromSelector({
+                      name: clientFormData.name,
+                      client_type: clientFormData.client_type,
+                      description: clientFormData.description,
+                      cashbox: clientFormData.cashbox
+                    });
+                    resetClientDialog();
+                    setIsAddClientDialogOpen(false);
+                  }} 
+                  className="gradient-primary"
+                  disabled={!clientFormData.name.trim()}
+                >
+                  Criar Cliente
+                </Button>
+              )}
+              {addClientMode === 'existing_customer' && (
+                <Button 
+                  onClick={handleAddFromExistingCustomer} 
+                  className="gradient-primary"
+                  disabled={!selectedExistingCustomerId}
+                >
+                  Vincular Cliente
+                </Button>
+              )}
+              {addClientMode === 'existing_business' && (
+                <Button 
+                  onClick={handleAddFromExistingBusiness} 
+                  className="gradient-primary"
+                  disabled={!selectedExistingBusinessId}
+                >
+                  Vincular Negócio
+                </Button>
+              )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Client Dialog */}
+        <Dialog open={isEditClientDialogOpen} onOpenChange={setIsEditClientDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Novo Cliente</DialogTitle>
-              <DialogDescription>Adicione um novo cliente para gerenciar campanhas</DialogDescription>
+              <DialogTitle>Editar Cliente</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
@@ -1171,7 +1504,6 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                 <Input 
                   value={clientFormData.name}
                   onChange={(e) => setClientFormData({...clientFormData, name: e.target.value})}
-                  placeholder="Ex: Loja ABC"
                 />
               </div>
               <div className="grid gap-2">
@@ -1191,39 +1523,37 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                 <Input 
                   value={clientFormData.description}
                   onChange={(e) => setClientFormData({...clientFormData, description: e.target.value})}
-                  placeholder="Informações adicionais"
                 />
               </div>
               <div className="grid gap-2">
-                <Label>Caixa para Anúncios (R$) *</Label>
+                <Label>Caixa para Anúncios (R$)</Label>
                 <Input 
                   type="number"
                   step="0.01"
                   value={clientFormData.cashbox}
                   onChange={(e) => setClientFormData({...clientFormData, cashbox: e.target.value})}
-                  placeholder="0.00"
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddClientDialogOpen(false)}>
+              <Button variant="outline" onClick={() => setIsEditClientDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button onClick={() => {
-                handleCreateClientFromSelector({
-                  name: clientFormData.name,
-                  client_type: clientFormData.client_type,
-                  description: clientFormData.description,
-                  cashbox: clientFormData.cashbox
-                });
-                setClientFormData({ name: '', client_type: 'personal', description: '', cashbox: '' });
-                setIsAddClientDialogOpen(false);
-              }} className="gradient-primary">
-                Criar Cliente
+              <Button onClick={handleEditClient} className="gradient-primary">
+                Salvar
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <DeleteConfirmDialog
+          open={!!deleteClientId}
+          onOpenChange={(open) => !open && setDeleteClientId(null)}
+          onConfirm={handleDeleteClient}
+          title="Excluir Cliente?"
+          description="Esta ação removerá o cliente e não poderá ser desfeita. As campanhas associadas serão mantidas."
+        />
       </div>
     );
   }
