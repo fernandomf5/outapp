@@ -3409,7 +3409,7 @@ export type Database = {
       customer_payments_history: {
         Row: {
           amount: number
-          contact_id: string
+          contact_id: string | null
           created_at: string
           customer_id: string | null
           description: string | null
@@ -3423,7 +3423,7 @@ export type Database = {
         }
         Insert: {
           amount: number
-          contact_id: string
+          contact_id?: string | null
           created_at?: string
           customer_id?: string | null
           description?: string | null
@@ -3437,7 +3437,7 @@ export type Database = {
         }
         Update: {
           amount?: number
-          contact_id?: string
+          contact_id?: string | null
           created_at?: string
           customer_id?: string | null
           description?: string | null
@@ -3468,7 +3468,7 @@ export type Database = {
       }
       customer_purchases_history: {
         Row: {
-          contact_id: string
+          contact_id: string | null
           created_at: string
           customer_id: string | null
           id: string
@@ -3482,7 +3482,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          contact_id: string
+          contact_id?: string | null
           created_at?: string
           customer_id?: string | null
           id?: string
@@ -3496,7 +3496,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          contact_id?: string
+          contact_id?: string | null
           created_at?: string
           customer_id?: string | null
           id?: string
@@ -3535,7 +3535,7 @@ export type Database = {
       }
       customer_services_history: {
         Row: {
-          contact_id: string
+          contact_id: string | null
           created_at: string
           customer_id: string | null
           description: string | null
@@ -3549,7 +3549,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          contact_id: string
+          contact_id?: string | null
           created_at?: string
           customer_id?: string | null
           description?: string | null
@@ -3563,7 +3563,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          contact_id?: string
+          contact_id?: string | null
           created_at?: string
           customer_id?: string | null
           description?: string | null
