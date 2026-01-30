@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, Calendar, Flag, MoreVertical, ChevronLeft, ChevronRight, MoveRight, Users, UserPlus } from "lucide-react";
+import { Plus, Edit2, Trash2, Calendar, Flag, MoreVertical, ChevronLeft, ChevronRight, MoveRight, Users, UserPlus, Building2 } from "lucide-react";
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, pointerWithin, closestCenter, PointerSensor, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -25,6 +25,7 @@ interface Task {
   request_date?: string;
   block_id?: string;
   client_id?: string | null;
+  business_id?: string | null;
   task_order?: number;
   created_at: string;
   updated_at: string;
@@ -36,8 +37,15 @@ interface TaskBlock {
   color: string;
   order_index: number;
   client_id?: string | null;
+  business_id?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+interface Business {
+  id: string;
+  name: string;
+  logo_url?: string | null;
 }
 
 interface TaskCardProps {
@@ -274,6 +282,7 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [blocks, setBlocks] = useState<TaskBlock[]>([]);
   const [clients, setClients] = useState<Array<{id: string, name: string, email?: string, phone?: string, notes?: string}>>([]);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
@@ -282,6 +291,8 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const [selectedClientFilter, setSelectedClientFilter] = useState<string>("");
+  const [selectedBusinessFilter, setSelectedBusinessFilter] = useState<string>("");
+  const [filterMode, setFilterMode] = useState<"client" | "business">("client");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [dateStart, setDateStart] = useState<string>("");
   const [dateEnd, setDateEnd] = useState<string>("");
@@ -294,15 +305,23 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
     request_date: "",
     block_id: "",
     client_id: "",
+    business_id: "",
   });
 
   const [blockForm, setBlockForm] = useState({
     name: "",
     color: "#6366f1",
     client_id: "",
+    business_id: "",
   });
 
   const [taskClientCategories, setTaskClientCategories] = useState<Array<{id:string; name:string}>>([]);
+
+  // Business management state
+  const [showBusinessManager, setShowBusinessManager] = useState(false);
+  const [isAddBusinessDialogOpen, setIsAddBusinessDialogOpen] = useState(false);
+  const [allBusinesses, setAllBusinesses] = useState<Business[]>([]);
+  const [businessToRemove, setBusinessToRemove] = useState<string | null>(null);
 
   // Task client management state
   const [showClientManager, setShowClientManager] = useState(false);
@@ -343,6 +362,7 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
   useEffect(() => {
     loadData();
     loadClients();
+    loadBusinesses();
   }, [teamContext]);
 
   useEffect(() => {
@@ -397,6 +417,109 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
     } catch (error: any) {
       console.error("Erro ao carregar clientes:", error?.message || error);
       setClients([]);
+    }
+  };
+
+  // Load linked businesses
+  const loadBusinesses = async () => {
+    try {
+      const userId = await getTargetUserId();
+      if (!userId) return;
+
+      // Get linked businesses via task_business_links
+      const { data: links, error: linksError } = await supabase
+        .from("task_business_links")
+        .select("business_id")
+        .eq("user_id", userId);
+
+      if (linksError) throw linksError;
+
+      if (!links || links.length === 0) {
+        setBusinesses([]);
+        return;
+      }
+
+      const businessIds = links.map(l => l.business_id);
+
+      const { data, error } = await supabase
+        .from("businesses")
+        .select("id, name, logo_url")
+        .in("id", businessIds)
+        .order("name", { ascending: true });
+
+      if (error) throw error;
+      setBusinesses((data || []) as Business[]);
+    } catch (error: any) {
+      console.error("Erro ao carregar negócios:", error?.message || error);
+      setBusinesses([]);
+    }
+  };
+
+  // Load all businesses for selection
+  const loadAllBusinesses = async () => {
+    try {
+      const userId = await getTargetUserId();
+      if (!userId) return;
+
+      const { data, error } = await supabase
+        .from("businesses")
+        .select("id, name, logo_url")
+        .eq("user_id", userId)
+        .order("name", { ascending: true });
+
+      if (error) throw error;
+      setAllBusinesses((data || []) as Business[]);
+    } catch (error: any) {
+      console.error("Erro ao carregar negócios disponíveis:", error?.message || error);
+      setAllBusinesses([]);
+    }
+  };
+
+  // Add business link to task organizer
+  const handleLinkBusiness = async (businessId: string) => {
+    try {
+      const userId = await getTargetUserId();
+      if (!userId) return;
+
+      const isLinked = businesses.some(b => b.id === businessId);
+      if (isLinked) {
+        toast.error("Este negócio já está no organizador de tarefas");
+        return;
+      }
+
+      const { error } = await supabase
+        .from("task_business_links")
+        .insert({
+          user_id: userId,
+          business_id: businessId
+        });
+
+      if (error) throw error;
+      toast.success("Negócio adicionado ao organizador de tarefas!");
+      loadBusinesses();
+    } catch (error: any) {
+      toast.error("Erro ao adicionar negócio: " + error.message);
+    }
+  };
+
+  // Remove business link from task organizer
+  const handleUnlinkBusiness = async (businessId: string) => {
+    try {
+      const userId = await getTargetUserId();
+      if (!userId) return;
+
+      const { error } = await supabase
+        .from("task_business_links")
+        .delete()
+        .eq("user_id", userId)
+        .eq("business_id", businessId);
+
+      if (error) throw error;
+      toast.success("Negócio removido do organizador de tarefas!");
+      setBusinessToRemove(null);
+      loadBusinesses();
+    } catch (error: any) {
+      toast.error("Erro ao remover negócio: " + error.message);
     }
   };
 
@@ -614,11 +737,9 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
           due_date: taskForm.due_date || null,
           request_date: taskForm.request_date || null,
           block_id: taskForm.block_id || null,
+          client_id: taskForm.client_id || null,
+          business_id: taskForm.business_id || null,
         };
-        // Somente adiciona client_id se existir na base (evita erro de tipagem/coluna)
-        if (taskForm.client_id !== undefined) {
-          updatePayload.client_id = taskForm.client_id || null;
-        }
 
         const { error } = await supabase
           .from("tasks")
@@ -637,10 +758,9 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
           due_date: taskForm.due_date || null,
           request_date: taskForm.request_date || null,
           block_id: taskForm.block_id || blocks[0]?.id || null,
+          client_id: taskForm.client_id || null,
+          business_id: taskForm.business_id || null,
         };
-        if (taskForm.client_id !== undefined && taskForm.client_id) {
-          insertPayload.client_id = taskForm.client_id;
-        }
 
         const { error } = await supabase.from("tasks").insert(insertPayload as any);
 
@@ -659,6 +779,7 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
         request_date: "",
         block_id: "",
         client_id: "",
+        business_id: "",
       });
       loadData();
     } catch (error: any) {
@@ -694,6 +815,7 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
             name: blockForm.name,
             color: blockForm.color,
             client_id: blockForm.client_id || null,
+            business_id: blockForm.business_id || null,
           })
           .eq("id", editingBlock.id);
 
@@ -705,6 +827,7 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
           name: blockForm.name,
           color: blockForm.color,
           client_id: blockForm.client_id || null,
+          business_id: blockForm.business_id || null,
           order_index: blocks.length,
         });
 
@@ -714,7 +837,7 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
 
       setIsBlockDialogOpen(false);
       setEditingBlock(null);
-      setBlockForm({ name: "", color: "#6366f1", client_id: "" });
+      setBlockForm({ name: "", color: "#6366f1", client_id: "", business_id: "" });
       loadData();
     } catch (error: any) {
       toast.error("Erro ao salvar bloco: " + error.message);
@@ -890,7 +1013,7 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
 
   const openEditTask = (task: Task) => {
     setEditingTask(task);
-  setTaskForm({
+    setTaskForm({
       title: task.title,
       description: task.description || "",
       priority: task.priority,
@@ -899,6 +1022,7 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
       request_date: task.request_date || "",
       block_id: task.block_id || "",
       client_id: task.client_id || "",
+      business_id: task.business_id || "",
     });
     setIsTaskDialogOpen(true);
   };
@@ -909,6 +1033,7 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
       name: block.name,
       color: block.color,
       client_id: block.client_id || "",
+      business_id: block.business_id || "",
     });
     setIsBlockDialogOpen(true);
   };
@@ -937,12 +1062,18 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
     );
   }
 
-  // Filter tasks and blocks by selected client
-  const filteredTasksBase = selectedClientFilter === "all" 
-    ? tasks 
-    : selectedClientFilter === "none"
-    ? tasks.filter(task => !task.client_id)
-    : tasks.filter(task => task.client_id === selectedClientFilter);
+  // Filter tasks and blocks based on filter mode
+  const filteredTasksBase = filterMode === "client"
+    ? (selectedClientFilter === "all" 
+        ? tasks 
+        : selectedClientFilter === "none"
+        ? tasks.filter(task => !task.client_id && !task.business_id)
+        : tasks.filter(task => task.client_id === selectedClientFilter))
+    : (selectedBusinessFilter === "all"
+        ? tasks
+        : selectedBusinessFilter === "none"
+        ? tasks.filter(task => !task.business_id && !task.client_id)
+        : tasks.filter(task => task.business_id === selectedBusinessFilter));
 
   const filteredByPriority = priorityFilter === 'all' 
     ? filteredTasksBase 
@@ -959,11 +1090,17 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
 
   const filteredTasks = filteredByDate;
 
-  const filteredBlocks = selectedClientFilter === "all"
-    ? blocks
-    : selectedClientFilter === "none"
-    ? blocks.filter(block => !block.client_id)
-    : blocks.filter(block => block.client_id === selectedClientFilter || !block.client_id);
+  const filteredBlocks = filterMode === "client"
+    ? (selectedClientFilter === "all"
+        ? blocks
+        : selectedClientFilter === "none"
+        ? blocks.filter(block => !block.client_id && !block.business_id)
+        : blocks.filter(block => block.client_id === selectedClientFilter || (!block.client_id && !block.business_id)))
+    : (selectedBusinessFilter === "all"
+        ? blocks
+        : selectedBusinessFilter === "none"
+        ? blocks.filter(block => !block.business_id && !block.client_id)
+        : blocks.filter(block => block.business_id === selectedBusinessFilter || (!block.business_id && !block.client_id)));
 
   const tasksByBlock = filteredTasks.reduce((acc, task) => {
     if (!acc[task.block_id || '']) {
@@ -976,15 +1113,47 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
   // Check if this is a team member context
   const isTeamMember = !!teamContext?.allowedIds && teamContext.allowedIds.length > 0;
 
-  // Show client selection screen if no client selected or client manager
-  if (!selectedClientFilter || showClientManager) {
+  // Show selection screen if no filter selected or manager is open
+  const showSelectionScreen = filterMode === "client" 
+    ? (!selectedClientFilter || showClientManager)
+    : (!selectedBusinessFilter || showBusinessManager);
+
+  if (showSelectionScreen) {
     return (
       <div className="space-y-6">
         <div className="text-center">
           <h2 className="text-3xl font-bold mb-2">Organizador de Tarefas</h2>
-          <p className="text-muted-foreground mb-8">
-            {showClientManager ? "Gerencie os clientes do organizador de tarefas" : "Selecione um cliente para visualizar suas tarefas"}
+          <p className="text-muted-foreground mb-4">
+            Organize suas tarefas por cliente ou negócio
           </p>
+          
+          {/* Mode Toggle */}
+          {!isTeamMember && !showClientManager && !showBusinessManager && (
+            <div className="flex justify-center gap-2 mb-8">
+              <Button 
+                variant={filterMode === "client" ? "default" : "outline"}
+                onClick={() => {
+                  setFilterMode("client");
+                  setSelectedBusinessFilter("");
+                }}
+                className="gap-2"
+              >
+                <Users className="h-4 w-4" />
+                Por Cliente
+              </Button>
+              <Button 
+                variant={filterMode === "business" ? "default" : "outline"}
+                onClick={() => {
+                  setFilterMode("business");
+                  setSelectedClientFilter("");
+                }}
+                className="gap-2"
+              >
+                <Building2 className="h-4 w-4" />
+                Por Negócio
+              </Button>
+            </div>
+          )}
         </div>
         
         <div className="max-w-2xl mx-auto">
@@ -992,64 +1161,87 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>{showClientManager ? "Gerenciar Clientes" : "Selecione o Cliente"}</CardTitle>
-                  <CardDescription>
-                    {showClientManager 
-                      ? "Adicione, edite ou remova clientes do organizador de tarefas"
-                      : "Escolha um cliente para gerenciar suas tarefas"
-                    }
-                  </CardDescription>
+                  {filterMode === "client" ? (
+                    <>
+                      <CardTitle>{showClientManager ? "Gerenciar Clientes" : "Selecione o Cliente"}</CardTitle>
+                      <CardDescription>
+                        {showClientManager 
+                          ? "Adicione ou remova clientes do organizador de tarefas"
+                          : "Escolha um cliente para gerenciar suas tarefas"
+                        }
+                      </CardDescription>
+                    </>
+                  ) : (
+                    <>
+                      <CardTitle>{showBusinessManager ? "Gerenciar Negócios" : "Selecione o Negócio"}</CardTitle>
+                      <CardDescription>
+                        {showBusinessManager 
+                          ? "Adicione ou remova negócios do organizador de tarefas"
+                          : "Escolha um negócio para gerenciar suas tarefas"
+                        }
+                      </CardDescription>
+                    </>
+                  )}
                 </div>
                 {!isTeamMember && (
                   <div className="flex gap-2">
-                    {showClientManager ? (
-                      <Button variant="outline" onClick={() => setShowClientManager(false)}>
-                        <ChevronLeft className="mr-2 h-4 w-4" />
-                        Voltar
-                      </Button>
+                    {filterMode === "client" ? (
+                      showClientManager ? (
+                        <Button variant="outline" onClick={() => setShowClientManager(false)}>
+                          <ChevronLeft className="mr-2 h-4 w-4" />
+                          Voltar
+                        </Button>
+                      ) : (
+                        <Button variant="outline" onClick={() => setShowClientManager(true)}>
+                          <Users className="mr-2 h-4 w-4" />
+                          Gerenciar Clientes
+                        </Button>
+                      )
                     ) : (
-                      <Button variant="outline" onClick={() => setShowClientManager(true)}>
-                        <Users className="mr-2 h-4 w-4" />
-                        Gerenciar Clientes
-                      </Button>
+                      showBusinessManager ? (
+                        <Button variant="outline" onClick={() => setShowBusinessManager(false)}>
+                          <ChevronLeft className="mr-2 h-4 w-4" />
+                          Voltar
+                        </Button>
+                      ) : (
+                        <Button variant="outline" onClick={() => setShowBusinessManager(true)}>
+                          <Building2 className="mr-2 h-4 w-4" />
+                          Gerenciar Negócios
+                        </Button>
+                      )
                     )}
                   </div>
                 )}
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {showClientManager ? (
-                <>
-                  {/* Add client button */}
-                  <Button 
-                    className="w-full" 
-                    onClick={() => {
-                      loadAllCustomers();
-                      setIsAddClientDialogOpen(true);
-                    }}
-                  >
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Adicionar Cliente da Gestão
-                  </Button>
-                  
-                  {/* Linked clients list */}
-                  <div className="grid gap-3 mt-4">
-                    {clients.map(client => (
-                      <Card key={client.id} className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="font-semibold">{client.name}</h4>
-                            {client.email && (
-                              <p className="text-sm text-muted-foreground">{client.email}</p>
-                            )}
-                            {client.phone && (
-                              <p className="text-sm text-muted-foreground">{client.phone}</p>
-                            )}
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {tasks.filter(t => t.client_id === client.id).length} tarefas vinculadas
-                            </p>
-                          </div>
-                          <div className="flex gap-2">
+              {filterMode === "client" ? (
+                showClientManager ? (
+                  <>
+                    <Button 
+                      className="w-full" 
+                      onClick={() => {
+                        loadAllCustomers();
+                        setIsAddClientDialogOpen(true);
+                      }}
+                    >
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      Adicionar Cliente da Gestão
+                    </Button>
+                    
+                    <div className="grid gap-3 mt-4">
+                      {clients.map(client => (
+                        <Card key={client.id} className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h4 className="font-semibold">{client.name}</h4>
+                              {client.email && (
+                                <p className="text-sm text-muted-foreground">{client.email}</p>
+                              )}
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {tasks.filter(t => t.client_id === client.id).length} tarefas vinculadas
+                              </p>
+                            </div>
                             <Button 
                               variant="ghost" 
                               size="icon"
@@ -1059,78 +1251,187 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
+                        </Card>
+                      ))}
+                      {clients.length === 0 && (
+                        <p className="text-center text-muted-foreground py-4">
+                          Nenhum cliente adicionado. Clique em "Adicionar Cliente da Gestão" para selecionar.
+                        </p>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="grid gap-3">
+                    {!isTeamMember && (
+                      <>
+                        <Button 
+                          variant="outline" 
+                          className="justify-start h-auto py-4 px-4"
+                          onClick={() => setSelectedClientFilter("all")}
+                        >
+                          <div className="text-left">
+                            <div className="font-semibold">Todos os Clientes</div>
+                            <div className="text-sm text-muted-foreground">Ver tarefas de todos os clientes</div>
+                          </div>
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          className="justify-start h-auto py-4 px-4"
+                          onClick={() => setSelectedClientFilter("none")}
+                        >
+                          <div className="text-left">
+                            <div className="font-semibold">Sem Cliente</div>
+                            <div className="text-sm text-muted-foreground">Tarefas não vinculadas</div>
+                          </div>
+                        </Button>
+                      </>
+                    )}
+                    {clients.map(client => (
+                      <Button 
+                        key={client.id}
+                        variant="outline" 
+                        className="justify-start h-auto py-4 px-4"
+                        onClick={() => setSelectedClientFilter(client.id)}
+                      >
+                        <div className="text-left">
+                          <div className="font-semibold">{client.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {tasks.filter(t => t.client_id === client.id).length} tarefas
+                          </div>
                         </div>
-                      </Card>
+                      </Button>
                     ))}
-                    {clients.length === 0 && (
-                      <p className="text-center text-muted-foreground py-4">
-                        Nenhum cliente adicionado ao organizador. Clique em "Adicionar Cliente da Gestão" para selecionar.
-                      </p>
+                    {clients.length === 0 && !isTeamMember && (
+                      <div className="text-center py-4">
+                        <p className="text-muted-foreground mb-4">
+                          Nenhum cliente cadastrado no organizador de tarefas.
+                        </p>
+                        <Button onClick={() => {
+                          loadAllCustomers();
+                          setIsAddClientDialogOpen(true);
+                        }}>
+                          <UserPlus className="mr-2 h-4 w-4" />
+                          Adicionar Cliente
+                        </Button>
+                      </div>
                     )}
                   </div>
-                </>
+                )
               ) : (
-                <div className="grid gap-3">
-                  {/* Only show "Todos" and "Sem Cliente" for non-team members */}
-                  {!isTeamMember && (
-                    <>
-                      <Button 
-                        variant="outline" 
-                        className="justify-start h-auto py-4 px-4"
-                        onClick={() => setSelectedClientFilter("all")}
-                      >
-                        <div className="text-left">
-                          <div className="font-semibold">Todos os Clientes</div>
-                          <div className="text-sm text-muted-foreground">Ver tarefas de todos os clientes</div>
-                        </div>
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="justify-start h-auto py-4 px-4"
-                        onClick={() => setSelectedClientFilter("none")}
-                      >
-                        <div className="text-left">
-                          <div className="font-semibold">Sem Cliente</div>
-                          <div className="text-sm text-muted-foreground">Tarefas não vinculadas a clientes</div>
-                        </div>
-                      </Button>
-                    </>
-                  )}
-                  {clients.map(client => (
+                showBusinessManager ? (
+                  <>
                     <Button 
-                      key={client.id}
-                      variant="outline" 
-                      className="justify-start h-auto py-4 px-4"
-                      onClick={() => setSelectedClientFilter(client.id)}
+                      className="w-full" 
+                      onClick={() => {
+                        loadAllBusinesses();
+                        setIsAddBusinessDialogOpen(true);
+                      }}
                     >
-                      <div className="text-left">
-                        <div className="font-semibold">{client.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {tasks.filter(t => t.client_id === client.id).length} tarefas
-                        </div>
-                      </div>
+                      <Building2 className="mr-2 h-4 w-4" />
+                      Adicionar Negócio da Gestão
                     </Button>
-                  ))}
-                  {clients.length === 0 && !isTeamMember && (
-                    <div className="text-center py-4">
-                      <p className="text-muted-foreground mb-4">
-                        Nenhum cliente cadastrado no organizador de tarefas.
-                      </p>
-                      <Button onClick={() => {
-                        loadAllCustomers();
-                        setIsAddClientDialogOpen(true);
-                      }}>
-                        <UserPlus className="mr-2 h-4 w-4" />
-                        Adicionar Cliente
-                      </Button>
+                    
+                    <div className="grid gap-3 mt-4">
+                      {businesses.map(business => (
+                        <Card key={business.id} className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-3 flex-1">
+                              {business.logo_url ? (
+                                <img src={business.logo_url} alt={business.name} className="w-10 h-10 rounded-lg object-cover" />
+                              ) : (
+                                <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                                  <Building2 className="h-5 w-5 text-muted-foreground" />
+                                </div>
+                              )}
+                              <div>
+                                <h4 className="font-semibold">{business.name}</h4>
+                                <p className="text-xs text-muted-foreground">
+                                  {tasks.filter(t => t.business_id === business.id).length} tarefas vinculadas
+                                </p>
+                              </div>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => setBusinessToRemove(business.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </Card>
+                      ))}
+                      {businesses.length === 0 && (
+                        <p className="text-center text-muted-foreground py-4">
+                          Nenhum negócio adicionado. Clique em "Adicionar Negócio da Gestão" para selecionar.
+                        </p>
+                      )}
                     </div>
-                  )}
-                  {clients.length === 0 && isTeamMember && (
-                    <p className="text-center text-muted-foreground py-4">
-                      Nenhum cliente foi delegado a você. Peça ao administrador para delegar clientes.
-                    </p>
-                  )}
-                </div>
+                  </>
+                ) : (
+                  <div className="grid gap-3">
+                    {!isTeamMember && (
+                      <>
+                        <Button 
+                          variant="outline" 
+                          className="justify-start h-auto py-4 px-4"
+                          onClick={() => setSelectedBusinessFilter("all")}
+                        >
+                          <div className="text-left">
+                            <div className="font-semibold">Todos os Negócios</div>
+                            <div className="text-sm text-muted-foreground">Ver tarefas de todos os negócios</div>
+                          </div>
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          className="justify-start h-auto py-4 px-4"
+                          onClick={() => setSelectedBusinessFilter("none")}
+                        >
+                          <div className="text-left">
+                            <div className="font-semibold">Sem Negócio</div>
+                            <div className="text-sm text-muted-foreground">Tarefas não vinculadas</div>
+                          </div>
+                        </Button>
+                      </>
+                    )}
+                    {businesses.map(business => (
+                      <Button 
+                        key={business.id}
+                        variant="outline" 
+                        className="justify-start h-auto py-4 px-4 gap-3"
+                        onClick={() => setSelectedBusinessFilter(business.id)}
+                      >
+                        {business.logo_url ? (
+                          <img src={business.logo_url} alt={business.name} className="w-8 h-8 rounded-lg object-cover" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                            <Building2 className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="text-left">
+                          <div className="font-semibold">{business.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {tasks.filter(t => t.business_id === business.id).length} tarefas
+                          </div>
+                        </div>
+                      </Button>
+                    ))}
+                    {businesses.length === 0 && !isTeamMember && (
+                      <div className="text-center py-4">
+                        <p className="text-muted-foreground mb-4">
+                          Nenhum negócio cadastrado no organizador de tarefas.
+                        </p>
+                        <Button onClick={() => {
+                          loadAllBusinesses();
+                          setIsAddBusinessDialogOpen(true);
+                        }}>
+                          <Building2 className="mr-2 h-4 w-4" />
+                          Adicionar Negócio
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )
               )}
             </CardContent>
           </Card>
@@ -1250,6 +1551,59 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
           </DialogContent>
         </Dialog>
 
+        {/* Add Business Dialog */}
+        <Dialog open={isAddBusinessDialogOpen} onOpenChange={setIsAddBusinessDialogOpen}>
+          <DialogContent className="max-h-[80vh] overflow-y-auto max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Selecionar Negócio</DialogTitle>
+              <DialogDescription>
+                Escolha um negócio da gestão de negócios para adicionar ao organizador de tarefas
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-3 max-h-[50vh] overflow-y-auto">
+              {(() => {
+                const availableBusinesses = allBusinesses.filter(b => !businesses.some(linked => linked.id === b.id));
+                
+                if (availableBusinesses.length === 0) {
+                  return (
+                    <p className="text-center text-muted-foreground py-4">
+                      {allBusinesses.length === 0 
+                        ? "Nenhum negócio cadastrado na gestão de negócios." 
+                        : "Todos os negócios já foram adicionados ao organizador."
+                      }
+                    </p>
+                  );
+                }
+
+                return availableBusinesses.map(business => (
+                  <Card 
+                    key={business.id} 
+                    className="p-4 cursor-pointer hover:bg-accent transition-colors"
+                    onClick={() => {
+                      handleLinkBusiness(business.id);
+                      setIsAddBusinessDialogOpen(false);
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 flex-1">
+                        {business.logo_url ? (
+                          <img src={business.logo_url} alt={business.name} className="w-10 h-10 rounded-lg object-cover" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                            <Building2 className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                        )}
+                        <h4 className="font-semibold">{business.name}</h4>
+                      </div>
+                      <Plus className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  </Card>
+                ));
+              })()}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Remove Client Confirmation */}
         <AlertDialog open={!!clientToRemove} onOpenChange={(open) => !open && setClientToRemove(null)}>
@@ -1271,6 +1625,27 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Remove Business Confirmation */}
+        <AlertDialog open={!!businessToRemove} onOpenChange={(open) => !open && setBusinessToRemove(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Remover negócio do organizador?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Isso irá remover o negócio do organizador de tarefas. O negócio continuará existindo na gestão de negócios e as tarefas vinculadas não serão excluídas.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction 
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => businessToRemove && handleUnlinkBusiness(businessToRemove)}
+              >
+                Remover
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     );
   }
@@ -1284,24 +1659,73 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
           <p className="text-muted-foreground">Organize suas tarefas com drag-and-drop</p>
         </div>
         <div className="flex flex-wrap gap-2 items-center">
-          <Select value={selectedClientFilter} onValueChange={setSelectedClientFilter}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Selecionar cliente" />
-            </SelectTrigger>
-            <SelectContent>
-              {!isTeamMember && (
-                <>
-                  <SelectItem value="all">Todos os Clientes</SelectItem>
-                  <SelectItem value="none">Sem Cliente</SelectItem>
-                </>
-              )}
-              {clients.map(client => (
-                <SelectItem key={client.id} value={client.id}>
-                  {client.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Mode Toggle */}
+          <div className="flex border rounded-md">
+            <Button 
+              variant={filterMode === "client" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => {
+                setFilterMode("client");
+                setSelectedBusinessFilter("");
+              }}
+              className="rounded-r-none"
+            >
+              <Users className="h-4 w-4 mr-1" />
+              Cliente
+            </Button>
+            <Button 
+              variant={filterMode === "business" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => {
+                setFilterMode("business");
+                setSelectedClientFilter("");
+              }}
+              className="rounded-l-none"
+            >
+              <Building2 className="h-4 w-4 mr-1" />
+              Negócio
+            </Button>
+          </div>
+
+          {filterMode === "client" ? (
+            <Select value={selectedClientFilter} onValueChange={setSelectedClientFilter}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Selecionar cliente" />
+              </SelectTrigger>
+              <SelectContent>
+                {!isTeamMember && (
+                  <>
+                    <SelectItem value="all">Todos os Clientes</SelectItem>
+                    <SelectItem value="none">Sem Cliente</SelectItem>
+                  </>
+                )}
+                {clients.map(client => (
+                  <SelectItem key={client.id} value={client.id}>
+                    {client.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Select value={selectedBusinessFilter} onValueChange={setSelectedBusinessFilter}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Selecionar negócio" />
+              </SelectTrigger>
+              <SelectContent>
+                {!isTeamMember && (
+                  <>
+                    <SelectItem value="all">Todos os Negócios</SelectItem>
+                    <SelectItem value="none">Sem Negócio</SelectItem>
+                  </>
+                )}
+                {businesses.map(business => (
+                  <SelectItem key={business.id} value={business.id}>
+                    {business.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Select value={priorityFilter} onValueChange={setPriorityFilter}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filtrar por prioridade" />
@@ -1335,7 +1759,12 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
             <DialogTrigger asChild>
               <Button variant="outline" onClick={() => {
                 setEditingBlock(null);
-                setBlockForm({ name: "", color: "#6366f1", client_id: selectedClientFilter !== "all" ? selectedClientFilter : "" });
+                setBlockForm({ 
+                  name: "", 
+                  color: "#6366f1", 
+                  client_id: filterMode === "client" && selectedClientFilter !== "all" ? selectedClientFilter : "", 
+                  business_id: filterMode === "business" && selectedBusinessFilter !== "all" ? selectedBusinessFilter : "" 
+                });
               }}>
                 <Plus className="mr-2 h-4 w-4" />
                 Novo Bloco
@@ -1365,10 +1794,26 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
                       <SelectValue placeholder="Selecione um cliente (opcional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="__none__">Sem Cliente (Global)</SelectItem>
+                      <SelectItem value="__none__">Sem Cliente</SelectItem>
                       {clients.map(client => (
                         <SelectItem key={client.id} value={client.id}>
                           {client.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="blockBusiness">Negócio</Label>
+                  <Select value={blockForm.business_id || "__none__"} onValueChange={(value) => setBlockForm({ ...blockForm, business_id: value === "__none__" ? "" : value })}>
+                    <SelectTrigger id="blockBusiness">
+                      <SelectValue placeholder="Selecione um negócio (opcional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Sem Negócio</SelectItem>
+                      {businesses.map(business => (
+                        <SelectItem key={business.id} value={business.id}>
+                          {business.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1543,6 +1988,7 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
                   request_date: "",
                   block_id: "",
                   client_id: "",
+                  business_id: "",
                 });
               }}>
                 <Plus className="mr-2 h-4 w-4" />
@@ -1637,21 +2083,39 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
                     />
                   </div>
                 </div>
-                <div>
-                  <Label htmlFor="client">Cliente</Label>
-                  <Select value={taskForm.client_id || "__none__"} onValueChange={(value) => setTaskForm({ ...taskForm, client_id: value === "__none__" ? null : value })}>
-                    <SelectTrigger id="client">
-                      <SelectValue placeholder="Selecione um cliente (opcional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">Nenhum</SelectItem>
-                      {clients.map(client => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="client">Cliente</Label>
+                    <Select value={taskForm.client_id || "__none__"} onValueChange={(value) => setTaskForm({ ...taskForm, client_id: value === "__none__" ? "" : value })}>
+                      <SelectTrigger id="client">
+                        <SelectValue placeholder="Selecione um cliente" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">Nenhum</SelectItem>
+                        {clients.map(client => (
+                          <SelectItem key={client.id} value={client.id}>
+                            {client.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="business">Negócio</Label>
+                    <Select value={taskForm.business_id || "__none__"} onValueChange={(value) => setTaskForm({ ...taskForm, business_id: value === "__none__" ? "" : value })}>
+                      <SelectTrigger id="business">
+                        <SelectValue placeholder="Selecione um negócio" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">Nenhum</SelectItem>
+                        {businesses.map(business => (
+                          <SelectItem key={business.id} value={business.id}>
+                            {business.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <Button onClick={handleAddTask} className="w-full">
                   {editingTask ? "Atualizar Tarefa" : "Criar Tarefa"}

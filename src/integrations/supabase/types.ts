@@ -6291,6 +6291,7 @@ export type Database = {
       }
       task_blocks: {
         Row: {
+          business_id: string | null
           client_id: string | null
           color: string
           created_at: string
@@ -6301,6 +6302,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          business_id?: string | null
           client_id?: string | null
           color?: string
           created_at?: string
@@ -6311,6 +6313,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          business_id?: string | null
           client_id?: string | null
           color?: string
           created_at?: string
@@ -6322,10 +6325,46 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "task_blocks_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "task_blocks_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_business_links: {
+        Row: {
+          business_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_business_links_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
         ]
@@ -6397,6 +6436,7 @@ export type Database = {
       tasks: {
         Row: {
           block_id: string | null
+          business_id: string | null
           category: string | null
           client_id: string | null
           created_at: string
@@ -6413,6 +6453,7 @@ export type Database = {
         }
         Insert: {
           block_id?: string | null
+          business_id?: string | null
           category?: string | null
           client_id?: string | null
           created_at?: string
@@ -6429,6 +6470,7 @@ export type Database = {
         }
         Update: {
           block_id?: string | null
+          business_id?: string | null
           category?: string | null
           client_id?: string | null
           created_at?: string
@@ -6449,6 +6491,13 @@ export type Database = {
             columns: ["block_id"]
             isOneToOne: false
             referencedRelation: "task_blocks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
           {
