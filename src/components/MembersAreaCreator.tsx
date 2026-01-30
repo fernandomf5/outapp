@@ -25,6 +25,7 @@ import { EnrollmentsManager } from "@/components/members-area/EnrollmentsManager
 import { AccessRequestsManager } from "@/components/members-area/AccessRequestsManager";
 import { ModuleContentsManager } from "@/components/members-area/ModuleContentsManager";
 import { HomePageManager } from "@/components/members-area/HomePageManager";
+import { MembersAreaPreview } from "@/components/members-area/MembersAreaPreview";
 import { MercadoPagoIntegration } from "@/components/admin/MercadoPagoIntegration";
 import { HexColorPicker } from "react-colorful";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -351,157 +352,174 @@ export function MembersAreaCreator() {
                 Criar Novo Curso
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-hidden !flex !flex-col">
+            <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden !flex !flex-col">
               <DialogHeader className="flex-shrink-0">
                 <DialogTitle className="text-2xl flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-primary" />
                   Criar Novo Curso Online
                 </DialogTitle>
                 <p className="text-sm text-muted-foreground">
-                  Configure seu curso e comece a criar módulos e aulas
+                  Configure seu curso e veja como ficará em tempo real
                 </p>
               </DialogHeader>
-              <div className="flex-1 overflow-y-auto min-h-0 pr-2 -mr-2">
-                <div className="grid gap-4 py-4 pr-2">
-                  <div className="grid gap-2">
-                    <Label>Nome do Curso</Label>
-                    <Input 
-                      value={formData.title}
-                      onChange={(e) => setFormData({...formData, title: e.target.value})}
-                      placeholder="Ex: Dominando React do Zero ao Avançado"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Descrição</Label>
-                    <Textarea 
-                      value={formData.description}
-                      onChange={(e) => setFormData({...formData, description: e.target.value})}
-                      placeholder="Descreva o que os alunos vão aprender no seu curso..."
-                      rows={4}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Tipo de Acesso</Label>
-                    <Select 
-                      value={(formData as any).access_mode} 
-                      onValueChange={(value) => setFormData({...formData, access_mode: value} as any)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="open">
-                          🌐 Área Liberada - Qualquer pessoa pode acessar
-                        </SelectItem>
-                        <SelectItem value="restricted">
-                          🔒 Solicitar Acesso - Requer aprovação e código
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">
-                      {(formData as any).access_mode === 'open' 
-                        ? 'Qualquer pessoa com o link pode acessar o conteúdo sem precisar fazer login.'
-                        : 'Usuários precisam solicitar acesso e você aprovará manualmente.'}
-                    </p>
-                  </div>
-                  
-                  {/* Vinculação com Cliente/Negócio */}
-                  <div className="space-y-3">
-                    <Label>Vincular a (Opcional)</Label>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="grid gap-2">
-                        <Label className="text-sm text-muted-foreground">Cliente</Label>
-                        <Select 
-                          value={formData.customer_id} 
-                          onValueChange={(value) => setFormData({...formData, customer_id: value === 'none' ? '' : value})}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Nenhum cliente" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Nenhum cliente</SelectItem>
-                            {customers.map(customer => (
-                              <SelectItem key={customer.id} value={customer.id}>
-                                {customer.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+              <div className="flex-1 overflow-y-auto min-h-0">
+                <div className="grid gap-6 py-4 lg:grid-cols-2">
+                  {/* Form Column */}
+                  <div className="space-y-4 pr-2">
+                    <div className="grid gap-2">
+                      <Label>Nome do Curso</Label>
+                      <Input 
+                        value={formData.title}
+                        onChange={(e) => setFormData({...formData, title: e.target.value})}
+                        placeholder="Ex: Dominando React do Zero ao Avançado"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>Descrição</Label>
+                      <Textarea 
+                        value={formData.description}
+                        onChange={(e) => setFormData({...formData, description: e.target.value})}
+                        placeholder="Descreva o que os alunos vão aprender no seu curso..."
+                        rows={3}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>Tipo de Acesso</Label>
+                      <Select 
+                        value={(formData as any).access_mode} 
+                        onValueChange={(value) => setFormData({...formData, access_mode: value} as any)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="open">
+                            🌐 Área Liberada - Qualquer pessoa pode acessar
+                          </SelectItem>
+                          <SelectItem value="restricted">
+                            🔒 Solicitar Acesso - Requer aprovação e código
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        {(formData as any).access_mode === 'open' 
+                          ? 'Qualquer pessoa com o link pode acessar o conteúdo sem precisar fazer login.'
+                          : 'Usuários precisam solicitar acesso e você aprovará manualmente.'}
+                      </p>
+                    </div>
+                    
+                    {/* Vinculação com Cliente/Negócio */}
+                    <div className="space-y-3">
+                      <Label>Vincular a (Opcional)</Label>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="grid gap-2">
+                          <Label className="text-sm text-muted-foreground">Cliente</Label>
+                          <Select 
+                            value={formData.customer_id} 
+                            onValueChange={(value) => setFormData({...formData, customer_id: value === 'none' ? '' : value})}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Nenhum cliente" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Nenhum cliente</SelectItem>
+                              {customers.map(customer => (
+                                <SelectItem key={customer.id} value={customer.id}>
+                                  {customer.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label className="text-sm text-muted-foreground">Negócio</Label>
+                          <Select 
+                            value={formData.business_id} 
+                            onValueChange={(value) => setFormData({...formData, business_id: value === 'none' ? '' : value})}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Nenhum negócio" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Nenhum negócio</SelectItem>
+                              {businesses.map(business => (
+                                <SelectItem key={business.id} value={business.id}>
+                                  {business.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
-                      <div className="grid gap-2">
-                        <Label className="text-sm text-muted-foreground">Negócio</Label>
-                        <Select 
-                          value={formData.business_id} 
-                          onValueChange={(value) => setFormData({...formData, business_id: value === 'none' ? '' : value})}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Nenhum negócio" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Nenhum negócio</SelectItem>
-                            {businesses.map(business => (
-                              <SelectItem key={business.id} value={business.id}>
-                                {business.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Vincule esta área de membros a um cliente ou negócio para melhor organização.
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label>Cores Personalizadas</Label>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="grid gap-2">
+                          <Label className="text-sm">Cor Primária</Label>
+                          <Popover open={showCreatePrimaryColorPicker} onOpenChange={setShowCreatePrimaryColorPicker}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start gap-2"
+                              >
+                                <div 
+                                  className="w-5 h-5 rounded border border-border" 
+                                  style={{ backgroundColor: (formData as any).primary_color }}
+                                />
+                                <span className="text-sm">{(formData as any).primary_color}</span>
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-3">
+                              <HexColorPicker
+                                color={(formData as any).primary_color}
+                                onChange={(color) => setFormData({...formData, primary_color: color} as any)}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label className="text-sm">Cor Secundária</Label>
+                          <Popover open={showCreateSecondaryColorPicker} onOpenChange={setShowCreateSecondaryColorPicker}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start gap-2"
+                              >
+                                <div 
+                                  className="w-5 h-5 rounded border border-border" 
+                                  style={{ backgroundColor: (formData as any).secondary_color }}
+                                />
+                                <span className="text-sm">{(formData as any).secondary_color}</span>
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-3">
+                              <HexColorPicker
+                                color={(formData as any).secondary_color}
+                                onChange={(color) => setFormData({...formData, secondary_color: color} as any)}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Vincule esta área de membros a um cliente ou negócio para melhor organização.
-                    </p>
                   </div>
 
-                  <div className="space-y-3">
-                    <Label>Cores Personalizadas</Label>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="grid gap-2">
-                        <Label className="text-sm">Cor Primária</Label>
-                        <Popover open={showCreatePrimaryColorPicker} onOpenChange={setShowCreatePrimaryColorPicker}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start gap-2"
-                            >
-                              <div 
-                                className="w-5 h-5 rounded border border-border" 
-                                style={{ backgroundColor: (formData as any).primary_color }}
-                              />
-                              <span className="text-sm">{(formData as any).primary_color}</span>
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-3">
-                            <HexColorPicker
-                              color={(formData as any).primary_color}
-                              onChange={(color) => setFormData({...formData, primary_color: color} as any)}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                      <div className="grid gap-2">
-                        <Label className="text-sm">Cor Secundária</Label>
-                        <Popover open={showCreateSecondaryColorPicker} onOpenChange={setShowCreateSecondaryColorPicker}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start gap-2"
-                            >
-                              <div 
-                                className="w-5 h-5 rounded border border-border" 
-                                style={{ backgroundColor: (formData as any).secondary_color }}
-                              />
-                              <span className="text-sm">{(formData as any).secondary_color}</span>
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-3">
-                            <HexColorPicker
-                              color={(formData as any).secondary_color}
-                              onChange={(color) => setFormData({...formData, secondary_color: color} as any)}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
+                  {/* Preview Column */}
+                  <div className="hidden lg:block">
+                    <div className="sticky top-0">
+                      <Label className="mb-3 block">Preview em Tempo Real</Label>
+                      <MembersAreaPreview
+                        title={formData.title}
+                        description={formData.description}
+                        primaryColor={(formData as any).primary_color}
+                        secondaryColor={(formData as any).secondary_color}
+                        accessMode={(formData as any).access_mode as 'open' | 'restricted'}
+                      />
                     </div>
                   </div>
                 </div>
@@ -518,159 +536,175 @@ export function MembersAreaCreator() {
             </DialogContent>
           </Dialog>
           
-          {/* Dialog de Edição */}
           <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-            <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-hidden !flex !flex-col">
+            <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden !flex !flex-col">
               <DialogHeader className="flex-shrink-0">
                 <DialogTitle className="text-2xl flex items-center gap-2">
                   <Edit className="w-5 h-5 text-primary" />
                   Editar Curso Online
                 </DialogTitle>
                 <p className="text-sm text-muted-foreground">
-                  Atualize as informações do seu curso
+                  Atualize as informações do seu curso e veja as mudanças em tempo real
                 </p>
               </DialogHeader>
-              <div className="flex-1 overflow-y-auto min-h-0 pr-2 -mr-2">
-                <div className="grid gap-4 py-4 pr-2">
-                  <div className="grid gap-2">
-                    <Label>Nome do Curso</Label>
-                    <Input 
-                      value={formData.title}
-                      onChange={(e) => setFormData({...formData, title: e.target.value})}
-                      placeholder="Ex: Dominando React do Zero ao Avançado"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Descrição</Label>
-                    <Textarea 
-                      value={formData.description}
-                      onChange={(e) => setFormData({...formData, description: e.target.value})}
-                      placeholder="Descreva o que os alunos vão aprender no seu curso..."
-                      rows={4}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Tipo de Acesso</Label>
-                    <Select 
-                      value={(formData as any).access_mode} 
-                      onValueChange={(value) => setFormData({...formData, access_mode: value} as any)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="open">
-                          🌐 Área Liberada - Qualquer pessoa pode acessar
-                        </SelectItem>
-                        <SelectItem value="restricted">
-                          🔒 Solicitar Acesso - Requer aprovação e código
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">
-                      {(formData as any).access_mode === 'open' 
-                        ? 'Qualquer pessoa com o link pode acessar o conteúdo sem precisar fazer login.'
-                        : 'Usuários precisam solicitar acesso e você aprovará manualmente.'}
-                    </p>
-                  </div>
-                  
-                  {/* Vinculação com Cliente/Negócio */}
-                  <div className="space-y-3">
-                    <Label>Vincular a (Opcional)</Label>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="grid gap-2">
-                        <Label className="text-sm text-muted-foreground">Cliente</Label>
-                        <Select 
-                          value={formData.customer_id} 
-                          onValueChange={(value) => setFormData({...formData, customer_id: value === 'none' ? '' : value})}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Nenhum cliente" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Nenhum cliente</SelectItem>
-                            {customers.map(customer => (
-                              <SelectItem key={customer.id} value={customer.id}>
-                                {customer.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+              <div className="flex-1 overflow-y-auto min-h-0">
+                <div className="grid gap-6 py-4 lg:grid-cols-2">
+                  {/* Form Column */}
+                  <div className="space-y-4 pr-2">
+                    <div className="grid gap-2">
+                      <Label>Nome do Curso</Label>
+                      <Input 
+                        value={formData.title}
+                        onChange={(e) => setFormData({...formData, title: e.target.value})}
+                        placeholder="Ex: Dominando React do Zero ao Avançado"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>Descrição</Label>
+                      <Textarea 
+                        value={formData.description}
+                        onChange={(e) => setFormData({...formData, description: e.target.value})}
+                        placeholder="Descreva o que os alunos vão aprender no seu curso..."
+                        rows={3}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>Tipo de Acesso</Label>
+                      <Select 
+                        value={(formData as any).access_mode} 
+                        onValueChange={(value) => setFormData({...formData, access_mode: value} as any)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="open">
+                            🌐 Área Liberada - Qualquer pessoa pode acessar
+                          </SelectItem>
+                          <SelectItem value="restricted">
+                            🔒 Solicitar Acesso - Requer aprovação e código
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        {(formData as any).access_mode === 'open' 
+                          ? 'Qualquer pessoa com o link pode acessar o conteúdo sem precisar fazer login.'
+                          : 'Usuários precisam solicitar acesso e você aprovará manualmente.'}
+                      </p>
+                    </div>
+                    
+                    {/* Vinculação com Cliente/Negócio */}
+                    <div className="space-y-3">
+                      <Label>Vincular a (Opcional)</Label>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="grid gap-2">
+                          <Label className="text-sm text-muted-foreground">Cliente</Label>
+                          <Select 
+                            value={formData.customer_id} 
+                            onValueChange={(value) => setFormData({...formData, customer_id: value === 'none' ? '' : value})}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Nenhum cliente" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Nenhum cliente</SelectItem>
+                              {customers.map(customer => (
+                                <SelectItem key={customer.id} value={customer.id}>
+                                  {customer.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label className="text-sm text-muted-foreground">Negócio</Label>
+                          <Select 
+                            value={formData.business_id} 
+                            onValueChange={(value) => setFormData({...formData, business_id: value === 'none' ? '' : value})}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Nenhum negócio" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Nenhum negócio</SelectItem>
+                              {businesses.map(business => (
+                                <SelectItem key={business.id} value={business.id}>
+                                  {business.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
-                      <div className="grid gap-2">
-                        <Label className="text-sm text-muted-foreground">Negócio</Label>
-                        <Select 
-                          value={formData.business_id} 
-                          onValueChange={(value) => setFormData({...formData, business_id: value === 'none' ? '' : value})}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Nenhum negócio" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Nenhum negócio</SelectItem>
-                            {businesses.map(business => (
-                              <SelectItem key={business.id} value={business.id}>
-                                {business.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Vincule esta área de membros a um cliente ou negócio para melhor organização.
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label>Cores Personalizadas</Label>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="grid gap-2">
+                          <Label className="text-sm">Cor Primária</Label>
+                          <Popover open={showEditPrimaryColorPicker} onOpenChange={setShowEditPrimaryColorPicker}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start gap-2"
+                              >
+                                <div 
+                                  className="w-5 h-5 rounded border border-border" 
+                                  style={{ backgroundColor: (formData as any).primary_color }}
+                                />
+                                <span className="text-sm">{(formData as any).primary_color}</span>
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-3">
+                              <HexColorPicker
+                                color={(formData as any).primary_color}
+                                onChange={(color) => setFormData({...formData, primary_color: color} as any)}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label className="text-sm">Cor Secundária</Label>
+                          <Popover open={showEditSecondaryColorPicker} onOpenChange={setShowEditSecondaryColorPicker}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start gap-2"
+                              >
+                                <div 
+                                  className="w-5 h-5 rounded border border-border" 
+                                  style={{ backgroundColor: (formData as any).secondary_color }}
+                                />
+                                <span className="text-sm">{(formData as any).secondary_color}</span>
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-3">
+                              <HexColorPicker
+                                color={(formData as any).secondary_color}
+                                onChange={(color) => setFormData({...formData, secondary_color: color} as any)}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Vincule esta área de membros a um cliente ou negócio para melhor organização.
-                    </p>
                   </div>
 
-                  <div className="space-y-3">
-                    <Label>Cores Personalizadas</Label>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="grid gap-2">
-                        <Label className="text-sm">Cor Primária</Label>
-                        <Popover open={showEditPrimaryColorPicker} onOpenChange={setShowEditPrimaryColorPicker}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start gap-2"
-                            >
-                              <div 
-                                className="w-5 h-5 rounded border border-border" 
-                                style={{ backgroundColor: (formData as any).primary_color }}
-                              />
-                              <span className="text-sm">{(formData as any).primary_color}</span>
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-3">
-                            <HexColorPicker
-                              color={(formData as any).primary_color}
-                              onChange={(color) => setFormData({...formData, primary_color: color} as any)}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                      <div className="grid gap-2">
-                        <Label className="text-sm">Cor Secundária</Label>
-                        <Popover open={showEditSecondaryColorPicker} onOpenChange={setShowEditSecondaryColorPicker}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start gap-2"
-                            >
-                              <div 
-                                className="w-5 h-5 rounded border border-border" 
-                                style={{ backgroundColor: (formData as any).secondary_color }}
-                              />
-                              <span className="text-sm">{(formData as any).secondary_color}</span>
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-3">
-                            <HexColorPicker
-                              color={(formData as any).secondary_color}
-                              onChange={(color) => setFormData({...formData, secondary_color: color} as any)}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
+                  {/* Preview Column */}
+                  <div className="hidden lg:block">
+                    <div className="sticky top-0">
+                      <Label className="mb-3 block">Preview em Tempo Real</Label>
+                      <MembersAreaPreview
+                        title={formData.title}
+                        description={formData.description}
+                        primaryColor={(formData as any).primary_color}
+                        secondaryColor={(formData as any).secondary_color}
+                        accessMode={(formData as any).access_mode as 'open' | 'restricted'}
+                      />
                     </div>
                   </div>
                 </div>
