@@ -16,10 +16,13 @@ import {
   Info,
   Plus,
   Trash2,
-  Link2
+  Link2,
+  Play,
+  ExternalLink
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { isVideoUrl } from '@/lib/media';
 
 interface ExtractedMedia {
   id: string;
@@ -103,12 +106,12 @@ export default function CreativeExtractorPanel() {
     }
 
     const newMedia: ExtractedMedia[] = urls.map((mediaUrl, index) => {
-      const isVideo = mediaUrl.includes('.mp4') || mediaUrl.includes('video');
+      const cleanUrl = mediaUrl.trim();
       return {
         id: `manual_${Date.now()}_${index}`,
-        type: isVideo ? 'video' : 'image',
-        url: mediaUrl.trim(),
-        thumbnailUrl: mediaUrl.trim()
+        type: isVideoUrl(cleanUrl) ? 'video' : 'image',
+        url: cleanUrl,
+        thumbnailUrl: cleanUrl
       };
     });
 
@@ -122,16 +125,32 @@ export default function CreativeExtractorPanel() {
 
   const downloadMedia = async (media: ExtractedMedia) => {
     try {
+      // Try to download directly using fetch + blob
+      const response = await fetch(media.url, { mode: 'cors' });
+      if (response.ok) {
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        const extension = media.type === 'video' ? 'mp4' : 'jpg';
+        link.download = `creative_${media.id}.${extension}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+        toast({
+          title: "Download concluído!",
+          description: `${media.type === 'image' ? 'Imagem' : 'Vídeo'} baixado com sucesso`
+        });
+      } else {
+        throw new Error('CORS blocked');
+      }
+    } catch {
+      // Fallback: open in new tab
       window.open(media.url, '_blank');
       toast({
-        title: "Download iniciado",
-        description: `${media.type === 'image' ? 'Imagem' : 'Vídeo'} aberto em nova aba`
-      });
-    } catch {
-      toast({
-        title: "Erro no download",
-        description: "Não foi possível baixar a mídia",
-        variant: "destructive"
+        title: "Abrindo em nova aba",
+        description: "Clique com botão direito e 'Salvar como' para baixar"
       });
     }
   };
@@ -293,12 +312,33 @@ export default function CreativeExtractorPanel() {
                         }}
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-black/80">
-                        <Video className="w-12 h-12 text-white/60" />
+                      <div className="w-full h-full relative bg-black">
+                        <video 
+                          src={media.url}
+                          className="w-full h-full object-contain"
+                          muted
+                          playsInline
+                          preload="metadata"
+                          onMouseEnter={(e) => (e.target as HTMLVideoElement).play()}
+                          onMouseLeave={(e) => {
+                            const video = e.target as HTMLVideoElement;
+                            video.pause();
+                            video.currentTime = 0;
+                          }}
+                          onError={(e) => {
+                            // Hide video on error and show fallback
+                            (e.target as HTMLVideoElement).style.display = 'none';
+                          }}
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none group-hover:opacity-0 transition-opacity">
+                          <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                            <Play className="w-7 h-7 text-white fill-white" />
+                          </div>
+                        </div>
                       </div>
                     )}
                     <Badge 
-                      className="absolute top-2 right-2"
+                      className="absolute top-2 right-2 z-10"
                       variant={media.type === 'image' ? 'default' : 'secondary'}
                     >
                       {media.type === 'image' ? (
@@ -310,7 +350,7 @@ export default function CreativeExtractorPanel() {
                     <Button
                       size="icon"
                       variant="destructive"
-                      className="absolute top-2 left-2 w-7 h-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-2 left-2 w-7 h-7 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                       onClick={() => removeMedia(media.id)}
                     >
                       <Trash2 className="w-3 h-3" />
@@ -343,6 +383,15 @@ export default function CreativeExtractorPanel() {
                       >
                         <Download className="w-3 h-3" />
                         Baixar
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        className="px-2"
+                        onClick={() => window.open(media.url, '_blank')}
+                        title="Abrir em nova aba"
+                      >
+                        <ExternalLink className="w-3 h-3" />
                       </Button>
                     </div>
                   </CardContent>
