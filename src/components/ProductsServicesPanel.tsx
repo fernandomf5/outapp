@@ -34,6 +34,7 @@ import {
   Layers,
   BarChart3,
   Building2,
+  Link,
 } from "lucide-react";
 import {
   Dialog,
@@ -69,6 +70,7 @@ interface Product {
   download_url: string | null;
   download_limit: number | null;
   access_duration_days: number | null;
+  affiliate_url: string | null;
   is_active: boolean;
   tags: string[] | null;
   created_at: string;
@@ -112,6 +114,7 @@ const defaultProductForm = {
   download_url: "",
   download_limit: "",
   access_duration_days: "",
+  affiliate_url: "",
   is_active: true,
   tags: "",
   business_id: "",
@@ -201,6 +204,7 @@ export default function ProductsServicesPanel() {
         download_url: editingProduct.download_url || "",
         download_limit: editingProduct.download_limit?.toString() || "",
         access_duration_days: editingProduct.access_duration_days?.toString() || "",
+        affiliate_url: editingProduct.affiliate_url || "",
         is_active: editingProduct.is_active,
         tags: editingProduct.tags?.join(", ") || "",
         business_id: editingProduct.business_id || "",
@@ -345,6 +349,7 @@ export default function ProductsServicesPanel() {
       download_url: productForm.download_url || null,
       download_limit: productForm.download_limit ? parseInt(productForm.download_limit) : null,
       access_duration_days: productForm.access_duration_days ? parseInt(productForm.access_duration_days) : null,
+      affiliate_url: productForm.affiliate_url || null,
       is_active: productForm.is_active,
       tags: productForm.tags ? productForm.tags.split(",").map((t) => t.trim()).filter(Boolean) : null,
       business_id: productForm.business_id || null,
@@ -452,6 +457,7 @@ export default function ProductsServicesPanel() {
     activeProducts: products.filter((p) => p.is_active).length,
     physicalProducts: products.filter((p) => p.product_type === "physical").length,
     digitalProducts: products.filter((p) => p.product_type === "digital").length,
+    affiliateProducts: products.filter((p) => p.product_type === "affiliate").length,
     totalServices: services.length,
     activeServices: services.filter((s) => s.is_active).length,
   };
@@ -594,12 +600,12 @@ export default function ProductsServicesPanel() {
                           <p className="text-sm text-muted-foreground">{product.category}</p>
                         )}
                       </div>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 flex-wrap">
                         <Badge variant={product.is_active ? "default" : "secondary"}>
                           {product.is_active ? "Ativo" : "Inativo"}
                         </Badge>
                         <Badge variant="outline">
-                          {product.product_type === "physical" ? "Físico" : "Digital"}
+                          {product.product_type === "physical" ? "Físico" : product.product_type === "affiliate" ? "Afiliado" : "Digital"}
                         </Badge>
                       </div>
                     </div>
@@ -777,6 +783,7 @@ export default function ProductsServicesPanel() {
                   <SelectContent>
                     <SelectItem value="physical">Físico</SelectItem>
                     <SelectItem value="digital">Digital</SelectItem>
+                    <SelectItem value="affiliate">Afiliado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -936,6 +943,23 @@ export default function ProductsServicesPanel() {
                     />
                   </div>
                 </>
+              )}
+
+              {productForm.product_type === "affiliate" && (
+                <div className="col-span-2">
+                  <Label className="flex items-center gap-2">
+                    <Link className="h-4 w-4" />
+                    Link de Afiliado *
+                  </Label>
+                  <Input
+                    value={productForm.affiliate_url}
+                    onChange={(e) => setProductForm({ ...productForm, affiliate_url: e.target.value })}
+                    placeholder="https://exemplo.com/seu-link-afiliado"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Cole o link de afiliado que será enviado aos seus clientes
+                  </p>
+                </div>
               )}
 
               <div className="col-span-2">

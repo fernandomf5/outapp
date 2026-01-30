@@ -5698,6 +5698,7 @@ export type Database = {
       products: {
         Row: {
           access_duration_days: number | null
+          affiliate_url: string | null
           barcode: string | null
           business_id: string | null
           category: string | null
@@ -5726,6 +5727,7 @@ export type Database = {
         }
         Insert: {
           access_duration_days?: number | null
+          affiliate_url?: string | null
           barcode?: string | null
           business_id?: string | null
           category?: string | null
@@ -5754,6 +5756,7 @@ export type Database = {
         }
         Update: {
           access_duration_days?: number | null
+          affiliate_url?: string | null
           barcode?: string | null
           business_id?: string | null
           category?: string | null
