@@ -115,11 +115,11 @@ export function UserSidebar() {
   // Main items - overview is always visible, Blog is external
   const mainItems: MenuItem[] = [
     { title: t('overview'), icon: TrendingUp, path: "/dashboard", tab: "overview", hideForTeamMember: true },
+    { title: t('agenda'), icon: Calendar, path: "/dashboard", tab: "agenda", moduleKey: "agenda" },
     { title: t('blog'), icon: FileText, path: "/blog", hideForTeamMember: true },
   ];
 
   const managementItems: MenuItem[] = [
-    { title: t('agenda'), icon: Calendar, path: "/dashboard", tab: "agenda", moduleKey: "agenda" },
     { title: t('team_management'), icon: UserCog, path: "/dashboard", tab: "equipe", hideForTeamMember: true },
     { title: "Clientes", icon: Users, path: "/dashboard", tab: "clientes", moduleKey: "crm" },
     { title: t('ads_management'), icon: Megaphone, path: "/dashboard", tab: "anuncios", moduleKey: "ads" },
