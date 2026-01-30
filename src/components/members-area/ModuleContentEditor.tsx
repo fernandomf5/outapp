@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, Video, File, Music, Image, Link2, Code, Download, HelpCircle, Plus, Trash2, GitBranch, GripVertical } from "lucide-react";
+import { Upload, Video, File, Music, Image, Link2, Code, Download, HelpCircle, Plus, Trash2, GitBranch, GripVertical, History } from "lucide-react";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { Card } from "@/components/ui/card";
 
@@ -30,13 +30,18 @@ interface ModuleContent {
   id?: string;
   module_id: string;
   title: string;
-  content_type: 'video' | 'document' | 'text' | 'audio' | 'image' | 'link' | 'embed' | 'download' | 'quiz' | 'timeline';
+  content_type: 'video' | 'document' | 'text' | 'audio' | 'image' | 'link' | 'embed' | 'download' | 'quiz' | 'timeline' | 'customer_history';
   video_url?: string;
   document_url?: string;
   content_data?: string;
   order_index: number;
   duration?: string;
   is_active: boolean;
+}
+
+interface Customer {
+  id: string;
+  name: string;
 }
 
 interface ModuleContentEditorProps {
@@ -58,6 +63,30 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
   const [uploading, setUploading] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
+
+  useEffect(() => {
+    loadCustomers();
+  }, []);
+
+  const loadCustomers = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('customers')
+        .select('id, name')
+        .eq('user_id', user.id)
+        .order('name');
+
+      if (error) throw error;
+      setCustomers((data || []) as Customer[]);
+    } catch (error) {
+      console.error('Erro ao carregar clientes:', error);
+    }
+  };
 
   useEffect(() => {
     if (content) {
@@ -78,6 +107,15 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
           setTimelineItems([]);
         }
       }
+      // Parse customer history config if exists
+      if (content.content_type === 'customer_history' && content.content_data) {
+        try {
+          const config = JSON.parse(content.content_data);
+          setSelectedCustomerId(config.customer_id || '');
+        } catch {
+          setSelectedCustomerId('');
+        }
+      }
     } else {
       setFormData({
         module_id: moduleId,
@@ -88,6 +126,7 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
       });
       setQuizQuestions([]);
       setTimelineItems([]);
+      setSelectedCustomerId('');
     }
   }, [content, moduleId]);
 
@@ -211,6 +250,13 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
     if (formData.content_type === 'timeline') {
       dataToSave.content_data = JSON.stringify(timelineItems);
     }
+    if (formData.content_type === 'customer_history') {
+      if (!selectedCustomerId) {
+        toast.error('Selecione um cliente para exibir o histórico');
+        return;
+      }
+      dataToSave.content_data = JSON.stringify({ customer_id: selectedCustomerId });
+    }
 
     try {
       if (content?.id) {
@@ -245,6 +291,7 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
     { value: 'download', label: 'Arquivo para Download', icon: Download },
     { value: 'quiz', label: 'Quiz/Questionário', icon: HelpCircle },
     { value: 'timeline', label: 'Linha do Tempo', icon: GitBranch },
+    { value: 'customer_history', label: 'Histórico do Cliente', icon: History },
   ];
 
   const timelineIcons = [
@@ -765,6 +812,59 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
               
               <p className="text-xs text-muted-foreground">
                 💡 Use para mostrar progresso do curso, histórico de atualizações, marcos alcançados ou etapas de um projeto.
+              </p>
+            </div>
+          )}
+
+          {/* CUSTOMER HISTORY */}
+          {formData.content_type === 'customer_history' && (
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <Label>Selecione o Cliente</Label>
+                <Select 
+                  value={selectedCustomerId} 
+                  onValueChange={setSelectedCustomerId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Escolha um cliente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {customers.length === 0 ? (
+                      <SelectItem value="none" disabled>
+                        Nenhum cliente cadastrado
+                      </SelectItem>
+                    ) : (
+                      customers.map(customer => (
+                        <SelectItem key={customer.id} value={customer.id}>
+                          {customer.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  O histórico de serviços, compras e pagamentos do cliente selecionado será exibido automaticamente.
+                </p>
+              </div>
+              
+              {selectedCustomerId && (
+                <Card className="p-4 bg-muted/50">
+                  <div className="flex items-center gap-2 text-sm">
+                    <History className="w-4 h-4 text-primary" />
+                    <span>
+                      O histórico do cliente será exibido na área de membros, incluindo:
+                    </span>
+                  </div>
+                  <ul className="mt-2 text-sm text-muted-foreground space-y-1 ml-6 list-disc">
+                    <li>Serviços prestados</li>
+                    <li>Compras de produtos</li>
+                    <li>Pagamentos realizados</li>
+                  </ul>
+                </Card>
+              )}
+              
+              <p className="text-xs text-muted-foreground">
+                💡 Use para compartilhar o histórico de atendimento com seu cliente de forma transparente.
               </p>
             </div>
           )}

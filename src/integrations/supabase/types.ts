@@ -4886,8 +4886,10 @@ export type Database = {
           access_rules: Json | null
           area_type: string
           banner_url: string | null
+          business_id: string | null
           created_at: string | null
           custom_domain: string | null
+          customer_id: string | null
           description: string | null
           id: string
           is_active: boolean | null
@@ -4909,8 +4911,10 @@ export type Database = {
           access_rules?: Json | null
           area_type?: string
           banner_url?: string | null
+          business_id?: string | null
           created_at?: string | null
           custom_domain?: string | null
+          customer_id?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
@@ -4932,8 +4936,10 @@ export type Database = {
           access_rules?: Json | null
           area_type?: string
           banner_url?: string | null
+          business_id?: string | null
           created_at?: string | null
           custom_domain?: string | null
+          customer_id?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
@@ -4951,7 +4957,22 @@ export type Database = {
           user_id?: string
           welcome_message?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "members_areas_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "members_areas_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       members_certificates: {
         Row: {
@@ -6345,7 +6366,9 @@ export type Database = {
       }
       simple_members_areas: {
         Row: {
+          business_id: string | null
           created_at: string | null
+          customer_id: string | null
           description: string | null
           id: string
           is_active: boolean | null
@@ -6360,7 +6383,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          business_id?: string | null
           created_at?: string | null
+          customer_id?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
@@ -6375,7 +6400,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          business_id?: string | null
           created_at?: string | null
+          customer_id?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
@@ -6389,7 +6416,22 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "simple_members_areas_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "simple_members_areas_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       site_settings: {
         Row: {

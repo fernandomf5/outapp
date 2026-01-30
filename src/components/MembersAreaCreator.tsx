@@ -43,6 +43,8 @@ interface MembersArea {
   slug?: string;
   primary_color?: string;
   secondary_color?: string;
+  customer_id?: string;
+  business_id?: string;
   products?: Array<{
     id: string;
     name: string;
@@ -52,6 +54,16 @@ interface MembersArea {
     image_url: string;
     modules_unlocked: string[];
   }>;
+}
+
+interface Customer {
+  id: string;
+  name: string;
+}
+
+interface Business {
+  id: string;
+  name: string;
 }
 
 interface Module {
@@ -76,13 +88,17 @@ export function MembersAreaCreator() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingArea, setEditingArea] = useState<MembersArea | null>(null);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     area_type: 'course',
     access_mode: 'open', // 'open' = liberada, 'restricted' = solicitar acesso
     primary_color: '#8B5CF6',
-    secondary_color: '#EC4899'
+    secondary_color: '#EC4899',
+    customer_id: '',
+    business_id: ''
   });
   const [isModuleEditorOpen, setIsModuleEditorOpen] = useState(false);
   const [editingModule, setEditingModule] = useState<Module | null>(null);
@@ -98,7 +114,33 @@ export function MembersAreaCreator() {
 
   useEffect(() => {
     loadMembersAreas();
+    loadCustomersAndBusinesses();
   }, []);
+
+  const loadCustomersAndBusinesses = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const [customersResult, businessesResult] = await Promise.all([
+        supabase
+          .from('customers')
+          .select('id, name')
+          .eq('user_id', user.id)
+          .order('name'),
+        supabase
+          .from('businesses')
+          .select('id, name')
+          .eq('user_id', user.id)
+          .order('name')
+      ]);
+
+      setCustomers((customersResult.data || []) as Customer[]);
+      setBusinesses((businessesResult.data || []) as Business[]);
+    } catch (error) {
+      console.error('Erro ao carregar clientes/negócios:', error);
+    }
+  };
 
   const loadMembersAreas = async () => {
     try {
@@ -198,14 +240,16 @@ export function MembersAreaCreator() {
           require_approval: (formData as any).access_mode === 'restricted',
           is_active: true,
           primary_color: (formData as any).primary_color,
-          secondary_color: (formData as any).secondary_color
+          secondary_color: (formData as any).secondary_color,
+          customer_id: formData.customer_id || null,
+          business_id: formData.business_id || null
         }]);
 
       if (error) throw error;
 
       toast.success("Área de membros criada!");
       setIsCreateDialogOpen(false);
-      setFormData({ title: '', description: '', area_type: 'course', access_mode: 'open', primary_color: '#8B5CF6', secondary_color: '#EC4899' });
+      setFormData({ title: '', description: '', area_type: 'course', access_mode: 'open', primary_color: '#8B5CF6', secondary_color: '#EC4899', customer_id: '', business_id: '' });
       loadMembersAreas();
     } catch (error: any) {
       toast.error(`Erro ao criar área de membros: ${error?.message || ''}`);
@@ -236,8 +280,10 @@ export function MembersAreaCreator() {
       area_type: area.area_type || 'course',
       access_mode: (area as any).require_approval ? 'restricted' : 'open',
       primary_color: area.primary_color || '#8B5CF6',
-      secondary_color: area.secondary_color || '#EC4899'
-    } as any);
+      secondary_color: area.secondary_color || '#EC4899',
+      customer_id: area.customer_id || '',
+      business_id: area.business_id || ''
+    });
     setIsEditDialogOpen(true);
   };
 
@@ -258,7 +304,9 @@ export function MembersAreaCreator() {
           area_type: (formData as any).area_type,
           require_approval: (formData as any).access_mode === 'restricted',
           primary_color: (formData as any).primary_color,
-          secondary_color: (formData as any).secondary_color
+          secondary_color: (formData as any).secondary_color,
+          customer_id: formData.customer_id || null,
+          business_id: formData.business_id || null
         } as any)
         .eq('id', editingArea.id);
 
@@ -267,7 +315,7 @@ export function MembersAreaCreator() {
       toast.success("Curso atualizado com sucesso!");
       setIsEditDialogOpen(false);
       setEditingArea(null);
-      setFormData({ title: '', description: '', area_type: 'course', access_mode: 'open', primary_color: '#8B5CF6', secondary_color: '#EC4899' });
+      setFormData({ title: '', description: '', area_type: 'course', access_mode: 'open', primary_color: '#8B5CF6', secondary_color: '#EC4899', customer_id: '', business_id: '' });
       loadMembersAreas();
       
       // Se estava editando a área selecionada, atualiza
@@ -356,6 +404,55 @@ export function MembersAreaCreator() {
                         : 'Usuários precisam solicitar acesso e você aprovará manualmente.'}
                     </p>
                   </div>
+                  
+                  {/* Vinculação com Cliente/Negócio */}
+                  <div className="space-y-3">
+                    <Label>Vincular a (Opcional)</Label>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="grid gap-2">
+                        <Label className="text-sm text-muted-foreground">Cliente</Label>
+                        <Select 
+                          value={formData.customer_id} 
+                          onValueChange={(value) => setFormData({...formData, customer_id: value === 'none' ? '' : value})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Nenhum cliente" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Nenhum cliente</SelectItem>
+                            {customers.map(customer => (
+                              <SelectItem key={customer.id} value={customer.id}>
+                                {customer.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label className="text-sm text-muted-foreground">Negócio</Label>
+                        <Select 
+                          value={formData.business_id} 
+                          onValueChange={(value) => setFormData({...formData, business_id: value === 'none' ? '' : value})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Nenhum negócio" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Nenhum negócio</SelectItem>
+                            {businesses.map(business => (
+                              <SelectItem key={business.id} value={business.id}>
+                                {business.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Vincule esta área de membros a um cliente ou negócio para melhor organização.
+                    </p>
+                  </div>
+
                   <div className="space-y-3">
                     <Label>Cores Personalizadas</Label>
                     <div className="grid gap-3 sm:grid-cols-2">
@@ -476,6 +573,55 @@ export function MembersAreaCreator() {
                         : 'Usuários precisam solicitar acesso e você aprovará manualmente.'}
                     </p>
                   </div>
+                  
+                  {/* Vinculação com Cliente/Negócio */}
+                  <div className="space-y-3">
+                    <Label>Vincular a (Opcional)</Label>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="grid gap-2">
+                        <Label className="text-sm text-muted-foreground">Cliente</Label>
+                        <Select 
+                          value={formData.customer_id} 
+                          onValueChange={(value) => setFormData({...formData, customer_id: value === 'none' ? '' : value})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Nenhum cliente" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Nenhum cliente</SelectItem>
+                            {customers.map(customer => (
+                              <SelectItem key={customer.id} value={customer.id}>
+                                {customer.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label className="text-sm text-muted-foreground">Negócio</Label>
+                        <Select 
+                          value={formData.business_id} 
+                          onValueChange={(value) => setFormData({...formData, business_id: value === 'none' ? '' : value})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Nenhum negócio" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Nenhum negócio</SelectItem>
+                            {businesses.map(business => (
+                              <SelectItem key={business.id} value={business.id}>
+                                {business.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Vincule esta área de membros a um cliente ou negócio para melhor organização.
+                    </p>
+                  </div>
+
                   <div className="space-y-3">
                     <Label>Cores Personalizadas</Label>
                     <div className="grid gap-3 sm:grid-cols-2">
@@ -533,7 +679,7 @@ export function MembersAreaCreator() {
                 <Button variant="outline" onClick={() => {
                   setIsEditDialogOpen(false);
                   setEditingArea(null);
-                  setFormData({ title: '', description: '', area_type: 'course', access_mode: 'open', primary_color: '#8B5CF6', secondary_color: '#EC4899' });
+                  setFormData({ title: '', description: '', area_type: 'course', access_mode: 'open', primary_color: '#8B5CF6', secondary_color: '#EC4899', customer_id: '', business_id: '' });
                 }}>
                   Cancelar
                 </Button>

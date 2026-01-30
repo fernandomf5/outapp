@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Video, FileText, File, Trash2, Edit, Eye, EyeOff, Music, Image, Link2, Code, Download, HelpCircle, GitBranch } from "lucide-react";
+import { Plus, Video, FileText, File, Trash2, Edit, Eye, EyeOff, Music, Image, Link2, Code, Download, HelpCircle, GitBranch, History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ModuleContentEditor } from "./ModuleContentEditor";
 
@@ -11,7 +11,7 @@ interface ModuleContent {
   id: string;
   module_id: string;
   title: string;
-  content_type: 'video' | 'document' | 'text' | 'audio' | 'image' | 'link' | 'embed' | 'download' | 'quiz' | 'timeline';
+  content_type: 'video' | 'document' | 'text' | 'audio' | 'image' | 'link' | 'embed' | 'download' | 'quiz' | 'timeline' | 'customer_history';
   video_url?: string;
   document_url?: string;
   content_data?: string;
@@ -116,6 +116,8 @@ export function ModuleContentsManager({ moduleId, moduleName }: ModuleContentsMa
         return <HelpCircle className="w-5 h-5" />;
       case 'timeline':
         return <GitBranch className="w-5 h-5" />;
+      case 'customer_history':
+        return <History className="w-5 h-5" />;
       default:
         return <FileText className="w-5 h-5" />;
     }
@@ -132,7 +134,8 @@ export function ModuleContentsManager({ moduleId, moduleName }: ModuleContentsMa
       embed: 'Embed',
       download: 'Download',
       quiz: 'Quiz',
-      timeline: 'Linha do Tempo'
+      timeline: 'Linha do Tempo',
+      customer_history: 'Histórico do Cliente'
     };
     return types[type] || type;
   };
