@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Video, FileText, File, Trash2, Edit, Eye, EyeOff } from "lucide-react";
+import { Plus, Video, FileText, File, Trash2, Edit, Eye, EyeOff, Music, Image, Link2, Code, Download, HelpCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ModuleContentEditor } from "./ModuleContentEditor";
 
@@ -11,7 +11,7 @@ interface ModuleContent {
   id: string;
   module_id: string;
   title: string;
-  content_type: 'video' | 'document' | 'text';
+  content_type: 'video' | 'document' | 'text' | 'audio' | 'image' | 'link' | 'embed' | 'download' | 'quiz';
   video_url?: string;
   document_url?: string;
   content_data?: string;
@@ -102,18 +102,36 @@ export function ModuleContentsManager({ moduleId, moduleName }: ModuleContentsMa
         return <File className="w-5 h-5" />;
       case 'text':
         return <FileText className="w-5 h-5" />;
+      case 'audio':
+        return <Music className="w-5 h-5" />;
+      case 'image':
+        return <Image className="w-5 h-5" />;
+      case 'link':
+        return <Link2 className="w-5 h-5" />;
+      case 'embed':
+        return <Code className="w-5 h-5" />;
+      case 'download':
+        return <Download className="w-5 h-5" />;
+      case 'quiz':
+        return <HelpCircle className="w-5 h-5" />;
       default:
         return <FileText className="w-5 h-5" />;
     }
   };
 
   const getContentTypeName = (type: string) => {
-    const types = {
+    const types: Record<string, string> = {
       video: 'Vídeo',
       document: 'Documento',
-      text: 'Texto'
+      text: 'Texto',
+      audio: 'Áudio',
+      image: 'Imagem',
+      link: 'Link Externo',
+      embed: 'Embed',
+      download: 'Download',
+      quiz: 'Quiz'
     };
-    return types[type as keyof typeof types] || type;
+    return types[type] || type;
   };
 
   if (loading) {
