@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, Video, File, Music, Image, Link2, Code, Download, HelpCircle, Plus, Trash2 } from "lucide-react";
+import { Upload, Video, File, Music, Image, Link2, Code, Download, HelpCircle, Plus, Trash2, GitBranch, GripVertical } from "lucide-react";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { Card } from "@/components/ui/card";
 
@@ -18,11 +18,19 @@ interface QuizQuestion {
   correctIndex: number;
 }
 
+interface TimelineItem {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  icon?: string;
+}
+
 interface ModuleContent {
   id?: string;
   module_id: string;
   title: string;
-  content_type: 'video' | 'document' | 'text' | 'audio' | 'image' | 'link' | 'embed' | 'download' | 'quiz';
+  content_type: 'video' | 'document' | 'text' | 'audio' | 'image' | 'link' | 'embed' | 'download' | 'quiz' | 'timeline';
   video_url?: string;
   document_url?: string;
   content_data?: string;
@@ -49,6 +57,7 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
   });
   const [uploading, setUploading] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
+  const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
 
   useEffect(() => {
     if (content) {
@@ -61,6 +70,14 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
           setQuizQuestions([]);
         }
       }
+      // Parse timeline items if exists
+      if (content.content_type === 'timeline' && content.content_data) {
+        try {
+          setTimelineItems(JSON.parse(content.content_data));
+        } catch {
+          setTimelineItems([]);
+        }
+      }
     } else {
       setFormData({
         module_id: moduleId,
@@ -70,6 +87,7 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
         order_index: 0,
       });
       setQuizQuestions([]);
+      setTimelineItems([]);
     }
   }, [content, moduleId]);
 
@@ -150,6 +168,35 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
     setQuizQuestions(quizQuestions.filter((_, i) => i !== index));
   };
 
+  // Timeline functions
+  const addTimelineItem = () => {
+    setTimelineItems([...timelineItems, { 
+      id: crypto.randomUUID(), 
+      title: '', 
+      description: '', 
+      date: '',
+      icon: 'check'
+    }]);
+  };
+
+  const updateTimelineItem = (id: string, field: keyof TimelineItem, value: string) => {
+    setTimelineItems(timelineItems.map(item => 
+      item.id === id ? { ...item, [field]: value } : item
+    ));
+  };
+
+  const removeTimelineItem = (id: string) => {
+    setTimelineItems(timelineItems.filter(item => item.id !== id));
+  };
+
+  const moveTimelineItem = (index: number, direction: 'up' | 'down') => {
+    const newItems = [...timelineItems];
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= newItems.length) return;
+    [newItems[index], newItems[newIndex]] = [newItems[newIndex], newItems[index]];
+    setTimelineItems(newItems);
+  };
+
   const handleSave = async () => {
     if (!formData.title) {
       toast.error('Digite o título do conteúdo');
@@ -160,6 +207,9 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
     const dataToSave = { ...formData };
     if (formData.content_type === 'quiz') {
       dataToSave.content_data = JSON.stringify(quizQuestions);
+    }
+    if (formData.content_type === 'timeline') {
+      dataToSave.content_data = JSON.stringify(timelineItems);
     }
 
     try {
@@ -194,6 +244,18 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
     { value: 'embed', label: 'Embed (HTML/Iframe)', icon: Code },
     { value: 'download', label: 'Arquivo para Download', icon: Download },
     { value: 'quiz', label: 'Quiz/Questionário', icon: HelpCircle },
+    { value: 'timeline', label: 'Linha do Tempo', icon: GitBranch },
+  ];
+
+  const timelineIcons = [
+    { value: 'check', label: '✓ Concluído' },
+    { value: 'star', label: '⭐ Destaque' },
+    { value: 'rocket', label: '🚀 Lançamento' },
+    { value: 'trophy', label: '🏆 Conquista' },
+    { value: 'lightbulb', label: '💡 Ideia' },
+    { value: 'calendar', label: '📅 Evento' },
+    { value: 'milestone', label: '🎯 Marco' },
+    { value: 'update', label: '🔄 Atualização' },
   ];
 
   return (
@@ -593,6 +655,117 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* TIMELINE */}
+          {formData.content_type === 'timeline' && (
+            <div className="grid gap-4">
+              <div className="flex items-center justify-between">
+                <Label>Itens da Linha do Tempo</Label>
+                <Button onClick={addTimelineItem} size="sm" variant="outline">
+                  <Plus className="w-4 h-4 mr-1" />
+                  Adicionar Item
+                </Button>
+              </div>
+              
+              {timelineItems.length === 0 ? (
+                <div className="text-center py-8 border-2 border-dashed rounded-lg">
+                  <GitBranch className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">Nenhum item na linha do tempo</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Adicione marcos, eventos ou etapas concluídas
+                  </p>
+                  <Button onClick={addTimelineItem} size="sm" variant="outline" className="mt-3">
+                    <Plus className="w-4 h-4 mr-1" />
+                    Adicionar Primeiro Item
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {timelineItems.map((item, index) => (
+                    <Card key={item.id} className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex flex-col gap-1 mt-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0"
+                            onClick={() => moveTimelineItem(index, 'up')}
+                            disabled={index === 0}
+                          >
+                            ▲
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0"
+                            onClick={() => moveTimelineItem(index, 'down')}
+                            disabled={index === timelineItems.length - 1}
+                          >
+                            ▼
+                          </Button>
+                        </div>
+                        
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold shrink-0">
+                          {index + 1}
+                        </div>
+                        
+                        <div className="flex-1 space-y-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <Input
+                              value={item.title}
+                              onChange={(e) => updateTimelineItem(item.id, 'title', e.target.value)}
+                              placeholder="Título do marco/etapa"
+                            />
+                            <Input
+                              value={item.date}
+                              onChange={(e) => updateTimelineItem(item.id, 'date', e.target.value)}
+                              placeholder="Data (ex: Jan 2024, Semana 1)"
+                            />
+                          </div>
+                          
+                          <Textarea
+                            value={item.description}
+                            onChange={(e) => updateTimelineItem(item.id, 'description', e.target.value)}
+                            placeholder="Descrição do que foi realizado ou entregue..."
+                            rows={2}
+                          />
+                          
+                          <Select 
+                            value={item.icon || 'check'} 
+                            onValueChange={(value) => updateTimelineItem(item.id, 'icon', value)}
+                          >
+                            <SelectTrigger className="w-[200px]">
+                              <SelectValue placeholder="Ícone" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {timelineIcons.map(icon => (
+                                <SelectItem key={icon.value} value={icon.value}>
+                                  {icon.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <Button 
+                          onClick={() => removeTimelineItem(item.id)} 
+                          size="sm" 
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                        >
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+              
+              <p className="text-xs text-muted-foreground">
+                💡 Use para mostrar progresso do curso, histórico de atualizações, marcos alcançados ou etapas de um projeto.
+              </p>
             </div>
           )}
 
