@@ -64,6 +64,8 @@ import { GlobalChatNotification } from "@/components/GlobalChatNotification";
 import { PortfolioCreatorPanel } from "@/components/PortfolioCreatorPanel";
 import { ManualDispatcherPanel } from "@/components/ManualDispatcherPanel";
 import SalesFunnelPanel from "@/components/SalesFunnelPanel";
+import { MediaConverterPanel } from "@/components/MediaConverterPanel";
+import { DocumentConverterPanel } from "@/components/DocumentConverterPanel";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { TeamMemberBanner } from "@/components/TeamMemberBanner";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
@@ -1457,6 +1459,14 @@ const Dashboard = () => {
             <FeatureGate featureKey="portfolio_creator">
               <PortfolioCreatorPanel teamContext={getTeamContext('portfolio')} />
             </FeatureGate>
+          </TabsContent>
+
+          <TabsContent value="conversor-midia">
+            <MediaConverterPanel />
+          </TabsContent>
+
+          <TabsContent value="conversor-documentos">
+            <DocumentConverterPanel />
           </TabsContent>
         </Tabs>
       </main>
