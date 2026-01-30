@@ -996,6 +996,20 @@ END:VCARD`;
         </div>
       )}
 
+      {/* Security Warning - Send Limit */}
+      <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+        <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
+            ⚠️ Atenção: Limite de Envios Diários
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Para evitar restrições no WhatsApp, envie no máximo <strong className="text-foreground">15 mensagens por dia</strong> para números que não têm você salvo. 
+            Alterne entre conversas naturais e disparos. Números novos são mais sensíveis a bloqueios.
+          </p>
+        </div>
+      </div>
+
       {/* Tip for adding contacts */}
       {leads.length > 0 && (
         <Card className="border-blue-500/50 bg-blue-500/5">
