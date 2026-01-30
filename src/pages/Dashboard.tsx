@@ -67,6 +67,7 @@ import SalesFunnelPanel from "@/components/SalesFunnelPanel";
 import { MediaConverterPanel } from "@/components/MediaConverterPanel";
 import { DocumentConverterPanel } from "@/components/DocumentConverterPanel";
 import VideoDownloaderPanel from "@/components/VideoDownloaderPanel";
+import { SuppliersManagementPanel } from "@/components/SuppliersManagementPanel";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { TeamMemberBanner } from "@/components/TeamMemberBanner";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
@@ -1163,6 +1164,10 @@ const Dashboard = () => {
 
           <TabsContent value="clientes">
             <ClientsManagementPanel teamContext={getTeamContext('crm')} />
+          </TabsContent>
+
+          <TabsContent value="fornecedores">
+            <SuppliersManagementPanel />
           </TabsContent>
 
           <TabsContent value="floating-button">
