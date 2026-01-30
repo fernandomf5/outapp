@@ -3976,6 +3976,68 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_categories: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      lead_category_assignments: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          lead_id: string
+          lead_source: string
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          lead_id: string
+          lead_source: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          lead_id?: string
+          lead_source?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_category_assignments_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "lead_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       link_bio_clicks: {
         Row: {
           bio_id: string | null
