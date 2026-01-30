@@ -8,14 +8,21 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, Video, File } from "lucide-react";
+import { Upload, Video, File, Music, Image, Link2, Code, Download, HelpCircle, Plus, Trash2 } from "lucide-react";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import { Card } from "@/components/ui/card";
+
+interface QuizQuestion {
+  question: string;
+  options: string[];
+  correctIndex: number;
+}
 
 interface ModuleContent {
   id?: string;
   module_id: string;
   title: string;
-  content_type: 'video' | 'document' | 'text';
+  content_type: 'video' | 'document' | 'text' | 'audio' | 'image' | 'link' | 'embed' | 'download' | 'quiz';
   video_url?: string;
   document_url?: string;
   content_data?: string;
@@ -41,10 +48,19 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
     order_index: 0,
   });
   const [uploading, setUploading] = useState(false);
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
 
   useEffect(() => {
     if (content) {
       setFormData(content);
+      // Parse quiz questions if exists
+      if (content.content_type === 'quiz' && content.content_data) {
+        try {
+          setQuizQuestions(JSON.parse(content.content_data));
+        } catch {
+          setQuizQuestions([]);
+        }
+      }
     } else {
       setFormData({
         module_id: moduleId,
@@ -53,16 +69,30 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
         is_active: true,
         order_index: 0,
       });
+      setQuizQuestions([]);
     }
   }, [content, moduleId]);
 
-  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'video' | 'audio' | 'image' | 'document' | 'download') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('video/')) {
-      toast.error('Por favor, selecione um arquivo de vídeo');
-      return;
+    // Validate file types
+    const validTypes: Record<string, string[]> = {
+      video: ['video/'],
+      audio: ['audio/'],
+      image: ['image/'],
+      document: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+      download: [] // Accept all for downloads
+    };
+
+    const typeCheck = validTypes[type];
+    if (typeCheck.length > 0) {
+      const isValid = typeCheck.some(t => file.type.startsWith(t) || file.type === t);
+      if (!isValid) {
+        toast.error(`Tipo de arquivo inválido para ${type}`);
+        return;
+      }
     }
 
     setUploading(true);
@@ -71,7 +101,8 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
       if (!user) throw new Error('Usuário não autenticado');
 
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${moduleId}/${Date.now()}.${fileExt}`;
+      const folder = type === 'video' ? '' : type === 'document' ? 'docs/' : type === 'audio' ? 'audio/' : type === 'image' ? 'images/' : 'downloads/';
+      const fileName = `${user.id}/${moduleId}/${folder}${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('members-content')
@@ -83,50 +114,40 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
         .from('members-content')
         .getPublicUrl(fileName);
 
-      setFormData(prev => ({ ...prev, video_url: publicUrl }));
-      toast.success('Vídeo enviado com sucesso!');
+      if (type === 'video') {
+        setFormData(prev => ({ ...prev, video_url: publicUrl }));
+      } else if (type === 'document' || type === 'download') {
+        setFormData(prev => ({ ...prev, document_url: publicUrl }));
+      } else {
+        setFormData(prev => ({ ...prev, content_data: publicUrl }));
+      }
+      
+      toast.success('Arquivo enviado com sucesso!');
     } catch (error: any) {
-      toast.error('Erro ao enviar vídeo: ' + error.message);
+      toast.error('Erro ao enviar arquivo: ' + error.message);
     } finally {
       setUploading(false);
     }
   };
 
-  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const addQuizQuestion = () => {
+    setQuizQuestions([...quizQuestions, { question: '', options: ['', '', '', ''], correctIndex: 0 }]);
+  };
 
-    const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    if (!validTypes.includes(file.type)) {
-      toast.error('Por favor, selecione um PDF ou documento Word');
-      return;
-    }
+  const updateQuizQuestion = (index: number, field: keyof QuizQuestion, value: any) => {
+    const updated = [...quizQuestions];
+    updated[index] = { ...updated[index], [field]: value };
+    setQuizQuestions(updated);
+  };
 
-    setUploading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
+  const updateQuizOption = (qIndex: number, oIndex: number, value: string) => {
+    const updated = [...quizQuestions];
+    updated[qIndex].options[oIndex] = value;
+    setQuizQuestions(updated);
+  };
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${moduleId}/docs/${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('members-content')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('members-content')
-        .getPublicUrl(fileName);
-
-      setFormData(prev => ({ ...prev, document_url: publicUrl }));
-      toast.success('Documento enviado com sucesso!');
-    } catch (error: any) {
-      toast.error('Erro ao enviar documento: ' + error.message);
-    } finally {
-      setUploading(false);
-    }
+  const removeQuizQuestion = (index: number) => {
+    setQuizQuestions(quizQuestions.filter((_, i) => i !== index));
   };
 
   const handleSave = async () => {
@@ -135,18 +156,24 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
       return;
     }
 
+    // Prepare data
+    const dataToSave = { ...formData };
+    if (formData.content_type === 'quiz') {
+      dataToSave.content_data = JSON.stringify(quizQuestions);
+    }
+
     try {
       if (content?.id) {
         const { error } = await supabase
           .from('members_area_module_contents')
-          .update(formData as any)
+          .update(dataToSave as any)
           .eq('id', content.id);
         if (error) throw error;
         toast.success('Conteúdo atualizado!');
       } else {
         const { error } = await supabase
           .from('members_area_module_contents')
-          .insert([formData as any]);
+          .insert([dataToSave as any]);
         if (error) throw error;
         toast.success('Conteúdo criado!');
       }
@@ -156,6 +183,18 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
       toast.error('Erro ao salvar conteúdo: ' + error.message);
     }
   };
+
+  const contentTypes = [
+    { value: 'video', label: 'Vídeo', icon: Video },
+    { value: 'audio', label: 'Áudio/Podcast', icon: Music },
+    { value: 'document', label: 'Documento (PDF/Word)', icon: File },
+    { value: 'text', label: 'Texto/Artigo', icon: File },
+    { value: 'image', label: 'Imagem/Galeria', icon: Image },
+    { value: 'link', label: 'Link Externo', icon: Link2 },
+    { value: 'embed', label: 'Embed (HTML/Iframe)', icon: Code },
+    { value: 'download', label: 'Arquivo para Download', icon: Download },
+    { value: 'quiz', label: 'Quiz/Questionário', icon: HelpCircle },
+  ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -175,9 +214,14 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="video">Vídeo</SelectItem>
-                <SelectItem value="document">Documento</SelectItem>
-                <SelectItem value="text">Texto</SelectItem>
+                {contentTypes.map(type => (
+                  <SelectItem key={type.value} value={type.value}>
+                    <div className="flex items-center gap-2">
+                      <type.icon className="w-4 h-4" />
+                      {type.label}
+                    </div>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -191,6 +235,7 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
             />
           </div>
 
+          {/* VIDEO */}
           {formData.content_type === 'video' && (
             <div className="grid gap-2">
               <Label>Vídeo</Label>
@@ -198,7 +243,7 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
                 {formData.video_url ? (
                   <div className="space-y-2">
                     <Video className="w-12 h-12 mx-auto text-primary" />
-                    <p className="text-sm text-muted-foreground">Vídeo enviado</p>
+                    <p className="text-sm text-muted-foreground">Vídeo configurado</p>
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -216,7 +261,7 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
                     <Input 
                       type="file" 
                       accept="video/*"
-                      onChange={handleVideoUpload}
+                      onChange={(e) => handleFileUpload(e, 'video')}
                       disabled={uploading}
                       className="max-w-xs mx-auto"
                     />
@@ -234,6 +279,52 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
             </div>
           )}
 
+          {/* AUDIO */}
+          {formData.content_type === 'audio' && (
+            <div className="grid gap-2">
+              <Label>Áudio/Podcast</Label>
+              <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                {formData.content_data ? (
+                  <div className="space-y-2">
+                    <Music className="w-12 h-12 mx-auto text-primary" />
+                    <p className="text-sm text-muted-foreground">Áudio configurado</p>
+                    <audio controls src={formData.content_data} className="mx-auto mt-2" />
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setFormData({...formData, content_data: undefined})}
+                    >
+                      Substituir
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Upload className="w-12 h-12 mx-auto text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      {uploading ? 'Enviando...' : 'Clique para enviar áudio (MP3, WAV, etc.)'}
+                    </p>
+                    <Input 
+                      type="file" 
+                      accept="audio/*"
+                      onChange={(e) => handleFileUpload(e, 'audio')}
+                      disabled={uploading}
+                      className="max-w-xs mx-auto"
+                    />
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Ou cole a URL do áudio (Spotify, SoundCloud, etc.)
+              </p>
+              <Input
+                value={formData.content_data || ''}
+                onChange={(e) => setFormData({...formData, content_data: e.target.value})}
+                placeholder="https://open.spotify.com/episode/..."
+              />
+            </div>
+          )}
+
+          {/* DOCUMENT */}
           {formData.content_type === 'document' && (
             <div className="grid gap-2">
               <Label>Documento (PDF, Word)</Label>
@@ -266,7 +357,7 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
                     <Input 
                       type="file" 
                       accept=".pdf,.doc,.docx"
-                      onChange={handleDocumentUpload}
+                      onChange={(e) => handleFileUpload(e, 'document')}
                       disabled={uploading}
                       className="max-w-xs mx-auto"
                     />
@@ -276,6 +367,7 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
             </div>
           )}
 
+          {/* TEXT */}
           {formData.content_type === 'text' && (
             <div className="grid gap-2">
               <Label>Conteúdo</Label>
@@ -283,6 +375,224 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
                 value={formData.content_data || ''}
                 onChange={(value) => setFormData({...formData, content_data: value})}
               />
+            </div>
+          )}
+
+          {/* IMAGE */}
+          {formData.content_type === 'image' && (
+            <div className="grid gap-2">
+              <Label>Imagem</Label>
+              <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                {formData.content_data ? (
+                  <div className="space-y-2">
+                    <img src={formData.content_data} alt="Preview" className="max-h-48 mx-auto rounded-lg" />
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setFormData({...formData, content_data: undefined})}
+                    >
+                      Substituir
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Image className="w-12 h-12 mx-auto text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      {uploading ? 'Enviando...' : 'Clique para enviar imagem'}
+                    </p>
+                    <Input 
+                      type="file" 
+                      accept="image/*"
+                      onChange={(e) => handleFileUpload(e, 'image')}
+                      disabled={uploading}
+                      className="max-w-xs mx-auto"
+                    />
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Ou cole a URL da imagem
+              </p>
+              <Input
+                value={formData.content_data || ''}
+                onChange={(e) => setFormData({...formData, content_data: e.target.value})}
+                placeholder="https://exemplo.com/imagem.jpg"
+              />
+              <div className="mt-2">
+                <Label>Descrição da Imagem</Label>
+                <Textarea
+                  value={formData.document_url || ''}
+                  onChange={(e) => setFormData({...formData, document_url: e.target.value})}
+                  placeholder="Descreva a imagem ou adicione legenda..."
+                  rows={2}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* LINK */}
+          {formData.content_type === 'link' && (
+            <div className="grid gap-2">
+              <Label>URL do Link</Label>
+              <Input
+                value={formData.video_url || ''}
+                onChange={(e) => setFormData({...formData, video_url: e.target.value})}
+                placeholder="https://exemplo.com/recurso"
+              />
+              <div className="mt-2">
+                <Label>Descrição do Link</Label>
+                <Textarea
+                  value={formData.content_data || ''}
+                  onChange={(e) => setFormData({...formData, content_data: e.target.value})}
+                  placeholder="Descreva para onde o link leva..."
+                  rows={2}
+                />
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <Switch 
+                  checked={formData.document_url === 'new_tab'}
+                  onCheckedChange={(checked) => setFormData({...formData, document_url: checked ? 'new_tab' : 'same_tab'})}
+                />
+                <Label className="text-sm">Abrir em nova aba</Label>
+              </div>
+            </div>
+          )}
+
+          {/* EMBED */}
+          {formData.content_type === 'embed' && (
+            <div className="grid gap-2">
+              <Label>Código Embed (HTML/Iframe)</Label>
+              <Textarea
+                value={formData.content_data || ''}
+                onChange={(e) => setFormData({...formData, content_data: e.target.value})}
+                placeholder='<iframe src="..." width="100%" height="400"></iframe>'
+                rows={6}
+                className="font-mono text-sm"
+              />
+              <p className="text-xs text-muted-foreground">
+                Cole o código embed de serviços como Google Maps, Calendly, Typeform, etc.
+              </p>
+            </div>
+          )}
+
+          {/* DOWNLOAD */}
+          {formData.content_type === 'download' && (
+            <div className="grid gap-2">
+              <Label>Arquivo para Download</Label>
+              <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                {formData.document_url ? (
+                  <div className="space-y-2">
+                    <Download className="w-12 h-12 mx-auto text-primary" />
+                    <p className="text-sm text-muted-foreground">Arquivo configurado</p>
+                    <div className="flex gap-2 justify-center">
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={formData.document_url} target="_blank" rel="noopener noreferrer">
+                          Baixar
+                        </a>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setFormData({...formData, document_url: undefined})}
+                      >
+                        Substituir
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Upload className="w-12 h-12 mx-auto text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      {uploading ? 'Enviando...' : 'Clique para enviar arquivo (qualquer tipo)'}
+                    </p>
+                    <Input 
+                      type="file" 
+                      onChange={(e) => handleFileUpload(e, 'download')}
+                      disabled={uploading}
+                      className="max-w-xs mx-auto"
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="mt-2">
+                <Label>Descrição do Arquivo</Label>
+                <Textarea
+                  value={formData.content_data || ''}
+                  onChange={(e) => setFormData({...formData, content_data: e.target.value})}
+                  placeholder="Descreva o conteúdo do arquivo..."
+                  rows={2}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* QUIZ */}
+          {formData.content_type === 'quiz' && (
+            <div className="grid gap-4">
+              <div className="flex items-center justify-between">
+                <Label>Perguntas do Quiz</Label>
+                <Button onClick={addQuizQuestion} size="sm" variant="outline">
+                  <Plus className="w-4 h-4 mr-1" />
+                  Adicionar Pergunta
+                </Button>
+              </div>
+              
+              {quizQuestions.length === 0 ? (
+                <div className="text-center py-8 border-2 border-dashed rounded-lg">
+                  <HelpCircle className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">Nenhuma pergunta adicionada</p>
+                  <Button onClick={addQuizQuestion} size="sm" variant="outline" className="mt-2">
+                    <Plus className="w-4 h-4 mr-1" />
+                    Adicionar Primeira Pergunta
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {quizQuestions.map((q, qIndex) => (
+                    <Card key={qIndex} className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <Label className="text-sm font-medium">Pergunta {qIndex + 1}</Label>
+                        <Button 
+                          onClick={() => removeQuizQuestion(qIndex)} 
+                          size="sm" 
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                        >
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      </div>
+                      <Input
+                        value={q.question}
+                        onChange={(e) => updateQuizQuestion(qIndex, 'question', e.target.value)}
+                        placeholder="Digite a pergunta..."
+                        className="mb-3"
+                      />
+                      <div className="space-y-2">
+                        {q.options.map((opt, oIndex) => (
+                          <div key={oIndex} className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name={`correct-${qIndex}`}
+                              checked={q.correctIndex === oIndex}
+                              onChange={() => updateQuizQuestion(qIndex, 'correctIndex', oIndex)}
+                              className="w-4 h-4"
+                            />
+                            <Input
+                              value={opt}
+                              onChange={(e) => updateQuizOption(qIndex, oIndex, e.target.value)}
+                              placeholder={`Opção ${oIndex + 1}`}
+                              className="flex-1"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Selecione o círculo ao lado da resposta correta
+                      </p>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
