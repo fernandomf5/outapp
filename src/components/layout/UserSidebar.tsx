@@ -239,7 +239,7 @@ export function UserSidebar() {
           {/* Management section */}
           {hasVisibleItems(managementItems) && (
             <SidebarGroup>
-              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">{t('management')}</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">Gestão de:</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {managementItems.map((item) => {
