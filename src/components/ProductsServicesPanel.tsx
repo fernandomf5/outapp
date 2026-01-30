@@ -33,6 +33,7 @@ import {
   Box,
   Layers,
   BarChart3,
+  Building2,
 } from "lucide-react";
 import {
   Dialog,
@@ -41,6 +42,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+
+interface Business {
+  id: string;
+  name: string;
+  logo_url: string | null;
+}
 
 interface Product {
   id: string;
@@ -65,6 +72,7 @@ interface Product {
   is_active: boolean;
   tags: string[] | null;
   created_at: string;
+  business_id: string | null;
 }
 
 interface Service {
@@ -81,6 +89,7 @@ interface Service {
   is_active: boolean;
   tags: string[] | null;
   created_at: string;
+  business_id: string | null;
 }
 
 const defaultProductForm = {
@@ -105,6 +114,7 @@ const defaultProductForm = {
   access_duration_days: "",
   is_active: true,
   tags: "",
+  business_id: "",
 };
 
 const defaultServiceForm = {
@@ -119,6 +129,7 @@ const defaultServiceForm = {
   max_capacity: "1",
   is_active: true,
   tags: "",
+  business_id: "",
 };
 
 export default function ProductsServicesPanel() {
@@ -126,6 +137,9 @@ export default function ProductsServicesPanel() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("products");
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Businesses state
+  const [businesses, setBusinesses] = useState<Business[]>([]);
 
   // Products state
   const [products, setProducts] = useState<Product[]>([]);
@@ -149,8 +163,21 @@ export default function ProductsServicesPanel() {
     if (user) {
       loadProducts();
       loadServices();
+      loadBusinesses();
     }
   }, [user]);
+
+  const loadBusinesses = async () => {
+    const { data, error } = await supabase
+      .from("businesses")
+      .select("id, name, logo_url")
+      .eq("user_id", user?.id)
+      .order("name");
+
+    if (!error && data) {
+      setBusinesses(data);
+    }
+  };
 
   useEffect(() => {
     if (editingProduct) {
@@ -176,6 +203,7 @@ export default function ProductsServicesPanel() {
         access_duration_days: editingProduct.access_duration_days?.toString() || "",
         is_active: editingProduct.is_active,
         tags: editingProduct.tags?.join(", ") || "",
+        business_id: editingProduct.business_id || "",
       });
     } else {
       setProductForm(defaultProductForm);
@@ -196,6 +224,7 @@ export default function ProductsServicesPanel() {
         max_capacity: editingService.max_capacity?.toString() || "1",
         is_active: editingService.is_active,
         tags: editingService.tags?.join(", ") || "",
+        business_id: editingService.business_id || "",
       });
     } else {
       setServiceForm(defaultServiceForm);
@@ -318,6 +347,7 @@ export default function ProductsServicesPanel() {
       access_duration_days: productForm.access_duration_days ? parseInt(productForm.access_duration_days) : null,
       is_active: productForm.is_active,
       tags: productForm.tags ? productForm.tags.split(",").map((t) => t.trim()).filter(Boolean) : null,
+      business_id: productForm.business_id || null,
     };
 
     try {
@@ -358,6 +388,7 @@ export default function ProductsServicesPanel() {
       max_capacity: parseInt(serviceForm.max_capacity) || 1,
       is_active: serviceForm.is_active,
       tags: serviceForm.tags ? serviceForm.tags.split(",").map((t) => t.trim()).filter(Boolean) : null,
+      business_id: serviceForm.business_id || null,
     };
 
     try {
@@ -710,6 +741,30 @@ export default function ProductsServicesPanel() {
                   placeholder="Nome do produto"
                 />
               </div>
+              {businesses.length > 0 && (
+                <div className="col-span-2">
+                  <Label className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Negócio
+                  </Label>
+                  <Select
+                    value={productForm.business_id}
+                    onValueChange={(v) => setProductForm({ ...productForm, business_id: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um negócio (opcional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Nenhum (pessoal)</SelectItem>
+                      {businesses.map((business) => (
+                        <SelectItem key={business.id} value={business.id}>
+                          {business.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div>
                 <Label>Tipo *</Label>
                 <Select
@@ -952,6 +1007,30 @@ export default function ProductsServicesPanel() {
                   placeholder="Nome do serviço"
                 />
               </div>
+              {businesses.length > 0 && (
+                <div className="col-span-2">
+                  <Label className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Negócio
+                  </Label>
+                  <Select
+                    value={serviceForm.business_id}
+                    onValueChange={(v) => setServiceForm({ ...serviceForm, business_id: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um negócio (opcional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Nenhum (pessoal)</SelectItem>
+                      {businesses.map((business) => (
+                        <SelectItem key={business.id} value={business.id}>
+                          {business.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="col-span-2">
                 <Label>Categoria</Label>
                 <Input
