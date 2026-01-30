@@ -121,11 +121,14 @@ export function UserSidebar() {
   const managementItems: MenuItem[] = [
     { title: t('agenda'), icon: Calendar, path: "/dashboard", tab: "agenda", moduleKey: "agenda" },
     { title: t('client_management'), icon: Users, path: "/dashboard", tab: "clientes", moduleKey: "crm" },
-    { title: t('financial_management'), icon: DollarSign, path: "/dashboard", tab: "financeiro", moduleKey: "financial" },
     { title: t('team_management'), icon: UserCog, path: "/dashboard", tab: "equipe", hideForTeamMember: true },
     { title: t('ads_management'), icon: Megaphone, path: "/dashboard", tab: "anuncios", moduleKey: "ads" },
     { title: t('task_organizer'), icon: Target, path: "/dashboard", tab: "tarefas", moduleKey: "tasks" },
     { title: t('sales_funnel'), icon: Filter, path: "/dashboard", tab: "funil-vendas", moduleKey: "sales_funnel" },
+  ];
+
+  const financialItems: MenuItem[] = [
+    { title: t('financial_management'), icon: DollarSign, path: "/dashboard", tab: "financeiro", moduleKey: "financial" },
   ];
 
   const crmItems: MenuItem[] = [
@@ -260,6 +263,31 @@ export function UserSidebar() {
             </SidebarGroup>
           )}
 
+          {/* Financial section */}
+          {hasVisibleItems(financialItems) && (
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">{t('financial')}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {financialItems.map((item) => {
+                    if (!canShowItem(item)) return null;
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          onClick={() => handleNavigation(item.path, item.tab)}
+                          className={`text-sm py-2 ${isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}`}
+                        >
+                          <item.icon className="h-4 w-4 shrink-0" />
+                          {!collapsed && <span className="truncate">{item.title}</span>}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
+
           {/* Leads section */}
           {hasVisibleItems(crmItems) && (
             <SidebarGroup>
@@ -269,22 +297,21 @@ export function UserSidebar() {
                   {crmItems.map((item) => {
                     if (!canShowItem(item)) return null;
                     return (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton
-                        onClick={() => handleNavigation(item.path, item.tab)}
-                        className={`text-sm py-2 ${isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}`}
-                      >
-                        <item.icon className="h-4 w-4 shrink-0" />
-                        {!collapsed && <span className="truncate">{item.title}</span>}
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          onClick={() => handleNavigation(item.path, item.tab)}
+                          className={`text-sm py-2 ${isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}`}
+                        >
+                          <item.icon className="h-4 w-4 shrink-0" />
+                          {!collapsed && <span className="truncate">{item.title}</span>}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
                     );
                   })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
           )}
-
           {/* Basic Resources section - hide for team members */}
           {!isTeamMember && hasVisibleItems(basicResourcesItems) && (
             <SidebarGroup>

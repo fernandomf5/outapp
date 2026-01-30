@@ -67,6 +67,7 @@ export const translations = {
     
     // Sidebar Menu Sections
     management: "Gestão",
+    financial: "Financeiro",
     agenda: "Agenda",
     client_management: "Gestão de Clientes",
     financial_management: "Gestão Financeira",
@@ -478,6 +479,7 @@ export const translations = {
     
     // Sidebar Menu Sections
     management: "Management",
+    financial: "Financial",
     agenda: "Agenda",
     client_management: "Client Management",
     financial_management: "Financial Management",
