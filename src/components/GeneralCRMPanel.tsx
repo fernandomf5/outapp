@@ -573,6 +573,58 @@ export function GeneralCRMPanel() {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Categorias como Cards Clicáveis (Pastas) */}
+          {categories.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-3">Categorias de Leads:</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                {categories.map((category) => {
+                  const categoryLeadCount = leads.filter(l => l.categoryId === category.id).length;
+                  return (
+                    <div
+                      key={category.id}
+                      onClick={() => setCategoryFilter(categoryFilter === category.id ? 'all' : category.id)}
+                      className={`relative group rounded-lg border p-4 hover:shadow-md transition-all cursor-pointer ${
+                        categoryFilter === category.id ? 'ring-2 ring-offset-2' : ''
+                      }`}
+                      style={{ 
+                        borderColor: category.color, 
+                        backgroundColor: `${category.color}10`,
+                        ...(categoryFilter === category.id ? { ringColor: category.color } : {})
+                      }}
+                    >
+                      <div className="flex flex-col items-center text-center">
+                        <Folder className="h-8 w-8 mb-2" style={{ color: category.color }} />
+                        <span className="font-medium text-sm truncate w-full" style={{ color: category.color }}>
+                          {category.name}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{categoryLeadCount} leads</span>
+                      </div>
+                    </div>
+                  );
+                })}
+                
+                {/* Card para Sem Categoria */}
+                <div
+                  onClick={() => setCategoryFilter(categoryFilter === 'none' ? 'all' : 'none')}
+                  className={`relative group rounded-lg border border-dashed p-4 hover:shadow-md transition-all cursor-pointer border-muted-foreground/30 ${
+                    categoryFilter === 'none' ? 'ring-2 ring-offset-2 ring-muted-foreground' : ''
+                  }`}
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <Folder className="h-8 w-8 mb-2 text-muted-foreground" />
+                    <span className="font-medium text-sm truncate w-full text-muted-foreground">
+                      Sem Categoria
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {leads.filter(l => !l.categoryId).length} leads
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
             <div className="flex items-center gap-2 flex-wrap">
               <Filter className="h-4 w-4 text-muted-foreground" />
