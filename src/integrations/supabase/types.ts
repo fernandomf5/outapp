@@ -5699,6 +5699,7 @@ export type Database = {
         Row: {
           access_duration_days: number | null
           barcode: string | null
+          business_id: string | null
           category: string | null
           cost_price: number | null
           created_at: string | null
@@ -5726,6 +5727,7 @@ export type Database = {
         Insert: {
           access_duration_days?: number | null
           barcode?: string | null
+          business_id?: string | null
           category?: string | null
           cost_price?: number | null
           created_at?: string | null
@@ -5753,6 +5755,7 @@ export type Database = {
         Update: {
           access_duration_days?: number | null
           barcode?: string | null
+          business_id?: string | null
           category?: string | null
           cost_price?: number | null
           created_at?: string | null
@@ -5777,7 +5780,15 @@ export type Database = {
           user_id?: string
           weight_kg?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -7069,6 +7080,7 @@ export type Database = {
       }
       user_services: {
         Row: {
+          business_id: string | null
           category: string | null
           created_at: string | null
           description: string | null
@@ -7087,6 +7099,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          business_id?: string | null
           category?: string | null
           created_at?: string | null
           description?: string | null
@@ -7105,6 +7118,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          business_id?: string | null
           category?: string | null
           created_at?: string | null
           description?: string | null
@@ -7122,7 +7136,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_services_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_trusted_devices: {
         Row: {
