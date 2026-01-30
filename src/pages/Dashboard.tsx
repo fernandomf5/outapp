@@ -68,6 +68,7 @@ import { MediaConverterPanel } from "@/components/MediaConverterPanel";
 import { DocumentConverterPanel } from "@/components/DocumentConverterPanel";
 import VideoDownloaderPanel from "@/components/VideoDownloaderPanel";
 import { SuppliersManagementPanel } from "@/components/SuppliersManagementPanel";
+import { BusinessManagementPanel } from "@/components/BusinessManagementPanel";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { TeamMemberBanner } from "@/components/TeamMemberBanner";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
@@ -1164,6 +1165,10 @@ const Dashboard = () => {
 
           <TabsContent value="clientes">
             <ClientsManagementPanel teamContext={getTeamContext('crm')} />
+          </TabsContent>
+
+          <TabsContent value="negocios">
+            <BusinessManagementPanel />
           </TabsContent>
 
           <TabsContent value="fornecedores">

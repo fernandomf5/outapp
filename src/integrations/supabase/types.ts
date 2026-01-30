@@ -1814,6 +1814,72 @@ export type Database = {
         }
         Relationships: []
       }
+      businesses: {
+        Row: {
+          address: string | null
+          category: string | null
+          city: string | null
+          cnpj: string | null
+          company_name: string | null
+          created_at: string
+          description: string | null
+          email: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          phone: string | null
+          settings: Json | null
+          state: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          website: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          category?: string | null
+          city?: string | null
+          cnpj?: string | null
+          company_name?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          phone?: string | null
+          settings?: Json | null
+          state?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          website?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          category?: string | null
+          city?: string | null
+          cnpj?: string | null
+          company_name?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          settings?: Json | null
+          state?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
       button_link_clicks: {
         Row: {
           ai_agent_id: string | null

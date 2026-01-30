@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck, Layers, LogIn, Filter, Download, Smartphone, RefreshCw, FileType, Video, Truck } from "lucide-react";
+import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck, Layers, LogIn, Filter, Download, Smartphone, RefreshCw, FileType, Video, Truck, Building2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import logoLight from "@/assets/logo-light.png";
@@ -118,8 +118,9 @@ export function UserSidebar() {
     { title: t('agenda'), icon: Calendar, path: "/dashboard", tab: "agenda", moduleKey: "agenda" },
   ];
 
-  const managementItems: MenuItem[] = [
+const managementItems: MenuItem[] = [
     { title: "Clientes", icon: Users, path: "/dashboard", tab: "clientes", moduleKey: "crm" },
+    { title: "Negócios", icon: Building2, path: "/dashboard", tab: "negocios", hideForTeamMember: true },
     { title: "Fornecedores", icon: Truck, path: "/dashboard", tab: "fornecedores", hideForTeamMember: true },
     { title: "Equipe", icon: UserCog, path: "/dashboard", tab: "equipe", hideForTeamMember: true },
     { title: "Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios", moduleKey: "ads" },
