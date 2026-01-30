@@ -121,6 +121,7 @@ export function UserSidebar() {
   const managementItems: MenuItem[] = [
     { title: t('agenda'), icon: Calendar, path: "/dashboard", tab: "agenda", moduleKey: "agenda" },
     { title: t('team_management'), icon: UserCog, path: "/dashboard", tab: "equipe", hideForTeamMember: true },
+    { title: t('client_management'), icon: Users, path: "/dashboard", tab: "clientes", moduleKey: "crm" },
     { title: t('ads_management'), icon: Megaphone, path: "/dashboard", tab: "anuncios", moduleKey: "ads" },
     { title: t('task_organizer'), icon: Target, path: "/dashboard", tab: "tarefas", moduleKey: "tasks" },
     { title: t('sales_funnel'), icon: Filter, path: "/dashboard", tab: "funil-vendas", moduleKey: "sales_funnel" },
@@ -131,7 +132,6 @@ export function UserSidebar() {
   ];
 
   const crmItems: MenuItem[] = [
-    { title: t('client_management'), icon: Users, path: "/dashboard", tab: "clientes", moduleKey: "crm" },
     { title: t('lead_control'), icon: Database, path: "/dashboard", tab: "crm-geral", moduleKey: "crm" },
   ];
 
