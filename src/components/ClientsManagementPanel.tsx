@@ -11,7 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { UserPlus, Edit, Trash2, Download, Phone, Mail, Search, Filter, X, Building, Briefcase, MapPin, Globe, Tag, Camera, Loader2, FolderPlus, Settings2, Folder } from "lucide-react";
+import { UserPlus, Edit, Trash2, Download, Phone, Mail, Search, Filter, X, Building, Briefcase, MapPin, Globe, Tag, Camera, Loader2, FolderPlus, Settings2, Folder, History } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CustomerHistoryPanel } from "@/components/crm/CustomerHistoryPanel";
 import { toast } from "sonner";
 
 interface Category {
@@ -1486,99 +1488,116 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
 
       {/* Dialog: Detalhes do Cliente */}
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detalhes do Cliente</DialogTitle>
           </DialogHeader>
           {selectedCustomer && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-muted-foreground">Nome</Label>
-                  <p className="font-medium">{selectedCustomer.name}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Status</Label>
-                  <Badge variant="outline" className={`${statusColors[selectedCustomer.status]} mt-1`}>
-                    {statusLabels[selectedCustomer.status]}
-                  </Badge>
-                </div>
-                {selectedCustomer.email && (
-                  <div>
-                    <Label className="text-muted-foreground">E-mail</Label>
-                    <p className="font-medium">{selectedCustomer.email}</p>
-                  </div>
-                )}
-                {selectedCustomer.phone && (
-                  <div>
-                    <Label className="text-muted-foreground">Telefone</Label>
-                    <p className="font-medium">{selectedCustomer.phone}</p>
-                  </div>
-                )}
-                {selectedCustomer.company && (
-                  <div>
-                    <Label className="text-muted-foreground">Empresa</Label>
-                    <p className="font-medium">{selectedCustomer.company}</p>
-                  </div>
-                )}
-                {selectedCustomer.position && (
-                  <div>
-                    <Label className="text-muted-foreground">Cargo</Label>
-                    <p className="font-medium">{selectedCustomer.position}</p>
-                  </div>
-                )}
-                {selectedCustomer.website && (
-                  <div>
-                    <Label className="text-muted-foreground">Website</Label>
-                    <a href={selectedCustomer.website} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
-                      {selectedCustomer.website}
-                    </a>
-                  </div>
-                )}
-              </div>
+            <Tabs defaultValue="info" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="info">Informações</TabsTrigger>
+                <TabsTrigger value="history">
+                  <History className="w-4 h-4 mr-2" />
+                  Histórico
+                </TabsTrigger>
+              </TabsList>
               
-              {selectedCustomer.tags && selectedCustomer.tags.length > 0 && (
-                <div>
-                  <Label className="text-muted-foreground">Tags</Label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {selectedCustomer.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary">
-                        {tag}
-                      </Badge>
-                    ))}
+              <TabsContent value="info" className="space-y-6 mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-muted-foreground">Nome</Label>
+                    <p className="font-medium">{selectedCustomer.name}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Status</Label>
+                    <Badge variant="outline" className={`${statusColors[selectedCustomer.status]} mt-1`}>
+                      {statusLabels[selectedCustomer.status]}
+                    </Badge>
+                  </div>
+                  {selectedCustomer.email && (
+                    <div>
+                      <Label className="text-muted-foreground">E-mail</Label>
+                      <p className="font-medium">{selectedCustomer.email}</p>
+                    </div>
+                  )}
+                  {selectedCustomer.phone && (
+                    <div>
+                      <Label className="text-muted-foreground">Telefone</Label>
+                      <p className="font-medium">{selectedCustomer.phone}</p>
+                    </div>
+                  )}
+                  {selectedCustomer.company && (
+                    <div>
+                      <Label className="text-muted-foreground">Empresa</Label>
+                      <p className="font-medium">{selectedCustomer.company}</p>
+                    </div>
+                  )}
+                  {selectedCustomer.position && (
+                    <div>
+                      <Label className="text-muted-foreground">Cargo</Label>
+                      <p className="font-medium">{selectedCustomer.position}</p>
+                    </div>
+                  )}
+                  {selectedCustomer.website && (
+                    <div>
+                      <Label className="text-muted-foreground">Website</Label>
+                      <a href={selectedCustomer.website} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
+                        {selectedCustomer.website}
+                      </a>
+                    </div>
+                  )}
+                </div>
+                
+                {selectedCustomer.tags && selectedCustomer.tags.length > 0 && (
+                  <div>
+                    <Label className="text-muted-foreground">Tags</Label>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {selectedCustomer.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {(selectedCustomer.address || selectedCustomer.city || selectedCustomer.state || selectedCustomer.country) && (
+                  <div>
+                    <Label className="text-muted-foreground">Endereço</Label>
+                    <p className="font-medium">
+                      {[selectedCustomer.address, selectedCustomer.city, selectedCustomer.state, selectedCustomer.country]
+                        .filter(Boolean)
+                        .join(', ')}
+                    </p>
+                  </div>
+                )}
+
+                {selectedCustomer.notes && (
+                  <div>
+                    <Label className="text-muted-foreground">Notas</Label>
+                    <p className="font-medium whitespace-pre-wrap">{selectedCustomer.notes}</p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                  <div>
+                    <Label className="text-muted-foreground">Cadastrado em</Label>
+                    <p className="font-medium">{new Date(selectedCustomer.created_at).toLocaleString('pt-BR')}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Última atualização</Label>
+                    <p className="font-medium">{new Date(selectedCustomer.updated_at).toLocaleString('pt-BR')}</p>
                   </div>
                 </div>
-              )}
-
-              {(selectedCustomer.address || selectedCustomer.city || selectedCustomer.state || selectedCustomer.country) && (
-                <div>
-                  <Label className="text-muted-foreground">Endereço</Label>
-                  <p className="font-medium">
-                    {[selectedCustomer.address, selectedCustomer.city, selectedCustomer.state, selectedCustomer.country]
-                      .filter(Boolean)
-                      .join(', ')}
-                  </p>
-                </div>
-              )}
-
-              {selectedCustomer.notes && (
-                <div>
-                  <Label className="text-muted-foreground">Notas</Label>
-                  <p className="font-medium whitespace-pre-wrap">{selectedCustomer.notes}</p>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
-                <div>
-                  <Label className="text-muted-foreground">Cadastrado em</Label>
-                  <p className="font-medium">{new Date(selectedCustomer.created_at).toLocaleString('pt-BR')}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Última atualização</Label>
-                  <p className="font-medium">{new Date(selectedCustomer.updated_at).toLocaleString('pt-BR')}</p>
-                </div>
-              </div>
-            </div>
+              </TabsContent>
+              
+              <TabsContent value="history" className="mt-4">
+                <CustomerHistoryPanel 
+                  customerId={selectedCustomer.id} 
+                  contactName={selectedCustomer.name} 
+                />
+              </TabsContent>
+            </Tabs>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setDetailsDialogOpen(false)}>

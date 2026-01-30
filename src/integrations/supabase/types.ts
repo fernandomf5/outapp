@@ -3411,6 +3411,7 @@ export type Database = {
           amount: number
           contact_id: string
           created_at: string
+          customer_id: string | null
           description: string | null
           id: string
           notes: string | null
@@ -3424,6 +3425,7 @@ export type Database = {
           amount: number
           contact_id: string
           created_at?: string
+          customer_id?: string | null
           description?: string | null
           id?: string
           notes?: string | null
@@ -3437,6 +3439,7 @@ export type Database = {
           amount?: number
           contact_id?: string
           created_at?: string
+          customer_id?: string | null
           description?: string | null
           id?: string
           notes?: string | null
@@ -3454,12 +3457,20 @@ export type Database = {
             referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "customer_payments_history_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
         ]
       }
       customer_purchases_history: {
         Row: {
           contact_id: string
           created_at: string
+          customer_id: string | null
           id: string
           notes: string | null
           product_id: string | null
@@ -3473,6 +3484,7 @@ export type Database = {
         Insert: {
           contact_id: string
           created_at?: string
+          customer_id?: string | null
           id?: string
           notes?: string | null
           product_id?: string | null
@@ -3486,6 +3498,7 @@ export type Database = {
         Update: {
           contact_id?: string
           created_at?: string
+          customer_id?: string | null
           id?: string
           notes?: string | null
           product_id?: string | null
@@ -3505,6 +3518,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "customer_purchases_history_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "customer_purchases_history_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
@@ -3517,6 +3537,7 @@ export type Database = {
         Row: {
           contact_id: string
           created_at: string
+          customer_id: string | null
           description: string | null
           id: string
           notes: string | null
@@ -3530,6 +3551,7 @@ export type Database = {
         Insert: {
           contact_id: string
           created_at?: string
+          customer_id?: string | null
           description?: string | null
           id?: string
           notes?: string | null
@@ -3543,6 +3565,7 @@ export type Database = {
         Update: {
           contact_id?: string
           created_at?: string
+          customer_id?: string | null
           description?: string | null
           id?: string
           notes?: string | null
@@ -3559,6 +3582,13 @@ export type Database = {
             columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_services_history_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
             referencedColumns: ["id"]
           },
           {

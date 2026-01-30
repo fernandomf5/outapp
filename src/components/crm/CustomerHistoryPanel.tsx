@@ -137,31 +137,34 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
   const fetchAllHistory = async () => {
     if (!entityId) return;
     
-    const filterColumn = entityType === 'contact' ? 'contact_id' : 'customer_id';
+    // Build filter based on entity type
+    const filterCondition = entityType === 'contact' 
+      ? `contact_id.eq.${entityId}`
+      : `customer_id.eq.${entityId}`;
     
     // Fetch services history
     const { data: services } = await supabase
       .from('customer_services_history')
       .select('*')
-      .eq(filterColumn, entityId)
+      .or(filterCondition)
       .order('service_date', { ascending: false });
-    if (services) setServicesHistory(services);
+    if (services) setServicesHistory(services as ServiceHistory[]);
 
     // Fetch purchases history
     const { data: purchases } = await supabase
       .from('customer_purchases_history')
       .select('*')
-      .eq(filterColumn, entityId)
+      .or(filterCondition)
       .order('purchase_date', { ascending: false });
-    if (purchases) setPurchasesHistory(purchases);
+    if (purchases) setPurchasesHistory(purchases as PurchaseHistory[]);
 
     // Fetch payments history
     const { data: payments } = await supabase
       .from('customer_payments_history')
       .select('*')
-      .eq(filterColumn, entityId)
+      .or(filterCondition)
       .order('payment_date', { ascending: false });
-    if (payments) setPaymentsHistory(payments);
+    if (payments) setPaymentsHistory(payments as PaymentHistory[]);
   };
 
   const fetchAvailableData = async () => {
@@ -186,7 +189,7 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
       return;
     }
 
-    const insertData: Record<string, any> = {
+    const baseData = {
       user_id: user!.id,
       service_id: newService.service_id || null,
       service_name: newService.service_name,
@@ -194,16 +197,12 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
       price: newService.price,
       service_date: newService.service_date,
       status: newService.status,
-      notes: newService.notes || null
+      notes: newService.notes || null,
+      contact_id: entityType === 'contact' ? entityId : null,
+      customer_id: entityType === 'customer' ? entityId : null
     };
-    
-    if (entityType === 'contact') {
-      insertData.contact_id = entityId;
-    } else {
-      insertData.customer_id = entityId;
-    }
 
-    const { error } = await supabase.from('customer_services_history').insert(insertData);
+    const { error } = await supabase.from('customer_services_history').insert(baseData);
 
     if (error) {
       toast({ title: "Erro ao registrar serviço", description: error.message, variant: "destructive" });
@@ -223,7 +222,7 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
 
     const totalPrice = newPurchase.quantity * newPurchase.unit_price;
 
-    const insertData: Record<string, any> = {
+    const baseData = {
       user_id: user!.id,
       product_id: newPurchase.product_id || null,
       product_name: newPurchase.product_name,
@@ -231,16 +230,12 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
       unit_price: newPurchase.unit_price,
       total_price: totalPrice,
       purchase_date: newPurchase.purchase_date,
-      notes: newPurchase.notes || null
+      notes: newPurchase.notes || null,
+      contact_id: entityType === 'contact' ? entityId : null,
+      customer_id: entityType === 'customer' ? entityId : null
     };
-    
-    if (entityType === 'contact') {
-      insertData.contact_id = entityId;
-    } else {
-      insertData.customer_id = entityId;
-    }
 
-    const { error } = await supabase.from('customer_purchases_history').insert(insertData);
+    const { error } = await supabase.from('customer_purchases_history').insert(baseData);
 
     if (error) {
       toast({ title: "Erro ao registrar compra", description: error.message, variant: "destructive" });
@@ -258,22 +253,18 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
       return;
     }
 
-    const insertData: Record<string, any> = {
+    const baseData = {
       user_id: user!.id,
       amount: newPayment.amount,
       payment_method: newPayment.payment_method,
       payment_date: newPayment.payment_date,
       description: newPayment.description || null,
-      notes: newPayment.notes || null
+      notes: newPayment.notes || null,
+      contact_id: entityType === 'contact' ? entityId : null,
+      customer_id: entityType === 'customer' ? entityId : null
     };
-    
-    if (entityType === 'contact') {
-      insertData.contact_id = entityId;
-    } else {
-      insertData.customer_id = entityId;
-    }
 
-    const { error } = await supabase.from('customer_payments_history').insert(insertData);
+    const { error } = await supabase.from('customer_payments_history').insert(baseData);
 
     if (error) {
       toast({ title: "Erro ao registrar pagamento", description: error.message, variant: "destructive" });
