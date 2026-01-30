@@ -66,6 +66,7 @@ import { ManualDispatcherPanel } from "@/components/ManualDispatcherPanel";
 import SalesFunnelPanel from "@/components/SalesFunnelPanel";
 import { MediaConverterPanel } from "@/components/MediaConverterPanel";
 import { DocumentConverterPanel } from "@/components/DocumentConverterPanel";
+import VideoDownloaderPanel from "@/components/VideoDownloaderPanel";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { TeamMemberBanner } from "@/components/TeamMemberBanner";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
@@ -1358,6 +1359,10 @@ const Dashboard = () => {
 
           <TabsContent value="extrator-criativos">
             <CreativeExtractorPanel />
+          </TabsContent>
+
+          <TabsContent value="video-downloader">
+            <VideoDownloaderPanel />
           </TabsContent>
 
           <TabsContent value="tarefas">
