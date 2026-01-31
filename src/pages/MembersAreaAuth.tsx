@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 
 export default function MembersAreaAuth() {
   const [searchParams] = useSearchParams();
@@ -17,6 +17,7 @@ export default function MembersAreaAuth() {
   
   const [loading, setLoading] = useState(false);
   const [loginForm, setLoginForm] = useState({ email: "", accessCode: "" });
+  const [showAccessCode, setShowAccessCode] = useState(false);
   const [requestForm, setRequestForm] = useState({ name: "", email: "" });
   const [area, setArea] = useState<any>(null);
   const [loadingArea, setLoadingArea] = useState(true);
@@ -206,14 +207,31 @@ export default function MembersAreaAuth() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="access-code">Código de Acesso</Label>
-                  <Input
-                    id="access-code"
-                    value={loginForm.accessCode}
-                    onChange={(e) => setLoginForm({...loginForm, accessCode: e.target.value})}
-                    placeholder="XXXXXXXX"
-                    maxLength={8}
-                    required
-                  />
+                  <div className="relative">
+                    <Input
+                      id="access-code"
+                      type={showAccessCode ? "text" : "password"}
+                      value={loginForm.accessCode}
+                      onChange={(e) => setLoginForm({...loginForm, accessCode: e.target.value})}
+                      placeholder="XXXXXXXX"
+                      maxLength={8}
+                      required
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      onClick={() => setShowAccessCode(!showAccessCode)}
+                    >
+                      {showAccessCode ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     Você receberá este código por email após aprovação
                   </p>
