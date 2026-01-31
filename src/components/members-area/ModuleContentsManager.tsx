@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Video, FileText, File, Trash2, Edit, Eye, EyeOff, Music, Image, Link2, Code, Download, HelpCircle, GitBranch, History } from "lucide-react";
+import { Plus, Video, FileText, File, Trash2, Edit, Eye, EyeOff, Music, Image, Link2, Code, Download, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ModuleContentEditor } from "./ModuleContentEditor";
 
@@ -11,7 +11,7 @@ interface ModuleContent {
   id: string;
   module_id: string;
   title: string;
-  content_type: 'video' | 'document' | 'text' | 'audio' | 'image' | 'link' | 'embed' | 'download' | 'quiz' | 'timeline' | 'customer_history';
+  content_type: 'video' | 'document' | 'text' | 'audio' | 'image' | 'link' | 'embed' | 'download' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'form' | 'mindmap' | 'notes' | 'faq' | 'slides';
   video_url?: string;
   document_url?: string;
   content_data?: string;
@@ -95,32 +95,28 @@ export function ModuleContentsManager({ moduleId, moduleName }: ModuleContentsMa
   };
 
   const getContentIcon = (type: string) => {
-    switch (type) {
-      case 'video':
-        return <Video className="w-5 h-5" />;
-      case 'document':
-        return <File className="w-5 h-5" />;
-      case 'text':
-        return <FileText className="w-5 h-5" />;
-      case 'audio':
-        return <Music className="w-5 h-5" />;
-      case 'image':
-        return <Image className="w-5 h-5" />;
-      case 'link':
-        return <Link2 className="w-5 h-5" />;
-      case 'embed':
-        return <Code className="w-5 h-5" />;
-      case 'download':
-        return <Download className="w-5 h-5" />;
-      case 'quiz':
-        return <HelpCircle className="w-5 h-5" />;
-      case 'timeline':
-        return <GitBranch className="w-5 h-5" />;
-      case 'customer_history':
-        return <History className="w-5 h-5" />;
-      default:
-        return <FileText className="w-5 h-5" />;
-    }
+    const icons: Record<string, React.ReactNode> = {
+      video: <Video className="w-5 h-5" />,
+      document: <File className="w-5 h-5" />,
+      text: <FileText className="w-5 h-5" />,
+      audio: <Music className="w-5 h-5" />,
+      image: <Image className="w-5 h-5" />,
+      link: <Link2 className="w-5 h-5" />,
+      embed: <Code className="w-5 h-5" />,
+      download: <Download className="w-5 h-5" />,
+      quiz: <HelpCircle className="w-5 h-5" />,
+      timeline: <GitBranch className="w-5 h-5" />,
+      customer_history: <History className="w-5 h-5" />,
+      checklist: <CheckSquare className="w-5 h-5" />,
+      certificate: <Award className="w-5 h-5" />,
+      webinar: <Radio className="w-5 h-5" />,
+      form: <FileText className="w-5 h-5" />,
+      mindmap: <Brain className="w-5 h-5" />,
+      notes: <StickyNote className="w-5 h-5" />,
+      faq: <MessageSquare className="w-5 h-5" />,
+      slides: <Presentation className="w-5 h-5" />,
+    };
+    return icons[type] || <FileText className="w-5 h-5" />;
   };
 
   const getContentTypeName = (type: string) => {
@@ -135,7 +131,15 @@ export function ModuleContentsManager({ moduleId, moduleName }: ModuleContentsMa
       download: 'Download',
       quiz: 'Quiz',
       timeline: 'Linha do Tempo',
-      customer_history: 'Histórico do Cliente'
+      customer_history: 'Histórico do Cliente',
+      checklist: 'Checklist',
+      certificate: 'Certificado',
+      webinar: 'Webinar/Live',
+      form: 'Formulário',
+      mindmap: 'Mapa Mental',
+      notes: 'Anotações',
+      faq: 'FAQ',
+      slides: 'Slides'
     };
     return types[type] || type;
   };
