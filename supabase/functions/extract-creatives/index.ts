@@ -78,11 +78,9 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
     /https:\/\/scontent\.cdninstagram\.com\/[^"\s\)>\\]+/gi,
     // Generic video fbcdn patterns
     /https:\/\/video[^"\s\)>\\]+fbcdn\.net\/[^"\s\)>\\]+/gi,
-    // Video with /v/t patterns (common Facebook format for videos)
-    /https:\/\/[^"\s\)>\\]+fbcdn\.net\/v\/t[0-9]+\.[0-9]+\-[0-9]+\/[^"\s\)>\\]+/gi,
-    // More specific /v/t42 and /v/t39 patterns (video containers)
-    /https:\/\/[^"\s\)>\\]+\/v\/t42[^"\s\)>\\]+/gi,
-    /https:\/\/[^"\s\)>\\]+\/v\/t39[^"\s\)>\\]+/gi,
+    // Video with /v/t42 pattern (Facebook video container)
+    /https:\/\/[^"\s\)>\\]+fbcdn\.net\/v\/t42\.[0-9]+\-[0-9]+\/[^"\s\)>\\]+/gi,
+    /https:\/\/[^"\s\)>\\]+\/v\/t42\.[^"\s\)>\\]+/gi,
     // Escaped URLs (common in JSON)
     /https:\\u002F\\u002F[^"\s]+?\.mp4[^"\s]*/gi,
     /https:\\\/\\\/[^"\s]+?\.mp4[^"\s]*/gi,
@@ -248,10 +246,11 @@ function isVideoUrl(url: string): boolean {
     return true;
   }
   
-  // Check for /v/t patterns which are typically videos on Facebook
-  if (/\/v\/t\d+/.test(lowerUrl)) {
-    return true;
-  }
+  // Facebook container pattern:
+  // - t42 is commonly video container
+  // - t39 is commonly image container (so don't treat as video)
+  if (/\/v\/t42\./.test(lowerUrl)) return true;
+  if (/\/v\/t39\./.test(lowerUrl)) return false;
   
   // Check for video streaming patterns
   if (lowerUrl.includes('playable') || lowerUrl.includes('stream') || lowerUrl.includes('bytestart')) {
@@ -298,7 +297,7 @@ function isValidVideoUrl(url: string): boolean {
   const validVideoPatterns = [
     '.mp4',
     'video',
-    '/v/t',
+    '/v/t42.',
     'playable',
     'stream',
     'fbcdn.net/v/',
