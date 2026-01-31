@@ -39,6 +39,13 @@ interface MembersArea {
   primary_color?: string;
   secondary_color?: string;
   logo_url?: string;
+  // Design da área interna
+  background_color?: string;
+  text_color?: string;
+  card_background_color?: string;
+  card_text_color?: string;
+  header_background_color?: string;
+  accent_color?: string;
 }
 
 export default function MembersAreaPublic() {
@@ -353,18 +360,42 @@ export default function MembersAreaPublic() {
   // Apply custom colors via CSS variables
   const primaryColor = area.primary_color || '#8B5CF6';
   const secondaryColor = area.secondary_color || '#EC4899';
+  const backgroundColor = area.background_color || '#ffffff';
+  const textColor = area.text_color || '#1f2937';
+  const cardBackgroundColor = area.card_background_color || '#f9fafb';
+  const cardTextColor = area.card_text_color || '#374151';
+  const headerBackgroundColor = area.header_background_color || '#f3f4f6';
+  const accentColor = area.accent_color || primaryColor;
 
   return (
     <div 
-      className="min-h-screen bg-background"
+      className="min-h-screen"
       style={{
         '--custom-primary': primaryColor,
         '--custom-secondary': secondaryColor,
+        backgroundColor: backgroundColor,
+        color: textColor,
       } as React.CSSProperties}
     >
       <style>{`
         [style*="--custom-primary"] .gradient-primary {
           background: linear-gradient(135deg, ${primaryColor}, ${secondaryColor});
+        }
+        [style*="--custom-primary"] .custom-card {
+          background-color: ${cardBackgroundColor};
+          color: ${cardTextColor};
+        }
+        [style*="--custom-primary"] .custom-header {
+          background-color: ${headerBackgroundColor};
+        }
+        [style*="--custom-primary"] .custom-accent {
+          color: ${accentColor};
+        }
+        [style*="--custom-primary"] .custom-accent-bg {
+          background-color: ${accentColor};
+        }
+        [style*="--custom-primary"] .custom-link:hover {
+          color: ${accentColor};
         }
         [style*="--custom-primary"] .bg-primary {
           background-color: ${primaryColor} !important;
@@ -385,7 +416,10 @@ export default function MembersAreaPublic() {
           --tw-gradient-to: ${primaryColor}0d !important;
         }
       `}</style>
-      <div className="bg-gradient-to-r from-primary/10 to-primary/5 border-b">
+      <div 
+        className="custom-header border-b"
+        style={{ backgroundColor: headerBackgroundColor }}
+      >
         <div className="container mx-auto px-4 py-12">
           <div className="flex flex-col sm:flex-row items-center gap-6">
             {area.logo_url && (
@@ -396,10 +430,18 @@ export default function MembersAreaPublic() {
               />
             )}
             <div className="flex-1 text-center sm:text-left">
-              <h1 className="text-4xl font-bold mb-2">{area.name}</h1>
-              <p className="text-muted-foreground text-lg">{area.description}</p>
+              <h1 className="text-4xl font-bold mb-2" style={{ color: textColor }}>{area.name}</h1>
+              <p className="text-lg opacity-70" style={{ color: textColor }}>{area.description}</p>
             </div>
-            <Button onClick={handleLogout} variant="outline" className="gap-2">
+            <Button 
+              onClick={handleLogout} 
+              variant="outline" 
+              className="gap-2"
+              style={{ 
+                borderColor: accentColor, 
+                color: accentColor 
+              }}
+            >
               <LogOut className="w-4 h-4" />
               Sair
             </Button>
@@ -409,14 +451,18 @@ export default function MembersAreaPublic() {
 
       {/* Anchor Menu */}
       {area.sections.length > 0 && (
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
+        <div 
+          className="sticky top-0 z-10 backdrop-blur-sm border-b"
+          style={{ backgroundColor: `${backgroundColor}f2` }}
+        >
           <div className="container mx-auto px-4 py-3">
             <nav className="flex gap-4 overflow-x-auto">
               {area.sections.map((section) => (
                 <a
                   key={section.id}
                   href={`#section-${section.id}`}
-                  className="text-sm font-medium whitespace-nowrap hover:text-primary transition-colors"
+                  className="text-sm font-medium whitespace-nowrap transition-colors custom-link"
+                  style={{ color: textColor }}
                 >
                   {section.title}
                 </a>
@@ -429,11 +475,20 @@ export default function MembersAreaPublic() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
           {area.sections.map((section) => (
-            <Card key={section.id} id={`section-${section.id}`} className="scroll-mt-20">
+            <Card 
+              key={section.id} 
+              id={`section-${section.id}`} 
+              className="scroll-mt-20 custom-card border"
+              style={{ 
+                backgroundColor: cardBackgroundColor,
+                color: cardTextColor,
+                borderColor: `${accentColor}30`
+              }}
+            >
               <CardHeader>
-                <CardTitle className="text-2xl">{section.title}</CardTitle>
+                <CardTitle className="text-2xl" style={{ color: cardTextColor }}>{section.title}</CardTitle>
                 {section.description && (
-                  <p className="text-muted-foreground">{section.description}</p>
+                  <p className="opacity-70" style={{ color: cardTextColor }}>{section.description}</p>
                 )}
               </CardHeader>
               <CardContent>
