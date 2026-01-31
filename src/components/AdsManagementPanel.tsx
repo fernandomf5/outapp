@@ -225,7 +225,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
         .from('ad_clients')
         .select('*')
         .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: true });
 
       const { data: clientsData, error: clientsError } = await clientsQuery;
 
@@ -237,7 +237,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
         .from('ad_campaigns')
         .select('*')
         .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: true });
 
       // If team member with restrictions, filter by allowed campaign IDs
       if (teamContext?.allowedIds && teamContext.allowedIds.length > 0) {
