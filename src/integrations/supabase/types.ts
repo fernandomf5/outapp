@@ -1937,6 +1937,66 @@ export type Database = {
           },
         ]
       }
+      catalogs: {
+        Row: {
+          cover_url: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          layout_style: string | null
+          logo_url: string | null
+          name: string
+          primary_color: string | null
+          show_description: boolean | null
+          show_prices: boolean | null
+          show_stock: boolean | null
+          slug: string
+          updated_at: string | null
+          user_id: string
+          views_count: number | null
+          whatsapp_number: string | null
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          layout_style?: string | null
+          logo_url?: string | null
+          name: string
+          primary_color?: string | null
+          show_description?: boolean | null
+          show_prices?: boolean | null
+          show_stock?: boolean | null
+          slug: string
+          updated_at?: string | null
+          user_id: string
+          views_count?: number | null
+          whatsapp_number?: string | null
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          layout_style?: string | null
+          logo_url?: string | null
+          name?: string
+          primary_color?: string | null
+          show_description?: boolean | null
+          show_prices?: boolean | null
+          show_stock?: boolean | null
+          slug?: string
+          updated_at?: string | null
+          user_id?: string
+          views_count?: number | null
+          whatsapp_number?: string | null
+        }
+        Relationships: []
+      }
       chatbot_access_requests: {
         Row: {
           chatbot_id: string
