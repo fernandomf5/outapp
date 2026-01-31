@@ -49,7 +49,7 @@ import CreativeExtractorPanel from "@/components/CreativeExtractorPanel";
 import { QuizCreatorPanel } from "@/components/QuizCreatorPanel";
 import { BriefingResponsesPanel } from "@/components/BriefingResponsesPanel";
 import { BriefingCreatorPanel } from "@/components/BriefingCreatorPanel";
-import { MembersAreaCreator } from "@/components/MembersAreaCreator";
+// MembersAreaCreator removed - only Simple Members Area is used
 import { SimpleMembersArea } from "@/components/SimpleMembersArea";
 import { TutorialVideos } from "@/components/TutorialVideos";
 import { QuickNotesPanel } from "@/components/QuickNotesPanel";
@@ -312,7 +312,7 @@ const Dashboard = () => {
           supabase.from('quizzes').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
           supabase.from('websites').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
           supabase.from('briefings').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
-          supabase.from('members_areas').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
+          supabase.from('simple_members_areas').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
           supabase.from('popups').select('*', { count: 'exact', head: true }).eq('user_id', effectiveUserId),
         ]);
 

@@ -36,8 +36,8 @@ import CalculatorPage from "./pages/CalculatorPage";
 import QuizPage from "./pages/QuizPage";
 import BriefingPublicPage from "./pages/BriefingPublicPage";
 import CustomPage from "./pages/CustomPage";
-import MembersAreaView from "./pages/MembersAreaView";
-import MembersAreaAuth from "./pages/MembersAreaAuth";
+// MembersAreaView removed - only Simple Members Area is used
+// MembersAreaAuth removed - only Simple Members Area is used (MembersAreaPublic has its own auth)
 import MembersAreaPublic from "./pages/MembersAreaPublic";
 import ChatbotResetPassword from "./pages/ChatbotResetPassword";
 import AgentResetPassword from "./pages/AgentResetPassword";
@@ -99,9 +99,8 @@ const AppContent = () => {
               <Route path="/blog/:slug" element={<Blog />} />
               <Route path="/calculadora" element={<CalculatorPage />} />
                <Route path="/quiz/:quizId" element={<QuizPage />} />
-          <Route path="/members-area/:areaId" element={<MembersAreaView />} />
-          <Route path="/members-area-auth" element={<MembersAreaAuth />} />
-          <Route path="/members-area-auth/:areaId" element={<MembersAreaAuth />} />
+          {/* MembersAreaView removed - only Simple Members Area is used */}
+          {/* MembersAreaAuth removed - using simple members area with password */}
           <Route path="/members/:slug" element={<MembersAreaPublic />} />
           <Route path="/briefing/:briefingId" element={<BriefingPublicPage />} />
           <Route path="/mindmap/:id" element={<MindMapPresentation />} />
