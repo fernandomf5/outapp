@@ -70,6 +70,7 @@ import VideoDownloaderPanel from "@/components/VideoDownloaderPanel";
 import { SuppliersManagementPanel } from "@/components/SuppliersManagementPanel";
 import { BusinessManagementPanel } from "@/components/BusinessManagementPanel";
 import ProductsServicesPanel from "@/components/ProductsServicesPanel";
+import CatalogCreatorPanel from "@/components/CatalogCreatorPanel";
 import RoutineOrganizerPanel from "@/components/RoutineOrganizerPanel";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
@@ -1387,6 +1388,10 @@ const Dashboard = () => {
 
           <TabsContent value="produtos-servicos">
             <ProductsServicesPanel />
+          </TabsContent>
+
+          <TabsContent value="catalogo">
+            <CatalogCreatorPanel />
           </TabsContent>
 
           <TabsContent value="popups">
