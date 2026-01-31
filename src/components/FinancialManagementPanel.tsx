@@ -888,6 +888,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   };
 
   // Função para alterar a ordem de uma transação por número (com atualização otimista)
+  // Propaga a ordem para todos os meses futuros automaticamente
   const handleChangeOrder = useCallback(async (transactionId: string, newOrder1Based: number) => {
     // Work with current local state for optimistic update
     const currentList = [...localTransactions];
@@ -906,6 +907,13 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
 
     // Persist to database in background
     try {
+      // Create a map of description -> new order_index for the current month
+      const orderMap = new Map<string, number>();
+      newList.forEach((transaction, index) => {
+        orderMap.set(transaction.description.toLowerCase().trim(), index);
+      });
+
+      // Update transactions in current month
       const updates = newList.map((transaction, index) => ({
         id: transaction.id,
         order_index: index,
@@ -917,13 +925,50 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
           .update({ order_index: update.order_index })
           .eq('id', update.id);
       }
+
+      // Propagate order to future months
+      const currentMonthIndex = MONTHS.indexOf(selectedMonth);
+      const futureMonths = MONTHS.slice(currentMonthIndex + 1);
+      
+      if (futureMonths.length > 0) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const targetUserId = teamContext?.adminUserId || user.id;
+
+        // Get all transactions for future months in the same year
+        const { data: futureTransactions, error: fetchError } = await supabase
+          .from('financial_transactions')
+          .select('*')
+          .eq('user_id', targetUserId)
+          .eq('business_id', selectedBusinessId)
+          .eq('year', selectedYear)
+          .in('month', futureMonths);
+
+        if (fetchError) throw fetchError;
+
+        if (futureTransactions && futureTransactions.length > 0) {
+          // Update order_index for matching transactions in future months
+          for (const futureTx of futureTransactions) {
+            const matchingOrder = orderMap.get(futureTx.description.toLowerCase().trim());
+            if (matchingOrder !== undefined && futureTx.order_index !== matchingOrder) {
+              await supabase
+                .from('financial_transactions')
+                .update({ order_index: matchingOrder })
+                .eq('id', futureTx.id);
+            }
+          }
+        }
+      }
+      
+      toast.success('Ordem atualizada para este mês e meses futuros!');
     } catch (error) {
       console.error('Erro ao atualizar ordem:', error);
       toast.error('Erro ao atualizar ordem');
       // Revert on error
       loadTransactions();
     }
-  }, [localTransactions]);
+  }, [localTransactions, selectedMonth, selectedYear, selectedBusinessId, teamContext?.adminUserId]);
 
   // Filtrar transações fixas apenas a partir do mês adicionado
   const getMonthIndex = (month: string) => MONTHS.indexOf(month);
