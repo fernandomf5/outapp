@@ -129,6 +129,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
   const [viewMode, setViewMode] = useState<'selection' | 'management'>('selection');
   const [activeClientId, setActiveClientId] = useState<string | null>(null);
   const [copiedCampaignId, setCopiedCampaignId] = useState<string | null>(null);
+  const [copiedClientId, setCopiedClientId] = useState<string | null>(null);
   
   const [clientFormData, setClientFormData] = useState({
     name: '',
@@ -1245,6 +1246,62 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                       </div>
                     </div>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Share2 className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80" align="end" onClick={(e) => e.stopPropagation()}>
+                          <div className="space-y-3">
+                            <h4 className="font-medium text-sm">Compartilhar Campanhas do Cliente</h4>
+                            <p className="text-xs text-muted-foreground">
+                              Compartilhe um dashboard com todas as campanhas deste cliente
+                            </p>
+                            <div className="flex gap-2">
+                              <Input
+                                readOnly
+                                value={`${window.location.origin}/cliente-campanhas/${client.id}`}
+                                className="text-xs"
+                              />
+                              <Button
+                                size="icon"
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigator.clipboard.writeText(`${window.location.origin}/cliente-campanhas/${client.id}`);
+                                  setCopiedClientId(client.id);
+                                  toast.success("Link copiado!");
+                                  setTimeout(() => setCopiedClientId(null), 2000);
+                                }}
+                              >
+                                {copiedClientId === client.id ? (
+                                  <Check className="h-4 w-4" />
+                                ) : (
+                                  <Copy className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
+                            <Button
+                              size="sm"
+                              className="w-full"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(`${window.location.origin}/cliente-campanhas/${client.id}`, '_blank');
+                              }}
+                            >
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              Abrir Preview
+                            </Button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -1629,13 +1686,62 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                           </Badge>
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeleteClientId(client.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" size="icon" title="Compartilhar campanhas">
+                              <Share2 className="h-4 w-4" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80" align="end">
+                            <div className="space-y-3">
+                              <h4 className="font-medium text-sm">Compartilhar Campanhas</h4>
+                              <p className="text-xs text-muted-foreground">
+                                Compartilhe um dashboard com todas as campanhas deste cliente
+                              </p>
+                              <div className="flex gap-2">
+                                <Input
+                                  readOnly
+                                  value={`${window.location.origin}/cliente-campanhas/${client.id}`}
+                                  className="text-xs"
+                                />
+                                <Button
+                                  size="icon"
+                                  variant="outline"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(`${window.location.origin}/cliente-campanhas/${client.id}`);
+                                    setCopiedClientId(client.id);
+                                    toast.success("Link copiado!");
+                                    setTimeout(() => setCopiedClientId(null), 2000);
+                                  }}
+                                >
+                                  {copiedClientId === client.id ? (
+                                    <Check className="h-4 w-4" />
+                                  ) : (
+                                    <Copy className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </div>
+                              <Button
+                                size="sm"
+                                className="w-full"
+                                variant="outline"
+                                onClick={() => window.open(`${window.location.origin}/cliente-campanhas/${client.id}`, '_blank')}
+                              >
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                Abrir Preview
+                              </Button>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeleteClientId(client.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </div>
                     {client.description && (
                       <p className="text-sm text-muted-foreground mt-2">{client.description}</p>
