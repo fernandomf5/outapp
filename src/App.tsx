@@ -48,6 +48,7 @@ import AprovaJobClient from "./pages/AprovaJobClient";
 import PortfolioPublicPage from "./pages/PortfolioPublicPage";
 import InstallApp from "./pages/InstallApp";
 import CampaignPublicView from "./pages/CampaignPublicView";
+import ClientCampaignsPublicView from "./pages/ClientCampaignsPublicView";
 import TeamMemberAuth from "./pages/TeamMemberAuth";
 import TeamMemberDashboard from "./pages/TeamMemberDashboard";
 import AcceptInvitation from "./pages/AcceptInvitation";
@@ -116,6 +117,7 @@ const AppContent = () => {
               <Route path="/portfolio/:portfolioId/:slug" element={<PortfolioPublicPage />} />
               <Route path="/instalar" element={<InstallApp />} />
               <Route path="/campanha/:campaignId" element={<CampaignPublicView />} />
+              <Route path="/cliente-campanhas/:clientId" element={<ClientCampaignsPublicView />} />
               <Route path="/aceitar-convite" element={<AcceptInvitation />} />
               <Route path="/page-editor/:pageId" element={
                 <ProtectedRoute>
