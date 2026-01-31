@@ -42,6 +42,8 @@ interface MembersArea {
   primary_color?: string;
   secondary_color?: string;
   logo_url?: string;
+  login_background_color?: string;
+  login_text_color?: string;
   background_color?: string;
   text_color?: string;
   card_background_color?: string;
@@ -336,6 +338,8 @@ export default function MembersAreaPublic() {
 
   const primaryColor = area.primary_color || '#8B5CF6';
   const secondaryColor = area.secondary_color || '#EC4899';
+  const loginBackgroundColor = area.login_background_color || '#1a1a2e';
+  const loginTextColor = area.login_text_color || '#ffffff';
   const backgroundColor = area.background_color || '#ffffff';
   const textColor = area.text_color || '#1f2937';
   const cardBackgroundColor = area.card_background_color || '#f9fafb';
@@ -348,9 +352,12 @@ export default function MembersAreaPublic() {
     return (
       <div 
         className="min-h-screen flex items-center justify-center p-4"
-        style={{ backgroundColor: backgroundColor }}
+        style={{ backgroundColor: loginBackgroundColor }}
       >
-        <Card className="w-full max-w-md overflow-hidden shadow-2xl">
+        <Card 
+          className="w-full max-w-md overflow-hidden shadow-2xl border-0"
+          style={{ backgroundColor: loginBackgroundColor }}
+        >
           {/* Hero Banner */}
           <div 
             className="relative py-12 px-6 text-center"
@@ -386,10 +393,10 @@ export default function MembersAreaPublic() {
             {area.sections.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold" style={{ color: textColor }}>Conteúdo Disponível</h3>
+                  <h3 className="text-sm font-semibold" style={{ color: loginTextColor }}>Conteúdo Disponível</h3>
                   <span 
                     className="text-xs font-medium px-2 py-1 rounded-full"
-                    style={{ backgroundColor: `${primaryColor}15`, color: primaryColor }}
+                    style={{ backgroundColor: `${primaryColor}30`, color: primaryColor }}
                   >
                     {area.sections.length} módulos
                   </span>
@@ -399,7 +406,7 @@ export default function MembersAreaPublic() {
                   <div 
                     key={section.id} 
                     className="p-3 rounded-lg transition-colors"
-                    style={{ backgroundColor: `${primaryColor}08` }}
+                    style={{ backgroundColor: `${loginTextColor}10` }}
                   >
                     <div className="flex items-center gap-3">
                       <div 
@@ -409,9 +416,9 @@ export default function MembersAreaPublic() {
                         {index + 1}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate" style={{ color: textColor }}>{section.title}</p>
+                        <p className="text-sm font-medium truncate" style={{ color: loginTextColor }}>{section.title}</p>
                         {section.description && (
-                          <p className="text-xs truncate" style={{ color: cardTextColor }}>{section.description}</p>
+                          <p className="text-xs truncate" style={{ color: `${loginTextColor}99` }}>{section.description}</p>
                         )}
                       </div>
                     </div>
@@ -432,7 +439,7 @@ export default function MembersAreaPublic() {
             {/* Login Form */}
             <div className="space-y-4">
               <div>
-                <Label htmlFor="password" style={{ color: textColor }}>Digite a senha para acessar</Label>
+                <Label htmlFor="password" style={{ color: loginTextColor }}>Digite a senha para acessar</Label>
                 <div className="relative mt-2">
                   <Input
                     id="password"
@@ -441,7 +448,12 @@ export default function MembersAreaPublic() {
                     onChange={(e) => setPasswordInput(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handlePasswordSubmit()}
                     placeholder="••••••••"
-                    className="pr-10"
+                    className="pr-10 border"
+                    style={{ 
+                      backgroundColor: `${loginTextColor}08`, 
+                      borderColor: `${loginTextColor}20`,
+                      color: loginTextColor
+                    }}
                   />
                   <Button
                     type="button"
@@ -451,9 +463,9 @@ export default function MembersAreaPublic() {
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      <EyeOff className="h-4 w-4" style={{ color: `${loginTextColor}60` }} />
                     ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
+                      <Eye className="h-4 w-4" style={{ color: `${loginTextColor}60` }} />
                     )}
                   </Button>
                 </div>

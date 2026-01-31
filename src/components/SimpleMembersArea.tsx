@@ -163,6 +163,9 @@ export function SimpleMembersArea() {
     logo_url: '',
     customer_id: '',
     business_id: '',
+    // Design da tela de login
+    login_background_color: '#1a1a2e',
+    login_text_color: '#ffffff',
     // Design da área interna
     background_color: '#ffffff',
     text_color: '#1f2937',
@@ -256,6 +259,8 @@ export function SimpleMembersArea() {
           logo_url: areaFormData.logo_url || null,
           customer_id: areaFormData.customer_id || null,
           business_id: areaFormData.business_id || null,
+          login_background_color: areaFormData.login_background_color,
+          login_text_color: areaFormData.login_text_color,
           background_color: areaFormData.background_color,
           text_color: areaFormData.text_color,
           card_background_color: areaFormData.card_background_color,
@@ -270,7 +275,7 @@ export function SimpleMembersArea() {
 
       toast.success('Área de membros criada com sucesso!');
       setIsCreateDialogOpen(false);
-      setAreaFormData({ name: '', description: '', password: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', logo_url: '', customer_id: '', business_id: '', background_color: '#ffffff', text_color: '#1f2937', card_background_color: '#f9fafb', card_text_color: '#374151', header_background_color: '#f3f4f6', accent_color: '#8B5CF6' });
+      setAreaFormData({ name: '', description: '', password: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', logo_url: '', customer_id: '', business_id: '', login_background_color: '#1a1a2e', login_text_color: '#ffffff', background_color: '#ffffff', text_color: '#1f2937', card_background_color: '#f9fafb', card_text_color: '#374151', header_background_color: '#f3f4f6', accent_color: '#8B5CF6' });
       loadAreas();
     } catch (error: any) {
       toast.error('Erro ao criar área: ' + error.message);
@@ -499,6 +504,8 @@ export function SimpleMembersArea() {
       logo_url: area.logo_url || '',
       customer_id: area.customer_id || '',
       business_id: area.business_id || '',
+      login_background_color: (area as any).login_background_color || '#1a1a2e',
+      login_text_color: (area as any).login_text_color || '#ffffff',
       background_color: area.background_color || '#ffffff',
       text_color: area.text_color || '#1f2937',
       card_background_color: area.card_background_color || '#f9fafb',
@@ -525,6 +532,8 @@ export function SimpleMembersArea() {
           logo_url: areaFormData.logo_url || null,
           customer_id: areaFormData.customer_id || null,
           business_id: areaFormData.business_id || null,
+          login_background_color: areaFormData.login_background_color,
+          login_text_color: areaFormData.login_text_color,
           background_color: areaFormData.background_color,
           text_color: areaFormData.text_color,
           card_background_color: areaFormData.card_background_color,
@@ -539,7 +548,7 @@ export function SimpleMembersArea() {
       toast.success('Área atualizada com sucesso!');
       setIsEditDialogOpen(false);
       setEditingArea(null);
-      setAreaFormData({ name: '', description: '', password: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', logo_url: '', customer_id: '', business_id: '', background_color: '#ffffff', text_color: '#1f2937', card_background_color: '#f9fafb', card_text_color: '#374151', header_background_color: '#f3f4f6', accent_color: '#8B5CF6' });
+      setAreaFormData({ name: '', description: '', password: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', logo_url: '', customer_id: '', business_id: '', login_background_color: '#1a1a2e', login_text_color: '#ffffff', background_color: '#ffffff', text_color: '#1f2937', card_background_color: '#f9fafb', card_text_color: '#374151', header_background_color: '#f3f4f6', accent_color: '#8B5CF6' });
       loadAreas();
     } catch (error: any) {
       toast.error('Erro ao atualizar área: ' + error.message);
@@ -779,6 +788,14 @@ export function SimpleMembersArea() {
                 secondaryColor={selectedArea.secondary_color || '#EC4899'}
                 logoUrl={selectedArea.logo_url}
                 sections={selectedArea.sections}
+                loginBackgroundColor={(selectedArea as any).login_background_color || '#1a1a2e'}
+                loginTextColor={(selectedArea as any).login_text_color || '#ffffff'}
+                backgroundColor={selectedArea.background_color || '#ffffff'}
+                textColor={selectedArea.text_color || '#1f2937'}
+                cardBackgroundColor={selectedArea.card_background_color || '#f9fafb'}
+                cardTextColor={selectedArea.card_text_color || '#374151'}
+                headerBackgroundColor={selectedArea.header_background_color || '#f3f4f6'}
+                accentColor={selectedArea.accent_color || '#8B5CF6'}
               />
             </div>
           </div>
@@ -1208,10 +1225,31 @@ export function SimpleMembersArea() {
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <Label>Cores da Tela de Login</Label>
+                  <Label className="flex items-center gap-2">
+                    🔐 Design da Tela de Login
+                  </Label>
+                  <p className="text-xs text-muted-foreground">Personalize as cores da página de acesso</p>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <Label className="text-sm">Cor Primária</Label>
+                      <Label className="text-sm">Cor de Fundo</Label>
+                      <Input
+                        type="color"
+                        value={areaFormData.login_background_color}
+                        onChange={(e) => setAreaFormData({ ...areaFormData, login_background_color: e.target.value })}
+                        className="h-10 w-full"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Cor do Texto</Label>
+                      <Input
+                        type="color"
+                        value={areaFormData.login_text_color}
+                        onChange={(e) => setAreaFormData({ ...areaFormData, login_text_color: e.target.value })}
+                        className="h-10 w-full"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Cor Primária (Gradiente)</Label>
                       <Input
                         type="color"
                         value={areaFormData.primary_color}
@@ -1220,7 +1258,7 @@ export function SimpleMembersArea() {
                       />
                     </div>
                     <div>
-                      <Label className="text-sm">Cor Secundária</Label>
+                      <Label className="text-sm">Cor Secundária (Gradiente)</Label>
                       <Input
                         type="color"
                         value={areaFormData.secondary_color}
