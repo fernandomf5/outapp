@@ -1989,14 +1989,16 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
               )}
             </div>
             <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                onClick={handleDownloadImage}
-                disabled={isDownloadingImage || campaigns.length === 0}
-              >
-                <Download className="mr-2 h-4 w-4" />
-                {isDownloadingImage ? 'Gerando...' : 'Baixar PNG'}
-              </Button>
+              {selectedCampaignId && (
+                <Button
+                  variant="outline"
+                  onClick={handleDownloadImage}
+                  disabled={isDownloadingImage}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  {isDownloadingImage ? 'Gerando...' : 'Baixar PNG'}
+                </Button>
+              )}
               {selectedCampaignId && (
                 <Button
                   variant="outline" 
