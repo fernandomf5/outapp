@@ -1306,6 +1306,12 @@ export function SimpleMembersArea() {
                   primaryColor={areaFormData.primary_color}
                   secondaryColor={areaFormData.secondary_color}
                   logoUrl={areaFormData.logo_url}
+                  backgroundColor={areaFormData.background_color}
+                  textColor={areaFormData.text_color}
+                  cardBackgroundColor={areaFormData.card_background_color}
+                  cardTextColor={areaFormData.card_text_color}
+                  headerBackgroundColor={areaFormData.header_background_color}
+                  accentColor={areaFormData.accent_color}
                 />
               </div>
             </div>
@@ -1489,6 +1495,12 @@ export function SimpleMembersArea() {
                   primaryColor={areaFormData.primary_color}
                   secondaryColor={areaFormData.secondary_color}
                   logoUrl={areaFormData.logo_url}
+                  backgroundColor={areaFormData.background_color}
+                  textColor={areaFormData.text_color}
+                  cardBackgroundColor={areaFormData.card_background_color}
+                  cardTextColor={areaFormData.card_text_color}
+                  headerBackgroundColor={areaFormData.header_background_color}
+                  accentColor={areaFormData.accent_color}
                 />
               </div>
             </div>
