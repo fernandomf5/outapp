@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Loader2, Package, CreditCard, Wrench, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -192,61 +193,60 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
   }
 
   return (
-    <div className="relative">
-      {/* Timeline line */}
-      <div 
-        className="absolute left-4 top-0 bottom-0 w-0.5"
-        style={{ backgroundColor: `${primaryColor}30` }}
-      />
+    <ScrollArea className="w-full whitespace-nowrap">
+      <div className="relative pb-4">
+        {/* Timeline horizontal line */}
+        <div 
+          className="absolute top-6 left-0 right-0 h-0.5"
+          style={{ backgroundColor: `${primaryColor}30` }}
+        />
 
-      <div className="space-y-4">
-        {historyItems.map((item, index) => (
-          <div key={item.id} className="relative pl-10">
-            {/* Timeline dot */}
-            <div 
-              className="absolute left-2.5 w-3 h-3 rounded-full border-2 bg-background"
-              style={{ borderColor: primaryColor }}
-            />
+        <div className="flex gap-4 px-2">
+          {historyItems.map((item) => (
+            <div key={item.id} className="relative flex-shrink-0 w-64">
+              {/* Timeline dot */}
+              <div 
+                className="absolute left-1/2 -translate-x-1/2 top-4 w-4 h-4 rounded-full border-2 bg-background z-10"
+                style={{ borderColor: primaryColor }}
+              />
 
-            <Card>
-              <CardContent className="pt-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div 
-                        className="p-1.5 rounded-md" 
-                        style={{ backgroundColor: `${primaryColor}15` }}
-                      >
-                        {getIcon(item.type)}
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {getTypeLabel(item.type)}
-                      </span>
-                      {getStatusBadge(item.status)}
+              <Card className="mt-10">
+                <CardContent className="pt-4 pb-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div 
+                      className="p-1.5 rounded-md flex-shrink-0" 
+                      style={{ backgroundColor: `${primaryColor}15` }}
+                    >
+                      {getIcon(item.type)}
                     </div>
-                    <h4 className="font-medium">{item.title}</h4>
-                    {item.description && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {item.description}
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {format(new Date(item.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                    </p>
+                    <span className="text-xs text-muted-foreground truncate">
+                      {getTypeLabel(item.type)}
+                    </span>
+                    {getStatusBadge(item.status)}
                   </div>
-                  {item.amount !== undefined && item.amount > 0 && (
-                    <div className="text-right">
-                      <span className="font-semibold" style={{ color: primaryColor }}>
+                  <h4 className="font-medium text-sm truncate whitespace-normal line-clamp-2">{item.title}</h4>
+                  {item.description && (
+                    <p className="text-xs text-muted-foreground mt-1 truncate whitespace-normal line-clamp-2">
+                      {item.description}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between mt-2 gap-2">
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(item.date), "dd/MM/yyyy", { locale: ptBR })}
+                    </p>
+                    {item.amount !== undefined && item.amount > 0 && (
+                      <span className="font-semibold text-sm flex-shrink-0" style={{ color: primaryColor }}>
                         R$ {item.amount.toFixed(2)}
                       </span>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        ))}
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
   );
 }

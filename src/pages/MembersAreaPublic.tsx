@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { Lock, Image as ImageIcon, Video, FileText, Link as LinkIcon, MousePointer, Download, LogOut, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation } from "lucide-react";
+import { Lock, Image as ImageIcon, Video, FileText, Link as LinkIcon, MousePointer, Download, LogOut, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { CustomerHistoryTimeline } from "@/components/members-area/CustomerHistoryTimeline";
-
 interface ContentBlock {
   id: string;
   type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides';
@@ -47,6 +46,7 @@ export default function MembersAreaPublic() {
   const [area, setArea] = useState<MembersArea | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -315,15 +315,30 @@ export default function MembersAreaPublic() {
             <div className="space-y-4">
               <div>
                 <Label htmlFor="password">Digite a senha para acessar</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={passwordInput}
-                  onChange={(e) => setPasswordInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handlePasswordSubmit()}
-                  placeholder="Senha"
-                  className="mt-1"
-                />
+                <div className="relative mt-1">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={passwordInput}
+                    onChange={(e) => setPasswordInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handlePasswordSubmit()}
+                    placeholder="Senha"
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
               </div>
               <Button onClick={handlePasswordSubmit} className="w-full">
                 Acessar Conteúdo
