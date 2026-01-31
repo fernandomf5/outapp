@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, Calendar, Flag, MoreVertical, ChevronLeft, ChevronRight, MoveRight, Users, UserPlus, Building2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Calendar, Flag, MoreVertical, ChevronLeft, ChevronRight, MoveRight, Users, UserPlus, Building2, ListPlus } from "lucide-react";
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, pointerWithin, closestCenter, PointerSensor, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -285,7 +285,15 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
+  const [isMultiTaskDialogOpen, setIsMultiTaskDialogOpen] = useState(false);
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
+  const [multiTaskForm, setMultiTaskForm] = useState({
+    tasks: "",
+    priority: "medium" as "low" | "medium" | "high",
+    block_id: "",
+    client_id: "",
+    business_id: "",
+  });
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingBlock, setEditingBlock] = useState<TaskBlock | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -784,6 +792,50 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
       loadData();
     } catch (error: any) {
       toast.error("Erro ao salvar tarefa: " + error.message);
+    }
+  };
+
+  const handleAddMultipleTasks = async () => {
+    try {
+      const taskLines = multiTaskForm.tasks.split('\n').filter(line => line.trim());
+      
+      if (taskLines.length === 0) {
+        toast.error("Por favor, digite pelo menos uma tarefa");
+        return;
+      }
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const tasksToInsert = taskLines.map(title => ({
+        user_id: user.id,
+        title: title.trim(),
+        description: "",
+        priority: multiTaskForm.priority,
+        category: "",
+        due_date: null,
+        request_date: null,
+        block_id: multiTaskForm.block_id || blocks[0]?.id || null,
+        client_id: multiTaskForm.client_id || null,
+        business_id: multiTaskForm.business_id || null,
+      }));
+
+      const { error } = await supabase.from("tasks").insert(tasksToInsert as any);
+
+      if (error) throw error;
+      toast.success(`${taskLines.length} tarefa(s) criada(s) com sucesso!`);
+
+      setIsMultiTaskDialogOpen(false);
+      setMultiTaskForm({
+        tasks: "",
+        priority: "medium",
+        block_id: "",
+        client_id: "",
+        business_id: "",
+      });
+      loadData();
+    } catch (error: any) {
+      toast.error("Erro ao criar tarefas: " + error.message);
     }
   };
 
@@ -2119,6 +2171,114 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
                 </div>
                 <Button onClick={handleAddTask} className="w-full">
                   {editingTask ? "Atualizar Tarefa" : "Criar Tarefa"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Multi-task Dialog */}
+          <Dialog open={isMultiTaskDialogOpen} onOpenChange={setIsMultiTaskDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" onClick={() => {
+                setMultiTaskForm({
+                  tasks: "",
+                  priority: "medium",
+                  block_id: "",
+                  client_id: "",
+                  business_id: "",
+                });
+              }}>
+                <ListPlus className="mr-2 h-4 w-4" />
+                Múltiplas Tarefas
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Adicionar Múltiplas Tarefas</DialogTitle>
+                <DialogDescription>
+                  Digite uma tarefa por linha. Todas serão criadas com as mesmas configurações.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="multiTasks">Tarefas (uma por linha) *</Label>
+                  <Textarea
+                    id="multiTasks"
+                    value={multiTaskForm.tasks}
+                    onChange={(e) => setMultiTaskForm({ ...multiTaskForm, tasks: e.target.value })}
+                    placeholder={"Criar layout da página inicial\nRevisar documento de requisitos\nEnviar relatório semanal"}
+                    rows={6}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {multiTaskForm.tasks.split('\n').filter(l => l.trim()).length} tarefa(s) para criar
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="multiPriority">Prioridade</Label>
+                    <Select value={multiTaskForm.priority} onValueChange={(value: any) => setMultiTaskForm({ ...multiTaskForm, priority: value })}>
+                      <SelectTrigger id="multiPriority">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Baixa</SelectItem>
+                        <SelectItem value="medium">Média</SelectItem>
+                        <SelectItem value="high">Alta</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="multiBlock">Bloco</Label>
+                    <Select value={multiTaskForm.block_id} onValueChange={(value) => setMultiTaskForm({ ...multiTaskForm, block_id: value })}>
+                      <SelectTrigger id="multiBlock">
+                        <SelectValue placeholder="Selecione um bloco" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {blocks.map(block => (
+                          <SelectItem key={block.id} value={block.id}>
+                            {block.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="multiClient">Cliente</Label>
+                    <Select value={multiTaskForm.client_id || "__none__"} onValueChange={(value) => setMultiTaskForm({ ...multiTaskForm, client_id: value === "__none__" ? "" : value })}>
+                      <SelectTrigger id="multiClient">
+                        <SelectValue placeholder="Selecione um cliente" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">Nenhum</SelectItem>
+                        {clients.map(client => (
+                          <SelectItem key={client.id} value={client.id}>
+                            {client.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="multiBusiness">Negócio</Label>
+                    <Select value={multiTaskForm.business_id || "__none__"} onValueChange={(value) => setMultiTaskForm({ ...multiTaskForm, business_id: value === "__none__" ? "" : value })}>
+                      <SelectTrigger id="multiBusiness">
+                        <SelectValue placeholder="Selecione um negócio" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">Nenhum</SelectItem>
+                        {businesses.map(business => (
+                          <SelectItem key={business.id} value={business.id}>
+                            {business.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <Button onClick={handleAddMultipleTasks} className="w-full">
+                  Criar {multiTaskForm.tasks.split('\n').filter(l => l.trim()).length} Tarefa(s)
                 </Button>
               </div>
             </DialogContent>
