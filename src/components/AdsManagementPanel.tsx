@@ -2398,7 +2398,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                                         size="sm"
                                         className="w-full"
                                         variant="outline"
-                                        onClick={() => window.open(`/campanha/${campaign.id}`, '_blank')}
+                                        onClick={() => window.open(`${window.location.origin}/campanha/${campaign.id}`, '_blank')}
                                       >
                                         <ExternalLink className="h-4 w-4 mr-2" />
                                         Abrir Preview
