@@ -32,6 +32,9 @@ interface SimpleMembersAreaPreviewProps {
   secondaryColor: string;
   logoUrl?: string;
   sections?: Section[];
+  // Design da tela de login
+  loginBackgroundColor?: string;
+  loginTextColor?: string;
   // Design da área interna
   backgroundColor?: string;
   textColor?: string;
@@ -51,6 +54,8 @@ export function SimpleMembersAreaPreview({
   secondaryColor,
   logoUrl,
   sections = [],
+  loginBackgroundColor = '#1a1a2e',
+  loginTextColor = '#ffffff',
   backgroundColor = '#ffffff',
   textColor = '#1f2937',
   cardBackgroundColor = '#f9fafb',
@@ -130,7 +135,10 @@ export function SimpleMembersAreaPreview({
   };
 
   const renderLoginPreview = () => (
-    <div className="max-h-[380px] overflow-y-auto">
+    <div 
+      className="max-h-[380px] overflow-y-auto"
+      style={{ backgroundColor: loginBackgroundColor, color: loginTextColor }}
+    >
       {/* Hero Banner */}
       <div 
         className="relative py-6 px-4 text-center"
@@ -174,17 +182,21 @@ export function SimpleMembersAreaPreview({
       {/* Sections Preview */}
       <div className="p-3 space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-xs font-semibold text-foreground">Conteúdo Disponível</h3>
+          <h3 className="text-xs font-semibold" style={{ color: loginTextColor }}>Conteúdo Disponível</h3>
           <span 
             className="text-[10px] font-medium px-2 py-0.5 rounded-full"
-            style={{ backgroundColor: `${primaryColor}15`, color: primaryColor }}
+            style={{ backgroundColor: `${primaryColor}30`, color: primaryColor }}
           >
             {displaySections.length} módulos
           </span>
         </div>
         
         {displaySections.slice(0, 3).map((section, index) => (
-          <Card key={section.id || index} className="p-3 bg-muted/30 hover:bg-muted/50 transition-colors">
+          <Card 
+            key={section.id || index} 
+            className="p-3 transition-colors border-0"
+            style={{ backgroundColor: `${loginTextColor}10` }}
+          >
             <div className="flex items-center gap-2 mb-2">
               <div 
                 className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px] font-bold shrink-0 shadow-sm"
@@ -193,9 +205,9 @@ export function SimpleMembersAreaPreview({
                 {index + 1}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium truncate">{section.title}</p>
+                <p className="text-xs font-medium truncate" style={{ color: loginTextColor }}>{section.title}</p>
                 {section.description && (
-                  <p className="text-[10px] text-muted-foreground truncate">{section.description}</p>
+                  <p className="text-[10px] truncate" style={{ color: `${loginTextColor}99` }}>{section.description}</p>
                 )}
               </div>
             </div>
@@ -204,19 +216,20 @@ export function SimpleMembersAreaPreview({
               {section.blocks.slice(0, 2).map((block, blockIndex) => (
                 <div 
                   key={block.id || blockIndex}
-                  className="flex items-center gap-2 p-1.5 rounded bg-background/60 text-[10px]"
+                  className="flex items-center gap-2 p-1.5 rounded text-[10px]"
+                  style={{ backgroundColor: `${loginTextColor}08` }}
                 >
                   <div 
                     className="w-5 h-5 rounded flex items-center justify-center"
-                    style={{ backgroundColor: `${primaryColor}15`, color: primaryColor }}
+                    style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}
                   >
                     {getBlockIcon(block.type)}
                   </div>
-                  <span className="truncate">{block.title || block.type}</span>
+                  <span className="truncate" style={{ color: loginTextColor }}>{block.title || block.type}</span>
                 </div>
               ))}
               {section.blocks.length > 2 && (
-                <p className="text-[9px] text-muted-foreground pl-7">
+                <p className="text-[9px] pl-7" style={{ color: `${loginTextColor}70` }}>
                   +{section.blocks.length - 2} mais conteúdos
                 </p>
               )}
@@ -236,13 +249,19 @@ export function SimpleMembersAreaPreview({
 
       {/* Login Form Preview */}
       <div className="p-3 pt-0">
-        <Card className="p-3 bg-muted/20 border-dashed">
-          <p className="text-[10px] text-muted-foreground text-center mb-2">
+        <Card 
+          className="p-3 border-dashed border-0"
+          style={{ backgroundColor: `${loginTextColor}10` }}
+        >
+          <p className="text-[10px] text-center mb-2" style={{ color: `${loginTextColor}80` }}>
             Digite a senha para acessar
           </p>
           <div className="flex gap-2">
-            <div className="flex-1 h-9 rounded-lg bg-background border flex items-center px-3">
-              <span className="text-[11px] text-muted-foreground">••••••••</span>
+            <div 
+              className="flex-1 h-9 rounded-lg border flex items-center px-3"
+              style={{ backgroundColor: `${loginTextColor}08`, borderColor: `${loginTextColor}20` }}
+            >
+              <span className="text-[11px]" style={{ color: `${loginTextColor}60` }}>••••••••</span>
             </div>
             <button
               className="px-4 h-9 rounded-lg text-[11px] font-semibold text-white shadow-md hover:shadow-lg transition-shadow"
