@@ -159,7 +159,8 @@ const CampaignPublicView = () => {
 
   // Calculate metrics
   const profit = campaign.revenue - campaign.spent;
-  const roi = campaign.spent > 0 ? ((campaign.revenue - campaign.spent) / campaign.spent) * 100 : 0;
+  const roas = campaign.spent > 0 ? (campaign.revenue / campaign.spent) : 0; // ROI do Faturamento
+  const roiLucro = campaign.spent > 0 ? ((campaign.revenue - campaign.spent) / campaign.spent) * 100 : 0; // ROI do Lucro
   const profitMargin = campaign.revenue > 0 ? ((campaign.revenue - campaign.spent) / campaign.revenue) * 100 : 0;
   const conversionRate = campaign.clicks > 0 ? (campaign.conversions / campaign.clicks) * 100 : 0;
   const ctr = campaign.impressions > 0 ? (campaign.clicks / campaign.impressions) * 100 : 0;
@@ -247,22 +248,37 @@ const CampaignPublicView = () => {
                 R$ {profit.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                ROI: {roi.toFixed(1)}%
+                ROI Lucro: {roiLucro.toFixed(1)}%
               </p>
             </CardContent>
           </Card>
         </div>
 
         {/* Performance Metrics */}
-        <div className="grid gap-4 md:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">ROI</CardTitle>
+              <CardTitle className="text-sm font-medium">ROAS</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className={`text-2xl font-bold ${roas >= 1 ? 'text-green-500' : 'text-destructive'}`}>
+                {roas.toFixed(2)}x
+              </div>
+              <p className="text-xs text-muted-foreground">
+                ROI do Faturamento
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">ROI Lucro</CardTitle>
               <Percent className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${roi >= 0 ? 'text-green-500' : 'text-destructive'}`}>
-                {roi.toFixed(1)}%
+              <div className={`text-2xl font-bold ${roiLucro >= 0 ? 'text-green-500' : 'text-destructive'}`}>
+                {roiLucro.toFixed(1)}%
               </div>
               <p className="text-xs text-muted-foreground">
                 Margem: {profitMargin.toFixed(1)}%

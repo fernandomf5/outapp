@@ -156,7 +156,8 @@ const ClientCampaignsPublicView = () => {
   }), { budget: 0, spent: 0, revenue: 0, impressions: 0, clicks: 0, conversions: 0 });
 
   const totalProfit = totals.revenue - totals.spent;
-  const totalROI = totals.spent > 0 ? ((totals.revenue - totals.spent) / totals.spent) * 100 : 0;
+  const totalROAS = totals.spent > 0 ? (totals.revenue / totals.spent) : 0; // ROI do Faturamento
+  const totalROILucro = totals.spent > 0 ? ((totals.revenue - totals.spent) / totals.spent) * 100 : 0; // ROI do Lucro
   const totalCTR = totals.impressions > 0 ? (totals.clicks / totals.impressions) * 100 : 0;
   const totalConversionRate = totals.clicks > 0 ? (totals.conversions / totals.clicks) * 100 : 0;
 
@@ -261,22 +262,37 @@ const ClientCampaignsPublicView = () => {
                     R$ {totalProfit.toFixed(2)}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    ROI: {totalROI.toFixed(1)}%
+                    ROI Lucro: {totalROILucro.toFixed(1)}%
                   </p>
                 </CardContent>
               </Card>
             </div>
 
             {/* Performance Metrics */}
-            <div className="grid gap-4 md:grid-cols-5">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">ROI</CardTitle>
+                  <CardTitle className="text-sm font-medium">ROAS</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className={`text-2xl font-bold ${totalROAS >= 1 ? 'text-green-500' : 'text-destructive'}`}>
+                    {totalROAS.toFixed(2)}x
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    ROI do Faturamento
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">ROI Lucro</CardTitle>
                   <Percent className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className={`text-2xl font-bold ${totalROI >= 0 ? 'text-green-500' : 'text-destructive'}`}>
-                    {totalROI.toFixed(1)}%
+                  <div className={`text-2xl font-bold ${totalROILucro >= 0 ? 'text-green-500' : 'text-destructive'}`}>
+                    {totalROILucro.toFixed(1)}%
                   </div>
                 </CardContent>
               </Card>
@@ -396,7 +412,8 @@ const ClientCampaignsPublicView = () => {
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {campaigns.map((campaign) => {
                     const profit = (campaign.revenue || 0) - (campaign.spent || 0);
-                    const roi = campaign.spent > 0 ? ((campaign.revenue - campaign.spent) / campaign.spent) * 100 : 0;
+                    const roas = campaign.spent > 0 ? (campaign.revenue / campaign.spent) : 0;
+                    const roiLucro = campaign.spent > 0 ? ((campaign.revenue - campaign.spent) / campaign.spent) * 100 : 0;
                     
                     return (
                       <Card key={campaign.id} className="border">
@@ -433,9 +450,15 @@ const ClientCampaignsPublicView = () => {
                               </p>
                             </div>
                             <div>
-                              <p className="text-muted-foreground text-xs">ROI</p>
-                              <p className={`font-medium ${roi >= 0 ? 'text-green-500' : 'text-destructive'}`}>
-                                {roi.toFixed(1)}%
+                              <p className="text-muted-foreground text-xs">ROAS</p>
+                              <p className={`font-medium ${roas >= 1 ? 'text-green-500' : 'text-destructive'}`}>
+                                {roas.toFixed(2)}x
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground text-xs">ROI Lucro</p>
+                              <p className={`font-medium ${roiLucro >= 0 ? 'text-green-500' : 'text-destructive'}`}>
+                                {roiLucro.toFixed(1)}%
                               </p>
                             </div>
                           </div>
