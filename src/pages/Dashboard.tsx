@@ -72,6 +72,7 @@ import { BusinessManagementPanel } from "@/components/BusinessManagementPanel";
 import ProductsServicesPanel from "@/components/ProductsServicesPanel";
 import RoutineOrganizerPanel from "@/components/RoutineOrganizerPanel";
 import { useUserPresence } from "@/hooks/useUserPresence";
+import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { TeamMemberBanner } from "@/components/TeamMemberBanner";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
 import {
@@ -433,6 +434,7 @@ const Dashboard = () => {
     <>
       <GlobalChatNotification />
       <AgendaReminders />
+      <PushNotificationPrompt />
       <DraggableCalculator isOpen={isCalculatorOpen} onClose={() => setIsCalculatorOpen(false)} />
       <SidebarProvider>
         <div className="min-h-screen flex flex-col w-full bg-background safe-area-inset">

@@ -59,3 +59,9 @@ verify_jwt = false
 
 [functions.whatsapp-ai-agent]
 verify_jwt = false
+
+[functions.send-push-notification]
+verify_jwt = false
+
+[functions.check-agenda-reminders]
+verify_jwt = false
