@@ -1225,7 +1225,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
             const clientRevenue = clientCampaigns.reduce((sum, c) => sum + (c.revenue || 0), 0);
             const clientProfit = clientRevenue - clientSpent;
             const cashboxAfterSpent = client.cashbox - clientSpent;
-            const totalCashbox = cashboxAfterSpent + clientProfit;
+            const totalCashbox = client.cashbox - clientSpent + clientRevenue;
             
             return (
               <Card 

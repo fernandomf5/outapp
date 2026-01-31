@@ -49,8 +49,8 @@ export const ClientCashboxCard = ({
   // Caixa 2: Lucro das campanhas
   const profitCashbox = totalProfit;
 
-  // Caixa Total: Caixa 1 + Caixa 2
-  const totalCashbox = cashboxAfterSpent + profitCashbox;
+  // Caixa Total: Caixa inicial - gastos + faturamento total
+  const totalCashbox = initialCashbox - totalSpent + totalRevenue;
 
   const getPlatformName = (platform: string) => {
     switch(platform) {
