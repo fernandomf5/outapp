@@ -61,6 +61,7 @@ export default function MembersAreaPublic() {
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeView, setActiveView] = useState<'home' | 'content' | 'account'>('content');
 
   useEffect(() => {
     loadArea();
@@ -519,20 +520,35 @@ export default function MembersAreaPublic() {
 
         <div className="flex-1 flex flex-col items-center gap-2 mt-4">
           <button 
-            className="w-12 h-12 rounded-xl flex items-center justify-center transition-all text-white"
-            style={{ backgroundColor: accentColor }}
+            onClick={() => setActiveView('home')}
+            className="w-12 h-12 rounded-xl flex items-center justify-center transition-all"
+            style={{ 
+              backgroundColor: activeView === 'home' ? accentColor : `${accentColor}10`,
+              color: activeView === 'home' ? '#ffffff' : textColor
+            }}
+            title="Início"
           >
             <Home className="w-5 h-5" />
           </button>
           <button 
-            className="w-12 h-12 rounded-xl flex items-center justify-center transition-all hover:opacity-70"
-            style={{ color: textColor, backgroundColor: `${accentColor}10` }}
+            onClick={() => setActiveView('content')}
+            className="w-12 h-12 rounded-xl flex items-center justify-center transition-all"
+            style={{ 
+              backgroundColor: activeView === 'content' ? accentColor : `${accentColor}10`,
+              color: activeView === 'content' ? '#ffffff' : textColor
+            }}
+            title="Conteúdo"
           >
             <BookOpen className="w-5 h-5" />
           </button>
           <button 
-            className="w-12 h-12 rounded-xl flex items-center justify-center transition-all hover:opacity-70"
-            style={{ color: textColor, backgroundColor: `${accentColor}10` }}
+            onClick={() => setActiveView('account')}
+            className="w-12 h-12 rounded-xl flex items-center justify-center transition-all"
+            style={{ 
+              backgroundColor: activeView === 'account' ? accentColor : `${accentColor}10`,
+              color: activeView === 'account' ? '#ffffff' : textColor
+            }}
+            title="Minha Conta"
           >
             <User className="w-5 h-5" />
           </button>
@@ -631,196 +647,376 @@ export default function MembersAreaPublic() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 md:flex-row">
-        {/* Sections Sidebar (Desktop) */}
-        <div 
-          className="hidden md:block w-80 flex-shrink-0 border-r overflow-y-auto"
-          style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}15` }}
-        >
-          {/* Header */}
+        {/* Sections Sidebar (Desktop) - Only show for content view */}
+        {activeView === 'content' && (
           <div 
-            className="px-6 py-5 border-b"
-            style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}15` }}
+            className="hidden md:block w-80 flex-shrink-0 border-r overflow-y-auto"
+            style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}15` }}
           >
-            <h2 className="text-lg font-bold" style={{ color: textColor }}>{area.name}</h2>
-            <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>{area.description}</p>
-          </div>
-
-          {/* Progress */}
-          <div className="p-4 border-b" style={{ borderColor: `${accentColor}15` }}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium" style={{ color: cardTextColor }}>Seu Progresso</span>
-              <span className="text-sm font-bold" style={{ color: accentColor }}>35%</span>
-            </div>
+            {/* Header */}
             <div 
-              className="w-full h-2 rounded-full overflow-hidden"
-              style={{ backgroundColor: `${accentColor}20` }}
+              className="px-6 py-5 border-b"
+              style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}15` }}
             >
-              <div 
-                className="h-full rounded-full transition-all"
-                style={{ 
-                  width: '35%',
-                  background: `linear-gradient(90deg, ${primaryColor}, ${secondaryColor})` 
-                }}
-              />
+              <h2 className="text-lg font-bold" style={{ color: textColor }}>{area.name}</h2>
+              <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>{area.description}</p>
             </div>
-          </div>
 
-          {/* Sections List */}
-          <div className="p-4 space-y-2">
-            <h3 
-              className="text-xs font-semibold uppercase tracking-wide mb-3"
-              style={{ color: cardTextColor }}
-            >
-              Módulos
-            </h3>
-            
-            {area.sections.map((section, index) => (
-              <button
-                key={section.id}
-                onClick={() => setActiveSection(section.id)}
-                className="w-full p-3 rounded-xl flex items-center gap-3 transition-all text-left"
-                style={{ 
-                  backgroundColor: activeSection === section.id ? `${accentColor}15` : 'transparent',
-                  borderColor: activeSection === section.id ? accentColor : 'transparent',
-                  borderWidth: '2px'
-                }}
+            {/* Progress */}
+            <div className="p-4 border-b" style={{ borderColor: `${accentColor}15` }}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium" style={{ color: cardTextColor }}>Seu Progresso</span>
+                <span className="text-sm font-bold" style={{ color: accentColor }}>35%</span>
+              </div>
+              <div 
+                className="w-full h-2 rounded-full overflow-hidden"
+                style={{ backgroundColor: `${accentColor}20` }}
               >
                 <div 
-                  className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
-                  style={{ backgroundColor: activeSection === section.id ? accentColor : `${accentColor}60` }}
-                >
-                  {index + 1}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: cardTextColor }}>{section.title}</p>
-                  {section.description && (
-                    <p className="text-xs truncate opacity-70" style={{ color: cardTextColor }}>{section.description}</p>
-                  )}
-                </div>
-                <ChevronRight 
-                  className="w-4 h-4 shrink-0 transition-transform"
+                  className="h-full rounded-full transition-all"
                   style={{ 
-                    color: cardTextColor,
-                    transform: activeSection === section.id ? 'rotate(90deg)' : 'none'
+                    width: '35%',
+                    background: `linear-gradient(90deg, ${primaryColor}, ${secondaryColor})` 
                   }}
                 />
-              </button>
-            ))}
+              </div>
+            </div>
+
+            {/* Sections List */}
+            <div className="p-4 space-y-2">
+              <h3 
+                className="text-xs font-semibold uppercase tracking-wide mb-3"
+                style={{ color: cardTextColor }}
+              >
+                Módulos
+              </h3>
+              
+              {area.sections.map((section, index) => (
+                <button
+                  key={section.id}
+                  onClick={() => setActiveSection(section.id)}
+                  className="w-full p-3 rounded-xl flex items-center gap-3 transition-all text-left"
+                  style={{ 
+                    backgroundColor: activeSection === section.id ? `${accentColor}15` : 'transparent',
+                    borderColor: activeSection === section.id ? accentColor : 'transparent',
+                    borderWidth: '2px'
+                  }}
+                >
+                  <div 
+                    className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
+                    style={{ backgroundColor: activeSection === section.id ? accentColor : `${accentColor}60` }}
+                  >
+                    {index + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate" style={{ color: cardTextColor }}>{section.title}</p>
+                    {section.description && (
+                      <p className="text-xs truncate opacity-70" style={{ color: cardTextColor }}>{section.description}</p>
+                    )}
+                  </div>
+                  <ChevronRight 
+                    className="w-4 h-4 shrink-0 transition-transform"
+                    style={{ 
+                      color: cardTextColor,
+                      transform: activeSection === section.id ? 'rotate(90deg)' : 'none'
+                    }}
+                  />
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto pt-16 md:pt-0">
-          {/* Content Header */}
-          <div 
-            className="px-6 py-5 border-b hidden md:block"
-            style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}15` }}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold" style={{ color: textColor }}>
-                  {currentSection?.title || 'Selecione um módulo'}
-                </h2>
-                {currentSection?.description && (
-                  <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>
-                    {currentSection.description}
-                  </p>
+          {/* Home View */}
+          {activeView === 'home' && (
+            <>
+              <div 
+                className="px-6 py-5 border-b hidden md:block"
+                style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}15` }}
+              >
+                <h2 className="text-xl font-bold" style={{ color: textColor }}>Início</h2>
+                <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>Bem-vindo à sua área de membros</p>
+              </div>
+              <div className="p-4 md:p-6 space-y-4">
+                {/* Welcome Card */}
+                <Card style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}20` }}>
+                  <div 
+                    className="p-6 text-center"
+                    style={{ background: `linear-gradient(135deg, ${primaryColor}20, ${secondaryColor}20)` }}
+                  >
+                    {area.logo_url ? (
+                      <img 
+                        src={area.logo_url} 
+                        alt={area.name} 
+                        className="w-20 h-20 mx-auto mb-4 rounded-xl object-cover"
+                      />
+                    ) : (
+                      <div 
+                        className="w-20 h-20 mx-auto mb-4 rounded-xl flex items-center justify-center text-white text-2xl font-bold"
+                        style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }}
+                      >
+                        {area.name ? area.name.charAt(0).toUpperCase() : 'A'}
+                      </div>
+                    )}
+                    <h3 className="text-2xl font-bold mb-2" style={{ color: textColor }}>{area.name}</h3>
+                    <p className="opacity-70" style={{ color: textColor }}>{area.description}</p>
+                  </div>
+                </Card>
+
+                {/* Stats */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <Card className="p-4" style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}20` }}>
+                    <div className="text-2xl font-bold" style={{ color: accentColor }}>{area.sections.length}</div>
+                    <div className="text-sm opacity-70" style={{ color: cardTextColor }}>Módulos</div>
+                  </Card>
+                  <Card className="p-4" style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}20` }}>
+                    <div className="text-2xl font-bold" style={{ color: accentColor }}>
+                      {area.sections.reduce((acc, s) => acc + (s.blocks?.length || 0), 0)}
+                    </div>
+                    <div className="text-sm opacity-70" style={{ color: cardTextColor }}>Conteúdos</div>
+                  </Card>
+                  <Card className="p-4" style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}20` }}>
+                    <div className="text-2xl font-bold" style={{ color: accentColor }}>35%</div>
+                    <div className="text-sm opacity-70" style={{ color: cardTextColor }}>Progresso</div>
+                  </Card>
+                </div>
+
+                {/* Quick Access */}
+                <Card style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}20` }}>
+                  <CardContent className="p-4">
+                    <h4 className="font-semibold mb-3" style={{ color: cardTextColor }}>Acesso Rápido</h4>
+                    <div className="space-y-2">
+                      {area.sections.slice(0, 3).map((section, index) => (
+                        <button
+                          key={section.id}
+                          onClick={() => {
+                            setActiveSection(section.id);
+                            setActiveView('content');
+                          }}
+                          className="w-full p-3 rounded-lg flex items-center gap-3 transition-all text-left hover:opacity-80"
+                          style={{ backgroundColor: `${accentColor}10` }}
+                        >
+                          <div 
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold"
+                            style={{ backgroundColor: accentColor }}
+                          >
+                            {index + 1}
+                          </div>
+                          <span className="font-medium" style={{ color: cardTextColor }}>{section.title}</span>
+                          <ChevronRight className="w-4 h-4 ml-auto" style={{ color: cardTextColor }} />
+                        </button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </>
+          )}
+
+          {/* Account View */}
+          {activeView === 'account' && (
+            <>
+              <div 
+                className="px-6 py-5 border-b hidden md:block"
+                style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}15` }}
+              >
+                <h2 className="text-xl font-bold" style={{ color: textColor }}>Minha Conta</h2>
+                <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>Gerencie suas informações</p>
+              </div>
+              <div className="p-4 md:p-6 space-y-4">
+                <Card style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}20` }}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div 
+                        className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold"
+                        style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }}
+                      >
+                        <User className="w-8 h-8" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold" style={{ color: textColor }}>Membro</h3>
+                        <p className="text-sm opacity-70" style={{ color: textColor }}>Acesso Premium</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div 
+                        className="p-4 rounded-lg"
+                        style={{ backgroundColor: `${accentColor}08` }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span style={{ color: cardTextColor }}>Progresso Geral</span>
+                          <span className="font-bold" style={{ color: accentColor }}>35%</span>
+                        </div>
+                        <div 
+                          className="w-full h-2 rounded-full overflow-hidden mt-2"
+                          style={{ backgroundColor: `${accentColor}20` }}
+                        >
+                          <div 
+                            className="h-full rounded-full"
+                            style={{ 
+                              width: '35%',
+                              background: `linear-gradient(90deg, ${primaryColor}, ${secondaryColor})` 
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div 
+                        className="p-4 rounded-lg"
+                        style={{ backgroundColor: `${accentColor}08` }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span style={{ color: cardTextColor }}>Módulos Disponíveis</span>
+                          <span className="font-bold" style={{ color: accentColor }}>{area.sections.length}</span>
+                        </div>
+                      </div>
+
+                      <div 
+                        className="p-4 rounded-lg"
+                        style={{ backgroundColor: `${accentColor}08` }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span style={{ color: cardTextColor }}>Conteúdos Totais</span>
+                          <span className="font-bold" style={{ color: accentColor }}>
+                            {area.sections.reduce((acc, s) => acc + (s.blocks?.length || 0), 0)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button 
+                      onClick={handleLogout}
+                      variant="outline"
+                      className="w-full mt-6 gap-2"
+                      style={{ borderColor: '#ef4444', color: '#ef4444' }}
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sair da Área de Membros
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </>
+          )}
+
+          {/* Content View */}
+          {activeView === 'content' && (
+            <>
+              {/* Content Header */}
+              <div 
+                className="px-6 py-5 border-b hidden md:block"
+                style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}15` }}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold" style={{ color: textColor }}>
+                      {currentSection?.title || 'Selecione um módulo'}
+                    </h2>
+                    {currentSection?.description && (
+                      <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>
+                        {currentSection.description}
+                      </p>
+                    )}
+                  </div>
+                  <Badge 
+                    className="text-sm px-3 py-1 border"
+                    style={{ 
+                      backgroundColor: `${accentColor}15`, 
+                      color: accentColor,
+                      borderColor: `${accentColor}30`
+                    }}
+                  >
+                    Premium
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Content Blocks */}
+              <div className="p-4 md:p-6 space-y-4">
+                {currentSection?.blocks && currentSection.blocks.length > 0 ? (
+                  (() => {
+                    // Group blocks by their block_position to arrange them in rows
+                    const layout = currentSection.blocks_layout || ['full'];
+                    const blocksByPosition: Record<number, ContentBlock[]> = {};
+                    
+                    currentSection.blocks.forEach(block => {
+                      const pos = block.block_position || 0;
+                      if (!blocksByPosition[pos]) blocksByPosition[pos] = [];
+                      blocksByPosition[pos].push(block);
+                    });
+                    
+                    // Get the max position to render rows
+                    const maxPosition = Math.max(...Object.keys(blocksByPosition).map(Number), 0);
+                    
+                    return (
+                      <div className="space-y-4">
+                        {Array.from({ length: maxPosition + 1 }, (_, rowIndex) => {
+                          const layoutType = layout[rowIndex] || 'full';
+                          const blocksInRow = blocksByPosition[rowIndex] || [];
+                          
+                          if (blocksInRow.length === 0) return null;
+                          
+                          // Determine grid columns based on layout
+                          const gridCols = layoutType === 'third' 
+                            ? 'md:grid-cols-3' 
+                            : layoutType === 'half' 
+                              ? 'md:grid-cols-2' 
+                              : 'grid-cols-1';
+                          
+                          return (
+                            <div key={rowIndex} className={`grid grid-cols-1 ${gridCols} gap-4`}>
+                              {blocksInRow.map((block) => (
+                                <Card 
+                                  key={block.id}
+                                  className="overflow-hidden transition-all hover:shadow-lg"
+                                  style={{ 
+                                    backgroundColor: cardBackgroundColor,
+                                    borderColor: `${accentColor}20`
+                                  }}
+                                >
+                                  <div 
+                                    className="px-4 py-3 flex items-center gap-3 border-b"
+                                    style={{ backgroundColor: `${accentColor}08`, borderColor: `${accentColor}15` }}
+                                  >
+                                    <div 
+                                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                                      style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+                                    >
+                                      {getBlockIcon(block.type)}
+                                    </div>
+                                    {block.title && (
+                                      <span className="font-medium" style={{ color: cardTextColor }}>{block.title}</span>
+                                    )}
+                                  </div>
+                                  <CardContent className="p-4">
+                                    {renderBlock(block, accentColor, cardTextColor)}
+                                  </CardContent>
+                                </Card>
+                              ))}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()
+                ) : (
+                  <div 
+                    className="text-center py-16 rounded-xl"
+                    style={{ backgroundColor: cardBackgroundColor }}
+                  >
+                    <BookOpen className="w-16 h-16 mx-auto mb-4 opacity-30" style={{ color: cardTextColor }} />
+                    <p className="text-lg font-medium" style={{ color: cardTextColor }}>Nenhum conteúdo disponível</p>
+                    <p className="text-sm opacity-70 mt-1" style={{ color: cardTextColor }}>
+                      Selecione um módulo para ver o conteúdo
+                    </p>
+                  </div>
                 )}
               </div>
-              <Badge 
-                className="text-sm px-3 py-1 border"
-                style={{ 
-                  backgroundColor: `${accentColor}15`, 
-                  color: accentColor,
-                  borderColor: `${accentColor}30`
-                }}
-              >
-                Premium
-              </Badge>
-            </div>
-          </div>
-
-          {/* Content Blocks */}
-          <div className="p-4 md:p-6 space-y-4">
-            {currentSection?.blocks && currentSection.blocks.length > 0 ? (
-              (() => {
-                // Group blocks by their block_position to arrange them in rows
-                const layout = currentSection.blocks_layout || ['full'];
-                const blocksByPosition: Record<number, ContentBlock[]> = {};
-                
-                currentSection.blocks.forEach(block => {
-                  const pos = block.block_position || 0;
-                  if (!blocksByPosition[pos]) blocksByPosition[pos] = [];
-                  blocksByPosition[pos].push(block);
-                });
-                
-                // Get the max position to render rows
-                const maxPosition = Math.max(...Object.keys(blocksByPosition).map(Number), 0);
-                
-                return (
-                  <div className="space-y-4">
-                    {Array.from({ length: maxPosition + 1 }, (_, rowIndex) => {
-                      const layoutType = layout[rowIndex] || 'full';
-                      const blocksInRow = blocksByPosition[rowIndex] || [];
-                      
-                      if (blocksInRow.length === 0) return null;
-                      
-                      // Determine grid columns based on layout
-                      const gridCols = layoutType === 'third' 
-                        ? 'md:grid-cols-3' 
-                        : layoutType === 'half' 
-                          ? 'md:grid-cols-2' 
-                          : 'grid-cols-1';
-                      
-                      return (
-                        <div key={rowIndex} className={`grid grid-cols-1 ${gridCols} gap-4`}>
-                          {blocksInRow.map((block) => (
-                            <Card 
-                              key={block.id}
-                              className="overflow-hidden transition-all hover:shadow-lg"
-                              style={{ 
-                                backgroundColor: cardBackgroundColor,
-                                borderColor: `${accentColor}20`
-                              }}
-                            >
-                              <div 
-                                className="px-4 py-3 flex items-center gap-3 border-b"
-                                style={{ backgroundColor: `${accentColor}08`, borderColor: `${accentColor}15` }}
-                              >
-                                <div 
-                                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                                  style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
-                                >
-                                  {getBlockIcon(block.type)}
-                                </div>
-                                {block.title && (
-                                  <span className="font-medium" style={{ color: cardTextColor }}>{block.title}</span>
-                                )}
-                              </div>
-                              <CardContent className="p-4">
-                                {renderBlock(block, accentColor, cardTextColor)}
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })()
-            ) : (
-              <div 
-                className="text-center py-16 rounded-xl"
-                style={{ backgroundColor: cardBackgroundColor }}
-              >
-                <BookOpen className="w-16 h-16 mx-auto mb-4 opacity-30" style={{ color: cardTextColor }} />
-                <p className="text-lg font-medium" style={{ color: cardTextColor }}>Nenhum conteúdo disponível</p>
-                <p className="text-sm opacity-70 mt-1" style={{ color: cardTextColor }}>
-                  Selecione um módulo para ver o conteúdo
-                </p>
-              </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -830,23 +1026,28 @@ export default function MembersAreaPublic() {
         style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}20` }}
       >
         <button 
+          onClick={() => setActiveView('home')}
           className="flex flex-col items-center gap-1 p-2"
-          style={{ color: accentColor }}
+          style={{ color: activeView === 'home' ? accentColor : textColor }}
         >
           <Home className="w-5 h-5" />
           <span className="text-[10px] font-medium">Início</span>
         </button>
         <button 
-          onClick={() => setMobileMenuOpen(true)}
+          onClick={() => {
+            setActiveView('content');
+            setMobileMenuOpen(true);
+          }}
           className="flex flex-col items-center gap-1 p-2"
-          style={{ color: textColor }}
+          style={{ color: activeView === 'content' ? accentColor : textColor }}
         >
           <BookOpen className="w-5 h-5" />
           <span className="text-[10px] font-medium">Módulos</span>
         </button>
         <button 
+          onClick={() => setActiveView('account')}
           className="flex flex-col items-center gap-1 p-2"
-          style={{ color: textColor }}
+          style={{ color: activeView === 'account' ? accentColor : textColor }}
         >
           <User className="w-5 h-5" />
           <span className="text-[10px] font-medium">Perfil</span>
