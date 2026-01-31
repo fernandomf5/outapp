@@ -44,7 +44,7 @@ export default function CreativeExtractorPanel() {
   const [extractedMedia, setExtractedMedia] = useState<ExtractedMedia[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [manualUrls, setManualUrls] = useState('');
-  const [filter, setFilter] = useState<FilterType>('all');
+  const [extractType, setExtractType] = useState<FilterType>('all');
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
 
@@ -77,11 +77,27 @@ export default function CreativeExtractorPanel() {
       if (error) throw error;
 
       if (data?.media && data.media.length > 0) {
-        setExtractedMedia(prev => [...prev, ...data.media]);
-        toast({
-          title: "Criativos extraídos!",
-          description: `${data.media.length} mídia(s) encontrada(s)`,
+        // Filter based on extractType selection
+        const filteredData = data.media.filter((m: ExtractedMedia) => {
+          if (extractType === 'all') return true;
+          if (extractType === 'videos') return m.type === 'video';
+          if (extractType === 'images') return m.type === 'image';
+          return true;
         });
+        
+        if (filteredData.length > 0) {
+          setExtractedMedia(prev => [...prev, ...filteredData]);
+          toast({
+            title: "Criativos extraídos!",
+            description: `${filteredData.length} ${extractType === 'videos' ? 'vídeo(s)' : extractType === 'images' ? 'imagem(ns)' : 'mídia(s)'} encontrada(s)`,
+          });
+        } else {
+          toast({
+            title: `Nenhum ${extractType === 'videos' ? 'vídeo' : 'imagem'} encontrado`,
+            description: "Tente outro tipo de mídia ou adicione manualmente.",
+            variant: "destructive"
+          });
+        }
       } else {
         toast({
           title: "Nenhum criativo encontrado",
@@ -112,7 +128,7 @@ export default function CreativeExtractorPanel() {
       return;
     }
 
-    const newMedia: ExtractedMedia[] = urls.map((mediaUrl, index) => {
+    const allMedia: ExtractedMedia[] = urls.map((mediaUrl, index) => {
       const cleanUrl = mediaUrl.trim();
       return {
         id: `manual_${Date.now()}_${index}`,
@@ -122,42 +138,70 @@ export default function CreativeExtractorPanel() {
       };
     });
 
+    // Filter based on extractType selection
+    const newMedia = allMedia.filter(m => {
+      if (extractType === 'all') return true;
+      if (extractType === 'videos') return m.type === 'video';
+      if (extractType === 'images') return m.type === 'image';
+      return true;
+    });
+
+    if (newMedia.length === 0) {
+      toast({
+        title: `Nenhum ${extractType === 'videos' ? 'vídeo' : 'imagem'} encontrado`,
+        description: "As URLs coladas não correspondem ao tipo selecionado.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setExtractedMedia(prev => [...prev, ...newMedia]);
     setManualUrls('');
     toast({
       title: "Mídias adicionadas!",
-      description: `${newMedia.length} mídia(s) adicionada(s)`,
+      description: `${newMedia.length} ${extractType === 'videos' ? 'vídeo(s)' : extractType === 'images' ? 'imagem(ns)' : 'mídia(s)'} adicionada(s)`,
     });
   };
 
   const downloadMedia = async (media: ExtractedMedia) => {
+    const extension = media.type === 'video' ? 'mp4' : 'jpg';
+    const filename = `creative_${media.id}.${extension}`;
+    
     try {
+      // Try direct fetch first
       const response = await fetch(media.url, { mode: 'cors' });
       if (response.ok) {
         const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
+        // Force correct MIME type for videos
+        const finalBlob = media.type === 'video' 
+          ? new Blob([blob], { type: 'video/mp4' })
+          : blob;
+        const blobUrl = URL.createObjectURL(finalBlob);
         const link = document.createElement('a');
         link.href = blobUrl;
-        const extension = media.type === 'video' ? 'mp4' : 'jpg';
-        link.download = `creative_${media.id}.${extension}`;
+        link.download = filename;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(blobUrl);
         toast({
           title: "Download concluído!",
-          description: `${media.type === 'image' ? 'Imagem' : 'Vídeo'} baixado com sucesso`
+          description: `${media.type === 'image' ? 'Imagem' : 'Vídeo MP4'} baixado com sucesso`
         });
-      } else {
-        throw new Error('CORS blocked');
+        return;
       }
     } catch {
-      window.open(media.url, '_blank');
-      toast({
-        title: "Abrindo em nova aba",
-        description: "Clique com botão direito e 'Salvar como' para baixar"
-      });
+      // CORS blocked, try alternative
     }
+    
+    // Fallback: open in new tab with instructions
+    window.open(media.url, '_blank');
+    toast({
+      title: "Abrindo em nova aba",
+      description: media.type === 'video' 
+        ? "Clique com botão direito no vídeo → 'Salvar vídeo como' → salve como .mp4"
+        : "Clique com botão direito → 'Salvar imagem como'"
+    });
   };
 
   const copyUrl = (media: ExtractedMedia) => {
@@ -174,25 +218,21 @@ export default function CreativeExtractorPanel() {
     setExtractedMedia(prev => prev.filter(m => m.id !== id));
   };
 
-  const filteredMedia = extractedMedia.filter(m => {
-    if (filter === 'all') return true;
-    if (filter === 'videos') return m.type === 'video';
-    if (filter === 'images') return m.type === 'image';
-    return true;
-  });
+  // Display all extracted media (filtering happens at extraction time now)
+  const filteredMedia = extractedMedia;
 
   const videoCount = extractedMedia.filter(m => m.type === 'video').length;
   const imageCount = extractedMedia.filter(m => m.type === 'image').length;
 
-  const downloadFiltered = () => {
-    filteredMedia.forEach((media, index) => {
+  const downloadAll = () => {
+    extractedMedia.forEach((media, index) => {
       setTimeout(() => {
-        window.open(media.url, '_blank');
-      }, index * 500);
+        downloadMedia(media);
+      }, index * 800);
     });
     toast({
       title: "Downloads iniciados",
-      description: `${filteredMedia.length} mídia(s) sendo baixada(s)`
+      description: `${extractedMedia.length} mídia(s) sendo baixada(s)`
     });
   };
 
@@ -245,26 +285,52 @@ export default function CreativeExtractorPanel() {
             </TabsList>
             
             <TabsContent value="extract" className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Input
-                  placeholder="https://www.facebook.com/ads/library/?id=..."
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  className="flex-1"
-                />
-                <Button onClick={extractCreatives} disabled={isLoading} className="gap-2">
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Extraindo...
-                    </>
-                  ) : (
-                    <>
-                      <Search className="w-4 h-4" />
-                      Extrair
-                    </>
-                  )}
-                </Button>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Tipo de mídia:</span>
+                  <Select value={extractType} onValueChange={(v) => setExtractType(v as FilterType)}>
+                    <SelectTrigger className="w-[160px] h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        <span className="flex items-center gap-2">Todos</span>
+                      </SelectItem>
+                      <SelectItem value="videos">
+                        <span className="flex items-center gap-2">
+                          <Video className="w-3 h-3" /> Só Vídeos
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="images">
+                        <span className="flex items-center gap-2">
+                          <ImageIcon className="w-3 h-3" /> Só Imagens
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Input
+                    placeholder="https://www.facebook.com/ads/library/?id=..."
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button onClick={extractCreatives} disabled={isLoading} className="gap-2">
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Extraindo...
+                      </>
+                    ) : (
+                      <>
+                        <Search className="w-4 h-4" />
+                        Extrair
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
 
               <div className="bg-muted/50 rounded-lg p-3 flex items-start gap-2">
@@ -281,16 +347,44 @@ export default function CreativeExtractorPanel() {
             </TabsContent>
 
             <TabsContent value="manual" className="space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Tipo de mídia:</span>
+                  <Select value={extractType} onValueChange={(v) => setExtractType(v as FilterType)}>
+                    <SelectTrigger className="w-[160px] h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        <span className="flex items-center gap-2">Todos</span>
+                      </SelectItem>
+                      <SelectItem value="videos">
+                        <span className="flex items-center gap-2">
+                          <Video className="w-3 h-3" /> Só Vídeos
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="images">
+                        <span className="flex items-center gap-2">
+                          <ImageIcon className="w-3 h-3" /> Só Imagens
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <Textarea
-                  placeholder="Cole aqui as URLs das imagens/vídeos (uma por linha):&#10;https://scontent...jpg&#10;https://video...mp4"
+                  placeholder={extractType === 'videos' 
+                    ? "Cole aqui as URLs dos vídeos (uma por linha):\nhttps://video...mp4" 
+                    : extractType === 'images'
+                    ? "Cole aqui as URLs das imagens (uma por linha):\nhttps://scontent...jpg"
+                    : "Cole aqui as URLs das imagens/vídeos (uma por linha):\nhttps://scontent...jpg\nhttps://video...mp4"}
                   value={manualUrls}
                   onChange={(e) => setManualUrls(e.target.value)}
                   rows={5}
                 />
                 <Button onClick={addManualUrls} className="w-full gap-2">
                   <Plus className="w-4 h-4" />
-                  Adicionar Mídias
+                  Adicionar {extractType === 'videos' ? 'Vídeos' : extractType === 'images' ? 'Imagens' : 'Mídias'}
                 </Button>
               </div>
 
@@ -322,36 +416,13 @@ export default function CreativeExtractorPanel() {
               </CardDescription>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-muted-foreground" />
-                <Select value={filter} onValueChange={(v) => setFilter(v as FilterType)}>
-                  <SelectTrigger className="w-[140px] h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">
-                      <span className="flex items-center gap-2">Todos ({extractedMedia.length})</span>
-                    </SelectItem>
-                    <SelectItem value="videos">
-                      <span className="flex items-center gap-2">
-                        <Video className="w-3 h-3" /> Vídeos ({videoCount})
-                      </span>
-                    </SelectItem>
-                    <SelectItem value="images">
-                      <span className="flex items-center gap-2">
-                        <ImageIcon className="w-3 h-3" /> Imagens ({imageCount})
-                      </span>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
               <Button onClick={clearAll} variant="outline" size="sm" className="gap-2">
                 <Trash2 className="w-4 h-4" />
                 Limpar
               </Button>
-              <Button onClick={downloadFiltered} variant="outline" size="sm" className="gap-2">
+              <Button onClick={downloadAll} variant="outline" size="sm" className="gap-2">
                 <Download className="w-4 h-4" />
-                Baixar {filter === 'all' ? 'Todos' : filter === 'videos' ? 'Vídeos' : 'Imagens'}
+                Baixar Todos
               </Button>
             </div>
           </CardHeader>
@@ -381,26 +452,30 @@ export default function CreativeExtractorPanel() {
                           muted
                           playsInline
                           preload="metadata"
+                          crossOrigin="anonymous"
                           onEnded={() => setPlayingVideoId(null)}
-                          onError={(e) => {
-                            const target = e.target as HTMLVideoElement;
-                            target.style.display = 'none';
-                            const parent = target.parentElement;
-                            if (parent) {
-                              const fallback = document.createElement('div');
-                              fallback.className = 'w-full h-full flex items-center justify-center text-white text-sm';
-                              fallback.innerHTML = '<span>Vídeo indisponível para preview</span>';
-                              parent.appendChild(fallback);
+                          onError={() => {
+                            // Video can't be previewed due to CORS - show fallback
+                            const videoEl = videoRefs.current[media.id];
+                            if (videoEl) {
+                              videoEl.style.display = 'none';
                             }
                           }}
                         />
                         {playingVideoId !== media.id && (
-                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <div className="absolute inset-0 flex items-center justify-center">
                             <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
                               <Play className="w-7 h-7 text-white fill-white" />
                             </div>
                           </div>
                         )}
+                        {/* Fallback for CORS-blocked videos */}
+                        <div className="absolute inset-0 flex items-center justify-center bg-muted/80 opacity-0 hover:opacity-100 transition-opacity">
+                          <div className="text-center p-2">
+                            <Video className="w-8 h-8 mx-auto mb-1 text-muted-foreground" />
+                            <p className="text-xs text-muted-foreground">Clique para baixar MP4</p>
+                          </div>
+                        </div>
                       </div>
                     )}
                     <Badge 
