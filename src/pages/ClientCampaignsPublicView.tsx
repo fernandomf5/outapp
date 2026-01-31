@@ -77,7 +77,7 @@ const ClientCampaignsPublicView = () => {
         .from("ad_campaigns")
         .select("*")
         .eq("client_id", clientId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: true });
 
       if (campaignsError) {
         console.error("Erro ao buscar campanhas:", campaignsError);
