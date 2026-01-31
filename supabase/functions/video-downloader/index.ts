@@ -6,7 +6,7 @@ const corsHeaders = {
 };
 
 interface CobaltResponse {
-  status: 'error' | 'redirect' | 'tunnel' | 'picker' | 'stream';
+  status: 'error' | 'redirect' | 'tunnel' | 'picker' | 'stream' | 'local-processing';
   url?: string;
   urls?: string[];
   picker?: Array<{
@@ -18,6 +18,7 @@ interface CobaltResponse {
   error?: {
     code: string;
   };
+  text?: string;
 }
 
 interface VideoResult {
@@ -28,7 +29,55 @@ interface VideoResult {
   thumbnail?: string;
 }
 
-const COBALT_API_URL = 'https://api.cobalt.tools/api/json';
+// Working community Cobalt API instances (100% and 96% score on cobalt.directory)
+const COBALT_INSTANCES = [
+  'https://alpha.wolfy.love',
+  'https://cessi-c.meowing.de',
+  'https://omega.wolfy.love',
+  'https://subito-c.meowing.de',
+  'https://api.qwkuns.me',
+];
+
+async function tryInstance(instanceUrl: string, url: string): Promise<{ success: boolean; data?: CobaltResponse; error?: string }> {
+  try {
+    console.log(`Trying Cobalt instance: ${instanceUrl}`);
+    
+    const cobaltResponse = await fetch(instanceUrl, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'User-Agent': 'KlicSmart/1.0 (+https://outapp.lovable.app)',
+      },
+      body: JSON.stringify({
+        url: url,
+        videoQuality: '1080',
+        audioFormat: 'mp3',
+        filenameStyle: 'pretty',
+        downloadMode: 'auto',
+      }),
+    });
+
+    const responseText = await cobaltResponse.text();
+    console.log(`Instance ${instanceUrl} response status:`, cobaltResponse.status);
+    console.log(`Instance ${instanceUrl} response body:`, responseText.substring(0, 500));
+
+    if (!cobaltResponse.ok) {
+      return { success: false, error: `HTTP ${cobaltResponse.status}: ${responseText.substring(0, 100)}` };
+    }
+
+    const data: CobaltResponse = JSON.parse(responseText);
+    
+    if (data.status === 'error') {
+      return { success: false, error: data.error?.code || data.text || 'Unknown error' };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    console.error(`Instance ${instanceUrl} failed:`, error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -82,43 +131,22 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Call Cobalt API
-    const cobaltResponse = await fetch(COBALT_API_URL, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        url: url,
-        vCodec: 'h264',
-        vQuality: '1080',
-        aFormat: 'mp3',
-        filenamePattern: 'pretty',
-        isAudioOnly: false,
-        twitterGif: true,
-        dubLang: false,
-      }),
-    });
+    // Try each Cobalt instance until one succeeds
+    let lastError = '';
+    let data: CobaltResponse | undefined;
 
-    if (!cobaltResponse.ok) {
-      console.error('Cobalt API error status:', cobaltResponse.status);
-      const errorText = await cobaltResponse.text();
-      console.error('Cobalt API error body:', errorText);
-      
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Falha ao processar o vídeo. Tente novamente ou verifique se o link está correto.' 
-        }),
-        { status: cobaltResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    for (const instance of COBALT_INSTANCES) {
+      const result = await tryInstance(instance, url);
+      if (result.success && result.data) {
+        data = result.data;
+        console.log(`Success with instance: ${instance}`);
+        break;
+      }
+      lastError = result.error || 'Unknown error';
+      console.log(`Instance ${instance} failed: ${lastError}`);
     }
 
-    const data: CobaltResponse = await cobaltResponse.json();
-    console.log('Cobalt response status:', data.status);
-
-    if (data.status === 'error') {
+    if (!data) {
       const errorMessages: Record<string, string> = {
         'error.api.link.invalid': 'Link inválido. Verifique se a URL está correta.',
         'error.api.content.video.unavailable': 'Este vídeo não está disponível ou é privado.',
@@ -126,12 +154,15 @@ Deno.serve(async (req) => {
         'error.api.content.video.region': 'Este vídeo não está disponível na sua região.',
         'error.api.youtube.login': 'Este vídeo requer login no YouTube.',
         'error.api.rate-limit': 'Muitas requisições. Aguarde um momento e tente novamente.',
+        'error.api.fetch.fail': 'Falha ao buscar o vídeo. Verifique se o link está correto.',
+        'error.api.service.disabled': 'Serviço temporariamente indisponível.',
+        'error.api.auth.jwt.missing': 'Serviço requer autenticação. Tente novamente mais tarde.',
+        'error.api.auth.api-key.missing': 'Serviço requer autenticação. Tente novamente mais tarde.',
+        'error.api.invalid_body': 'Erro no formato da requisição.',
       };
 
-      const errorMessage = data.error?.code 
-        ? errorMessages[data.error.code] || `Erro: ${data.error.code}`
-        : 'Erro desconhecido ao processar o vídeo.';
-
+      const errorMessage = errorMessages[lastError] || `Não foi possível processar o vídeo. Erro: ${lastError}`;
+      
       return new Response(
         JSON.stringify({ success: false, error: errorMessage }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -141,7 +172,7 @@ Deno.serve(async (req) => {
     const results: VideoResult[] = [];
 
     // Handle different response types
-    if (data.status === 'redirect' || data.status === 'tunnel' || data.status === 'stream') {
+    if (data.status === 'redirect' || data.status === 'tunnel' || data.status === 'stream' || data.status === 'local-processing') {
       if (data.url) {
         results.push({
           url: data.url,
