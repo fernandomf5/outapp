@@ -5344,6 +5344,153 @@ export type Database = {
         }
         Relationships: []
       }
+      routine_completions: {
+        Row: {
+          completed_at: string
+          completion_date: string
+          id: string
+          objective_id: string | null
+          routine_item_id: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          completion_date: string
+          id?: string
+          objective_id?: string | null
+          routine_item_id?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          completion_date?: string
+          id?: string
+          objective_id?: string | null
+          routine_item_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routine_completions_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "routine_objectives"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "routine_completions_routine_item_id_fkey"
+            columns: ["routine_item_id"]
+            isOneToOne: false
+            referencedRelation: "routine_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      routine_items: {
+        Row: {
+          color: string | null
+          completed_at: string | null
+          created_at: string
+          day_of_week: number
+          description: string | null
+          end_time: string | null
+          id: string
+          is_completed: boolean | null
+          is_recurring: boolean | null
+          order_index: number | null
+          reminder_minutes: number | null
+          start_time: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          completed_at?: string | null
+          created_at?: string
+          day_of_week: number
+          description?: string | null
+          end_time?: string | null
+          id?: string
+          is_completed?: boolean | null
+          is_recurring?: boolean | null
+          order_index?: number | null
+          reminder_minutes?: number | null
+          start_time?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          completed_at?: string | null
+          created_at?: string
+          day_of_week?: number
+          description?: string | null
+          end_time?: string | null
+          id?: string
+          is_completed?: boolean | null
+          is_recurring?: boolean | null
+          order_index?: number | null
+          reminder_minutes?: number | null
+          start_time?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      routine_objectives: {
+        Row: {
+          color: string | null
+          completed_at: string | null
+          created_at: string
+          current_value: number | null
+          day_of_week: number | null
+          description: string | null
+          id: string
+          is_completed: boolean | null
+          objective_type: string
+          target_value: number | null
+          title: string
+          updated_at: string
+          user_id: string
+          week_start: string | null
+        }
+        Insert: {
+          color?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_value?: number | null
+          day_of_week?: number | null
+          description?: string | null
+          id?: string
+          is_completed?: boolean | null
+          objective_type?: string
+          target_value?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+          week_start?: string | null
+        }
+        Update: {
+          color?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_value?: number | null
+          day_of_week?: number | null
+          description?: string | null
+          id?: string
+          is_completed?: boolean | null
+          objective_type?: string
+          target_value?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          week_start?: string | null
+        }
+        Relationships: []
+      }
       sales_funnels: {
         Row: {
           color: string | null

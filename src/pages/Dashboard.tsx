@@ -70,6 +70,7 @@ import VideoDownloaderPanel from "@/components/VideoDownloaderPanel";
 import { SuppliersManagementPanel } from "@/components/SuppliersManagementPanel";
 import { BusinessManagementPanel } from "@/components/BusinessManagementPanel";
 import ProductsServicesPanel from "@/components/ProductsServicesPanel";
+import RoutineOrganizerPanel from "@/components/RoutineOrganizerPanel";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { TeamMemberBanner } from "@/components/TeamMemberBanner";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
@@ -1487,6 +1488,10 @@ const Dashboard = () => {
 
           <TabsContent value="conversor-documentos">
             <DocumentConverterPanel />
+          </TabsContent>
+
+          <TabsContent value="rotina">
+            <RoutineOrganizerPanel />
           </TabsContent>
         </Tabs>
       </main>
