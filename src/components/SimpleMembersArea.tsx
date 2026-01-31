@@ -47,6 +47,18 @@ interface MembersArea {
   primary_color?: string;
   secondary_color?: string;
   logo_url?: string;
+  customer_id?: string;
+  business_id?: string;
+}
+
+interface Customer {
+  id: string;
+  name: string;
+}
+
+interface Business {
+  id: string;
+  name: string;
 }
 
 const SortableBlock = ({ block, onEdit, onDelete }: { block: ContentBlock; onEdit: () => void; onDelete: () => void }) => {
@@ -114,6 +126,8 @@ export function SimpleMembersArea() {
   const [sectionToDelete, setSectionToDelete] = useState<Section | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState('');
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
   const [areaFormData, setAreaFormData] = useState({
     name: '',
     description: '',
@@ -121,6 +135,8 @@ export function SimpleMembersArea() {
     primary_color: '#8B5CF6',
     secondary_color: '#EC4899',
     logo_url: '',
+    customer_id: '',
+    business_id: '',
   });
 
   const [sectionFormData, setSectionFormData] = useState({
@@ -145,7 +161,25 @@ export function SimpleMembersArea() {
 
   useEffect(() => {
     loadAreas();
+    loadCustomersAndBusinesses();
   }, []);
+
+  const loadCustomersAndBusinesses = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const [customersRes, businessesRes] = await Promise.all([
+        supabase.from('customers').select('id, name').eq('user_id', user.id).order('name'),
+        supabase.from('businesses').select('id, name').eq('user_id', user.id).order('name')
+      ]);
+
+      if (customersRes.data) setCustomers(customersRes.data);
+      if (businessesRes.data) setBusinesses(businessesRes.data);
+    } catch (error) {
+      console.error('Error loading customers/businesses:', error);
+    }
+  };
 
   const loadAreas = async () => {
     try {
@@ -186,6 +220,8 @@ export function SimpleMembersArea() {
           primary_color: areaFormData.primary_color,
           secondary_color: areaFormData.secondary_color,
           logo_url: areaFormData.logo_url || null,
+          customer_id: areaFormData.customer_id || null,
+          business_id: areaFormData.business_id || null,
         })
         .select()
         .single();
@@ -194,7 +230,7 @@ export function SimpleMembersArea() {
 
       toast.success('Área de membros criada com sucesso!');
       setIsCreateDialogOpen(false);
-      setAreaFormData({ name: '', description: '', password: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', logo_url: '' });
+      setAreaFormData({ name: '', description: '', password: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', logo_url: '', customer_id: '', business_id: '' });
       loadAreas();
     } catch (error: any) {
       toast.error('Erro ao criar área: ' + error.message);
@@ -405,6 +441,8 @@ export function SimpleMembersArea() {
       primary_color: area.primary_color || '#8B5CF6',
       secondary_color: area.secondary_color || '#EC4899',
       logo_url: area.logo_url || '',
+      customer_id: area.customer_id || '',
+      business_id: area.business_id || '',
     });
     setIsEditDialogOpen(true);
   };
@@ -423,6 +461,8 @@ export function SimpleMembersArea() {
           primary_color: areaFormData.primary_color,
           secondary_color: areaFormData.secondary_color,
           logo_url: areaFormData.logo_url || null,
+          customer_id: areaFormData.customer_id || null,
+          business_id: areaFormData.business_id || null,
         })
         .eq('id', editingArea.id);
 
@@ -431,7 +471,7 @@ export function SimpleMembersArea() {
       toast.success('Área atualizada com sucesso!');
       setIsEditDialogOpen(false);
       setEditingArea(null);
-      setAreaFormData({ name: '', description: '', password: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', logo_url: '' });
+      setAreaFormData({ name: '', description: '', password: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', logo_url: '', customer_id: '', business_id: '' });
       loadAreas();
     } catch (error: any) {
       toast.error('Erro ao atualizar área: ' + error.message);
@@ -944,6 +984,42 @@ export function SimpleMembersArea() {
                     bucketName="business-logos"
                   />
                 </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <Label>Vincular a Negócio (opcional)</Label>
+                    <Select 
+                      value={areaFormData.business_id} 
+                      onValueChange={(value) => setAreaFormData({ ...areaFormData, business_id: value === 'none' ? '' : value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um negócio" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Nenhum</SelectItem>
+                        {businesses.map((b) => (
+                          <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Vincular a Cliente (opcional)</Label>
+                    <Select 
+                      value={areaFormData.customer_id} 
+                      onValueChange={(value) => setAreaFormData({ ...areaFormData, customer_id: value === 'none' ? '' : value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um cliente" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Nenhum</SelectItem>
+                        {customers.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
                 <div className="space-y-3">
                   <Label>Cores Personalizadas</Label>
                   <div className="grid gap-3 sm:grid-cols-2">
@@ -1028,6 +1104,42 @@ export function SimpleMembersArea() {
                     currentImage={areaFormData.logo_url}
                     bucketName="business-logos"
                   />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <Label>Vincular a Negócio (opcional)</Label>
+                    <Select 
+                      value={areaFormData.business_id} 
+                      onValueChange={(value) => setAreaFormData({ ...areaFormData, business_id: value === 'none' ? '' : value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um negócio" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Nenhum</SelectItem>
+                        {businesses.map((b) => (
+                          <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Vincular a Cliente (opcional)</Label>
+                    <Select 
+                      value={areaFormData.customer_id} 
+                      onValueChange={(value) => setAreaFormData({ ...areaFormData, customer_id: value === 'none' ? '' : value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um cliente" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Nenhum</SelectItem>
+                        {customers.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="space-y-3">
                   <Label>Cores Personalizadas</Label>
