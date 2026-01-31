@@ -34,6 +34,8 @@ interface ContentBlock {
   title?: string;
   order_index: number;
   block_position: number;
+  customer_id?: string;
+  customer_name?: string;
 }
 
 interface Section {
@@ -308,7 +310,9 @@ export function SimpleMembersAreaInternalPreview({
                             {getBlockIcon(block.type)}
                           </div>
                           <span className="text-[10px] truncate flex-1">
-                            {block.title || getBlockTypeLabel(block.type)}
+                            {block.type === 'customer_history' && block.customer_name 
+                              ? `Histórico: ${block.customer_name}`
+                              : block.title || getBlockTypeLabel(block.type)}
                           </span>
                           {block.type === 'video' && (
                             <Play className="w-3 h-3 text-muted-foreground shrink-0" />
