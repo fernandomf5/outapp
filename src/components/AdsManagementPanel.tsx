@@ -1223,6 +1223,9 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
             const clientCampaigns = campaigns.filter(c => c.client_id === client.id);
             const clientSpent = clientCampaigns.reduce((sum, c) => sum + c.spent, 0);
             const clientRevenue = clientCampaigns.reduce((sum, c) => sum + (c.revenue || 0), 0);
+            const clientProfit = clientRevenue - clientSpent;
+            const cashboxAfterSpent = client.cashbox - clientSpent;
+            const totalCashbox = cashboxAfterSpent + clientProfit;
             
             return (
               <Card 
@@ -1230,7 +1233,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                 className="cursor-pointer hover:border-primary transition-all hover:shadow-md group"
                 onClick={() => handleSelectClient(client.id)}
               >
-                <CardHeader>
+                <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -1323,22 +1326,98 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm mb-3">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Caixa:</span>
-                      <span className="font-medium">R$ {client.cashbox.toFixed(2)}</span>
+                <CardContent className="space-y-3">
+                  {/* Caixa Inicial */}
+                  <div className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                    <span className="text-xs text-muted-foreground">💰 Caixa Inicial</span>
+                    <span className="font-semibold text-primary">R$ {client.cashbox.toFixed(2)}</span>
+                  </div>
+
+                  {/* Grid dos 3 Caixas */}
+                  <div className="grid grid-cols-3 gap-1">
+                    {/* Caixa 1: Após Gastos */}
+                    <div className="p-2 bg-gradient-to-br from-orange-500/10 to-transparent rounded-lg border border-orange-500/20 text-center">
+                      <div className="text-[10px] text-muted-foreground">Caixa 1</div>
+                      <div className="text-[9px] text-muted-foreground">(Restante)</div>
+                      <div className={`text-sm font-bold ${cashboxAfterSpent >= 0 ? 'text-orange-500' : 'text-destructive'}`}>
+                        R$ {cashboxAfterSpent.toFixed(2)}
+                      </div>
                     </div>
+
+                    {/* Caixa 2: Lucro */}
+                    <div className={`p-2 bg-gradient-to-br ${clientProfit >= 0 ? 'from-success/10' : 'from-destructive/10'} to-transparent rounded-lg border ${clientProfit >= 0 ? 'border-success/20' : 'border-destructive/20'} text-center`}>
+                      <div className="text-[10px] text-muted-foreground">Caixa 2</div>
+                      <div className="text-[9px] text-muted-foreground">(Lucro)</div>
+                      <div className={`text-sm font-bold ${clientProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                        R$ {clientProfit.toFixed(2)}
+                      </div>
+                    </div>
+
+                    {/* Caixa Total */}
+                    <div className={`p-2 bg-gradient-to-br ${totalCashbox >= 0 ? 'from-primary/10' : 'from-destructive/10'} to-transparent rounded-lg border-2 ${totalCashbox >= 0 ? 'border-primary/30' : 'border-destructive/30'} text-center`}>
+                      <div className="text-[10px] text-muted-foreground">Total</div>
+                      <div className="text-[9px] text-muted-foreground">(1 + 2)</div>
+                      <div className={`text-sm font-bold ${totalCashbox >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                        R$ {totalCashbox.toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Resumo */}
+                  <div className="grid grid-cols-2 gap-1 text-xs">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Gasto:</span>
-                      <span className="font-medium text-destructive">R$ {clientSpent.toFixed(2)}</span>
+                      <span className="font-medium text-destructive">-R$ {clientSpent.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Faturado:</span>
-                      <span className="font-medium text-success">R$ {clientRevenue.toFixed(2)}</span>
+                      <span className="font-medium text-success">+R$ {clientRevenue.toFixed(2)}</span>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between">
+
+                  {/* Histórico breve */}
+                  {clientCampaigns.length > 0 && (
+                    <Collapsible>
+                      <CollapsibleTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full text-xs"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <History className="h-3 w-3 mr-1" />
+                          Ver Histórico ({clientCampaigns.length})
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-2" onClick={(e) => e.stopPropagation()}>
+                        <div className="space-y-1 max-h-40 overflow-y-auto text-xs">
+                          <div className="flex justify-between p-1.5 bg-primary/5 rounded border-l-2 border-primary">
+                            <span>💰 Caixa Inicial</span>
+                            <span className="font-semibold text-primary">+R$ {client.cashbox.toFixed(2)}</span>
+                          </div>
+                          {clientCampaigns.slice().sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map((campaign) => {
+                            const profit = (campaign.revenue || 0) - campaign.spent;
+                            return (
+                              <div key={campaign.id} className={`flex justify-between p-1.5 rounded border-l-2 ${profit >= 0 ? 'bg-success/5 border-success' : 'bg-destructive/5 border-destructive'}`}>
+                                <span className="truncate max-w-[140px]">{campaign.name}</span>
+                                <span className={`font-semibold ${profit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                                  {profit >= 0 ? '+' : ''}R$ {profit.toFixed(2)}
+                                </span>
+                              </div>
+                            );
+                          })}
+                          <div className={`flex justify-between p-1.5 rounded border-l-2 font-semibold ${totalCashbox >= 0 ? 'bg-primary/10 border-primary' : 'bg-destructive/10 border-destructive'}`}>
+                            <span>📊 Caixa Final</span>
+                            <span className={totalCashbox >= 0 ? 'text-primary' : 'text-destructive'}>
+                              R$ {totalCashbox.toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
+
+                  <div className="flex items-center justify-between pt-2 border-t">
                     <Badge variant="secondary">{clientCampaigns.length} campanhas</Badge>
                     <ArrowRight className="h-5 w-5 text-muted-foreground" />
                   </div>
