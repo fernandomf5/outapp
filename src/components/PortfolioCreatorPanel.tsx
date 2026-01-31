@@ -26,8 +26,11 @@ import {
   FolderOpen,
   Video,
   Link as LinkIcon,
-  FileCode
+  FileCode,
+  List,
+  Monitor
 } from "lucide-react";
+import { PortfolioPreview } from "@/components/portfolio/PortfolioPreview";
 import { Textarea as TextareaUI } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/ImageUpload";
 import {
@@ -1307,14 +1310,27 @@ export function PortfolioCreatorPanel({ teamContext }: PortfolioCreatorPanelProp
           {/* Itens do Portfólio */}
           <div className="lg:w-2/3">
             {selectedPortfolio ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
+              <Tabs defaultValue="items" className="space-y-4">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
                     <h3 className="font-semibold text-lg">{selectedPortfolio.name}</h3>
                     <p className="text-sm text-muted-foreground">
                       {items.length} trabalho(s)
                     </p>
                   </div>
+                  <TabsList>
+                    <TabsTrigger value="items" className="gap-2">
+                      <List className="w-4 h-4" />
+                      Trabalhos
+                    </TabsTrigger>
+                    <TabsTrigger value="preview" className="gap-2">
+                      <Monitor className="w-4 h-4" />
+                      Preview
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+
+                <TabsContent value="items" className="space-y-4">
                   <Dialog open={isItemDialogOpen} onOpenChange={setIsItemDialogOpen}>
                     <DialogTrigger asChild>
                       <Button onClick={() => setEditingItem(null)}>
@@ -1366,90 +1382,7 @@ export function PortfolioCreatorPanel({ teamContext }: PortfolioCreatorPanelProp
                         </div>
 
                         <div>
-                          <Label className="flex items-center gap-2">
-                            <ImageIcon className="w-4 h-4" /> Imagem Principal
-                          </Label>
-                          <ImageUpload
-                            currentImage={itemForm.image_url}
-                            onImageSelect={(url) => setItemForm({ ...itemForm, image_url: url || "" })}
-                            bucketName="portfolio-images"
-                          />
-                        </div>
-
-                        <div>
-                          <Label className="flex items-center gap-2">
-                            <ImageIcon className="w-4 h-4" /> Galeria de Imagens ({itemForm.images.length}/10)
-                          </Label>
-                          <p className="text-xs text-muted-foreground mb-2">
-                            Adicione até 10 imagens para exibir em carrossel
-                          </p>
-                          
-                          {itemForm.images.length > 0 && (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
-                              {itemForm.images.map((img, idx) => (
-                                <div key={idx} className="relative group aspect-video">
-                                  <img 
-                                    src={img} 
-                                    alt={`Galeria ${idx + 1}`} 
-                                    className="w-full h-full object-cover rounded-lg border"
-                                  />
-                                  <Button
-                                    type="button"
-                                    variant="destructive"
-                                    size="icon"
-                                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                                    onClick={() => handleRemoveGalleryImage(idx)}
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                  <span className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded">
-                                    {idx + 1}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          
-                          {itemForm.images.length < 10 && (
-                            <div 
-                              className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer"
-                              onClick={() => document.getElementById('gallery-upload')?.click()}
-                            >
-                              <input
-                                id="gallery-upload"
-                                type="file"
-                                accept="image/*"
-                                multiple
-                                onChange={handleMultipleFileUpload}
-                                disabled={uploadingGallery}
-                                className="hidden"
-                              />
-                              <ImageIcon className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                              <p className="text-sm text-muted-foreground">
-                                {uploadingGallery ? 'Enviando...' : 'Clique para selecionar imagens'}
-                              </p>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Selecione até {10 - itemForm.images.length} imagens de uma vez
-                              </p>
-                            </div>
-                          )}
-                        </div>
-
-                        <div>
-                          <Label className="flex items-center gap-2">
-                            <Video className="w-4 h-4" /> URL do Vídeo
-                          </Label>
-                          <Input
-                            value={itemForm.video_url}
-                            onChange={(e) => setItemForm({ ...itemForm, video_url: e.target.value })}
-                            placeholder="https://youtube.com/watch?v=..."
-                          />
-                        </div>
-
-                        <div>
-                          <Label className="flex items-center gap-2">
-                            <LinkIcon className="w-4 h-4" /> Link do Projeto
-                          </Label>
+                          <Label>URL do Projeto (opcional)</Label>
                           <Input
                             value={itemForm.project_url}
                             onChange={(e) => setItemForm({ ...itemForm, project_url: e.target.value })}
@@ -1457,14 +1390,86 @@ export function PortfolioCreatorPanel({ teamContext }: PortfolioCreatorPanelProp
                           />
                         </div>
 
+                        <div>
+                          <Label>URL do Vídeo (opcional)</Label>
+                          <Input
+                            value={itemForm.video_url}
+                            onChange={(e) => setItemForm({ ...itemForm, video_url: e.target.value })}
+                            placeholder="https://youtube.com/..."
+                          />
+                        </div>
+
+                        <div>
+                          <Label>Imagem Principal</Label>
+                          <ImageUpload
+                            currentImage={itemForm.image_url}
+                            onImageSelect={(url) => setItemForm({ ...itemForm, image_url: url || "" })}
+                            bucketName="portfolio-images"
+                          />
+                        </div>
+
+                        {/* Galeria de Imagens */}
+                        <div className="space-y-2">
+                          <Label className="flex items-center gap-2">
+                            <ImageIcon className="w-4 h-4" />
+                            Galeria de Imagens ({itemForm.images.length}/10)
+                          </Label>
+                          <div className="grid grid-cols-5 gap-2">
+                            {itemForm.images.map((img, idx) => (
+                              <div key={idx} className="relative group">
+                                <img
+                                  src={img}
+                                  alt={`Galeria ${idx + 1}`}
+                                  className="w-full aspect-square object-cover rounded-lg border"
+                                />
+                                <Button
+                                  variant="destructive"
+                                  size="icon"
+                                  className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={() => handleRemoveGalleryImage(idx)}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                          {itemForm.images.length < 10 && (
+                            <div className="flex gap-2">
+                              <Input
+                                placeholder="Cole a URL da imagem"
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    handleAddGalleryImage((e.target as HTMLInputElement).value);
+                                    (e.target as HTMLInputElement).value = "";
+                                  }
+                                }}
+                              />
+                              <div className="relative">
+                                <input
+                                  type="file"
+                                  multiple
+                                  accept="image/*"
+                                  onChange={handleMultipleFileUpload}
+                                  disabled={uploadingGallery}
+                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                />
+                                <Button variant="outline" disabled={uploadingGallery}>
+                                  {uploadingGallery ? "Enviando..." : "Upload"}
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                          <p className="text-xs text-muted-foreground">
+                            Adicione até 10 imagens para criar uma galeria em carrossel
+                          </p>
+                        </div>
+
                         <div className="flex items-center gap-2">
                           <Switch
                             checked={itemForm.is_featured}
                             onCheckedChange={(checked) => setItemForm({ ...itemForm, is_featured: checked })}
                           />
-                          <Label className="flex items-center gap-2">
-                            <Star className="w-4 h-4" /> Destacar este trabalho
-                          </Label>
+                          <Label>Destacar este trabalho</Label>
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -1473,7 +1478,7 @@ export function PortfolioCreatorPanel({ teamContext }: PortfolioCreatorPanelProp
                             onCheckedChange={(checked) => setItemForm({ ...itemForm, is_scrollable_screenshot: checked })}
                           />
                           <Label className="flex items-center gap-2">
-                            <ImageIcon className="w-4 h-4" /> Screenshot de site (exibir com scroll)
+                            Print Rolável (Site)
                           </Label>
                         </div>
                         <p className="text-xs text-muted-foreground -mt-2">
@@ -1486,34 +1491,38 @@ export function PortfolioCreatorPanel({ teamContext }: PortfolioCreatorPanelProp
                       </div>
                     </DialogContent>
                   </Dialog>
-                </div>
 
-                {items.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-lg">
-                    <ImageIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg mb-2">Nenhum trabalho adicionado</p>
-                    <p className="text-sm">Clique em "Adicionar Trabalho" para começar</p>
-                  </div>
-                ) : (
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-                      {items.map((item) => (
-                        <SortableItem
-                          key={item.id}
-                          item={item}
-                          onEdit={() => handleEditItem(item)}
-                          onDelete={() => handleDeleteItem(item.id)}
-                          onToggleFeatured={() => handleToggleFeatured(item)}
-                        />
-                      ))}
-                    </SortableContext>
-                  </DndContext>
-                )}
-              </div>
+                  {items.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-lg">
+                      <ImageIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                      <p className="text-lg mb-2">Nenhum trabalho adicionado</p>
+                      <p className="text-sm">Clique em "Adicionar Trabalho" para começar</p>
+                    </div>
+                  ) : (
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
+                        {items.map((item) => (
+                          <SortableItem
+                            key={item.id}
+                            item={item}
+                            onEdit={() => handleEditItem(item)}
+                            onDelete={() => handleDeleteItem(item.id)}
+                            onToggleFeatured={() => handleToggleFeatured(item)}
+                          />
+                        ))}
+                      </SortableContext>
+                    </DndContext>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="preview">
+                  <PortfolioPreview portfolio={selectedPortfolio} items={items} />
+                </TabsContent>
+              </Tabs>
             ) : (
               <div className="text-center py-12 text-muted-foreground">
                 <FolderOpen className="w-16 h-16 mx-auto mb-4 opacity-50" />
