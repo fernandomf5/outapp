@@ -1008,21 +1008,24 @@ export default function MembersAreaPublic() {
                                     <div className="divide-y" style={{ borderColor: `${accentColor}10` }}>
                                       {blockContents.map((block, contentIndex) => (
                                         <div key={block.id}>
-                                          <div 
-                                            className="px-4 py-3 flex items-center gap-3 border-b"
-                                            style={{ backgroundColor: `${accentColor}08`, borderColor: `${accentColor}15` }}
-                                          >
+                                          {/* Hide header for button type since text is in the button itself */}
+                                          {block.type !== 'button' && (
                                             <div 
-                                              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                                              style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+                                              className="px-4 py-3 flex items-center gap-3 border-b"
+                                              style={{ backgroundColor: `${accentColor}08`, borderColor: `${accentColor}15` }}
                                             >
-                                              {getBlockIcon(block.type)}
+                                              <div 
+                                                className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                                                style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+                                              >
+                                                {getBlockIcon(block.type)}
+                                              </div>
+                                              {block.title && (
+                                                <span className="font-medium" style={{ color: cardTextColor }}>{block.title}</span>
+                                              )}
                                             </div>
-                                            {block.title && (
-                                              <span className="font-medium" style={{ color: cardTextColor }}>{block.title}</span>
-                                            )}
-                                          </div>
-                                          <CardContent className="p-4">
+                                          )}
+                                          <CardContent className={block.type === 'button' ? "p-4" : "p-4"}>
                                             {renderBlock(block, accentColor, cardTextColor)}
                                           </CardContent>
                                         </div>
