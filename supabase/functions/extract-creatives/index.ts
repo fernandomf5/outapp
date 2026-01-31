@@ -14,10 +14,38 @@ interface ExtractedMedia {
   pageName?: string;
 }
 
+// Extract a unique fingerprint from URL to detect duplicates
+// This normalizes URLs by extracting the core file identifier
+function getMediaFingerprint(url: string): string {
+  try {
+    const cleanUrl = url.split('?')[0].split('#')[0]; // Remove query params
+    
+    // Extract the file/path identifier from Facebook CDN URLs
+    // Pattern: /v/t39.30808-6/123456789_filename.jpg -> extracts the number and filename
+    const fbMatch = cleanUrl.match(/\/([0-9]+_[^\/]+\.(jpg|jpeg|png|gif|webp|mp4))$/i);
+    if (fbMatch) return fbMatch[1].toLowerCase();
+    
+    // Pattern: /v/t42.1790-2/video_id/... -> extract video id
+    const videoIdMatch = cleanUrl.match(/\/v\/t\d+\.[^\/]+\/([^\/]+)\//);
+    if (videoIdMatch) return videoIdMatch[1].toLowerCase();
+    
+    // For other URLs, use the last path segment as fingerprint
+    const pathParts = cleanUrl.split('/').filter(p => p.length > 0);
+    const lastPart = pathParts[pathParts.length - 1];
+    if (lastPart && lastPart.length > 5) return lastPart.toLowerCase();
+    
+    // Fallback: use full cleaned URL
+    return cleanUrl.toLowerCase();
+  } catch {
+    return url.toLowerCase();
+  }
+}
+
 function extractMediaFromContent(html: string, markdown: string, rawHtml: string = ''): ExtractedMedia[] {
   const images: ExtractedMedia[] = [];
   const videos: ExtractedMedia[] = [];
   const seenUrls = new Set<string>();
+  const seenFingerprints = new Set<string>(); // Track unique media by fingerprint
 
   // Extract from HTML, markdown and rawHtml combined
   const content = html + ' ' + markdown + ' ' + rawHtml;
@@ -67,8 +95,10 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
     const matches = content.match(pattern) || [];
     matches.forEach(url => {
       const cleanUrl = cleanMediaUrl(url);
-      if (!seenUrls.has(cleanUrl) && isValidVideoUrl(cleanUrl)) {
+      const fingerprint = getMediaFingerprint(cleanUrl);
+      if (!seenFingerprints.has(fingerprint) && !seenUrls.has(cleanUrl) && isValidVideoUrl(cleanUrl)) {
         seenUrls.add(cleanUrl);
+        seenFingerprints.add(fingerprint);
         videos.push({
           id: `vid_${Date.now()}_${videos.length}`,
           type: 'video',
@@ -100,9 +130,11 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
     const regex = new RegExp(pattern.source, pattern.flags);
     while ((match = regex.exec(content)) !== null) {
       const url = cleanMediaUrl(match[1]);
+      const fingerprint = getMediaFingerprint(url);
       
-      if (!seenUrls.has(url) && isValidVideoUrl(url)) {
+      if (!seenFingerprints.has(fingerprint) && !seenUrls.has(url) && isValidVideoUrl(url)) {
         seenUrls.add(url);
+        seenFingerprints.add(fingerprint);
         videos.push({
           id: `vid_${Date.now()}_${videos.length}`,
           type: 'video',
@@ -118,8 +150,10 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
   const fbcdnMatches = content.match(fbcdnVideoPattern) || [];
   fbcdnMatches.forEach(url => {
     const cleanUrl = cleanMediaUrl(url);
-    if (!seenUrls.has(cleanUrl) && isVideoUrl(cleanUrl) && isValidVideoUrl(cleanUrl)) {
+    const fingerprint = getMediaFingerprint(cleanUrl);
+    if (!seenFingerprints.has(fingerprint) && !seenUrls.has(cleanUrl) && isVideoUrl(cleanUrl) && isValidVideoUrl(cleanUrl)) {
       seenUrls.add(cleanUrl);
+      seenFingerprints.add(fingerprint);
       videos.push({
         id: `vid_${Date.now()}_${videos.length}`,
         type: 'video',
@@ -134,8 +168,10 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
     const matches = content.match(pattern) || [];
     matches.forEach(url => {
       const cleanUrl = cleanMediaUrl(url);
-      if (!seenUrls.has(cleanUrl) && isValidMediaUrl(cleanUrl) && !isVideoUrl(cleanUrl)) {
+      const fingerprint = getMediaFingerprint(cleanUrl);
+      if (!seenFingerprints.has(fingerprint) && !seenUrls.has(cleanUrl) && isValidMediaUrl(cleanUrl) && !isVideoUrl(cleanUrl)) {
         seenUrls.add(cleanUrl);
+        seenFingerprints.add(fingerprint);
         images.push({
           id: `img_${Date.now()}_${images.length}`,
           type: 'image',
@@ -157,9 +193,11 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
     const regex = new RegExp(pattern.source, pattern.flags);
     while ((match = regex.exec(content)) !== null) {
       const url = cleanMediaUrl(match[1]);
+      const fingerprint = getMediaFingerprint(url);
       
-      if (!seenUrls.has(url) && isValidMediaUrl(url) && !isVideoUrl(url)) {
+      if (!seenFingerprints.has(fingerprint) && !seenUrls.has(url) && isValidMediaUrl(url) && !isVideoUrl(url)) {
         seenUrls.add(url);
+        seenFingerprints.add(fingerprint);
         images.push({
           id: `img_${Date.now()}_${images.length}`,
           type: 'image',
