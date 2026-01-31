@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { Lock, Image as ImageIcon, Video, FileText, Link as LinkIcon, MousePointer, Download, LogOut, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Eye, EyeOff } from "lucide-react";
+import { Lock, Image as ImageIcon, Video, FileText, Link as LinkIcon, MousePointer, Download, LogOut, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Eye, EyeOff, Home, BookOpen, User, ChevronRight, Play, Menu, X } from "lucide-react";
 import { toast } from "sonner";
 import { CustomerHistoryTimeline } from "@/components/members-area/CustomerHistoryTimeline";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+
 interface ContentBlock {
   id: string;
   type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides';
@@ -24,7 +27,7 @@ interface Section {
   title: string;
   description?: string;
   order_index: number;
-  blocks_layout: ('full' | 'half' | 'third')[]; // Define quantos blocos e suas larguras
+  blocks_layout: ('full' | 'half' | 'third')[];
   blocks: ContentBlock[];
 }
 
@@ -39,7 +42,6 @@ interface MembersArea {
   primary_color?: string;
   secondary_color?: string;
   logo_url?: string;
-  // Design da área interna
   background_color?: string;
   text_color?: string;
   card_background_color?: string;
@@ -55,6 +57,8 @@ export default function MembersAreaPublic() {
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     loadArea();
@@ -71,6 +75,9 @@ export default function MembersAreaPublic() {
 
       if (error) throw error;
       setArea(data as any);
+      if ((data as any).sections?.length > 0) {
+        setActiveSection((data as any).sections[0].id);
+      }
     } catch (error: any) {
       toast.error('Área de membros não encontrada');
     } finally {
@@ -95,10 +102,35 @@ export default function MembersAreaPublic() {
     toast.success('Você saiu da área de membros');
   };
 
-  const renderBlock = (block: ContentBlock) => {
+  const getBlockIcon = (type: string) => {
+    const icons: Record<string, React.ReactNode> = {
+      video: <Video className="w-4 h-4" />,
+      image: <ImageIcon className="w-4 h-4" />,
+      document: <FileText className="w-4 h-4" />,
+      link: <LinkIcon className="w-4 h-4" />,
+      button: <MousePointer className="w-4 h-4" />,
+      download: <Download className="w-4 h-4" />,
+      audio: <Music className="w-4 h-4" />,
+      embed: <Code className="w-4 h-4" />,
+      quiz: <HelpCircle className="w-4 h-4" />,
+      timeline: <GitBranch className="w-4 h-4" />,
+      customer_history: <History className="w-4 h-4" />,
+      checklist: <CheckSquare className="w-4 h-4" />,
+      certificate: <Award className="w-4 h-4" />,
+      webinar: <Radio className="w-4 h-4" />,
+      notes: <StickyNote className="w-4 h-4" />,
+      faq: <MessageSquare className="w-4 h-4" />,
+      mindmap: <Brain className="w-4 h-4" />,
+      slides: <Presentation className="w-4 h-4" />,
+      text: <FileText className="w-4 h-4" />,
+    };
+    return icons[type] || <FileText className="w-4 h-4" />;
+  };
+
+  const renderBlock = (block: ContentBlock, accentColor: string, cardTextColor: string) => {
     switch (block.type) {
       case 'text':
-        return <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: block.content }} />;
+        return <div className="prose prose-sm max-w-none" style={{ color: cardTextColor }} dangerouslySetInnerHTML={{ __html: block.content }} />;
       
       case 'image':
         return (
@@ -138,10 +170,16 @@ export default function MembersAreaPublic() {
             href={block.content} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="flex items-center gap-2 p-4 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
+            className="flex items-center gap-3 p-4 rounded-lg transition-all hover:shadow-md"
+            style={{ backgroundColor: `${accentColor}10` }}
           >
-            <FileText className="w-5 h-5" />
-            <span>{block.title || 'Documento'}</span>
+            <div 
+              className="w-10 h-10 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+            >
+              <FileText className="w-5 h-5" />
+            </div>
+            <span style={{ color: cardTextColor }}>{block.title || 'Documento'}</span>
           </a>
         );
       
@@ -151,9 +189,15 @@ export default function MembersAreaPublic() {
             href={block.content} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="flex items-center gap-2 p-4 bg-muted rounded-lg hover:bg-muted/80 transition-colors text-primary"
+            className="flex items-center gap-3 p-4 rounded-lg transition-all hover:shadow-md"
+            style={{ backgroundColor: `${accentColor}10`, color: accentColor }}
           >
-            <LinkIcon className="w-5 h-5" />
+            <div 
+              className="w-10 h-10 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: `${accentColor}20` }}
+            >
+              <LinkIcon className="w-5 h-5" />
+            </div>
             <span>{block.title || block.content}</span>
           </a>
         );
@@ -161,7 +205,11 @@ export default function MembersAreaPublic() {
       case 'button':
         return (
           <a href={block.content} target="_blank" rel="noopener noreferrer">
-            <Button className="w-full" size="lg">
+            <Button 
+              className="w-full text-white"
+              size="lg"
+              style={{ backgroundColor: accentColor }}
+            >
               {block.title || 'Clique aqui'}
             </Button>
           </a>
@@ -170,7 +218,12 @@ export default function MembersAreaPublic() {
       case 'download':
         return (
           <a href={block.content} download>
-            <Button className="w-full gap-2" size="lg" variant="outline">
+            <Button 
+              className="w-full gap-2" 
+              size="lg" 
+              variant="outline"
+              style={{ borderColor: accentColor, color: accentColor }}
+            >
               <Download className="w-5 h-5" />
               {block.title || 'Baixar Arquivo'}
             </Button>
@@ -179,10 +232,18 @@ export default function MembersAreaPublic() {
 
       case 'audio':
         return (
-          <div className="p-4 bg-muted rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Music className="w-5 h-5" />
-              <span className="font-medium">{block.title || 'Áudio'}</span>
+          <div 
+            className="p-4 rounded-lg"
+            style={{ backgroundColor: `${accentColor}10` }}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <div 
+                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+              >
+                <Music className="w-4 h-4" />
+              </div>
+              <span className="font-medium" style={{ color: cardTextColor }}>{block.title || 'Áudio'}</span>
             </div>
             <audio controls className="w-full">
               <source src={block.content} />
@@ -201,7 +262,7 @@ export default function MembersAreaPublic() {
       case 'customer_history':
         if (!block.customer_id) {
           return (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-8" style={{ color: cardTextColor }}>
               <History className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>Cliente não selecionado</p>
             </div>
@@ -210,48 +271,38 @@ export default function MembersAreaPublic() {
         return (
           <div className="space-y-4">
             {block.title && (
-              <h3 className="text-lg font-semibold flex items-center gap-2">
+              <h3 className="text-lg font-semibold flex items-center gap-2" style={{ color: cardTextColor }}>
                 <History className="w-5 h-5" />
                 {block.title}
               </h3>
             )}
             <CustomerHistoryTimeline 
               customerId={block.customer_id} 
-              primaryColor={area?.primary_color || '#8B5CF6'}
+              primaryColor={accentColor}
             />
           </div>
         );
 
       case 'notes':
-        return (
-          <div className="p-4 bg-muted rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <StickyNote className="w-5 h-5" />
-              <span className="font-medium">{block.title || 'Anotações'}</span>
-            </div>
-            <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: block.content }} />
-          </div>
-        );
-
       case 'faq':
-        return (
-          <div className="p-4 bg-muted rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <MessageSquare className="w-5 h-5" />
-              <span className="font-medium">{block.title || 'Perguntas Frequentes'}</span>
-            </div>
-            <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: block.content }} />
-          </div>
-        );
-
       case 'checklist':
+        const iconMap = { notes: StickyNote, faq: MessageSquare, checklist: CheckSquare };
+        const Icon = iconMap[block.type];
         return (
-          <div className="p-4 bg-muted rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <CheckSquare className="w-5 h-5" />
-              <span className="font-medium">{block.title || 'Checklist'}</span>
+          <div 
+            className="p-4 rounded-lg"
+            style={{ backgroundColor: `${accentColor}10` }}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <div 
+                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+              >
+                <Icon className="w-4 h-4" />
+              </div>
+              <span className="font-medium" style={{ color: cardTextColor }}>{block.title || block.type}</span>
             </div>
-            <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: block.content }} />
+            <div className="prose prose-sm max-w-none" style={{ color: cardTextColor }} dangerouslySetInnerHTML={{ __html: block.content }} />
           </div>
         );
       
@@ -262,15 +313,18 @@ export default function MembersAreaPublic() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Carregando...</p>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex items-center gap-3">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-muted-foreground">Carregando...</p>
+        </div>
       </div>
     );
   }
 
   if (!area) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6 text-center">
             <p className="text-muted-foreground">Área de membros não encontrada</p>
@@ -280,56 +334,113 @@ export default function MembersAreaPublic() {
     );
   }
 
+  const primaryColor = area.primary_color || '#8B5CF6';
+  const secondaryColor = area.secondary_color || '#EC4899';
+  const backgroundColor = area.background_color || '#ffffff';
+  const textColor = area.text_color || '#1f2937';
+  const cardBackgroundColor = area.card_background_color || '#f9fafb';
+  const cardTextColor = area.card_text_color || '#374151';
+  const headerBackgroundColor = area.header_background_color || '#f3f4f6';
+  const accentColor = area.accent_color || primaryColor;
+
+  // Login Screen
   if (!isAuthenticated) {
-    const primaryColor = area.primary_color || '#8B5CF6';
-    const secondaryColor = area.secondary_color || '#EC4899';
-    
     return (
       <div 
-        className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4"
-        style={{
-          '--custom-primary': primaryColor,
-          '--custom-secondary': secondaryColor,
-        } as React.CSSProperties}
+        className="min-h-screen flex items-center justify-center p-4"
+        style={{ backgroundColor: backgroundColor }}
       >
-        <style>{`
-          [style*="--custom-primary"] .bg-primary {
-            background-color: ${primaryColor} !important;
-          }
-          [style*="--custom-primary"] .text-primary {
-            color: ${primaryColor} !important;
-          }
-          [style*="--custom-primary"] .bg-primary\\/10 {
-            background-color: ${primaryColor}1a !important;
-          }
-        `}</style>
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            {area.logo_url && (
+        <Card className="w-full max-w-md overflow-hidden shadow-2xl">
+          {/* Hero Banner */}
+          <div 
+            className="relative py-12 px-6 text-center"
+            style={{ 
+              background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)` 
+            }}
+          >
+            {area.logo_url ? (
               <img 
                 src={area.logo_url} 
                 alt={area.name} 
-                className="mx-auto mb-4 w-20 h-20 object-contain rounded-lg"
+                className="w-20 h-20 mx-auto mb-4 rounded-xl object-cover bg-white/20 shadow-lg"
               />
+            ) : (
+              <div className="w-20 h-20 mx-auto mb-4 rounded-xl flex items-center justify-center bg-white/20 shadow-lg">
+                <Play className="w-10 h-10 text-white" />
+              </div>
             )}
-            <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-              <Lock className="w-8 h-8 text-primary" />
+            
+            <h1 className="text-2xl font-bold text-white mb-2">{area.name}</h1>
+            <p className="text-white/80 text-sm max-w-xs mx-auto">{area.description}</p>
+            
+            <div className="flex items-center justify-center gap-2 mt-4">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-white/20 text-white backdrop-blur-sm">
+                <Lock className="w-4 h-4" />
+                Acesso Protegido
+              </div>
             </div>
-            <CardTitle className="text-2xl">{area.name}</CardTitle>
-            <p className="text-muted-foreground">{area.description}</p>
-          </CardHeader>
-          <CardContent>
+          </div>
+
+          <CardContent className="p-6 space-y-6">
+            {/* Sections Preview */}
+            {area.sections.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold" style={{ color: textColor }}>Conteúdo Disponível</h3>
+                  <span 
+                    className="text-xs font-medium px-2 py-1 rounded-full"
+                    style={{ backgroundColor: `${primaryColor}15`, color: primaryColor }}
+                  >
+                    {area.sections.length} módulos
+                  </span>
+                </div>
+                
+                {area.sections.slice(0, 3).map((section, index) => (
+                  <div 
+                    key={section.id} 
+                    className="p-3 rounded-lg transition-colors"
+                    style={{ backgroundColor: `${primaryColor}08` }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-sm"
+                        style={{ backgroundColor: primaryColor }}
+                      >
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate" style={{ color: textColor }}>{section.title}</p>
+                        {section.description && (
+                          <p className="text-xs truncate" style={{ color: cardTextColor }}>{section.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {area.sections.length > 3 && (
+                  <p 
+                    className="text-xs text-center font-medium py-1"
+                    style={{ color: primaryColor }}
+                  >
+                    +{area.sections.length - 3} módulos adicionais
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Login Form */}
             <div className="space-y-4">
               <div>
-                <Label htmlFor="password">Digite a senha para acessar</Label>
-                <div className="relative mt-1">
+                <Label htmlFor="password" style={{ color: textColor }}>Digite a senha para acessar</Label>
+                <div className="relative mt-2">
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     value={passwordInput}
                     onChange={(e) => setPasswordInput(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handlePasswordSubmit()}
-                    placeholder="Senha"
+                    placeholder="••••••••"
                     className="pr-10"
                   />
                   <Button
@@ -347,7 +458,14 @@ export default function MembersAreaPublic() {
                   </Button>
                 </div>
               </div>
-              <Button onClick={handlePasswordSubmit} className="w-full">
+              <Button 
+                onClick={handlePasswordSubmit} 
+                className="w-full text-white"
+                size="lg"
+                style={{ 
+                  background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)` 
+                }}
+              >
                 Acessar Conteúdo
               </Button>
             </div>
@@ -357,189 +475,343 @@ export default function MembersAreaPublic() {
     );
   }
 
-  // Apply custom colors via CSS variables
-  const primaryColor = area.primary_color || '#8B5CF6';
-  const secondaryColor = area.secondary_color || '#EC4899';
-  const backgroundColor = area.background_color || '#ffffff';
-  const textColor = area.text_color || '#1f2937';
-  const cardBackgroundColor = area.card_background_color || '#f9fafb';
-  const cardTextColor = area.card_text_color || '#374151';
-  const headerBackgroundColor = area.header_background_color || '#f3f4f6';
-  const accentColor = area.accent_color || primaryColor;
+  // Internal Members Area with Sidebar
+  const currentSection = area.sections.find(s => s.id === activeSection) || area.sections[0];
 
   return (
     <div 
-      className="min-h-screen"
-      style={{
-        '--custom-primary': primaryColor,
-        '--custom-secondary': secondaryColor,
-        backgroundColor: backgroundColor,
-        color: textColor,
-      } as React.CSSProperties}
+      className="min-h-screen flex"
+      style={{ backgroundColor: backgroundColor, color: textColor }}
     >
-      <style>{`
-        [style*="--custom-primary"] .gradient-primary {
-          background: linear-gradient(135deg, ${primaryColor}, ${secondaryColor});
-        }
-        [style*="--custom-primary"] .custom-card {
-          background-color: ${cardBackgroundColor};
-          color: ${cardTextColor};
-        }
-        [style*="--custom-primary"] .custom-header {
-          background-color: ${headerBackgroundColor};
-        }
-        [style*="--custom-primary"] .custom-accent {
-          color: ${accentColor};
-        }
-        [style*="--custom-primary"] .custom-accent-bg {
-          background-color: ${accentColor};
-        }
-        [style*="--custom-primary"] .custom-link:hover {
-          color: ${accentColor};
-        }
-        [style*="--custom-primary"] .bg-primary {
-          background-color: ${primaryColor} !important;
-        }
-        [style*="--custom-primary"] .text-primary {
-          color: ${primaryColor} !important;
-        }
-        [style*="--custom-primary"] .border-primary {
-          border-color: ${primaryColor} !important;
-        }
-        [style*="--custom-primary"] .hover\\:bg-primary:hover {
-          background-color: ${primaryColor} !important;
-        }
-        [style*="--custom-primary"] .from-primary\\/10 {
-          --tw-gradient-from: ${primaryColor}1a !important;
-        }
-        [style*="--custom-primary"] .to-primary\\/5 {
-          --tw-gradient-to: ${primaryColor}0d !important;
-        }
-      `}</style>
+      {/* Desktop Sidebar */}
       <div 
-        className="custom-header border-b"
-        style={{ backgroundColor: headerBackgroundColor }}
+        className="hidden md:flex w-20 flex-shrink-0 flex-col items-center py-6 gap-4 border-r"
+        style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}20` }}
       >
-        <div className="container mx-auto px-4 py-12">
-          <div className="flex flex-col sm:flex-row items-center gap-6">
-            {area.logo_url && (
-              <img 
-                src={area.logo_url} 
-                alt={area.name} 
-                className="w-24 h-24 object-contain rounded-lg"
-              />
-            )}
-            <div className="flex-1 text-center sm:text-left">
-              <h1 className="text-4xl font-bold mb-2" style={{ color: textColor }}>{area.name}</h1>
-              <p className="text-lg opacity-70" style={{ color: textColor }}>{area.description}</p>
+        {/* Logo */}
+        {area.logo_url ? (
+          <img 
+            src={area.logo_url} 
+            alt={area.name} 
+            className="w-12 h-12 rounded-xl object-cover border-2"
+            style={{ borderColor: accentColor }}
+          />
+        ) : (
+          <div 
+            className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg font-bold"
+            style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }}
+          >
+            {area.name ? area.name.charAt(0).toUpperCase() : 'A'}
+          </div>
+        )}
+
+        <div className="flex-1 flex flex-col items-center gap-2 mt-4">
+          <button 
+            className="w-12 h-12 rounded-xl flex items-center justify-center transition-all text-white"
+            style={{ backgroundColor: accentColor }}
+          >
+            <Home className="w-5 h-5" />
+          </button>
+          <button 
+            className="w-12 h-12 rounded-xl flex items-center justify-center transition-all hover:opacity-70"
+            style={{ color: textColor, backgroundColor: `${accentColor}10` }}
+          >
+            <BookOpen className="w-5 h-5" />
+          </button>
+          <button 
+            className="w-12 h-12 rounded-xl flex items-center justify-center transition-all hover:opacity-70"
+            style={{ color: textColor, backgroundColor: `${accentColor}10` }}
+          >
+            <User className="w-5 h-5" />
+          </button>
+        </div>
+
+        <button 
+          onClick={handleLogout}
+          className="w-12 h-12 rounded-xl flex items-center justify-center transition-all hover:bg-red-100"
+          style={{ color: '#ef4444' }}
+        >
+          <LogOut className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Mobile Header */}
+      <div 
+        className="md:hidden fixed top-0 left-0 right-0 z-50 px-4 py-3 border-b flex items-center justify-between"
+        style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}20` }}
+      >
+        <div className="flex items-center gap-3">
+          {area.logo_url ? (
+            <img 
+              src={area.logo_url} 
+              alt={area.name} 
+              className="w-8 h-8 rounded-lg object-cover"
+            />
+          ) : (
+            <div 
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold"
+              style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }}
+            >
+              {area.name ? area.name.charAt(0).toUpperCase() : 'A'}
             </div>
+          )}
+          <span className="font-semibold text-sm" style={{ color: textColor }}>{area.name}</span>
+        </div>
+        <button 
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="w-10 h-10 rounded-lg flex items-center justify-center"
+          style={{ backgroundColor: `${accentColor}10`, color: accentColor }}
+        >
+          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div 
+          className="md:hidden fixed inset-0 z-40 pt-16"
+          style={{ backgroundColor: backgroundColor }}
+        >
+          <ScrollArea className="h-full p-4">
+            <div className="space-y-2">
+              {area.sections.map((section, index) => (
+                <button
+                  key={section.id}
+                  onClick={() => {
+                    setActiveSection(section.id);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full p-4 rounded-xl flex items-center gap-3 transition-all text-left"
+                  style={{ 
+                    backgroundColor: activeSection === section.id ? `${accentColor}15` : cardBackgroundColor,
+                    borderColor: activeSection === section.id ? accentColor : 'transparent',
+                    borderWidth: '2px'
+                  }}
+                >
+                  <div 
+                    className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold shrink-0"
+                    style={{ backgroundColor: activeSection === section.id ? accentColor : `${accentColor}60` }}
+                  >
+                    {index + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate" style={{ color: cardTextColor }}>{section.title}</p>
+                    {section.description && (
+                      <p className="text-sm truncate opacity-70" style={{ color: cardTextColor }}>{section.description}</p>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+            
             <Button 
-              onClick={handleLogout} 
-              variant="outline" 
-              className="gap-2"
-              style={{ 
-                borderColor: accentColor, 
-                color: accentColor 
-              }}
+              onClick={handleLogout}
+              variant="outline"
+              className="w-full mt-6 gap-2"
+              style={{ borderColor: '#ef4444', color: '#ef4444' }}
             >
               <LogOut className="w-4 h-4" />
               Sair
             </Button>
+          </ScrollArea>
+        </div>
+      )}
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 md:flex-row">
+        {/* Sections Sidebar (Desktop) */}
+        <div 
+          className="hidden md:block w-80 flex-shrink-0 border-r overflow-y-auto"
+          style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}15` }}
+        >
+          {/* Header */}
+          <div 
+            className="px-6 py-5 border-b"
+            style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}15` }}
+          >
+            <h2 className="text-lg font-bold" style={{ color: textColor }}>{area.name}</h2>
+            <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>{area.description}</p>
+          </div>
+
+          {/* Progress */}
+          <div className="p-4 border-b" style={{ borderColor: `${accentColor}15` }}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium" style={{ color: cardTextColor }}>Seu Progresso</span>
+              <span className="text-sm font-bold" style={{ color: accentColor }}>35%</span>
+            </div>
+            <div 
+              className="w-full h-2 rounded-full overflow-hidden"
+              style={{ backgroundColor: `${accentColor}20` }}
+            >
+              <div 
+                className="h-full rounded-full transition-all"
+                style={{ 
+                  width: '35%',
+                  background: `linear-gradient(90deg, ${primaryColor}, ${secondaryColor})` 
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Sections List */}
+          <div className="p-4 space-y-2">
+            <h3 
+              className="text-xs font-semibold uppercase tracking-wide mb-3"
+              style={{ color: cardTextColor }}
+            >
+              Módulos
+            </h3>
+            
+            {area.sections.map((section, index) => (
+              <button
+                key={section.id}
+                onClick={() => setActiveSection(section.id)}
+                className="w-full p-3 rounded-xl flex items-center gap-3 transition-all text-left"
+                style={{ 
+                  backgroundColor: activeSection === section.id ? `${accentColor}15` : 'transparent',
+                  borderColor: activeSection === section.id ? accentColor : 'transparent',
+                  borderWidth: '2px'
+                }}
+              >
+                <div 
+                  className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
+                  style={{ backgroundColor: activeSection === section.id ? accentColor : `${accentColor}60` }}
+                >
+                  {index + 1}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate" style={{ color: cardTextColor }}>{section.title}</p>
+                  {section.description && (
+                    <p className="text-xs truncate opacity-70" style={{ color: cardTextColor }}>{section.description}</p>
+                  )}
+                </div>
+                <ChevronRight 
+                  className="w-4 h-4 shrink-0 transition-transform"
+                  style={{ 
+                    color: cardTextColor,
+                    transform: activeSection === section.id ? 'rotate(90deg)' : 'none'
+                  }}
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto pt-16 md:pt-0">
+          {/* Content Header */}
+          <div 
+            className="px-6 py-5 border-b hidden md:block"
+            style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}15` }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold" style={{ color: textColor }}>
+                  {currentSection?.title || 'Selecione um módulo'}
+                </h2>
+                {currentSection?.description && (
+                  <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>
+                    {currentSection.description}
+                  </p>
+                )}
+              </div>
+              <Badge 
+                className="text-sm px-3 py-1 border"
+                style={{ 
+                  backgroundColor: `${accentColor}15`, 
+                  color: accentColor,
+                  borderColor: `${accentColor}30`
+                }}
+              >
+                Premium
+              </Badge>
+            </div>
+          </div>
+
+          {/* Content Blocks */}
+          <div className="p-4 md:p-6 space-y-4">
+            {currentSection?.blocks && currentSection.blocks.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4">
+                {currentSection.blocks.map((block) => (
+                  <Card 
+                    key={block.id}
+                    className="overflow-hidden transition-all hover:shadow-lg"
+                    style={{ 
+                      backgroundColor: cardBackgroundColor,
+                      borderColor: `${accentColor}20`
+                    }}
+                  >
+                    <div 
+                      className="px-4 py-3 flex items-center gap-3 border-b"
+                      style={{ backgroundColor: `${accentColor}08`, borderColor: `${accentColor}15` }}
+                    >
+                      <div 
+                        className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+                      >
+                        {getBlockIcon(block.type)}
+                      </div>
+                      {block.title && (
+                        <span className="font-medium" style={{ color: cardTextColor }}>{block.title}</span>
+                      )}
+                    </div>
+                    <CardContent className="p-4">
+                      {renderBlock(block, accentColor, cardTextColor)}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div 
+                className="text-center py-16 rounded-xl"
+                style={{ backgroundColor: cardBackgroundColor }}
+              >
+                <BookOpen className="w-16 h-16 mx-auto mb-4 opacity-30" style={{ color: cardTextColor }} />
+                <p className="text-lg font-medium" style={{ color: cardTextColor }}>Nenhum conteúdo disponível</p>
+                <p className="text-sm opacity-70 mt-1" style={{ color: cardTextColor }}>
+                  Selecione um módulo para ver o conteúdo
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Anchor Menu */}
-      {area.sections.length > 0 && (
-        <div 
-          className="sticky top-0 z-10 backdrop-blur-sm border-b"
-          style={{ backgroundColor: `${backgroundColor}f2` }}
+      {/* Mobile Bottom Navigation */}
+      <div 
+        className="md:hidden fixed bottom-0 left-0 right-0 border-t px-4 py-2 flex items-center justify-around"
+        style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}20` }}
+      >
+        <button 
+          className="flex flex-col items-center gap-1 p-2"
+          style={{ color: accentColor }}
         >
-          <div className="container mx-auto px-4 py-3">
-            <nav className="flex gap-4 overflow-x-auto">
-              {area.sections.map((section) => (
-                <a
-                  key={section.id}
-                  href={`#section-${section.id}`}
-                  className="text-sm font-medium whitespace-nowrap transition-colors custom-link"
-                  style={{ color: textColor }}
-                >
-                  {section.title}
-                </a>
-              ))}
-            </nav>
-          </div>
-        </div>
-      )}
-
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto space-y-8">
-          {area.sections.map((section) => (
-            <Card 
-              key={section.id} 
-              id={`section-${section.id}`} 
-              className="scroll-mt-20 custom-card border"
-              style={{ 
-                backgroundColor: cardBackgroundColor,
-                color: cardTextColor,
-                borderColor: `${accentColor}30`
-              }}
-            >
-              <CardHeader>
-                <CardTitle className="text-2xl" style={{ color: cardTextColor }}>{section.title}</CardTitle>
-                {section.description && (
-                  <p className="opacity-70" style={{ color: cardTextColor }}>{section.description}</p>
-                )}
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                  {(section.blocks_layout || ['full']).map((layoutWidth, layoutIndex) => {
-                    // Get blocks for this position
-                    const blocksInPosition = section.blocks.filter(b => (b.block_position || 0) === layoutIndex);
-                    
-                    // Calculate column span based on layout
-                    const colSpan = layoutWidth === 'full' ? 'md:col-span-12' :
-                                  layoutWidth === 'half' ? 'md:col-span-6' :
-                                  layoutWidth === 'third' ? 'md:col-span-4' : 'md:col-span-12';
-                    
-                    return (
-                      <div key={layoutIndex} className={`col-span-1 ${colSpan} space-y-4`}>
-                        {blocksInPosition.map((block) => (
-                          <div key={block.id}>
-                            {block.title && block.type !== 'button' && (
-                              <h3 className="font-semibold mb-2">{block.title}</h3>
-                            )}
-                            {renderBlock(block)}
-                          </div>
-                        ))}
-                        {blocksInPosition.length === 0 && (
-                          <div className="text-center text-muted-foreground py-4 text-sm">
-                            Bloco vazio
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                  {section.blocks.length === 0 && (
-                    <div className="col-span-1 md:col-span-12">
-                      <p className="text-center text-muted-foreground py-8">
-                        Nenhum conteúdo disponível nesta seção
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-
-          {area.sections.length === 0 && (
-            <Card>
-              <CardContent className="pt-6 text-center">
-                <p className="text-muted-foreground">Nenhuma seção disponível ainda</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+          <Home className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Início</span>
+        </button>
+        <button 
+          onClick={() => setMobileMenuOpen(true)}
+          className="flex flex-col items-center gap-1 p-2"
+          style={{ color: textColor }}
+        >
+          <BookOpen className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Módulos</span>
+        </button>
+        <button 
+          className="flex flex-col items-center gap-1 p-2"
+          style={{ color: textColor }}
+        >
+          <User className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Perfil</span>
+        </button>
+        <button 
+          onClick={handleLogout}
+          className="flex flex-col items-center gap-1 p-2"
+          style={{ color: '#ef4444' }}
+        >
+          <LogOut className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Sair</span>
+        </button>
       </div>
     </div>
   );
