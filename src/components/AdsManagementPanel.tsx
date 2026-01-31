@@ -31,7 +31,8 @@ import {
   Copy,
   Check,
   ExternalLink,
-  History
+  History,
+  Wallet
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
@@ -2096,6 +2097,98 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                             {metric}
                           </div>
                         ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })()}
+
+              {/* Campaign Cashbox Impact - Impacto no Caixa da Campanha */}
+              {selectedCampaignId && filteredCampaigns.length > 0 && (() => {
+                const campaign = filteredCampaigns[0];
+                const campaignClient = clients.find(c => c.id === campaign.client_id);
+                
+                if (!campaignClient) return null;
+
+                // Ordenar campanhas por data de criação
+                const clientCampaigns = campaigns
+                  .filter(c => c.client_id === campaignClient.id)
+                  .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+                
+                const campaignIndex = clientCampaigns.findIndex(c => c.id === campaign.id);
+                
+                // Calcular caixa antes desta campanha
+                const previousCampaigns = clientCampaigns.slice(0, campaignIndex);
+                const previousSpent = previousCampaigns.reduce((sum, c) => sum + c.spent, 0);
+                const previousRevenue = previousCampaigns.reduce((sum, c) => sum + (c.revenue || 0), 0);
+                const cashboxBeforeCampaign = campaignClient.cashbox - previousSpent + previousRevenue;
+                
+                // Impacto desta campanha
+                const campaignSpent = campaign.spent;
+                const campaignRevenue = campaign.revenue || 0;
+                const campaignProfit = campaignRevenue - campaignSpent;
+                const campaignImpact = campaignRevenue - campaignSpent; // Lucro da campanha
+                
+                // Caixa depois desta campanha
+                const cashboxAfterCampaign = cashboxBeforeCampaign - campaignSpent + campaignRevenue;
+
+                return (
+                  <Card className="glass border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-transparent mb-6">
+                    <CardHeader>
+                      <CardTitle className="text-xl flex items-center gap-3">
+                        <Wallet className="h-6 w-6 text-primary" />
+                        Impacto no Caixa - {campaignClient.name}
+                      </CardTitle>
+                      <CardDescription>
+                        Como esta campanha afetou o caixa do cliente
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {/* Fluxo visual do caixa */}
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          {/* Caixa Antes */}
+                          <div className="flex-1 min-w-[140px] p-3 bg-muted/50 rounded-lg text-center">
+                            <div className="text-xs text-muted-foreground mb-1">💰 Caixa Antes</div>
+                            <div className="text-lg font-bold text-primary">
+                              R$ {cashboxBeforeCampaign.toFixed(2)}
+                            </div>
+                          </div>
+
+                          {/* Seta e Impacto */}
+                          <div className="flex flex-col items-center px-2">
+                            <div className={`text-xl font-bold ${campaignImpact >= 0 ? 'text-success' : 'text-destructive'}`}>
+                              {campaignImpact >= 0 ? '→ +' : '→ '}R$ {campaignImpact.toFixed(2)}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Impacto</div>
+                          </div>
+
+                          {/* Caixa Depois */}
+                          <div className={`flex-1 min-w-[140px] p-3 rounded-lg text-center border-2 ${cashboxAfterCampaign >= 0 ? 'bg-success/10 border-success/30' : 'bg-destructive/10 border-destructive/30'}`}>
+                            <div className="text-xs text-muted-foreground mb-1">📊 Caixa Depois</div>
+                            <div className={`text-lg font-bold ${cashboxAfterCampaign >= 0 ? 'text-success' : 'text-destructive'}`}>
+                              R$ {cashboxAfterCampaign.toFixed(2)}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Detalhamento */}
+                        <div className="grid grid-cols-3 gap-3 pt-3 border-t border-border">
+                          <div className="text-center p-2 bg-destructive/10 rounded-lg">
+                            <div className="text-xs text-muted-foreground">Gasto</div>
+                            <div className="text-sm font-bold text-destructive">-R$ {campaignSpent.toFixed(2)}</div>
+                          </div>
+                          <div className="text-center p-2 bg-primary/10 rounded-lg">
+                            <div className="text-xs text-muted-foreground">Faturamento</div>
+                            <div className="text-sm font-bold text-primary">+R$ {campaignRevenue.toFixed(2)}</div>
+                          </div>
+                          <div className={`text-center p-2 rounded-lg ${campaignProfit >= 0 ? 'bg-success/10' : 'bg-destructive/10'}`}>
+                            <div className="text-xs text-muted-foreground">Lucro</div>
+                            <div className={`text-sm font-bold ${campaignProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                              {campaignProfit >= 0 ? '+' : ''}R$ {campaignProfit.toFixed(2)}
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
