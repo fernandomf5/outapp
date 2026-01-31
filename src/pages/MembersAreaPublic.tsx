@@ -938,37 +938,55 @@ export default function MembersAreaPublic() {
               <div className="p-4 md:p-6 space-y-4">
                 {currentSection?.blocks && currentSection.blocks.length > 0 ? (
                   (() => {
-                    // Group blocks by their block_position to arrange them in rows
+                    // Organize blocks into rows based on blocks_layout
                     const layout = currentSection.blocks_layout || ['full'];
-                    const blocksByPosition: Record<number, ContentBlock[]> = {};
+                    const sortedBlocks = [...currentSection.blocks].sort((a, b) => a.order_index - b.order_index);
                     
-                    currentSection.blocks.forEach(block => {
-                      const pos = block.block_position || 0;
-                      if (!blocksByPosition[pos]) blocksByPosition[pos] = [];
-                      blocksByPosition[pos].push(block);
-                    });
+                    // Calculate how many blocks each row should have based on layout
+                    const getBlocksPerRow = (layoutType: string) => {
+                      if (layoutType === 'third') return 3;
+                      if (layoutType === 'half') return 2;
+                      return 1;
+                    };
                     
-                    // Get the max position to render rows
-                    const maxPosition = Math.max(...Object.keys(blocksByPosition).map(Number), 0);
+                    // Build rows by distributing blocks according to layout
+                    const rows: { layoutType: string; blocks: ContentBlock[] }[] = [];
+                    let blockIndex = 0;
+                    
+                    for (let rowIndex = 0; rowIndex < layout.length && blockIndex < sortedBlocks.length; rowIndex++) {
+                      const layoutType = layout[rowIndex] || 'full';
+                      const blocksPerRow = getBlocksPerRow(layoutType);
+                      const rowBlocks: ContentBlock[] = [];
+                      
+                      for (let i = 0; i < blocksPerRow && blockIndex < sortedBlocks.length; i++) {
+                        rowBlocks.push(sortedBlocks[blockIndex]);
+                        blockIndex++;
+                      }
+                      
+                      if (rowBlocks.length > 0) {
+                        rows.push({ layoutType, blocks: rowBlocks });
+                      }
+                    }
+                    
+                    // If there are remaining blocks, add them as full-width rows
+                    while (blockIndex < sortedBlocks.length) {
+                      rows.push({ layoutType: 'full', blocks: [sortedBlocks[blockIndex]] });
+                      blockIndex++;
+                    }
                     
                     return (
                       <div className="space-y-4">
-                        {Array.from({ length: maxPosition + 1 }, (_, rowIndex) => {
-                          const layoutType = layout[rowIndex] || 'full';
-                          const blocksInRow = blocksByPosition[rowIndex] || [];
-                          
-                          if (blocksInRow.length === 0) return null;
-                          
-                          // Determine grid columns based on layout
-                          const gridCols = layoutType === 'third' 
+                        {rows.map((row, rowIndex) => {
+                          // Determine grid columns based on layout and actual block count
+                          const gridCols = row.layoutType === 'third' && row.blocks.length >= 2
                             ? 'md:grid-cols-3' 
-                            : layoutType === 'half' 
+                            : row.layoutType === 'half' && row.blocks.length >= 2
                               ? 'md:grid-cols-2' 
                               : 'grid-cols-1';
                           
                           return (
                             <div key={rowIndex} className={`grid grid-cols-1 ${gridCols} gap-4`}>
-                              {blocksInRow.map((block) => (
+                              {row.blocks.map((block) => (
                                 <Card 
                                   key={block.id}
                                   className="overflow-hidden transition-all hover:shadow-lg"
