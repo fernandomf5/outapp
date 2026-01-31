@@ -538,7 +538,7 @@ export function SimpleMembersArea() {
   if (selectedArea) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <Button variant="ghost" onClick={() => setSelectedArea(null)} className="mb-2">
               ← Voltar
@@ -546,10 +546,14 @@ export function SimpleMembersArea() {
             <h2 className="text-2xl font-bold">{selectedArea.name}</h2>
             <p className="text-muted-foreground">{selectedArea.description}</p>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={() => handleCopyLink(selectedArea)}>
+          <div className="flex gap-2 flex-wrap">
+            <Button variant="outline" onClick={() => handleCopyLink(selectedArea)}>
               <LinkIcon className="w-4 h-4 mr-2" />
               Copiar Link
+            </Button>
+            <Button variant="outline" onClick={() => window.open(`/members/${selectedArea.slug}`, '_blank')}>
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Visualizar
             </Button>
             <Button onClick={() => setIsAddSectionDialogOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
@@ -558,89 +562,157 @@ export function SimpleMembersArea() {
           </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Lock className="w-5 h-5" />
-              Senha de Acesso: {selectedArea.password}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-
-        <div className="space-y-6">
-          {selectedArea.sections.map((section) => (
-            <Card key={section.id}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <CardTitle>{section.title}</CardTitle>
-                    {section.description && <p className="text-sm text-muted-foreground">{section.description}</p>}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={() => {
-                        setEditingSection(section);
-                        setSectionFormData({
-                          title: section.title,
-                          description: section.description || '',
-                          blocks_layout: section.blocks_layout || ['full'],
-                        });
-                        setIsEditSectionDialogOpen(true);
-                      }}
-                    >
-                      <Settings className="w-4 h-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={() => {
-                        setSectionToDelete(section);
-                        setIsDeleteSectionDialogOpen(true);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                    <Button onClick={() => { setSelectedSection(section); setIsAddBlockDialogOpen(true); }}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Adicionar Conteúdo
-                    </Button>
-                  </div>
+        {/* Info Cards */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card className="bg-muted/30">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${selectedArea.primary_color || '#8B5CF6'}20` }}>
+                  <Lock className="w-5 h-5" style={{ color: selectedArea.primary_color || '#8B5CF6' }} />
                 </div>
-              </CardHeader>
-              <CardContent>
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, section.id)}>
-                  <SortableContext items={section.blocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
-                    <div className="space-y-2">
-                      {section.blocks.map((block) => (
-                        <SortableBlock
-                          key={block.id}
-                          block={block}
-                           onEdit={() => {
-                            setEditingBlock({ sectionId: section.id, block });
-                            setBlockFormData({
-                              type: block.type,
-                              title: block.title || '',
-                              content: block.content,
-                              block_position: block.block_position || 0,
+                <div>
+                  <p className="text-xs text-muted-foreground">Senha de Acesso</p>
+                  <p className="font-mono font-medium">{selectedArea.password}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-muted/30">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/10">
+                  <FileText className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Total de Seções</p>
+                  <p className="font-medium">{selectedArea.sections.length} seções</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-muted/30">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/10">
+                  <Video className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Total de Conteúdos</p>
+                  <p className="font-medium">
+                    {selectedArea.sections.reduce((acc, s) => acc + s.blocks.length, 0)} itens
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Live Preview Toggle */}
+        <div className="lg:grid lg:grid-cols-3 lg:gap-6">
+          {/* Sections List - 2/3 width on large screens */}
+          <div className="lg:col-span-2 space-y-4">
+
+            {selectedArea.sections.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <p className="text-muted-foreground mb-4">Nenhuma seção criada ainda</p>
+                  <Button onClick={() => setIsAddSectionDialogOpen(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Criar Primeira Seção
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              selectedArea.sections.map((section) => (
+                <Card key={section.id}>
+                  <CardHeader>
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="truncate">{section.title}</CardTitle>
+                        {section.description && <p className="text-sm text-muted-foreground truncate">{section.description}</p>}
+                      </div>
+                      <div className="flex gap-2 shrink-0">
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          onClick={() => {
+                            setEditingSection(section);
+                            setSectionFormData({
+                              title: section.title,
+                              description: section.description || '',
+                              blocks_layout: section.blocks_layout || ['full'],
                             });
-                            setIsAddBlockDialogOpen(true);
+                            setIsEditSectionDialogOpen(true);
                           }}
-                          onDelete={() => handleDeleteBlock(section.id, block.id)}
-                        />
-                      ))}
-                      {section.blocks.length === 0 && (
-                        <div className="text-center py-8 text-muted-foreground">
-                          Nenhum conteúdo adicionado ainda
-                        </div>
-                      )}
+                        >
+                          <Settings className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          onClick={() => {
+                            setSectionToDelete(section);
+                            setIsDeleteSectionDialogOpen(true);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                        <Button onClick={() => { setSelectedSection(section); setIsAddBlockDialogOpen(true); }}>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Adicionar Conteúdo
+                        </Button>
+                      </div>
                     </div>
-                  </SortableContext>
-                </DndContext>
-              </CardContent>
-            </Card>
-          ))}
+                  </CardHeader>
+                  <CardContent>
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, section.id)}>
+                      <SortableContext items={section.blocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
+                        <div className="space-y-2">
+                          {section.blocks.map((block) => (
+                            <SortableBlock
+                              key={block.id}
+                              block={block}
+                              onEdit={() => {
+                                setEditingBlock({ sectionId: section.id, block });
+                                setBlockFormData({
+                                  type: block.type,
+                                  title: block.title || '',
+                                  content: block.content,
+                                  block_position: block.block_position || 0,
+                                });
+                                setIsAddBlockDialogOpen(true);
+                              }}
+                              onDelete={() => handleDeleteBlock(section.id, block.id)}
+                            />
+                          ))}
+                          {section.blocks.length === 0 && (
+                            <div className="text-center py-8 text-muted-foreground">
+                              Nenhum conteúdo adicionado ainda
+                            </div>
+                          )}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+
+          {/* Live Preview - Right Column */}
+          <div className="hidden lg:block">
+            <div className="sticky top-4">
+              <p className="text-sm font-medium text-muted-foreground mb-3">Preview em Tempo Real</p>
+              <SimpleMembersAreaPreview
+                name={selectedArea.name}
+                description={selectedArea.description}
+                primaryColor={selectedArea.primary_color || '#8B5CF6'}
+                secondaryColor={selectedArea.secondary_color || '#EC4899'}
+                logoUrl={selectedArea.logo_url}
+                sections={selectedArea.sections}
+              />
+            </div>
+          </div>
         </div>
 
         <Dialog modal={false} open={isAddSectionDialogOpen} onOpenChange={setIsAddSectionDialogOpen}>
