@@ -164,18 +164,36 @@ export default function CreativeExtractorPanel() {
   };
 
   const downloadMedia = async (media: ExtractedMedia) => {
-    const extension = media.type === 'video' ? 'mp4' : 'jpg';
-    const filename = `creative_${media.id}.${extension}`;
+    const defaultExtension = media.type === 'video' ? 'mp4' : 'jpg';
+    const defaultFilename = `creative_${media.id}.${defaultExtension}`;
     
     try {
       // Try direct fetch first
       const response = await fetch(media.url, { mode: 'cors' });
       if (response.ok) {
+        const headerType = (response.headers.get('content-type') || '').toLowerCase();
         const blob = await response.blob();
+        const blobType = (blob.type || headerType || '').toLowerCase();
+
+        // If we classified as video but got an image back, don't save as .mp4
+        const isActuallyImage = media.type === 'video' && blobType.startsWith('image/');
+        const finalType: ExtractedMedia['type'] = isActuallyImage ? 'image' : media.type;
+
+        const finalExt = finalType === 'video'
+          ? 'mp4'
+          : blobType.includes('png')
+            ? 'png'
+            : blobType.includes('webp')
+              ? 'webp'
+              : 'jpg';
+
+        const filename = `creative_${media.id}.${finalExt}`;
+
         // Force correct MIME type for videos
-        const finalBlob = media.type === 'video' 
+        const finalBlob = finalType === 'video'
           ? new Blob([blob], { type: 'video/mp4' })
           : blob;
+
         const blobUrl = URL.createObjectURL(finalBlob);
         const link = document.createElement('a');
         link.href = blobUrl;
@@ -186,7 +204,9 @@ export default function CreativeExtractorPanel() {
         URL.revokeObjectURL(blobUrl);
         toast({
           title: "Download concluído!",
-          description: `${media.type === 'image' ? 'Imagem' : 'Vídeo MP4'} baixado com sucesso`
+          description: isActuallyImage
+            ? "Esse link retornou uma imagem (não vídeo). Baixei como imagem."
+            : `${finalType === 'image' ? 'Imagem' : 'Vídeo MP4'} baixado com sucesso`
         });
         return;
       }

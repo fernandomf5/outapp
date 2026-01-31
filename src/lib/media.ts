@@ -8,8 +8,11 @@ export const isVideoUrl = (url: string): boolean => {
   // Facebook/Meta video CDN patterns
   if (raw.includes('video.') || raw.includes('video-')) return true;
   
-  // /v/t patterns (Facebook video containers)
-  if (/\/v\/t\d+/.test(raw)) return true;
+  // Facebook containers:
+  // - t42.* costuma ser container de vídeo
+  // - t39.* costuma ser container de imagem
+  if (/\/v\/t42\./.test(raw)) return true;
+  if (/\/v\/t39\./.test(raw)) return false;
 
   // Fallbacks for URLs that include mime/type hints
   if (raw.includes("video/") || raw.includes("type=video") || raw.includes("mime=video")) return true;
