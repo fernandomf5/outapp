@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import html2canvas from "html2canvas";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,7 @@ import {
   Share2,
   Copy,
   Check,
+  Download,
   ExternalLink,
   History,
   Wallet
@@ -133,7 +135,8 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
   const [activeClientId, setActiveClientId] = useState<string | null>(null);
   const [copiedCampaignId, setCopiedCampaignId] = useState<string | null>(null);
   const [copiedClientId, setCopiedClientId] = useState<string | null>(null);
-  
+  const [isDownloadingImage, setIsDownloadingImage] = useState(false);
+  const dashboardRef = useRef<HTMLDivElement>(null);
   const [clientFormData, setClientFormData] = useState({
     name: '',
     client_type: 'personal' as 'personal' | 'company',
@@ -288,6 +291,32 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
       loadExistingEntities();
     }
   }, [isAddClientDialogOpen]);
+
+  const handleDownloadImage = async () => {
+    if (!dashboardRef.current) return;
+    
+    setIsDownloadingImage(true);
+    try {
+      const canvas = await html2canvas(dashboardRef.current, {
+        backgroundColor: null,
+        scale: 2,
+        useCORS: true,
+        logging: false
+      });
+      
+      const link = document.createElement('a');
+      link.download = `dashboard-campanha-${selectedCampaignId ? campaigns.find(c => c.id === selectedCampaignId)?.name || 'geral' : 'geral'}-${new Date().toISOString().split('T')[0]}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+      toast.success('Imagem baixada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao gerar imagem:', error);
+      toast.error('Erro ao gerar imagem');
+    } finally {
+      setIsDownloadingImage(false);
+    }
+  };
 
   const handleAddClient = async () => {
     try {
@@ -1960,6 +1989,14 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
               )}
             </div>
             <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                onClick={handleDownloadImage}
+                disabled={isDownloadingImage || campaigns.length === 0}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                {isDownloadingImage ? 'Gerando...' : 'Baixar PNG'}
+              </Button>
               {selectedCampaignId && (
                 <Button
                   variant="outline" 
@@ -2016,7 +2053,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
               </CardContent>
             </Card>
           ) : (
-            <>
+            <div ref={dashboardRef} className="space-y-6">
               {/* Metrics Cards - Financeiro */}
               <div className="grid gap-6 md:grid-cols-3 mb-6">
                 <Card className="glass border-destructive/30 bg-gradient-to-br from-destructive/10 to-transparent">
@@ -2769,7 +2806,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                   </Table>
                 </CardContent>
               </Card>
-            </>
+            </div>
           )}
         </TabsContent>
       </Tabs>
