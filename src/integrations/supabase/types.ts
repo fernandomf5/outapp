@@ -6377,6 +6377,8 @@ export type Database = {
           header_background_color: string | null
           id: string
           is_active: boolean | null
+          login_background_color: string | null
+          login_text_color: string | null
           logo_url: string | null
           name: string
           password: string
@@ -6400,6 +6402,8 @@ export type Database = {
           header_background_color?: string | null
           id?: string
           is_active?: boolean | null
+          login_background_color?: string | null
+          login_text_color?: string | null
           logo_url?: string | null
           name: string
           password: string
@@ -6423,6 +6427,8 @@ export type Database = {
           header_background_color?: string | null
           id?: string
           is_active?: boolean | null
+          login_background_color?: string | null
+          login_text_color?: string | null
           logo_url?: string | null
           name?: string
           password?: string

@@ -169,9 +169,20 @@ export default function MembersAreaAuth() {
     );
   }
 
+  const loginBackgroundColor = (area as any).login_background_color || '#1a1a2e';
+  const loginTextColor = (area as any).login_text_color || '#ffffff';
+  const primaryColor = (area as any).primary_color || '#8B5CF6';
+  const secondaryColor = (area as any).secondary_color || '#EC4899';
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-muted">
-      <Card className="w-full max-w-md">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{ backgroundColor: loginBackgroundColor }}
+    >
+      <Card 
+        className="w-full max-w-md border-0"
+        style={{ backgroundColor: loginBackgroundColor }}
+      >
         <CardHeader className="text-center">
           {area.logo_url && (
             <img 
@@ -180,22 +191,27 @@ export default function MembersAreaAuth() {
               className="h-16 w-auto mx-auto mb-4 object-contain"
             />
           )}
-          <CardTitle className="text-2xl">{area.name || area.title}</CardTitle>
+          <CardTitle className="text-2xl" style={{ color: loginTextColor }}>
+            {area.name || area.title}
+          </CardTitle>
           {area.description && (
-            <CardDescription>{area.description}</CardDescription>
+            <CardDescription style={{ color: `${loginTextColor}99` }}>{area.description}</CardDescription>
           )}
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Entrar</TabsTrigger>
-              <TabsTrigger value="request">Solicitar Acesso</TabsTrigger>
+            <TabsList 
+              className="grid w-full grid-cols-2"
+              style={{ backgroundColor: `${loginTextColor}10` }}
+            >
+              <TabsTrigger value="login" style={{ color: loginTextColor }}>Entrar</TabsTrigger>
+              <TabsTrigger value="request" style={{ color: loginTextColor }}>Solicitar Acesso</TabsTrigger>
             </TabsList>
 
             <TabsContent value="login" className="space-y-4">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
+                  <Label htmlFor="login-email" style={{ color: loginTextColor }}>Email</Label>
                   <Input
                     id="login-email"
                     type="email"
@@ -203,10 +219,15 @@ export default function MembersAreaAuth() {
                     onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
                     placeholder="seu@email.com"
                     required
+                    style={{ 
+                      backgroundColor: `${loginTextColor}08`, 
+                      borderColor: `${loginTextColor}20`,
+                      color: loginTextColor
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="access-code">Código de Acesso</Label>
+                  <Label htmlFor="access-code" style={{ color: loginTextColor }}>Código de Acesso</Label>
                   <div className="relative">
                     <Input
                       id="access-code"
@@ -217,6 +238,11 @@ export default function MembersAreaAuth() {
                       maxLength={8}
                       required
                       className="pr-10"
+                      style={{ 
+                        backgroundColor: `${loginTextColor}08`, 
+                        borderColor: `${loginTextColor}20`,
+                        color: loginTextColor
+                      }}
                     />
                     <Button
                       type="button"
@@ -226,17 +252,24 @@ export default function MembersAreaAuth() {
                       onClick={() => setShowAccessCode(!showAccessCode)}
                     >
                       {showAccessCode ? (
-                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        <EyeOff className="h-4 w-4" style={{ color: `${loginTextColor}60` }} />
                       ) : (
-                        <Eye className="h-4 w-4 text-muted-foreground" />
+                        <Eye className="h-4 w-4" style={{ color: `${loginTextColor}60` }} />
                       )}
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs" style={{ color: `${loginTextColor}70` }}>
                     Você receberá este código por email após aprovação
                   </p>
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button 
+                  type="submit" 
+                  className="w-full text-white" 
+                  disabled={loading}
+                  style={{ 
+                    background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)` 
+                  }}
+                >
                   {loading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -252,17 +285,22 @@ export default function MembersAreaAuth() {
             <TabsContent value="request" className="space-y-4">
               <form onSubmit={handleRequestAccess} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="request-name">Nome</Label>
+                  <Label htmlFor="request-name" style={{ color: loginTextColor }}>Nome</Label>
                   <Input
                     id="request-name"
                     value={requestForm.name}
                     onChange={(e) => setRequestForm({...requestForm, name: e.target.value})}
                     placeholder="Seu nome"
                     required
+                    style={{ 
+                      backgroundColor: `${loginTextColor}08`, 
+                      borderColor: `${loginTextColor}20`,
+                      color: loginTextColor
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="request-email">Email</Label>
+                  <Label htmlFor="request-email" style={{ color: loginTextColor }}>Email</Label>
                   <Input
                     id="request-email"
                     type="email"
@@ -270,9 +308,21 @@ export default function MembersAreaAuth() {
                     onChange={(e) => setRequestForm({...requestForm, email: e.target.value})}
                     placeholder="seu@email.com"
                     required
+                    style={{ 
+                      backgroundColor: `${loginTextColor}08`, 
+                      borderColor: `${loginTextColor}20`,
+                      color: loginTextColor
+                    }}
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button 
+                  type="submit" 
+                  className="w-full text-white" 
+                  disabled={loading}
+                  style={{ 
+                    background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)` 
+                  }}
+                >
                   {loading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -282,7 +332,7 @@ export default function MembersAreaAuth() {
                     "Solicitar Acesso"
                   )}
                 </Button>
-                <p className="text-xs text-center text-muted-foreground">
+                <p className="text-xs text-center" style={{ color: `${loginTextColor}70` }}>
                   Após aprovação, você receberá um código de acesso por email
                 </p>
               </form>
