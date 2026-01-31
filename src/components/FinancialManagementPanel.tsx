@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Plus, Edit2, Trash2, Check, Calculator, CalendarIcon, BarChart3, ArrowLeft, TableIcon, LineChart } from "lucide-react";
+import { DollarSign, Plus, Edit2, Trash2, Check, Calculator, CalendarIcon, BarChart3, ArrowLeft, TableIcon, LineChart, ListPlus } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -304,6 +305,18 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     reminder_enabled: false,
     business_id: '',
     installments: 1
+  });
+
+  // Multi-transaction dialog state
+  const [isMultiTransactionDialogOpen, setIsMultiTransactionDialogOpen] = useState(false);
+  const [multiTransactionForm, setMultiTransactionForm] = useState({
+    transactions: '',
+    type: 'expense' as 'income' | 'expense',
+    category: '',
+    payment_method: 'pix',
+    status: 'pending' as 'paid' | 'pending' | 'cancelled',
+    is_recurring: false,
+    due_date: format(new Date(), 'yyyy-MM-dd'),
   });
 
   // State for optimistic UI updates
@@ -659,6 +672,83 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     }
   };
 
+  const handleAddMultipleTransactions = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const lines = multiTransactionForm.transactions
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
+
+      if (lines.length === 0) {
+        toast.error('Digite pelo menos uma transação');
+        return;
+      }
+
+      const baseDueDate = new Date(multiTransactionForm.due_date + 'T12:00:00');
+      const monthIndex = baseDueDate.getMonth();
+      const transactionMonth = MONTHS[monthIndex];
+      const transactionYear = baseDueDate.getFullYear();
+
+      const transactionsToInsert = lines.map(line => {
+        // Check if line contains a value (format: "description - value" or "description: value" or "description value")
+        const valueMatch = line.match(/[\s\-:]+(\d+[.,]?\d*)\s*$/);
+        let description = line;
+        let amount = 0;
+
+        if (valueMatch) {
+          description = line.replace(valueMatch[0], '').trim();
+          amount = parseFloat(valueMatch[1].replace(',', '.'));
+        }
+
+        return {
+          user_id: user.id,
+          business_id: selectedBusinessId,
+          type: multiTransactionForm.type,
+          category: multiTransactionForm.category || 'Geral',
+          description: description,
+          amount: amount,
+          month: transactionMonth,
+          due_date: baseDueDate.toISOString().split('T')[0],
+          payment_method: multiTransactionForm.payment_method,
+          status: multiTransactionForm.status,
+          is_recurring: multiTransactionForm.is_recurring,
+          reminder_enabled: false,
+          year: transactionYear,
+          date: new Date().toISOString(),
+          status_history: [{
+            status: multiTransactionForm.status,
+            changed_at: new Date().toISOString(),
+            note: 'Transação criada em lote'
+          }]
+        };
+      });
+
+      const { error } = await supabase
+        .from('financial_transactions')
+        .insert(transactionsToInsert);
+
+      if (error) throw error;
+
+      toast.success(`${transactionsToInsert.length} transações adicionadas com sucesso!`);
+      setIsMultiTransactionDialogOpen(false);
+      setMultiTransactionForm({
+        transactions: '',
+        type: 'expense',
+        category: '',
+        payment_method: 'pix',
+        status: 'pending',
+        is_recurring: false,
+        due_date: format(new Date(), 'yyyy-MM-dd'),
+      });
+      loadTransactions();
+    } catch (error: any) {
+      toast.error('Erro ao adicionar transações');
+    }
+  };
+
   const handleEditTransaction = async () => {
     if (!editingTransaction) return;
 
@@ -957,6 +1047,10 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                 <Trash2 className="w-4 h-4" />
               </Button>
             </div>
+            <Button variant="outline" onClick={() => setIsMultiTransactionDialogOpen(true)} size="sm" className="text-xs sm:text-sm">
+              <ListPlus className="w-4 h-4 mr-1" />
+              <span className="hidden xs:inline">Múltiplas</span>
+            </Button>
             <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="text-xs sm:text-sm">
               <Plus className="w-4 h-4 mr-1" />
               <span className="hidden xs:inline">Nova </span>Transação
@@ -1427,6 +1521,124 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancelar</Button>
             <Button onClick={handleAddTransaction}>Adicionar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Múltiplas Transações */}
+      <Dialog open={isMultiTransactionDialogOpen} onOpenChange={setIsMultiTransactionDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg">Adicionar Múltiplas Transações</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div>
+              <Label>Transações (uma por linha)</Label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Digite a descrição de cada transação em uma linha. Opcionalmente, adicione o valor no final (ex: "Aluguel - 1500" ou "Internet: 99.90")
+              </p>
+              <Textarea
+                value={multiTransactionForm.transactions}
+                onChange={(e) => setMultiTransactionForm({ ...multiTransactionForm, transactions: e.target.value })}
+                placeholder="Aluguel - 1500&#10;Luz - 200&#10;Internet - 99.90&#10;Água - 80"
+                className="min-h-[150px] font-mono text-sm"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {multiTransactionForm.transactions.split('\n').filter(l => l.trim()).length} transação(ões)
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Tipo</Label>
+                <Select 
+                  value={multiTransactionForm.type} 
+                  onValueChange={(v: 'income' | 'expense') => setMultiTransactionForm({ ...multiTransactionForm, type: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="income">Receita</SelectItem>
+                    <SelectItem value="expense">Despesa</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Categoria</Label>
+                <Select 
+                  value={multiTransactionForm.category} 
+                  onValueChange={(v) => setMultiTransactionForm({ ...multiTransactionForm, category: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map(cat => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Método de Pagamento</Label>
+                <Select 
+                  value={multiTransactionForm.payment_method} 
+                  onValueChange={(v) => setMultiTransactionForm({ ...multiTransactionForm, payment_method: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pix">PIX</SelectItem>
+                    <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                    <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
+                    <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
+                    <SelectItem value="boleto">Boleto</SelectItem>
+                    <SelectItem value="transferencia">Transferência</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Status</Label>
+                <Select 
+                  value={multiTransactionForm.status} 
+                  onValueChange={(v: 'paid' | 'pending' | 'cancelled') => setMultiTransactionForm({ ...multiTransactionForm, status: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pendente</SelectItem>
+                    <SelectItem value="paid">Pago</SelectItem>
+                    <SelectItem value="cancelled">Cancelado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label>Data de Vencimento</Label>
+              <Input
+                type="date"
+                value={multiTransactionForm.due_date}
+                onChange={(e) => setMultiTransactionForm({ ...multiTransactionForm, due_date: e.target.value })}
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="multi-recurring"
+                checked={multiTransactionForm.is_recurring}
+                onCheckedChange={(checked) => setMultiTransactionForm({ ...multiTransactionForm, is_recurring: checked })}
+              />
+              <Label htmlFor="multi-recurring">Transações Fixas (repetem todo mês)</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsMultiTransactionDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleAddMultipleTransactions}>
+              Adicionar {multiTransactionForm.transactions.split('\n').filter(l => l.trim()).length} Transações
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
