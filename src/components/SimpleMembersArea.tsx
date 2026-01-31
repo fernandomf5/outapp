@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink, Settings, Download } from "lucide-react";
+import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink, Settings, Download, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation } from "lucide-react";
 import { DocumentUpload } from "@/components/DocumentUpload";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,7 +20,7 @@ import { SimpleMembersAreaPreview } from "@/components/members-area/SimpleMember
 import { ScrollArea } from "@/components/ui/scroll-area";
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides';
   content: string;
   title?: string;
   order_index: number;
@@ -78,15 +78,28 @@ const SortableBlock = ({ block, onEdit, onDelete }: { block: ContentBlock; onEdi
   };
 
   const getIcon = () => {
-    switch (block.type) {
-      case 'image': return <Image className="w-4 h-4" />;
-      case 'video': return <Video className="w-4 h-4" />;
-      case 'document': return <FileText className="w-4 h-4" />;
-      case 'link': return <LinkIcon className="w-4 h-4" />;
-      case 'button': return <MousePointer className="w-4 h-4" />;
-      case 'download': return <Download className="w-4 h-4" />;
-      default: return <FileText className="w-4 h-4" />;
-    }
+    const icons: Record<string, React.ReactNode> = {
+      image: <Image className="w-4 h-4" />,
+      video: <Video className="w-4 h-4" />,
+      document: <FileText className="w-4 h-4" />,
+      link: <LinkIcon className="w-4 h-4" />,
+      button: <MousePointer className="w-4 h-4" />,
+      download: <Download className="w-4 h-4" />,
+      audio: <Music className="w-4 h-4" />,
+      embed: <Code className="w-4 h-4" />,
+      quiz: <HelpCircle className="w-4 h-4" />,
+      timeline: <GitBranch className="w-4 h-4" />,
+      customer_history: <History className="w-4 h-4" />,
+      checklist: <CheckSquare className="w-4 h-4" />,
+      certificate: <Award className="w-4 h-4" />,
+      webinar: <Radio className="w-4 h-4" />,
+      notes: <StickyNote className="w-4 h-4" />,
+      faq: <MessageSquare className="w-4 h-4" />,
+      mindmap: <Brain className="w-4 h-4" />,
+      slides: <Presentation className="w-4 h-4" />,
+      text: <FileText className="w-4 h-4" />,
+    };
+    return icons[block.type] || <FileText className="w-4 h-4" />;
   };
 
   return (
@@ -860,14 +873,26 @@ export function SimpleMembersArea() {
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="text">Texto</SelectItem>
-                    <SelectItem value="image">Imagem</SelectItem>
-                    <SelectItem value="video">Vídeo (URL)</SelectItem>
-                    <SelectItem value="document">Documento</SelectItem>
-                    <SelectItem value="link">Link</SelectItem>
-                    <SelectItem value="button">Botão</SelectItem>
-                    <SelectItem value="download">Download</SelectItem>
+                  <SelectContent className="max-h-[300px]">
+                    <SelectItem value="text">📝 Texto</SelectItem>
+                    <SelectItem value="image">🖼️ Imagem</SelectItem>
+                    <SelectItem value="video">🎬 Vídeo (URL)</SelectItem>
+                    <SelectItem value="audio">🎧 Áudio/Podcast</SelectItem>
+                    <SelectItem value="document">📄 Documento (PDF)</SelectItem>
+                    <SelectItem value="download">⬇️ Arquivo para Download</SelectItem>
+                    <SelectItem value="slides">📊 Apresentação/Slides</SelectItem>
+                    <SelectItem value="link">🔗 Link Externo</SelectItem>
+                    <SelectItem value="button">👆 Botão</SelectItem>
+                    <SelectItem value="embed">💻 Embed (HTML/Iframe)</SelectItem>
+                    <SelectItem value="notes">📒 Anotações/Resumo</SelectItem>
+                    <SelectItem value="faq">❓ Perguntas Frequentes</SelectItem>
+                    <SelectItem value="checklist">✅ Checklist/Tarefas</SelectItem>
+                    <SelectItem value="quiz">🧩 Quiz/Questionário</SelectItem>
+                    <SelectItem value="timeline">📅 Linha do Tempo</SelectItem>
+                    <SelectItem value="mindmap">🧠 Mapa Mental</SelectItem>
+                    <SelectItem value="webinar">📡 Webinar/Live</SelectItem>
+                    <SelectItem value="certificate">🏆 Certificado</SelectItem>
+                    <SelectItem value="customer_history">📜 Histórico do Cliente</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
