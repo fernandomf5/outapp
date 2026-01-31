@@ -47,6 +47,9 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
   const seenUrls = new Set<string>();
   const seenFingerprints = new Set<string>(); // Track unique media by fingerprint
 
+  const looksLikeImage = (u: string) => /\.(jpg|jpeg|png|gif|webp)(\?|#|$)/i.test(u);
+  const looksLikeVideo = (u: string) => /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(u) || /\/v\/t42\./i.test(u) || /bytestart/i.test(u) || /mime=video|type=video|video\//i.test(u);
+
   // Extract from HTML, markdown and rawHtml combined
   const content = html + ' ' + markdown + ' ' + rawHtml;
 
@@ -60,24 +63,19 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
     /https:\/\/lookaside\.facebook\.com\/[^"\s\)>\\]+/gi,
   ];
 
-  // Video patterns - expanded for Meta/Facebook videos
+  // Video patterns (be strict to avoid classifying images as videos)
   const videoPatterns = [
     // Direct mp4/video file links
     /https:\/\/video[^"\s\)>\\]+\.mp4[^"\s\)>\\]*/gi,
     /https:\/\/[a-z0-9\-]+\.fbcdn\.net\/[^"\s\)>\\]+\.mp4[^"\s\)>\\]*/gi,
     /https:\/\/scontent[^"\s\)>\\]+\.mp4[^"\s\)>\\]*/gi,
-    // Facebook video CDN patterns - more permissive
-    /https:\/\/[a-z0-9\-]+\.xx\.fbcdn\.net\/v\/[^"\s\)>\\]+/gi,
+    // Facebook/Meta dedicated video hosts
     /https:\/\/video\.xx\.fbcdn\.net\/[^"\s\)>\\]+/gi,
     /https:\/\/video\-[a-z0-9\-]+\.xx\.fbcdn\.net\/[^"\s\)>\\]+/gi,
-    /https:\/\/scontent\-[a-z0-9\-]+\.xx\.fbcdn\.net\/v\/[^"\s\)>\\]+/gi,
-    // Any scontent with /v/ pattern (videos)
-    /https:\/\/scontent[^"\s\)>\\]+\/v\/[^"\s\)>\\]+/gi,
     // Instagram video CDN
     /https:\/\/[a-z0-9\-]+\.cdninstagram\.com\/[^"\s\)>\\]+\.mp4[^"\s\)>\\]*/gi,
+    // Some instagram links don't end with .mp4 but carry video hints
     /https:\/\/scontent\.cdninstagram\.com\/[^"\s\)>\\]+/gi,
-    // Generic video fbcdn patterns
-    /https:\/\/video[^"\s\)>\\]+fbcdn\.net\/[^"\s\)>\\]+/gi,
     // Video with /v/t42 pattern (Facebook video container)
     /https:\/\/[^"\s\)>\\]+fbcdn\.net\/v\/t42\.[0-9]+\-[0-9]+\/[^"\s\)>\\]+/gi,
     /https:\/\/[^"\s\)>\\]+\/v\/t42\.[^"\s\)>\\]+/gi,
@@ -94,7 +92,13 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
     matches.forEach(url => {
       const cleanUrl = cleanMediaUrl(url);
       const fingerprint = getMediaFingerprint(cleanUrl);
-      if (!seenFingerprints.has(fingerprint) && !seenUrls.has(cleanUrl) && isValidVideoUrl(cleanUrl)) {
+      if (
+        !seenFingerprints.has(fingerprint) &&
+        !seenUrls.has(cleanUrl) &&
+        looksLikeVideo(cleanUrl) &&
+        !looksLikeImage(cleanUrl) &&
+        isValidVideoUrl(cleanUrl)
+      ) {
         seenUrls.add(cleanUrl);
         seenFingerprints.add(fingerprint);
         videos.push({
@@ -130,7 +134,14 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
       const url = cleanMediaUrl(match[1]);
       const fingerprint = getMediaFingerprint(url);
       
-      if (!seenFingerprints.has(fingerprint) && !seenUrls.has(url) && isValidVideoUrl(url)) {
+      // JSON keys like playable_url are a strong hint it's a real video.
+      // Still avoid obvious image extensions.
+      if (
+        !seenFingerprints.has(fingerprint) &&
+        !seenUrls.has(url) &&
+        !looksLikeImage(url) &&
+        (looksLikeVideo(url) || isValidVideoUrl(url))
+      ) {
         seenUrls.add(url);
         seenFingerprints.add(fingerprint);
         videos.push({
@@ -143,13 +154,19 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
     }
   });
 
-  // Special pass: look for any fbcdn video URLs that might have been missed
-  const fbcdnVideoPattern = /https:\/\/[a-z0-9\-\.]+fbcdn\.net\/[^"\s\)>\\]+/gi;
+  // Special pass (restricted): only keep fbcdn links that carry strong video hints
+  const fbcdnVideoPattern = /https:\/\/(?:video\.|video\-|[^\/]+\.xx\.)[^"\s\)>\\]*fbcdn\.net\/[^"\s\)>\\]+/gi;
   const fbcdnMatches = content.match(fbcdnVideoPattern) || [];
   fbcdnMatches.forEach(url => {
     const cleanUrl = cleanMediaUrl(url);
     const fingerprint = getMediaFingerprint(cleanUrl);
-    if (!seenFingerprints.has(fingerprint) && !seenUrls.has(cleanUrl) && isVideoUrl(cleanUrl) && isValidVideoUrl(cleanUrl)) {
+    if (
+      !seenFingerprints.has(fingerprint) &&
+      !seenUrls.has(cleanUrl) &&
+      looksLikeVideo(cleanUrl) &&
+      !looksLikeImage(cleanUrl) &&
+      isValidVideoUrl(cleanUrl)
+    ) {
       seenUrls.add(cleanUrl);
       seenFingerprints.add(fingerprint);
       videos.push({
@@ -270,6 +287,10 @@ function isValidVideoUrl(url: string): boolean {
   if (!url.startsWith('http')) return false;
   
   const lowerUrl = url.toLowerCase();
+
+  // Reject obvious image assets being misclassified
+  if (/\.(jpg|jpeg|png|gif|webp)(\?|#|$)/i.test(lowerUrl)) return false;
+  if (lowerUrl.includes('/v/t39.')) return false;
   
   // Skip invalid patterns
   const invalidPatterns = [
@@ -302,6 +323,7 @@ function isValidVideoUrl(url: string): boolean {
     'stream',
     'fbcdn.net/v/',
     'xx.fbcdn.net/v/',
+    'bytestart',
   ];
   
   return validVideoPatterns.some(pattern => lowerUrl.includes(pattern));
