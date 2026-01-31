@@ -51,6 +51,13 @@ interface MembersArea {
   logo_url?: string;
   customer_id?: string;
   business_id?: string;
+  // Design da área interna
+  background_color?: string;
+  text_color?: string;
+  card_background_color?: string;
+  card_text_color?: string;
+  header_background_color?: string;
+  accent_color?: string;
 }
 
 interface Customer {
@@ -156,6 +163,13 @@ export function SimpleMembersArea() {
     logo_url: '',
     customer_id: '',
     business_id: '',
+    // Design da área interna
+    background_color: '#ffffff',
+    text_color: '#1f2937',
+    card_background_color: '#f9fafb',
+    card_text_color: '#374151',
+    header_background_color: '#f3f4f6',
+    accent_color: '#8B5CF6',
   });
 
   const [sectionFormData, setSectionFormData] = useState({
@@ -242,6 +256,12 @@ export function SimpleMembersArea() {
           logo_url: areaFormData.logo_url || null,
           customer_id: areaFormData.customer_id || null,
           business_id: areaFormData.business_id || null,
+          background_color: areaFormData.background_color,
+          text_color: areaFormData.text_color,
+          card_background_color: areaFormData.card_background_color,
+          card_text_color: areaFormData.card_text_color,
+          header_background_color: areaFormData.header_background_color,
+          accent_color: areaFormData.accent_color,
         })
         .select()
         .single();
@@ -250,7 +270,7 @@ export function SimpleMembersArea() {
 
       toast.success('Área de membros criada com sucesso!');
       setIsCreateDialogOpen(false);
-      setAreaFormData({ name: '', description: '', password: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', logo_url: '', customer_id: '', business_id: '' });
+      setAreaFormData({ name: '', description: '', password: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', logo_url: '', customer_id: '', business_id: '', background_color: '#ffffff', text_color: '#1f2937', card_background_color: '#f9fafb', card_text_color: '#374151', header_background_color: '#f3f4f6', accent_color: '#8B5CF6' });
       loadAreas();
     } catch (error: any) {
       toast.error('Erro ao criar área: ' + error.message);
@@ -479,6 +499,12 @@ export function SimpleMembersArea() {
       logo_url: area.logo_url || '',
       customer_id: area.customer_id || '',
       business_id: area.business_id || '',
+      background_color: area.background_color || '#ffffff',
+      text_color: area.text_color || '#1f2937',
+      card_background_color: area.card_background_color || '#f9fafb',
+      card_text_color: area.card_text_color || '#374151',
+      header_background_color: area.header_background_color || '#f3f4f6',
+      accent_color: area.accent_color || '#8B5CF6',
     });
     setIsEditDialogOpen(true);
   };
@@ -499,6 +525,12 @@ export function SimpleMembersArea() {
           logo_url: areaFormData.logo_url || null,
           customer_id: areaFormData.customer_id || null,
           business_id: areaFormData.business_id || null,
+          background_color: areaFormData.background_color,
+          text_color: areaFormData.text_color,
+          card_background_color: areaFormData.card_background_color,
+          card_text_color: areaFormData.card_text_color,
+          header_background_color: areaFormData.header_background_color,
+          accent_color: areaFormData.accent_color,
         })
         .eq('id', editingArea.id);
 
@@ -507,7 +539,7 @@ export function SimpleMembersArea() {
       toast.success('Área atualizada com sucesso!');
       setIsEditDialogOpen(false);
       setEditingArea(null);
-      setAreaFormData({ name: '', description: '', password: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', logo_url: '', customer_id: '', business_id: '' });
+      setAreaFormData({ name: '', description: '', password: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', logo_url: '', customer_id: '', business_id: '', background_color: '#ffffff', text_color: '#1f2937', card_background_color: '#f9fafb', card_text_color: '#374151', header_background_color: '#f3f4f6', accent_color: '#8B5CF6' });
       loadAreas();
     } catch (error: any) {
       toast.error('Erro ao atualizar área: ' + error.message);
@@ -1176,7 +1208,7 @@ export function SimpleMembersArea() {
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <Label>Cores Personalizadas</Label>
+                  <Label>Cores da Tela de Login</Label>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
                       <Label className="text-sm">Cor Primária</Label>
@@ -1193,6 +1225,68 @@ export function SimpleMembersArea() {
                         type="color"
                         value={areaFormData.secondary_color}
                         onChange={(e) => setAreaFormData({ ...areaFormData, secondary_color: e.target.value })}
+                        className="h-10 w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <Label className="flex items-center gap-2">
+                    🎨 Design da Área Interna
+                  </Label>
+                  <p className="text-xs text-muted-foreground">Personalize as cores da área após o login</p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <Label className="text-sm">Cor de Fundo</Label>
+                      <Input
+                        type="color"
+                        value={areaFormData.background_color}
+                        onChange={(e) => setAreaFormData({ ...areaFormData, background_color: e.target.value })}
+                        className="h-10 w-full"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Cor do Texto</Label>
+                      <Input
+                        type="color"
+                        value={areaFormData.text_color}
+                        onChange={(e) => setAreaFormData({ ...areaFormData, text_color: e.target.value })}
+                        className="h-10 w-full"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Fundo do Header</Label>
+                      <Input
+                        type="color"
+                        value={areaFormData.header_background_color}
+                        onChange={(e) => setAreaFormData({ ...areaFormData, header_background_color: e.target.value })}
+                        className="h-10 w-full"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Cor de Destaque</Label>
+                      <Input
+                        type="color"
+                        value={areaFormData.accent_color}
+                        onChange={(e) => setAreaFormData({ ...areaFormData, accent_color: e.target.value })}
+                        className="h-10 w-full"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Fundo dos Cards</Label>
+                      <Input
+                        type="color"
+                        value={areaFormData.card_background_color}
+                        onChange={(e) => setAreaFormData({ ...areaFormData, card_background_color: e.target.value })}
+                        className="h-10 w-full"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Texto dos Cards</Label>
+                      <Input
+                        type="color"
+                        value={areaFormData.card_text_color}
+                        onChange={(e) => setAreaFormData({ ...areaFormData, card_text_color: e.target.value })}
                         className="h-10 w-full"
                       />
                     </div>
@@ -1297,7 +1391,7 @@ export function SimpleMembersArea() {
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <Label>Cores Personalizadas</Label>
+                  <Label>Cores da Tela de Login</Label>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
                       <Label className="text-sm">Cor Primária</Label>
@@ -1314,6 +1408,68 @@ export function SimpleMembersArea() {
                         type="color"
                         value={areaFormData.secondary_color}
                         onChange={(e) => setAreaFormData({ ...areaFormData, secondary_color: e.target.value })}
+                        className="h-10 w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <Label className="flex items-center gap-2">
+                    🎨 Design da Área Interna
+                  </Label>
+                  <p className="text-xs text-muted-foreground">Personalize as cores da área após o login</p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <Label className="text-sm">Cor de Fundo</Label>
+                      <Input
+                        type="color"
+                        value={areaFormData.background_color}
+                        onChange={(e) => setAreaFormData({ ...areaFormData, background_color: e.target.value })}
+                        className="h-10 w-full"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Cor do Texto</Label>
+                      <Input
+                        type="color"
+                        value={areaFormData.text_color}
+                        onChange={(e) => setAreaFormData({ ...areaFormData, text_color: e.target.value })}
+                        className="h-10 w-full"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Fundo do Header</Label>
+                      <Input
+                        type="color"
+                        value={areaFormData.header_background_color}
+                        onChange={(e) => setAreaFormData({ ...areaFormData, header_background_color: e.target.value })}
+                        className="h-10 w-full"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Cor de Destaque</Label>
+                      <Input
+                        type="color"
+                        value={areaFormData.accent_color}
+                        onChange={(e) => setAreaFormData({ ...areaFormData, accent_color: e.target.value })}
+                        className="h-10 w-full"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Fundo dos Cards</Label>
+                      <Input
+                        type="color"
+                        value={areaFormData.card_background_color}
+                        onChange={(e) => setAreaFormData({ ...areaFormData, card_background_color: e.target.value })}
+                        className="h-10 w-full"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Texto dos Cards</Label>
+                      <Input
+                        type="color"
+                        value={areaFormData.card_text_color}
+                        onChange={(e) => setAreaFormData({ ...areaFormData, card_text_color: e.target.value })}
                         className="h-10 w-full"
                       />
                     </div>
