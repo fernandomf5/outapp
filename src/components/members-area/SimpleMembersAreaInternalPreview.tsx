@@ -12,12 +12,24 @@ import {
   ChevronRight,
   Home,
   BookOpen,
-  User
+  User,
+  Music,
+  Code,
+  HelpCircle,
+  GitBranch,
+  History,
+  CheckSquare,
+  Award,
+  Radio,
+  Brain,
+  StickyNote,
+  MessageSquare,
+  Presentation
 } from "lucide-react";
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides';
   content: string;
   title?: string;
   order_index: number;
@@ -54,15 +66,28 @@ export function SimpleMembersAreaInternalPreview({
 }: SimpleMembersAreaInternalPreviewProps) {
   
   const getBlockIcon = (type: string) => {
-    switch (type) {
-      case 'video': return <Video className="w-3 h-3" />;
-      case 'image': return <Image className="w-3 h-3" />;
-      case 'document': return <FileText className="w-3 h-3" />;
-      case 'link': return <LinkIcon className="w-3 h-3" />;
-      case 'button': return <MousePointer className="w-3 h-3" />;
-      case 'download': return <Download className="w-3 h-3" />;
-      default: return <FileText className="w-3 h-3" />;
-    }
+    const icons: Record<string, React.ReactNode> = {
+      video: <Video className="w-3 h-3" />,
+      image: <Image className="w-3 h-3" />,
+      document: <FileText className="w-3 h-3" />,
+      link: <LinkIcon className="w-3 h-3" />,
+      button: <MousePointer className="w-3 h-3" />,
+      download: <Download className="w-3 h-3" />,
+      audio: <Music className="w-3 h-3" />,
+      embed: <Code className="w-3 h-3" />,
+      quiz: <HelpCircle className="w-3 h-3" />,
+      timeline: <GitBranch className="w-3 h-3" />,
+      customer_history: <History className="w-3 h-3" />,
+      checklist: <CheckSquare className="w-3 h-3" />,
+      certificate: <Award className="w-3 h-3" />,
+      webinar: <Radio className="w-3 h-3" />,
+      notes: <StickyNote className="w-3 h-3" />,
+      faq: <MessageSquare className="w-3 h-3" />,
+      mindmap: <Brain className="w-3 h-3" />,
+      slides: <Presentation className="w-3 h-3" />,
+      text: <FileText className="w-3 h-3" />,
+    };
+    return icons[type] || <FileText className="w-3 h-3" />;
   };
 
   const getBlockTypeLabel = (type: string) => {
@@ -73,7 +98,19 @@ export function SimpleMembersAreaInternalPreview({
       link: 'Link',
       button: 'Botão',
       text: 'Texto',
-      download: 'Download'
+      download: 'Download',
+      audio: 'Áudio',
+      embed: 'Embed',
+      quiz: 'Quiz',
+      timeline: 'Timeline',
+      customer_history: 'Histórico',
+      checklist: 'Checklist',
+      certificate: 'Certificado',
+      webinar: 'Webinar',
+      notes: 'Anotações',
+      faq: 'FAQ',
+      mindmap: 'Mapa Mental',
+      slides: 'Slides'
     };
     return labels[type] || type;
   };
