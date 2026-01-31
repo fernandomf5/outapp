@@ -731,36 +731,71 @@ export default function MembersAreaPublic() {
           {/* Content Blocks */}
           <div className="p-4 md:p-6 space-y-4">
             {currentSection?.blocks && currentSection.blocks.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4">
-                {currentSection.blocks.map((block) => (
-                  <Card 
-                    key={block.id}
-                    className="overflow-hidden transition-all hover:shadow-lg"
-                    style={{ 
-                      backgroundColor: cardBackgroundColor,
-                      borderColor: `${accentColor}20`
-                    }}
-                  >
-                    <div 
-                      className="px-4 py-3 flex items-center gap-3 border-b"
-                      style={{ backgroundColor: `${accentColor}08`, borderColor: `${accentColor}15` }}
-                    >
-                      <div 
-                        className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
-                      >
-                        {getBlockIcon(block.type)}
-                      </div>
-                      {block.title && (
-                        <span className="font-medium" style={{ color: cardTextColor }}>{block.title}</span>
-                      )}
-                    </div>
-                    <CardContent className="p-4">
-                      {renderBlock(block, accentColor, cardTextColor)}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              (() => {
+                // Group blocks by their block_position to arrange them in rows
+                const layout = currentSection.blocks_layout || ['full'];
+                const blocksByPosition: Record<number, ContentBlock[]> = {};
+                
+                currentSection.blocks.forEach(block => {
+                  const pos = block.block_position || 0;
+                  if (!blocksByPosition[pos]) blocksByPosition[pos] = [];
+                  blocksByPosition[pos].push(block);
+                });
+                
+                // Get the max position to render rows
+                const maxPosition = Math.max(...Object.keys(blocksByPosition).map(Number), 0);
+                
+                return (
+                  <div className="space-y-4">
+                    {Array.from({ length: maxPosition + 1 }, (_, rowIndex) => {
+                      const layoutType = layout[rowIndex] || 'full';
+                      const blocksInRow = blocksByPosition[rowIndex] || [];
+                      
+                      if (blocksInRow.length === 0) return null;
+                      
+                      // Determine grid columns based on layout
+                      const gridCols = layoutType === 'third' 
+                        ? 'md:grid-cols-3' 
+                        : layoutType === 'half' 
+                          ? 'md:grid-cols-2' 
+                          : 'grid-cols-1';
+                      
+                      return (
+                        <div key={rowIndex} className={`grid grid-cols-1 ${gridCols} gap-4`}>
+                          {blocksInRow.map((block) => (
+                            <Card 
+                              key={block.id}
+                              className="overflow-hidden transition-all hover:shadow-lg"
+                              style={{ 
+                                backgroundColor: cardBackgroundColor,
+                                borderColor: `${accentColor}20`
+                              }}
+                            >
+                              <div 
+                                className="px-4 py-3 flex items-center gap-3 border-b"
+                                style={{ backgroundColor: `${accentColor}08`, borderColor: `${accentColor}15` }}
+                              >
+                                <div 
+                                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                                  style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+                                >
+                                  {getBlockIcon(block.type)}
+                                </div>
+                                {block.title && (
+                                  <span className="font-medium" style={{ color: cardTextColor }}>{block.title}</span>
+                                )}
+                              </div>
+                              <CardContent className="p-4">
+                                {renderBlock(block, accentColor, cardTextColor)}
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()
             ) : (
               <div 
                 className="text-center py-16 rounded-xl"
