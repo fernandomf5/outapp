@@ -1344,6 +1344,8 @@ export function SimpleMembersArea() {
                   primaryColor={areaFormData.primary_color}
                   secondaryColor={areaFormData.secondary_color}
                   logoUrl={areaFormData.logo_url}
+                  loginBackgroundColor={areaFormData.login_background_color}
+                  loginTextColor={areaFormData.login_text_color}
                   backgroundColor={areaFormData.background_color}
                   textColor={areaFormData.text_color}
                   cardBackgroundColor={areaFormData.card_background_color}
@@ -1435,10 +1437,31 @@ export function SimpleMembersArea() {
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <Label>Cores da Tela de Login</Label>
+                  <Label className="flex items-center gap-2">
+                    🔐 Design da Tela de Login
+                  </Label>
+                  <p className="text-xs text-muted-foreground">Personalize as cores da página de acesso</p>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <Label className="text-sm">Cor Primária</Label>
+                      <Label className="text-sm">Cor de Fundo</Label>
+                      <Input
+                        type="color"
+                        value={areaFormData.login_background_color}
+                        onChange={(e) => setAreaFormData({ ...areaFormData, login_background_color: e.target.value })}
+                        className="h-10 w-full"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Cor do Texto</Label>
+                      <Input
+                        type="color"
+                        value={areaFormData.login_text_color}
+                        onChange={(e) => setAreaFormData({ ...areaFormData, login_text_color: e.target.value })}
+                        className="h-10 w-full"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Cor Primária (Gradiente)</Label>
                       <Input
                         type="color"
                         value={areaFormData.primary_color}
@@ -1447,7 +1470,7 @@ export function SimpleMembersArea() {
                       />
                     </div>
                     <div>
-                      <Label className="text-sm">Cor Secundária</Label>
+                      <Label className="text-sm">Cor Secundária (Gradiente)</Label>
                       <Input
                         type="color"
                         value={areaFormData.secondary_color}
@@ -1533,6 +1556,8 @@ export function SimpleMembersArea() {
                   primaryColor={areaFormData.primary_color}
                   secondaryColor={areaFormData.secondary_color}
                   logoUrl={areaFormData.logo_url}
+                  loginBackgroundColor={areaFormData.login_background_color}
+                  loginTextColor={areaFormData.login_text_color}
                   backgroundColor={areaFormData.background_color}
                   textColor={areaFormData.text_color}
                   cardBackgroundColor={areaFormData.card_background_color}
