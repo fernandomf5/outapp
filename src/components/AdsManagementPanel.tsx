@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   TrendingUp, 
   DollarSign, 
@@ -29,7 +30,8 @@ import {
   Share2,
   Copy,
   Check,
-  ExternalLink
+  ExternalLink,
+  History
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
@@ -1748,40 +1750,100 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                     )}
                   </CardHeader>
                    <CardContent>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Caixa Inicial:</span>
-                        <span className="font-medium text-primary">R$ {client.cashbox.toFixed(2)}</span>
+                    <div className="space-y-3">
+                      {/* Caixa Inicial */}
+                      <div className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                        <span className="text-xs text-muted-foreground">💰 Caixa Inicial</span>
+                        <span className="font-semibold text-primary">R$ {client.cashbox.toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Lucro:</span>
-                        <span className={`font-medium ${clientProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
-                          R$ {clientProfit.toFixed(2)}
-                        </span>
+
+                      {/* Grid dos 3 Caixas */}
+                      <div className="grid grid-cols-3 gap-1">
+                        {/* Caixa 1: Após Gastos */}
+                        <div className="p-2 bg-gradient-to-br from-orange-500/10 to-transparent rounded-lg border border-orange-500/20 text-center">
+                          <div className="text-[10px] text-muted-foreground">Caixa 1</div>
+                          <div className="text-[9px] text-muted-foreground">(Restante)</div>
+                          <div className={`text-sm font-bold ${(client.cashbox - clientSpent) >= 0 ? 'text-orange-500' : 'text-destructive'}`}>
+                            R$ {(client.cashbox - clientSpent).toFixed(2)}
+                          </div>
+                        </div>
+
+                        {/* Caixa 2: Lucro */}
+                        <div className={`p-2 bg-gradient-to-br ${clientProfit >= 0 ? 'from-success/10' : 'from-destructive/10'} to-transparent rounded-lg border ${clientProfit >= 0 ? 'border-success/20' : 'border-destructive/20'} text-center`}>
+                          <div className="text-[10px] text-muted-foreground">Caixa 2</div>
+                          <div className="text-[9px] text-muted-foreground">(Lucro)</div>
+                          <div className={`text-sm font-bold ${clientProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                            R$ {clientProfit.toFixed(2)}
+                          </div>
+                        </div>
+
+                        {/* Caixa Total */}
+                        <div className={`p-2 bg-gradient-to-br ${totalCashbox >= 0 ? 'from-primary/10' : 'from-destructive/10'} to-transparent rounded-lg border-2 ${totalCashbox >= 0 ? 'border-primary/30' : 'border-destructive/30'} text-center`}>
+                          <div className="text-[10px] text-muted-foreground">Total</div>
+                          <div className="text-[9px] text-muted-foreground">(1 + 2)</div>
+                          <div className={`text-sm font-bold ${totalCashbox >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                            R$ {totalCashbox.toFixed(2)}
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex justify-between font-semibold">
-                        <span className="text-muted-foreground">Caixa Total:</span>
-                        <span className={`${totalCashbox >= 0 ? 'text-success' : 'text-destructive'}`}>
-                          R$ {totalCashbox.toFixed(2)}
-                        </span>
+
+                      {/* Resumo */}
+                      <div className="grid grid-cols-2 gap-1 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Campanhas:</span>
+                          <span className="font-medium">{clientCampaigns.length}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Gasto:</span>
+                          <span className="font-medium text-destructive">-R$ {clientSpent.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Faturado:</span>
+                          <span className="font-medium text-success">+R$ {clientRevenue.toFixed(2)}</span>
+                        </div>
                       </div>
-                      <div className="h-px bg-border my-2" />
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Campanhas:</span>
-                        <span className="font-medium">{clientCampaigns.length}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Gasto Total:</span>
-                        <span className="font-medium">R$ {clientSpent.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Faturado:</span>
-                        <span className="font-medium text-success">R$ {clientRevenue.toFixed(2)}</span>
-                      </div>
+
+                      {/* Histórico breve */}
+                      {clientCampaigns.length > 0 && (
+                        <Collapsible>
+                          <CollapsibleTrigger asChild>
+                            <Button variant="outline" size="sm" className="w-full text-xs">
+                              <History className="h-3 w-3 mr-1" />
+                              Ver Histórico ({clientCampaigns.length})
+                            </Button>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="mt-2">
+                            <div className="space-y-1 max-h-40 overflow-y-auto text-xs">
+                              <div className="flex justify-between p-1.5 bg-primary/5 rounded border-l-2 border-primary">
+                                <span>💰 Caixa Inicial</span>
+                                <span className="font-semibold text-primary">+R$ {client.cashbox.toFixed(2)}</span>
+                              </div>
+                              {clientCampaigns.slice().sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map((campaign, idx) => {
+                                const profit = (campaign.revenue || 0) - campaign.spent;
+                                return (
+                                  <div key={campaign.id} className={`flex justify-between p-1.5 rounded border-l-2 ${profit >= 0 ? 'bg-success/5 border-success' : 'bg-destructive/5 border-destructive'}`}>
+                                    <span className="truncate max-w-[140px]">{campaign.name}</span>
+                                    <span className={`font-semibold ${profit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                                      {profit >= 0 ? '+' : ''}R$ {profit.toFixed(2)}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                              <div className={`flex justify-between p-1.5 rounded border-l-2 font-semibold ${totalCashbox >= 0 ? 'bg-primary/10 border-primary' : 'bg-destructive/10 border-destructive'}`}>
+                                <span>📊 Caixa Final</span>
+                                <span className={totalCashbox >= 0 ? 'text-primary' : 'text-destructive'}>
+                                  R$ {totalCashbox.toFixed(2)}
+                                </span>
+                              </div>
+                            </div>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      )}
+
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="w-full mt-2"
+                        className="w-full"
                         onClick={(e) => { e.stopPropagation(); openEditClient(client); }}
                       >
                         <Edit className="h-4 w-4 mr-2" />
