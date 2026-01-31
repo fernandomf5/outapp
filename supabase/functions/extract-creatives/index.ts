@@ -15,7 +15,8 @@ interface ExtractedMedia {
 }
 
 function extractMediaFromContent(html: string, markdown: string, rawHtml: string = ''): ExtractedMedia[] {
-  const media: ExtractedMedia[] = [];
+  const images: ExtractedMedia[] = [];
+  const videos: ExtractedMedia[] = [];
   const seenUrls = new Set<string>();
 
   // Extract from HTML, markdown and rawHtml combined
@@ -61,32 +62,15 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
     /https:\/\/[^"\s\)>\\]+bytestart[^"\s\)>\\]+/gi,
   ];
 
-  // Extract images
-  imagePatterns.forEach(pattern => {
-    const matches = content.match(pattern) || [];
-    matches.forEach(url => {
-      const cleanUrl = cleanMediaUrl(url);
-      if (!seenUrls.has(cleanUrl) && isValidMediaUrl(cleanUrl)) {
-        seenUrls.add(cleanUrl);
-        media.push({
-          id: `img_${Date.now()}_${media.length}`,
-          type: 'image',
-          url: cleanUrl,
-          thumbnailUrl: cleanUrl
-        });
-      }
-    });
-  });
-
-  // Extract videos
+  // EXTRACT VIDEOS FIRST (priority)
   videoPatterns.forEach(pattern => {
     const matches = content.match(pattern) || [];
     matches.forEach(url => {
       const cleanUrl = cleanMediaUrl(url);
       if (!seenUrls.has(cleanUrl) && isValidVideoUrl(cleanUrl)) {
         seenUrls.add(cleanUrl);
-        media.push({
-          id: `vid_${Date.now()}_${media.length}`,
+        videos.push({
+          id: `vid_${Date.now()}_${videos.length}`,
           type: 'video',
           url: cleanUrl,
           thumbnailUrl: cleanUrl
@@ -106,7 +90,6 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
     /"(?:contentUrl|embedUrl|video)"\s*:\s*"(https[^"]+(?:\.mp4|video)[^"]*)"/gi,
     // Additional patterns for Facebook/Meta video data
     /"(?:__typename)"\s*:\s*"Video"[^}]*"(?:playable_url|browser_native_hd_url|browser_native_sd_url)"\s*:\s*"([^"]+)"/gi,
-    /"(?:mediaset_token|videoDeliveryLegacyID)"\s*:\s*"[^"]+"/gi,
     /data-video-url="([^"]+)"/gi,
     /data-hd="([^"]+)"/gi,
     /data-sd="([^"]+)"/gi,
@@ -120,8 +103,8 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
       
       if (!seenUrls.has(url) && isValidVideoUrl(url)) {
         seenUrls.add(url);
-        media.push({
-          id: `vid_${Date.now()}_${media.length}`,
+        videos.push({
+          id: `vid_${Date.now()}_${videos.length}`,
           type: 'video',
           url: url,
           thumbnailUrl: url
@@ -137,13 +120,30 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
     const cleanUrl = cleanMediaUrl(url);
     if (!seenUrls.has(cleanUrl) && isVideoUrl(cleanUrl) && isValidVideoUrl(cleanUrl)) {
       seenUrls.add(cleanUrl);
-      media.push({
-        id: `vid_${Date.now()}_${media.length}`,
+      videos.push({
+        id: `vid_${Date.now()}_${videos.length}`,
         type: 'video',
         url: cleanUrl,
         thumbnailUrl: cleanUrl
       });
     }
+  });
+
+  // NOW Extract images (after videos)
+  imagePatterns.forEach(pattern => {
+    const matches = content.match(pattern) || [];
+    matches.forEach(url => {
+      const cleanUrl = cleanMediaUrl(url);
+      if (!seenUrls.has(cleanUrl) && isValidMediaUrl(cleanUrl) && !isVideoUrl(cleanUrl)) {
+        seenUrls.add(cleanUrl);
+        images.push({
+          id: `img_${Date.now()}_${images.length}`,
+          type: 'image',
+          url: cleanUrl,
+          thumbnailUrl: cleanUrl
+        });
+      }
+    });
   });
 
   // Try to extract from JSON-like structures - images
@@ -158,12 +158,11 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
     while ((match = regex.exec(content)) !== null) {
       const url = cleanMediaUrl(match[1]);
       
-      if (!seenUrls.has(url) && isValidMediaUrl(url)) {
+      if (!seenUrls.has(url) && isValidMediaUrl(url) && !isVideoUrl(url)) {
         seenUrls.add(url);
-        const isVideo = isVideoUrl(url);
-        media.push({
-          id: `${isVideo ? 'vid' : 'img'}_${Date.now()}_${media.length}`,
-          type: isVideo ? 'video' : 'image',
+        images.push({
+          id: `img_${Date.now()}_${images.length}`,
+          type: 'image',
           url: url,
           thumbnailUrl: url
         });
@@ -175,15 +174,27 @@ function extractMediaFromContent(html: string, markdown: string, rawHtml: string
   const pageNameMatch = content.match(/"page_name"\s*:\s*"([^"]+)"/);
   const pageName = pageNameMatch ? pageNameMatch[1] : undefined;
 
-  if (pageName) {
-    media.forEach(m => {
-      m.pageName = pageName;
-    });
-  }
+  // Combine: ALL videos first, then fill remaining with images
+  const allMedia: ExtractedMedia[] = [];
+  
+  // Add all videos (up to 50)
+  const videosToAdd = videos.slice(0, 50);
+  videosToAdd.forEach(v => {
+    if (pageName) v.pageName = pageName;
+    allMedia.push(v);
+  });
+  
+  // Add images to fill remaining slots (up to 50 total)
+  const remainingSlots = 50 - allMedia.length;
+  const imagesToAdd = images.slice(0, remainingSlots);
+  imagesToAdd.forEach(img => {
+    if (pageName) img.pageName = pageName;
+    allMedia.push(img);
+  });
 
-  console.log(`Found ${media.filter(m => m.type === 'image').length} images and ${media.filter(m => m.type === 'video').length} videos`);
+  console.log(`Found ${images.length} images and ${videos.length} videos. Returning ${allMedia.filter(m => m.type === 'video').length} videos and ${allMedia.filter(m => m.type === 'image').length} images.`);
 
-  return media.slice(0, 50); // Limit to 50 items
+  return allMedia;
 }
 
 function isVideoUrl(url: string): boolean {
