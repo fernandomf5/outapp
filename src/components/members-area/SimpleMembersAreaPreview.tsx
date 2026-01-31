@@ -11,6 +11,8 @@ interface ContentBlock {
   title?: string;
   order_index: number;
   block_position: number;
+  customer_id?: string;
+  customer_name?: string;
 }
 
 interface Section {

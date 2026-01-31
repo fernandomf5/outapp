@@ -5,16 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { Lock, Image as ImageIcon, Video, FileText, Link as LinkIcon, MousePointer, Download, LogOut } from "lucide-react";
+import { Lock, Image as ImageIcon, Video, FileText, Link as LinkIcon, MousePointer, Download, LogOut, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation } from "lucide-react";
 import { toast } from "sonner";
+import { CustomerHistoryTimeline } from "@/components/members-area/CustomerHistoryTimeline";
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides';
   content: string;
   title?: string;
   order_index: number;
-  block_position: number; // qual bloco da seção (0, 1, 2...)
+  block_position: number;
+  customer_id?: string;
+  customer_name?: string;
 }
 
 interface Section {
@@ -165,6 +168,84 @@ export default function MembersAreaPublic() {
               {block.title || 'Baixar Arquivo'}
             </Button>
           </a>
+        );
+
+      case 'audio':
+        return (
+          <div className="p-4 bg-muted rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Music className="w-5 h-5" />
+              <span className="font-medium">{block.title || 'Áudio'}</span>
+            </div>
+            <audio controls className="w-full">
+              <source src={block.content} />
+            </audio>
+          </div>
+        );
+
+      case 'embed':
+        return (
+          <div 
+            className="w-full rounded-lg overflow-hidden"
+            dangerouslySetInnerHTML={{ __html: block.content }} 
+          />
+        );
+
+      case 'customer_history':
+        if (!block.customer_id) {
+          return (
+            <div className="text-center py-8 text-muted-foreground">
+              <History className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>Cliente não selecionado</p>
+            </div>
+          );
+        }
+        return (
+          <div className="space-y-4">
+            {block.title && (
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <History className="w-5 h-5" />
+                {block.title}
+              </h3>
+            )}
+            <CustomerHistoryTimeline 
+              customerId={block.customer_id} 
+              primaryColor={area?.primary_color || '#8B5CF6'}
+            />
+          </div>
+        );
+
+      case 'notes':
+        return (
+          <div className="p-4 bg-muted rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <StickyNote className="w-5 h-5" />
+              <span className="font-medium">{block.title || 'Anotações'}</span>
+            </div>
+            <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: block.content }} />
+          </div>
+        );
+
+      case 'faq':
+        return (
+          <div className="p-4 bg-muted rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <MessageSquare className="w-5 h-5" />
+              <span className="font-medium">{block.title || 'Perguntas Frequentes'}</span>
+            </div>
+            <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: block.content }} />
+          </div>
+        );
+
+      case 'checklist':
+        return (
+          <div className="p-4 bg-muted rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckSquare className="w-5 h-5" />
+              <span className="font-medium">{block.title || 'Checklist'}</span>
+            </div>
+            <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: block.content }} />
+          </div>
         );
       
       default:
