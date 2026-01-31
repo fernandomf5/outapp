@@ -25,6 +25,8 @@ interface ContentBlock {
   title?: string;
   order_index: number;
   block_position: number; // qual bloco da seção (0, 1, 2...)
+  customer_id?: string; // Para histórico do cliente
+  customer_name?: string; // Nome do cliente selecionado
 }
 
 interface Section {
@@ -110,7 +112,11 @@ const SortableBlock = ({ block, onEdit, onDelete }: { block: ContentBlock; onEdi
       {getIcon()}
       <div className="flex-1">
         <div className="font-medium text-sm">{block.title || block.type}</div>
-        <div className="text-xs text-muted-foreground truncate">{block.content}</div>
+        <div className="text-xs text-muted-foreground truncate">
+          {block.type === 'customer_history' && block.customer_name 
+            ? `Cliente: ${block.customer_name}` 
+            : block.content}
+        </div>
       </div>
       <Button variant="ghost" size="icon" onClick={onEdit}>
         <Edit className="w-4 h-4" />
@@ -163,6 +169,7 @@ export function SimpleMembersArea() {
     title: '',
     content: '',
     block_position: 0, // Em qual bloco da seção vai o conteúdo
+    customer_id: '', // Para histórico do cliente
   });
 
   const [editingBlock, setEditingBlock] = useState<{ sectionId: string; block: ContentBlock } | null>(null);
@@ -343,6 +350,11 @@ export function SimpleMembersArea() {
     if (!selectedArea || !selectedSection) return;
 
     try {
+      // Pegar nome do cliente se for histórico
+      const selectedCustomer = blockFormData.type === 'customer_history' 
+        ? customers.find(c => c.id === blockFormData.customer_id)
+        : null;
+
       const newBlock: ContentBlock = {
         id: crypto.randomUUID(),
         type: blockFormData.type,
@@ -350,6 +362,8 @@ export function SimpleMembersArea() {
         content: blockFormData.content,
         order_index: selectedSection.blocks.length,
         block_position: blockFormData.block_position,
+        customer_id: blockFormData.customer_id || undefined,
+        customer_name: selectedCustomer?.name || undefined,
       };
 
       const updatedSections = selectedArea.sections.map(section => {
@@ -368,7 +382,7 @@ export function SimpleMembersArea() {
 
       setSelectedArea({ ...selectedArea, sections: updatedSections });
       setIsAddBlockDialogOpen(false);
-      setBlockFormData({ type: 'text', title: '', content: '', block_position: 0 });
+      setBlockFormData({ type: 'text', title: '', content: '', block_position: 0, customer_id: '' });
       setUploadedImageUrl('');
       toast.success('Bloco adicionado!');
     } catch (error: any) {
@@ -380,13 +394,22 @@ export function SimpleMembersArea() {
     if (!selectedArea || !editingBlock) return;
 
     try {
+      // Pegar nome do cliente se for histórico
+      const selectedCustomer = blockFormData.type === 'customer_history' 
+        ? customers.find(c => c.id === blockFormData.customer_id)
+        : null;
+
       const updatedSections = selectedArea.sections.map(section => {
         if (section.id === editingBlock.sectionId) {
           return {
             ...section,
             blocks: section.blocks.map(block => 
               block.id === editingBlock.block.id
-                ? { ...block, ...blockFormData }
+                ? { 
+                    ...block, 
+                    ...blockFormData,
+                    customer_name: selectedCustomer?.name || block.customer_name,
+                  }
                 : block
             ),
           };
@@ -404,7 +427,7 @@ export function SimpleMembersArea() {
       setSelectedArea({ ...selectedArea, sections: updatedSections });
       setEditingBlock(null);
       setIsAddBlockDialogOpen(false);
-      setBlockFormData({ type: 'text', title: '', content: '', block_position: 0 });
+      setBlockFormData({ type: 'text', title: '', content: '', block_position: 0, customer_id: '' });
       toast.success('Bloco atualizado!');
     } catch (error: any) {
       toast.error('Erro ao atualizar bloco: ' + error.message);
@@ -692,6 +715,7 @@ export function SimpleMembersArea() {
                                   title: block.title || '',
                                   content: block.content,
                                   block_position: block.block_position || 0,
+                                  customer_id: block.customer_id || '',
                                 });
                                 setIsAddBlockDialogOpen(true);
                               }}
@@ -836,7 +860,7 @@ export function SimpleMembersArea() {
           setIsAddBlockDialogOpen(open);
           if (!open) {
             setEditingBlock(null);
-            setBlockFormData({ type: 'text', title: '', content: '', block_position: 0 });
+            setBlockFormData({ type: 'text', title: '', content: '', block_position: 0, customer_id: '' });
           }
         }}>
           <DialogContent>
@@ -904,6 +928,39 @@ export function SimpleMembersArea() {
                   placeholder="Título do conteúdo"
                 />
               </div>
+
+              {/* Seleção de Cliente para Histórico */}
+              {blockFormData.type === 'customer_history' && (
+                <div>
+                  <Label>Selecionar Cliente</Label>
+                  <Select 
+                    value={blockFormData.customer_id} 
+                    onValueChange={(value) => setBlockFormData({ ...blockFormData, customer_id: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Escolha um cliente..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {customers.length === 0 ? (
+                        <div className="p-2 text-sm text-muted-foreground text-center">
+                          Nenhum cliente cadastrado
+                        </div>
+                      ) : (
+                        customers.map((customer) => (
+                          <SelectItem key={customer.id} value={customer.id}>
+                            {customer.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    O histórico de serviços, compras e pagamentos deste cliente será exibido automaticamente
+                  </p>
+                </div>
+              )}
+
+              {blockFormData.type !== 'customer_history' && (
               <div>
                 <Label>Conteúdo</Label>
                 {blockFormData.type === 'image' ? (
@@ -942,6 +999,7 @@ export function SimpleMembersArea() {
                   />
                 )}
               </div>
+              )}
               <Button onClick={editingBlock ? handleEditBlock : handleAddBlock} className="w-full">
                 {editingBlock ? 'Salvar' : 'Adicionar'}
               </Button>
