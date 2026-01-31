@@ -936,26 +936,45 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
 
         const targetUserId = teamContext?.adminUserId || user.id;
 
-        // Get all transactions for future months in the same year
-        const { data: futureTransactions, error: fetchError } = await supabase
+        // Get all transactions for the same year and business that could appear in future months
+        // This includes:
+        // 1. Non-recurring transactions in future months
+        // 2. Recurring transactions that started in current or earlier months (they appear in future months too)
+        const { data: allTransactions, error: fetchError } = await supabase
           .from('financial_transactions')
           .select('*')
           .eq('user_id', targetUserId)
           .eq('business_id', selectedBusinessId)
-          .eq('year', selectedYear)
-          .in('month', futureMonths);
+          .eq('year', selectedYear);
 
         if (fetchError) throw fetchError;
 
-        if (futureTransactions && futureTransactions.length > 0) {
-          // Update order_index for matching transactions in future months
-          for (const futureTx of futureTransactions) {
-            const matchingOrder = orderMap.get(futureTx.description.toLowerCase().trim());
-            if (matchingOrder !== undefined && futureTx.order_index !== matchingOrder) {
+        if (allTransactions && allTransactions.length > 0) {
+          // Filter transactions that would appear in future months
+          const transactionsToUpdate = allTransactions.filter(tx => {
+            // Skip transactions already in current month's list (already updated)
+            if (newList.some(t => t.id === tx.id)) return false;
+            
+            const txMonthIndex = MONTHS.indexOf(tx.month);
+            
+            if (tx.is_recurring) {
+              // Recurring transactions appear from their start month onwards
+              // So if they started at or before current month, they appear in future months
+              return txMonthIndex <= currentMonthIndex;
+            } else {
+              // Non-recurring transactions only appear in their specific month
+              return txMonthIndex > currentMonthIndex;
+            }
+          });
+
+          // Update order_index for matching transactions
+          for (const tx of transactionsToUpdate) {
+            const matchingOrder = orderMap.get(tx.description.toLowerCase().trim());
+            if (matchingOrder !== undefined && tx.order_index !== matchingOrder) {
               await supabase
                 .from('financial_transactions')
                 .update({ order_index: matchingOrder })
-                .eq('id', futureTx.id);
+                .eq('id', tx.id);
             }
           }
         }
