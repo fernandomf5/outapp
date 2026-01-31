@@ -16,7 +16,8 @@ import { ImageUpload } from "@/components/ImageUpload";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-
+import { SimpleMembersAreaPreview } from "@/components/members-area/SimpleMembersAreaPreview";
+import { ScrollArea } from "@/components/ui/scroll-area";
 interface ContentBlock {
   id: string;
   type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download';
@@ -902,140 +903,172 @@ export function SimpleMembersArea() {
       )}
 
       <Dialog modal={false} open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>Nova Área de Membros</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Nome da Área</Label>
-              <Input
-                value={areaFormData.name}
-                onChange={(e) => setAreaFormData({ ...areaFormData, name: e.target.value })}
-                placeholder="Ex: Curso de Marketing Digital"
-              />
-            </div>
-            <div>
-              <Label>Descrição</Label>
-              <Textarea
-                value={areaFormData.description}
-                onChange={(e) => setAreaFormData({ ...areaFormData, description: e.target.value })}
-                placeholder="Descreva a área de membros..."
-              />
-            </div>
-            <div>
-              <Label>Senha de Acesso</Label>
-              <Input
-                value={areaFormData.password}
-                onChange={(e) => setAreaFormData({ ...areaFormData, password: e.target.value })}
-                placeholder="Defina uma senha"
-                type="text"
-              />
-              <p className="text-xs text-muted-foreground mt-1">Os membros precisarão desta senha para acessar o conteúdo</p>
-            </div>
-            <div>
-              <ImageUpload
-                label="Logo (opcional)"
-                onImageSelect={(url) => setAreaFormData({ ...areaFormData, logo_url: url })}
-                currentImage={areaFormData.logo_url}
-                bucketName="business-logos"
-              />
-            </div>
-            <div className="space-y-3">
-              <Label>Cores Personalizadas</Label>
-              <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <ScrollArea className="h-[65vh] pr-4">
+              <div className="space-y-4">
                 <div>
-                  <Label className="text-sm">Cor Primária</Label>
+                  <Label>Nome da Área</Label>
                   <Input
-                    type="color"
-                    value={areaFormData.primary_color}
-                    onChange={(e) => setAreaFormData({ ...areaFormData, primary_color: e.target.value })}
-                    className="h-10 w-full"
+                    value={areaFormData.name}
+                    onChange={(e) => setAreaFormData({ ...areaFormData, name: e.target.value })}
+                    placeholder="Ex: Curso de Marketing Digital"
                   />
                 </div>
                 <div>
-                  <Label className="text-sm">Cor Secundária</Label>
-                  <Input
-                    type="color"
-                    value={areaFormData.secondary_color}
-                    onChange={(e) => setAreaFormData({ ...areaFormData, secondary_color: e.target.value })}
-                    className="h-10 w-full"
+                  <Label>Descrição</Label>
+                  <Textarea
+                    value={areaFormData.description}
+                    onChange={(e) => setAreaFormData({ ...areaFormData, description: e.target.value })}
+                    placeholder="Descreva a área de membros..."
                   />
                 </div>
+                <div>
+                  <Label>Senha de Acesso</Label>
+                  <Input
+                    value={areaFormData.password}
+                    onChange={(e) => setAreaFormData({ ...areaFormData, password: e.target.value })}
+                    placeholder="Defina uma senha"
+                    type="text"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Os membros precisarão desta senha para acessar o conteúdo</p>
+                </div>
+                <div>
+                  <ImageUpload
+                    label="Logo (opcional)"
+                    onImageSelect={(url) => setAreaFormData({ ...areaFormData, logo_url: url })}
+                    currentImage={areaFormData.logo_url}
+                    bucketName="business-logos"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label>Cores Personalizadas</Label>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <Label className="text-sm">Cor Primária</Label>
+                      <Input
+                        type="color"
+                        value={areaFormData.primary_color}
+                        onChange={(e) => setAreaFormData({ ...areaFormData, primary_color: e.target.value })}
+                        className="h-10 w-full"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Cor Secundária</Label>
+                      <Input
+                        type="color"
+                        value={areaFormData.secondary_color}
+                        onChange={(e) => setAreaFormData({ ...areaFormData, secondary_color: e.target.value })}
+                        className="h-10 w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <Button onClick={handleCreateArea} className="w-full" disabled={loading}>
+                  {loading ? 'Criando...' : 'Criar Área'}
+                </Button>
+              </div>
+            </ScrollArea>
+            <div className="hidden lg:block">
+              <div className="sticky top-0">
+                <p className="text-sm font-medium text-muted-foreground mb-3">Pré-visualização</p>
+                <SimpleMembersAreaPreview
+                  name={areaFormData.name}
+                  description={areaFormData.description}
+                  primaryColor={areaFormData.primary_color}
+                  secondaryColor={areaFormData.secondary_color}
+                  logoUrl={areaFormData.logo_url}
+                />
               </div>
             </div>
-            <Button onClick={handleCreateArea} className="w-full" disabled={loading}>
-              {loading ? 'Criando...' : 'Criar Área'}
-            </Button>
           </div>
         </DialogContent>
       </Dialog>
 
       <Dialog modal={false} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>Editar Área de Membros</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Nome da Área</Label>
-              <Input
-                value={areaFormData.name}
-                onChange={(e) => setAreaFormData({ ...areaFormData, name: e.target.value })}
-                placeholder="Ex: Curso de Marketing Digital"
-              />
-            </div>
-            <div>
-              <Label>Descrição</Label>
-              <Textarea
-                value={areaFormData.description}
-                onChange={(e) => setAreaFormData({ ...areaFormData, description: e.target.value })}
-                placeholder="Descreva a área de membros..."
-              />
-            </div>
-            <div>
-              <Label>Senha de Acesso</Label>
-              <Input
-                value={areaFormData.password}
-                onChange={(e) => setAreaFormData({ ...areaFormData, password: e.target.value })}
-                placeholder="Defina uma senha"
-                type="text"
-              />
-            </div>
-            <div>
-              <ImageUpload
-                label="Logo (opcional)"
-                onImageSelect={(url) => setAreaFormData({ ...areaFormData, logo_url: url })}
-                currentImage={areaFormData.logo_url}
-                bucketName="business-logos"
-              />
-            </div>
-            <div className="space-y-3">
-              <Label>Cores Personalizadas</Label>
-              <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <ScrollArea className="h-[65vh] pr-4">
+              <div className="space-y-4">
                 <div>
-                  <Label className="text-sm">Cor Primária</Label>
+                  <Label>Nome da Área</Label>
                   <Input
-                    type="color"
-                    value={areaFormData.primary_color}
-                    onChange={(e) => setAreaFormData({ ...areaFormData, primary_color: e.target.value })}
-                    className="h-10 w-full"
+                    value={areaFormData.name}
+                    onChange={(e) => setAreaFormData({ ...areaFormData, name: e.target.value })}
+                    placeholder="Ex: Curso de Marketing Digital"
                   />
                 </div>
                 <div>
-                  <Label className="text-sm">Cor Secundária</Label>
-                  <Input
-                    type="color"
-                    value={areaFormData.secondary_color}
-                    onChange={(e) => setAreaFormData({ ...areaFormData, secondary_color: e.target.value })}
-                    className="h-10 w-full"
+                  <Label>Descrição</Label>
+                  <Textarea
+                    value={areaFormData.description}
+                    onChange={(e) => setAreaFormData({ ...areaFormData, description: e.target.value })}
+                    placeholder="Descreva a área de membros..."
                   />
                 </div>
+                <div>
+                  <Label>Senha de Acesso</Label>
+                  <Input
+                    value={areaFormData.password}
+                    onChange={(e) => setAreaFormData({ ...areaFormData, password: e.target.value })}
+                    placeholder="Defina uma senha"
+                    type="text"
+                  />
+                </div>
+                <div>
+                  <ImageUpload
+                    label="Logo (opcional)"
+                    onImageSelect={(url) => setAreaFormData({ ...areaFormData, logo_url: url })}
+                    currentImage={areaFormData.logo_url}
+                    bucketName="business-logos"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label>Cores Personalizadas</Label>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <Label className="text-sm">Cor Primária</Label>
+                      <Input
+                        type="color"
+                        value={areaFormData.primary_color}
+                        onChange={(e) => setAreaFormData({ ...areaFormData, primary_color: e.target.value })}
+                        className="h-10 w-full"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Cor Secundária</Label>
+                      <Input
+                        type="color"
+                        value={areaFormData.secondary_color}
+                        onChange={(e) => setAreaFormData({ ...areaFormData, secondary_color: e.target.value })}
+                        className="h-10 w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <Button onClick={handleUpdateArea} className="w-full" disabled={loading}>
+                  {loading ? 'Salvando...' : 'Salvar Alterações'}
+                </Button>
+              </div>
+            </ScrollArea>
+            <div className="hidden lg:block">
+              <div className="sticky top-0">
+                <p className="text-sm font-medium text-muted-foreground mb-3">Pré-visualização</p>
+                <SimpleMembersAreaPreview
+                  name={areaFormData.name}
+                  description={areaFormData.description}
+                  primaryColor={areaFormData.primary_color}
+                  secondaryColor={areaFormData.secondary_color}
+                  logoUrl={areaFormData.logo_url}
+                />
               </div>
             </div>
-            <Button onClick={handleUpdateArea} className="w-full" disabled={loading}>
-              {loading ? 'Salvando...' : 'Salvar Alterações'}
-            </Button>
           </div>
         </DialogContent>
       </Dialog>
