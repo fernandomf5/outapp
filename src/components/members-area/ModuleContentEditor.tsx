@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, Video, File, Music, Image, Link2, Code, Download, HelpCircle, Plus, Trash2, GitBranch, GripVertical, History } from "lucide-react";
+import { Upload, Video, File, Music, Image, Link2, Code, Download, HelpCircle, Plus, Trash2, GitBranch, GripVertical, History, CheckSquare, Award, Radio, FileEdit, Brain, StickyNote, MessageSquare, Presentation } from "lucide-react";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { Card } from "@/components/ui/card";
 
@@ -26,11 +26,17 @@ interface TimelineItem {
   icon?: string;
 }
 
+interface ChecklistItem {
+  id: string;
+  text: string;
+  checked: boolean;
+}
+
 interface ModuleContent {
   id?: string;
   module_id: string;
   title: string;
-  content_type: 'video' | 'document' | 'text' | 'audio' | 'image' | 'link' | 'embed' | 'download' | 'quiz' | 'timeline' | 'customer_history';
+  content_type: 'video' | 'document' | 'text' | 'audio' | 'image' | 'link' | 'embed' | 'download' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'form' | 'mindmap' | 'notes' | 'faq' | 'slides';
   video_url?: string;
   document_url?: string;
   content_data?: string;
@@ -63,6 +69,7 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
   const [uploading, setUploading] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
+  const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
 
@@ -116,6 +123,14 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
           setSelectedCustomerId('');
         }
       }
+      // Parse checklist items if exists
+      if (content.content_type === 'checklist' && content.content_data) {
+        try {
+          setChecklistItems(JSON.parse(content.content_data));
+        } catch {
+          setChecklistItems([]);
+        }
+      }
     } else {
       setFormData({
         module_id: moduleId,
@@ -126,6 +141,7 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
       });
       setQuizQuestions([]);
       setTimelineItems([]);
+      setChecklistItems([]);
       setSelectedCustomerId('');
     }
   }, [content, moduleId]);
@@ -236,6 +252,21 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
     setTimelineItems(newItems);
   };
 
+  // Checklist functions
+  const addChecklistItem = () => {
+    setChecklistItems([...checklistItems, { id: crypto.randomUUID(), text: '', checked: false }]);
+  };
+
+  const updateChecklistItem = (id: string, text: string) => {
+    setChecklistItems(checklistItems.map(item => 
+      item.id === id ? { ...item, text } : item
+    ));
+  };
+
+  const removeChecklistItem = (id: string) => {
+    setChecklistItems(checklistItems.filter(item => item.id !== id));
+  };
+
   const handleSave = async () => {
     if (!formData.title) {
       toast.error('Digite o título do conteúdo');
@@ -249,6 +280,9 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
     }
     if (formData.content_type === 'timeline') {
       dataToSave.content_data = JSON.stringify(timelineItems);
+    }
+    if (formData.content_type === 'checklist') {
+      dataToSave.content_data = JSON.stringify(checklistItems);
     }
     if (formData.content_type === 'customer_history') {
       if (!selectedCustomerId) {
@@ -281,17 +315,25 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
   };
 
   const contentTypes = [
-    { value: 'video', label: 'Vídeo', icon: Video },
-    { value: 'audio', label: 'Áudio/Podcast', icon: Music },
-    { value: 'document', label: 'Documento (PDF/Word)', icon: File },
-    { value: 'text', label: 'Texto/Artigo', icon: File },
-    { value: 'image', label: 'Imagem/Galeria', icon: Image },
-    { value: 'link', label: 'Link Externo', icon: Link2 },
-    { value: 'embed', label: 'Embed (HTML/Iframe)', icon: Code },
-    { value: 'download', label: 'Arquivo para Download', icon: Download },
-    { value: 'quiz', label: 'Quiz/Questionário', icon: HelpCircle },
-    { value: 'timeline', label: 'Linha do Tempo', icon: GitBranch },
-    { value: 'customer_history', label: 'Histórico do Cliente', icon: History },
+    { value: 'video', label: 'Vídeo', icon: Video, category: 'Mídia' },
+    { value: 'audio', label: 'Áudio/Podcast', icon: Music, category: 'Mídia' },
+    { value: 'image', label: 'Imagem/Galeria', icon: Image, category: 'Mídia' },
+    { value: 'slides', label: 'Apresentação/Slides', icon: Presentation, category: 'Mídia' },
+    { value: 'document', label: 'Documento (PDF/Word)', icon: File, category: 'Arquivos' },
+    { value: 'download', label: 'Arquivo para Download', icon: Download, category: 'Arquivos' },
+    { value: 'text', label: 'Texto/Artigo', icon: FileEdit, category: 'Conteúdo' },
+    { value: 'notes', label: 'Anotações/Resumo', icon: StickyNote, category: 'Conteúdo' },
+    { value: 'faq', label: 'Perguntas Frequentes', icon: MessageSquare, category: 'Conteúdo' },
+    { value: 'checklist', label: 'Checklist/Tarefas', icon: CheckSquare, category: 'Interativo' },
+    { value: 'quiz', label: 'Quiz/Questionário', icon: HelpCircle, category: 'Interativo' },
+    { value: 'form', label: 'Formulário', icon: FileEdit, category: 'Interativo' },
+    { value: 'timeline', label: 'Linha do Tempo', icon: GitBranch, category: 'Visualização' },
+    { value: 'mindmap', label: 'Mapa Mental', icon: Brain, category: 'Visualização' },
+    { value: 'link', label: 'Link Externo', icon: Link2, category: 'Externo' },
+    { value: 'embed', label: 'Embed (HTML/Iframe)', icon: Code, category: 'Externo' },
+    { value: 'webinar', label: 'Webinar/Live', icon: Radio, category: 'Ao Vivo' },
+    { value: 'certificate', label: 'Certificado', icon: Award, category: 'Recompensa' },
+    { value: 'customer_history', label: 'Histórico do Cliente', icon: History, category: 'Dinâmico' },
   ];
 
   const timelineIcons = [
@@ -866,6 +908,252 @@ export function ModuleContentEditor({ open, onOpenChange, moduleId, content, onS
               <p className="text-xs text-muted-foreground">
                 💡 Use para compartilhar o histórico de atendimento com seu cliente de forma transparente.
               </p>
+            </div>
+          )}
+
+          {/* CHECKLIST */}
+          {formData.content_type === 'checklist' && (
+            <div className="grid gap-4">
+              <div className="flex items-center justify-between">
+                <Label>Itens do Checklist</Label>
+                <Button onClick={addChecklistItem} size="sm" variant="outline">
+                  <Plus className="w-4 h-4 mr-1" />
+                  Adicionar Item
+                </Button>
+              </div>
+              
+              {checklistItems.length === 0 ? (
+                <div className="text-center py-8 border-2 border-dashed rounded-lg">
+                  <CheckSquare className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">Nenhum item no checklist</p>
+                  <Button onClick={addChecklistItem} size="sm" variant="outline" className="mt-3">
+                    <Plus className="w-4 h-4 mr-1" />
+                    Adicionar Primeiro Item
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {checklistItems.map((item, index) => (
+                    <div key={item.id} className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground w-6">{index + 1}.</span>
+                      <Input
+                        value={item.text}
+                        onChange={(e) => updateChecklistItem(item.id, e.target.value)}
+                        placeholder="Descrição da tarefa..."
+                        className="flex-1"
+                      />
+                      <Button 
+                        onClick={() => removeChecklistItem(item.id)} 
+                        size="sm" 
+                        variant="ghost"
+                      >
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              <p className="text-xs text-muted-foreground">
+                💡 Crie uma lista de tarefas para o aluno acompanhar seu progresso.
+              </p>
+            </div>
+          )}
+
+          {/* CERTIFICATE */}
+          {formData.content_type === 'certificate' && (
+            <div className="grid gap-4">
+              <Card className="p-4 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 border-amber-500/20">
+                <div className="flex items-center gap-3">
+                  <Award className="w-8 h-8 text-amber-500" />
+                  <div>
+                    <h4 className="font-medium">Certificado de Conclusão</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Um certificado será gerado automaticamente quando o aluno concluir todos os conteúdos do módulo.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+              
+              <div className="grid gap-2">
+                <Label>Texto do Certificado</Label>
+                <Textarea
+                  value={formData.content_data || ''}
+                  onChange={(e) => setFormData({...formData, content_data: e.target.value})}
+                  placeholder="Certificamos que {nome_aluno} concluiu com êxito o curso..."
+                  rows={4}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Use {'{nome_aluno}'} para inserir o nome do aluno automaticamente.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* WEBINAR */}
+          {formData.content_type === 'webinar' && (
+            <div className="grid gap-4">
+              <Card className="p-4 bg-gradient-to-r from-destructive/10 to-primary/10 border-destructive/20">
+                <div className="flex items-center gap-3">
+                  <Radio className="w-8 h-8 text-destructive" />
+                  <div>
+                    <h4 className="font-medium">Webinar / Transmissão Ao Vivo</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Configure uma aula ao vivo ou webinar agendado.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+              
+              <div className="grid gap-2">
+                <Label>URL da Transmissão</Label>
+                <Input
+                  value={formData.video_url || ''}
+                  onChange={(e) => setFormData({...formData, video_url: e.target.value})}
+                  placeholder="https://youtube.com/live/... ou https://zoom.us/j/..."
+                />
+              </div>
+              
+              <div className="grid gap-2">
+                <Label>Data e Hora da Transmissão</Label>
+                <Input
+                  type="datetime-local"
+                  value={formData.content_data || ''}
+                  onChange={(e) => setFormData({...formData, content_data: e.target.value})}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* NOTES */}
+          {formData.content_type === 'notes' && (
+            <div className="grid gap-2">
+              <Label>Anotações / Resumo</Label>
+              <RichTextEditor
+                value={formData.content_data || ''}
+                onChange={(value) => setFormData({...formData, content_data: value})}
+              />
+              <p className="text-xs text-muted-foreground">
+                💡 Use para criar resumos, pontos-chave ou material de apoio rápido.
+              </p>
+            </div>
+          )}
+
+          {/* FAQ */}
+          {formData.content_type === 'faq' && (
+            <div className="grid gap-2">
+              <Label>Perguntas Frequentes</Label>
+              <RichTextEditor
+                value={formData.content_data || ''}
+                onChange={(value) => setFormData({...formData, content_data: value})}
+              />
+              <p className="text-xs text-muted-foreground">
+                💡 Adicione perguntas e respostas frequentes sobre o conteúdo.
+              </p>
+            </div>
+          )}
+
+          {/* FORM */}
+          {formData.content_type === 'form' && (
+            <div className="grid gap-4">
+              <Card className="p-4 bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <FileEdit className="w-8 h-8 text-primary" />
+                  <div>
+                    <h4 className="font-medium">Formulário Externo</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Cole o link de um formulário externo (Google Forms, Typeform, etc.)
+                    </p>
+                  </div>
+                </div>
+              </Card>
+              
+              <div className="grid gap-2">
+                <Label>URL do Formulário</Label>
+                <Input
+                  value={formData.content_data || ''}
+                  onChange={(e) => setFormData({...formData, content_data: e.target.value})}
+                  placeholder="https://forms.google.com/..."
+                />
+              </div>
+            </div>
+          )}
+
+          {/* MINDMAP */}
+          {formData.content_type === 'mindmap' && (
+            <div className="grid gap-4">
+              <Card className="p-4 bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <Brain className="w-8 h-8 text-primary" />
+                  <div>
+                    <h4 className="font-medium">Mapa Mental</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Cole o código embed de um mapa mental ou faça upload de uma imagem.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+              
+              <div className="grid gap-2">
+                <Label>Código Embed ou URL</Label>
+                <Textarea
+                  value={formData.content_data || ''}
+                  onChange={(e) => setFormData({...formData, content_data: e.target.value})}
+                  placeholder="Cole o código embed do Miro, Whimsical, MindMeister..."
+                  rows={4}
+                />
+              </div>
+              
+              <div className="grid gap-2">
+                <Label>Ou faça upload de imagem</Label>
+                <Input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={(e) => handleFileUpload(e, 'image')}
+                  disabled={uploading}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* SLIDES */}
+          {formData.content_type === 'slides' && (
+            <div className="grid gap-4">
+              <Card className="p-4 bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <Presentation className="w-8 h-8 text-primary" />
+                  <div>
+                    <h4 className="font-medium">Apresentação / Slides</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Cole o link de embed do Google Slides, Canva ou faça upload de PDF.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+              
+              <div className="grid gap-2">
+                <Label>URL de Embed</Label>
+                <Input
+                  value={formData.content_data || ''}
+                  onChange={(e) => setFormData({...formData, content_data: e.target.value})}
+                  placeholder="https://docs.google.com/presentation/d/.../embed"
+                />
+              </div>
+              
+              <div className="grid gap-2">
+                <Label>Ou faça upload de PDF</Label>
+                <Input 
+                  type="file" 
+                  accept=".pdf"
+                  onChange={(e) => handleFileUpload(e, 'document')}
+                  disabled={uploading}
+                />
+                {formData.document_url && (
+                  <p className="text-xs text-muted-foreground">
+                    ✓ Arquivo enviado
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
