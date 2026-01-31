@@ -938,82 +938,99 @@ export default function MembersAreaPublic() {
               <div className="p-4 md:p-6 space-y-4">
                 {currentSection?.blocks && currentSection.blocks.length > 0 ? (
                   (() => {
-                    // Organize blocks into rows based on blocks_layout
+                    // Group contents by block_position
                     const layout = currentSection.blocks_layout || ['full'];
-                    const sortedBlocks = [...currentSection.blocks].sort((a, b) => a.order_index - b.order_index);
+                    const contentsByBlock: Record<number, ContentBlock[]> = {};
                     
-                    // Calculate how many blocks each row should have based on layout
+                    // Group all contents by their block_position
+                    currentSection.blocks.forEach(block => {
+                      const pos = block.block_position || 0;
+                      if (!contentsByBlock[pos]) contentsByBlock[pos] = [];
+                      contentsByBlock[pos].push(block);
+                    });
+                    
+                    // Sort contents within each block by order_index
+                    Object.keys(contentsByBlock).forEach(pos => {
+                      contentsByBlock[parseInt(pos)].sort((a, b) => a.order_index - b.order_index);
+                    });
+                    
+                    // Calculate how many blocks per row based on layout
                     const getBlocksPerRow = (layoutType: string) => {
                       if (layoutType === 'third') return 3;
                       if (layoutType === 'half') return 2;
                       return 1;
                     };
                     
-                    // Build rows by distributing blocks according to layout
-                    const rows: { layoutType: string; blocks: ContentBlock[] }[] = [];
-                    let blockIndex = 0;
+                    // Build rows with blocks
+                    const rows: { layoutType: string; blockPositions: number[] }[] = [];
+                    let blockPositionIndex = 0;
                     
-                    for (let rowIndex = 0; rowIndex < layout.length && blockIndex < sortedBlocks.length; rowIndex++) {
+                    for (let rowIndex = 0; rowIndex < layout.length; rowIndex++) {
                       const layoutType = layout[rowIndex] || 'full';
-                      const blocksPerRow = getBlocksPerRow(layoutType);
-                      const rowBlocks: ContentBlock[] = [];
+                      const blocksInRow = getBlocksPerRow(layoutType);
+                      const positions: number[] = [];
                       
-                      for (let i = 0; i < blocksPerRow && blockIndex < sortedBlocks.length; i++) {
-                        rowBlocks.push(sortedBlocks[blockIndex]);
-                        blockIndex++;
+                      for (let i = 0; i < blocksInRow; i++) {
+                        positions.push(blockPositionIndex);
+                        blockPositionIndex++;
                       }
                       
-                      if (rowBlocks.length > 0) {
-                        rows.push({ layoutType, blocks: rowBlocks });
-                      }
-                    }
-                    
-                    // If there are remaining blocks, add them as full-width rows
-                    while (blockIndex < sortedBlocks.length) {
-                      rows.push({ layoutType: 'full', blocks: [sortedBlocks[blockIndex]] });
-                      blockIndex++;
+                      rows.push({ layoutType, blockPositions: positions });
                     }
                     
                     return (
                       <div className="space-y-4">
                         {rows.map((row, rowIndex) => {
-                          // Determine grid columns based on layout and actual block count
-                          const gridCols = row.layoutType === 'third' && row.blocks.length >= 2
+                          // Determine grid columns based on layout
+                          const gridCols = row.layoutType === 'third'
                             ? 'md:grid-cols-3' 
-                            : row.layoutType === 'half' && row.blocks.length >= 2
+                            : row.layoutType === 'half'
                               ? 'md:grid-cols-2' 
                               : 'grid-cols-1';
                           
                           return (
                             <div key={rowIndex} className={`grid grid-cols-1 ${gridCols} gap-4`}>
-                              {row.blocks.map((block) => (
-                                <Card 
-                                  key={block.id}
-                                  className="overflow-hidden transition-all hover:shadow-lg"
-                                  style={{ 
-                                    backgroundColor: cardBackgroundColor,
-                                    borderColor: `${accentColor}20`
-                                  }}
-                                >
-                                  <div 
-                                    className="px-4 py-3 flex items-center gap-3 border-b"
-                                    style={{ backgroundColor: `${accentColor}08`, borderColor: `${accentColor}15` }}
+                              {row.blockPositions.map((blockPos) => {
+                                const blockContents = contentsByBlock[blockPos] || [];
+                                
+                                if (blockContents.length === 0) return null;
+                                
+                                return (
+                                  <Card 
+                                    key={blockPos}
+                                    className="overflow-hidden transition-all hover:shadow-lg"
+                                    style={{ 
+                                      backgroundColor: cardBackgroundColor,
+                                      borderColor: `${accentColor}20`
+                                    }}
                                   >
-                                    <div 
-                                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                                      style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
-                                    >
-                                      {getBlockIcon(block.type)}
+                                    {/* Render all contents stacked vertically inside the block */}
+                                    <div className="divide-y" style={{ borderColor: `${accentColor}10` }}>
+                                      {blockContents.map((block, contentIndex) => (
+                                        <div key={block.id}>
+                                          <div 
+                                            className="px-4 py-3 flex items-center gap-3 border-b"
+                                            style={{ backgroundColor: `${accentColor}08`, borderColor: `${accentColor}15` }}
+                                          >
+                                            <div 
+                                              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                                              style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+                                            >
+                                              {getBlockIcon(block.type)}
+                                            </div>
+                                            {block.title && (
+                                              <span className="font-medium" style={{ color: cardTextColor }}>{block.title}</span>
+                                            )}
+                                          </div>
+                                          <CardContent className="p-4">
+                                            {renderBlock(block, accentColor, cardTextColor)}
+                                          </CardContent>
+                                        </div>
+                                      ))}
                                     </div>
-                                    {block.title && (
-                                      <span className="font-medium" style={{ color: cardTextColor }}>{block.title}</span>
-                                    )}
-                                  </div>
-                                  <CardContent className="p-4">
-                                    {renderBlock(block, accentColor, cardTextColor)}
-                                  </CardContent>
-                                </Card>
-                              ))}
+                                  </Card>
+                                );
+                              })}
                             </div>
                           );
                         })}
