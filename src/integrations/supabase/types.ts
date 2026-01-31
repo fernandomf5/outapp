@@ -6366,10 +6366,15 @@ export type Database = {
       }
       simple_members_areas: {
         Row: {
+          accent_color: string | null
+          background_color: string | null
           business_id: string | null
+          card_background_color: string | null
+          card_text_color: string | null
           created_at: string | null
           customer_id: string | null
           description: string | null
+          header_background_color: string | null
           id: string
           is_active: boolean | null
           logo_url: string | null
@@ -6379,14 +6384,20 @@ export type Database = {
           secondary_color: string | null
           sections: Json | null
           slug: string
+          text_color: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          accent_color?: string | null
+          background_color?: string | null
           business_id?: string | null
+          card_background_color?: string | null
+          card_text_color?: string | null
           created_at?: string | null
           customer_id?: string | null
           description?: string | null
+          header_background_color?: string | null
           id?: string
           is_active?: boolean | null
           logo_url?: string | null
@@ -6396,14 +6407,20 @@ export type Database = {
           secondary_color?: string | null
           sections?: Json | null
           slug: string
+          text_color?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          accent_color?: string | null
+          background_color?: string | null
           business_id?: string | null
+          card_background_color?: string | null
+          card_text_color?: string | null
           created_at?: string | null
           customer_id?: string | null
           description?: string | null
+          header_background_color?: string | null
           id?: string
           is_active?: boolean | null
           logo_url?: string | null
@@ -6413,6 +6430,7 @@ export type Database = {
           secondary_color?: string | null
           sections?: Json | null
           slug?: string
+          text_color?: string | null
           updated_at?: string | null
           user_id?: string
         }
