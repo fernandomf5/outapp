@@ -2667,24 +2667,26 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
             </div>
             
             {campaignFormData.campaign_type && (
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1"
+                  size="sm"
+                  className="w-full text-xs"
                   onClick={() => handleGenerateScenario('positive')}
                 >
-                  <Sparkles className="mr-2 h-4 w-4 text-green-500" />
-                  Gerar Cenário Positivo
+                  <Sparkles className="mr-1 h-3 w-3 text-success shrink-0" />
+                  <span className="truncate">Gerar Cenário Positivo</span>
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1"
+                  size="sm"
+                  className="w-full text-xs"
                   onClick={() => handleGenerateScenario('negative')}
                 >
-                  <TrendingDown className="mr-2 h-4 w-4 text-red-500" />
-                  Gerar Cenário Negativo
+                  <TrendingDown className="mr-1 h-3 w-3 text-destructive shrink-0" />
+                  <span className="truncate">Gerar Cenário Negativo</span>
                 </Button>
               </div>
             )}
