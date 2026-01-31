@@ -74,8 +74,8 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
             id: s.id,
             type: 'service',
             title: s.service_name || 'Serviço',
-            description: s.notes,
-            amount: s.value,
+            description: s.notes || s.description,
+            amount: s.price,
             date: s.service_date,
             status: s.status,
           });
@@ -88,10 +88,9 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
             id: p.id,
             type: 'purchase',
             title: p.product_name || 'Compra',
-            description: `Qtd: ${p.quantity || 1}`,
-            amount: p.total_value,
+            description: `Qtd: ${p.quantity || 1}${p.unit_price ? ` • Unit: R$ ${Number(p.unit_price).toFixed(2)}` : ''}`,
+            amount: p.total_price,
             date: p.purchase_date,
-            status: p.status,
           });
         });
       }
@@ -102,10 +101,9 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
             id: pay.id,
             type: 'payment',
             title: pay.description || 'Pagamento',
-            description: pay.payment_method,
+            description: pay.payment_method || pay.notes,
             amount: pay.amount,
             date: pay.payment_date,
-            status: pay.status,
           });
         });
       }
