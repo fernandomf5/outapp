@@ -25,8 +25,13 @@ import {
   ArrowLeft,
   ArrowRight,
   User,
-  Briefcase
+  Briefcase,
+  Share2,
+  Copy,
+  Check,
+  ExternalLink
 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { toast } from "sonner";
@@ -123,6 +128,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'selection' | 'management'>('selection');
   const [activeClientId, setActiveClientId] = useState<string | null>(null);
+  const [copiedCampaignId, setCopiedCampaignId] = useState<string | null>(null);
   
   const [clientFormData, setClientFormData] = useState({
     name: '',
@@ -2346,7 +2352,60 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                             </TableCell>
                             <TableCell>{campaign.conversions}</TableCell>
                             <TableCell>
-                              <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      title="Compartilhar campanha"
+                                    >
+                                      <Share2 className="h-4 w-4" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-80" align="end">
+                                    <div className="space-y-3">
+                                      <div className="space-y-1">
+                                        <h4 className="font-medium text-sm">Compartilhar Campanha</h4>
+                                        <p className="text-xs text-muted-foreground">
+                                          Envie este link para seu cliente visualizar os resultados
+                                        </p>
+                                      </div>
+                                      <div className="flex gap-2">
+                                        <Input
+                                          readOnly
+                                          value={`${window.location.origin}/campanha/${campaign.id}`}
+                                          className="text-xs"
+                                        />
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => {
+                                            navigator.clipboard.writeText(`${window.location.origin}/campanha/${campaign.id}`);
+                                            setCopiedCampaignId(campaign.id);
+                                            toast.success("Link copiado!");
+                                            setTimeout(() => setCopiedCampaignId(null), 2000);
+                                          }}
+                                        >
+                                          {copiedCampaignId === campaign.id ? (
+                                            <Check className="h-4 w-4" />
+                                          ) : (
+                                            <Copy className="h-4 w-4" />
+                                          )}
+                                        </Button>
+                                      </div>
+                                      <Button
+                                        size="sm"
+                                        className="w-full"
+                                        variant="outline"
+                                        onClick={() => window.open(`/campanha/${campaign.id}`, '_blank')}
+                                      >
+                                        <ExternalLink className="h-4 w-4 mr-2" />
+                                        Abrir Preview
+                                      </Button>
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
                                 <Button
                                   variant="ghost"
                                   size="icon"
