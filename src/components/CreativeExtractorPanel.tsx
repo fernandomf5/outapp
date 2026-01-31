@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,11 +18,13 @@ import {
   Trash2,
   Link2,
   Play,
-  ExternalLink
+  ExternalLink,
+  Filter
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { isVideoUrl } from '@/lib/media';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface ExtractedMedia {
   id: string;
@@ -33,6 +35,8 @@ interface ExtractedMedia {
   pageName?: string;
 }
 
+type FilterType = 'all' | 'videos' | 'images';
+
 export default function CreativeExtractorPanel() {
   const { toast } = useToast();
   const [url, setUrl] = useState('');
@@ -40,6 +44,9 @@ export default function CreativeExtractorPanel() {
   const [extractedMedia, setExtractedMedia] = useState<ExtractedMedia[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [manualUrls, setManualUrls] = useState('');
+  const [filter, setFilter] = useState<FilterType>('all');
+  const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
+  const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
 
   const extractCreatives = async () => {
     if (!url.trim()) {
@@ -125,7 +132,6 @@ export default function CreativeExtractorPanel() {
 
   const downloadMedia = async (media: ExtractedMedia) => {
     try {
-      // Try to download directly using fetch + blob
       const response = await fetch(media.url, { mode: 'cors' });
       if (response.ok) {
         const blob = await response.blob();
@@ -146,7 +152,6 @@ export default function CreativeExtractorPanel() {
         throw new Error('CORS blocked');
       }
     } catch {
-      // Fallback: open in new tab
       window.open(media.url, '_blank');
       toast({
         title: "Abrindo em nova aba",
@@ -169,21 +174,49 @@ export default function CreativeExtractorPanel() {
     setExtractedMedia(prev => prev.filter(m => m.id !== id));
   };
 
-  const downloadAll = () => {
-    extractedMedia.forEach((media, index) => {
+  const filteredMedia = extractedMedia.filter(m => {
+    if (filter === 'all') return true;
+    if (filter === 'videos') return m.type === 'video';
+    if (filter === 'images') return m.type === 'image';
+    return true;
+  });
+
+  const videoCount = extractedMedia.filter(m => m.type === 'video').length;
+  const imageCount = extractedMedia.filter(m => m.type === 'image').length;
+
+  const downloadFiltered = () => {
+    filteredMedia.forEach((media, index) => {
       setTimeout(() => {
         window.open(media.url, '_blank');
       }, index * 500);
     });
     toast({
       title: "Downloads iniciados",
-      description: `${extractedMedia.length} mídia(s) sendo baixada(s)`
+      description: `${filteredMedia.length} mídia(s) sendo baixada(s)`
     });
   };
 
   const clearAll = () => {
     setExtractedMedia([]);
     toast({ title: "Lista limpa" });
+  };
+
+  const handleVideoClick = (media: ExtractedMedia) => {
+    const videoEl = videoRefs.current[media.id];
+    if (!videoEl) return;
+    
+    if (playingVideoId === media.id) {
+      videoEl.pause();
+      videoEl.currentTime = 0;
+      setPlayingVideoId(null);
+    } else {
+      // Pause any currently playing video
+      if (playingVideoId && videoRefs.current[playingVideoId]) {
+        videoRefs.current[playingVideoId]?.pause();
+      }
+      videoEl.play();
+      setPlayingVideoId(media.id);
+    }
   };
 
   return (
@@ -281,25 +314,50 @@ export default function CreativeExtractorPanel() {
 
       {extractedMedia.length > 0 && (
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-2">
+          <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <CardTitle className="text-lg">Mídias Encontradas</CardTitle>
-              <CardDescription>{extractedMedia.length} criativo(s)</CardDescription>
+              <CardDescription>
+                {extractedMedia.length} criativo(s) • {videoCount} vídeo(s) • {imageCount} imagem(ns)
+              </CardDescription>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-muted-foreground" />
+                <Select value={filter} onValueChange={(v) => setFilter(v as FilterType)}>
+                  <SelectTrigger className="w-[140px] h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">
+                      <span className="flex items-center gap-2">Todos ({extractedMedia.length})</span>
+                    </SelectItem>
+                    <SelectItem value="videos">
+                      <span className="flex items-center gap-2">
+                        <Video className="w-3 h-3" /> Vídeos ({videoCount})
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="images">
+                      <span className="flex items-center gap-2">
+                        <ImageIcon className="w-3 h-3" /> Imagens ({imageCount})
+                      </span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <Button onClick={clearAll} variant="outline" size="sm" className="gap-2">
                 <Trash2 className="w-4 h-4" />
                 Limpar
               </Button>
-              <Button onClick={downloadAll} variant="outline" size="sm" className="gap-2">
+              <Button onClick={downloadFiltered} variant="outline" size="sm" className="gap-2">
                 <Download className="w-4 h-4" />
-                Baixar Todos
+                Baixar {filter === 'all' ? 'Todos' : filter === 'videos' ? 'Vídeos' : 'Imagens'}
               </Button>
             </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {extractedMedia.map((media) => (
+              {filteredMedia.map((media) => (
                 <Card key={media.id} className="overflow-hidden group">
                   <div className="aspect-video bg-muted relative">
                     {media.type === 'image' ? (
@@ -312,29 +370,37 @@ export default function CreativeExtractorPanel() {
                         }}
                       />
                     ) : (
-                      <div className="w-full h-full relative bg-black">
+                      <div 
+                        className="w-full h-full relative bg-black cursor-pointer"
+                        onClick={() => handleVideoClick(media)}
+                      >
                         <video 
+                          ref={(el) => { videoRefs.current[media.id] = el; }}
                           src={media.url}
                           className="w-full h-full object-contain"
                           muted
                           playsInline
                           preload="metadata"
-                          onMouseEnter={(e) => (e.target as HTMLVideoElement).play()}
-                          onMouseLeave={(e) => {
-                            const video = e.target as HTMLVideoElement;
-                            video.pause();
-                            video.currentTime = 0;
-                          }}
+                          onEnded={() => setPlayingVideoId(null)}
                           onError={(e) => {
-                            // Hide video on error and show fallback
-                            (e.target as HTMLVideoElement).style.display = 'none';
+                            const target = e.target as HTMLVideoElement;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              const fallback = document.createElement('div');
+                              fallback.className = 'w-full h-full flex items-center justify-center text-white text-sm';
+                              fallback.innerHTML = '<span>Vídeo indisponível para preview</span>';
+                              parent.appendChild(fallback);
+                            }
                           }}
                         />
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none group-hover:opacity-0 transition-opacity">
-                          <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                            <Play className="w-7 h-7 text-white fill-white" />
+                        {playingVideoId !== media.id && (
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                              <Play className="w-7 h-7 text-white fill-white" />
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                     )}
                     <Badge 
@@ -351,7 +417,7 @@ export default function CreativeExtractorPanel() {
                       size="icon"
                       variant="destructive"
                       className="absolute top-2 left-2 w-7 h-7 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                      onClick={() => removeMedia(media.id)}
+                      onClick={(e) => { e.stopPropagation(); removeMedia(media.id); }}
                     >
                       <Trash2 className="w-3 h-3" />
                     </Button>
