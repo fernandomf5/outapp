@@ -113,22 +113,22 @@ const SortableBlock = ({ block, onEdit, onDelete }: { block: ContentBlock; onEdi
 
   return (
     <div ref={setNodeRef} style={style} className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-      <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+      <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing shrink-0">
         <GripVertical className="w-4 h-4 text-muted-foreground" />
       </div>
-      {getIcon()}
-      <div className="flex-1">
-        <div className="font-medium text-sm">{block.title || block.type}</div>
-        <div className="text-xs text-muted-foreground truncate">
+      <div className="shrink-0">{getIcon()}</div>
+      <div className="flex-1 min-w-0 overflow-hidden">
+        <div className="font-medium text-sm truncate">{block.title || block.type}</div>
+        <div className="text-xs text-muted-foreground truncate max-w-full">
           {block.type === 'customer_history' && block.customer_name 
             ? `Cliente: ${block.customer_name}` 
             : block.content}
         </div>
       </div>
-      <Button variant="ghost" size="icon" onClick={onEdit}>
+      <Button variant="ghost" size="icon" onClick={onEdit} className="shrink-0">
         <Edit className="w-4 h-4" />
       </Button>
-      <Button variant="ghost" size="icon" onClick={onDelete}>
+      <Button variant="ghost" size="icon" onClick={onDelete} className="shrink-0">
         <Trash2 className="w-4 h-4" />
       </Button>
     </div>
