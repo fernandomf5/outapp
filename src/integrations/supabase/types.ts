@@ -2296,6 +2296,7 @@ export type Database = {
       }
       chatbot_customers: {
         Row: {
+          business_id: string | null
           chatbot_id: string
           created_at: string
           email: string | null
@@ -2310,6 +2311,7 @@ export type Database = {
           verification_token_expires_at: string | null
         }
         Insert: {
+          business_id?: string | null
           chatbot_id: string
           created_at?: string
           email?: string | null
@@ -2324,6 +2326,7 @@ export type Database = {
           verification_token_expires_at?: string | null
         }
         Update: {
+          business_id?: string | null
           chatbot_id?: string
           created_at?: string
           email?: string | null
@@ -2338,6 +2341,13 @@ export type Database = {
           verification_token_expires_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "chatbot_customers_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "chatbot_customers_chatbot_id_fkey"
             columns: ["chatbot_id"]
