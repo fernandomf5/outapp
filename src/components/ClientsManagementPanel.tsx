@@ -46,6 +46,12 @@ interface Customer {
   updated_at: string;
   last_contact_at: string | null;
   category_id: string | null;
+  business_id: string | null;
+}
+
+interface Business {
+  id: string;
+  name: string;
 }
 
 const statusColors = {
@@ -95,6 +101,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
   
   // Categories state
   const [categories, setCategories] = useState<Category[]>([]);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
   const [categoriesDialogOpen, setCategoriesDialogOpen] = useState(false);
   const [categoryFormData, setCategoryFormData] = useState({ name: "", color: "#3b82f6" });
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -121,6 +128,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
     postal_code: "",
     website: "",
     category_id: "" as string,
+    business_id: "" as string,
   });
 
   const [newTag, setNewTag] = useState("");
@@ -129,6 +137,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
     if (!user) return;
     fetchCustomers();
     fetchCategories();
+    fetchBusinesses();
   }, [user]);
 
   useEffect(() => {
@@ -148,6 +157,22 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
       setCategories(data || []);
     } catch (error: any) {
       console.error('Erro ao buscar categorias:', error);
+    }
+  };
+
+  const fetchBusinesses = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('businesses')
+        .select('id, name')
+        .eq('user_id', user.id)
+        .order('name');
+
+      if (error) throw error;
+      setBusinesses(data || []);
+    } catch (error: any) {
+      console.error('Erro ao buscar negócios:', error);
     }
   };
 
@@ -339,6 +364,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
       postal_code: "",
       website: "",
       category_id: selectedCategoryForAdd?.id || "",
+      business_id: "",
     });
     setNewTag("");
   };
@@ -361,6 +387,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
       postal_code: "",
       website: "",
       category_id: category?.id || "",
+      business_id: "",
     });
     setNewTag("");
     setAddDialogOpen(true);
@@ -474,6 +501,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
         ...formData,
         user_id: user.id,
         category_id: formData.category_id || null,
+        business_id: formData.business_id || null,
       };
 
       const { error } = await supabase
@@ -504,6 +532,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
       const updateData = {
         ...formData,
         category_id: formData.category_id || null,
+        business_id: formData.business_id || null,
       };
 
       const { error } = await supabase
@@ -568,6 +597,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
       postal_code: customer.postal_code || "",
       website: customer.website || "",
       category_id: customer.category_id || "",
+      business_id: customer.business_id || "",
     });
     setEditDialogOpen(true);
   };
@@ -1216,6 +1246,22 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="business">Negócio (Origem)</Label>
+              <Select value={formData.business_id || "none"} onValueChange={(value) => setFormData({ ...formData, business_id: value === "none" ? "" : value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um negócio" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum (Pessoal)</SelectItem>
+                  {businesses.map(business => (
+                    <SelectItem key={business.id} value={business.id}>
+                      {business.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="tags">Tags</Label>
               <div className="flex gap-2">
@@ -1391,6 +1437,22 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
                         {cat.name}
                       </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-business">Negócio (Origem)</Label>
+              <Select value={formData.business_id || "none"} onValueChange={(value) => setFormData({ ...formData, business_id: value === "none" ? "" : value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um negócio" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum (Pessoal)</SelectItem>
+                  {businesses.map(business => (
+                    <SelectItem key={business.id} value={business.id}>
+                      {business.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
