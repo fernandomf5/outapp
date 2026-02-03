@@ -4,13 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Search, Mail, Phone, Edit, Trash2 } from "lucide-react";
+import { Users, Search, Mail, Phone, Edit, Trash2, Building2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId?: string }) => {
   const [customers, setCustomers] = useState<any[]>([]);
@@ -22,11 +23,13 @@ export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId?: string }) => 
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]);
-  const [editForm, setEditForm] = useState({ name: "", email: "", phone: "" });
+  const [editForm, setEditForm] = useState({ name: "", email: "", phone: "", business_id: "" });
+  const [businesses, setBusinesses] = useState<any[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
     loadCustomers();
+    loadBusinesses();
     
     const channelName = chatbotId ? `chatbot_customers_changes_${chatbotId}` : 'chatbot_customers_changes_all';
     const subscription = supabase
@@ -46,6 +49,24 @@ export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId?: string }) => 
     };
   }, [chatbotId]);
 
+  const loadBusinesses = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('businesses')
+        .select('id, name')
+        .eq('user_id', user.id)
+        .order('name');
+
+      if (error) throw error;
+      setBusinesses(data || []);
+    } catch (error) {
+      console.error('Error loading businesses:', error);
+    }
+  };
+
   useEffect(() => {
     if (searchQuery) {
       const filtered = customers.filter(customer =>
@@ -63,7 +84,7 @@ export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId?: string }) => 
     try {
       let query = supabase
         .from('chatbot_customers')
-        .select('*, chatbot:chatbots(name)')
+        .select('*, chatbot:chatbots(name), business:businesses(name)')
         .order('created_at', { ascending: false });
 
       if (chatbotId) {
@@ -93,6 +114,7 @@ export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId?: string }) => 
       name: customer.name || "",
       email: customer.email || "",
       phone: customer.phone || "",
+      business_id: customer.business_id || "",
     });
     setEditDialogOpen(true);
   };
@@ -110,6 +132,7 @@ export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId?: string }) => 
           name: editForm.name,
           email: editForm.email,
           phone: editForm.phone,
+          business_id: editForm.business_id || null,
         })
         .eq('id', selectedCustomer.id);
 
@@ -292,6 +315,12 @@ export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId?: string }) => 
                           {customer.phone}
                         </div>
                       )}
+                      {customer.business?.name && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Building2 className="h-3 w-3" />
+                          {customer.business.name}
+                        </div>
+                      )}
                       <span className="text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(customer.created_at), { 
                           addSuffix: true,
@@ -345,6 +374,25 @@ export const ChatbotCustomersPanel = ({ chatbotId }: { chatbotId?: string }) => 
                 value={editForm.email}
                 onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
               />
+            </div>
+            <div>
+              <Label htmlFor="business">Negócio (Origem do Lead)</Label>
+              <Select 
+                value={editForm.business_id || "none"} 
+                onValueChange={(v) => setEditForm({ ...editForm, business_id: v === "none" ? "" : v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um negócio (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum (Pessoal)</SelectItem>
+                  {businesses.map((business) => (
+                    <SelectItem key={business.id} value={business.id}>
+                      {business.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="phone">Telefone</Label>
