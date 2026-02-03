@@ -27,6 +27,12 @@ interface Contact {
   status: string;
   last_contact_at: string | null;
   created_at: string;
+  business_id: string | null;
+}
+
+interface Business {
+  id: string;
+  name: string;
 }
 
 interface Interaction {
@@ -42,6 +48,7 @@ export const CRMContacts = () => {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [interactions, setInteractions] = useState<Interaction[]>([]);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isInteractionDialogOpen, setIsInteractionDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -53,7 +60,8 @@ export const CRMContacts = () => {
     position: "",
     notes: "",
     source: "",
-    status: "lead"
+    status: "lead",
+    business_id: ""
   });
   const [newInteraction, setNewInteraction] = useState({
     type: "call",
@@ -63,8 +71,21 @@ export const CRMContacts = () => {
   useEffect(() => {
     if (user) {
       fetchContacts();
+      fetchBusinesses();
     }
   }, [user, statusFilter]);
+
+  const fetchBusinesses = async () => {
+    const { data, error } = await supabase
+      .from('businesses')
+      .select('id, name')
+      .eq('user_id', user!.id)
+      .order('name');
+
+    if (!error && data) {
+      setBusinesses(data);
+    }
+  };
 
   useEffect(() => {
     if (selectedContact) {
@@ -119,7 +140,15 @@ export const CRMContacts = () => {
     const { data, error } = await supabase
       .from('contacts')
       .insert({
-        ...newContact,
+        name: newContact.name,
+        email: newContact.email || null,
+        phone: newContact.phone || null,
+        company: newContact.company || null,
+        position: newContact.position || null,
+        notes: newContact.notes || null,
+        source: newContact.source || null,
+        status: newContact.status,
+        business_id: newContact.business_id || null,
         user_id: user!.id,
         tags: []
       })
@@ -139,7 +168,7 @@ export const CRMContacts = () => {
       };
       toast({ title: "Contato criado com sucesso!" });
       setContacts([formattedContact, ...contacts]);
-      setNewContact({ name: "", email: "", phone: "", company: "", position: "", notes: "", source: "", status: "lead" });
+      setNewContact({ name: "", email: "", phone: "", company: "", position: "", notes: "", source: "", status: "lead", business_id: "" });
       setIsCreateDialogOpen(false);
     }
   };
@@ -333,6 +362,25 @@ export const CRMContacts = () => {
                     <SelectItem value="prospect">Prospect</SelectItem>
                     <SelectItem value="customer">Cliente</SelectItem>
                     <SelectItem value="inactive">Inativo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Negócio (Origem do Lead)</Label>
+                <Select 
+                  value={newContact.business_id} 
+                  onValueChange={(v) => setNewContact({ ...newContact, business_id: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um negócio (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Nenhum</SelectItem>
+                    {businesses.map((business) => (
+                      <SelectItem key={business.id} value={business.id}>
+                        {business.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
