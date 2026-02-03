@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { User, Mail, Phone, Calendar, MessageSquare, Search, Edit, Trash2, Building2 } from "lucide-react";
+import { User, Mail, Phone, Calendar, MessageSquare, Search, Edit, Trash2, Building2, UserPlus } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -52,11 +52,13 @@ export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null);
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
   const [editForm, setEditForm] = useState({ name: "", email: "", phone: "", business_id: "" });
+  const [addForm, setAddForm] = useState({ name: "", email: "", phone: "", business_id: "" });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -117,7 +119,6 @@ export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
 
           return {
             ...customer,
-            business_id: null,
             _count: {
               conversations: conversations.count || 0,
               orders: orders.count || 0,
@@ -184,6 +185,47 @@ export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
       toast({
         title: "Erro ao atualizar",
         description: "Não foi possível atualizar os dados do cliente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAddCustomer = async () => {
+    if (!addForm.name || !addForm.email) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Nome e email são obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('agent_customers')
+        .insert({
+          agent_id: agentId,
+          name: addForm.name,
+          email: addForm.email,
+          phone: addForm.phone || null,
+          business_id: addForm.business_id || null,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Cliente adicionado",
+        description: "O cliente foi adicionado com sucesso.",
+      });
+
+      setAddDialogOpen(false);
+      setAddForm({ name: "", email: "", phone: "", business_id: "" });
+      loadCustomers();
+    } catch (error: any) {
+      console.error('Error adding customer:', error);
+      toast({
+        title: "Erro ao adicionar",
+        description: error.message || "Não foi possível adicionar o cliente.",
         variant: "destructive",
       });
     }
@@ -278,6 +320,10 @@ export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
       <div className="flex items-center justify-between">
         <h3 className="text-2xl font-bold">Dados de Clientes</h3>
         <div className="flex items-center gap-2">
+          <Button onClick={() => setAddDialogOpen(true)} className="gradient-primary">
+            <UserPlus className="h-4 w-4 mr-2" />
+            Adicionar Cliente
+          </Button>
           {selectedCustomerIds.length > 0 && (
             <Button
               variant="destructive"
@@ -456,6 +502,74 @@ export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
               Cancelar
             </Button>
             <Button onClick={handleEditSave}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adicionar Cliente</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="add-name">Nome *</Label>
+              <Input
+                id="add-name"
+                value={addForm.name}
+                onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
+                placeholder="Nome completo"
+              />
+            </div>
+            <div>
+              <Label htmlFor="add-email">Email *</Label>
+              <Input
+                id="add-email"
+                type="email"
+                value={addForm.email}
+                onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
+                placeholder="email@exemplo.com"
+              />
+            </div>
+            <div>
+              <Label htmlFor="add-phone">Telefone</Label>
+              <Input
+                id="add-phone"
+                value={addForm.phone}
+                onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })}
+                placeholder="(00) 00000-0000"
+              />
+            </div>
+            <div>
+              <Label htmlFor="add-business">Negócio (Origem do Lead)</Label>
+              <Select
+                value={addForm.business_id || "none"}
+                onValueChange={(value) =>
+                  setAddForm({ ...addForm, business_id: value === "none" ? "" : value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um negócio" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum (Pessoal)</SelectItem>
+                  {businesses.map((business) => (
+                    <SelectItem key={business.id} value={business.id}>
+                      {business.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Vincule este cliente a um negócio específico
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleAddCustomer}>Adicionar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

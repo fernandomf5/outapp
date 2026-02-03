@@ -736,6 +736,7 @@ export type Database = {
       agent_customers: {
         Row: {
           agent_id: string
+          business_id: string | null
           created_at: string
           email: string
           email_verified: boolean
@@ -750,6 +751,7 @@ export type Database = {
         }
         Insert: {
           agent_id: string
+          business_id?: string | null
           created_at?: string
           email: string
           email_verified?: boolean
@@ -764,6 +766,7 @@ export type Database = {
         }
         Update: {
           agent_id?: string
+          business_id?: string | null
           created_at?: string
           email?: string
           email_verified?: boolean
@@ -782,6 +785,13 @@ export type Database = {
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_customers_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
         ]
