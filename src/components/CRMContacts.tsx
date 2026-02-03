@@ -368,14 +368,14 @@ export const CRMContacts = () => {
               <div>
                 <Label>Negócio (Origem do Lead)</Label>
                 <Select 
-                  value={newContact.business_id} 
-                  onValueChange={(v) => setNewContact({ ...newContact, business_id: v })}
+                  value={newContact.business_id || "none"} 
+                  onValueChange={(v) => setNewContact({ ...newContact, business_id: v === "none" ? "" : v })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione um negócio (opcional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhum</SelectItem>
+                    <SelectItem value="none">Nenhum</SelectItem>
                     {businesses.map((business) => (
                       <SelectItem key={business.id} value={business.id}>
                         {business.name}
