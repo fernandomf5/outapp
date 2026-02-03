@@ -1937,8 +1937,56 @@ export type Database = {
           },
         ]
       }
+      catalog_banners: {
+        Row: {
+          catalog_id: string
+          created_at: string
+          id: string
+          image_url: string
+          is_active: boolean | null
+          link_url: string | null
+          order_index: number | null
+          subtitle: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          catalog_id: string
+          created_at?: string
+          id?: string
+          image_url: string
+          is_active?: boolean | null
+          link_url?: string | null
+          order_index?: number | null
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          catalog_id?: string
+          created_at?: string
+          id?: string
+          image_url?: string
+          is_active?: boolean | null
+          link_url?: string | null
+          order_index?: number | null
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_banners_catalog_id_fkey"
+            columns: ["catalog_id"]
+            isOneToOne: false
+            referencedRelation: "catalogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       catalogs: {
         Row: {
+          background_color: string | null
           cover_url: string | null
           created_at: string | null
           description: string | null
@@ -1948,16 +1996,23 @@ export type Database = {
           logo_url: string | null
           name: string
           primary_color: string | null
+          selected_product_ids: string[] | null
+          selected_service_ids: string[] | null
+          show_all_items: boolean | null
           show_description: boolean | null
           show_prices: boolean | null
           show_stock: boolean | null
           slug: string
+          store_closed_message: string | null
+          store_open: boolean | null
+          text_color: string | null
           updated_at: string | null
           user_id: string
           views_count: number | null
           whatsapp_number: string | null
         }
         Insert: {
+          background_color?: string | null
           cover_url?: string | null
           created_at?: string | null
           description?: string | null
@@ -1967,16 +2022,23 @@ export type Database = {
           logo_url?: string | null
           name: string
           primary_color?: string | null
+          selected_product_ids?: string[] | null
+          selected_service_ids?: string[] | null
+          show_all_items?: boolean | null
           show_description?: boolean | null
           show_prices?: boolean | null
           show_stock?: boolean | null
           slug: string
+          store_closed_message?: string | null
+          store_open?: boolean | null
+          text_color?: string | null
           updated_at?: string | null
           user_id: string
           views_count?: number | null
           whatsapp_number?: string | null
         }
         Update: {
+          background_color?: string | null
           cover_url?: string | null
           created_at?: string | null
           description?: string | null
@@ -1986,10 +2048,16 @@ export type Database = {
           logo_url?: string | null
           name?: string
           primary_color?: string | null
+          selected_product_ids?: string[] | null
+          selected_service_ids?: string[] | null
+          show_all_items?: boolean | null
           show_description?: boolean | null
           show_prices?: boolean | null
           show_stock?: boolean | null
           slug?: string
+          store_closed_message?: string | null
+          store_open?: boolean | null
+          text_color?: string | null
           updated_at?: string | null
           user_id?: string
           views_count?: number | null

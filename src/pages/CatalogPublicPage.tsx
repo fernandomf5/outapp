@@ -15,6 +15,9 @@ import {
   Box,
   Loader2,
   AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  Store,
 } from "lucide-react";
 
 interface Catalog {
@@ -26,12 +29,29 @@ interface Catalog {
   logo_url: string | null;
   cover_url: string | null;
   primary_color: string;
+  background_color: string | null;
+  text_color: string | null;
   whatsapp_number: string | null;
   show_prices: boolean;
   show_stock: boolean;
   show_description: boolean;
   layout_style: string;
   is_active: boolean;
+  store_open: boolean;
+  store_closed_message: string | null;
+  show_all_items: boolean;
+  selected_product_ids: string[] | null;
+  selected_service_ids: string[] | null;
+  views_count: number;
+}
+
+interface Banner {
+  id: string;
+  image_url: string;
+  title: string | null;
+  subtitle: string | null;
+  link_url: string | null;
+  order_index: number;
 }
 
 interface Product {
@@ -61,17 +81,30 @@ interface Service {
 export default function CatalogPublicPage() {
   const { slug } = useParams<{ slug: string }>();
   const [catalog, setCatalog] = useState<Catalog | null>(null);
+  const [banners, setBanners] = useState<Banner[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
   useEffect(() => {
     if (slug) {
       loadCatalog();
     }
   }, [slug]);
+
+  // Auto-rotate banners
+  useEffect(() => {
+    if (banners.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentBannerIndex((prev) => (prev + 1) % banners.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [banners.length]);
 
   const loadCatalog = async () => {
     setLoading(true);
@@ -92,32 +125,64 @@ export default function CatalogPublicPage() {
         return;
       }
 
-      setCatalog(catalogData as any);
+      const cat = catalogData as unknown as Catalog;
+      setCatalog(cat);
 
       // Increment views
       await supabase
         .from("catalogs" as any)
-        .update({ views_count: ((catalogData as any).views_count || 0) + 1 })
-        .eq("id", (catalogData as any).id);
+        .update({ views_count: (cat.views_count || 0) + 1 })
+        .eq("id", cat.id);
+
+      // Load banners
+      const { data: bannersData } = await supabase
+        .from("catalog_banners" as any)
+        .select("*")
+        .eq("catalog_id", cat.id)
+        .eq("is_active", true)
+        .order("order_index", { ascending: true });
+
+      setBanners((bannersData as any) || []);
 
       // Load products and services
       const [productsRes, servicesRes] = await Promise.all([
         supabase
           .from("products" as any)
           .select("*")
-          .eq("user_id", (catalogData as any).user_id)
+          .eq("user_id", cat.user_id)
           .eq("is_active", true)
           .order("name"),
         supabase
           .from("user_services" as any)
           .select("*")
-          .eq("user_id", (catalogData as any).user_id)
+          .eq("user_id", cat.user_id)
           .eq("is_active", true)
           .order("name"),
       ]);
 
-      setProducts((productsRes.data as any) || []);
-      setServices((servicesRes.data as any) || []);
+      let filteredProducts = (productsRes.data as any) || [];
+      let filteredServices = (servicesRes.data as any) || [];
+
+      // Filter by selected IDs if not showing all items
+      if (!cat.show_all_items) {
+        if (cat.selected_product_ids && cat.selected_product_ids.length > 0) {
+          filteredProducts = filteredProducts.filter((p: Product) =>
+            cat.selected_product_ids!.includes(p.id)
+          );
+        } else {
+          filteredProducts = [];
+        }
+        if (cat.selected_service_ids && cat.selected_service_ids.length > 0) {
+          filteredServices = filteredServices.filter((s: Service) =>
+            cat.selected_service_ids!.includes(s.id)
+          );
+        } else {
+          filteredServices = [];
+        }
+      }
+
+      setProducts(filteredProducts);
+      setServices(filteredServices);
     } catch (err) {
       setError("Erro ao carregar catálogo");
     } finally {
@@ -141,6 +206,12 @@ export default function CatalogPublicPage() {
 
     const url = `https://wa.me/${catalog.whatsapp_number}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
+  };
+
+  const handleBannerClick = (banner: Banner) => {
+    if (banner.link_url) {
+      window.open(banner.link_url, "_blank");
+    }
   };
 
   const priceTypeLabels: Record<string, string> = {
@@ -173,6 +244,9 @@ export default function CatalogPublicPage() {
     );
   }
 
+  const backgroundColor = catalog.background_color || "#ffffff";
+  const textColor = catalog.text_color || "#1f2937";
+
   const allItems = [
     ...products.map((p) => ({ ...p, type: "product" as const })),
     ...services.map((s) => ({ ...s, type: "service" as const })),
@@ -193,6 +267,7 @@ export default function CatalogPublicPage() {
         <div
           key={item.id}
           className="flex gap-4 p-4 border rounded-lg hover:shadow-md transition-shadow"
+          style={{ borderColor: `${textColor}20` }}
         >
           {item.image_url && (
             <img
@@ -204,14 +279,23 @@ export default function CatalogPublicPage() {
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h3 className="font-semibold">{item.name}</h3>
+                <h3 className="font-semibold" style={{ color: textColor }}>
+                  {item.name}
+                </h3>
                 {catalog.show_description && item.description && (
-                  <p className="text-sm text-muted-foreground line-clamp-2">
+                  <p
+                    className="text-sm line-clamp-2"
+                    style={{ color: `${textColor}80` }}
+                  >
                     {item.description}
                   </p>
                 )}
               </div>
-              <Badge variant="outline" className="flex-shrink-0">
+              <Badge
+                variant="outline"
+                className="flex-shrink-0"
+                style={{ borderColor: catalog.primary_color, color: catalog.primary_color }}
+              >
                 {isProduct ? (
                   <Package className="w-3 h-3 mr-1" />
                 ) : (
@@ -233,7 +317,10 @@ export default function CatalogPublicPage() {
                 </span>
               )}
               {!isProduct && item.duration_minutes && (
-                <span className="text-sm text-muted-foreground flex items-center gap-1">
+                <span
+                  className="text-sm flex items-center gap-1"
+                  style={{ color: `${textColor}80` }}
+                >
                   <Clock className="w-3.5 h-3.5" />
                   {item.duration_minutes} min
                 </span>
@@ -241,7 +328,10 @@ export default function CatalogPublicPage() {
               {isProduct &&
                 catalog.show_stock &&
                 item.stock_quantity !== null && (
-                  <span className="text-sm text-muted-foreground flex items-center gap-1">
+                  <span
+                    className="text-sm flex items-center gap-1"
+                    style={{ color: `${textColor}80` }}
+                  >
                     <Box className="w-3.5 h-3.5" />
                     {item.stock_quantity} em estoque
                   </span>
@@ -253,7 +343,7 @@ export default function CatalogPublicPage() {
               size="sm"
               onClick={() => handleWhatsAppContact(item.name)}
               style={{ backgroundColor: catalog.primary_color }}
-              className="flex-shrink-0 self-center"
+              className="flex-shrink-0 self-center text-white"
             >
               <MessageCircle className="w-4 h-4" />
             </Button>
@@ -269,6 +359,7 @@ export default function CatalogPublicPage() {
       <Card
         key={item.id}
         className="overflow-hidden hover:shadow-lg transition-shadow"
+        style={{ backgroundColor, borderColor: `${textColor}20` }}
       >
         {item.image_url && (
           <div className={isCards ? "h-48" : "h-40"}>
@@ -281,29 +372,43 @@ export default function CatalogPublicPage() {
         )}
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-2 mb-2">
-            <h3 className={`font-semibold ${isCards ? "text-lg" : ""}`}>
+            <h3
+              className={`font-semibold ${isCards ? "text-lg" : ""}`}
+              style={{ color: textColor }}
+            >
               {item.name}
             </h3>
-            <Badge variant="outline" className="flex-shrink-0 text-xs">
+            <Badge
+              variant="outline"
+              className="flex-shrink-0 text-xs"
+              style={{ borderColor: catalog.primary_color, color: catalog.primary_color }}
+            >
               {isProduct ? "Produto" : "Serviço"}
             </Badge>
           </div>
           {catalog.show_description && item.description && (
             <p
-              className={`text-muted-foreground mb-3 ${isCards ? "line-clamp-3" : "text-sm line-clamp-2"}`}
+              className={`mb-3 ${isCards ? "line-clamp-3" : "text-sm line-clamp-2"}`}
+              style={{ color: `${textColor}80` }}
             >
               {item.description}
             </p>
           )}
           <div className="flex flex-wrap items-center gap-2 mb-3">
             {!isProduct && item.duration_minutes && (
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <span
+                className="text-xs flex items-center gap-1"
+                style={{ color: `${textColor}80` }}
+              >
                 <Clock className="w-3 h-3" />
                 {item.duration_minutes} min
               </span>
             )}
             {isProduct && catalog.show_stock && item.stock_quantity !== null && (
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <span
+                className="text-xs flex items-center gap-1"
+                style={{ color: `${textColor}80` }}
+              >
                 <Box className="w-3 h-3" />
                 {item.stock_quantity} un
               </span>
@@ -326,6 +431,7 @@ export default function CatalogPublicPage() {
                 size="sm"
                 onClick={() => handleWhatsAppContact(item.name)}
                 style={{ backgroundColor: catalog.primary_color }}
+                className="text-white"
               >
                 <MessageCircle className="w-4 h-4 mr-1" />
                 Contato
@@ -337,6 +443,58 @@ export default function CatalogPublicPage() {
     );
   };
 
+  // Store closed overlay
+  if (!catalog.store_open) {
+    return (
+      <>
+        <Helmet>
+          <title>{catalog.name} | Catálogo</title>
+          <meta
+            name="description"
+            content={catalog.description || `Confira o catálogo ${catalog.name}`}
+          />
+        </Helmet>
+
+        <div
+          className="min-h-screen flex items-center justify-center"
+          style={{ backgroundColor }}
+        >
+          <div className="text-center max-w-md mx-auto p-6">
+            <Store
+              className="w-20 h-20 mx-auto mb-6"
+              style={{ color: catalog.primary_color }}
+            />
+            {catalog.logo_url && (
+              <img
+                src={catalog.logo_url}
+                alt={catalog.name}
+                className="w-24 h-24 mx-auto mb-4 rounded-full object-cover"
+              />
+            )}
+            <h1 className="text-3xl font-bold mb-4" style={{ color: textColor }}>
+              {catalog.name}
+            </h1>
+            <p className="text-lg mb-6" style={{ color: `${textColor}90` }}>
+              {catalog.store_closed_message ||
+                "Estamos fechados no momento. Volte em breve!"}
+            </p>
+            {catalog.whatsapp_number && (
+              <Button
+                onClick={() => handleWhatsAppContact()}
+                size="lg"
+                style={{ backgroundColor: catalog.primary_color }}
+                className="text-white"
+              >
+                <MessageCircle className="w-5 h-5 mr-2" />
+                Fale Conosco
+              </Button>
+            )}
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <Helmet>
@@ -347,17 +505,87 @@ export default function CatalogPublicPage() {
         />
       </Helmet>
 
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen" style={{ backgroundColor, color: textColor }}>
+        {/* Banner Carousel */}
+        {banners.length > 0 && (
+          <div className="relative w-full h-48 md:h-64 lg:h-80 overflow-hidden">
+            {banners.map((banner, index) => (
+              <div
+                key={banner.id}
+                className={`absolute inset-0 transition-opacity duration-500 cursor-pointer ${
+                  index === currentBannerIndex ? "opacity-100" : "opacity-0"
+                }`}
+                onClick={() => handleBannerClick(banner)}
+              >
+                <img
+                  src={banner.image_url}
+                  alt={banner.title || "Banner"}
+                  className="w-full h-full object-cover"
+                />
+                {(banner.title || banner.subtitle) && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <div className="text-center text-white">
+                      {banner.title && (
+                        <h2 className="text-2xl md:text-4xl font-bold mb-2">
+                          {banner.title}
+                        </h2>
+                      )}
+                      {banner.subtitle && (
+                        <p className="text-lg md:text-xl">{banner.subtitle}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+            {banners.length > 1 && (
+              <>
+                <button
+                  onClick={() =>
+                    setCurrentBannerIndex(
+                      (prev) => (prev - 1 + banners.length) % banners.length
+                    )
+                  }
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 flex items-center justify-center hover:bg-white transition-colors"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                <button
+                  onClick={() =>
+                    setCurrentBannerIndex((prev) => (prev + 1) % banners.length)
+                  }
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 flex items-center justify-center hover:bg-white transition-colors"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                  {banners.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentBannerIndex(index)}
+                      className={`w-2 h-2 rounded-full transition-colors ${
+                        index === currentBannerIndex
+                          ? "bg-white"
+                          : "bg-white/50"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
         {/* Header */}
         <header
           className="relative"
           style={{
-            background: catalog.cover_url
+            background: catalog.cover_url || banners.length > 0
               ? undefined
               : `linear-gradient(135deg, ${catalog.primary_color} 0%, ${catalog.primary_color}dd 100%)`,
           }}
         >
-          {catalog.cover_url && (
+          {catalog.cover_url && banners.length === 0 && (
             <div className="absolute inset-0">
               <img
                 src={catalog.cover_url}
@@ -370,7 +598,14 @@ export default function CatalogPublicPage() {
               />
             </div>
           )}
-          <div className="relative z-10 container mx-auto px-4 py-12 text-center text-white">
+          <div
+            className={`relative z-10 container mx-auto px-4 py-12 text-center ${
+              catalog.cover_url || banners.length === 0 ? "text-white" : ""
+            }`}
+            style={
+              !catalog.cover_url && banners.length > 0 ? { color: textColor } : {}
+            }
+          >
             {catalog.logo_url && (
               <img
                 src={catalog.logo_url}
@@ -404,10 +639,11 @@ export default function CatalogPublicPage() {
         <main className="container mx-auto px-4 py-8">
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-            <TabsList className="grid w-full max-w-md mx-auto grid-cols-3">
-              <TabsTrigger value="all">
-                Todos ({allItems.length})
-              </TabsTrigger>
+            <TabsList
+              className="grid w-full max-w-md mx-auto grid-cols-3"
+              style={{ backgroundColor: `${textColor}10` }}
+            >
+              <TabsTrigger value="all">Todos ({allItems.length})</TabsTrigger>
               <TabsTrigger value="products">
                 <Package className="w-4 h-4 mr-1" />
                 Produtos ({products.length})
@@ -422,11 +658,14 @@ export default function CatalogPublicPage() {
           {/* Items */}
           {filteredItems.length === 0 ? (
             <div className="text-center py-12">
-              <Package className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+              <Package
+                className="w-16 h-16 mx-auto mb-4"
+                style={{ color: `${textColor}50` }}
+              />
               <h3 className="text-lg font-semibold mb-2">
                 Nenhum item encontrado
               </h3>
-              <p className="text-muted-foreground">
+              <p style={{ color: `${textColor}80` }}>
                 {activeTab === "products"
                   ? "Não há produtos disponíveis no momento."
                   : activeTab === "services"
@@ -450,7 +689,10 @@ export default function CatalogPublicPage() {
         </main>
 
         {/* Footer */}
-        <footer className="py-6 text-center text-sm text-muted-foreground border-t">
+        <footer
+          className="py-6 text-center text-sm border-t"
+          style={{ borderColor: `${textColor}20`, color: `${textColor}80` }}
+        >
           <p>
             Catálogo criado com{" "}
             <a
