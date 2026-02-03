@@ -22,6 +22,8 @@ import {
   MessageCircle,
   Loader2,
   Palette,
+  Store,
+  Settings,
 } from "lucide-react";
 import {
   Dialog,
@@ -37,6 +39,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import CatalogDashboard from "./catalog/CatalogDashboard";
+import CatalogProductSelector from "./catalog/CatalogProductSelector";
 
 interface Catalog {
   id: string;
@@ -47,12 +51,19 @@ interface Catalog {
   logo_url: string | null;
   cover_url: string | null;
   primary_color: string;
+  background_color: string | null;
+  text_color: string | null;
   whatsapp_number: string | null;
   show_prices: boolean;
   show_stock: boolean;
   show_description: boolean;
   layout_style: string;
   is_active: boolean;
+  store_open: boolean;
+  store_closed_message: string | null;
+  show_all_items: boolean;
+  selected_product_ids: string[] | null;
+  selected_service_ids: string[] | null;
   views_count: number;
   created_at: string;
   updated_at: string;
@@ -65,12 +76,19 @@ const defaultCatalogForm = {
   logo_url: "",
   cover_url: "",
   primary_color: "#3b82f6",
+  background_color: "#ffffff",
+  text_color: "#1f2937",
   whatsapp_number: "",
   show_prices: true,
   show_stock: false,
   show_description: true,
   layout_style: "grid",
   is_active: true,
+  store_open: true,
+  store_closed_message: "Estamos fechados no momento. Volte em breve!",
+  show_all_items: true,
+  selected_product_ids: [] as string[],
+  selected_service_ids: [] as string[],
 };
 
 export default function CatalogCreatorPanel() {
@@ -87,6 +105,7 @@ export default function CatalogCreatorPanel() {
   const [uploadingCover, setUploadingCover] = useState(false);
   const [productCount, setProductCount] = useState(0);
   const [serviceCount, setServiceCount] = useState(0);
+  const [selectedCatalog, setSelectedCatalog] = useState<Catalog | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -104,12 +123,19 @@ export default function CatalogCreatorPanel() {
         logo_url: editingCatalog.logo_url || "",
         cover_url: editingCatalog.cover_url || "",
         primary_color: editingCatalog.primary_color || "#3b82f6",
+        background_color: editingCatalog.background_color || "#ffffff",
+        text_color: editingCatalog.text_color || "#1f2937",
         whatsapp_number: editingCatalog.whatsapp_number || "",
         show_prices: editingCatalog.show_prices,
         show_stock: editingCatalog.show_stock,
         show_description: editingCatalog.show_description,
         layout_style: editingCatalog.layout_style || "grid",
         is_active: editingCatalog.is_active,
+        store_open: editingCatalog.store_open ?? true,
+        store_closed_message: editingCatalog.store_closed_message || "Estamos fechados no momento. Volte em breve!",
+        show_all_items: editingCatalog.show_all_items ?? true,
+        selected_product_ids: editingCatalog.selected_product_ids || [],
+        selected_service_ids: editingCatalog.selected_service_ids || [],
       });
     } else {
       setFormData(defaultCatalogForm);
@@ -252,12 +278,19 @@ export default function CatalogCreatorPanel() {
         logo_url: formData.logo_url || null,
         cover_url: formData.cover_url || null,
         primary_color: formData.primary_color,
+        background_color: formData.background_color,
+        text_color: formData.text_color,
         whatsapp_number: formData.whatsapp_number || null,
         show_prices: formData.show_prices,
         show_stock: formData.show_stock,
         show_description: formData.show_description,
         layout_style: formData.layout_style,
         is_active: formData.is_active,
+        store_open: formData.store_open,
+        store_closed_message: formData.store_closed_message || null,
+        show_all_items: formData.show_all_items,
+        selected_product_ids: formData.show_all_items ? [] : formData.selected_product_ids,
+        selected_service_ids: formData.show_all_items ? [] : formData.selected_service_ids,
       };
 
       if (editingCatalog) {
@@ -335,6 +368,24 @@ export default function CatalogCreatorPanel() {
     );
   }
 
+  // Show dashboard if a catalog is selected
+  if (selectedCatalog) {
+    return (
+      <CatalogDashboard
+        catalog={selectedCatalog}
+        userId={user?.id || ""}
+        onBack={() => {
+          setSelectedCatalog(null);
+          loadCatalogs();
+        }}
+        onEdit={() => {
+          setEditingCatalog(selectedCatalog);
+          setDialogOpen(true);
+        }}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -366,7 +417,7 @@ export default function CatalogCreatorPanel() {
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <Eye className="w-8 h-8 mx-auto mb-2 text-blue-500" />
+            <Eye className="w-8 h-8 mx-auto mb-2 text-primary" />
             <p className="text-2xl font-bold">
               {catalogs.reduce((acc, c) => acc + (c.views_count || 0), 0)}
             </p>
@@ -375,16 +426,16 @@ export default function CatalogCreatorPanel() {
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="w-8 h-8 mx-auto mb-2 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-              <span className="text-green-600 font-bold">{productCount}</span>
+            <div className="w-8 h-8 mx-auto mb-2 bg-primary/10 rounded-full flex items-center justify-center">
+              <span className="text-primary font-bold">{productCount}</span>
             </div>
             <p className="text-sm font-medium">Produtos Ativos</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="w-8 h-8 mx-auto mb-2 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
-              <span className="text-purple-600 font-bold">{serviceCount}</span>
+            <div className="w-8 h-8 mx-auto mb-2 bg-primary/10 rounded-full flex items-center justify-center">
+              <span className="text-primary font-bold">{serviceCount}</span>
             </div>
             <p className="text-sm font-medium">Serviços Ativos</p>
           </CardContent>
@@ -443,9 +494,16 @@ export default function CatalogCreatorPanel() {
                       </p>
                     </div>
                   </div>
-                  <Badge variant={catalog.is_active ? "default" : "secondary"}>
-                    {catalog.is_active ? "Ativo" : "Inativo"}
-                  </Badge>
+                  <div className="flex flex-col gap-1">
+                    <Badge variant={catalog.is_active ? "default" : "secondary"}>
+                      {catalog.is_active ? "Ativo" : "Inativo"}
+                    </Badge>
+                    {catalog.store_open === false && (
+                      <Badge variant="outline" className="text-xs">
+                        Fechado
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -494,9 +552,17 @@ export default function CatalogCreatorPanel() {
                 </div>
                 <div className="flex gap-2 pt-2 border-t">
                   <Button
-                    variant="ghost"
+                    variant="default"
                     size="sm"
                     className="flex-1"
+                    onClick={() => setSelectedCatalog(catalog)}
+                  >
+                    <Settings className="w-4 h-4 mr-1" />
+                    Dashboard
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => {
                       setEditingCatalog(catalog);
                       setDialogOpen(true);
@@ -591,31 +657,115 @@ export default function CatalogCreatorPanel() {
                 </p>
               </div>
               <div>
-                <Label htmlFor="color">Cor Principal</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="color"
-                    type="color"
-                    value={formData.primary_color}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        primary_color: e.target.value,
-                      }))
-                    }
-                    className="w-14 h-10 p-1 cursor-pointer"
-                  />
-                  <Input
-                    value={formData.primary_color}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        primary_color: e.target.value,
-                      }))
-                    }
-                    placeholder="#3b82f6"
-                    className="flex-1"
-                  />
+                <Label htmlFor="layout">Layout</Label>
+                <Select
+                  value={formData.layout_style}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, layout_style: value }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o layout" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="grid">Grade (Grid)</SelectItem>
+                    <SelectItem value="list">Lista</SelectItem>
+                    <SelectItem value="cards">Cards Grandes</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Colors Section */}
+            <div className="space-y-3 pt-2 border-t">
+              <h4 className="font-medium flex items-center gap-2">
+                <Palette className="w-4 h-4" />
+                Cores do Catálogo
+              </h4>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div>
+                  <Label htmlFor="primary_color">Cor Principal</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="primary_color"
+                      type="color"
+                      value={formData.primary_color}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          primary_color: e.target.value,
+                        }))
+                      }
+                      className="w-14 h-10 p-1 cursor-pointer"
+                    />
+                    <Input
+                      value={formData.primary_color}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          primary_color: e.target.value,
+                        }))
+                      }
+                      placeholder="#3b82f6"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="background_color">Cor do Fundo</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="background_color"
+                      type="color"
+                      value={formData.background_color}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          background_color: e.target.value,
+                        }))
+                      }
+                      className="w-14 h-10 p-1 cursor-pointer"
+                    />
+                    <Input
+                      value={formData.background_color}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          background_color: e.target.value,
+                        }))
+                      }
+                      placeholder="#ffffff"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="text_color">Cor do Texto</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="text_color"
+                      type="color"
+                      value={formData.text_color}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          text_color: e.target.value,
+                        }))
+                      }
+                      className="w-14 h-10 p-1 cursor-pointer"
+                    />
+                    <Input
+                      value={formData.text_color}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          text_color: e.target.value,
+                        }))
+                      }
+                      placeholder="#1f2937"
+                      className="flex-1"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -687,23 +837,66 @@ export default function CatalogCreatorPanel() {
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="layout">Layout</Label>
-              <Select
-                value={formData.layout_style}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, layout_style: value }))
+            {/* Product/Service Selection */}
+            <div className="space-y-3 pt-2 border-t">
+              <h4 className="font-medium">Itens do Catálogo</h4>
+              <CatalogProductSelector
+                userId={user?.id || ""}
+                selectedProductIds={formData.selected_product_ids}
+                selectedServiceIds={formData.selected_service_ids}
+                showAll={formData.show_all_items}
+                onChangeShowAll={(show) =>
+                  setFormData((prev) => ({ ...prev, show_all_items: show }))
                 }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o layout" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="grid">Grade (Grid)</SelectItem>
-                  <SelectItem value="list">Lista</SelectItem>
-                  <SelectItem value="cards">Cards Grandes</SelectItem>
-                </SelectContent>
-              </Select>
+                onChangeProducts={(ids) =>
+                  setFormData((prev) => ({ ...prev, selected_product_ids: ids }))
+                }
+                onChangeServices={(ids) =>
+                  setFormData((prev) => ({ ...prev, selected_service_ids: ids }))
+                }
+              />
+            </div>
+
+            {/* Store Status */}
+            <div className="space-y-3 pt-2 border-t">
+              <h4 className="font-medium flex items-center gap-2">
+                <Store className="w-4 h-4" />
+                Status da Loja
+              </h4>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="store_open" className="cursor-pointer">
+                    Loja Aberta
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Quando fechada, exibe mensagem personalizada
+                  </p>
+                </div>
+                <Switch
+                  id="store_open"
+                  checked={formData.store_open}
+                  onCheckedChange={(checked) =>
+                    setFormData((prev) => ({ ...prev, store_open: checked }))
+                  }
+                />
+              </div>
+              {!formData.store_open && (
+                <div>
+                  <Label htmlFor="store_closed_message">Mensagem de Fechado</Label>
+                  <Textarea
+                    id="store_closed_message"
+                    value={formData.store_closed_message}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        store_closed_message: e.target.value,
+                      }))
+                    }
+                    placeholder="Estamos fechados no momento..."
+                    rows={2}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="space-y-3 pt-2 border-t">

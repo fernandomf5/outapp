@@ -5,31 +5,48 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { User, Mail, Phone, Calendar, MessageSquare, Search, Edit, Trash2 } from "lucide-react";
+import { User, Mail, Phone, Calendar, MessageSquare, Search, Edit, Trash2, Building2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
+
+interface Business {
+  id: string;
+  name: string;
+}
 
 interface Customer {
   id: string;
   name: string;
   email: string;
-  phone: string;
+  phone: string | null;
+  business_id?: string | null;
   created_at: string;
-  last_login_at: string;
+  last_login_at: string | null;
   _count?: {
     conversations: number;
     orders: number;
     appointments: number;
   };
+  business?: Business | null;
 }
 
 export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
+  const { user } = useAuth();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -39,12 +56,23 @@ export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null);
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", email: "", phone: "" });
+  const [editForm, setEditForm] = useState({ name: "", email: "", phone: "", business_id: "" });
   const { toast } = useToast();
 
   useEffect(() => {
     loadCustomers();
+    loadBusinesses();
   }, [agentId]);
+
+  const loadBusinesses = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("businesses" as any)
+      .select("id, name")
+      .eq("user_id", user.id)
+      .order("name");
+    setBusinesses((data as any) || []);
+  };
 
   useEffect(() => {
     if (searchTerm) {
@@ -89,12 +117,13 @@ export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
 
           return {
             ...customer,
+            business_id: null,
             _count: {
               conversations: conversations.count || 0,
               orders: orders.count || 0,
               appointments: appointments.count || 0,
             },
-          };
+          } as Customer;
         })
       );
 
@@ -118,6 +147,7 @@ export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
       name: customer.name || "",
       email: customer.email || "",
       phone: customer.phone || "",
+      business_id: customer.business_id || "",
     });
     setEditDialogOpen(true);
   };
@@ -136,6 +166,7 @@ export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
           name: editForm.name,
           email: editForm.email,
           phone: editForm.phone,
+          business_id: editForm.business_id || null,
         })
         .eq('id', customerToEdit!.id);
 
@@ -394,6 +425,30 @@ export default function AgentCustomersPanel({ agentId }: { agentId: string }) {
                 value={editForm.phone}
                 onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
               />
+            </div>
+            <div>
+              <Label htmlFor="business">Negócio</Label>
+              <Select
+                value={editForm.business_id || "none"}
+                onValueChange={(value) =>
+                  setEditForm({ ...editForm, business_id: value === "none" ? "" : value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um negócio" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum (Pessoal)</SelectItem>
+                  {businesses.map((business) => (
+                    <SelectItem key={business.id} value={business.id}>
+                      {business.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Vincule este cliente a um negócio específico
+              </p>
             </div>
           </div>
           <DialogFooter>
