@@ -3313,6 +3313,7 @@ export type Database = {
       }
       contacts: {
         Row: {
+          business_id: string | null
           company: string | null
           created_at: string
           email: string | null
@@ -3329,6 +3330,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          business_id?: string | null
           company?: string | null
           created_at?: string
           email?: string | null
@@ -3345,6 +3347,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          business_id?: string | null
           company?: string | null
           created_at?: string
           email?: string | null
@@ -3360,7 +3363,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "contacts_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       conversion_events: {
         Row: {
