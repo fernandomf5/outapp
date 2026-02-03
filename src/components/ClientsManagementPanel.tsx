@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { UserPlus, Edit, Trash2, Download, Phone, Mail, Search, Filter, X, Building, Briefcase, MapPin, Globe, Tag, Camera, Loader2, FolderPlus, Settings2, Folder, History } from "lucide-react";
+import { UserPlus, Edit, Trash2, Download, Phone, Mail, Search, Filter, X, Building, Briefcase, MapPin, Globe, Tag, Camera, Loader2, FolderPlus, Settings2, Folder, History, MessageCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CustomerHistoryPanel } from "@/components/crm/CustomerHistoryPanel";
 import { toast } from "sonner";
@@ -1096,6 +1096,21 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          {customer.phone && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const cleanPhone = customer.phone!.replace(/\D/g, '');
+                                window.open(`https://wa.me/${cleanPhone}`, '_blank');
+                              }}
+                              title="Falar no WhatsApp"
+                              className="text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10"
+                            >
+                              <MessageCircle className="w-4 h-4" />
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="sm"
