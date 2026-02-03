@@ -3762,6 +3762,7 @@ export type Database = {
       customers: {
         Row: {
           address: string | null
+          business_id: string | null
           category_id: string | null
           city: string | null
           company: string | null
@@ -3784,6 +3785,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          business_id?: string | null
           category_id?: string | null
           city?: string | null
           company?: string | null
@@ -3806,6 +3808,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          business_id?: string | null
           category_id?: string | null
           city?: string | null
           company?: string | null
@@ -3827,6 +3830,13 @@ export type Database = {
           website?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "customers_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "customers_category_id_fkey"
             columns: ["category_id"]
