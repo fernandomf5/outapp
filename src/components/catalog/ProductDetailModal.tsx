@@ -244,19 +244,21 @@ export function ProductDetailModal({
                 Descrição
               </h3>
             {item.description_html ? (
-                <div
-                  className="prose prose-sm max-w-none [&_*]:!bg-transparent"
-                  style={{ color: `${textColor}90` }}
-                  dangerouslySetInnerHTML={{ __html: item.description_html }}
-                />
-              ) : (
-                <p
-                  className="text-sm leading-relaxed whitespace-pre-wrap"
-                  style={{ color: `${textColor}90` }}
-                >
-                  {item.description}
-                </p>
-              )}
+              <div
+                className="prose prose-sm max-w-none [&_*]:!bg-transparent [&_*]:!text-inherit"
+                style={{ color: `${textColor}90` }}
+                dangerouslySetInnerHTML={{ 
+                  __html: item.description_html.replace(/color:\s*[^;]+;?/gi, "") 
+                }}
+              />
+            ) : (
+              <p
+                className="text-sm leading-relaxed whitespace-pre-wrap"
+                style={{ color: `${textColor}90` }}
+              >
+                {item.description}
+              </p>
+            )}
             </div>
           )}
 
