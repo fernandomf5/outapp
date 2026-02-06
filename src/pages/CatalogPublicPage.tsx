@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Helmet } from "react-helmet-async";
 import {
   MessageCircle,
@@ -19,9 +20,128 @@ import {
   ChevronRight,
   Store,
   Plus,
+  X,
 } from "lucide-react";
 import { CatalogCart, CartItem } from "@/components/catalog/CatalogCart";
 import { toast } from "sonner";
+
+// Horizontal scroll component with arrows and drag
+const HorizontalScrollRow = ({ 
+  children, 
+  primaryColor 
+}: { 
+  children: React.ReactNode; 
+  primaryColor: string;
+}) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  const checkScroll = () => {
+    if (!scrollRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+    setCanScrollLeft(scrollLeft > 0);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const ref = scrollRef.current;
+    if (ref) {
+      ref.addEventListener('scroll', checkScroll);
+      window.addEventListener('resize', checkScroll);
+      return () => {
+        ref.removeEventListener('scroll', checkScroll);
+        window.removeEventListener('resize', checkScroll);
+      };
+    }
+  }, [children]);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (!scrollRef.current) return;
+    const scrollAmount = scrollRef.current.clientWidth * 0.8;
+    scrollRef.current.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth'
+    });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+    scrollRef.current.style.cursor = 'grabbing';
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    if (scrollRef.current) {
+      scrollRef.current.style.cursor = 'grab';
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseLeave = () => {
+    if (isDragging) {
+      setIsDragging(false);
+      if (scrollRef.current) {
+        scrollRef.current.style.cursor = 'grab';
+      }
+    }
+  };
+
+  return (
+    <div className="relative group">
+      {/* Left Arrow */}
+      {canScrollLeft && (
+        <button
+          onClick={() => scroll('left')}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110"
+          style={{ color: primaryColor }}
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+      )}
+      
+      {/* Scrollable Container */}
+      <div
+        ref={scrollRef}
+        className="overflow-x-auto pb-2 scrollbar-hide cursor-grab select-none"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+      >
+        <div className="flex gap-4">
+          {children}
+        </div>
+      </div>
+
+      {/* Right Arrow */}
+      {canScrollRight && (
+        <button
+          onClick={() => scroll('right')}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110"
+          style={{ color: primaryColor }}
+        >
+          <ChevronRight className="w-6 h-6" />
+        </button>
+      )}
+    </div>
+  );
+};
 
 interface Catalog {
   id: string;
@@ -104,6 +224,7 @@ export default function CatalogPublicPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [viewAllCategory, setViewAllCategory] = useState<{ category: Category; items: any[] } | null>(null);
 
   // Cart functions
   const addToCart = (item: any) => {
@@ -442,26 +563,17 @@ export default function CatalogPublicPage() {
                 )}
             </div>
           </div>
-          {catalog.whatsapp_number && (
-            <div className="flex gap-2 flex-shrink-0 self-center">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => addToCart({ ...item, type: isProduct ? "product" : "service" })}
-                style={{ borderColor: catalog.primary_color, color: catalog.primary_color }}
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => handleWhatsAppContact(item.name)}
-                style={{ backgroundColor: catalog.primary_color }}
-                className="text-white"
-              >
-                <MessageCircle className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
+          <div className="flex gap-2 flex-shrink-0 self-center">
+            <Button
+              size="sm"
+              onClick={() => addToCart({ ...item, type: isProduct ? "product" : "service" })}
+              style={{ backgroundColor: catalog.primary_color }}
+              className="text-white"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Adicionar
+            </Button>
+          </div>
         </div>
       );
     }
@@ -540,28 +652,15 @@ export default function CatalogPublicPage() {
                 {!isProduct && priceTypeLabels[item.price_type]}
               </span>
             )}
-            {catalog.whatsapp_number && (
-              <div className="flex gap-1">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => addToCart({ ...item, type: isProduct ? "product" : "service" })}
-                  style={{ borderColor: catalog.primary_color, color: catalog.primary_color }}
-                  className="flex-1 h-8 text-xs px-2"
-                >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Adicionar
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => handleWhatsAppContact(item.name)}
-                  style={{ backgroundColor: catalog.primary_color }}
-                  className="text-white h-8 w-8 p-0"
-                >
-                  <MessageCircle className="w-3.5 h-3.5" />
-                </Button>
-              </div>
-            )}
+            <Button
+              size="sm"
+              onClick={() => addToCart({ ...item, type: isProduct ? "product" : "service" })}
+              style={{ backgroundColor: catalog.primary_color }}
+              className="text-white w-full h-8 text-xs"
+            >
+              <Plus className="w-3 h-3 mr-1" />
+              Adicionar
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -806,6 +905,9 @@ export default function CatalogPublicPage() {
                 const items = itemsByCategory.grouped[categoryId];
                 if (!category || !items || items.length === 0) return null;
 
+                const displayItems = items.slice(0, 6);
+                const hasMore = items.length > 6;
+
                 return (
                   <div key={categoryId}>
                     <div className="flex items-center justify-between mb-4">
@@ -824,23 +926,33 @@ export default function CatalogPublicPage() {
                           ({items.length} {items.length === 1 ? "item" : "itens"})
                         </span>
                       </div>
+                      {hasMore && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setViewAllCategory({ category, items })}
+                          style={{ color: catalog.primary_color }}
+                          className="text-sm hover:underline"
+                        >
+                          Ver todos
+                          <ChevronRight className="w-4 h-4 ml-1" />
+                        </Button>
+                      )}
                     </div>
 
                     {catalog.layout_style === "list" ? (
-                      <div className="space-y-3">{items.map(renderItem)}</div>
+                      <div className="space-y-3">{displayItems.map(renderItem)}</div>
                     ) : (
-                      <div className="overflow-x-auto pb-2">
-                        <div className="flex gap-4">
-                          {items.map((item) => (
-                            <div 
-                              key={item.id} 
-                              className="shrink-0 w-[calc(100%-0px)] sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)]"
-                            >
-                              {renderItem(item)}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                      <HorizontalScrollRow primaryColor={catalog.primary_color}>
+                        {displayItems.map((item) => (
+                          <div 
+                            key={item.id} 
+                            className="shrink-0 w-[calc(100%-0px)] sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)]"
+                          >
+                            {renderItem(item)}
+                          </div>
+                        ))}
+                      </HorizontalScrollRow>
                     )}
                   </div>
                 );
@@ -849,6 +961,8 @@ export default function CatalogPublicPage() {
               {/* Uncategorized items */}
               {itemsByCategory.uncategorized.length > 0 && (() => {
                 const uncatItems = itemsByCategory.uncategorized;
+                const displayItems = uncatItems.slice(0, 6);
+                const hasMore = uncatItems.length > 6;
 
                 return (
                   <div>
@@ -862,23 +976,36 @@ export default function CatalogPublicPage() {
                           ({uncatItems.length} {uncatItems.length === 1 ? "item" : "itens"})
                         </span>
                       </div>
+                      {hasMore && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setViewAllCategory({ 
+                            category: { id: 'uncategorized', name: 'Outros', color: '#9ca3af', order_index: 999 }, 
+                            items: uncatItems 
+                          })}
+                          style={{ color: catalog.primary_color }}
+                          className="text-sm hover:underline"
+                        >
+                          Ver todos
+                          <ChevronRight className="w-4 h-4 ml-1" />
+                        </Button>
+                      )}
                     </div>
 
                     {catalog.layout_style === "list" ? (
-                      <div className="space-y-3">{uncatItems.map(renderItem)}</div>
+                      <div className="space-y-3">{displayItems.map(renderItem)}</div>
                     ) : (
-                      <div className="overflow-x-auto pb-2">
-                        <div className="flex gap-4">
-                          {uncatItems.map((item) => (
-                            <div 
-                              key={item.id} 
-                              className="shrink-0 w-[calc(100%-0px)] sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)]"
-                            >
-                              {renderItem(item)}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                      <HorizontalScrollRow primaryColor={catalog.primary_color}>
+                        {displayItems.map((item) => (
+                          <div 
+                            key={item.id} 
+                            className="shrink-0 w-[calc(100%-0px)] sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)]"
+                          >
+                            {renderItem(item)}
+                          </div>
+                        ))}
+                      </HorizontalScrollRow>
                     )}
                   </div>
                 );
@@ -931,6 +1058,40 @@ export default function CatalogPublicPage() {
           backgroundColor={backgroundColor}
           showPrices={catalog.show_prices}
         />
+
+        {/* View All Category Dialog */}
+        <Dialog open={!!viewAllCategory} onOpenChange={() => setViewAllCategory(null)}>
+          <DialogContent 
+            className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+            style={{ backgroundColor, color: textColor }}
+          >
+            <DialogHeader className="flex-shrink-0">
+              <DialogTitle className="flex items-center gap-3">
+                <div
+                  className="w-4 h-4 rounded-full"
+                  style={{ backgroundColor: viewAllCategory?.category.color }}
+                />
+                {viewAllCategory?.category.name}
+                <span className="text-sm font-normal" style={{ color: `${textColor}60` }}>
+                  ({viewAllCategory?.items.length} {viewAllCategory?.items.length === 1 ? "item" : "itens"})
+                </span>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 overflow-y-auto pr-2">
+              <div
+                className={`grid gap-4 ${
+                  catalog.layout_style === "cards"
+                    ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                    : catalog.layout_style === "list"
+                      ? "grid-cols-1"
+                      : "grid-cols-2 sm:grid-cols-3"
+                }`}
+              >
+                {viewAllCategory?.items.map(renderItem)}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </>
   );

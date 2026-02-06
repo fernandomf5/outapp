@@ -746,6 +746,16 @@ All colors MUST be HSL.
   background: hsl(var(--muted-foreground) / 0.5);
 }
 
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Hide scrollbar on mobile while maintaining scroll functionality */
 @media (max-width: 767px) {
   .hide-scrollbar {
