@@ -38,7 +38,9 @@ import {
   TrendingUp,
   Warehouse,
   FolderOpen,
+  ListPlus,
 } from "lucide-react";
+import BulkCreator from "@/components/products/BulkCreator";
 import CategoryManager from "@/components/products/CategoryManager";
 import { useCategories } from "@/hooks/useCategories";
 import {
@@ -607,6 +609,13 @@ export default function ProductsServicesPanel() {
                   ))}
                 </SelectContent>
               </Select>
+              <BulkCreator 
+                businesses={businesses} 
+                onSuccess={() => {
+                  loadProducts();
+                  loadServices();
+                }} 
+              />
               <Button
                 onClick={() => {
                   if (activeTab === "products") {
