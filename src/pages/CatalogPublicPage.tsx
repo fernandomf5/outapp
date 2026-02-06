@@ -1063,10 +1063,10 @@ export default function CatalogPublicPage() {
           onOpenChange={(open) => !open && setViewAllCategory(null)}
         >
           <DialogContent
-            className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+            className="max-w-4xl h-[90vh] overflow-hidden flex flex-col"
             style={{ backgroundColor, color: textColor }}
           >
-            <DialogHeader>
+            <DialogHeader className="flex-shrink-0">
               <DialogTitle className="flex items-center gap-3">
                 {viewAllCategory?.category && (
                   <div
@@ -1082,14 +1082,14 @@ export default function CatalogPublicPage() {
                 </Badge>
               </DialogTitle>
             </DialogHeader>
-            <ScrollArea className="flex-1 pr-4">
+            <div className="flex-1 overflow-y-auto pr-2 -mr-2">
               {catalog.layout_style === "list" ? (
-                <div className="space-y-3">
+                <div className="space-y-3 pb-4">
                   {viewAllCategory?.items.map(renderItem)}
                 </div>
               ) : (
                 <div
-                  className={`grid gap-4 ${
+                  className={`grid gap-4 pb-4 ${
                     catalog.layout_style === "cards"
                       ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
                       : "grid-cols-2 md:grid-cols-3"
@@ -1098,7 +1098,7 @@ export default function CatalogPublicPage() {
                   {viewAllCategory?.items.map(renderItem)}
                 </div>
               )}
-            </ScrollArea>
+            </div>
           </DialogContent>
         </Dialog>
 
