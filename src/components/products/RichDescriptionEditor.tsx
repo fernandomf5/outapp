@@ -62,6 +62,23 @@ export default function RichDescriptionEditor({
     }
   };
 
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const html = e.clipboardData.getData("text/html");
+    const text = e.clipboardData.getData("text/plain");
+    
+    if (html) {
+      // Remove background colors and background styles from pasted HTML
+      const cleanHtml = html
+        .replace(/background(-color)?:\s*[^;]+;?/gi, "")
+        .replace(/style="\s*"/gi, "");
+      document.execCommand("insertHTML", false, cleanHtml);
+    } else {
+      document.execCommand("insertText", false, text);
+    }
+    updateContent();
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -313,9 +330,10 @@ export default function RichDescriptionEditor({
           <div
             ref={editorRef}
             contentEditable
-            className="min-h-[200px] p-4 border border-t-0 rounded-b-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 prose prose-sm max-w-none"
+            className="min-h-[200px] p-4 border border-t-0 rounded-b-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 prose prose-sm max-w-none bg-background [&_*]:!bg-transparent"
             onInput={updateContent}
             onBlur={updateContent}
+            onPaste={handlePaste}
             dangerouslySetInnerHTML={{ __html: htmlValue || "" }}
           />
         </>
@@ -324,7 +342,7 @@ export default function RichDescriptionEditor({
         <div className="min-h-[200px] p-4 border rounded-lg bg-muted/30">
           {htmlValue ? (
             <div
-              className="prose prose-sm max-w-none"
+              className="prose prose-sm max-w-none [&_*]:!bg-transparent"
               dangerouslySetInnerHTML={{ __html: htmlValue }}
             />
           ) : (
