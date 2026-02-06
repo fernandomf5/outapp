@@ -859,63 +859,41 @@ export default function CatalogPublicPage() {
                     </div>
                     {catalog.layout_style === "list" ? (
                       <div className="space-y-3">{displayItems.map(renderItem)}</div>
-                    ) : hasMany ? (
-                      <ScrollArea className="w-full pb-4">
-                        <div className="flex gap-4">
-                          {displayItems.map((item) => (
-                            <div
-                              key={item.id}
-                              className={`flex-shrink-0 ${
-                                catalog.layout_style === "cards"
-                                  ? "w-[280px] md:w-[320px]"
-                                  : "w-[180px] md:w-[220px]"
-                              }`}
-                            >
-                              {renderItem(item)}
-                            </div>
-                          ))}
-                          {items.length > 3 && (
-                            <div
-                              className={`flex-shrink-0 flex items-center justify-center cursor-pointer rounded-lg border-2 border-dashed transition-colors hover:bg-muted/50 ${
-                                catalog.layout_style === "cards"
-                                  ? "w-[280px] md:w-[320px]"
-                                  : "w-[180px] md:w-[220px]"
-                              }`}
-                              style={{ borderColor: `${textColor}30` }}
-                              onClick={() => setViewAllCategory({ category, items })}
-                            >
-                              <div className="text-center p-6">
-                                <ArrowRight
-                                  className="w-8 h-8 mx-auto mb-2"
-                                  style={{ color: catalog.primary_color }}
-                                />
-                                <p
-                                  className="font-medium"
-                                  style={{ color: textColor }}
-                                >
-                                  Ver todos
-                                </p>
-                                <p
-                                  className="text-sm"
-                                  style={{ color: `${textColor}60` }}
-                                >
-                                  +{items.length - 3} itens
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        <ScrollBar orientation="horizontal" />
-                      </ScrollArea>
                     ) : (
                       <div
                         className={`grid gap-4 ${
                           catalog.layout_style === "cards"
-                            ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-                            : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                            ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                            : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
                         }`}
                       >
                         {displayItems.map(renderItem)}
+                        {hasMany && (
+                          <div
+                            className="flex items-center justify-center cursor-pointer rounded-lg border-2 border-dashed transition-colors hover:bg-muted/50 min-h-[200px]"
+                            style={{ borderColor: `${textColor}30` }}
+                            onClick={() => setViewAllCategory({ category, items })}
+                          >
+                            <div className="text-center p-6">
+                              <ArrowRight
+                                className="w-8 h-8 mx-auto mb-2"
+                                style={{ color: catalog.primary_color }}
+                              />
+                              <p
+                                className="font-medium"
+                                style={{ color: textColor }}
+                              >
+                                Ver todos
+                              </p>
+                              <p
+                                className="text-sm"
+                                style={{ color: `${textColor}60` }}
+                              >
+                                +{items.length - 3} itens
+                              </p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -961,63 +939,41 @@ export default function CatalogPublicPage() {
                     </div>
                     {catalog.layout_style === "list" ? (
                       <div className="space-y-3">{displayItems.map(renderItem)}</div>
-                    ) : hasMany ? (
-                      <ScrollArea className="w-full pb-4">
-                        <div className="flex gap-4">
-                          {displayItems.map((item) => (
-                            <div
-                              key={item.id}
-                              className={`flex-shrink-0 ${
-                                catalog.layout_style === "cards"
-                                  ? "w-[280px] md:w-[320px]"
-                                  : "w-[180px] md:w-[220px]"
-                              }`}
-                            >
-                              {renderItem(item)}
-                            </div>
-                          ))}
-                          {uncatItems.length > 3 && (
-                            <div
-                              className={`flex-shrink-0 flex items-center justify-center cursor-pointer rounded-lg border-2 border-dashed transition-colors hover:bg-muted/50 ${
-                                catalog.layout_style === "cards"
-                                  ? "w-[280px] md:w-[320px]"
-                                  : "w-[180px] md:w-[220px]"
-                              }`}
-                              style={{ borderColor: `${textColor}30` }}
-                              onClick={() => setViewAllCategory({ category: null, items: uncatItems })}
-                            >
-                              <div className="text-center p-6">
-                                <ArrowRight
-                                  className="w-8 h-8 mx-auto mb-2"
-                                  style={{ color: catalog.primary_color }}
-                                />
-                                <p
-                                  className="font-medium"
-                                  style={{ color: textColor }}
-                                >
-                                  Ver todos
-                                </p>
-                                <p
-                                  className="text-sm"
-                                  style={{ color: `${textColor}60` }}
-                                >
-                                  +{uncatItems.length - 3} itens
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        <ScrollBar orientation="horizontal" />
-                      </ScrollArea>
                     ) : (
                       <div
                         className={`grid gap-4 ${
                           catalog.layout_style === "cards"
-                            ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-                            : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                            ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                            : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
                         }`}
                       >
                         {displayItems.map(renderItem)}
+                        {hasMany && (
+                          <div
+                            className="flex items-center justify-center cursor-pointer rounded-lg border-2 border-dashed transition-colors hover:bg-muted/50 min-h-[200px]"
+                            style={{ borderColor: `${textColor}30` }}
+                            onClick={() => setViewAllCategory({ category: null, items: uncatItems })}
+                          >
+                            <div className="text-center p-6">
+                              <ArrowRight
+                                className="w-8 h-8 mx-auto mb-2"
+                                style={{ color: catalog.primary_color }}
+                              />
+                              <p
+                                className="font-medium"
+                                style={{ color: textColor }}
+                              >
+                                Ver todos
+                              </p>
+                              <p
+                                className="text-sm"
+                                style={{ color: `${textColor}60` }}
+                              >
+                                +{uncatItems.length - 3} itens
+                              </p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1030,8 +986,8 @@ export default function CatalogPublicPage() {
             <div
               className={`grid gap-4 ${
                 catalog.layout_style === "cards"
-                  ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-                  : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                  ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                  : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
               }`}
             >
               {filteredItems.map(renderItem)}
