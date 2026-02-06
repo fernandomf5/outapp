@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Plus, Edit2, Trash2, Check, Calculator, CalendarIcon, BarChart3, ArrowLeft, TableIcon, LineChart, ListPlus } from "lucide-react";
+import { DollarSign, Plus, Edit2, Trash2, Check, Calculator, CalendarIcon, BarChart3, ArrowLeft, TableIcon, LineChart, ListPlus, Users } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -22,6 +22,7 @@ import { arrayMove } from "@dnd-kit/sortable";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { BusinessSelector } from "@/components/financial/BusinessSelector";
 import { FinancialAnalyticsPanel } from "@/components/financial/FinancialAnalyticsPanel";
+import { DebtorsPanel } from "@/components/financial/DebtorsPanel";
 
 interface Business {
   id: string;
@@ -276,7 +277,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   
   // View modes
   const [viewMode, setViewMode] = useState<'selection' | 'management'>('selection');
-  const [activeTab, setActiveTab] = useState<'table' | 'analytics'>('table');
+  const [activeTab, setActiveTab] = useState<'table' | 'analytics' | 'debtors'>('table');
   
   
   // Filtro por data
@@ -1123,15 +1124,19 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
         </div>
 
         {/* View Mode Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'table' | 'analytics')} className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'table' | 'analytics' | 'debtors')} className="w-full">
+          <TabsList className="grid w-full max-w-xl grid-cols-3">
             <TabsTrigger value="table" className="flex items-center gap-2">
               <TableIcon className="w-4 h-4" />
               Planilha
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <LineChart className="w-4 h-4" />
-              Gráficos & Análise
+              Gráficos
+            </TabsTrigger>
+            <TabsTrigger value="debtors" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Devedores
             </TabsTrigger>
           </TabsList>
 
@@ -1141,6 +1146,14 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
               transactions={transactions}
               selectedYear={selectedYear}
               businessName={selectedBusiness?.name || ''}
+            />
+          </TabsContent>
+
+          {/* Debtors Tab Content */}
+          <TabsContent value="debtors" className="mt-6">
+            <DebtorsPanel
+              businessId={selectedBusinessId}
+              teamContext={teamContext}
             />
           </TabsContent>
 
