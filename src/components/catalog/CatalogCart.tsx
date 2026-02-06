@@ -195,34 +195,34 @@ export function CatalogCart({
                   {items.map((item) => (
                     <div
                       key={item.id}
-                      className="flex gap-3 p-3 rounded-lg border"
+                      className="flex gap-3 p-3 rounded-lg border overflow-hidden"
                       style={{ borderColor: `${textColor}20` }}
                     >
                       {item.image_url ? (
                         <img
                           src={item.image_url}
                           alt={item.name}
-                          className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                          className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
                         />
                       ) : (
                         <div
-                          className="w-16 h-16 rounded-lg flex items-center justify-center flex-shrink-0"
+                          className="w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0"
                           style={{ backgroundColor: `${textColor}10` }}
                         >
                           {item.type === "product" ? (
-                            <Package className="w-6 h-6" style={{ color: `${textColor}50` }} />
+                            <Package className="w-5 h-5" style={{ color: `${textColor}50` }} />
                           ) : (
-                            <Wrench className="w-6 h-6" style={{ color: `${textColor}50` }} />
+                            <Wrench className="w-5 h-5" style={{ color: `${textColor}50` }} />
                           )}
                         </div>
                       )}
 
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 overflow-hidden">
                         <h4 className="font-medium text-sm truncate" style={{ color: textColor }}>
                           {item.name}
                         </h4>
                         {showPrices && (
-                          <p className="text-sm font-semibold" style={{ color: primaryColor }}>
+                          <p className="text-xs font-semibold" style={{ color: primaryColor }}>
                             {item.price_type === "quote"
                               ? "Sob consulta"
                               : formatPrice(item.price)}
@@ -235,7 +235,11 @@ export function CatalogCart({
                             size="icon"
                             className="h-7 w-7"
                             onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
-                            style={{ borderColor: `${textColor}30` }}
+                            style={{ 
+                              borderColor: textColor,
+                              backgroundColor: textColor,
+                              color: backgroundColor
+                            }}
                           >
                             <Minus className="w-3 h-3" />
                           </Button>
@@ -250,7 +254,11 @@ export function CatalogCart({
                             size="icon"
                             className="h-7 w-7"
                             onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                            style={{ borderColor: `${textColor}30` }}
+                            style={{ 
+                              borderColor: textColor,
+                              backgroundColor: textColor,
+                              color: backgroundColor
+                            }}
                           >
                             <Plus className="w-3 h-3" />
                           </Button>
