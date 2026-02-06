@@ -1085,6 +1085,7 @@ export default function CatalogPublicPage() {
           onUpdateQuantity={updateCartQuantity}
           onRemoveItem={removeFromCart}
           onClearCart={clearCart}
+          catalogId={catalog.id}
           catalogName={catalog.name}
           whatsappNumber={catalog.whatsapp_number}
           primaryColor={catalog.primary_color}

@@ -21,7 +21,12 @@ import {
   Wrench,
   User,
   Phone,
+  Mail,
+  MapPin,
+  Loader2,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export interface CartItem {
   id: string;
@@ -38,6 +43,7 @@ interface CatalogCartProps {
   onUpdateQuantity: (id: string, quantity: number) => void;
   onRemoveItem: (id: string) => void;
   onClearCart: () => void;
+  catalogId: string;
   catalogName: string;
   whatsappNumber: string | null;
   primaryColor: string;
@@ -51,6 +57,7 @@ export function CatalogCart({
   onUpdateQuantity,
   onRemoveItem,
   onClearCart,
+  catalogId,
   catalogName,
   whatsappNumber,
   primaryColor,
@@ -58,10 +65,14 @@ export function CatalogCart({
   backgroundColor,
   showPrices,
 }: CatalogCartProps) {
+  const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [customerAddress, setCustomerAddress] = useState("");
   const [customerNotes, setCustomerNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = items.reduce(
@@ -77,66 +88,203 @@ export function CatalogCart({
     }).format(price);
   };
 
-  const handleWhatsAppCheckout = () => {
+  const generateOrderNumber = () => {
+    const now = new Date();
+    const timestamp = now.getTime().toString(36).toUpperCase();
+    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `${timestamp.slice(-4)}${random}`;
+  };
+
+  const saveOrderToDatabase = async () => {
+    const orderNumber = generateOrderNumber();
+    const orderItems = items.map(item => ({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      type: item.type,
+    }));
+
+    // Try to find or create customer if we have customer info
+    let customerId: string | null = null;
+    if (customerName && (customerPhone || customerEmail)) {
+      try {
+        // Check if customer already exists
+        let query = supabase
+          .from("catalog_customers" as any)
+          .select("id, orders_count, total_spent, phone, email, address")
+          .eq("catalog_id", catalogId);
+
+        if (customerPhone) {
+          query = query.eq("phone", customerPhone);
+        } else if (customerEmail) {
+          query = query.eq("email", customerEmail);
+        }
+
+        const { data: existingCustomer } = await query.maybeSingle();
+        const customer = existingCustomer as unknown as {
+          id: string;
+          orders_count: number;
+          total_spent: number;
+          phone: string | null;
+          email: string | null;
+          address: string | null;
+        } | null;
+
+        if (customer) {
+          // Update existing customer
+          customerId = customer.id;
+          await supabase
+            .from("catalog_customers" as any)
+            .update({
+              name: customerName,
+              phone: customerPhone || customer.phone,
+              email: customerEmail || customer.email,
+              address: customerAddress || customer.address,
+              orders_count: (customer.orders_count || 0) + 1,
+              total_spent: (customer.total_spent || 0) + totalPrice,
+            })
+            .eq("id", customerId);
+        } else {
+          // Create new customer
+          const { data: newCustomer } = await supabase
+            .from("catalog_customers" as any)
+            .insert({
+              catalog_id: catalogId,
+              name: customerName,
+              phone: customerPhone || null,
+              email: customerEmail || null,
+              address: customerAddress || null,
+              orders_count: 1,
+              total_spent: totalPrice,
+            })
+            .select("id")
+            .single();
+
+          const created = newCustomer as unknown as { id: string } | null;
+          if (created) {
+            customerId = created.id;
+          }
+        }
+      } catch (error) {
+        console.error("Error managing customer:", error);
+      }
+    }
+
+    // Save the order
+    try {
+      await supabase.from("catalog_orders" as any).insert({
+        catalog_id: catalogId,
+        customer_id: customerId,
+        order_number: orderNumber,
+        customer_name: customerName || "Cliente Anônimo",
+        customer_phone: customerPhone || null,
+        customer_email: customerEmail || null,
+        customer_address: customerAddress || null,
+        items: orderItems,
+        total_amount: totalPrice,
+        status: "pending",
+        notes: customerNotes || null,
+      });
+
+      return orderNumber;
+    } catch (error) {
+      console.error("Error saving order:", error);
+      return orderNumber;
+    }
+  };
+
+  const handleWhatsAppCheckout = async () => {
     if (!whatsappNumber || items.length === 0) return;
 
-    let message = `🛒 *Novo Pedido - ${catalogName}*\n\n`;
+    setIsSubmitting(true);
 
-    if (customerName) {
-      message += `👤 *Cliente:* ${customerName}\n`;
-    }
-    if (customerPhone) {
-      message += `📞 *Telefone:* ${customerPhone}\n`;
-    }
-    message += "\n";
+    try {
+      // Save order to database first
+      const orderNumber = await saveOrderToDatabase();
 
-    message += `📋 *Itens do Pedido:*\n`;
-    message += `─────────────────\n`;
+      // Build WhatsApp message
+      let message = `🛒 *Novo Pedido - ${catalogName}*\n`;
+      message += `📋 *Pedido:* #${orderNumber}\n\n`;
 
-    items.forEach((item, index) => {
-      const icon = item.type === "product" ? "📦" : "🔧";
-      message += `${icon} ${item.name}\n`;
-      message += `   Qtd: ${item.quantity}`;
+      if (customerName) {
+        message += `👤 *Cliente:* ${customerName}\n`;
+      }
+      if (customerPhone) {
+        message += `📞 *Telefone:* ${customerPhone}\n`;
+      }
+      if (customerEmail) {
+        message += `📧 *Email:* ${customerEmail}\n`;
+      }
+      if (customerAddress) {
+        message += `📍 *Endereço:* ${customerAddress}\n`;
+      }
+      message += "\n";
+
+      message += `📋 *Itens do Pedido:*\n`;
+      message += `─────────────────\n`;
+
+      items.forEach((item, index) => {
+        const icon = item.type === "product" ? "📦" : "🔧";
+        message += `${icon} ${item.name}\n`;
+        message += `   Qtd: ${item.quantity}`;
+        if (showPrices) {
+          if (item.price_type === "quote") {
+            message += ` | Preço: Sob consulta`;
+          } else {
+            message += ` | ${formatPrice(item.price)} cada`;
+            message += ` | Subtotal: ${formatPrice(item.price * item.quantity)}`;
+          }
+        }
+        message += `\n`;
+        if (index < items.length - 1) {
+          message += `\n`;
+        }
+      });
+
+      message += `─────────────────\n`;
+
       if (showPrices) {
-        if (item.price_type === "quote") {
-          message += ` | Preço: Sob consulta`;
+        if (hasQuoteItems) {
+          message += `\n💰 *Subtotal (itens com preço):* ${formatPrice(totalPrice)}`;
+          message += `\n⚠️ _Alguns itens precisam de orçamento_\n`;
         } else {
-          message += ` | ${formatPrice(item.price)} cada`;
-          message += ` | Subtotal: ${formatPrice(item.price * item.quantity)}`;
+          message += `\n💰 *Total:* ${formatPrice(totalPrice)}\n`;
         }
       }
-      message += `\n`;
-      if (index < items.length - 1) {
-        message += `\n`;
+
+      if (customerNotes) {
+        message += `\n📝 *Observações:*\n${customerNotes}\n`;
       }
-    });
 
-    message += `─────────────────\n`;
+      message += `\n_Pedido #${orderNumber} enviado via catálogo digital_`;
 
-    if (showPrices) {
-      if (hasQuoteItems) {
-        message += `\n💰 *Subtotal (itens com preço):* ${formatPrice(totalPrice)}`;
-        message += `\n⚠️ _Alguns itens precisam de orçamento_\n`;
-      } else {
-        message += `\n💰 *Total:* ${formatPrice(totalPrice)}\n`;
-      }
+      const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+      window.open(url, "_blank");
+
+      toast({
+        title: "Pedido enviado!",
+        description: `Seu pedido #${orderNumber} foi registrado.`,
+      });
+
+      // Clear cart and form after sending
+      onClearCart();
+      setCustomerName("");
+      setCustomerPhone("");
+      setCustomerEmail("");
+      setCustomerAddress("");
+      setCustomerNotes("");
+      setIsOpen(false);
+    } catch (error) {
+      console.error("Error processing order:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível processar o pedido. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    if (customerNotes) {
-      message += `\n📝 *Observações:*\n${customerNotes}\n`;
-    }
-
-    message += `\n_Pedido enviado via catálogo digital_`;
-
-    const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-    window.open(url, "_blank");
-
-    // Clear cart and form after sending
-    onClearCart();
-    setCustomerName("");
-    setCustomerPhone("");
-    setCustomerNotes("");
-    setIsOpen(false);
   };
 
   if (!whatsappNumber) return null;
@@ -301,11 +449,32 @@ export function CatalogCart({
                       style={{ backgroundColor: `${textColor}05`, borderColor: `${textColor}20`, color: textColor }}
                     />
                   </div>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: `${textColor}50` }} />
+                    <Input
+                      placeholder="Seu email"
+                      value={customerEmail}
+                      onChange={(e) => setCustomerEmail(e.target.value)}
+                      className="pl-10"
+                      style={{ backgroundColor: `${textColor}05`, borderColor: `${textColor}20`, color: textColor }}
+                    />
+                  </div>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-3 w-4 h-4" style={{ color: `${textColor}50` }} />
+                    <Textarea
+                      placeholder="Endereço de entrega"
+                      value={customerAddress}
+                      onChange={(e) => setCustomerAddress(e.target.value)}
+                      rows={2}
+                      className="pl-10"
+                      style={{ backgroundColor: `${textColor}05`, borderColor: `${textColor}20`, color: textColor }}
+                    />
+                  </div>
                   <Textarea
                     placeholder="Observações do pedido..."
                     value={customerNotes}
                     onChange={(e) => setCustomerNotes(e.target.value)}
-                    rows={3}
+                    rows={2}
                     style={{ backgroundColor: `${textColor}05`, borderColor: `${textColor}20`, color: textColor }}
                   />
                 </div>
@@ -331,15 +500,26 @@ export function CatalogCart({
                   onClick={handleWhatsAppCheckout}
                   className="w-full text-white"
                   size="lg"
+                  disabled={isSubmitting}
                   style={{ backgroundColor: primaryColor }}
                 >
-                  <MessageCircle className="w-5 h-5 mr-2" />
-                  Enviar Pedido via WhatsApp
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <MessageCircle className="w-5 h-5 mr-2" />
+                      Enviar Pedido via WhatsApp
+                    </>
+                  )}
                 </Button>
                 <Button
                   variant="ghost"
                   onClick={onClearCart}
                   className="w-full"
+                  disabled={isSubmitting}
                   style={{ color: `${textColor}70` }}
                 >
                   Limpar carrinho
