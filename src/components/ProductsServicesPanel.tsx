@@ -154,6 +154,7 @@ export default function ProductsServicesPanel() {
   const [activeTab, setActiveTab] = useState("products");
   const [searchTerm, setSearchTerm] = useState("");
   const [businessFilter, setBusinessFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
   // Categories hook
   const { categories, loadCategories, getCategoryName } = useCategories();
@@ -469,7 +470,11 @@ export default function ProductsServicesPanel() {
       businessFilter === "all" ||
       (businessFilter === "none" && !p.business_id) ||
       p.business_id === businessFilter;
-    return matchesSearch && matchesBusiness;
+    const matchesCategory =
+      categoryFilter === "all" ||
+      (categoryFilter === "none" && !p.category_id) ||
+      p.category_id === categoryFilter;
+    return matchesSearch && matchesBusiness && matchesCategory;
   });
 
   const filteredServices = services.filter((s) => {
@@ -480,8 +485,40 @@ export default function ProductsServicesPanel() {
       businessFilter === "all" ||
       (businessFilter === "none" && !s.business_id) ||
       s.business_id === businessFilter;
-    return matchesSearch && matchesBusiness;
+    const matchesCategory =
+      categoryFilter === "all" ||
+      (categoryFilter === "none" && !s.category_id) ||
+      s.category_id === categoryFilter;
+    return matchesSearch && matchesBusiness && matchesCategory;
   });
+
+  // Group products by category
+  const productsByCategory = filteredProducts.reduce((acc, product) => {
+    const catId = product.category_id || "uncategorized";
+    if (!acc[catId]) acc[catId] = [];
+    acc[catId].push(product);
+    return acc;
+  }, {} as Record<string, Product[]>);
+
+  // Group services by category
+  const servicesByCategory = filteredServices.reduce((acc, service) => {
+    const catId = service.category_id || "uncategorized";
+    if (!acc[catId]) acc[catId] = [];
+    acc[catId].push(service);
+    return acc;
+  }, {} as Record<string, Service[]>);
+
+  // Get sorted category keys (with active categories first, then uncategorized)
+  const getSortedCategoryKeys = (grouped: Record<string, any[]>) => {
+    const keys = Object.keys(grouped);
+    return keys.sort((a, b) => {
+      if (a === "uncategorized") return 1;
+      if (b === "uncategorized") return -1;
+      const catA = categories.find(c => c.id === a);
+      const catB = categories.find(c => c.id === b);
+      return (catA?.order_index || 0) - (catB?.order_index || 0);
+    });
+  };
 
   const stats = {
     totalProducts: products.length,
@@ -595,9 +632,9 @@ export default function ProductsServicesPanel() {
                 />
               </div>
               <Select value={businessFilter} onValueChange={setBusinessFilter}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[160px]">
                   <Building2 className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="Filtrar por negócio" />
+                  <SelectValue placeholder="Negócio" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os negócios</SelectItem>
@@ -605,6 +642,27 @@ export default function ProductsServicesPanel() {
                   {businesses.map((business) => (
                     <SelectItem key={business.id} value={business.id}>
                       {business.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-[160px]">
+                  <FolderOpen className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas categorias</SelectItem>
+                  <SelectItem value="none">Sem categoria</SelectItem>
+                  {categories.filter(c => c.is_active).map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: cat.color || "#3b82f6" }}
+                        />
+                        {cat.name}
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -651,76 +709,84 @@ export default function ProductsServicesPanel() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredProducts.map((product) => (
-                <Card key={product.id} className="overflow-hidden">
-                  {product.image_url && (
-                    <div className="aspect-video w-full overflow-hidden">
-                      <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+            <div className="space-y-6">
+              {getSortedCategoryKeys(productsByCategory).map((catId) => {
+                const categoryProducts = productsByCategory[catId];
+                const category = categories.find(c => c.id === catId);
+                const categoryName = catId === "uncategorized" ? "Sem categoria" : (category?.name || "Outros");
+                const categoryColor = category?.color || "#6b7280";
+                
+                return (
+                  <div key={catId}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: catId === "uncategorized" ? "#6b7280" : categoryColor }}
+                      />
+                      <h3 className="font-semibold text-lg">{categoryName}</h3>
+                      <Badge variant="secondary" className="ml-1">{categoryProducts.length}</Badge>
                     </div>
-                  )}
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <CardTitle className="text-lg line-clamp-1">{product.name}</CardTitle>
-                        {(product.category_id || product.category) && (
-                          <p className="text-sm text-muted-foreground flex items-center gap-1">
-                            {product.category_id && (
-                              <span 
-                                className="w-2 h-2 rounded-full inline-block"
-                                style={{ backgroundColor: categories.find(c => c.id === product.category_id)?.color || '#3b82f6' }}
-                              />
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {categoryProducts.map((product) => (
+                        <Card key={product.id} className="overflow-hidden">
+                          {product.image_url && (
+                            <div className="aspect-video w-full overflow-hidden">
+                              <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                          <CardHeader className="pb-2">
+                            <div className="flex items-start justify-between">
+                              <CardTitle className="text-lg line-clamp-1">{product.name}</CardTitle>
+                              <div className="flex gap-1 flex-wrap">
+                                <Badge variant={product.is_active ? "default" : "secondary"}>
+                                  {product.is_active ? "Ativo" : "Inativo"}
+                                </Badge>
+                                <Badge variant="outline">
+                                  {product.product_type === "physical" ? "Físico" : product.product_type === "affiliate" ? "Afiliado" : "Digital"}
+                                </Badge>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            {product.description && (
+                              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{product.description}</p>
                             )}
-                            {getCategoryName(product.category_id) || product.category}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex gap-1 flex-wrap">
-                        <Badge variant={product.is_active ? "default" : "secondary"}>
-                          {product.is_active ? "Ativo" : "Inativo"}
-                        </Badge>
-                        <Badge variant="outline">
-                          {product.product_type === "physical" ? "Físico" : product.product_type === "affiliate" ? "Afiliado" : "Digital"}
-                        </Badge>
-                      </div>
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-2">
+                                <DollarSign className="h-4 w-4 text-primary" />
+                                <span className="text-xl font-bold">R$ {Number(product.price).toFixed(2)}</span>
+                              </div>
+                              {product.product_type === "physical" && (
+                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                  <Layers className="h-4 w-4" />
+                                  <span>Estoque: {product.stock_quantity}</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => {
+                                  setEditingProduct(product);
+                                  setProductDialogOpen(true);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4 mr-1" />
+                                Editar
+                              </Button>
+                              <Button variant="destructive" size="sm" onClick={() => setDeleteProductId(product.id)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    {product.description && (
-                      <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{product.description}</p>
-                    )}
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="h-4 w-4 text-primary" />
-                        <span className="text-xl font-bold">R$ {Number(product.price).toFixed(2)}</span>
-                      </div>
-                      {product.product_type === "physical" && (
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Layers className="h-4 w-4" />
-                          <span>Estoque: {product.stock_quantity}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => {
-                          setEditingProduct(product);
-                          setProductDialogOpen(true);
-                        }}
-                      >
-                        <Pencil className="h-4 w-4 mr-1" />
-                        Editar
-                      </Button>
-                      <Button variant="destructive" size="sm" onClick={() => setDeleteProductId(product.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           )}
         </TabsContent>
@@ -742,72 +808,80 @@ export default function ProductsServicesPanel() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredServices.map((service) => (
-                <Card key={service.id} className="overflow-hidden">
-                  {service.image_url && (
-                    <div className="aspect-video w-full overflow-hidden">
-                      <img src={service.image_url} alt={service.name} className="w-full h-full object-cover" />
+            <div className="space-y-6">
+              {getSortedCategoryKeys(servicesByCategory).map((catId) => {
+                const categoryServices = servicesByCategory[catId];
+                const category = categories.find(c => c.id === catId);
+                const categoryName = catId === "uncategorized" ? "Sem categoria" : (category?.name || "Outros");
+                const categoryColor = category?.color || "#6b7280";
+                
+                return (
+                  <div key={catId}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: catId === "uncategorized" ? "#6b7280" : categoryColor }}
+                      />
+                      <h3 className="font-semibold text-lg">{categoryName}</h3>
+                      <Badge variant="secondary" className="ml-1">{categoryServices.length}</Badge>
                     </div>
-                  )}
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <CardTitle className="text-lg line-clamp-1">{service.name}</CardTitle>
-                        {(service.category_id || service.category) && (
-                          <p className="text-sm text-muted-foreground flex items-center gap-1">
-                            {service.category_id && (
-                              <span 
-                                className="w-2 h-2 rounded-full inline-block"
-                                style={{ backgroundColor: categories.find(c => c.id === service.category_id)?.color || '#3b82f6' }}
-                              />
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {categoryServices.map((service) => (
+                        <Card key={service.id} className="overflow-hidden">
+                          {service.image_url && (
+                            <div className="aspect-video w-full overflow-hidden">
+                              <img src={service.image_url} alt={service.name} className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                          <CardHeader className="pb-2">
+                            <div className="flex items-start justify-between">
+                              <CardTitle className="text-lg line-clamp-1">{service.name}</CardTitle>
+                              <Badge variant={service.is_active ? "default" : "secondary"}>
+                                {service.is_active ? "Ativo" : "Inativo"}
+                              </Badge>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            {service.description && (
+                              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{service.description}</p>
                             )}
-                            {getCategoryName(service.category_id) || service.category}
-                          </p>
-                        )}
-                      </div>
-                      <Badge variant={service.is_active ? "default" : "secondary"}>
-                        {service.is_active ? "Ativo" : "Inativo"}
-                      </Badge>
+                            <div className="flex items-center gap-4 mb-3">
+                              <div className="flex items-center gap-2">
+                                <DollarSign className="h-4 w-4 text-primary" />
+                                <span className="text-xl font-bold">R$ {Number(service.price).toFixed(2)}</span>
+                              </div>
+                              <Badge variant="outline">{priceTypeLabels[service.price_type]}</Badge>
+                            </div>
+                            {service.duration_minutes && (
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
+                                <Clock className="h-4 w-4" />
+                                <span>Duração: {service.duration_minutes} min</span>
+                              </div>
+                            )}
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => {
+                                  setEditingService(service);
+                                  setServiceDialogOpen(true);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4 mr-1" />
+                                Editar
+                              </Button>
+                              <Button variant="destructive" size="sm" onClick={() => setDeleteServiceId(service.id)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    {service.description && (
-                      <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{service.description}</p>
-                    )}
-                    <div className="flex items-center gap-4 mb-3">
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="h-4 w-4 text-primary" />
-                        <span className="text-xl font-bold">R$ {Number(service.price).toFixed(2)}</span>
-                      </div>
-                      <Badge variant="outline">{priceTypeLabels[service.price_type]}</Badge>
-                    </div>
-                    {service.duration_minutes && (
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
-                        <Clock className="h-4 w-4" />
-                        <span>Duração: {service.duration_minutes} min</span>
-                      </div>
-                    )}
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => {
-                          setEditingService(service);
-                          setServiceDialogOpen(true);
-                        }}
-                      >
-                        <Pencil className="h-4 w-4 mr-1" />
-                        Editar
-                      </Button>
-                      <Button variant="destructive" size="sm" onClick={() => setDeleteServiceId(service.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           )}
         </TabsContent>
