@@ -832,12 +832,12 @@ export default function CatalogPublicPage() {
         <header
           className="relative"
           style={{
-            background: catalog.cover_url || banners.length > 0
+            background: catalog.cover_url
               ? undefined
               : `linear-gradient(135deg, ${catalog.primary_color} 0%, ${catalog.primary_color}dd 100%)`,
           }}
         >
-          {catalog.cover_url && banners.length === 0 && (
+          {catalog.cover_url && (
             <div className="absolute inset-0">
               <img
                 src={catalog.cover_url}
@@ -851,12 +851,7 @@ export default function CatalogPublicPage() {
             </div>
           )}
           <div
-            className={`relative z-10 container mx-auto px-4 py-12 text-center ${
-              catalog.cover_url || banners.length === 0 ? "text-white" : ""
-            }`}
-            style={
-              !catalog.cover_url && banners.length > 0 ? { color: textColor } : {}
-            }
+            className="relative z-10 container mx-auto px-4 py-12 text-center text-white"
           >
             {catalog.logo_url && (
               <img

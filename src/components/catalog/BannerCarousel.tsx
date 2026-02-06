@@ -85,11 +85,11 @@ export function BannerCarousel({ banners, primaryColor, textColor }: BannerCarou
             className="min-w-full cursor-pointer"
             onClick={() => handleBannerClick(banner)}
           >
-            <div className="relative aspect-[3/1] md:aspect-[4/1]">
+            <div className="relative">
               <img 
                 src={banner.image_url} 
                 alt={banner.title || "Banner"} 
-                className="w-full h-full object-cover rounded-xl"
+                className="w-full h-auto rounded-xl"
               />
               {(banner.title || banner.subtitle) && (
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-xl">
