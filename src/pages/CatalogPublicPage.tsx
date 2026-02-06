@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,8 @@ interface Catalog {
   selected_product_ids: string[] | null;
   selected_service_ids: string[] | null;
   views_count: number;
+  group_by_category: boolean;
+  category_order: string[] | null;
 }
 
 interface Banner {
@@ -54,12 +56,20 @@ interface Banner {
   order_index: number;
 }
 
+interface Category {
+  id: string;
+  name: string;
+  color: string;
+  order_index: number;
+}
+
 interface Product {
   id: string;
   name: string;
   description: string | null;
   product_type: string;
   category: string | null;
+  category_id: string | null;
   price: number;
   stock_quantity: number | null;
   image_url: string | null;
@@ -71,6 +81,7 @@ interface Service {
   name: string;
   description: string | null;
   category: string | null;
+  category_id: string | null;
   price: number;
   price_type: string;
   duration_minutes: number | null;
@@ -82,6 +93,7 @@ export default function CatalogPublicPage() {
   const { slug } = useParams<{ slug: string }>();
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [banners, setBanners] = useState<Banner[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -144,8 +156,8 @@ export default function CatalogPublicPage() {
 
       setBanners((bannersData as any) || []);
 
-      // Load products and services
-      const [productsRes, servicesRes] = await Promise.all([
+      // Load products, services, and categories
+      const [productsRes, servicesRes, categoriesRes] = await Promise.all([
         supabase
           .from("products" as any)
           .select("*")
@@ -158,7 +170,15 @@ export default function CatalogPublicPage() {
           .eq("user_id", cat.user_id)
           .eq("is_active", true)
           .order("name"),
+        supabase
+          .from("product_categories" as any)
+          .select("*")
+          .eq("user_id", cat.user_id)
+          .eq("is_active", true)
+          .order("order_index", { ascending: true }),
       ]);
+
+      setCategories((categoriesRes.data as any) || []);
 
       let filteredProducts = (productsRes.data as any) || [];
       let filteredServices = (servicesRes.data as any) || [];
@@ -222,6 +242,39 @@ export default function CatalogPublicPage() {
     quote: "",
   };
 
+  // Group items by category - must be before early returns
+  const allItemsForGrouping = useMemo(() => [
+    ...products.map((p) => ({ ...p, type: "product" as const })),
+    ...services.map((s) => ({ ...s, type: "service" as const })),
+  ], [products, services]);
+
+  const itemsByCategory = useMemo(() => {
+    if (!catalog?.group_by_category) return null;
+
+    const grouped: Record<string, typeof allItemsForGrouping> = {};
+    const uncategorized: typeof allItemsForGrouping = [];
+
+    allItemsForGrouping.forEach((item) => {
+      const categoryId = item.category_id;
+      if (categoryId) {
+        if (!grouped[categoryId]) {
+          grouped[categoryId] = [];
+        }
+        grouped[categoryId].push(item);
+      } else {
+        uncategorized.push(item);
+      }
+    });
+
+    // Sort categories by order_index
+    const sortedCategoryIds = categories
+      .filter(c => grouped[c.id])
+      .sort((a, b) => a.order_index - b.order_index)
+      .map(c => c.id);
+
+    return { grouped, sortedCategoryIds, uncategorized };
+  }, [allItemsForGrouping, categories, catalog?.group_by_category]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -258,6 +311,8 @@ export default function CatalogPublicPage() {
       : activeTab === "products"
         ? products.map((p) => ({ ...p, type: "product" as const }))
         : services.map((s) => ({ ...s, type: "service" as const }));
+
+  const getCategoryById = (id: string) => categories.find(c => c.id === id);
 
   const renderItem = (item: any) => {
     const isProduct = item.type === "product";
@@ -672,6 +727,87 @@ export default function CatalogPublicPage() {
                     ? "Não há serviços disponíveis no momento."
                     : "Não há itens disponíveis no momento."}
               </p>
+            </div>
+          ) : catalog.group_by_category && itemsByCategory ? (
+            /* Grouped by Category View */
+            <div className="space-y-8">
+              {itemsByCategory.sortedCategoryIds.map((categoryId) => {
+                const category = getCategoryById(categoryId);
+                const items = itemsByCategory.grouped[categoryId];
+                if (!category || !items || items.length === 0) return null;
+
+                return (
+                  <div key={categoryId}>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: category.color }}
+                      />
+                      <h3
+                        className="text-xl font-bold"
+                        style={{ color: textColor }}
+                      >
+                        {category.name}
+                      </h3>
+                      <span
+                        className="text-sm"
+                        style={{ color: `${textColor}60` }}
+                      >
+                        ({items.length} {items.length === 1 ? "item" : "itens"})
+                      </span>
+                    </div>
+                    {catalog.layout_style === "list" ? (
+                      <div className="space-y-3">{items.map(renderItem)}</div>
+                    ) : (
+                      <div
+                        className={`grid gap-4 ${
+                          catalog.layout_style === "cards"
+                            ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                            : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                        }`}
+                      >
+                        {items.map(renderItem)}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              
+              {/* Uncategorized items */}
+              {itemsByCategory.uncategorized.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div
+                      className="w-4 h-4 rounded-full bg-muted"
+                    />
+                    <h3
+                      className="text-xl font-bold"
+                      style={{ color: textColor }}
+                    >
+                      Outros
+                    </h3>
+                    <span
+                      className="text-sm"
+                      style={{ color: `${textColor}60` }}
+                    >
+                      ({itemsByCategory.uncategorized.length} {itemsByCategory.uncategorized.length === 1 ? "item" : "itens"})
+                    </span>
+                  </div>
+                  {catalog.layout_style === "list" ? (
+                    <div className="space-y-3">{itemsByCategory.uncategorized.map(renderItem)}</div>
+                  ) : (
+                    <div
+                      className={`grid gap-4 ${
+                        catalog.layout_style === "cards"
+                          ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                          : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                      }`}
+                    >
+                      {itemsByCategory.uncategorized.map(renderItem)}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ) : catalog.layout_style === "list" ? (
             <div className="space-y-3">{filteredItems.map(renderItem)}</div>

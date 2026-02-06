@@ -37,7 +37,10 @@ import {
   Link,
   TrendingUp,
   Warehouse,
+  FolderOpen,
 } from "lucide-react";
+import CategoryManager from "@/components/products/CategoryManager";
+import { useCategories } from "@/hooks/useCategories";
 import {
   Dialog,
   DialogContent,
@@ -59,6 +62,7 @@ interface Product {
   name: string;
   description: string | null;
   product_type: string;
+  category_id: string | null;
   category: string | null;
   sku: string | null;
   barcode: string | null;
@@ -85,6 +89,7 @@ interface Service {
   id: string;
   name: string;
   description: string | null;
+  category_id: string | null;
   category: string | null;
   price: number;
   price_type: string;
@@ -103,6 +108,7 @@ const defaultProductForm = {
   description: "",
   product_type: "physical",
   category: "",
+  category_id: "",
   sku: "",
   barcode: "",
   price: "",
@@ -128,6 +134,7 @@ const defaultServiceForm = {
   name: "",
   description: "",
   category: "",
+  category_id: "",
   price: "",
   price_type: "fixed",
   duration_minutes: "",
@@ -145,6 +152,9 @@ export default function ProductsServicesPanel() {
   const [activeTab, setActiveTab] = useState("products");
   const [searchTerm, setSearchTerm] = useState("");
   const [businessFilter, setBusinessFilter] = useState<string>("all");
+
+  // Categories hook
+  const { categories, loadCategories, getCategoryName } = useCategories();
 
   // Businesses state
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -194,6 +204,7 @@ export default function ProductsServicesPanel() {
         description: editingProduct.description || "",
         product_type: editingProduct.product_type,
         category: editingProduct.category || "",
+        category_id: editingProduct.category_id || "",
         sku: editingProduct.sku || "",
         barcode: editingProduct.barcode || "",
         price: editingProduct.price.toString(),
@@ -225,6 +236,7 @@ export default function ProductsServicesPanel() {
         name: editingService.name,
         description: editingService.description || "",
         category: editingService.category || "",
+        category_id: editingService.category_id || "",
         price: editingService.price.toString(),
         price_type: editingService.price_type,
         duration_minutes: editingService.duration_minutes?.toString() || "",
@@ -341,6 +353,7 @@ export default function ProductsServicesPanel() {
       description: productForm.description || null,
       product_type: productForm.product_type,
       category: productForm.category || null,
+      category_id: productForm.category_id || null,
       sku: productForm.sku || null,
       barcode: productForm.barcode || null,
       price: parseFloat(productForm.price),
@@ -390,6 +403,7 @@ export default function ProductsServicesPanel() {
       name: serviceForm.name,
       description: serviceForm.description || null,
       category: serviceForm.category || null,
+      category_id: serviceForm.category_id || null,
       price: parseFloat(serviceForm.price),
       price_type: serviceForm.price_type,
       duration_minutes: serviceForm.duration_minutes ? parseInt(serviceForm.duration_minutes) : null,
@@ -553,6 +567,10 @@ export default function ProductsServicesPanel() {
               <Wrench className="h-4 w-4" />
               Serviços
             </TabsTrigger>
+            <TabsTrigger value="categories" className="gap-2">
+              <FolderOpen className="h-4 w-4" />
+              Categorias
+            </TabsTrigger>
             <TabsTrigger value="stock" className="gap-2">
               <Warehouse className="h-4 w-4" />
               Estoque
@@ -636,8 +654,16 @@ export default function ProductsServicesPanel() {
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
                         <CardTitle className="text-lg line-clamp-1">{product.name}</CardTitle>
-                        {product.category && (
-                          <p className="text-sm text-muted-foreground">{product.category}</p>
+                        {(product.category_id || product.category) && (
+                          <p className="text-sm text-muted-foreground flex items-center gap-1">
+                            {product.category_id && (
+                              <span 
+                                className="w-2 h-2 rounded-full inline-block"
+                                style={{ backgroundColor: categories.find(c => c.id === product.category_id)?.color || '#3b82f6' }}
+                              />
+                            )}
+                            {getCategoryName(product.category_id) || product.category}
+                          </p>
                         )}
                       </div>
                       <div className="flex gap-1 flex-wrap">
@@ -719,8 +745,16 @@ export default function ProductsServicesPanel() {
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
                         <CardTitle className="text-lg line-clamp-1">{service.name}</CardTitle>
-                        {service.category && (
-                          <p className="text-sm text-muted-foreground">{service.category}</p>
+                        {(service.category_id || service.category) && (
+                          <p className="text-sm text-muted-foreground flex items-center gap-1">
+                            {service.category_id && (
+                              <span 
+                                className="w-2 h-2 rounded-full inline-block"
+                                style={{ backgroundColor: categories.find(c => c.id === service.category_id)?.color || '#3b82f6' }}
+                              />
+                            )}
+                            {getCategoryName(service.category_id) || service.category}
+                          </p>
                         )}
                       </div>
                       <Badge variant={service.is_active ? "default" : "secondary"}>
@@ -767,6 +801,10 @@ export default function ProductsServicesPanel() {
               ))}
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="categories" className="mt-6">
+          <CategoryManager onCategoriesChange={loadCategories} />
         </TabsContent>
 
         <TabsContent value="stock" className="mt-6">
@@ -836,12 +874,36 @@ export default function ProductsServicesPanel() {
                 </Select>
               </div>
               <div>
-                <Label>Categoria</Label>
-                <Input
-                  value={productForm.category}
-                  onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                  placeholder="Ex: Eletrônicos"
-                />
+                <Label className="flex items-center gap-2">
+                  <FolderOpen className="h-4 w-4" />
+                  Categoria
+                </Label>
+                <Select
+                  value={productForm.category_id || "none"}
+                  onValueChange={(v) => setProductForm({ 
+                    ...productForm, 
+                    category_id: v === "none" ? "" : v,
+                    category: v === "none" ? "" : (categories.find(c => c.id === v)?.name || "")
+                  })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem categoria</SelectItem>
+                    {categories.filter(c => c.is_active).map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: category.color }} 
+                          />
+                          {category.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="col-span-2">
                 <Label>Descrição</Label>
@@ -1104,12 +1166,36 @@ export default function ProductsServicesPanel() {
                 </div>
               )}
               <div className="col-span-2">
-                <Label>Categoria</Label>
-                <Input
-                  value={serviceForm.category}
-                  onChange={(e) => setServiceForm({ ...serviceForm, category: e.target.value })}
-                  placeholder="Ex: Consultoria"
-                />
+                <Label className="flex items-center gap-2">
+                  <FolderOpen className="h-4 w-4" />
+                  Categoria
+                </Label>
+                <Select
+                  value={serviceForm.category_id || "none"}
+                  onValueChange={(v) => setServiceForm({ 
+                    ...serviceForm, 
+                    category_id: v === "none" ? "" : v,
+                    category: v === "none" ? "" : (categories.find(c => c.id === v)?.name || "")
+                  })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem categoria</SelectItem>
+                    {categories.filter(c => c.is_active).map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: category.color }} 
+                          />
+                          {category.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="col-span-2">
                 <Label>Descrição</Label>
