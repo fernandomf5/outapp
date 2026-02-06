@@ -27,7 +27,11 @@ import {
   Store,
   ArrowRight,
   X,
+  ShoppingCart,
+  Plus,
 } from "lucide-react";
+import { CatalogCart, CartItem } from "@/components/catalog/CatalogCart";
+import { toast } from "sonner";
 
 interface Catalog {
   id: string;
@@ -113,6 +117,52 @@ export default function CatalogPublicPage() {
     category: Category | null;
     items: any[];
   } | null>(null);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+
+  // Cart functions
+  const addToCart = (item: any) => {
+    const itemType = item.type || (item.duration_minutes ? "service" : "product");
+    
+    setCartItems((prev) => {
+      const existing = prev.find((i) => i.id === item.id);
+      if (existing) {
+        return prev.map((i) =>
+          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+        );
+      }
+      return [
+        ...prev,
+        {
+          id: item.id,
+          name: item.name,
+          price: item.price || 0,
+          quantity: 1,
+          type: itemType,
+          image_url: item.image_url,
+          price_type: item.price_type,
+        },
+      ];
+    });
+    toast.success(`${item.name} adicionado ao carrinho`);
+  };
+
+  const updateCartQuantity = (id: string, quantity: number) => {
+    if (quantity <= 0) {
+      setCartItems((prev) => prev.filter((item) => item.id !== id));
+    } else {
+      setCartItems((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, quantity } : item))
+      );
+    }
+  };
+
+  const removeFromCart = (id: string) => {
+    setCartItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const clearCart = () => {
+    setCartItems([]);
+  };
 
   useEffect(() => {
     if (slug) {
@@ -407,14 +457,24 @@ export default function CatalogPublicPage() {
             </div>
           </div>
           {catalog.whatsapp_number && (
-            <Button
-              size="sm"
-              onClick={() => handleWhatsAppContact(item.name)}
-              style={{ backgroundColor: catalog.primary_color }}
-              className="flex-shrink-0 self-center text-white"
-            >
-              <MessageCircle className="w-4 h-4" />
-            </Button>
+            <div className="flex gap-2 flex-shrink-0 self-center">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => addToCart({ ...item, type: isProduct ? "product" : "service" })}
+                style={{ borderColor: catalog.primary_color, color: catalog.primary_color }}
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => handleWhatsAppContact(item.name)}
+                style={{ backgroundColor: catalog.primary_color }}
+                className="text-white"
+              >
+                <MessageCircle className="w-4 h-4" />
+              </Button>
+            </div>
           )}
         </div>
       );
@@ -495,15 +555,25 @@ export default function CatalogPublicPage() {
               </span>
             )}
             {catalog.whatsapp_number && (
-              <Button
-                size="sm"
-                onClick={() => handleWhatsAppContact(item.name)}
-                style={{ backgroundColor: catalog.primary_color }}
-                className="text-white"
-              >
-                <MessageCircle className="w-4 h-4 mr-1" />
-                Contato
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => addToCart({ ...item, type: isProduct ? "product" : "service" })}
+                  style={{ borderColor: catalog.primary_color, color: catalog.primary_color }}
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Adicionar
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => handleWhatsAppContact(item.name)}
+                  style={{ backgroundColor: catalog.primary_color }}
+                  className="text-white"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                </Button>
+              </div>
             )}
           </div>
         </CardContent>
@@ -1031,6 +1101,20 @@ export default function CatalogPublicPage() {
             </ScrollArea>
           </DialogContent>
         </Dialog>
+
+        {/* Shopping Cart */}
+        <CatalogCart
+          items={cartItems}
+          onUpdateQuantity={updateCartQuantity}
+          onRemoveItem={removeFromCart}
+          onClearCart={clearCart}
+          catalogName={catalog.name}
+          whatsappNumber={catalog.whatsapp_number}
+          primaryColor={catalog.primary_color}
+          textColor={textColor}
+          backgroundColor={backgroundColor}
+          showPrices={catalog.show_prices}
+        />
       </div>
     </>
   );
