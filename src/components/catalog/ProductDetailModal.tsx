@@ -243,9 +243,9 @@ export function ProductDetailModal({
               >
                 Descrição
               </h3>
-              {item.description_html ? (
+            {item.description_html ? (
                 <div
-                  className="prose prose-sm max-w-none"
+                  className="prose prose-sm max-w-none [&_*]:!bg-transparent"
                   style={{ color: `${textColor}90` }}
                   dangerouslySetInnerHTML={{ __html: item.description_html }}
                 />
