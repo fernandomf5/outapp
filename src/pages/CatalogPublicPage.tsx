@@ -21,8 +21,10 @@ import {
   Store,
   Plus,
   X,
+  Eye,
 } from "lucide-react";
 import { CatalogCart, CartItem } from "@/components/catalog/CatalogCart";
+import { ProductDetailModal } from "@/components/catalog/ProductDetailModal";
 import { toast } from "sonner";
 
 // Horizontal scroll component with arrows and drag
@@ -190,12 +192,14 @@ interface Product {
   id: string;
   name: string;
   description: string | null;
+  description_html: string | null;
   product_type: string;
   category: string | null;
   category_id: string | null;
   price: number;
   stock_quantity: number | null;
   image_url: string | null;
+  gallery_urls: string[] | null;
   is_active: boolean;
 }
 
@@ -203,12 +207,14 @@ interface Service {
   id: string;
   name: string;
   description: string | null;
+  description_html: string | null;
   category: string | null;
   category_id: string | null;
   price: number;
   price_type: string;
   duration_minutes: number | null;
   image_url: string | null;
+  gallery_urls: string[] | null;
   is_active: boolean;
 }
 
@@ -225,6 +231,7 @@ export default function CatalogPublicPage() {
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [viewAllCategory, setViewAllCategory] = useState<{ category: Category; items: any[] } | null>(null);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
 
   // Cart functions
   const addToCart = (item: any) => {
@@ -566,6 +573,18 @@ export default function CatalogPublicPage() {
           <div className="flex gap-2 flex-shrink-0 self-center">
             <Button
               size="sm"
+              variant="outline"
+              onClick={() => setSelectedItem(item)}
+              style={{ 
+                borderColor: catalog.primary_color, 
+                color: catalog.primary_color 
+              }}
+            >
+              <Eye className="w-4 h-4 mr-1" />
+              Detalhes
+            </Button>
+            <Button
+              size="sm"
               onClick={() => addToCart({ ...item, type: isProduct ? "product" : "service" })}
               style={{ backgroundColor: catalog.primary_color }}
               className="text-white"
@@ -584,16 +603,24 @@ export default function CatalogPublicPage() {
     return (
       <Card
         key={item.id}
-        className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col"
+        className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col cursor-pointer group"
         style={{ backgroundColor, borderColor: `${textColor}20` }}
+        onClick={() => setSelectedItem(item)}
       >
         {item.image_url && (
-          <div className={isCards ? "h-40 flex-shrink-0" : "h-32 flex-shrink-0"}>
+          <div className={`${isCards ? "h-40" : "h-32"} flex-shrink-0 relative overflow-hidden`}>
             <img
               src={item.image_url}
               alt={item.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
+            {/* Overlay on hover */}
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <span className="text-white text-sm font-medium flex items-center gap-1">
+                <Eye className="w-4 h-4" />
+                Ver Detalhes
+              </span>
+            </div>
           </div>
         )}
         <CardContent className="p-3 flex-1 flex flex-col">
@@ -652,15 +679,36 @@ export default function CatalogPublicPage() {
                 {!isProduct && priceTypeLabels[item.price_type]}
               </span>
             )}
-            <Button
-              size="sm"
-              onClick={() => addToCart({ ...item, type: isProduct ? "product" : "service" })}
-              style={{ backgroundColor: catalog.primary_color }}
-              className="text-white w-full h-8 text-xs"
-            >
-              <Plus className="w-3 h-3 mr-1" />
-              Adicionar
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedItem(item);
+                }}
+                style={{ 
+                  borderColor: catalog.primary_color, 
+                  color: catalog.primary_color 
+                }}
+                className="flex-1 h-8 text-xs"
+              >
+                <Eye className="w-3 h-3 mr-1" />
+                Detalhes
+              </Button>
+              <Button
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  addToCart({ ...item, type: isProduct ? "product" : "service" });
+                }}
+                style={{ backgroundColor: catalog.primary_color }}
+                className="text-white flex-1 h-8 text-xs"
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                Adicionar
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -1092,6 +1140,16 @@ export default function CatalogPublicPage() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Product Detail Modal */}
+        <ProductDetailModal
+          item={selectedItem}
+          isOpen={!!selectedItem}
+          onClose={() => setSelectedItem(null)}
+          onAddToCart={addToCart}
+          catalog={catalog}
+          formatPrice={formatPrice}
+        />
       </div>
     </>
   );
