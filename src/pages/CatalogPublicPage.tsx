@@ -170,6 +170,8 @@ interface Catalog {
   views_count: number;
   group_by_category: boolean;
   category_order: string[] | null;
+  head_code: string | null;
+  footer_code: string | null;
 }
 
 interface Banner {
@@ -393,6 +395,41 @@ export default function CatalogPublicPage() {
       currency: "BRL",
     }).format(price);
   };
+
+  // Inject footer code
+  useEffect(() => {
+    if (!catalog?.footer_code) return;
+
+    const scriptContainer = document.createElement("div");
+    scriptContainer.id = "catalog-footer-scripts";
+    scriptContainer.innerHTML = catalog.footer_code;
+
+    // Extract and execute scripts
+    const scripts = scriptContainer.querySelectorAll("script");
+    scripts.forEach((oldScript) => {
+      const newScript = document.createElement("script");
+      Array.from(oldScript.attributes).forEach((attr) => {
+        newScript.setAttribute(attr.name, attr.value);
+      });
+      newScript.textContent = oldScript.textContent;
+      document.body.appendChild(newScript);
+    });
+
+    // Append non-script elements
+    const nonScriptContent = catalog.footer_code.replace(/<script[\s\S]*?<\/script>/gi, "");
+    if (nonScriptContent.trim()) {
+      const container = document.createElement("div");
+      container.id = "catalog-footer-content";
+      container.innerHTML = nonScriptContent;
+      document.body.appendChild(container);
+    }
+
+    return () => {
+      // Cleanup on unmount
+      document.querySelectorAll("#catalog-footer-scripts script").forEach((el) => el.remove());
+      document.getElementById("catalog-footer-content")?.remove();
+    };
+  }, [catalog?.footer_code]);
 
   const handleWhatsAppContact = (itemName?: string) => {
     if (!catalog?.whatsapp_number) return;
@@ -725,6 +762,21 @@ export default function CatalogPublicPage() {
             name="description"
             content={catalog.description || `Confira o catálogo ${catalog.name}`}
           />
+          {catalog.head_code && (
+            <script type="text/javascript">
+              {`(function() { 
+                var div = document.createElement('div');
+                div.innerHTML = ${JSON.stringify(catalog.head_code)};
+                var scripts = div.querySelectorAll('script');
+                scripts.forEach(function(s) {
+                  var ns = document.createElement('script');
+                  Array.from(s.attributes).forEach(function(a) { ns.setAttribute(a.name, a.value); });
+                  ns.textContent = s.textContent;
+                  document.head.appendChild(ns);
+                });
+              })();`}
+            </script>
+          )}
         </Helmet>
 
         <div
@@ -775,6 +827,21 @@ export default function CatalogPublicPage() {
           name="description"
           content={catalog.description || `Confira o catálogo ${catalog.name}`}
         />
+        {catalog.head_code && (
+          <script type="text/javascript">
+            {`(function() { 
+              var div = document.createElement('div');
+              div.innerHTML = ${JSON.stringify(catalog.head_code)};
+              var scripts = div.querySelectorAll('script');
+              scripts.forEach(function(s) {
+                var ns = document.createElement('script');
+                Array.from(s.attributes).forEach(function(a) { ns.setAttribute(a.name, a.value); });
+                ns.textContent = s.textContent;
+                document.head.appendChild(ns);
+              });
+            })();`}
+          </script>
+        )}
       </Helmet>
 
       <div className="min-h-screen" style={{ backgroundColor, color: textColor }}>

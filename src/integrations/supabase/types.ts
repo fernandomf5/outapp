@@ -2001,7 +2001,9 @@ export type Database = {
           cover_url: string | null
           created_at: string | null
           description: string | null
+          footer_code: string | null
           group_by_category: boolean | null
+          head_code: string | null
           id: string
           is_active: boolean | null
           layout_style: string | null
@@ -2029,7 +2031,9 @@ export type Database = {
           cover_url?: string | null
           created_at?: string | null
           description?: string | null
+          footer_code?: string | null
           group_by_category?: boolean | null
+          head_code?: string | null
           id?: string
           is_active?: boolean | null
           layout_style?: string | null
@@ -2057,7 +2061,9 @@ export type Database = {
           cover_url?: string | null
           created_at?: string | null
           description?: string | null
+          footer_code?: string | null
           group_by_category?: boolean | null
+          head_code?: string | null
           id?: string
           is_active?: boolean | null
           layout_style?: string | null

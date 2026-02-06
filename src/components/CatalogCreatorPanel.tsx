@@ -65,6 +65,8 @@ interface Catalog {
   selected_product_ids: string[] | null;
   selected_service_ids: string[] | null;
   views_count: number;
+  head_code: string | null;
+  footer_code: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -90,6 +92,8 @@ const defaultCatalogForm = {
   selected_product_ids: [] as string[],
   selected_service_ids: [] as string[],
   group_by_category: false,
+  head_code: "",
+  footer_code: "",
 };
 
 export default function CatalogCreatorPanel() {
@@ -138,6 +142,8 @@ export default function CatalogCreatorPanel() {
         selected_product_ids: editingCatalog.selected_product_ids || [],
         selected_service_ids: editingCatalog.selected_service_ids || [],
         group_by_category: (editingCatalog as any).group_by_category ?? false,
+        head_code: editingCatalog.head_code || "",
+        footer_code: editingCatalog.footer_code || "",
       });
     } else {
       setFormData(defaultCatalogForm);
@@ -971,6 +977,49 @@ export default function CatalogCreatorPanel() {
                     setFormData((prev) => ({ ...prev, is_active: checked }))
                   }
                 />
+              </div>
+            </div>
+
+            {/* Custom Code Section */}
+            <div className="space-y-3 pt-2 border-t">
+              <h4 className="font-medium flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                Códigos Personalizados (Pixels, Scripts)
+              </h4>
+              <p className="text-xs text-muted-foreground">
+                Adicione códigos de rastreamento, pixels do Facebook, Google Analytics, etc.
+              </p>
+              <div>
+                <Label htmlFor="head_code">Código do Head</Label>
+                <Textarea
+                  id="head_code"
+                  value={formData.head_code}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, head_code: e.target.value }))
+                  }
+                  placeholder="<script>...</script> ou <meta>..."
+                  rows={3}
+                  className="font-mono text-xs"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Será inserido dentro do &lt;head&gt; da página
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="footer_code">Código do Footer</Label>
+                <Textarea
+                  id="footer_code"
+                  value={formData.footer_code}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, footer_code: e.target.value }))
+                  }
+                  placeholder="<script>...</script>..."
+                  rows={3}
+                  className="font-mono text-xs"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Será inserido no final do &lt;body&gt; da página
+                </p>
               </div>
             </div>
 
