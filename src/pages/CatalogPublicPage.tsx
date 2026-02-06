@@ -829,16 +829,12 @@ export default function CatalogPublicPage() {
                     {catalog.layout_style === "list" ? (
                       <div className="space-y-3">{items.map(renderItem)}</div>
                     ) : (
-                      <div className="overflow-x-auto pb-1">
-                        <div className="flex gap-4 pr-2 w-max">
+                      <div className="overflow-x-auto pb-2">
+                        <div className="flex gap-4">
                           {items.map((item) => (
-                            <div
-                              key={item.id}
-                              className={
-                                catalog.layout_style === "cards"
-                                  ? "w-[280px] sm:w-[300px] shrink-0"
-                                  : "w-[220px] sm:w-[240px] shrink-0"
-                              }
+                            <div 
+                              key={item.id} 
+                              className="shrink-0 w-[calc(100%-0px)] sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)]"
                             >
                               {renderItem(item)}
                             </div>
@@ -871,16 +867,12 @@ export default function CatalogPublicPage() {
                     {catalog.layout_style === "list" ? (
                       <div className="space-y-3">{uncatItems.map(renderItem)}</div>
                     ) : (
-                      <div className="overflow-x-auto pb-1">
-                        <div className="flex gap-4 pr-2 w-max">
+                      <div className="overflow-x-auto pb-2">
+                        <div className="flex gap-4">
                           {uncatItems.map((item) => (
-                            <div
-                              key={item.id}
-                              className={
-                                catalog.layout_style === "cards"
-                                  ? "w-[280px] sm:w-[300px] shrink-0"
-                                  : "w-[220px] sm:w-[240px] shrink-0"
-                              }
+                            <div 
+                              key={item.id} 
+                              className="shrink-0 w-[calc(100%-0px)] sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)]"
                             >
                               {renderItem(item)}
                             </div>
