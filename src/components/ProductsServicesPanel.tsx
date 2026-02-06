@@ -55,6 +55,8 @@ import {
 } from "@/components/ui/dialog";
 import ProductsAnalyticsPanel from "@/components/products/ProductsAnalyticsPanel";
 import StockManagementPanel from "@/components/products/StockManagementPanel";
+import GalleryImageUpload from "@/components/products/GalleryImageUpload";
+import RichDescriptionEditor from "@/components/products/RichDescriptionEditor";
 
 interface Business {
   id: string;
@@ -111,6 +113,7 @@ interface Service {
 const defaultProductForm = {
   name: "",
   description: "",
+  description_html: "",
   product_type: "physical",
   category: "",
   category_id: "",
@@ -126,6 +129,7 @@ const defaultProductForm = {
   dimensions_width: "",
   dimensions_height: "",
   image_url: "",
+  gallery_urls: [] as string[],
   download_url: "",
   download_limit: "",
   access_duration_days: "",
@@ -138,12 +142,14 @@ const defaultProductForm = {
 const defaultServiceForm = {
   name: "",
   description: "",
+  description_html: "",
   category: "",
   category_id: "",
   price: "",
   price_type: "fixed",
   duration_minutes: "",
   image_url: "",
+  gallery_urls: [] as string[],
   requires_scheduling: false,
   max_capacity: "1",
   is_active: true,
@@ -208,6 +214,7 @@ export default function ProductsServicesPanel() {
       setProductForm({
         name: editingProduct.name,
         description: editingProduct.description || "",
+        description_html: (editingProduct as any).description_html || "",
         product_type: editingProduct.product_type,
         category: editingProduct.category || "",
         category_id: editingProduct.category_id || "",
@@ -223,6 +230,7 @@ export default function ProductsServicesPanel() {
         dimensions_width: editingProduct.dimensions_cm?.width?.toString() || "",
         dimensions_height: editingProduct.dimensions_cm?.height?.toString() || "",
         image_url: editingProduct.image_url || "",
+        gallery_urls: editingProduct.gallery_urls || [],
         download_url: editingProduct.download_url || "",
         download_limit: editingProduct.download_limit?.toString() || "",
         access_duration_days: editingProduct.access_duration_days?.toString() || "",
@@ -241,12 +249,14 @@ export default function ProductsServicesPanel() {
       setServiceForm({
         name: editingService.name,
         description: editingService.description || "",
+        description_html: (editingService as any).description_html || "",
         category: editingService.category || "",
         category_id: editingService.category_id || "",
         price: editingService.price.toString(),
         price_type: editingService.price_type,
         duration_minutes: editingService.duration_minutes?.toString() || "",
         image_url: editingService.image_url || "",
+        gallery_urls: (editingService as any).gallery_urls || [],
         requires_scheduling: editingService.requires_scheduling,
         max_capacity: editingService.max_capacity?.toString() || "1",
         is_active: editingService.is_active,
@@ -357,6 +367,7 @@ export default function ProductsServicesPanel() {
       user_id: user?.id,
       name: productForm.name,
       description: productForm.description || null,
+      description_html: productForm.description_html || null,
       product_type: productForm.product_type,
       category: productForm.category || null,
       category_id: productForm.category_id || null,
@@ -370,6 +381,7 @@ export default function ProductsServicesPanel() {
       weight_kg: productForm.weight_kg ? parseFloat(productForm.weight_kg) : null,
       dimensions_cm: dimensions,
       image_url: productForm.image_url || null,
+      gallery_urls: productForm.gallery_urls.length > 0 ? productForm.gallery_urls : null,
       download_url: productForm.download_url || null,
       download_limit: productForm.download_limit ? parseInt(productForm.download_limit) : null,
       access_duration_days: productForm.access_duration_days ? parseInt(productForm.access_duration_days) : null,
@@ -408,12 +420,14 @@ export default function ProductsServicesPanel() {
       user_id: user?.id,
       name: serviceForm.name,
       description: serviceForm.description || null,
+      description_html: serviceForm.description_html || null,
       category: serviceForm.category || null,
       category_id: serviceForm.category_id || null,
       price: parseFloat(serviceForm.price),
       price_type: serviceForm.price_type,
       duration_minutes: serviceForm.duration_minutes ? parseInt(serviceForm.duration_minutes) : null,
       image_url: serviceForm.image_url || null,
+      gallery_urls: serviceForm.gallery_urls.length > 0 ? serviceForm.gallery_urls : null,
       requires_scheduling: serviceForm.requires_scheduling,
       max_capacity: parseInt(serviceForm.max_capacity) || 1,
       is_active: serviceForm.is_active,
@@ -1129,11 +1143,24 @@ export default function ProductsServicesPanel() {
                 </Select>
               </div>
               <div className="col-span-2">
-                <Label>Descrição</Label>
+                <Label>Descrição Curta</Label>
                 <Textarea
                   value={productForm.description}
                   onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
-                  placeholder="Descrição do produto"
+                  placeholder="Resumo do produto (aparece na listagem)"
+                  rows={2}
+                />
+              </div>
+              <div className="col-span-2">
+                <RichDescriptionEditor
+                  userId={user?.id || ""}
+                  value={productForm.description}
+                  htmlValue={productForm.description_html}
+                  onChange={(text, html) => setProductForm({ 
+                    ...productForm, 
+                    description: text || productForm.description,
+                    description_html: html 
+                  })}
                 />
               </div>
               <div>
@@ -1305,30 +1332,13 @@ export default function ProductsServicesPanel() {
               </div>
 
               <div className="col-span-2">
-                <Label>Imagem do produto</Label>
-                {productForm.image_url && (
-                  <div className="relative mb-3">
-                    <img src={productForm.image_url} alt="Preview" className="w-full h-40 object-cover rounded-lg" />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-2 right-2"
-                      onClick={() => setProductForm({ ...productForm, image_url: "" })}
-                    >
-                      Remover
-                    </Button>
-                  </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(e, "product")}
-                    disabled={uploadingProductImage}
-                  />
-                  {uploadingProductImage && <Loader2 className="h-4 w-4 animate-spin" />}
-                </div>
+                <GalleryImageUpload
+                  userId={user?.id || ""}
+                  mainImage={productForm.image_url}
+                  galleryUrls={productForm.gallery_urls}
+                  onMainImageChange={(url) => setProductForm({ ...productForm, image_url: url })}
+                  onGalleryChange={(urls) => setProductForm({ ...productForm, gallery_urls: urls })}
+                />
               </div>
 
               <div className="col-span-2 flex items-center gap-2">
@@ -1421,11 +1431,24 @@ export default function ProductsServicesPanel() {
                 </Select>
               </div>
               <div className="col-span-2">
-                <Label>Descrição</Label>
+                <Label>Descrição Curta</Label>
                 <Textarea
                   value={serviceForm.description}
                   onChange={(e) => setServiceForm({ ...serviceForm, description: e.target.value })}
-                  placeholder="Descrição do serviço"
+                  placeholder="Resumo do serviço (aparece na listagem)"
+                  rows={2}
+                />
+              </div>
+              <div className="col-span-2">
+                <RichDescriptionEditor
+                  userId={user?.id || ""}
+                  value={serviceForm.description}
+                  htmlValue={serviceForm.description_html}
+                  onChange={(text, html) => setServiceForm({ 
+                    ...serviceForm, 
+                    description: text || serviceForm.description,
+                    description_html: html 
+                  })}
                 />
               </div>
               <div>
@@ -1481,30 +1504,13 @@ export default function ProductsServicesPanel() {
               </div>
 
               <div className="col-span-2">
-                <Label>Imagem do serviço</Label>
-                {serviceForm.image_url && (
-                  <div className="relative mb-3">
-                    <img src={serviceForm.image_url} alt="Preview" className="w-full h-40 object-cover rounded-lg" />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-2 right-2"
-                      onClick={() => setServiceForm({ ...serviceForm, image_url: "" })}
-                    >
-                      Remover
-                    </Button>
-                  </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(e, "service")}
-                    disabled={uploadingServiceImage}
-                  />
-                  {uploadingServiceImage && <Loader2 className="h-4 w-4 animate-spin" />}
-                </div>
+                <GalleryImageUpload
+                  userId={user?.id || ""}
+                  mainImage={serviceForm.image_url}
+                  galleryUrls={serviceForm.gallery_urls}
+                  onMainImageChange={(url) => setServiceForm({ ...serviceForm, image_url: url })}
+                  onGalleryChange={(urls) => setServiceForm({ ...serviceForm, gallery_urls: urls })}
+                />
               </div>
 
               <div className="flex items-center gap-2">

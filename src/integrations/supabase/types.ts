@@ -5277,6 +5277,7 @@ export type Database = {
           cost_price: number | null
           created_at: string | null
           description: string | null
+          description_html: string | null
           dimensions_cm: Json | null
           download_limit: number | null
           download_url: string | null
@@ -5307,6 +5308,7 @@ export type Database = {
           cost_price?: number | null
           created_at?: string | null
           description?: string | null
+          description_html?: string | null
           dimensions_cm?: Json | null
           download_limit?: number | null
           download_url?: string | null
@@ -5337,6 +5339,7 @@ export type Database = {
           cost_price?: number | null
           created_at?: string | null
           description?: string | null
+          description_html?: string | null
           dimensions_cm?: Json | null
           download_limit?: number | null
           download_url?: string | null
@@ -6956,7 +6959,9 @@ export type Database = {
           category_id: string | null
           created_at: string | null
           description: string | null
+          description_html: string | null
           duration_minutes: number | null
+          gallery_urls: Json | null
           id: string
           image_url: string | null
           is_active: boolean | null
@@ -6976,7 +6981,9 @@ export type Database = {
           category_id?: string | null
           created_at?: string | null
           description?: string | null
+          description_html?: string | null
           duration_minutes?: number | null
+          gallery_urls?: Json | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
@@ -6996,7 +7003,9 @@ export type Database = {
           category_id?: string | null
           created_at?: string | null
           description?: string | null
+          description_html?: string | null
           duration_minutes?: number | null
+          gallery_urls?: Json | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
