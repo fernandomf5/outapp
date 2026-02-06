@@ -486,11 +486,11 @@ export default function CatalogPublicPage() {
     return (
       <Card
         key={item.id}
-        className="overflow-hidden hover:shadow-lg transition-shadow"
+        className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col"
         style={{ backgroundColor, borderColor: `${textColor}20` }}
       >
         {item.image_url && (
-          <div className={isCards ? "h-48" : "h-40"}>
+          <div className={isCards ? "h-40 flex-shrink-0" : "h-32 flex-shrink-0"}>
             <img
               src={item.image_url}
               alt={item.name}
@@ -498,17 +498,17 @@ export default function CatalogPublicPage() {
             />
           </div>
         )}
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between gap-2 mb-2">
+        <CardContent className="p-3 flex-1 flex flex-col">
+          <div className="flex items-start justify-between gap-1 mb-1">
             <h3
-              className={`font-semibold ${isCards ? "text-lg" : ""}`}
+              className="font-semibold text-sm line-clamp-2"
               style={{ color: textColor }}
             >
               {item.name}
             </h3>
             <Badge
               variant="outline"
-              className="flex-shrink-0 text-xs"
+              className="flex-shrink-0 text-[10px] px-1.5 py-0"
               style={{ borderColor: catalog.primary_color, color: catalog.primary_color }}
             >
               {isProduct ? "Produto" : "Serviço"}
@@ -516,36 +516,36 @@ export default function CatalogPublicPage() {
           </div>
           {catalog.show_description && item.description && (
             <p
-              className={`mb-3 ${isCards ? "line-clamp-3" : "text-sm line-clamp-2"}`}
+              className="text-xs line-clamp-2 mb-2"
               style={{ color: `${textColor}80` }}
             >
               {item.description}
             </p>
           )}
-          <div className="flex flex-wrap items-center gap-2 mb-3">
+          <div className="flex flex-wrap items-center gap-1 mb-2">
             {!isProduct && item.duration_minutes && (
               <span
-                className="text-xs flex items-center gap-1"
+                className="text-[10px] flex items-center gap-0.5"
                 style={{ color: `${textColor}80` }}
               >
-                <Clock className="w-3 h-3" />
+                <Clock className="w-2.5 h-2.5" />
                 {item.duration_minutes} min
               </span>
             )}
             {isProduct && catalog.show_stock && item.stock_quantity !== null && (
               <span
-                className="text-xs flex items-center gap-1"
+                className="text-[10px] flex items-center gap-0.5"
                 style={{ color: `${textColor}80` }}
               >
-                <Box className="w-3 h-3" />
+                <Box className="w-2.5 h-2.5" />
                 {item.stock_quantity} un
               </span>
             )}
           </div>
-          <div className="flex items-center justify-between">
+          <div className="mt-auto space-y-2">
             {catalog.show_prices && (
               <span
-                className={`font-bold ${isCards ? "text-xl" : "text-lg"}`}
+                className="font-bold text-base block"
                 style={{ color: catalog.primary_color }}
               >
                 {item.price_type === "quote"
@@ -555,23 +555,24 @@ export default function CatalogPublicPage() {
               </span>
             )}
             {catalog.whatsapp_number && (
-              <div className="flex gap-2">
+              <div className="flex gap-1">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => addToCart({ ...item, type: isProduct ? "product" : "service" })}
                   style={{ borderColor: catalog.primary_color, color: catalog.primary_color }}
+                  className="flex-1 h-8 text-xs px-2"
                 >
-                  <Plus className="w-4 h-4 mr-1" />
+                  <Plus className="w-3 h-3 mr-1" />
                   Adicionar
                 </Button>
                 <Button
                   size="sm"
                   onClick={() => handleWhatsAppContact(item.name)}
                   style={{ backgroundColor: catalog.primary_color }}
-                  className="text-white"
+                  className="text-white h-8 w-8 p-0"
                 >
-                  <MessageCircle className="w-4 h-4" />
+                  <MessageCircle className="w-3.5 h-3.5" />
                 </Button>
               </div>
             )}
@@ -1063,38 +1064,32 @@ export default function CatalogPublicPage() {
           onOpenChange={(open) => !open && setViewAllCategory(null)}
         >
           <DialogContent
-            className="max-w-4xl h-[90vh] overflow-hidden flex flex-col"
+            className="max-w-4xl h-[85vh] sm:h-[90vh] overflow-hidden flex flex-col p-4 sm:p-6"
             style={{ backgroundColor, color: textColor }}
           >
-            <DialogHeader className="flex-shrink-0">
+            <DialogHeader className="flex-shrink-0 pb-4">
               <DialogTitle className="flex items-center gap-3">
                 {viewAllCategory?.category && (
                   <div
-                    className="w-4 h-4 rounded-full"
+                    className="w-4 h-4 rounded-full flex-shrink-0"
                     style={{ backgroundColor: viewAllCategory.category.color }}
                   />
                 )}
-                <span style={{ color: textColor }}>
+                <span className="truncate" style={{ color: textColor }}>
                   {viewAllCategory?.category?.name || "Outros"}
                 </span>
-                <Badge variant="secondary">
+                <Badge variant="secondary" className="flex-shrink-0">
                   {viewAllCategory?.items.length || 0} itens
                 </Badge>
               </DialogTitle>
             </DialogHeader>
-            <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden">
               {catalog.layout_style === "list" ? (
-                <div className="space-y-3 pb-4">
+                <div className="space-y-3 pb-4 pr-2">
                   {viewAllCategory?.items.map(renderItem)}
                 </div>
               ) : (
-                <div
-                  className={`grid gap-4 pb-4 ${
-                    catalog.layout_style === "cards"
-                      ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-                      : "grid-cols-2 md:grid-cols-3"
-                  }`}
-                >
+                <div className="grid gap-3 pb-4 pr-2 grid-cols-2 sm:grid-cols-2 md:grid-cols-3">
                   {viewAllCategory?.items.map(renderItem)}
                 </div>
               )}
