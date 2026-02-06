@@ -330,7 +330,7 @@ export default function RichDescriptionEditor({
           <div
             ref={editorRef}
             contentEditable
-            className="min-h-[200px] p-4 border border-t-0 rounded-b-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 prose prose-sm max-w-none bg-background [&_*]:!bg-transparent"
+            className="min-h-[200px] p-4 border border-t-0 rounded-b-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 prose prose-sm max-w-none bg-background text-foreground [&_*]:!bg-transparent [&_*]:!text-inherit"
             onInput={updateContent}
             onBlur={updateContent}
             onPaste={handlePaste}
@@ -342,7 +342,7 @@ export default function RichDescriptionEditor({
         <div className="min-h-[200px] p-4 border rounded-lg bg-muted/30">
           {htmlValue ? (
             <div
-              className="prose prose-sm max-w-none [&_*]:!bg-transparent"
+              className="prose prose-sm max-w-none text-foreground [&_*]:!bg-transparent [&_*]:!text-inherit"
               dangerouslySetInnerHTML={{ __html: htmlValue }}
             />
           ) : (
