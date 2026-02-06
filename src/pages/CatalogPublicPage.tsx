@@ -12,7 +12,6 @@ import {
   Package,
   Wrench,
   Clock,
-  DollarSign,
   Box,
   Loader2,
   AlertCircle,
@@ -20,11 +19,11 @@ import {
   ChevronRight,
   Store,
   Plus,
-  X,
   Eye,
 } from "lucide-react";
 import { CatalogCart, CartItem } from "@/components/catalog/CatalogCart";
 import { ProductDetailModal } from "@/components/catalog/ProductDetailModal";
+import { BannerCarousel } from "@/components/catalog/BannerCarousel";
 import { toast } from "sonner";
 
 // Horizontal scroll component with arrows and drag
@@ -230,7 +229,6 @@ export default function CatalogPublicPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
-  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [viewAllCategory, setViewAllCategory] = useState<{ category: Category; items: any[] } | null>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -286,16 +284,6 @@ export default function CatalogPublicPage() {
     }
   }, [slug]);
 
-  // Auto-rotate banners
-  useEffect(() => {
-    if (banners.length <= 1) return;
-
-    const interval = setInterval(() => {
-      setCurrentBannerIndex((prev) => (prev + 1) % banners.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [banners.length]);
 
   const loadCatalog = async () => {
     setLoading(true);
@@ -442,11 +430,6 @@ export default function CatalogPublicPage() {
     window.open(url, "_blank");
   };
 
-  const handleBannerClick = (banner: Banner) => {
-    if (banner.link_url) {
-      window.open(banner.link_url, "_blank");
-    }
-  };
 
   const priceTypeLabels: Record<string, string> = {
     fixed: "",
@@ -845,76 +828,6 @@ export default function CatalogPublicPage() {
       </Helmet>
 
       <div className="min-h-screen" style={{ backgroundColor, color: textColor }}>
-        {/* Banner Carousel */}
-        {banners.length > 0 && (
-          <div className="relative w-full h-48 md:h-64 lg:h-80 overflow-hidden">
-            {banners.map((banner, index) => (
-              <div
-                key={banner.id}
-                className={`absolute inset-0 transition-opacity duration-500 cursor-pointer ${
-                  index === currentBannerIndex ? "opacity-100" : "opacity-0"
-                }`}
-                onClick={() => handleBannerClick(banner)}
-              >
-                <img
-                  src={banner.image_url}
-                  alt={banner.title || "Banner"}
-                  className="w-full h-full object-cover"
-                />
-                {(banner.title || banner.subtitle) && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <div className="text-center text-white">
-                      {banner.title && (
-                        <h2 className="text-2xl md:text-4xl font-bold mb-2">
-                          {banner.title}
-                        </h2>
-                      )}
-                      {banner.subtitle && (
-                        <p className="text-lg md:text-xl">{banner.subtitle}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-            {banners.length > 1 && (
-              <>
-                <button
-                  onClick={() =>
-                    setCurrentBannerIndex(
-                      (prev) => (prev - 1 + banners.length) % banners.length
-                    )
-                  }
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 flex items-center justify-center hover:bg-white transition-colors"
-                >
-                  <ChevronLeft className="w-6 h-6" />
-                </button>
-                <button
-                  onClick={() =>
-                    setCurrentBannerIndex((prev) => (prev + 1) % banners.length)
-                  }
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 flex items-center justify-center hover:bg-white transition-colors"
-                >
-                  <ChevronRight className="w-6 h-6" />
-                </button>
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                  {banners.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentBannerIndex(index)}
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        index === currentBannerIndex
-                          ? "bg-white"
-                          : "bg-white/50"
-                      }`}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
         {/* Header */}
         <header
           className="relative"
@@ -970,6 +883,17 @@ export default function CatalogPublicPage() {
                 <MessageCircle className="w-5 h-5 mr-2" />
                 Falar no WhatsApp
               </Button>
+            )}
+
+            {/* Banner Carousel - Below WhatsApp button */}
+            {banners.length > 0 && (
+              <div className="mt-8 max-w-4xl mx-auto">
+                <BannerCarousel 
+                  banners={banners} 
+                  primaryColor={catalog.primary_color}
+                  textColor={textColor}
+                />
+              </div>
             )}
           </div>
         </header>
