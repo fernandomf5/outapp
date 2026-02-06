@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -39,6 +40,8 @@ import {
   Warehouse,
   FolderOpen,
   ListPlus,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import BulkCreator from "@/components/products/BulkCreator";
 import CategoryManager from "@/components/products/CategoryManager";
@@ -715,6 +718,7 @@ export default function ProductsServicesPanel() {
                 const category = categories.find(c => c.id === catId);
                 const categoryName = catId === "uncategorized" ? "Sem categoria" : (category?.name || "Outros");
                 const categoryColor = category?.color || "#6b7280";
+                const hasMoreThan3 = categoryProducts.length > 3;
                 
                 return (
                   <div key={catId}>
@@ -725,65 +729,133 @@ export default function ProductsServicesPanel() {
                       />
                       <h3 className="font-semibold text-lg">{categoryName}</h3>
                       <Badge variant="secondary" className="ml-1">{categoryProducts.length}</Badge>
+                      {hasMoreThan3 && (
+                        <span className="text-xs text-muted-foreground ml-auto flex items-center gap-1">
+                          <ChevronLeft className="h-3 w-3" />
+                          Deslize para ver mais
+                          <ChevronRight className="h-3 w-3" />
+                        </span>
+                      )}
                     </div>
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {categoryProducts.map((product) => (
-                        <Card key={product.id} className="overflow-hidden">
-                          {product.image_url && (
-                            <div className="aspect-video w-full overflow-hidden">
-                              <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                            </div>
-                          )}
-                          <CardHeader className="pb-2">
-                            <div className="flex items-start justify-between">
-                              <CardTitle className="text-lg line-clamp-1">{product.name}</CardTitle>
-                              <div className="flex gap-1 flex-wrap">
-                                <Badge variant={product.is_active ? "default" : "secondary"}>
-                                  {product.is_active ? "Ativo" : "Inativo"}
-                                </Badge>
-                                <Badge variant="outline">
-                                  {product.product_type === "physical" ? "Físico" : product.product_type === "affiliate" ? "Afiliado" : "Digital"}
-                                </Badge>
-                              </div>
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            {product.description && (
-                              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{product.description}</p>
-                            )}
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center gap-2">
-                                <DollarSign className="h-4 w-4 text-primary" />
-                                <span className="text-xl font-bold">R$ {Number(product.price).toFixed(2)}</span>
-                              </div>
-                              {product.product_type === "physical" && (
-                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                  <Layers className="h-4 w-4" />
-                                  <span>Estoque: {product.stock_quantity}</span>
+                    {hasMoreThan3 ? (
+                      <ScrollArea className="w-full whitespace-nowrap pb-4">
+                        <div className="flex gap-4">
+                          {categoryProducts.map((product) => (
+                            <Card key={product.id} className="overflow-hidden w-[300px] md:w-[340px] flex-shrink-0">
+                              {product.image_url && (
+                                <div className="aspect-video w-full overflow-hidden">
+                                  <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                                 </div>
                               )}
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="flex-1"
-                                onClick={() => {
-                                  setEditingProduct(product);
-                                  setProductDialogOpen(true);
-                                }}
-                              >
-                                <Pencil className="h-4 w-4 mr-1" />
-                                Editar
-                              </Button>
-                              <Button variant="destructive" size="sm" onClick={() => setDeleteProductId(product.id)}>
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
+                              <CardHeader className="pb-2">
+                                <div className="flex items-start justify-between gap-2">
+                                  <CardTitle className="text-lg line-clamp-1 whitespace-normal">{product.name}</CardTitle>
+                                  <div className="flex gap-1 flex-shrink-0">
+                                    <Badge variant={product.is_active ? "default" : "secondary"} className="text-xs">
+                                      {product.is_active ? "Ativo" : "Inativo"}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </CardHeader>
+                              <CardContent>
+                                {product.description && (
+                                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2 whitespace-normal">{product.description}</p>
+                                )}
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <DollarSign className="h-4 w-4 text-primary" />
+                                    <span className="text-xl font-bold">R$ {Number(product.price).toFixed(2)}</span>
+                                  </div>
+                                  {product.product_type === "physical" && (
+                                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                      <Layers className="h-4 w-4" />
+                                      <span>{product.stock_quantity}</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-1"
+                                    onClick={() => {
+                                      setEditingProduct(product);
+                                      setProductDialogOpen(true);
+                                    }}
+                                  >
+                                    <Pencil className="h-4 w-4 mr-1" />
+                                    Editar
+                                  </Button>
+                                  <Button variant="destructive" size="sm" onClick={() => setDeleteProductId(product.id)}>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                        <ScrollBar orientation="horizontal" />
+                      </ScrollArea>
+                    ) : (
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {categoryProducts.map((product) => (
+                          <Card key={product.id} className="overflow-hidden">
+                            {product.image_url && (
+                              <div className="aspect-video w-full overflow-hidden">
+                                <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                              </div>
+                            )}
+                            <CardHeader className="pb-2">
+                              <div className="flex items-start justify-between">
+                                <CardTitle className="text-lg line-clamp-1">{product.name}</CardTitle>
+                                <div className="flex gap-1 flex-wrap">
+                                  <Badge variant={product.is_active ? "default" : "secondary"}>
+                                    {product.is_active ? "Ativo" : "Inativo"}
+                                  </Badge>
+                                  <Badge variant="outline">
+                                    {product.product_type === "physical" ? "Físico" : product.product_type === "affiliate" ? "Afiliado" : "Digital"}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </CardHeader>
+                            <CardContent>
+                              {product.description && (
+                                <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{product.description}</p>
+                              )}
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <DollarSign className="h-4 w-4 text-primary" />
+                                  <span className="text-xl font-bold">R$ {Number(product.price).toFixed(2)}</span>
+                                </div>
+                                {product.product_type === "physical" && (
+                                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                    <Layers className="h-4 w-4" />
+                                    <span>Estoque: {product.stock_quantity}</span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex-1"
+                                  onClick={() => {
+                                    setEditingProduct(product);
+                                    setProductDialogOpen(true);
+                                  }}
+                                >
+                                  <Pencil className="h-4 w-4 mr-1" />
+                                  Editar
+                                </Button>
+                                <Button variant="destructive" size="sm" onClick={() => setDeleteProductId(product.id)}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -814,6 +886,7 @@ export default function ProductsServicesPanel() {
                 const category = categories.find(c => c.id === catId);
                 const categoryName = catId === "uncategorized" ? "Sem categoria" : (category?.name || "Outros");
                 const categoryColor = category?.color || "#6b7280";
+                const hasMoreThan3 = categoryServices.length > 3;
                 
                 return (
                   <div key={catId}>
@@ -824,61 +897,128 @@ export default function ProductsServicesPanel() {
                       />
                       <h3 className="font-semibold text-lg">{categoryName}</h3>
                       <Badge variant="secondary" className="ml-1">{categoryServices.length}</Badge>
+                      {hasMoreThan3 && (
+                        <span className="text-xs text-muted-foreground ml-auto flex items-center gap-1">
+                          <ChevronLeft className="h-3 w-3" />
+                          Deslize para ver mais
+                          <ChevronRight className="h-3 w-3" />
+                        </span>
+                      )}
                     </div>
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {categoryServices.map((service) => (
-                        <Card key={service.id} className="overflow-hidden">
-                          {service.image_url && (
-                            <div className="aspect-video w-full overflow-hidden">
-                              <img src={service.image_url} alt={service.name} className="w-full h-full object-cover" />
-                            </div>
-                          )}
-                          <CardHeader className="pb-2">
-                            <div className="flex items-start justify-between">
-                              <CardTitle className="text-lg line-clamp-1">{service.name}</CardTitle>
-                              <Badge variant={service.is_active ? "default" : "secondary"}>
-                                {service.is_active ? "Ativo" : "Inativo"}
-                              </Badge>
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            {service.description && (
-                              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{service.description}</p>
-                            )}
-                            <div className="flex items-center gap-4 mb-3">
-                              <div className="flex items-center gap-2">
-                                <DollarSign className="h-4 w-4 text-primary" />
-                                <span className="text-xl font-bold">R$ {Number(service.price).toFixed(2)}</span>
+                    {hasMoreThan3 ? (
+                      <ScrollArea className="w-full whitespace-nowrap pb-4">
+                        <div className="flex gap-4">
+                          {categoryServices.map((service) => (
+                            <Card key={service.id} className="overflow-hidden w-[300px] md:w-[340px] flex-shrink-0">
+                              {service.image_url && (
+                                <div className="aspect-video w-full overflow-hidden">
+                                  <img src={service.image_url} alt={service.name} className="w-full h-full object-cover" />
+                                </div>
+                              )}
+                              <CardHeader className="pb-2">
+                                <div className="flex items-start justify-between gap-2">
+                                  <CardTitle className="text-lg line-clamp-1 whitespace-normal">{service.name}</CardTitle>
+                                  <Badge variant={service.is_active ? "default" : "secondary"} className="text-xs flex-shrink-0">
+                                    {service.is_active ? "Ativo" : "Inativo"}
+                                  </Badge>
+                                </div>
+                              </CardHeader>
+                              <CardContent>
+                                {service.description && (
+                                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2 whitespace-normal">{service.description}</p>
+                                )}
+                                <div className="flex items-center gap-3 mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <DollarSign className="h-4 w-4 text-primary" />
+                                    <span className="text-xl font-bold">R$ {Number(service.price).toFixed(2)}</span>
+                                  </div>
+                                  <Badge variant="outline" className="text-xs">{priceTypeLabels[service.price_type]}</Badge>
+                                </div>
+                                {service.duration_minutes && (
+                                  <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
+                                    <Clock className="h-4 w-4" />
+                                    <span>{service.duration_minutes} min</span>
+                                  </div>
+                                )}
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-1"
+                                    onClick={() => {
+                                      setEditingService(service);
+                                      setServiceDialogOpen(true);
+                                    }}
+                                  >
+                                    <Pencil className="h-4 w-4 mr-1" />
+                                    Editar
+                                  </Button>
+                                  <Button variant="destructive" size="sm" onClick={() => setDeleteServiceId(service.id)}>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                        <ScrollBar orientation="horizontal" />
+                      </ScrollArea>
+                    ) : (
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {categoryServices.map((service) => (
+                          <Card key={service.id} className="overflow-hidden">
+                            {service.image_url && (
+                              <div className="aspect-video w-full overflow-hidden">
+                                <img src={service.image_url} alt={service.name} className="w-full h-full object-cover" />
                               </div>
-                              <Badge variant="outline">{priceTypeLabels[service.price_type]}</Badge>
-                            </div>
-                            {service.duration_minutes && (
-                              <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
-                                <Clock className="h-4 w-4" />
-                                <span>Duração: {service.duration_minutes} min</span>
-                              </div>
                             )}
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="flex-1"
-                                onClick={() => {
-                                  setEditingService(service);
-                                  setServiceDialogOpen(true);
-                                }}
-                              >
-                                <Pencil className="h-4 w-4 mr-1" />
-                                Editar
-                              </Button>
-                              <Button variant="destructive" size="sm" onClick={() => setDeleteServiceId(service.id)}>
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
+                            <CardHeader className="pb-2">
+                              <div className="flex items-start justify-between">
+                                <CardTitle className="text-lg line-clamp-1">{service.name}</CardTitle>
+                                <Badge variant={service.is_active ? "default" : "secondary"}>
+                                  {service.is_active ? "Ativo" : "Inativo"}
+                                </Badge>
+                              </div>
+                            </CardHeader>
+                            <CardContent>
+                              {service.description && (
+                                <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{service.description}</p>
+                              )}
+                              <div className="flex items-center gap-4 mb-3">
+                                <div className="flex items-center gap-2">
+                                  <DollarSign className="h-4 w-4 text-primary" />
+                                  <span className="text-xl font-bold">R$ {Number(service.price).toFixed(2)}</span>
+                                </div>
+                                <Badge variant="outline">{priceTypeLabels[service.price_type]}</Badge>
+                              </div>
+                              {service.duration_minutes && (
+                                <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
+                                  <Clock className="h-4 w-4" />
+                                  <span>Duração: {service.duration_minutes} min</span>
+                                </div>
+                              )}
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex-1"
+                                  onClick={() => {
+                                    setEditingService(service);
+                                    setServiceDialogOpen(true);
+                                  }}
+                                >
+                                  <Pencil className="h-4 w-4 mr-1" />
+                                  Editar
+                                </Button>
+                                <Button variant="destructive" size="sm" onClick={() => setDeleteServiceId(service.id)}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
