@@ -749,8 +749,8 @@ export default function CatalogPublicPage() {
                 const items = itemsByCategory.grouped[categoryId];
                 if (!category || !items || items.length === 0) return null;
 
-                const hasMany = items.length >= 3;
-                const displayItems = hasMany ? items.slice(0, 6) : items;
+                const hasMany = items.length > 3;
+                const displayItems = hasMany ? items.slice(0, 3) : items;
 
                 return (
                   <div key={categoryId}>
@@ -803,7 +803,7 @@ export default function CatalogPublicPage() {
                               {renderItem(item)}
                             </div>
                           ))}
-                          {items.length > 6 && (
+                          {items.length > 3 && (
                             <div
                               className={`flex-shrink-0 flex items-center justify-center cursor-pointer rounded-lg border-2 border-dashed transition-colors hover:bg-muted/50 ${
                                 catalog.layout_style === "cards"
@@ -828,7 +828,7 @@ export default function CatalogPublicPage() {
                                   className="text-sm"
                                   style={{ color: `${textColor}60` }}
                                 >
-                                  +{items.length - 6} itens
+                                  +{items.length - 3} itens
                                 </p>
                               </div>
                             </div>
@@ -854,8 +854,8 @@ export default function CatalogPublicPage() {
               {/* Uncategorized items */}
               {itemsByCategory.uncategorized.length > 0 && (() => {
                 const uncatItems = itemsByCategory.uncategorized;
-                const hasMany = uncatItems.length >= 3;
-                const displayItems = hasMany ? uncatItems.slice(0, 6) : uncatItems;
+                const hasMany = uncatItems.length > 3;
+                const displayItems = hasMany ? uncatItems.slice(0, 3) : uncatItems;
 
                 return (
                   <div>
@@ -905,7 +905,7 @@ export default function CatalogPublicPage() {
                               {renderItem(item)}
                             </div>
                           ))}
-                          {uncatItems.length > 6 && (
+                          {uncatItems.length > 3 && (
                             <div
                               className={`flex-shrink-0 flex items-center justify-center cursor-pointer rounded-lg border-2 border-dashed transition-colors hover:bg-muted/50 ${
                                 catalog.layout_style === "cards"
@@ -930,7 +930,7 @@ export default function CatalogPublicPage() {
                                   className="text-sm"
                                   style={{ color: `${textColor}60` }}
                                 >
-                                  +{uncatItems.length - 6} itens
+                                  +{uncatItems.length - 3} itens
                                 </p>
                               </div>
                             </div>
