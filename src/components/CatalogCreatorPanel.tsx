@@ -89,6 +89,7 @@ const defaultCatalogForm = {
   show_all_items: true,
   selected_product_ids: [] as string[],
   selected_service_ids: [] as string[],
+  group_by_category: false,
 };
 
 export default function CatalogCreatorPanel() {
@@ -136,6 +137,7 @@ export default function CatalogCreatorPanel() {
         show_all_items: editingCatalog.show_all_items ?? true,
         selected_product_ids: editingCatalog.selected_product_ids || [],
         selected_service_ids: editingCatalog.selected_service_ids || [],
+        group_by_category: (editingCatalog as any).group_by_category ?? false,
       });
     } else {
       setFormData(defaultCatalogForm);
@@ -291,6 +293,7 @@ export default function CatalogCreatorPanel() {
         show_all_items: formData.show_all_items,
         selected_product_ids: formData.show_all_items ? [] : formData.selected_product_ids,
         selected_service_ids: formData.show_all_items ? [] : formData.selected_service_ids,
+        group_by_category: formData.group_by_category,
       };
 
       if (editingCatalog) {
@@ -937,6 +940,23 @@ export default function CatalogCreatorPanel() {
                   checked={formData.show_stock}
                   onCheckedChange={(checked) =>
                     setFormData((prev) => ({ ...prev, show_stock: checked }))
+                  }
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="group_by_category" className="cursor-pointer">
+                    Agrupar por categoria
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Organiza os itens por categoria no catálogo público
+                  </p>
+                </div>
+                <Switch
+                  id="group_by_category"
+                  checked={formData.group_by_category}
+                  onCheckedChange={(checked) =>
+                    setFormData((prev) => ({ ...prev, group_by_category: checked }))
                   }
                 />
               </div>

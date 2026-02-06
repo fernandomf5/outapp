@@ -1997,9 +1997,11 @@ export type Database = {
       catalogs: {
         Row: {
           background_color: string | null
+          category_order: string[] | null
           cover_url: string | null
           created_at: string | null
           description: string | null
+          group_by_category: boolean | null
           id: string
           is_active: boolean | null
           layout_style: string | null
@@ -2023,9 +2025,11 @@ export type Database = {
         }
         Insert: {
           background_color?: string | null
+          category_order?: string[] | null
           cover_url?: string | null
           created_at?: string | null
           description?: string | null
+          group_by_category?: boolean | null
           id?: string
           is_active?: boolean | null
           layout_style?: string | null
@@ -2049,9 +2053,11 @@ export type Database = {
         }
         Update: {
           background_color?: string | null
+          category_order?: string[] | null
           cover_url?: string | null
           created_at?: string | null
           description?: string | null
+          group_by_category?: boolean | null
           id?: string
           is_active?: boolean | null
           layout_style?: string | null
@@ -5221,6 +5227,45 @@ export type Database = {
         }
         Relationships: []
       }
+      product_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          order_index: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          order_index?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          order_index?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           access_duration_days: number | null
@@ -5228,6 +5273,7 @@ export type Database = {
           barcode: string | null
           business_id: string | null
           category: string | null
+          category_id: string | null
           cost_price: number | null
           created_at: string | null
           description: string | null
@@ -5257,6 +5303,7 @@ export type Database = {
           barcode?: string | null
           business_id?: string | null
           category?: string | null
+          category_id?: string | null
           cost_price?: number | null
           created_at?: string | null
           description?: string | null
@@ -5286,6 +5333,7 @@ export type Database = {
           barcode?: string | null
           business_id?: string | null
           category?: string | null
+          category_id?: string | null
           cost_price?: number | null
           created_at?: string | null
           description?: string | null
@@ -5315,6 +5363,13 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
             referencedColumns: ["id"]
           },
         ]
@@ -6898,6 +6953,7 @@ export type Database = {
         Row: {
           business_id: string | null
           category: string | null
+          category_id: string | null
           created_at: string | null
           description: string | null
           duration_minutes: number | null
@@ -6917,6 +6973,7 @@ export type Database = {
         Insert: {
           business_id?: string | null
           category?: string | null
+          category_id?: string | null
           created_at?: string | null
           description?: string | null
           duration_minutes?: number | null
@@ -6936,6 +6993,7 @@ export type Database = {
         Update: {
           business_id?: string | null
           category?: string | null
+          category_id?: string | null
           created_at?: string | null
           description?: string | null
           duration_minutes?: number | null
@@ -6958,6 +7016,13 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_services_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
             referencedColumns: ["id"]
           },
         ]
