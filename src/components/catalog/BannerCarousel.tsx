@@ -85,27 +85,11 @@ export function BannerCarousel({ banners, primaryColor, textColor }: BannerCarou
             className="min-w-full cursor-pointer"
             onClick={() => handleBannerClick(banner)}
           >
-            <div className="relative">
-              <img 
-                src={banner.image_url} 
-                alt={banner.title || "Banner"} 
-                className="w-full h-auto rounded-xl"
-              />
-              {(banner.title || banner.subtitle) && (
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-xl">
-                  <div className="text-center text-white px-4">
-                    {banner.title && (
-                      <h3 className="text-lg md:text-2xl font-bold mb-1">
-                        {banner.title}
-                      </h3>
-                    )}
-                    {banner.subtitle && (
-                      <p className="text-sm md:text-base opacity-90">{banner.subtitle}</p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
+            <img 
+              src={banner.image_url} 
+              alt={banner.title || "Banner"} 
+              className="w-full h-auto rounded-xl"
+            />
           </div>
         ))}
       </div>
