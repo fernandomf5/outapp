@@ -36,7 +36,8 @@ import {
   Code,
   FileCode,
   MapPin,
-  Layers
+  Layers,
+  Palette
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
@@ -61,7 +62,7 @@ import { CSS } from '@dnd-kit/utilities';
 
 interface BriefingField {
   id: string;
-  type: 'text' | 'textarea' | 'email' | 'phone' | 'number' | 'checkbox' | 'file' | 'date' | 'time' | 'url' | 'select' | 'radio' | 'rating' | 'address';
+  type: 'text' | 'textarea' | 'email' | 'phone' | 'number' | 'checkbox' | 'file' | 'date' | 'time' | 'url' | 'select' | 'radio' | 'rating' | 'address' | 'color';
   label: string;
   placeholder?: string;
   required: boolean;
@@ -110,6 +111,7 @@ function SortableField({ field, onEdit, onDelete }: { field: BriefingField; onEd
       case 'radio': return <Circle className="h-4 w-4" />;
       case 'rating': return <Star className="h-4 w-4" />;
       case 'address': return <MapPin className="h-4 w-4" />;
+      case 'color': return <Palette className="h-4 w-4" />;
       default: return <Type className="h-4 w-4" />;
     }
   };
@@ -568,6 +570,7 @@ export function BriefingCreatorPanel({ teamContext }: BriefingCreatorPanelProps)
     { value: 'time', label: 'Hora', icon: Clock },
     { value: 'url', label: 'Link/URL', icon: Link2 },
     { value: 'address', label: 'Endereço (CEP)', icon: MapPin },
+    { value: 'color', label: 'Seletor de Cor', icon: Palette },
   ];
 
   // Get unique steps from fields

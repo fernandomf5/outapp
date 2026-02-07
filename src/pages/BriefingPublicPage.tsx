@@ -375,6 +375,38 @@ export default function BriefingPublicPage() {
             primaryColor={addressPrimaryColor}
           />
         );
+      case 'color':
+        return (
+          <div className="flex items-center gap-3">
+            <input
+              type="color"
+              value={value || '#000000'}
+              onChange={(e) => setResponses({ ...responses, [field.label]: e.target.value })}
+              className="w-12 h-12 rounded-lg border border-border cursor-pointer"
+              style={{ backgroundColor: briefing?.field_background_color || '#ffffff' }}
+            />
+            <Input
+              type="text"
+              value={value || ''}
+              onChange={(e) => setResponses({ ...responses, [field.label]: e.target.value })}
+              placeholder={field.placeholder || "#000000"}
+              required={field.required}
+              className="flex-1"
+              style={{
+                backgroundColor: briefing?.field_background_color || '#ffffff',
+                color: briefing?.text_color || '#1a1a2e',
+                borderColor: briefing?.primary_color || '#8B5CF6'
+              }}
+            />
+            {value && (
+              <div 
+                className="w-8 h-8 rounded-md border border-border shadow-sm"
+                style={{ backgroundColor: value }}
+                title={`Cor selecionada: ${value}`}
+              />
+            )}
+          </div>
+        );
       case 'file':
         return (
           <div className="space-y-2">
