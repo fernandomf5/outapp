@@ -1350,19 +1350,28 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
                       </>
                     )}
                     {clients.map(client => (
-                      <Button 
-                        key={client.id}
-                        variant="outline" 
-                        className="justify-start h-auto py-4 px-4"
-                        onClick={() => setSelectedClientFilter(client.id)}
-                      >
-                        <div className="text-left">
-                          <div className="font-semibold">{client.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {tasks.filter(t => t.client_id === client.id).length} tarefas
+                      <div key={client.id} className="flex items-center gap-2">
+                        <Button 
+                          variant="outline" 
+                          className="justify-start h-auto py-4 px-4 flex-1"
+                          onClick={() => setSelectedClientFilter(client.id)}
+                        >
+                          <div className="text-left">
+                            <div className="font-semibold">{client.name}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {tasks.filter(t => t.client_id === client.id).length} tarefas
+                            </div>
                           </div>
-                        </div>
-                      </Button>
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          className="text-destructive hover:text-destructive shrink-0"
+                          onClick={() => setClientToRemove(client.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     ))}
                     {clients.length === 0 && !isTeamMember && (
                       <div className="text-center py-4">
@@ -1458,26 +1467,35 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
                       </>
                     )}
                     {businesses.map(business => (
-                      <Button 
-                        key={business.id}
-                        variant="outline" 
-                        className="justify-start h-auto py-4 px-4 gap-3"
-                        onClick={() => setSelectedBusinessFilter(business.id)}
-                      >
-                        {business.logo_url ? (
-                          <img src={business.logo_url} alt={business.name} className="w-8 h-8 rounded-lg object-cover" />
-                        ) : (
-                          <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
-                            <Building2 className="h-4 w-4 text-muted-foreground" />
+                      <div key={business.id} className="flex items-center gap-2">
+                        <Button 
+                          variant="outline" 
+                          className="justify-start h-auto py-4 px-4 gap-3 flex-1"
+                          onClick={() => setSelectedBusinessFilter(business.id)}
+                        >
+                          {business.logo_url ? (
+                            <img src={business.logo_url} alt={business.name} className="w-8 h-8 rounded-lg object-cover" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                              <Building2 className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          )}
+                          <div className="text-left">
+                            <div className="font-semibold">{business.name}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {tasks.filter(t => t.business_id === business.id).length} tarefas
+                            </div>
                           </div>
-                        )}
-                        <div className="text-left">
-                          <div className="font-semibold">{business.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {tasks.filter(t => t.business_id === business.id).length} tarefas
-                          </div>
-                        </div>
-                      </Button>
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          className="text-destructive hover:text-destructive shrink-0"
+                          onClick={() => setBusinessToRemove(business.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     ))}
                     {businesses.length === 0 && !isTeamMember && (
                       <div className="text-center py-4">
