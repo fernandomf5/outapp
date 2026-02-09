@@ -1,6 +1,6 @@
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck, Layers, LogIn, Filter, Download, Smartphone, RefreshCw, FileType, Video, Truck, Building2, Package, CalendarCheck, BookOpen } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck, Layers, LogIn, Filter, Download, Smartphone, RefreshCw, FileType, Video, Truck, Building2, Package, CalendarCheck, BookOpen, Search, X } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
 import { useTheme } from "next-themes";
 import logoLight from "@/assets/logo-light.png";
 import logoDark from "@/assets/logo-dark.png";
@@ -24,6 +24,7 @@ import { useUserFeatures } from "@/hooks/useUserFeatures";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface MenuItem {
   title: string;
@@ -56,6 +57,9 @@ export function UserSidebar() {
 
   // State for team membership check (for regular users who are also team members elsewhere)
   const [teamMembership, setTeamMembership] = useState<{ adminName: string; adminUserId: string } | null>(null);
+  
+  // Search state - must be at top level with other useState calls
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     // Only check team membership for regular users (not when already logged as team member)
@@ -200,6 +204,36 @@ export function UserSidebar() {
     return items.some(item => canShowItem(item));
   };
 
+  // Combine all items for search
+  
+  // Combine all items for search
+  const allMenuItems = useMemo(() => {
+    const items = [
+      ...mainItems,
+      ...managementItems,
+      ...financialItems,
+      ...crmItems,
+      ...basicResourcesItems,
+      ...advancedResourcesItems,
+      ...supportItems,
+    ];
+    return items.filter(item => canShowItem(item));
+  }, [mainItems, managementItems, financialItems, crmItems, basicResourcesItems, advancedResourcesItems, supportItems, canShowItem]);
+  
+  // Filter items based on search query
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const query = searchQuery.toLowerCase().trim();
+    return allMenuItems.filter(item => 
+      item.title.toLowerCase().includes(query)
+    );
+  }, [searchQuery, allMenuItems]);
+
+  const handleSearchSelect = (item: MenuItem) => {
+    handleNavigation(item.path, item.tab);
+    setSearchQuery("");
+  };
+
   return (
     <Sidebar className={collapsed ? "w-14" : "w-56 sm:w-60"} collapsible="icon">
       <div className="flex items-center justify-center p-3 sm:p-4 border-b border-border">
@@ -208,6 +242,53 @@ export function UserSidebar() {
           {!collapsed && <span className="font-bold text-base sm:text-lg">Out App</span>}
         </Link>
       </div>
+      
+      {/* Search input */}
+      {!collapsed && (
+        <div className="px-2 py-2 border-b border-border relative">
+          <div className="relative">
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Buscar recurso..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 pr-8 h-8 text-sm bg-muted/50"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          
+          {/* Search results dropdown */}
+          {searchQuery && searchResults.length > 0 && (
+            <div className="absolute left-2 right-2 top-full mt-1 bg-popover border border-border rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
+              {searchResults.map((item) => (
+                <button
+                  key={`${item.path}-${item.tab}`}
+                  onClick={() => handleSearchSelect(item)}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent transition-colors text-left"
+                >
+                  <item.icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span className="truncate">{item.title}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          
+          {/* No results message */}
+          {searchQuery && searchResults.length === 0 && (
+            <div className="absolute left-2 right-2 top-full mt-1 bg-popover border border-border rounded-md shadow-lg z-50 p-3">
+              <p className="text-sm text-muted-foreground text-center">Nenhum resultado encontrado</p>
+            </div>
+          )}
+        </div>
+      )}
       
       <ScrollArea className="flex-1 overflow-y-auto">
         <SidebarContent className="p-1 sm:p-2">
