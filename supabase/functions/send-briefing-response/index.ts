@@ -55,6 +55,15 @@ const handler = async (req: Request): Promise<Response> => {
         return formatAddress(value);
       }
       
+      // Handle color type - display hex code with color preview
+      if (fieldType === 'color') {
+        const colorValue = String(value).startsWith('#') ? value : `#${value}`;
+        return `<span style="display: inline-flex; align-items: center; gap: 8px;">
+          <span style="display: inline-block; width: 24px; height: 24px; background-color: ${colorValue}; border-radius: 4px; border: 1px solid #e5e7eb;"></span>
+          <code style="background-color: #f3f4f6; padding: 2px 8px; border-radius: 4px; font-family: monospace;">${colorValue}</code>
+        </span>`;
+      }
+      
       // Handle other types
       if (fieldType === 'checkbox') {
         return value === true ? 'Sim' : 'Não';
