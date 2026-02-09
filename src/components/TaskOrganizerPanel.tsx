@@ -338,7 +338,6 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
   const [customerCategories, setCustomerCategories] = useState<Array<{id: string, name: string, color: string}>>([]);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("all");
   const [clientToRemove, setClientToRemove] = useState<string | null>(null);
-  const [clientToDelete, setClientToDelete] = useState<string | null>(null);
 
 
   const sensors = useSensors(
@@ -610,34 +609,6 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
       loadClients();
     } catch (error: any) {
       toast.error("Erro ao remover cliente: " + error.message);
-    }
-  };
-
-  // Delete customer permanently from database
-  const handleDeleteClient = async (customerId: string) => {
-    try {
-      const userId = await getTargetUserId();
-      if (!userId) return;
-
-      // First remove the link from task_client_links
-      await supabase
-        .from("task_client_links")
-        .delete()
-        .eq("user_id", userId)
-        .eq("customer_id", customerId);
-
-      // Then delete the customer from the customers table
-      const { error } = await supabase
-        .from("customers")
-        .delete()
-        .eq("id", customerId);
-
-      if (error) throw error;
-      toast.success("Cliente excluído permanentemente!");
-      setClientToDelete(null);
-      loadClients();
-    } catch (error: any) {
-      toast.error("Erro ao excluir cliente: " + error.message);
     }
   };
 
@@ -1323,26 +1294,14 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
                                 {tasks.filter(t => t.client_id === client.id).length} tarefas vinculadas
                               </p>
                             </div>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => setClientToRemove(client.id)}>
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Desvincular do Organizador
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  onClick={() => setClientToDelete(client.id)}
-                                  className="text-destructive focus:text-destructive"
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Excluir Permanentemente
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => setClientToRemove(client.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </Card>
                       ))}
@@ -1719,26 +1678,7 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Delete Client Permanently Confirmation */}
-        <AlertDialog open={!!clientToDelete} onOpenChange={(open) => !open && setClientToDelete(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Excluir cliente permanentemente?</AlertDialogTitle>
-              <AlertDialogDescription>
-                <span className="text-destructive font-medium">ATENÇÃO:</span> Isso irá excluir o cliente permanentemente de todo o sistema. Esta ação não pode ser desfeita. As tarefas vinculadas a este cliente NÃO serão excluídas.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction 
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                onClick={() => clientToDelete && handleDeleteClient(clientToDelete)}
-              >
-                Excluir Permanentemente
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        {/* Remove Business Confirmation */}
         <AlertDialog open={!!businessToRemove} onOpenChange={(open) => !open && setBusinessToRemove(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
