@@ -591,12 +591,22 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
     }
   };
 
-  // Remove customer link from task organizer
+  // Remove customer link from task organizer and delete all related tasks
   const handleUnlinkCustomer = async (customerId: string) => {
     try {
       const userId = await getTargetUserId();
       if (!userId) return;
 
+      // First delete all tasks linked to this client
+      const { error: tasksError } = await supabase
+        .from("tasks")
+        .delete()
+        .eq("user_id", userId)
+        .eq("client_id", customerId);
+
+      if (tasksError) throw tasksError;
+
+      // Then remove the client link
       const { error } = await supabase
         .from("task_client_links")
         .delete()
@@ -604,9 +614,10 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
         .eq("customer_id", customerId);
 
       if (error) throw error;
-      toast.success("Cliente removido do organizador de tarefas!");
+      toast.success("Cliente e suas tarefas removidos do organizador!");
       setClientToRemove(null);
       loadClients();
+      loadData();
     } catch (error: any) {
       toast.error("Erro ao remover cliente: " + error.message);
     }
