@@ -42,6 +42,8 @@ interface SimpleMembersAreaPreviewProps {
   cardTextColor?: string;
   headerBackgroundColor?: string;
   accentColor?: string;
+  areaType?: string;
+  customerName?: string;
 }
 
 type DeviceType = 'desktop' | 'tablet' | 'mobile';
@@ -62,6 +64,8 @@ export function SimpleMembersAreaPreview({
   cardTextColor = '#374151',
   headerBackgroundColor = '#f3f4f6',
   accentColor = '#8B5CF6',
+  areaType = 'course',
+  customerName,
 }: SimpleMembersAreaPreviewProps) {
   const [previewMode, setPreviewMode] = useState<ViewMode>('login');
   const [deviceType, setDeviceType] = useState<DeviceType>('desktop');
@@ -357,11 +361,13 @@ export function SimpleMembersAreaPreview({
                 )}
                 <div>
                   <h2 className="text-sm font-bold truncate" style={{ color: textColor }}>
-                    {name || "Sua Área"}
+                    {customerName ? `Olá, ${customerName}! 👋` : (name || "Sua Área")}
                   </h2>
                   {deviceType !== 'mobile' && (
                     <p className="text-[10px] truncate" style={{ color: cardTextColor }}>
-                      {description || "Bem-vindo à sua área de membros"}
+                      {customerName 
+                        ? (description || "Bem-vindo à sua área exclusiva")
+                        : (description || "Bem-vindo à sua área de membros")}
                     </p>
                   )}
                 </div>
@@ -382,7 +388,8 @@ export function SimpleMembersAreaPreview({
           {/* Content */}
           <ScrollArea className="flex-1">
             <div className="p-3 space-y-3">
-              {/* Progress Card */}
+              {/* Progress Card - only for courses */}
+              {areaType !== 'exclusive' && (
               <div 
                 className="p-3 rounded-lg"
                 style={{ backgroundColor: cardBackgroundColor }}
@@ -411,6 +418,7 @@ export function SimpleMembersAreaPreview({
                   />
                 </div>
               </div>
+              )}
 
               {/* Sections List */}
               <div className="space-y-2">

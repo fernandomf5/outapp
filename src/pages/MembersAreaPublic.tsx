@@ -50,6 +50,8 @@ interface MembersArea {
   card_text_color?: string;
   header_background_color?: string;
   accent_color?: string;
+  area_type?: string;
+  customer_name?: string;
 }
 
 export default function MembersAreaPublic() {
@@ -662,7 +664,8 @@ export default function MembersAreaPublic() {
               <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>{area.description}</p>
             </div>
 
-            {/* Progress */}
+            {/* Progress - only show for courses */}
+            {area.area_type !== 'exclusive' && (
             <div className="p-4 border-b" style={{ borderColor: `${accentColor}15` }}>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium" style={{ color: cardTextColor }}>Seu Progresso</span>
@@ -681,6 +684,7 @@ export default function MembersAreaPublic() {
                 />
               </div>
             </div>
+            )}
 
             {/* Sections List */}
             <div className="p-4 space-y-2">
@@ -737,7 +741,11 @@ export default function MembersAreaPublic() {
                 style={{ backgroundColor: headerBackgroundColor, borderColor: `${accentColor}15` }}
               >
                 <h2 className="text-xl font-bold" style={{ color: textColor }}>Início</h2>
-                <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>Bem-vindo à sua área de membros</p>
+                <p className="text-sm mt-1 opacity-70" style={{ color: textColor }}>
+                  {area.customer_name 
+                    ? `Olá, ${area.customer_name}! Bem-vindo(a) à sua área exclusiva` 
+                    : 'Bem-vindo à sua área de membros'}
+                </p>
               </div>
               <div className="p-4 md:p-6 space-y-4">
                 {/* Welcome Card */}
@@ -760,13 +768,17 @@ export default function MembersAreaPublic() {
                         {area.name ? area.name.charAt(0).toUpperCase() : 'A'}
                       </div>
                     )}
-                    <h3 className="text-2xl font-bold mb-2" style={{ color: textColor }}>{area.name}</h3>
+                    <h3 className="text-2xl font-bold mb-2" style={{ color: textColor }}>
+                      {area.customer_name 
+                        ? `Olá, ${area.customer_name}! 👋` 
+                        : area.name}
+                    </h3>
                     <p className="opacity-70" style={{ color: textColor }}>{area.description}</p>
                   </div>
                 </Card>
 
                 {/* Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className={`grid gap-4 ${area.area_type === 'exclusive' ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-3'}`}>
                   <Card className="p-4" style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}20` }}>
                     <div className="text-2xl font-bold" style={{ color: accentColor }}>{area.sections.length}</div>
                     <div className="text-sm opacity-70" style={{ color: cardTextColor }}>Módulos</div>
@@ -777,10 +789,12 @@ export default function MembersAreaPublic() {
                     </div>
                     <div className="text-sm opacity-70" style={{ color: cardTextColor }}>Conteúdos</div>
                   </Card>
-                  <Card className="p-4" style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}20` }}>
-                    <div className="text-2xl font-bold" style={{ color: accentColor }}>35%</div>
-                    <div className="text-sm opacity-70" style={{ color: cardTextColor }}>Progresso</div>
-                  </Card>
+                  {area.area_type !== 'exclusive' && (
+                    <Card className="p-4" style={{ backgroundColor: cardBackgroundColor, borderColor: `${accentColor}20` }}>
+                      <div className="text-2xl font-bold" style={{ color: accentColor }}>35%</div>
+                      <div className="text-sm opacity-70" style={{ color: cardTextColor }}>Progresso</div>
+                    </Card>
+                  )}
                 </div>
 
                 {/* Quick Access */}
@@ -836,12 +850,15 @@ export default function MembersAreaPublic() {
                         <User className="w-8 h-8" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold" style={{ color: textColor }}>Membro</h3>
+                        <h3 className="text-lg font-semibold" style={{ color: textColor }}>
+                          {area.customer_name || 'Membro'}
+                        </h3>
                         <p className="text-sm opacity-70" style={{ color: textColor }}>Acesso Premium</p>
                       </div>
                     </div>
                     
                     <div className="space-y-4">
+                      {area.area_type !== 'exclusive' && (
                       <div 
                         className="p-4 rounded-lg"
                         style={{ backgroundColor: `${accentColor}08` }}
@@ -863,6 +880,7 @@ export default function MembersAreaPublic() {
                           />
                         </div>
                       </div>
+                      )}
 
                       <div 
                         className="p-4 rounded-lg"
