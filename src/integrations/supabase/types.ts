@@ -6132,12 +6132,14 @@ export type Database = {
       simple_members_areas: {
         Row: {
           accent_color: string | null
+          area_type: string
           background_color: string | null
           business_id: string | null
           card_background_color: string | null
           card_text_color: string | null
           created_at: string | null
           customer_id: string | null
+          customer_name: string | null
           description: string | null
           header_background_color: string | null
           id: string
@@ -6157,12 +6159,14 @@ export type Database = {
         }
         Insert: {
           accent_color?: string | null
+          area_type?: string
           background_color?: string | null
           business_id?: string | null
           card_background_color?: string | null
           card_text_color?: string | null
           created_at?: string | null
           customer_id?: string | null
+          customer_name?: string | null
           description?: string | null
           header_background_color?: string | null
           id?: string
@@ -6182,12 +6186,14 @@ export type Database = {
         }
         Update: {
           accent_color?: string | null
+          area_type?: string
           background_color?: string | null
           business_id?: string | null
           card_background_color?: string | null
           card_text_color?: string | null
           created_at?: string | null
           customer_id?: string | null
+          customer_name?: string | null
           description?: string | null
           header_background_color?: string | null
           id?: string

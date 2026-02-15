@@ -50,7 +50,9 @@ interface MembersArea {
   secondary_color?: string;
   logo_url?: string;
   customer_id?: string;
+  customer_name?: string;
   business_id?: string;
+  area_type?: string; // 'course' or 'exclusive'
   // Design da área interna
   background_color?: string;
   text_color?: string;
@@ -154,7 +156,7 @@ export function SimpleMembersArea() {
   const [uploadedImageUrl, setUploadedImageUrl] = useState('');
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [businesses, setBusinesses] = useState<Business[]>([]);
-  const [areaFormData, setAreaFormData] = useState({
+  const defaultAreaFormData = {
     name: '',
     description: '',
     password: '',
@@ -162,7 +164,9 @@ export function SimpleMembersArea() {
     secondary_color: '#EC4899',
     logo_url: '',
     customer_id: '',
+    customer_name: '',
     business_id: '',
+    area_type: 'course' as string,
     // Design da tela de login
     login_background_color: '#1a1a2e',
     login_text_color: '#ffffff',
@@ -173,7 +177,8 @@ export function SimpleMembersArea() {
     card_text_color: '#374151',
     header_background_color: '#f3f4f6',
     accent_color: '#8B5CF6',
-  });
+  };
+  const [areaFormData, setAreaFormData] = useState(defaultAreaFormData);
 
   const [sectionFormData, setSectionFormData] = useState({
     title: '',
@@ -244,6 +249,11 @@ export function SimpleMembersArea() {
 
       const slug = areaFormData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
+      // Get customer name if customer is selected
+      const selectedCustomer = areaFormData.customer_id 
+        ? customers.find(c => c.id === areaFormData.customer_id) 
+        : null;
+
       const { data, error } = await supabase
         .from('simple_members_areas' as any)
         .insert({
@@ -258,7 +268,9 @@ export function SimpleMembersArea() {
           secondary_color: areaFormData.secondary_color,
           logo_url: areaFormData.logo_url || null,
           customer_id: areaFormData.customer_id || null,
+          customer_name: selectedCustomer?.name || null,
           business_id: areaFormData.business_id || null,
+          area_type: areaFormData.area_type,
           login_background_color: areaFormData.login_background_color,
           login_text_color: areaFormData.login_text_color,
           background_color: areaFormData.background_color,
@@ -275,7 +287,7 @@ export function SimpleMembersArea() {
 
       toast.success('Área de membros criada com sucesso!');
       setIsCreateDialogOpen(false);
-      setAreaFormData({ name: '', description: '', password: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', logo_url: '', customer_id: '', business_id: '', login_background_color: '#1a1a2e', login_text_color: '#ffffff', background_color: '#ffffff', text_color: '#1f2937', card_background_color: '#f9fafb', card_text_color: '#374151', header_background_color: '#f3f4f6', accent_color: '#8B5CF6' });
+      setAreaFormData(defaultAreaFormData);
       loadAreas();
     } catch (error: any) {
       toast.error('Erro ao criar área: ' + error.message);
@@ -503,7 +515,9 @@ export function SimpleMembersArea() {
       secondary_color: area.secondary_color || '#EC4899',
       logo_url: area.logo_url || '',
       customer_id: area.customer_id || '',
+      customer_name: area.customer_name || '',
       business_id: area.business_id || '',
+      area_type: area.area_type || 'course',
       login_background_color: (area as any).login_background_color || '#1a1a2e',
       login_text_color: (area as any).login_text_color || '#ffffff',
       background_color: area.background_color || '#ffffff',
@@ -521,6 +535,12 @@ export function SimpleMembersArea() {
     
     try {
       setLoading(true);
+
+      // Get customer name if customer is selected
+      const selectedCustomer = areaFormData.customer_id 
+        ? customers.find(c => c.id === areaFormData.customer_id) 
+        : null;
+
       const { error } = await supabase
         .from('simple_members_areas' as any)
         .update({
@@ -531,7 +551,9 @@ export function SimpleMembersArea() {
           secondary_color: areaFormData.secondary_color,
           logo_url: areaFormData.logo_url || null,
           customer_id: areaFormData.customer_id || null,
+          customer_name: selectedCustomer?.name || null,
           business_id: areaFormData.business_id || null,
+          area_type: areaFormData.area_type,
           login_background_color: areaFormData.login_background_color,
           login_text_color: areaFormData.login_text_color,
           background_color: areaFormData.background_color,
@@ -548,7 +570,7 @@ export function SimpleMembersArea() {
       toast.success('Área atualizada com sucesso!');
       setIsEditDialogOpen(false);
       setEditingArea(null);
-      setAreaFormData({ name: '', description: '', password: '', primary_color: '#8B5CF6', secondary_color: '#EC4899', logo_url: '', customer_id: '', business_id: '', login_background_color: '#1a1a2e', login_text_color: '#ffffff', background_color: '#ffffff', text_color: '#1f2937', card_background_color: '#f9fafb', card_text_color: '#374151', header_background_color: '#f3f4f6', accent_color: '#8B5CF6' });
+      setAreaFormData(defaultAreaFormData);
       loadAreas();
     } catch (error: any) {
       toast.error('Erro ao atualizar área: ' + error.message);
@@ -859,6 +881,8 @@ export function SimpleMembersArea() {
                 cardTextColor={selectedArea.card_text_color || '#374151'}
                 headerBackgroundColor={selectedArea.header_background_color || '#f3f4f6'}
                 accentColor={selectedArea.accent_color || '#8B5CF6'}
+                areaType={selectedArea.area_type || 'course'}
+                customerName={selectedArea.customer_name}
               />
             </div>
           </div>
@@ -1244,6 +1268,26 @@ export function SimpleMembersArea() {
                   <p className="text-xs text-muted-foreground mt-1">Os membros precisarão desta senha para acessar o conteúdo</p>
                 </div>
                 <div>
+                  <Label>Tipo de Área</Label>
+                  <Select 
+                    value={areaFormData.area_type} 
+                    onValueChange={(value) => setAreaFormData({ ...areaFormData, area_type: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="course">📚 Curso (com progresso e acompanhamento)</SelectItem>
+                      <SelectItem value="exclusive">🔒 Área Exclusiva (sem progresso)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {areaFormData.area_type === 'course' 
+                      ? 'Mostrará barra de progresso e acompanhamento de módulos' 
+                      : 'Área exclusiva sem acompanhamento de progresso'}
+                  </p>
+                </div>
+                <div>
                   <ImageUpload
                     label="Logo (opcional)"
                     onImageSelect={(url) => setAreaFormData({ ...areaFormData, logo_url: url })}
@@ -1285,6 +1329,7 @@ export function SimpleMembersArea() {
                         ))}
                       </SelectContent>
                     </Select>
+                    <p className="text-xs text-muted-foreground mt-1">O cliente verá uma saudação personalizada com o nome dele ao acessar</p>
                   </div>
                 </div>
                 <div className="space-y-3">
@@ -1415,6 +1460,8 @@ export function SimpleMembersArea() {
                   cardTextColor={areaFormData.card_text_color}
                   headerBackgroundColor={areaFormData.header_background_color}
                   accentColor={areaFormData.accent_color}
+                  areaType={areaFormData.area_type}
+                  customerName={areaFormData.customer_id ? customers.find(c => c.id === areaFormData.customer_id)?.name : undefined}
                 />
               </div>
             </div>
@@ -1454,6 +1501,26 @@ export function SimpleMembersArea() {
                     placeholder="Defina uma senha"
                     type="text"
                   />
+                </div>
+                <div>
+                  <Label>Tipo de Área</Label>
+                  <Select 
+                    value={areaFormData.area_type} 
+                    onValueChange={(value) => setAreaFormData({ ...areaFormData, area_type: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="course">📚 Curso (com progresso e acompanhamento)</SelectItem>
+                      <SelectItem value="exclusive">🔒 Área Exclusiva (sem progresso)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {areaFormData.area_type === 'course' 
+                      ? 'Mostrará barra de progresso e acompanhamento de módulos' 
+                      : 'Área exclusiva sem acompanhamento de progresso'}
+                  </p>
                 </div>
                 <div>
                   <ImageUpload
@@ -1497,6 +1564,7 @@ export function SimpleMembersArea() {
                         ))}
                       </SelectContent>
                     </Select>
+                    <p className="text-xs text-muted-foreground mt-1">O cliente verá uma saudação personalizada com o nome dele ao acessar</p>
                   </div>
                 </div>
                 <div className="space-y-3">
@@ -1627,6 +1695,8 @@ export function SimpleMembersArea() {
                   cardTextColor={areaFormData.card_text_color}
                   headerBackgroundColor={areaFormData.header_background_color}
                   accentColor={areaFormData.accent_color}
+                  areaType={areaFormData.area_type}
+                  customerName={areaFormData.customer_id ? customers.find(c => c.id === areaFormData.customer_id)?.name : undefined}
                 />
               </div>
             </div>
