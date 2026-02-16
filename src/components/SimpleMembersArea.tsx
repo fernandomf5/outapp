@@ -1161,12 +1161,12 @@ export function SimpleMembersArea() {
                     <p className="text-xs text-muted-foreground">
                       Adicione várias URLs de vídeo (YouTube, Vimeo, etc). Uma por linha.
                     </p>
-                    {blockFormData.content && blockFormData.content.split('|||').filter(Boolean).map((url, idx) => (
+                    {blockFormData.content && blockFormData.content.length > 0 && blockFormData.content.split('|||').map((url, idx) => (
                       <div key={idx} className="flex items-center gap-2">
                         <Input
                           value={url}
                           onChange={(e) => {
-                            const urls = blockFormData.content.split('|||').filter(Boolean);
+                            const urls = blockFormData.content.split('|||');
                             urls[idx] = e.target.value;
                             setBlockFormData({ ...blockFormData, content: urls.join('|||') });
                           }}
@@ -1178,7 +1178,7 @@ export function SimpleMembersArea() {
                           variant="ghost"
                           size="sm"
                           onClick={() => {
-                            const urls = blockFormData.content.split('|||').filter(Boolean);
+                            const urls = blockFormData.content.split('|||');
                             urls.splice(idx, 1);
                             setBlockFormData({ ...blockFormData, content: urls.join('|||') });
                           }}
@@ -1192,8 +1192,9 @@ export function SimpleMembersArea() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        const existing = blockFormData.content ? blockFormData.content + '|||' : '';
-                        setBlockFormData({ ...blockFormData, content: existing });
+                        const urls = blockFormData.content ? blockFormData.content.split('|||').filter(Boolean) : [];
+                        urls.push('');
+                        setBlockFormData({ ...blockFormData, content: urls.join('|||') });
                       }}
                     >
                       <Plus className="w-4 h-4 mr-1" /> Adicionar vídeo
