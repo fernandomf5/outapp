@@ -854,8 +854,8 @@ export default function RoutineOrganizerPanel() {
         </TabsList>
         
         <TabsContent value="weekly" className="mt-4">
-          <ScrollArea className="w-full">
-          <div className="grid gap-4 grid-cols-7 min-w-[900px]">
+          <div className="overflow-x-auto">
+          <div className="flex gap-4 pb-4" style={{ minWidth: 'max-content' }}>
             {DAYS_OF_WEEK.map(day => {
               const items = getItemsByDay(day.value);
               const dailyObjectives = getDailyObjectives(day.value);
@@ -864,18 +864,18 @@ export default function RoutineOrganizerPanel() {
               return (
                 <Card 
                   key={day.value} 
-                  className={`${isCurrentDay ? 'ring-2 ring-primary' : ''}`}
+                  className={`w-[220px] flex-shrink-0 ${isCurrentDay ? 'ring-2 ring-primary' : ''}`}
                 >
-                  <CardHeader className="p-3 pb-2">
-                    <CardTitle className="text-sm font-medium flex items-center justify-between">
+                  <CardHeader className="p-4 pb-2">
+                    <CardTitle className="text-base font-semibold flex items-center justify-between">
                       <span className={isCurrentDay ? 'text-primary' : ''}>{day.short}</span>
                       {isCurrentDay && (
                         <Badge variant="secondary" className="text-xs">Hoje</Badge>
                       )}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-3 pt-0">
-                    <ScrollArea className="h-[400px]">
+                  <CardContent className="p-4 pt-0">
+                    <ScrollArea className="h-[500px]">
                       <div className="space-y-2">
                         {/* Daily Objectives */}
                         {dailyObjectives.map(obj => (
@@ -973,7 +973,7 @@ export default function RoutineOrganizerPanel() {
               );
             })}
           </div>
-          </ScrollArea>
+          </div>
         </TabsContent>
         
         <TabsContent value="today" className="mt-4">
