@@ -1205,24 +1205,38 @@ export default function RoutineOrganizerPanel() {
               />
             </div>
             <div>
-              <Label>Dia da Semana</Label>
-              <div className="mt-2 grid grid-cols-4 gap-2">
-                {DAYS_OF_WEEK.map(day => (
-                  <div key={day.value} className="flex items-center gap-2">
-                    <Checkbox
-                      checked={itemFormData.days_of_week.includes(day.value)}
-                      onCheckedChange={(checked) => {
-                        setItemFormData(prev => {
-                          const newDays = checked
-                            ? [...prev.days_of_week, day.value]
-                            : prev.days_of_week.filter(d => d !== day.value);
-                          return { ...prev, days_of_week: newDays.length > 0 ? newDays : [day.value] };
-                        });
-                      }}
-                    />
-                    <Label className="text-sm">{day.short}</Label>
-                  </div>
-                ))}
+              <Label>Dias da Semana</Label>
+              <div className="mt-2 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={itemFormData.days_of_week.length === 7}
+                    onCheckedChange={(checked) => {
+                      setItemFormData(prev => ({
+                        ...prev,
+                        days_of_week: checked ? [0,1,2,3,4,5,6] : []
+                      }));
+                    }}
+                  />
+                  <Label className="text-sm font-medium">Semana toda</Label>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {DAYS_OF_WEEK.map(day => (
+                    <div key={day.value} className="flex items-center gap-2">
+                      <Checkbox
+                        checked={itemFormData.days_of_week.includes(day.value)}
+                        onCheckedChange={(checked) => {
+                          setItemFormData(prev => {
+                            const newDays = checked
+                              ? [...prev.days_of_week, day.value]
+                              : prev.days_of_week.filter(d => d !== day.value);
+                            return { ...prev, days_of_week: newDays.length > 0 ? newDays : [day.value] };
+                          });
+                        }}
+                      />
+                      <Label className="text-sm">{day.short}</Label>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
