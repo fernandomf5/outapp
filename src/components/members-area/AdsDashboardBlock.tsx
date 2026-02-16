@@ -89,6 +89,7 @@ export function AdsDashboardBlock({ clientId, accentColor, cardTextColor, cardBa
   const profit = totalRevenue - totalSpent;
   const roas = totalSpent > 0 ? totalRevenue / totalSpent : 0;
   const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
+  const currentCashbox = client.cashbox - totalSpent + totalRevenue;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -106,8 +107,8 @@ export function AdsDashboardBlock({ clientId, accentColor, cardTextColor, cardBa
           <DollarSign className="w-5 h-5" style={{ color: accentColor }} />
           <h3 className="font-bold text-base" style={{ color: cardTextColor }}>Caixa - {client.name}</h3>
         </div>
-        <div className="text-3xl font-bold" style={{ color: profit >= 0 ? '#10b981' : '#ef4444' }}>
-          {formatCurrency(client.cashbox)}
+        <div className="text-3xl font-bold" style={{ color: currentCashbox >= 0 ? '#10b981' : '#ef4444' }}>
+          {formatCurrency(currentCashbox)}
         </div>
         <p className="text-xs mt-1 opacity-70" style={{ color: cardTextColor }}>Saldo atual do caixa</p>
       </div>
