@@ -1159,46 +1159,83 @@ export function SimpleMembersArea() {
                 ) : blockFormData.type === 'video_gallery' ? (
                   <div className="space-y-3">
                     <p className="text-xs text-muted-foreground">
-                      Adicione várias URLs de vídeo (YouTube, Vimeo, etc). Uma por linha.
+                      Adicione várias URLs de vídeo com título e descrição.
                     </p>
-                    {blockFormData.content && blockFormData.content.length > 0 && blockFormData.content.split('|||').map((url, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <Input
-                          value={url}
-                          onChange={(e) => {
-                            const urls = blockFormData.content.split('|||');
-                            urls[idx] = e.target.value;
-                            setBlockFormData({ ...blockFormData, content: urls.join('|||') });
-                          }}
-                          placeholder="URL do vídeo"
-                          className="flex-1"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const urls = blockFormData.content.split('|||');
-                            urls.splice(idx, 1);
-                            setBlockFormData({ ...blockFormData, content: urls.join('|||') });
-                          }}
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    ))}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const urls = blockFormData.content ? blockFormData.content.split('|||').filter(Boolean) : [];
-                        urls.push('');
-                        setBlockFormData({ ...blockFormData, content: urls.join('|||') });
-                      }}
-                    >
-                      <Plus className="w-4 h-4 mr-1" /> Adicionar vídeo
-                    </Button>
+                    {(() => {
+                      let videos: { url: string; title: string; description: string }[] = [];
+                      try {
+                        videos = blockFormData.content ? JSON.parse(blockFormData.content) : [];
+                      } catch {
+                        // Migração de formato antigo (|||)
+                        if (blockFormData.content) {
+                          videos = blockFormData.content.split('|||').filter(Boolean).map(u => ({ url: u, title: '', description: '' }));
+                        }
+                      }
+                      const updateVideos = (newVideos: typeof videos) => {
+                        setBlockFormData({ ...blockFormData, content: JSON.stringify(newVideos) });
+                      };
+                      return (
+                        <>
+                          {videos.map((video, idx) => (
+                            <div key={idx} className="p-3 border rounded-lg space-y-2 bg-muted/20">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-medium text-muted-foreground">Vídeo {idx + 1}</span>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const updated = [...videos];
+                                    updated.splice(idx, 1);
+                                    updateVideos(updated);
+                                  }}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+                              <Input
+                                value={video.title}
+                                onChange={(e) => {
+                                  const updated = [...videos];
+                                  updated[idx] = { ...updated[idx], title: e.target.value };
+                                  updateVideos(updated);
+                                }}
+                                placeholder="Título do vídeo"
+                              />
+                              <Input
+                                value={video.url}
+                                onChange={(e) => {
+                                  const updated = [...videos];
+                                  updated[idx] = { ...updated[idx], url: e.target.value };
+                                  updateVideos(updated);
+                                }}
+                                placeholder="URL do vídeo (YouTube, Vimeo, etc)"
+                              />
+                              <Textarea
+                                value={video.description}
+                                onChange={(e) => {
+                                  const updated = [...videos];
+                                  updated[idx] = { ...updated[idx], description: e.target.value };
+                                  updateVideos(updated);
+                                }}
+                                placeholder="Descrição do vídeo (opcional)"
+                                className="min-h-[60px]"
+                              />
+                            </div>
+                          ))}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              updateVideos([...videos, { url: '', title: '', description: '' }]);
+                            }}
+                          >
+                            <Plus className="w-4 h-4 mr-1" /> Adicionar vídeo
+                          </Button>
+                        </>
+                      );
+                    })()}
                   </div>
                 ) : blockFormData.type === 'document' ? (
                   <DocumentUpload
