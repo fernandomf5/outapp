@@ -52,7 +52,7 @@ export function AdsDashboardBlock({ clientId, accentColor, cardTextColor, cardBa
     try {
       const [clientRes, campaignsRes] = await Promise.all([
         supabase.from('ad_clients').select('id, name, cashbox').eq('id', clientId).single(),
-        supabase.from('ad_campaigns').select('*').eq('client_id', clientId).order('start_date', { ascending: true })
+        supabase.from('ad_campaigns').select('*').eq('client_id', clientId).order('created_at', { ascending: true })
       ]);
 
       if (clientRes.data) setClient(clientRes.data);
@@ -241,8 +241,10 @@ function CampaignCard({ campaign, accentColor, cardTextColor }: { campaign: Camp
           <p className="font-medium" style={{ color: profit >= 0 ? '#10b981' : '#ef4444' }}>{formatCurrency(profit)}</p>
         </div>
       </div>
-      <div className="flex gap-3 mt-2 text-[10px] opacity-60" style={{ color: cardTextColor }}>
+      <div className="flex gap-3 mt-2 text-[10px] opacity-60 flex-wrap" style={{ color: cardTextColor }}>
         <span>{campaign.platform}</span>
+        <span>•</span>
+        <span>{new Date(campaign.start_date).toLocaleDateString('pt-BR')}{campaign.end_date ? ` - ${new Date(campaign.end_date).toLocaleDateString('pt-BR')}` : ''}</span>
         <span>•</span>
         <span><Eye className="w-3 h-3 inline mr-0.5" />{campaign.impressions.toLocaleString()}</span>
         <span>•</span>
