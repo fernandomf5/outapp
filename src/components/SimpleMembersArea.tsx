@@ -1255,13 +1255,86 @@ export function SimpleMembersArea() {
                       Cole a URL do arquivo que deseja disponibilizar para download
                     </p>
                   </>
+                ) : blockFormData.type === 'button' || blockFormData.type === 'link' ? (
+                  <div className="space-y-3">
+                    {(() => {
+                      let data: { items: { label: string; url: string }[]; layout: 'horizontal' | 'vertical' } = { items: [{ label: '', url: '' }], layout: 'horizontal' };
+                      try {
+                        const parsed = JSON.parse(blockFormData.content);
+                        if (parsed?.items) data = parsed;
+                      } catch {
+                        // Legacy single URL
+                        if (blockFormData.content) {
+                          data = { items: [{ label: blockFormData.title || '', url: blockFormData.content }], layout: 'horizontal' };
+                        }
+                      }
+                      const updateData = (newData: typeof data) => {
+                        setBlockFormData({ ...blockFormData, content: JSON.stringify(newData) });
+                      };
+                      return (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <Label className="text-xs">Disposição:</Label>
+                            <Select value={data.layout} onValueChange={(v: 'horizontal' | 'vertical') => updateData({ ...data, layout: v })}>
+                              <SelectTrigger className="w-[160px] h-8">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="horizontal">Horizontal</SelectItem>
+                                <SelectItem value="vertical">Vertical</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          {data.items.map((item, idx) => (
+                            <div key={idx} className="p-3 border rounded-lg space-y-2 bg-muted/20">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-medium text-muted-foreground">
+                                  {blockFormData.type === 'button' ? 'Botão' : 'Link'} {idx + 1}
+                                </span>
+                                {data.items.length > 1 && (
+                                  <Button type="button" variant="ghost" size="sm" onClick={() => {
+                                    const updated = { ...data, items: data.items.filter((_, i) => i !== idx) };
+                                    updateData(updated);
+                                  }}>
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
+                                )}
+                              </div>
+                              <Input
+                                value={item.label}
+                                onChange={(e) => {
+                                  const items = [...data.items];
+                                  items[idx] = { ...items[idx], label: e.target.value };
+                                  updateData({ ...data, items });
+                                }}
+                                placeholder={blockFormData.type === 'button' ? 'Texto do botão' : 'Texto do link'}
+                              />
+                              <Input
+                                value={item.url}
+                                onChange={(e) => {
+                                  const items = [...data.items];
+                                  items[idx] = { ...items[idx], url: e.target.value };
+                                  updateData({ ...data, items });
+                                }}
+                                placeholder="URL (https://...)"
+                              />
+                            </div>
+                          ))}
+                          <Button type="button" variant="outline" size="sm" onClick={() => {
+                            updateData({ ...data, items: [...data.items, { label: '', url: '' }] });
+                          }}>
+                            <Plus className="w-4 h-4 mr-1" /> Adicionar {blockFormData.type === 'button' ? 'botão' : 'link'}
+                          </Button>
+                        </>
+                      );
+                    })()}
+                  </div>
                 ) : (
                   <Textarea
                     value={blockFormData.content}
                     onChange={(e) => setBlockFormData({ ...blockFormData, content: e.target.value })}
                     placeholder={
                       blockFormData.type === 'video' ? 'URL do vídeo (YouTube, Vimeo, etc)' :
-                      blockFormData.type === 'link' || blockFormData.type === 'button' ? 'URL do link' :
                       'Conteúdo...'
                     }
                   />
