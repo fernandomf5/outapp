@@ -119,6 +119,10 @@ export function UserSidebar() {
   // Main items - overview is always visible, Blog is external
   const mainItems: MenuItem[] = [
     { title: t('overview'), icon: TrendingUp, path: "/dashboard", tab: "overview", hideForTeamMember: true },
+  ];
+
+  const organizerItems: MenuItem[] = [
+    { title: "Tarefas", icon: Target, path: "/dashboard", tab: "tarefas", moduleKey: "tasks" },
     { title: t('agenda'), icon: Calendar, path: "/dashboard", tab: "agenda", moduleKey: "agenda" },
     { title: "Rotina", icon: CalendarCheck, path: "/dashboard", tab: "rotina", hideForTeamMember: true },
   ];
@@ -130,8 +134,6 @@ export function UserSidebar() {
     { title: "Catálogo", icon: BookOpen, path: "/dashboard", tab: "catalogo", hideForTeamMember: true },
     { title: "Fornecedores", icon: Truck, path: "/dashboard", tab: "fornecedores", hideForTeamMember: true },
     { title: "Equipe", icon: UserCog, path: "/dashboard", tab: "equipe", hideForTeamMember: true },
-    { title: "Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios", moduleKey: "ads" },
-    { title: "Tarefas", icon: Target, path: "/dashboard", tab: "tarefas", moduleKey: "tasks" },
   ];
 
   const financialItems: MenuItem[] = [
@@ -151,13 +153,12 @@ export function UserSidebar() {
   ];
 
   const advancedResourcesItems: MenuItem[] = [
-    // Ordered items first
     { title: t('members_area'), icon: UserCog, path: "/dashboard", tab: "area-membros", hideForTeamMember: true },
+    { title: "Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios", moduleKey: "ads" },
     { title: t('portfolio'), icon: Layers, path: "/dashboard", tab: "portfolio", moduleKey: "portfolio" },
     { title: t('online_chat'), icon: MessageSquare, path: "/dashboard", tab: "ai-agents", moduleKey: "ai_agents" },
     { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner", moduleKey: "cloner" },
     { title: t('link_in_bio'), icon: ExternalLink, path: "/dashboard", tab: "linkbio", moduleKey: "link_bio" },
-    // Rest of the items
     { title: t('sales_funnel'), icon: Filter, path: "/dashboard", tab: "funil-vendas", moduleKey: "sales_funnel" },
     { title: t('briefing'), icon: FileText, path: "/dashboard", tab: "briefing", moduleKey: "briefings" },
     { title: t('quiz_creator'), icon: HelpCircle, path: "/dashboard", tab: "criador-quizz", hideForTeamMember: true },
@@ -210,6 +211,7 @@ export function UserSidebar() {
   const allMenuItems = useMemo(() => {
     const items = [
       ...mainItems,
+      ...organizerItems,
       ...managementItems,
       ...financialItems,
       ...crmItems,
@@ -218,7 +220,7 @@ export function UserSidebar() {
       ...supportItems,
     ];
     return items.filter(item => canShowItem(item));
-  }, [mainItems, managementItems, financialItems, crmItems, basicResourcesItems, advancedResourcesItems, supportItems, canShowItem]);
+  }, [mainItems, organizerItems, managementItems, financialItems, crmItems, basicResourcesItems, advancedResourcesItems, supportItems, canShowItem]);
   
   // Filter items based on search query
   const searchResults = useMemo(() => {
@@ -319,6 +321,31 @@ export function UserSidebar() {
                         )}
                     </SidebarMenuItem>
                   ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
+
+          {/* Organizer section */}
+          {hasVisibleItems(organizerItems) && (
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">Organizador de:</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {organizerItems.map((item) => {
+                    if (!canShowItem(item)) return null;
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          onClick={() => handleNavigation(item.path, item.tab)}
+                          className={`text-sm py-2 ${isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}`}
+                        >
+                          <item.icon className="h-4 w-4 shrink-0" />
+                          {!collapsed && <span className="truncate">{item.title}</span>}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
