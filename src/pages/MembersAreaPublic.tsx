@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { linkifyText } from "@/utils/linkify";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,7 +60,7 @@ function VideoGalleryItem({ video, accentColor, cardTextColor }: { video: { url:
             {showDesc ? 'Ocultar descrição' : 'Ver descrição'}
           </button>
           {showDesc && (
-            <p className="text-xs leading-relaxed pl-1" style={{ color: `${cardTextColor}99` }}>{video.description}</p>
+            <p className="text-xs leading-relaxed pl-1" style={{ color: `${cardTextColor}99` }}>{linkifyText(video.description)}</p>
           )}
         </>
       )}
