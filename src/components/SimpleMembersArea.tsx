@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink, Settings, Download, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation } from "lucide-react";
+import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink, Settings, Download, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Images, Film } from "lucide-react";
 import { DocumentUpload } from "@/components/DocumentUpload";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,7 +20,7 @@ import { SimpleMembersAreaPreview } from "@/components/members-area/SimpleMember
 import { ScrollArea } from "@/components/ui/scroll-area";
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery';
   content: string;
   title?: string;
   order_index: number;
@@ -109,6 +109,8 @@ const SortableBlock = ({ block, onEdit, onDelete }: { block: ContentBlock; onEdi
       mindmap: <Brain className="w-4 h-4" />,
       slides: <Presentation className="w-4 h-4" />,
       text: <FileText className="w-4 h-4" />,
+      gallery: <Images className="w-4 h-4" />,
+      video_gallery: <Film className="w-4 h-4" />,
     };
     return icons[block.type] || <FileText className="w-4 h-4" />;
   };
@@ -1066,6 +1068,8 @@ export function SimpleMembersArea() {
                     <SelectItem value="mindmap">🧠 Mapa Mental</SelectItem>
                     <SelectItem value="webinar">📡 Webinar/Live</SelectItem>
                     <SelectItem value="certificate">🏆 Certificado</SelectItem>
+                    <SelectItem value="gallery">🖼️ Galeria de Imagens</SelectItem>
+                    <SelectItem value="video_gallery">🎬 Múltiplos Vídeos</SelectItem>
                     <SelectItem value="customer_history">📜 Histórico do Cliente</SelectItem>
                   </SelectContent>
                 </Select>
@@ -1119,6 +1123,82 @@ export function SimpleMembersArea() {
                     onImageSelect={(url) => setBlockFormData({ ...blockFormData, content: url })}
                     bucketName="members-content"
                   />
+                ) : blockFormData.type === 'gallery' ? (
+                  <div className="space-y-3">
+                    <p className="text-xs text-muted-foreground">
+                      Adicione várias imagens à galeria. Cada upload adiciona uma imagem.
+                    </p>
+                    {blockFormData.content && blockFormData.content.split('|||').filter(Boolean).map((url, idx) => (
+                      <div key={idx} className="flex items-center gap-2 p-2 border rounded-md">
+                        <img src={url} alt={`Imagem ${idx + 1}`} className="w-16 h-16 object-cover rounded" />
+                        <span className="text-xs text-muted-foreground flex-1 truncate">{url}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const urls = blockFormData.content.split('|||').filter(Boolean);
+                            urls.splice(idx, 1);
+                            setBlockFormData({ ...blockFormData, content: urls.join('|||') });
+                          }}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
+                    <ImageUpload
+                      currentImage=""
+                      onImageSelect={(url) => {
+                        const existing = blockFormData.content ? blockFormData.content.split('|||').filter(Boolean) : [];
+                        existing.push(url);
+                        setBlockFormData({ ...blockFormData, content: existing.join('|||') });
+                      }}
+                      bucketName="members-content"
+                    />
+                  </div>
+                ) : blockFormData.type === 'video_gallery' ? (
+                  <div className="space-y-3">
+                    <p className="text-xs text-muted-foreground">
+                      Adicione várias URLs de vídeo (YouTube, Vimeo, etc). Uma por linha.
+                    </p>
+                    {blockFormData.content && blockFormData.content.split('|||').filter(Boolean).map((url, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <Input
+                          value={url}
+                          onChange={(e) => {
+                            const urls = blockFormData.content.split('|||').filter(Boolean);
+                            urls[idx] = e.target.value;
+                            setBlockFormData({ ...blockFormData, content: urls.join('|||') });
+                          }}
+                          placeholder="URL do vídeo"
+                          className="flex-1"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const urls = blockFormData.content.split('|||').filter(Boolean);
+                            urls.splice(idx, 1);
+                            setBlockFormData({ ...blockFormData, content: urls.join('|||') });
+                          }}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const existing = blockFormData.content ? blockFormData.content + '|||' : '';
+                        setBlockFormData({ ...blockFormData, content: existing });
+                      }}
+                    >
+                      <Plus className="w-4 h-4 mr-1" /> Adicionar vídeo
+                    </Button>
+                  </div>
                 ) : blockFormData.type === 'document' ? (
                   <DocumentUpload
                     currentDocument={blockFormData.content}

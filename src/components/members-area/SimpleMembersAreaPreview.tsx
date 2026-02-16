@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Lock, Play, FileText, Image, Video, Link as LinkIcon, MousePointer, Download, Eye, LogIn, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Monitor, Tablet, Smartphone, Home, BookOpen, User, ChevronRight } from "lucide-react";
+import { Lock, Play, FileText, Image, Video, Link as LinkIcon, MousePointer, Download, Eye, LogIn, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Monitor, Tablet, Smartphone, Home, BookOpen, User, ChevronRight, Images, Film } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery';
   content: string;
   title?: string;
   order_index: number;
@@ -118,6 +118,8 @@ export function SimpleMembersAreaPreview({
       mindmap: <Brain className="w-3 h-3" />,
       slides: <Presentation className="w-3 h-3" />,
       text: <FileText className="w-3 h-3" />,
+      gallery: <Images className="w-3 h-3" />,
+      video_gallery: <Film className="w-3 h-3" />,
     };
     return icons[type] || <FileText className="w-3 h-3" />;
   };
