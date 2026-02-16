@@ -6,15 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { Lock, Image as ImageIcon, Video, FileText, Link as LinkIcon, MousePointer, Download, LogOut, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Eye, EyeOff, Home, BookOpen, User, ChevronRight, Play, Menu, X, ChevronDown } from "lucide-react";
+import { Lock, Image as ImageIcon, Video, FileText, Link as LinkIcon, MousePointer, Download, LogOut, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Eye, EyeOff, Home, BookOpen, User, ChevronRight, Play, Menu, X, ChevronDown, Megaphone } from "lucide-react";
 import { toast } from "sonner";
 import { CustomerHistoryTimeline } from "@/components/members-area/CustomerHistoryTimeline";
+import { AdsDashboardBlock } from "@/components/members-area/AdsDashboardBlock";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard';
   content: string;
   title?: string;
   order_index: number;
@@ -178,7 +179,7 @@ export default function MembersAreaPublic() {
     return icons[type] || <FileText className="w-4 h-4" />;
   };
 
-  const renderBlock = (block: ContentBlock, accentColor: string, cardTextColor: string) => {
+  const renderBlock = (block: ContentBlock, accentColor: string, cardTextColor: string, cardBackgroundColor?: string) => {
     switch (block.type) {
       case 'text':
         return <div className="prose prose-sm max-w-none" style={{ color: cardTextColor }} dangerouslySetInnerHTML={{ __html: block.content }} />;
@@ -348,6 +349,35 @@ export default function MembersAreaPublic() {
             dangerouslySetInnerHTML={{ __html: block.content }} 
           />
         );
+
+      case 'ads_dashboard': {
+        let adsData = { client_id: '', client_name: '' };
+        try { adsData = JSON.parse(block.content); } catch { /* legacy */ }
+        if (!adsData.client_id) {
+          return (
+            <div className="text-center py-8" style={{ color: cardTextColor }}>
+              <Megaphone className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>Cliente de anúncios não selecionado</p>
+            </div>
+          );
+        }
+        return (
+          <div className="space-y-4">
+            {block.title && (
+              <h3 className="text-lg font-semibold flex items-center gap-2" style={{ color: cardTextColor }}>
+                <Megaphone className="w-5 h-5" style={{ color: accentColor }} />
+                {block.title}
+              </h3>
+            )}
+            <AdsDashboardBlock
+              clientId={adsData.client_id}
+              accentColor={accentColor}
+              cardTextColor={cardTextColor}
+              cardBackgroundColor={cardBackgroundColor}
+            />
+          </div>
+        );
+      }
 
       case 'customer_history':
         if (!block.customer_id) {
@@ -1159,7 +1189,7 @@ export default function MembersAreaPublic() {
                                         <div key={block.id}>
                                           {/* Show only content, no header/title */}
                                           <CardContent className="p-4">
-                                            {renderBlock(block, accentColor, cardTextColor)}
+                                            {renderBlock(block, accentColor, cardTextColor, cardBackgroundColor)}
                                           </CardContent>
                                         </div>
                                       ))}

@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink, Settings, Download, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Images, Film } from "lucide-react";
+import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink, Settings, Download, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Images, Film, Megaphone } from "lucide-react";
 import { DocumentUpload } from "@/components/DocumentUpload";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,7 +20,7 @@ import { SimpleMembersAreaPreview } from "@/components/members-area/SimpleMember
 import { ScrollArea } from "@/components/ui/scroll-area";
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard';
   content: string;
   title?: string;
   order_index: number;
@@ -158,6 +158,7 @@ export function SimpleMembersArea() {
   const [uploadedImageUrl, setUploadedImageUrl] = useState('');
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [adClients, setAdClients] = useState<{ id: string; name: string }[]>([]);
   const defaultAreaFormData = {
     name: '',
     description: '',
@@ -213,13 +214,15 @@ export function SimpleMembersArea() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const [customersRes, businessesRes] = await Promise.all([
+      const [customersRes, businessesRes, adClientsRes] = await Promise.all([
         supabase.from('customers').select('id, name').eq('user_id', user.id).order('name'),
-        supabase.from('businesses').select('id, name').eq('user_id', user.id).order('name')
+        supabase.from('businesses').select('id, name').eq('user_id', user.id).order('name'),
+        supabase.from('ad_clients').select('id, name').eq('user_id', user.id).order('name')
       ]);
 
       if (customersRes.data) setCustomers(customersRes.data);
       if (businessesRes.data) setBusinesses(businessesRes.data);
+      if (adClientsRes.data) setAdClients(adClientsRes.data);
     } catch (error) {
       console.error('Error loading customers/businesses:', error);
     }
@@ -1071,6 +1074,7 @@ export function SimpleMembersArea() {
                     <SelectItem value="webinar">📡 Webinar/Live</SelectItem>
                     <SelectItem value="certificate">🏆 Certificado</SelectItem>
                     <SelectItem value="customer_history">📜 Histórico do Cliente</SelectItem>
+                    <SelectItem value="ads_dashboard">📊 Anúncios (Dashboard)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1114,7 +1118,43 @@ export function SimpleMembersArea() {
                 </div>
               )}
 
-              {blockFormData.type !== 'customer_history' && (
+              {/* Seleção de Cliente de Anúncios */}
+              {blockFormData.type === 'ads_dashboard' && (
+                <div>
+                  <Label>Selecionar Cliente de Anúncios</Label>
+                  <Select 
+                    value={(() => {
+                      try { return JSON.parse(blockFormData.content)?.client_id || ''; } catch { return ''; }
+                    })()}
+                    onValueChange={(value) => {
+                      const client = adClients.find(c => c.id === value);
+                      setBlockFormData({ ...blockFormData, content: JSON.stringify({ client_id: value, client_name: client?.name || '' }) });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Escolha um cliente de anúncios..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {adClients.length === 0 ? (
+                        <div className="p-2 text-sm text-muted-foreground text-center">
+                          Nenhum cliente de anúncios cadastrado. Cadastre na Gestão de Anúncios.
+                        </div>
+                      ) : (
+                        adClients.map((client) => (
+                          <SelectItem key={client.id} value={client.id}>
+                            {client.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    O dashboard com campanhas e caixa deste cliente será exibido em tempo real
+                  </p>
+                </div>
+              )}
+
+              {blockFormData.type !== 'customer_history' && blockFormData.type !== 'ads_dashboard' && (
               <div>
                 <Label>Conteúdo</Label>
                 {blockFormData.type === 'image' ? (
