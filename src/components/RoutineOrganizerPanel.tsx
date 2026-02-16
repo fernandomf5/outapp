@@ -854,7 +854,27 @@ export default function RoutineOrganizerPanel() {
         </TabsList>
         
         <TabsContent value="weekly" className="mt-4">
-          <div className="overflow-x-auto">
+          <div
+            className="overflow-x-auto cursor-grab active:cursor-grabbing select-none"
+            onMouseDown={(e) => {
+              const el = e.currentTarget;
+              el.dataset.isDragging = 'false';
+              el.dataset.startX = String(e.pageX - el.offsetLeft);
+              el.dataset.scrollLeft = String(el.scrollLeft);
+              const onMouseMove = (ev: MouseEvent) => {
+                const x = ev.pageX - el.offsetLeft;
+                const walk = (x - Number(el.dataset.startX)) * 1.5;
+                el.scrollLeft = Number(el.dataset.scrollLeft) - walk;
+                el.dataset.isDragging = 'true';
+              };
+              const onMouseUp = () => {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+              };
+              document.addEventListener('mousemove', onMouseMove);
+              document.addEventListener('mouseup', onMouseUp);
+            }}
+          >
           <div className="flex gap-4 pb-4" style={{ minWidth: 'max-content' }}>
             {DAYS_OF_WEEK.map(day => {
               const items = getItemsByDay(day.value);
@@ -1185,21 +1205,22 @@ export default function RoutineOrganizerPanel() {
             </div>
             <div>
               <Label>Dia da Semana</Label>
-              <Select
-                value={itemFormData.days_of_week[0]?.toString() || '1'}
-                onValueChange={(v) => setItemFormData({ ...itemFormData, days_of_week: [parseInt(v)] })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {DAYS_OF_WEEK.map(day => (
-                    <SelectItem key={day.value} value={day.value.toString()}>
-                      {day.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="mt-2 grid grid-cols-4 gap-2">
+                {DAYS_OF_WEEK.map(day => (
+                  <div key={day.value} className="flex items-center gap-2">
+                    <Checkbox
+                      checked={itemFormData.days_of_week.includes(day.value)}
+                      onCheckedChange={(checked) => {
+                        const newDays = checked
+                          ? [...itemFormData.days_of_week, day.value]
+                          : itemFormData.days_of_week.filter(d => d !== day.value);
+                        setItemFormData({ ...itemFormData, days_of_week: newDays.length > 0 ? newDays : [day.value] });
+                      }}
+                    />
+                    <Label className="text-sm">{day.short}</Label>
+                  </div>
+                ))}
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
