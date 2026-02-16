@@ -522,11 +522,10 @@ export default function RoutineOrganizerPanel() {
                       <Checkbox
                         checked={itemFormData.days_of_week.length === 7}
                         onCheckedChange={(checked) => {
-                          if (checked) {
-                            setItemFormData({ ...itemFormData, days_of_week: [0,1,2,3,4,5,6] });
-                          } else {
-                            setItemFormData({ ...itemFormData, days_of_week: [] });
-                          }
+                          setItemFormData(prev => ({
+                            ...prev,
+                            days_of_week: checked ? [0,1,2,3,4,5,6] : []
+                          }));
                         }}
                       />
                       <Label className="text-sm font-medium">Semana toda</Label>
@@ -537,10 +536,12 @@ export default function RoutineOrganizerPanel() {
                           <Checkbox
                             checked={itemFormData.days_of_week.includes(day.value)}
                             onCheckedChange={(checked) => {
-                              const newDays = checked
-                                ? [...itemFormData.days_of_week, day.value]
-                                : itemFormData.days_of_week.filter(d => d !== day.value);
-                              setItemFormData({ ...itemFormData, days_of_week: newDays });
+                              setItemFormData(prev => ({
+                                ...prev,
+                                days_of_week: checked
+                                  ? [...prev.days_of_week, day.value]
+                                  : prev.days_of_week.filter(d => d !== day.value)
+                              }));
                             }}
                           />
                           <Label className="text-sm">{day.short}</Label>
@@ -1211,10 +1212,12 @@ export default function RoutineOrganizerPanel() {
                     <Checkbox
                       checked={itemFormData.days_of_week.includes(day.value)}
                       onCheckedChange={(checked) => {
-                        const newDays = checked
-                          ? [...itemFormData.days_of_week, day.value]
-                          : itemFormData.days_of_week.filter(d => d !== day.value);
-                        setItemFormData({ ...itemFormData, days_of_week: newDays.length > 0 ? newDays : [day.value] });
+                        setItemFormData(prev => {
+                          const newDays = checked
+                            ? [...prev.days_of_week, day.value]
+                            : prev.days_of_week.filter(d => d !== day.value);
+                          return { ...prev, days_of_week: newDays.length > 0 ? newDays : [day.value] };
+                        });
                       }}
                     />
                     <Label className="text-sm">{day.short}</Label>
