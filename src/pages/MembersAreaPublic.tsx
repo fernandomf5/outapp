@@ -190,30 +190,42 @@ export default function MembersAreaPublic() {
           </div>
         );
       
-      case 'video':
+      case 'video': {
+        let videoUrl = block.content;
+        let videoDesc = '';
+        try {
+          const parsed = JSON.parse(block.content);
+          if (parsed?.url) { videoUrl = parsed.url; videoDesc = parsed.description || ''; }
+        } catch { /* legacy plain URL */ }
         return (
-          <div className="relative w-full aspect-video">
-            {block.content.includes('youtube.com') || block.content.includes('youtu.be') ? (
-              <iframe
-                className="w-full h-full rounded-lg"
-                src={block.content.replace('watch?v=', 'embed/')}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            ) : block.content.includes('vimeo.com') ? (
-              <iframe
-                className="w-full h-full rounded-lg"
-                src={block.content.replace('vimeo.com/', 'player.vimeo.com/video/')}
-                allow="autoplay; fullscreen; picture-in-picture"
-                allowFullScreen
-              />
-            ) : (
-              <video controls className="w-full h-full rounded-lg">
-                <source src={block.content} />
-              </video>
+          <div className="space-y-2">
+            <div className="relative w-full aspect-video">
+              {videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be') ? (
+                <iframe
+                  className="w-full h-full rounded-lg"
+                  src={videoUrl.replace('watch?v=', 'embed/')}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : videoUrl.includes('vimeo.com') ? (
+                <iframe
+                  className="w-full h-full rounded-lg"
+                  src={videoUrl.replace('vimeo.com/', 'player.vimeo.com/video/')}
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <video controls className="w-full h-full rounded-lg">
+                  <source src={videoUrl} />
+                </video>
+              )}
+            </div>
+            {videoDesc && (
+              <p className="text-sm leading-relaxed" style={{ color: `${cardTextColor}99` }}>{linkifyText(videoDesc)}</p>
             )}
           </div>
         );
+      }
       
       case 'document':
         return (

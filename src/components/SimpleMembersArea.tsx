@@ -1329,14 +1329,48 @@ export function SimpleMembersArea() {
                       );
                     })()}
                   </div>
+                ) : blockFormData.type === 'video' ? (
+                  <div className="space-y-3">
+                    {(() => {
+                      let videoData = { url: '', description: '' };
+                      try {
+                        const parsed = JSON.parse(blockFormData.content);
+                        if (parsed?.url) videoData = parsed;
+                        else videoData = { url: blockFormData.content, description: '' };
+                      } catch {
+                        videoData = { url: blockFormData.content || '', description: '' };
+                      }
+                      const updateVideoData = (newData: typeof videoData) => {
+                        setBlockFormData({ ...blockFormData, content: JSON.stringify(newData) });
+                      };
+                      return (
+                        <>
+                          <div>
+                            <Label className="text-xs">URL do Vídeo</Label>
+                            <Input
+                              value={videoData.url}
+                              onChange={(e) => updateVideoData({ ...videoData, url: e.target.value })}
+                              placeholder="URL do vídeo (YouTube, Vimeo, etc)"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs">Descrição (opcional)</Label>
+                            <Textarea
+                              value={videoData.description}
+                              onChange={(e) => updateVideoData({ ...videoData, description: e.target.value })}
+                              placeholder="Descrição do vídeo..."
+                              rows={3}
+                            />
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
                 ) : (
                   <Textarea
                     value={blockFormData.content}
                     onChange={(e) => setBlockFormData({ ...blockFormData, content: e.target.value })}
-                    placeholder={
-                      blockFormData.type === 'video' ? 'URL do vídeo (YouTube, Vimeo, etc)' :
-                      'Conteúdo...'
-                    }
+                    placeholder="Conteúdo..."
                   />
                 )}
               </div>
