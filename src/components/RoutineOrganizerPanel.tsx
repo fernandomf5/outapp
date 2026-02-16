@@ -644,40 +644,42 @@ export default function RoutineOrganizerPanel() {
                   />
                 </div>
                 <div>
-                  <Label>Tipo de Objetivo</Label>
-                  <Select
-                    value={objectiveFormData.objective_type}
-                    onValueChange={(v) => setObjectiveFormData({ ...objectiveFormData, objective_type: v as 'weekly' | 'daily' })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="weekly">Semanal</SelectItem>
-                      <SelectItem value="daily">Diário</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {objectiveFormData.objective_type === 'daily' && (
-                  <div>
-                    <Label>Dia da Semana</Label>
-                    <Select
-                      value={objectiveFormData.day_of_week?.toString() || ''}
-                      onValueChange={(v) => setObjectiveFormData({ ...objectiveFormData, day_of_week: parseInt(v) })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o dia" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {DAYS_OF_WEEK.map(day => (
-                          <SelectItem key={day.value} value={day.value.toString()}>
-                            {day.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <Label>Dias da Semana</Label>
+                  <div className="mt-2 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        checked={objectiveFormData.objective_type === 'weekly'}
+                        onCheckedChange={(checked) => {
+                          setObjectiveFormData(prev => ({
+                            ...prev,
+                            objective_type: checked ? 'weekly' : 'daily',
+                            day_of_week: checked ? null : 0
+                          }));
+                        }}
+                      />
+                      <Label className="text-sm font-medium">Semana toda</Label>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2">
+                      {DAYS_OF_WEEK.map(day => (
+                        <div key={day.value} className="flex items-center gap-2">
+                          <Checkbox
+                            checked={objectiveFormData.objective_type === 'weekly' || objectiveFormData.day_of_week === day.value}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setObjectiveFormData(prev => ({
+                                  ...prev,
+                                  objective_type: 'daily',
+                                  day_of_week: day.value
+                                }));
+                              }
+                            }}
+                          />
+                          <Label className="text-sm">{day.short}</Label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                )}
+                </div>
                 <div>
                   <Label>Meta (quantidade)</Label>
                   <Input
@@ -1325,40 +1327,42 @@ export default function RoutineOrganizerPanel() {
               />
             </div>
             <div>
-              <Label>Tipo</Label>
-              <Select
-                value={objectiveFormData.objective_type}
-                onValueChange={(v) => setObjectiveFormData({ ...objectiveFormData, objective_type: v as 'weekly' | 'daily' })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="weekly">Semanal</SelectItem>
-                  <SelectItem value="daily">Diário</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {objectiveFormData.objective_type === 'daily' && (
-              <div>
-                <Label>Dia da Semana</Label>
-                <Select
-                  value={objectiveFormData.day_of_week?.toString() || ''}
-                  onValueChange={(v) => setObjectiveFormData({ ...objectiveFormData, day_of_week: parseInt(v) })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DAYS_OF_WEEK.map(day => (
-                      <SelectItem key={day.value} value={day.value.toString()}>
-                        {day.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <Label>Dias da Semana</Label>
+              <div className="mt-2 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={objectiveFormData.objective_type === 'weekly'}
+                    onCheckedChange={(checked) => {
+                      setObjectiveFormData(prev => ({
+                        ...prev,
+                        objective_type: checked ? 'weekly' : 'daily',
+                        day_of_week: checked ? null : 0
+                      }));
+                    }}
+                  />
+                  <Label className="text-sm font-medium">Semana toda</Label>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {DAYS_OF_WEEK.map(day => (
+                    <div key={day.value} className="flex items-center gap-2">
+                      <Checkbox
+                        checked={objectiveFormData.objective_type === 'weekly' || objectiveFormData.day_of_week === day.value}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setObjectiveFormData(prev => ({
+                              ...prev,
+                              objective_type: 'daily',
+                              day_of_week: day.value
+                            }));
+                          }
+                        }}
+                      />
+                      <Label className="text-sm">{day.short}</Label>
+                    </div>
+                  ))}
+                </div>
               </div>
-            )}
+            </div>
             <div>
               <Label>Meta</Label>
               <Input
