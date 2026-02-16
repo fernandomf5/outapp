@@ -1052,7 +1052,9 @@ export function SimpleMembersArea() {
                   <SelectContent className="max-h-[300px]">
                     <SelectItem value="text">📝 Texto</SelectItem>
                     <SelectItem value="image">🖼️ Imagem</SelectItem>
+                    <SelectItem value="gallery">🖼️ Galeria de Imagens</SelectItem>
                     <SelectItem value="video">🎬 Vídeo (URL)</SelectItem>
+                    <SelectItem value="video_gallery">🎬 Múltiplos Vídeos</SelectItem>
                     <SelectItem value="audio">🎧 Áudio/Podcast</SelectItem>
                     <SelectItem value="document">📄 Documento (PDF)</SelectItem>
                     <SelectItem value="download">⬇️ Arquivo para Download</SelectItem>
@@ -1068,8 +1070,6 @@ export function SimpleMembersArea() {
                     <SelectItem value="mindmap">🧠 Mapa Mental</SelectItem>
                     <SelectItem value="webinar">📡 Webinar/Live</SelectItem>
                     <SelectItem value="certificate">🏆 Certificado</SelectItem>
-                    <SelectItem value="gallery">🖼️ Galeria de Imagens</SelectItem>
-                    <SelectItem value="video_gallery">🎬 Múltiplos Vídeos</SelectItem>
                     <SelectItem value="customer_history">📜 Histórico do Cliente</SelectItem>
                   </SelectContent>
                 </Select>
