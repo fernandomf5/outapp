@@ -533,7 +533,7 @@ export default function MembersAreaPublic() {
               <img 
                 src={area.logo_url} 
                 alt={area.name} 
-                className="w-20 h-20 mx-auto mb-4 rounded-xl object-cover bg-white/20 shadow-lg"
+                className="max-w-[120px] max-h-[120px] mx-auto mb-4 rounded-xl object-contain bg-white/20 shadow-lg p-2"
               />
             ) : (
               <div className="w-20 h-20 mx-auto mb-4 rounded-xl flex items-center justify-center bg-white/20 shadow-lg">
@@ -553,52 +553,6 @@ export default function MembersAreaPublic() {
           </div>
 
           <CardContent className="p-6 space-y-6">
-            {/* Sections Preview */}
-            {area.sections.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold" style={{ color: loginTextColor }}>Conteúdo Disponível</h3>
-                  <span 
-                    className="text-xs font-medium px-2 py-1 rounded-full"
-                    style={{ backgroundColor: `${primaryColor}30`, color: primaryColor }}
-                  >
-                    {area.sections.length} módulos
-                  </span>
-                </div>
-                
-                {area.sections.slice(0, 3).map((section, index) => (
-                  <div 
-                    key={section.id} 
-                    className="p-3 rounded-lg transition-colors"
-                    style={{ backgroundColor: `${loginTextColor}10` }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div 
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-sm"
-                        style={{ backgroundColor: primaryColor }}
-                      >
-                        {index + 1}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate" style={{ color: loginTextColor }}>{section.title}</p>
-                        {section.description && (
-                          <p className="text-xs truncate" style={{ color: `${loginTextColor}99` }}>{section.description}</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                {area.sections.length > 3 && (
-                  <p 
-                    className="text-xs text-center font-medium py-1"
-                    style={{ color: primaryColor }}
-                  >
-                    +{area.sections.length - 3} módulos adicionais
-                  </p>
-                )}
-              </div>
-            )}
 
             {/* Login Form */}
             <div className="space-y-4">
