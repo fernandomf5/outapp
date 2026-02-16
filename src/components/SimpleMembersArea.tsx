@@ -318,7 +318,9 @@ export function SimpleMembersArea() {
 
       if (error) throw error;
 
-      setSelectedArea({ ...selectedArea, sections: updatedSections });
+      const updatedArea = { ...selectedArea, sections: updatedSections };
+      setSelectedArea(updatedArea);
+      setAreas(prev => prev.map(a => a.id === updatedArea.id ? updatedArea : a));
       setIsAddSectionDialogOpen(false);
       setSectionFormData({ title: '', description: '', blocks_layout: ['full'] });
       toast.success('Seção adicionada!');
@@ -349,7 +351,9 @@ export function SimpleMembersArea() {
 
       if (error) throw error;
 
-      setSelectedArea({ ...selectedArea, sections: updatedSections });
+      const updatedArea = { ...selectedArea, sections: updatedSections };
+      setSelectedArea(updatedArea);
+      setAreas(prev => prev.map(a => a.id === updatedArea.id ? updatedArea : a));
       setIsEditSectionDialogOpen(false);
       setEditingSection(null);
       setSectionFormData({ title: '', description: '', blocks_layout: ['full'] });
@@ -374,7 +378,9 @@ export function SimpleMembersArea() {
 
       if (error) throw error;
 
-      setSelectedArea({ ...selectedArea, sections: updatedSections });
+      const updatedArea = { ...selectedArea, sections: updatedSections };
+      setSelectedArea(updatedArea);
+      setAreas(prev => prev.map(a => a.id === updatedArea.id ? updatedArea : a));
       setIsDeleteSectionDialogOpen(false);
       setSectionToDelete(null);
       toast.success('Seção excluída!');
@@ -417,7 +423,9 @@ export function SimpleMembersArea() {
 
       if (error) throw error;
 
-      setSelectedArea({ ...selectedArea, sections: updatedSections });
+      const updatedArea = { ...selectedArea, sections: updatedSections };
+      setSelectedArea(updatedArea);
+      setAreas(prev => prev.map(a => a.id === updatedArea.id ? updatedArea : a));
       setIsAddBlockDialogOpen(false);
       setBlockFormData({ type: 'text', title: '', content: '', block_position: 0, customer_id: '' });
       setUploadedImageUrl('');
@@ -461,7 +469,9 @@ export function SimpleMembersArea() {
 
       if (error) throw error;
 
-      setSelectedArea({ ...selectedArea, sections: updatedSections });
+      const updatedArea = { ...selectedArea, sections: updatedSections };
+      setSelectedArea(updatedArea);
+      setAreas(prev => prev.map(a => a.id === updatedArea.id ? updatedArea : a));
       setEditingBlock(null);
       setIsAddBlockDialogOpen(false);
       setBlockFormData({ type: 'text', title: '', content: '', block_position: 0, customer_id: '' });
@@ -492,7 +502,9 @@ export function SimpleMembersArea() {
 
       if (error) throw error;
 
-      setSelectedArea({ ...selectedArea, sections: updatedSections });
+      const updatedArea = { ...selectedArea, sections: updatedSections };
+      setSelectedArea(updatedArea);
+      setAreas(prev => prev.map(a => a.id === updatedArea.id ? updatedArea : a));
       toast.success('Bloco excluído!');
     } catch (error: any) {
       toast.error('Erro ao excluir bloco: ' + error.message);
@@ -628,7 +640,9 @@ export function SimpleMembersArea() {
         .eq('id', selectedArea.id);
 
       if (error) throw error;
-      setSelectedArea({ ...selectedArea, sections: updatedSections });
+      const updatedArea = { ...selectedArea, sections: updatedSections };
+      setSelectedArea(updatedArea);
+      setAreas(prev => prev.map(a => a.id === updatedArea.id ? updatedArea : a));
     } catch (error: any) {
       toast.error('Erro ao reordenar: ' + error.message);
     }
