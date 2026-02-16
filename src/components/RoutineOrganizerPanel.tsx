@@ -112,7 +112,7 @@ export default function RoutineOrganizerPanel() {
   const [itemFormData, setItemFormData] = useState({
     title: '',
     description: '',
-    day_of_week: 1,
+    days_of_week: [1] as number[],
     start_time: '',
     end_time: '',
     color: '#3b82f6',
@@ -176,23 +176,25 @@ export default function RoutineOrganizerPanel() {
     }
     
     try {
+      const itemsToInsert = itemFormData.days_of_week.map(day => ({
+        user_id: user.id,
+        title: itemFormData.title,
+        description: itemFormData.description || null,
+        day_of_week: day,
+        start_time: itemFormData.start_time || null,
+        end_time: itemFormData.end_time || null,
+        color: itemFormData.color,
+        is_recurring: itemFormData.is_recurring,
+        reminder_minutes: itemFormData.reminder_minutes
+      }));
+
       const { error } = await supabase
         .from('routine_items')
-        .insert({
-          user_id: user.id,
-          title: itemFormData.title,
-          description: itemFormData.description || null,
-          day_of_week: itemFormData.day_of_week,
-          start_time: itemFormData.start_time || null,
-          end_time: itemFormData.end_time || null,
-          color: itemFormData.color,
-          is_recurring: itemFormData.is_recurring,
-          reminder_minutes: itemFormData.reminder_minutes
-        });
+        .insert(itemsToInsert);
         
       if (error) throw error;
       
-      toast.success('Atividade adicionada!');
+      toast.success(`${itemsToInsert.length > 1 ? itemsToInsert.length + ' atividades adicionadas' : 'Atividade adicionada'}!`);
       setIsAddItemDialogOpen(false);
       resetItemForm();
       loadData();
@@ -211,7 +213,7 @@ export default function RoutineOrganizerPanel() {
         .update({
           title: itemFormData.title,
           description: itemFormData.description || null,
-          day_of_week: itemFormData.day_of_week,
+          day_of_week: itemFormData.days_of_week[0],
           start_time: itemFormData.start_time || null,
           end_time: itemFormData.end_time || null,
           color: itemFormData.color,
@@ -399,7 +401,7 @@ export default function RoutineOrganizerPanel() {
     setItemFormData({
       title: '',
       description: '',
-      day_of_week: 1,
+      days_of_week: [1],
       start_time: '',
       end_time: '',
       color: '#3b82f6',
@@ -424,7 +426,7 @@ export default function RoutineOrganizerPanel() {
     setItemFormData({
       title: item.title,
       description: item.description || '',
-      day_of_week: item.day_of_week,
+      days_of_week: [item.day_of_week],
       start_time: item.start_time || '',
       end_time: item.end_time || '',
       color: item.color,
@@ -514,22 +516,38 @@ export default function RoutineOrganizerPanel() {
                   />
                 </div>
                 <div>
-                  <Label>Dia da Semana</Label>
-                  <Select
-                    value={itemFormData.day_of_week.toString()}
-                    onValueChange={(v) => setItemFormData({ ...itemFormData, day_of_week: parseInt(v) })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
+                  <Label>Dias da Semana</Label>
+                  <div className="mt-2 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        checked={itemFormData.days_of_week.length === 7}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setItemFormData({ ...itemFormData, days_of_week: [0,1,2,3,4,5,6] });
+                          } else {
+                            setItemFormData({ ...itemFormData, days_of_week: [] });
+                          }
+                        }}
+                      />
+                      <Label className="text-sm font-medium">Semana toda</Label>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2">
                       {DAYS_OF_WEEK.map(day => (
-                        <SelectItem key={day.value} value={day.value.toString()}>
-                          {day.label}
-                        </SelectItem>
+                        <div key={day.value} className="flex items-center gap-2">
+                          <Checkbox
+                            checked={itemFormData.days_of_week.includes(day.value)}
+                            onCheckedChange={(checked) => {
+                              const newDays = checked
+                                ? [...itemFormData.days_of_week, day.value]
+                                : itemFormData.days_of_week.filter(d => d !== day.value);
+                              setItemFormData({ ...itemFormData, days_of_week: newDays });
+                            }}
+                          />
+                          <Label className="text-sm">{day.short}</Label>
+                        </div>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </div>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -836,7 +854,8 @@ export default function RoutineOrganizerPanel() {
         </TabsList>
         
         <TabsContent value="weekly" className="mt-4">
-          <div className="grid gap-4 md:grid-cols-7">
+          <ScrollArea className="w-full">
+          <div className="grid gap-4 grid-cols-7 min-w-[900px]">
             {DAYS_OF_WEEK.map(day => {
               const items = getItemsByDay(day.value);
               const dailyObjectives = getDailyObjectives(day.value);
@@ -856,7 +875,7 @@ export default function RoutineOrganizerPanel() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-3 pt-0">
-                    <ScrollArea className="h-[300px]">
+                    <ScrollArea className="h-[400px]">
                       <div className="space-y-2">
                         {/* Daily Objectives */}
                         {dailyObjectives.map(obj => (
@@ -866,7 +885,7 @@ export default function RoutineOrganizerPanel() {
                             style={{ backgroundColor: `${obj.color}20`, borderLeft: `3px solid ${obj.color}` }}
                           >
                             <div className="flex items-center justify-between">
-                              <span className="font-medium truncate">{obj.title}</span>
+                              <span className="font-medium text-wrap break-words">{obj.title}</span>
                               {!obj.is_completed && (
                                 <Button
                                   variant="ghost"
@@ -902,7 +921,7 @@ export default function RoutineOrganizerPanel() {
                                 className="mt-0.5"
                               />
                               <div className="flex-1 min-w-0">
-                                <p className={`text-xs font-medium truncate ${item.is_completed ? 'line-through' : ''}`}>
+                                <p className={`text-xs font-medium break-words ${item.is_completed ? 'line-through' : ''}`}>
                                   {item.title}
                                 </p>
                                 {item.start_time && (
@@ -954,6 +973,7 @@ export default function RoutineOrganizerPanel() {
               );
             })}
           </div>
+          </ScrollArea>
         </TabsContent>
         
         <TabsContent value="today" className="mt-4">
@@ -1166,8 +1186,8 @@ export default function RoutineOrganizerPanel() {
             <div>
               <Label>Dia da Semana</Label>
               <Select
-                value={itemFormData.day_of_week.toString()}
-                onValueChange={(v) => setItemFormData({ ...itemFormData, day_of_week: parseInt(v) })}
+                value={itemFormData.days_of_week[0]?.toString() || '1'}
+                onValueChange={(v) => setItemFormData({ ...itemFormData, days_of_week: [parseInt(v)] })}
               >
                 <SelectTrigger>
                   <SelectValue />
