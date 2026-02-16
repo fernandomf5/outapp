@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { Lock, Image as ImageIcon, Video, FileText, Link as LinkIcon, MousePointer, Download, LogOut, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Eye, EyeOff, Home, BookOpen, User, ChevronRight, Play, Menu, X } from "lucide-react";
+import { Lock, Image as ImageIcon, Video, FileText, Link as LinkIcon, MousePointer, Download, LogOut, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Eye, EyeOff, Home, BookOpen, User, ChevronRight, Play, Menu, X, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { CustomerHistoryTimeline } from "@/components/members-area/CustomerHistoryTimeline";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -20,6 +20,51 @@ interface ContentBlock {
   block_position: number;
   customer_id?: string;
   customer_name?: string;
+}
+
+function VideoGalleryItem({ video, accentColor, cardTextColor }: { video: { url: string; title?: string; description?: string }; accentColor: string; cardTextColor: string }) {
+  const [showDesc, setShowDesc] = useState(false);
+  return (
+    <div className="space-y-1.5">
+      {video.title && <h4 className="text-sm font-medium truncate" style={{ color: cardTextColor }}>{video.title}</h4>}
+      <div className="relative w-full aspect-video">
+        {video.url.includes('youtube.com') || video.url.includes('youtu.be') ? (
+          <iframe
+            className="w-full h-full rounded-lg"
+            src={video.url.replace('watch?v=', 'embed/')}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        ) : video.url.includes('vimeo.com') ? (
+          <iframe
+            className="w-full h-full rounded-lg"
+            src={video.url.replace('vimeo.com/', 'player.vimeo.com/video/')}
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
+          <video controls className="w-full h-full rounded-lg">
+            <source src={video.url} />
+          </video>
+        )}
+      </div>
+      {video.description && (
+        <>
+          <button
+            onClick={() => setShowDesc(!showDesc)}
+            className="flex items-center gap-1 text-xs font-medium hover:opacity-80 transition-opacity"
+            style={{ color: accentColor }}
+          >
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showDesc ? 'rotate-180' : ''}`} />
+            {showDesc ? 'Ocultar descrição' : 'Ver descrição'}
+          </button>
+          {showDesc && (
+            <p className="text-xs leading-relaxed pl-1" style={{ color: `${cardTextColor}99` }}>{video.description}</p>
+          )}
+        </>
+      )}
+    </div>
+  );
 }
 
 interface Section {
@@ -376,33 +421,9 @@ export default function MembersAreaPublic() {
           }
         }
         return (
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {videos.map((video, idx) => (
-              <div key={idx} className="space-y-2">
-                {video.title && <h4 className="font-medium" style={{ color: cardTextColor }}>{video.title}</h4>}
-                <div className="relative w-full aspect-video">
-                  {video.url.includes('youtube.com') || video.url.includes('youtu.be') ? (
-                    <iframe
-                      className="w-full h-full rounded-lg"
-                      src={video.url.replace('watch?v=', 'embed/')}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  ) : video.url.includes('vimeo.com') ? (
-                    <iframe
-                      className="w-full h-full rounded-lg"
-                      src={video.url.replace('vimeo.com/', 'player.vimeo.com/video/')}
-                      allow="autoplay; fullscreen; picture-in-picture"
-                      allowFullScreen
-                    />
-                  ) : (
-                    <video controls className="w-full h-full rounded-lg">
-                      <source src={video.url} />
-                    </video>
-                  )}
-                </div>
-                {video.description && <p className="text-sm" style={{ color: `${cardTextColor}99` }}>{video.description}</p>}
-              </div>
+              <VideoGalleryItem key={idx} video={video} accentColor={accentColor} cardTextColor={cardTextColor} />
             ))}
           </div>
         );
