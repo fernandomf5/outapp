@@ -318,8 +318,14 @@ export default function MembersAreaPublic() {
       case 'notes':
       case 'faq':
       case 'checklist':
-        const iconMap = { notes: StickyNote, faq: MessageSquare, checklist: CheckSquare };
-        const Icon = iconMap[block.type];
+      case 'quiz':
+      case 'timeline':
+      case 'certificate':
+      case 'webinar':
+      case 'mindmap':
+      case 'slides': {
+        const iconMap2: Record<string, any> = { notes: StickyNote, faq: MessageSquare, checklist: CheckSquare, quiz: HelpCircle, timeline: GitBranch, certificate: Award, webinar: Radio, mindmap: Brain, slides: Presentation };
+        const Icon2 = iconMap2[block.type] || FileText;
         return (
           <div 
             className="p-4 rounded-lg"
@@ -330,13 +336,14 @@ export default function MembersAreaPublic() {
                 className="w-8 h-8 rounded-lg flex items-center justify-center"
                 style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
               >
-                <Icon className="w-4 h-4" />
+                <Icon2 className="w-4 h-4" />
               </div>
               <span className="font-medium" style={{ color: cardTextColor }}>{block.title || block.type}</span>
             </div>
             <div className="prose prose-sm max-w-none" style={{ color: cardTextColor }} dangerouslySetInnerHTML={{ __html: block.content }} />
           </div>
         );
+      }
       
       case 'gallery': {
         let images: { url: string; title?: string; description?: string }[] = [];
