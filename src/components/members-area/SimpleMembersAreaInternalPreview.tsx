@@ -24,12 +24,14 @@ import {
   Brain,
   StickyNote,
   MessageSquare,
-  Presentation
+  Presentation,
+  Images,
+  Film
 } from "lucide-react";
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery';
   content: string;
   title?: string;
   order_index: number;
@@ -88,6 +90,8 @@ export function SimpleMembersAreaInternalPreview({
       mindmap: <Brain className="w-3 h-3" />,
       slides: <Presentation className="w-3 h-3" />,
       text: <FileText className="w-3 h-3" />,
+      gallery: <Images className="w-3 h-3" />,
+      video_gallery: <Film className="w-3 h-3" />,
     };
     return icons[type] || <FileText className="w-3 h-3" />;
   };
@@ -112,7 +116,9 @@ export function SimpleMembersAreaInternalPreview({
       notes: 'Anotações',
       faq: 'FAQ',
       mindmap: 'Mapa Mental',
-      slides: 'Slides'
+      slides: 'Slides',
+      gallery: 'Galeria',
+      video_gallery: 'Vídeos',
     };
     return labels[type] || type;
   };
