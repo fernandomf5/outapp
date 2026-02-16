@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery';
   content: string;
   title?: string;
   order_index: number;
@@ -188,37 +188,64 @@ export default function MembersAreaPublic() {
           </a>
         );
       
-      case 'link':
+      case 'link': {
+        let linkData: { items: { label: string; url: string }[]; layout: string } = { items: [], layout: 'vertical' };
+        try {
+          const parsed = JSON.parse(block.content);
+          if (parsed?.items) linkData = parsed;
+          else linkData = { items: [{ label: block.title || block.content, url: block.content }], layout: 'vertical' };
+        } catch {
+          linkData = { items: [{ label: block.title || block.content, url: block.content }], layout: 'vertical' };
+        }
         return (
-          <a 
-            href={block.content} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 p-4 rounded-lg transition-all hover:shadow-md"
-            style={{ backgroundColor: `${accentColor}10`, color: accentColor }}
-          >
-            <div 
-              className="w-10 h-10 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: `${accentColor}20` }}
-            >
-              <LinkIcon className="w-5 h-5" />
-            </div>
-            <span>{block.title || block.content}</span>
-          </a>
+          <div className={`flex gap-3 ${linkData.layout === 'horizontal' ? 'flex-row flex-wrap' : 'flex-col'}`}>
+            {linkData.items.map((item, idx) => (
+              <a 
+                key={idx}
+                href={item.url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-4 rounded-lg transition-all hover:shadow-md flex-1"
+                style={{ backgroundColor: `${accentColor}10`, color: accentColor }}
+              >
+                <div 
+                  className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ backgroundColor: `${accentColor}20` }}
+                >
+                  <LinkIcon className="w-5 h-5" />
+                </div>
+                <span>{item.label || item.url}</span>
+              </a>
+            ))}
+          </div>
         );
+      }
       
-      case 'button':
+      case 'button': {
+        let btnData: { items: { label: string; url: string }[]; layout: string } = { items: [], layout: 'vertical' };
+        try {
+          const parsed = JSON.parse(block.content);
+          if (parsed?.items) btnData = parsed;
+          else btnData = { items: [{ label: block.title || 'Clique aqui', url: block.content }], layout: 'vertical' };
+        } catch {
+          btnData = { items: [{ label: block.title || 'Clique aqui', url: block.content }], layout: 'vertical' };
+        }
         return (
-          <a href={block.content} target="_blank" rel="noopener noreferrer">
-            <Button 
-              className="w-full text-white"
-              size="lg"
-              style={{ backgroundColor: accentColor }}
-            >
-              {block.title || 'Clique aqui'}
-            </Button>
-          </a>
+          <div className={`flex gap-3 ${btnData.layout === 'horizontal' ? 'flex-row flex-wrap' : 'flex-col'}`}>
+            {btnData.items.map((item, idx) => (
+              <a key={idx} href={item.url} target="_blank" rel="noopener noreferrer" className="flex-1">
+                <Button 
+                  className="w-full text-white"
+                  size="lg"
+                  style={{ backgroundColor: accentColor }}
+                >
+                  {item.label || 'Clique aqui'}
+                </Button>
+              </a>
+            ))}
+          </div>
         );
+      }
       
       case 'download':
         return (
@@ -311,6 +338,69 @@ export default function MembersAreaPublic() {
           </div>
         );
       
+      case 'gallery': {
+        let images: { url: string; title?: string; description?: string }[] = [];
+        try {
+          images = JSON.parse(block.content);
+        } catch {
+          if (block.content) {
+            images = block.content.split('|||').filter(Boolean).map(u => ({ url: u }));
+          }
+        }
+        return (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {images.map((img, idx) => (
+              <div key={idx} className="space-y-1">
+                <img src={img.url} alt={img.title || `Imagem ${idx + 1}`} className="w-full rounded-lg object-cover aspect-square" />
+                {img.title && <p className="text-sm font-medium" style={{ color: cardTextColor }}>{img.title}</p>}
+              </div>
+            ))}
+          </div>
+        );
+      }
+
+      case 'video_gallery': {
+        let videos: { url: string; title?: string; description?: string }[] = [];
+        try {
+          videos = JSON.parse(block.content);
+        } catch {
+          if (block.content) {
+            videos = block.content.split('|||').filter(Boolean).map(u => ({ url: u }));
+          }
+        }
+        return (
+          <div className="space-y-6">
+            {videos.map((video, idx) => (
+              <div key={idx} className="space-y-2">
+                {video.title && <h4 className="font-medium" style={{ color: cardTextColor }}>{video.title}</h4>}
+                <div className="relative w-full aspect-video">
+                  {video.url.includes('youtube.com') || video.url.includes('youtu.be') ? (
+                    <iframe
+                      className="w-full h-full rounded-lg"
+                      src={video.url.replace('watch?v=', 'embed/')}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : video.url.includes('vimeo.com') ? (
+                    <iframe
+                      className="w-full h-full rounded-lg"
+                      src={video.url.replace('vimeo.com/', 'player.vimeo.com/video/')}
+                      allow="autoplay; fullscreen; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : (
+                    <video controls className="w-full h-full rounded-lg">
+                      <source src={video.url} />
+                    </video>
+                  )}
+                </div>
+                {video.description && <p className="text-sm" style={{ color: `${cardTextColor}99` }}>{video.description}</p>}
+              </div>
+            ))}
+          </div>
+        );
+      }
+
       default:
         return null;
     }
