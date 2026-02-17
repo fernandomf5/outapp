@@ -3219,7 +3219,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
               </div>
             )}
             
-            {['conversion', 'traffic', 'remarketing', 'ab_test', 'promotion'].includes(campaignFormData.campaign_type) && (
+            {['conversion', 'traffic', 'remarketing', 'ab_test', 'promotion', 'engagement', 'video', 'leads'].includes(campaignFormData.campaign_type) && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label>Impressões</Label>
@@ -3586,7 +3586,7 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
               </div>
             )}
             
-            {['conversion', 'traffic', 'remarketing', 'ab_test', 'promotion'].includes(campaignFormData.campaign_type) && (
+            {['conversion', 'traffic', 'remarketing', 'ab_test', 'promotion', 'engagement', 'video', 'leads'].includes(campaignFormData.campaign_type) && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label>Impressões</Label>
