@@ -100,6 +100,7 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   
   // Form states
+  const [serviceInputMode, setServiceInputMode] = useState<"select" | "custom">("select");
   const [newService, setNewService] = useState({
     service_id: "",
     service_name: "",
@@ -301,6 +302,7 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
   };
 
   const resetServiceForm = () => {
+    setServiceInputMode("select");
     setNewService({
       service_id: "",
       service_name: "",
@@ -444,6 +446,35 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
               </DialogHeader>
               <div className="space-y-4 mt-4">
                 {availableServices.length > 0 && (
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={serviceInputMode === "select" ? "default" : "outline"}
+                      onClick={() => {
+                        setServiceInputMode("select");
+                        setNewService({ ...newService, service_id: "", service_name: "", price: 0 });
+                      }}
+                      className="flex-1"
+                    >
+                      Serviço Cadastrado
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={serviceInputMode === "custom" ? "default" : "outline"}
+                      onClick={() => {
+                        setServiceInputMode("custom");
+                        setNewService({ ...newService, service_id: "", service_name: "", price: 0 });
+                      }}
+                      className="flex-1"
+                    >
+                      Serviço Avulso
+                    </Button>
+                  </div>
+                )}
+
+                {serviceInputMode === "select" && availableServices.length > 0 ? (
                   <div>
                     <Label>Selecionar Serviço Cadastrado</Label>
                     <Select onValueChange={handleServiceSelect}>
@@ -459,15 +490,16 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
                       </SelectContent>
                     </Select>
                   </div>
+                ) : (
+                  <div>
+                    <Label>Nome do Serviço *</Label>
+                    <Input
+                      value={newService.service_name}
+                      onChange={(e) => setNewService({ ...newService, service_name: e.target.value })}
+                      placeholder="Ex: Consultoria, Manutenção..."
+                    />
+                  </div>
                 )}
-                <div>
-                  <Label>Nome do Serviço *</Label>
-                  <Input
-                    value={newService.service_name}
-                    onChange={(e) => setNewService({ ...newService, service_name: e.target.value })}
-                    placeholder="Ex: Corte de cabelo"
-                  />
-                </div>
                 <div>
                   <Label>Descrição</Label>
                   <Input
