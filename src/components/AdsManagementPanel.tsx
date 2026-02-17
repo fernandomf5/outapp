@@ -2695,19 +2695,109 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                       <TableRow>
                         <TableHead>Campanha</TableHead>
                         <TableHead>Cliente</TableHead>
-                        <TableHead>Plataforma</TableHead>
+                        <TableHead>Tipo</TableHead>
                         <TableHead>Investido</TableHead>
-                        <TableHead>Faturado</TableHead>
-                        <TableHead>ROI</TableHead>
-                        <TableHead>Conversões</TableHead>
+                        <TableHead>Resultado Principal</TableHead>
+                        <TableHead>Avaliação</TableHead>
                         <TableHead>Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredCampaigns.map((campaign) => {
-                        const campaignROI = campaign.spent > 0 ? ((campaign.revenue - campaign.spent) / campaign.spent) * 100 : 0;
                         const client = clients.find(c => c.id === campaign.client_id);
                         const isSelected = selectedCampaignId === campaign.id;
+                        
+                        // Get type-specific result
+                        const getTypeResult = (c: AdCampaign): { label: string; value: string; isGood: boolean } => {
+                          switch (c.campaign_type) {
+                            case 'conversion':
+                            case 'promotion':
+                            case 'catalog': {
+                              const roiVal = c.spent > 0 ? ((c.revenue - c.spent) / c.spent) * 100 : 0;
+                              return { label: 'ROI', value: `${roiVal.toFixed(1)}%`, isGood: roiVal > 0 };
+                            }
+                            case 'engagement': {
+                              const engRate = c.impressions > 0 ? ((c.engagement_count || 0) / c.impressions) * 100 : 0;
+                              const costPerEng = (c.engagement_count || 0) > 0 ? c.spent / (c.engagement_count || 1) : 0;
+                              return { label: `${(c.engagement_count || 0).toLocaleString()} eng.`, value: `R$ ${costPerEng.toFixed(2)}/eng | ${engRate.toFixed(2)}%`, isGood: engRate > 5 };
+                            }
+                            case 'followers': {
+                              const costPerFollower = (c.followers_gained || 0) > 0 ? c.spent / (c.followers_gained || 1) : 0;
+                              return { label: `${(c.followers_gained || 0).toLocaleString()} seguidores`, value: `R$ ${costPerFollower.toFixed(2)}/seguidor`, isGood: costPerFollower < 5 && (c.followers_gained || 0) > 0 };
+                            }
+                            case 'reach':
+                            case 'branding': {
+                              const cpmVal = (c.reach || 0) > 0 ? (c.spent / (c.reach || 1)) * 1000 : 0;
+                              const brandStr = c.brand_recall ? ` | Recall: ${c.brand_recall.toFixed(1)}%` : '';
+                              return { label: `${(c.reach || 0).toLocaleString()} alcance`, value: `CPM: R$ ${cpmVal.toFixed(2)}${brandStr}`, isGood: (c.reach || 0) > 0 && cpmVal < 30 };
+                            }
+                            case 'video': {
+                              const cpv = (c.video_views || 0) > 0 ? c.spent / (c.video_views || 1) : 0;
+                              const avgWatch = (c.video_views || 0) > 0 && c.video_watch_time ? (c.video_watch_time / (c.video_views || 1)) : 0;
+                              return { label: `${(c.video_views || 0).toLocaleString()} views`, value: `CPV: R$ ${cpv.toFixed(3)} | Média: ${avgWatch.toFixed(0)}s`, isGood: cpv < 0.10 && avgWatch > 15 };
+                            }
+                            case 'leads': {
+                              const cpl = (c.leads_generated || 0) > 0 ? c.spent / (c.leads_generated || 1) : 0;
+                              return { label: `${(c.leads_generated || 0).toLocaleString()} leads`, value: `CPL: R$ ${cpl.toFixed(2)}`, isGood: (c.leads_generated || 0) > 0 && cpl < 20 };
+                            }
+                            case 'messages': {
+                              const costPerMsg = (c.messages_count || 0) > 0 ? c.spent / (c.messages_count || 1) : 0;
+                              const respStr = c.response_rate ? ` | Resp: ${c.response_rate.toFixed(1)}%` : '';
+                              return { label: `${(c.messages_count || 0).toLocaleString()} msgs`, value: `R$ ${costPerMsg.toFixed(2)}/msg${respStr}`, isGood: (c.response_rate || 0) > 40 };
+                            }
+                            case 'traffic': {
+                              const cpc = c.clicks > 0 ? c.spent / c.clicks : 0;
+                              const ctr = c.impressions > 0 ? (c.clicks / c.impressions) * 100 : 0;
+                              return { label: `${c.clicks.toLocaleString()} cliques`, value: `CPC: R$ ${cpc.toFixed(2)} | CTR: ${ctr.toFixed(2)}%`, isGood: ctr > 2 };
+                            }
+                            case 'remarketing': {
+                              const roiVal = c.spent > 0 ? ((c.revenue - c.spent) / c.spent) * 100 : 0;
+                              const recStr = c.recovery_rate ? ` | Recup: ${c.recovery_rate.toFixed(1)}%` : '';
+                              return { label: `${c.conversions} conv.`, value: `ROI: ${roiVal.toFixed(1)}%${recStr}`, isGood: roiVal > 0 };
+                            }
+                            case 'app_install': {
+                              const cpi = (c.app_installs || 0) > 0 ? c.spent / (c.app_installs || 1) : 0;
+                              const retStr = c.retention_rate ? ` | Ret: ${c.retention_rate.toFixed(1)}%` : '';
+                              return { label: `${(c.app_installs || 0).toLocaleString()} installs`, value: `CPI: R$ ${cpi.toFixed(2)}${retStr}`, isGood: (c.retention_rate || 0) > 30 };
+                            }
+                            case 'ab_test': {
+                              const convRate = c.clicks > 0 ? (c.conversions / c.clicks) * 100 : 0;
+                              return { label: `${c.conversions} conv.`, value: `Taxa: ${convRate.toFixed(2)}%`, isGood: convRate > 2 };
+                            }
+                            case 'custom_conversion': {
+                              const costPerConv = (c.custom_conversions || 0) > 0 ? c.spent / (c.custom_conversions || 1) : 0;
+                              return { label: `${(c.custom_conversions || 0)} conv. custom`, value: `Custo: R$ ${costPerConv.toFixed(2)}`, isGood: (c.custom_conversions || 0) > 0 };
+                            }
+                            default: {
+                              const roiVal = c.spent > 0 ? ((c.revenue - c.spent) / c.spent) * 100 : 0;
+                              return { label: 'ROI', value: `${roiVal.toFixed(1)}%`, isGood: roiVal > 0 };
+                            }
+                          }
+                        };
+
+                        const getCampaignTypeLabel = (type: string) => {
+                          const labels: Record<string, string> = {
+                            conversion: 'Conversão',
+                            traffic: 'Tráfego',
+                            engagement: 'Engajamento',
+                            reach: 'Alcance',
+                            video: 'Vídeo',
+                            leads: 'Leads',
+                            messages: 'Mensagens',
+                            catalog: 'Catálogo',
+                            remarketing: 'Remarketing',
+                            ab_test: 'Teste A/B',
+                            followers: 'Seguidores',
+                            app_install: 'App Install',
+                            custom_conversion: 'Conv. Custom',
+                            promotion: 'Promoção',
+                            branding: 'Branding'
+                          };
+                          return labels[type] || type;
+                        };
+
+                        const result = getTypeResult(campaign);
+                        const perf = evaluateCampaignPerformance(campaign);
                         
                         return (
                           <TableRow 
@@ -2720,16 +2810,27 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                             </TableCell>
                             <TableCell>{client?.name || '-'}</TableCell>
                             <TableCell>
-                              <Badge variant="outline">
-                                {campaign.platform === 'meta' ? 'Meta' : campaign.platform === 'google' ? 'Google' : 'TikTok'}
+                              <Badge variant="outline" className="text-xs">
+                                {getCampaignTypeLabel(campaign.campaign_type)}
                               </Badge>
                             </TableCell>
                             <TableCell>R$ {campaign.spent.toFixed(2)}</TableCell>
-                            <TableCell className="text-success">R$ {campaign.revenue.toFixed(2)}</TableCell>
-                            <TableCell className={campaignROI >= 0 ? 'text-success' : 'text-destructive'}>
-                              {campaignROI.toFixed(1)}%
+                            <TableCell>
+                              <div className="flex flex-col gap-0.5">
+                                <span className={`font-medium text-sm ${result.isGood ? 'text-success' : 'text-destructive'}`}>
+                                  {result.isGood ? '✅' : '❌'} {result.label}
+                                </span>
+                                <span className="text-xs text-muted-foreground">{result.value}</span>
+                              </div>
                             </TableCell>
-                            <TableCell>{campaign.conversions}</TableCell>
+                            <TableCell>
+                              <Badge 
+                                variant={perf.status === 'excellent' ? 'default' : perf.status === 'good' ? 'secondary' : 'outline'}
+                                className={`text-xs ${perf.status === 'poor' ? 'border-destructive text-destructive' : perf.status === 'fair' ? 'border-yellow-500 text-yellow-600' : ''}`}
+                              >
+                                {perf.icon} {perf.message}
+                              </Badge>
+                            </TableCell>
                             <TableCell>
                               <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                                 <Popover>
