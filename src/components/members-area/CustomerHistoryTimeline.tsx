@@ -146,21 +146,33 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
     }
   };
 
+  const getStatusLabel = (status: string): string => {
+    const labels: Record<string, string> = {
+      completed: 'Concluído',
+      pending: 'Pendente',
+      in_progress: 'Em Andamento',
+      scheduled: 'Agendado',
+      cancelled: 'Cancelado',
+      paid: 'Pago',
+      overdue: 'Atrasado',
+    };
+    return labels[status.toLowerCase()] || status;
+  };
+
   const getStatusBadge = (status?: string) => {
     if (!status) return null;
     const statusColors: Record<string, string> = {
       completed: 'bg-green-500/10 text-green-500',
       pending: 'bg-yellow-500/10 text-yellow-500',
+      in_progress: 'bg-yellow-500/10 text-yellow-500',
+      scheduled: 'bg-blue-500/10 text-blue-500',
       cancelled: 'bg-red-500/10 text-red-500',
       paid: 'bg-green-500/10 text-green-500',
-      concluido: 'bg-green-500/10 text-green-500',
-      pendente: 'bg-yellow-500/10 text-yellow-500',
-      cancelado: 'bg-red-500/10 text-red-500',
-      pago: 'bg-green-500/10 text-green-500',
+      overdue: 'bg-red-500/10 text-red-500',
     };
     return (
       <Badge className={statusColors[status.toLowerCase()] || 'bg-muted text-muted-foreground'}>
-        {status}
+        {getStatusLabel(status)}
       </Badge>
     );
   };
