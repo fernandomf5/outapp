@@ -310,7 +310,7 @@ export function CatalogCart({
       {/* Cart Sheet */}
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent
-          className="w-full sm:max-w-lg flex flex-col"
+          className="w-full sm:max-w-lg flex flex-col h-full max-h-screen overflow-hidden"
           style={{ backgroundColor, color: textColor }}
         >
           <SheetHeader>
@@ -338,7 +338,7 @@ export function CatalogCart({
             </div>
           ) : (
             <>
-              <ScrollArea className="flex-1 -mx-6 px-6">
+              <ScrollArea className="flex-1 -mx-6 px-6 min-h-0">
                 <div className="space-y-4 py-4">
                   {items.map((item) => (
                     <div
@@ -480,13 +480,13 @@ export function CatalogCart({
                 </div>
               </ScrollArea>
 
-              <SheetFooter className="flex-col gap-3 border-t pt-4" style={{ borderColor: `${textColor}20` }}>
+              <SheetFooter className="flex-col gap-2 sm:gap-3 border-t pt-3 sm:pt-4 flex-shrink-0" style={{ borderColor: `${textColor}20` }}>
                 {showPrices && (
                   <div className="w-full flex items-center justify-between">
                     <span className="font-medium" style={{ color: textColor }}>
                       {hasQuoteItems ? "Subtotal:" : "Total:"}
                     </span>
-                    <span className="text-xl font-bold" style={{ color: primaryColor }}>
+                    <span className="text-lg sm:text-xl font-bold" style={{ color: primaryColor }}>
                       {formatPrice(totalPrice)}
                     </span>
                   </div>

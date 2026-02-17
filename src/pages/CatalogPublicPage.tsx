@@ -518,14 +518,14 @@ export default function CatalogPublicPage() {
       return (
         <div
           key={item.id}
-          className="flex gap-4 p-4 border rounded-lg hover:shadow-md transition-shadow"
+          className="flex gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg hover:shadow-md transition-shadow"
           style={{ borderColor: `${textColor}20` }}
         >
           {item.image_url && (
             <img
               src={item.image_url}
               alt={item.name}
-              className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover flex-shrink-0"
             />
           )}
           <div className="flex-1 min-w-0">
@@ -590,7 +590,7 @@ export default function CatalogPublicPage() {
                 )}
             </div>
           </div>
-          <div className="flex gap-2 flex-shrink-0 self-center">
+          <div className="flex flex-wrap gap-2 flex-shrink-0 self-center">
             <Button
               size="sm"
               variant="outline"
@@ -599,18 +599,19 @@ export default function CatalogPublicPage() {
                 borderColor: catalog.primary_color, 
                 color: catalog.primary_color 
               }}
+              className="text-xs"
             >
-              <Eye className="w-4 h-4 mr-1" />
-              Detalhes
+              <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
+              <span className="hidden sm:inline">Detalhes</span>
             </Button>
             <Button
               size="sm"
               onClick={() => addToCart({ ...item, type: isProduct ? "product" : "service" })}
               style={{ backgroundColor: catalog.primary_color }}
-              className="text-white"
+              className="text-white text-xs"
             >
-              <Plus className="w-4 h-4 mr-1" />
-              Adicionar
+              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
+              <span className="hidden sm:inline">Adicionar</span>
             </Button>
           </div>
         </div>
@@ -851,20 +852,20 @@ export default function CatalogPublicPage() {
             </div>
           )}
           <div
-            className="relative z-10 container mx-auto px-4 py-12 text-center text-white"
+            className="relative z-10 container mx-auto px-4 py-8 sm:py-12 text-center text-white"
           >
             {catalog.logo_url && (
               <img
                 src={catalog.logo_url}
                 alt={catalog.name}
-                className="w-20 h-20 mx-auto mb-4 rounded-full object-cover border-4 border-white/30"
+                className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-3 sm:mb-4 rounded-full object-cover border-4 border-white/30"
               />
             )}
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">
               {catalog.name}
             </h1>
             {catalog.description && (
-              <p className="text-lg opacity-90 max-w-2xl mx-auto">
+              <p className="text-sm sm:text-lg opacity-90 max-w-2xl mx-auto px-2">
                 {catalog.description}
               </p>
             )}
@@ -894,21 +895,21 @@ export default function CatalogPublicPage() {
         </header>
 
         {/* Content */}
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
           {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4 sm:mb-6">
             <TabsList
               className="grid w-full max-w-md mx-auto grid-cols-3"
               style={{ backgroundColor: `${textColor}10` }}
             >
-              <TabsTrigger value="all">Todos ({allItems.length})</TabsTrigger>
-              <TabsTrigger value="products">
-                <Package className="w-4 h-4 mr-1" />
-                Produtos ({products.length})
+              <TabsTrigger value="all" className="text-xs sm:text-sm">Todos ({allItems.length})</TabsTrigger>
+              <TabsTrigger value="products" className="text-xs sm:text-sm">
+                <Package className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                <span className="hidden xs:inline">Produtos</span> ({products.length})
               </TabsTrigger>
-              <TabsTrigger value="services">
-                <Wrench className="w-4 h-4 mr-1" />
-                Serviços ({services.length})
+              <TabsTrigger value="services" className="text-xs sm:text-sm">
+                <Wrench className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                <span className="hidden xs:inline">Serviços</span> ({services.length})
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -1062,7 +1063,7 @@ export default function CatalogPublicPage() {
 
         {/* Footer */}
         <footer
-          className="py-6 text-center text-sm border-t"
+          className="py-4 sm:py-6 text-center text-xs sm:text-sm border-t px-4"
           style={{ borderColor: `${textColor}20`, color: `${textColor}80` }}
         >
           <p>
