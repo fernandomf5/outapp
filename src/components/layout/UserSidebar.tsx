@@ -170,6 +170,7 @@ export function UserSidebar() {
     { title: t('video_downloader'), icon: Video, path: "/dashboard", tab: "video-downloader", hideForTeamMember: true },
     { title: t('media_converter'), icon: RefreshCw, path: "/dashboard", tab: "conversor-midia", hideForTeamMember: true },
     { title: t('document_converter'), icon: FileType, path: "/dashboard", tab: "conversor-documentos", hideForTeamMember: true },
+    { title: "Gerador de Recibos", icon: FileCheck, path: "/dashboard", tab: "recibos", hideForTeamMember: true },
   ];
 
   // Support items - all hidden for team members

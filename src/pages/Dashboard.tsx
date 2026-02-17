@@ -72,6 +72,7 @@ import { BusinessManagementPanel } from "@/components/BusinessManagementPanel";
 import ProductsServicesPanel from "@/components/ProductsServicesPanel";
 import CatalogCreatorPanel from "@/components/CatalogCreatorPanel";
 import RoutineOrganizerPanel from "@/components/RoutineOrganizerPanel";
+import { ReceiptGeneratorPanel } from "@/components/ReceiptGeneratorPanel";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { TeamMemberBanner } from "@/components/TeamMemberBanner";
@@ -1499,6 +1500,10 @@ const Dashboard = () => {
 
           <TabsContent value="rotina">
             <RoutineOrganizerPanel />
+          </TabsContent>
+
+          <TabsContent value="recibos">
+            <ReceiptGeneratorPanel />
           </TabsContent>
         </Tabs>
       </main>

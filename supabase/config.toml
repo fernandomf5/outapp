@@ -65,3 +65,6 @@ verify_jwt = false
 
 [functions.check-agenda-reminders]
 verify_jwt = false
+
+[functions.send-receipt-email]
+verify_jwt = false
