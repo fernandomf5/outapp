@@ -1009,133 +1009,221 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
     let maxScore = 0;
     let metrics: string[] = [];
 
-    // ROI
-    const campaignROI = campaign.spent > 0 ? ((campaign.revenue - campaign.spent) / campaign.spent) * 100 : 0;
-    if (campaignROI > 100) {
-      score += 3;
-      metrics.push(`✅ ROI excelente (${campaignROI.toFixed(0)}%)`);
-    } else if (campaignROI > 50) {
-      score += 2;
-      metrics.push(`✓ ROI bom (${campaignROI.toFixed(0)}%)`);
-    } else if (campaignROI > 0) {
-      score += 1;
-      metrics.push(`⚠️ ROI positivo mas baixo (${campaignROI.toFixed(0)}%)`);
-    } else {
-      metrics.push(`❌ ROI negativo (${campaignROI.toFixed(0)}%)`);
-    }
-    maxScore += 3;
-
-    // CTR (Click-through rate)
     const ctr = campaign.impressions > 0 ? (campaign.clicks / campaign.impressions) * 100 : 0;
-    if (ctr > 2) {
-      score += 2;
-      metrics.push(`✅ CTR excelente (${ctr.toFixed(2)}%)`);
-    } else if (ctr > 1) {
-      score += 1;
-      metrics.push(`✓ CTR razoável (${ctr.toFixed(2)}%)`);
-    } else if (ctr > 0) {
-      metrics.push(`⚠️ CTR baixo (${ctr.toFixed(2)}%)`);
-    } else {
-      metrics.push(`❌ CTR muito baixo`);
-    }
-    maxScore += 2;
+    const campaignROI = campaign.spent > 0 ? ((campaign.revenue - campaign.spent) / campaign.spent) * 100 : 0;
 
-    // Taxa de conversão
-    if (campaign.clicks > 0 && campaign.conversions > 0) {
-      const convRate = (campaign.conversions / campaign.clicks) * 100;
-      if (convRate > 5) {
-        score += 3;
-        metrics.push(`✅ Taxa de conversão excelente (${convRate.toFixed(2)}%)`);
-      } else if (convRate > 2) {
-        score += 2;
-        metrics.push(`✓ Taxa de conversão boa (${convRate.toFixed(2)}%)`);
-      } else if (convRate > 0.5) {
-        score += 1;
-        metrics.push(`⚠️ Taxa de conversão baixa (${convRate.toFixed(2)}%)`);
-      } else {
-        metrics.push(`❌ Taxa de conversão muito baixa (${convRate.toFixed(2)}%)`);
-      }
-      maxScore += 3;
-    }
-
-    // Métricas específicas por tipo
+    // Métricas específicas por tipo de campanha (prioridade)
     switch (campaign.campaign_type) {
       case 'engagement':
         if (campaign.engagement_count && campaign.impressions) {
           const engRate = (campaign.engagement_count / campaign.impressions) * 100;
-          if (engRate > 10) {
-            score += 2;
-            metrics.push(`✅ Taxa de engajamento excelente (${engRate.toFixed(2)}%)`);
-          } else if (engRate > 5) {
-            score += 1;
-            metrics.push(`✓ Taxa de engajamento boa (${engRate.toFixed(2)}%)`);
-          } else {
-            metrics.push(`⚠️ Taxa de engajamento baixa (${engRate.toFixed(2)}%)`);
-          }
+          if (engRate > 10) { score += 3; metrics.push(`✅ Taxa de engajamento excelente (${engRate.toFixed(2)}%)`); }
+          else if (engRate > 5) { score += 2; metrics.push(`✓ Taxa de engajamento boa (${engRate.toFixed(2)}%)`); }
+          else if (engRate > 2) { score += 1; metrics.push(`⚠️ Taxa de engajamento baixa (${engRate.toFixed(2)}%)`); }
+          else { metrics.push(`❌ Taxa de engajamento muito baixa (${engRate.toFixed(2)}%)`); }
+          maxScore += 3;
+        }
+        if (campaign.engagement_cost) {
+          if (campaign.engagement_cost < 0.10) { score += 2; metrics.push(`✅ Custo por engajamento ótimo (R$ ${campaign.engagement_cost.toFixed(2)})`); }
+          else if (campaign.engagement_cost < 0.30) { score += 1; metrics.push(`✓ Custo por engajamento razoável (R$ ${campaign.engagement_cost.toFixed(2)})`); }
+          else { metrics.push(`⚠️ Custo por engajamento alto (R$ ${campaign.engagement_cost.toFixed(2)})`); }
           maxScore += 2;
         }
+        if (campaign.engagement_count) {
+          metrics.push(`📊 Total de engajamentos: ${campaign.engagement_count.toLocaleString()}`);
+        }
+        // CTR como métrica secundária
+        if (ctr > 2) { score += 1; metrics.push(`✅ CTR bom (${ctr.toFixed(2)}%)`); }
+        else if (ctr > 1) { metrics.push(`✓ CTR razoável (${ctr.toFixed(2)}%)`); }
+        maxScore += 1;
         break;
-      
+
       case 'video':
+        if (campaign.video_views) {
+          const viewRate = campaign.impressions > 0 ? (campaign.video_views / campaign.impressions) * 100 : 0;
+          if (viewRate > 30) { score += 2; metrics.push(`✅ Taxa de visualização excelente (${viewRate.toFixed(1)}%)`); }
+          else if (viewRate > 15) { score += 1; metrics.push(`✓ Taxa de visualização razoável (${viewRate.toFixed(1)}%)`); }
+          else { metrics.push(`⚠️ Taxa de visualização baixa (${viewRate.toFixed(1)}%)`); }
+          maxScore += 2;
+          metrics.push(`📊 Total de views: ${campaign.video_views.toLocaleString()}`);
+        }
         if (campaign.video_views && campaign.video_watch_time) {
           const avgWatchTime = campaign.video_watch_time / campaign.video_views;
-          if (avgWatchTime > 30) {
-            score += 2;
-            metrics.push(`✅ Tempo médio de visualização excelente (${avgWatchTime.toFixed(0)}s)`);
-          } else if (avgWatchTime > 15) {
-            score += 1;
-            metrics.push(`✓ Tempo médio razoável (${avgWatchTime.toFixed(0)}s)`);
-          } else {
-            metrics.push(`⚠️ Tempo médio baixo (${avgWatchTime.toFixed(0)}s)`);
-          }
+          if (avgWatchTime > 30) { score += 2; metrics.push(`✅ Tempo médio de visualização excelente (${avgWatchTime.toFixed(0)}s)`); }
+          else if (avgWatchTime > 15) { score += 1; metrics.push(`✓ Tempo médio razoável (${avgWatchTime.toFixed(0)}s)`); }
+          else { metrics.push(`⚠️ Tempo médio baixo (${avgWatchTime.toFixed(0)}s)`); }
+          maxScore += 2;
+        }
+        if (campaign.cpv) {
+          if (campaign.cpv < 0.05) { score += 2; metrics.push(`✅ CPV excelente (R$ ${campaign.cpv.toFixed(3)})`); }
+          else if (campaign.cpv < 0.10) { score += 1; metrics.push(`✓ CPV razoável (R$ ${campaign.cpv.toFixed(3)})`); }
+          else { metrics.push(`⚠️ CPV alto (R$ ${campaign.cpv.toFixed(3)})`); }
           maxScore += 2;
         }
         break;
 
-      case 'messages':
-        if (campaign.response_rate) {
-          if (campaign.response_rate > 60) {
-            score += 2;
-            metrics.push(`✅ Taxa de resposta excelente (${campaign.response_rate.toFixed(1)}%)`);
-          } else if (campaign.response_rate > 40) {
-            score += 1;
-            metrics.push(`✓ Taxa de resposta boa (${campaign.response_rate.toFixed(1)}%)`);
-          } else {
-            metrics.push(`⚠️ Taxa de resposta baixa (${campaign.response_rate.toFixed(1)}%)`);
-          }
+      case 'reach':
+      case 'branding':
+        if (campaign.reach) {
+          const reachRate = campaign.impressions > 0 ? (campaign.reach / campaign.impressions) * 100 : 0;
+          metrics.push(`📊 Alcance total: ${campaign.reach.toLocaleString()}`);
+          if (reachRate > 70) { score += 2; metrics.push(`✅ Eficiência de alcance excelente (${reachRate.toFixed(1)}%)`); }
+          else if (reachRate > 50) { score += 1; metrics.push(`✓ Eficiência de alcance boa (${reachRate.toFixed(1)}%)`); }
           maxScore += 2;
+        }
+        if (campaign.cpm) {
+          if (campaign.cpm < 10) { score += 2; metrics.push(`✅ CPM excelente (R$ ${campaign.cpm.toFixed(2)})`); }
+          else if (campaign.cpm < 25) { score += 1; metrics.push(`✓ CPM razoável (R$ ${campaign.cpm.toFixed(2)})`); }
+          else { metrics.push(`⚠️ CPM alto (R$ ${campaign.cpm.toFixed(2)})`); }
+          maxScore += 2;
+        }
+        if (campaign.frequency) {
+          if (campaign.frequency < 3) { score += 1; metrics.push(`✅ Frequência saudável (${campaign.frequency.toFixed(2)}x)`); }
+          else { metrics.push(`⚠️ Frequência alta (${campaign.frequency.toFixed(2)}x)`); }
+          maxScore += 1;
+        }
+        if (campaign.brand_recall) {
+          if (campaign.brand_recall > 40) { score += 2; metrics.push(`✅ Recall de marca excelente (${campaign.brand_recall.toFixed(1)}%)`); }
+          else if (campaign.brand_recall > 25) { score += 1; metrics.push(`✓ Recall de marca bom (${campaign.brand_recall.toFixed(1)}%)`); }
+          else { metrics.push(`⚠️ Recall de marca baixo (${campaign.brand_recall.toFixed(1)}%)`); }
+          maxScore += 2;
+        }
+        if (campaign.qualified_reach) {
+          metrics.push(`📊 Alcance qualificado: ${campaign.qualified_reach.toLocaleString()}`);
+        }
+        break;
+
+      case 'leads':
+        if (campaign.leads_generated) {
+          metrics.push(`📊 Leads gerados: ${campaign.leads_generated.toLocaleString()}`);
+          if (campaign.cpl) {
+            if (campaign.cpl < 5) { score += 3; metrics.push(`✅ CPL excelente (R$ ${campaign.cpl.toFixed(2)})`); }
+            else if (campaign.cpl < 15) { score += 2; metrics.push(`✓ CPL bom (R$ ${campaign.cpl.toFixed(2)})`); }
+            else if (campaign.cpl < 30) { score += 1; metrics.push(`⚠️ CPL alto (R$ ${campaign.cpl.toFixed(2)})`); }
+            else { metrics.push(`❌ CPL muito alto (R$ ${campaign.cpl.toFixed(2)})`); }
+            maxScore += 3;
+          }
+        }
+        if (ctr > 2) { score += 1; metrics.push(`✅ CTR bom (${ctr.toFixed(2)}%)`); }
+        else if (ctr > 1) { metrics.push(`✓ CTR razoável (${ctr.toFixed(2)}%)`); }
+        maxScore += 1;
+        break;
+
+      case 'messages':
+        if (campaign.messages_count) {
+          metrics.push(`📊 Mensagens iniciadas: ${campaign.messages_count.toLocaleString()}`);
+        }
+        if (campaign.cost_per_message) {
+          if (campaign.cost_per_message < 1) { score += 2; metrics.push(`✅ Custo por mensagem ótimo (R$ ${campaign.cost_per_message.toFixed(2)})`); }
+          else if (campaign.cost_per_message < 3) { score += 1; metrics.push(`✓ Custo por mensagem razoável (R$ ${campaign.cost_per_message.toFixed(2)})`); }
+          else { metrics.push(`⚠️ Custo por mensagem alto (R$ ${campaign.cost_per_message.toFixed(2)})`); }
+          maxScore += 2;
+        }
+        if (campaign.response_rate) {
+          if (campaign.response_rate > 60) { score += 2; metrics.push(`✅ Taxa de resposta excelente (${campaign.response_rate.toFixed(1)}%)`); }
+          else if (campaign.response_rate > 40) { score += 1; metrics.push(`✓ Taxa de resposta boa (${campaign.response_rate.toFixed(1)}%)`); }
+          else { metrics.push(`⚠️ Taxa de resposta baixa (${campaign.response_rate.toFixed(1)}%)`); }
+          maxScore += 2;
+        }
+        break;
+
+      case 'followers':
+        if (campaign.followers_gained) {
+          metrics.push(`📊 Seguidores ganhos: ${campaign.followers_gained.toLocaleString()}`);
+          if (campaign.cost_per_follower) {
+            if (campaign.cost_per_follower < 0.50) { score += 3; metrics.push(`✅ Custo por seguidor excelente (R$ ${campaign.cost_per_follower.toFixed(2)})`); }
+            else if (campaign.cost_per_follower < 1.50) { score += 2; metrics.push(`✓ Custo por seguidor bom (R$ ${campaign.cost_per_follower.toFixed(2)})`); }
+            else { score += 1; metrics.push(`⚠️ Custo por seguidor alto (R$ ${campaign.cost_per_follower.toFixed(2)})`); }
+            maxScore += 3;
+          }
         }
         break;
 
       case 'app_install':
-        if (campaign.retention_rate) {
-          if (campaign.retention_rate > 50) {
-            score += 2;
-            metrics.push(`✅ Retenção excelente (${campaign.retention_rate.toFixed(1)}%)`);
-          } else if (campaign.retention_rate > 30) {
-            score += 1;
-            metrics.push(`✓ Retenção razoável (${campaign.retention_rate.toFixed(1)}%)`);
-          } else {
-            metrics.push(`⚠️ Retenção baixa (${campaign.retention_rate.toFixed(1)}%)`);
+        if (campaign.app_installs) {
+          metrics.push(`📊 Instalações: ${campaign.app_installs.toLocaleString()}`);
+          if (campaign.cpi) {
+            if (campaign.cpi < 2) { score += 2; metrics.push(`✅ CPI excelente (R$ ${campaign.cpi.toFixed(2)})`); }
+            else if (campaign.cpi < 5) { score += 1; metrics.push(`✓ CPI razoável (R$ ${campaign.cpi.toFixed(2)})`); }
+            else { metrics.push(`⚠️ CPI alto (R$ ${campaign.cpi.toFixed(2)})`); }
+            maxScore += 2;
           }
+        }
+        if (campaign.retention_rate) {
+          if (campaign.retention_rate > 50) { score += 2; metrics.push(`✅ Retenção excelente (${campaign.retention_rate.toFixed(1)}%)`); }
+          else if (campaign.retention_rate > 30) { score += 1; metrics.push(`✓ Retenção razoável (${campaign.retention_rate.toFixed(1)}%)`); }
+          else { metrics.push(`⚠️ Retenção baixa (${campaign.retention_rate.toFixed(1)}%)`); }
           maxScore += 2;
         }
         break;
 
-      case 'branding':
-        if (campaign.brand_recall) {
-          if (campaign.brand_recall > 40) {
-            score += 2;
-            metrics.push(`✅ Recall de marca excelente (${campaign.brand_recall.toFixed(1)}%)`);
-          } else if (campaign.brand_recall > 25) {
-            score += 1;
-            metrics.push(`✓ Recall de marca bom (${campaign.brand_recall.toFixed(1)}%)`);
-          } else {
-            metrics.push(`⚠️ Recall de marca baixo (${campaign.brand_recall.toFixed(1)}%)`);
+      case 'traffic':
+        // CTR é a principal métrica para tráfego
+        if (ctr > 3) { score += 3; metrics.push(`✅ CTR excelente (${ctr.toFixed(2)}%)`); }
+        else if (ctr > 1.5) { score += 2; metrics.push(`✓ CTR bom (${ctr.toFixed(2)}%)`); }
+        else if (ctr > 0.5) { score += 1; metrics.push(`⚠️ CTR baixo (${ctr.toFixed(2)}%)`); }
+        else { metrics.push(`❌ CTR muito baixo (${ctr.toFixed(2)}%)`); }
+        maxScore += 3;
+        {
+          const cpc = campaign.clicks > 0 ? campaign.spent / campaign.clicks : 0;
+          if (cpc > 0) {
+            if (cpc < 0.50) { score += 2; metrics.push(`✅ CPC excelente (R$ ${cpc.toFixed(2)})`); }
+            else if (cpc < 1.50) { score += 1; metrics.push(`✓ CPC razoável (R$ ${cpc.toFixed(2)})`); }
+            else { metrics.push(`⚠️ CPC alto (R$ ${cpc.toFixed(2)})`); }
+            maxScore += 2;
           }
+        }
+        metrics.push(`📊 Total de cliques: ${campaign.clicks.toLocaleString()}`);
+        break;
+
+      // Tipos focados em conversão/financeiro: ROI + CTR + conversão
+      case 'conversion':
+      case 'catalog':
+      case 'promotion':
+      case 'remarketing':
+      default:
+        // ROI
+        if (campaignROI > 100) { score += 3; metrics.push(`✅ ROI excelente (${campaignROI.toFixed(0)}%)`); }
+        else if (campaignROI > 50) { score += 2; metrics.push(`✓ ROI bom (${campaignROI.toFixed(0)}%)`); }
+        else if (campaignROI > 0) { score += 1; metrics.push(`⚠️ ROI positivo mas baixo (${campaignROI.toFixed(0)}%)`); }
+        else { metrics.push(`❌ ROI negativo (${campaignROI.toFixed(0)}%)`); }
+        maxScore += 3;
+
+        // CTR
+        if (ctr > 2) { score += 2; metrics.push(`✅ CTR excelente (${ctr.toFixed(2)}%)`); }
+        else if (ctr > 1) { score += 1; metrics.push(`✓ CTR razoável (${ctr.toFixed(2)}%)`); }
+        else if (ctr > 0) { metrics.push(`⚠️ CTR baixo (${ctr.toFixed(2)}%)`); }
+        else { metrics.push(`❌ CTR muito baixo`); }
+        maxScore += 2;
+
+        // Taxa de conversão
+        if (campaign.clicks > 0 && campaign.conversions > 0) {
+          const convRate = (campaign.conversions / campaign.clicks) * 100;
+          if (convRate > 5) { score += 3; metrics.push(`✅ Taxa de conversão excelente (${convRate.toFixed(2)}%)`); }
+          else if (convRate > 2) { score += 2; metrics.push(`✓ Taxa de conversão boa (${convRate.toFixed(2)}%)`); }
+          else if (convRate > 0.5) { score += 1; metrics.push(`⚠️ Taxa de conversão baixa (${convRate.toFixed(2)}%)`); }
+          else { metrics.push(`❌ Taxa de conversão muito baixa (${convRate.toFixed(2)}%)`); }
+          maxScore += 3;
+        }
+
+        if (campaign.campaign_type === 'catalog' && campaign.catalog_sales) {
+          metrics.push(`📊 Vendas do catálogo: ${campaign.catalog_sales.toLocaleString()}`);
+        }
+        if (campaign.campaign_type === 'remarketing' && campaign.recovery_rate) {
+          if (campaign.recovery_rate > 30) { score += 2; metrics.push(`✅ Taxa de recuperação excelente (${campaign.recovery_rate.toFixed(1)}%)`); }
+          else if (campaign.recovery_rate > 15) { score += 1; metrics.push(`✓ Taxa de recuperação boa (${campaign.recovery_rate.toFixed(1)}%)`); }
+          else { metrics.push(`⚠️ Taxa de recuperação baixa (${campaign.recovery_rate.toFixed(1)}%)`); }
           maxScore += 2;
         }
         break;
+    }
+
+    // Se não teve nenhuma métrica específica avaliada (maxScore = 0), usar métricas genéricas como fallback
+    if (maxScore === 0) {
+      if (campaignROI > 100) { score += 3; metrics.push(`✅ ROI excelente (${campaignROI.toFixed(0)}%)`); }
+      else if (campaignROI > 0) { score += 1; metrics.push(`⚠️ ROI baixo (${campaignROI.toFixed(0)}%)`); }
+      else { metrics.push(`❌ ROI negativo (${campaignROI.toFixed(0)}%)`); }
+      maxScore += 3;
     }
 
     const percentage = maxScore > 0 ? (score / maxScore) * 100 : 0;
