@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Receipt, Send, Download, MessageCircle, Mail, Plus, Trash2, Eye, Loader2 } from "lucide-react";
+import { Receipt, Send, Download, MessageCircle, Mail, Plus, Trash2, Eye, Loader2, Building2, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import jsPDF from "jspdf";
 
@@ -38,6 +38,29 @@ interface ReceiptData {
   logo_url: string;
 }
 
+interface BusinessOption {
+  id: string;
+  name: string;
+  cnpj: string | null;
+  company_name: string | null;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  logo_url: string | null;
+}
+
+interface CustomerOption {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  company: string | null;
+}
+
 const defaultReceipt: ReceiptData = {
   receipt_number: `REC-${Date.now().toString().slice(-6)}`,
   date: new Date().toISOString().split('T')[0],
@@ -65,6 +88,69 @@ export function ReceiptGeneratorPanel() {
   const [sendingEmail, setSendingEmail] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [logoPreview, setLogoPreview] = useState<string>('');
+
+  // Business & Customer data
+  const [businesses, setBusinesses] = useState<BusinessOption[]>([]);
+  const [customers, setCustomers] = useState<CustomerOption[]>([]);
+  const [selectedBusinessId, setSelectedBusinessId] = useState<string>('');
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchData = async () => {
+      const [bizRes, custRes] = await Promise.all([
+        supabase.from('businesses').select('id, name, cnpj, company_name, phone, address, city, state, logo_url').eq('user_id', user.id).order('name'),
+        supabase.from('customers').select('id, name, email, phone, address, city, state, company').eq('user_id', user.id).order('name'),
+      ]);
+      if (bizRes.data) setBusinesses(bizRes.data);
+      if (custRes.data) setCustomers(custRes.data);
+    };
+    fetchData();
+  }, [user]);
+
+  const handleSelectBusiness = (bizId: string) => {
+    setSelectedBusinessId(bizId);
+    if (bizId === '_none') {
+      updateField('company_name', '');
+      updateField('company_document', '');
+      updateField('company_address', '');
+      updateField('company_phone', '');
+      setLogoPreview('');
+      updateField('logo_url', '');
+      return;
+    }
+    const biz = businesses.find(b => b.id === bizId);
+    if (!biz) return;
+    const addr = [biz.address, biz.city, biz.state].filter(Boolean).join(', ');
+    updateField('company_name', biz.company_name || biz.name || '');
+    updateField('company_document', biz.cnpj || '');
+    updateField('company_address', addr);
+    updateField('company_phone', biz.phone || '');
+    if (biz.logo_url) {
+      setLogoPreview(biz.logo_url);
+      updateField('logo_url', biz.logo_url);
+    }
+  };
+
+  const handleSelectCustomer = (custId: string) => {
+    setSelectedCustomerId(custId);
+    if (custId === '_none') {
+      updateField('client_name', '');
+      updateField('client_document', '');
+      updateField('client_address', '');
+      updateField('client_email', '');
+      updateField('client_phone', '');
+      return;
+    }
+    const cust = customers.find(c => c.id === custId);
+    if (!cust) return;
+    const addr = [cust.address, cust.city, cust.state].filter(Boolean).join(', ');
+    updateField('client_name', cust.name || '');
+    updateField('client_email', cust.email || '');
+    updateField('client_phone', cust.phone || '');
+    updateField('client_address', addr);
+    updateField('client_document', '');
+  };
 
   const updateField = (field: keyof ReceiptData, value: any) => {
     setReceipt(prev => ({ ...prev, [field]: value }));
@@ -126,7 +212,6 @@ export function ReceiptGeneratorPanel() {
     const g = parseInt(color.slice(3, 5), 16);
     const b = parseInt(color.slice(5, 7), 16);
 
-    // Header
     doc.setFillColor(r, g, b);
     doc.rect(0, 0, 210, 40, 'F');
 
@@ -142,7 +227,6 @@ export function ReceiptGeneratorPanel() {
     doc.text(`Nº ${receipt.receipt_number}`, logoPreview ? 50 : 15, 30);
     doc.text(`Data: ${new Date(receipt.date).toLocaleDateString('pt-BR')}`, 150, 20);
 
-    // Company info
     let y = 50;
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(12);
@@ -157,7 +241,6 @@ export function ReceiptGeneratorPanel() {
     if (receipt.company_address) { doc.text(receipt.company_address, 15, y); y += 5; }
     if (receipt.company_phone) { doc.text(`Tel: ${receipt.company_phone}`, 15, y); y += 5; }
 
-    // Client info
     y += 5;
     doc.setFillColor(245, 245, 245);
     doc.rect(10, y - 4, 190, 25, 'F');
@@ -171,7 +254,6 @@ export function ReceiptGeneratorPanel() {
     if (receipt.client_document) { doc.text(`CPF/CNPJ: ${receipt.client_document}`, 15, y); y += 5; }
     if (receipt.client_address) { doc.text(`Endereço: ${receipt.client_address}`, 15, y); y += 5; }
 
-    // Items table
     y += 8;
     doc.setFillColor(r, g, b);
     doc.rect(10, y - 4, 190, 8, 'F');
@@ -195,7 +277,6 @@ export function ReceiptGeneratorPanel() {
       y += 7;
     });
 
-    // Total
     y += 3;
     doc.setDrawColor(r, g, b);
     doc.line(10, y, 200, y);
@@ -206,14 +287,12 @@ export function ReceiptGeneratorPanel() {
     doc.setTextColor(r, g, b);
     doc.text(formatCurrency(total), 175, y);
 
-    // Payment method
     y += 10;
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.text(`Forma de Pagamento: ${paymentMethods[receipt.payment_method] || receipt.payment_method}`, 15, y);
 
-    // Notes
     if (receipt.notes) {
       y += 10;
       doc.setFontSize(9);
@@ -221,7 +300,6 @@ export function ReceiptGeneratorPanel() {
       doc.text(`Observações: ${receipt.notes}`, 15, y, { maxWidth: 180 });
     }
 
-    // Signature line
     y = Math.max(y + 25, 240);
     doc.setDrawColor(0, 0, 0);
     doc.line(50, y, 160, y);
@@ -244,7 +322,6 @@ export function ReceiptGeneratorPanel() {
       toast({ title: "Erro", description: "Informe o telefone do cliente.", variant: "destructive" });
       return;
     }
-    // Download the PDF first
     handleDownloadPDF();
     const message = encodeURIComponent(
       `Olá ${receipt.client_name}! Segue o recibo Nº ${receipt.receipt_number} no valor de ${formatCurrency(total)}. Confira o arquivo em anexo.`
@@ -297,6 +374,7 @@ export function ReceiptGeneratorPanel() {
       logo_url: receipt.logo_url,
     });
     setLogoPreview(receipt.logo_url ? receipt.logo_url : '');
+    setSelectedCustomerId('');
   };
 
   return (
@@ -316,6 +394,22 @@ export function ReceiptGeneratorPanel() {
             <CardTitle className="text-base">Dados da Empresa</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
+            {/* Business selector */}
+            {businesses.length > 0 && (
+              <div>
+                <Label className="text-xs flex items-center gap-1"><Building2 className="w-3 h-3" /> Selecionar Negócio</Label>
+                <Select value={selectedBusinessId} onValueChange={handleSelectBusiness}>
+                  <SelectTrigger><SelectValue placeholder="Preencher com dados de um negócio..." /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none">— Preencher manualmente —</SelectItem>
+                    {businesses.map(b => (
+                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="flex items-center gap-3">
               <div>
                 <Label className="text-xs">Logo</Label>
@@ -360,6 +454,22 @@ export function ReceiptGeneratorPanel() {
             <CardTitle className="text-base">Dados do Cliente</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
+            {/* Customer selector */}
+            {customers.length > 0 && (
+              <div>
+                <Label className="text-xs flex items-center gap-1"><Users className="w-3 h-3" /> Selecionar Cliente Cadastrado</Label>
+                <Select value={selectedCustomerId} onValueChange={handleSelectCustomer}>
+                  <SelectTrigger><SelectValue placeholder="Preencher com cliente existente..." /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none">— Preencher manualmente —</SelectItem>
+                    {customers.map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}{c.email ? ` (${c.email})` : ''}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div>
               <Label className="text-xs">Nome do Cliente *</Label>
               <Input value={receipt.client_name} onChange={e => updateField('client_name', e.target.value)} placeholder="Nome completo" />
@@ -481,7 +591,6 @@ export function ReceiptGeneratorPanel() {
             <DialogTitle>Pré-visualização do Recibo</DialogTitle>
           </DialogHeader>
           <div className="border rounded-lg p-6 bg-white text-black">
-            {/* Preview Header */}
             <div className="flex items-center justify-between border-b pb-4 mb-4" style={{ borderColor: receipt.primary_color }}>
               <div className="flex items-center gap-3">
                 {logoPreview && <img src={logoPreview} alt="Logo" className="w-16 h-16 object-contain" />}
@@ -495,7 +604,6 @@ export function ReceiptGeneratorPanel() {
               </div>
             </div>
 
-            {/* Company */}
             {receipt.company_name && (
               <div className="mb-4">
                 <p className="font-semibold">{receipt.company_name}</p>
@@ -504,7 +612,6 @@ export function ReceiptGeneratorPanel() {
               </div>
             )}
 
-            {/* Client */}
             <div className="bg-gray-50 p-3 rounded mb-4">
               <p className="font-semibold text-sm mb-1" style={{ color: receipt.primary_color }}>CLIENTE</p>
               <p>{receipt.client_name || '-'}</p>
@@ -512,7 +619,6 @@ export function ReceiptGeneratorPanel() {
               {receipt.client_address && <p className="text-sm text-gray-600">{receipt.client_address}</p>}
             </div>
 
-            {/* Items Table */}
             <table className="w-full text-sm mb-4">
               <thead>
                 <tr style={{ backgroundColor: receipt.primary_color, color: 'white' }}>
@@ -534,7 +640,6 @@ export function ReceiptGeneratorPanel() {
               </tbody>
             </table>
 
-            {/* Total */}
             <div className="flex justify-end mb-4">
               <div className="text-right">
                 <span className="text-lg font-bold" style={{ color: receipt.primary_color }}>
@@ -551,7 +656,6 @@ export function ReceiptGeneratorPanel() {
               <p className="text-sm text-gray-500 italic">Obs: {receipt.notes}</p>
             )}
 
-            {/* Signature */}
             <div className="mt-10 text-center">
               <div className="border-t border-gray-400 w-48 mx-auto pt-1">
                 <p className="text-sm text-gray-500">Assinatura</p>
