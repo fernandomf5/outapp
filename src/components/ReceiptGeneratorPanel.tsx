@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Receipt, Send, Download, MessageCircle, Mail, Plus, Trash2, Eye, Loader2, Building2, Users } from "lucide-react";
+import { Receipt, Send, Download, MessageCircle, Mail, Plus, Trash2, Eye, Loader2, Building2, Users, Save, Search, FileText, Edit, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import jsPDF from "jspdf";
 
@@ -61,6 +61,16 @@ interface CustomerOption {
   company: string | null;
 }
 
+interface SavedReceipt {
+  id: string;
+  receipt_number: string;
+  receipt_data: ReceiptData;
+  total_amount: number;
+  client_name: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 const defaultReceipt: ReceiptData = {
   receipt_number: `REC-${Date.now().toString().slice(-6)}`,
   date: new Date().toISOString().split('T')[0],
@@ -95,6 +105,13 @@ export function ReceiptGeneratorPanel() {
   const [selectedBusinessId, setSelectedBusinessId] = useState<string>('');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
 
+  // Save & Search state
+  const [savedReceipts, setSavedReceipts] = useState<SavedReceipt[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [editingReceiptId, setEditingReceiptId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
@@ -106,6 +123,20 @@ export function ReceiptGeneratorPanel() {
       if (custRes.data) setCustomers(custRes.data);
     };
     fetchData();
+  }, [user]);
+
+  const fetchSavedReceipts = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('saved_receipts')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    if (data) setSavedReceipts(data as unknown as SavedReceipt[]);
+  };
+
+  useEffect(() => {
+    fetchSavedReceipts();
   }, [user]);
 
   const handleSelectBusiness = (bizId: string) => {
@@ -204,6 +235,76 @@ export function ReceiptGeneratorPanel() {
     };
     reader.readAsDataURL(file);
   };
+
+  // Save receipt
+  const handleSaveReceipt = async () => {
+    if (!user) return;
+    if (!receipt.receipt_number || !receipt.client_name) {
+      toast({ title: "Erro", description: "Preencha o número do recibo e o nome do cliente.", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload = {
+        user_id: user.id,
+        receipt_number: receipt.receipt_number,
+        receipt_data: JSON.parse(JSON.stringify(receipt)),
+        total_amount: total,
+        client_name: receipt.client_name,
+      };
+
+      if (editingReceiptId) {
+        const { error } = await supabase
+          .from('saved_receipts')
+          .update(payload)
+          .eq('id', editingReceiptId);
+        if (error) throw error;
+        toast({ title: "Recibo atualizado!", description: `Recibo ${receipt.receipt_number} atualizado com sucesso.` });
+      } else {
+        const { error } = await supabase
+          .from('saved_receipts')
+          .insert([payload]);
+        if (error) throw error;
+        toast({ title: "Recibo salvo!", description: `Recibo ${receipt.receipt_number} salvo com sucesso.` });
+      }
+      await fetchSavedReceipts();
+    } catch (error: any) {
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLoadReceipt = (saved: SavedReceipt) => {
+    const data = saved.receipt_data;
+    setReceipt(data);
+    setEditingReceiptId(saved.id);
+    setLogoPreview(data.logo_url || '');
+    setSelectedBusinessId('');
+    setSelectedCustomerId('');
+    setSearchOpen(false);
+    toast({ title: "Recibo carregado", description: `Editando recibo ${data.receipt_number}` });
+  };
+
+  const handleDeleteReceipt = async (id: string) => {
+    const { error } = await supabase.from('saved_receipts').delete().eq('id', id);
+    if (error) {
+      toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" });
+      return;
+    }
+    if (editingReceiptId === id) setEditingReceiptId(null);
+    toast({ title: "Recibo excluído" });
+    await fetchSavedReceipts();
+  };
+
+  const filteredReceipts = savedReceipts.filter(r => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      r.receipt_number.toLowerCase().includes(q) ||
+      (r.client_name || '').toLowerCase().includes(q)
+    );
+  });
 
   const generatePDF = (): jsPDF => {
     const doc = new jsPDF();
@@ -375,6 +476,7 @@ export function ReceiptGeneratorPanel() {
     });
     setLogoPreview(receipt.logo_url ? receipt.logo_url : '');
     setSelectedCustomerId('');
+    setEditingReceiptId(null);
   };
 
   return (
@@ -384,8 +486,24 @@ export function ReceiptGeneratorPanel() {
           <Receipt className="w-6 h-6 text-primary" />
           Gerador de Recibo Online
         </h2>
-        <Button variant="outline" onClick={handleNewReceipt}>Novo Recibo</Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="outline" size="sm" onClick={() => { setSearchOpen(true); fetchSavedReceipts(); }}>
+            <Search className="h-4 w-4 mr-1" /> Buscar Recibos
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleNewReceipt}>Novo Recibo</Button>
+        </div>
       </div>
+
+      {/* Editing indicator */}
+      {editingReceiptId && (
+        <div className="flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-lg px-4 py-2 text-sm">
+          <Edit className="w-4 h-4 text-primary" />
+          <span>Editando: <strong>{receipt.receipt_number}</strong></span>
+          <Button variant="ghost" size="sm" className="ml-auto h-6 px-2" onClick={() => { setEditingReceiptId(null); handleNewReceipt(); }}>
+            <X className="w-3 h-3 mr-1" /> Cancelar edição
+          </Button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Company Info */}
@@ -569,6 +687,10 @@ export function ReceiptGeneratorPanel() {
 
       {/* Actions */}
       <div className="flex flex-wrap gap-3">
+        <Button onClick={handleSaveReceipt} disabled={saving} variant="default">
+          {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+          {editingReceiptId ? 'Atualizar Recibo' : 'Salvar Recibo'}
+        </Button>
         <Button onClick={() => setPreviewOpen(true)} variant="outline">
           <Eye className="h-4 w-4 mr-2" /> Visualizar
         </Button>
@@ -583,6 +705,56 @@ export function ReceiptGeneratorPanel() {
           Enviar por Email
         </Button>
       </div>
+
+      {/* Search Receipts Dialog */}
+      <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" /> Recibos Salvos
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por número ou nome do cliente..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+
+            {filteredReceipts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <FileText className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                <p>{searchQuery ? 'Nenhum recibo encontrado.' : 'Nenhum recibo salvo ainda.'}</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {filteredReceipts.map(r => (
+                  <div key={r.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{r.receipt_number}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {r.client_name || 'Sem cliente'} • {formatCurrency(r.total_amount)} • {new Date(r.created_at).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1 ml-2">
+                      <Button variant="ghost" size="sm" onClick={() => handleLoadReceipt(r)}>
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDeleteReceipt(r.id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Preview Dialog */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>

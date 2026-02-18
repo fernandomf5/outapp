@@ -6063,6 +6063,39 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_receipts: {
+        Row: {
+          client_name: string | null
+          created_at: string
+          id: string
+          receipt_data: Json
+          receipt_number: string
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_name?: string | null
+          created_at?: string
+          id?: string
+          receipt_data: Json
+          receipt_number: string
+          total_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_name?: string | null
+          created_at?: string
+          id?: string
+          receipt_data?: Json
+          receipt_number?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           created_at: string | null
