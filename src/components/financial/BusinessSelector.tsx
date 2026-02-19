@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Building2, User, Plus, ArrowRight, Briefcase } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Building2, User, Plus, ArrowRight, Briefcase, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Business {
@@ -19,16 +20,34 @@ interface Business {
 interface BusinessSelectorProps {
   businesses: Business[];
   onSelectBusiness: (businessId: string) => void;
+  onSelectMultipleBusinesses?: (businessIds: string[]) => void;
   onCreateBusiness: (data: { name: string; business_type: 'personal' | 'company'; description: string }) => void;
 }
 
-export const BusinessSelector = ({ businesses, onSelectBusiness, onCreateBusiness }: BusinessSelectorProps) => {
+export const BusinessSelector = ({ businesses, onSelectBusiness, onSelectMultipleBusinesses, onCreateBusiness }: BusinessSelectorProps) => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState({
     name: '',
     business_type: 'personal' as 'personal' | 'company',
     description: ''
   });
+
+  const toggleSelection = (id: string) => {
+    const newSet = new Set(selectedIds);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setSelectedIds(newSet);
+  };
+
+  const handleViewConsolidated = () => {
+    if (selectedIds.size < 2) return;
+    onSelectMultipleBusinesses?.(Array.from(selectedIds));
+  };
 
   const handleCreate = () => {
     onCreateBusiness(formData);
@@ -46,6 +65,26 @@ export const BusinessSelector = ({ businesses, onSelectBusiness, onCreateBusines
         <p className="text-muted-foreground max-w-md">
           Selecione um negócio para gerenciar suas finanças ou crie um novo
         </p>
+        {businesses.length >= 2 && (
+          <div className="flex items-center gap-3 mt-4">
+            <Button
+              variant={multiSelectMode ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setMultiSelectMode(!multiSelectMode);
+                setSelectedIds(new Set());
+              }}
+            >
+              <Layers className="w-4 h-4 mr-2" />
+              {multiSelectMode ? "Cancelar Seleção" : "Juntar Negócios"}
+            </Button>
+            {multiSelectMode && selectedIds.size >= 2 && (
+              <Button size="sm" onClick={handleViewConsolidated}>
+                Ver Consolidado ({selectedIds.size} selecionados)
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       {businesses.length > 0 ? (
@@ -54,22 +93,42 @@ export const BusinessSelector = ({ businesses, onSelectBusiness, onCreateBusines
             {businesses.map((business) => (
               <Card 
                 key={business.id} 
-                className="cursor-pointer hover:border-primary hover:shadow-lg transition-all group"
-                onClick={() => onSelectBusiness(business.id)}
+                className={cn(
+                  "cursor-pointer hover:border-primary hover:shadow-lg transition-all group",
+                  multiSelectMode && selectedIds.has(business.id) && "border-primary ring-2 ring-primary/30"
+                )}
+                onClick={() => {
+                  if (multiSelectMode) {
+                    toggleSelection(business.id);
+                  } else {
+                    onSelectBusiness(business.id);
+                  }
+                }}
               >
                 <CardContent className="pt-6">
                   <div className="flex items-start justify-between mb-4">
-                    <div className={cn(
-                      "p-3 rounded-lg",
-                      business.business_type === 'company' ? 'bg-blue-500/10' : 'bg-green-500/10'
-                    )}>
-                      {business.business_type === 'company' ? (
-                        <Building2 className={cn("w-6 h-6", "text-blue-600")} />
-                      ) : (
-                        <User className={cn("w-6 h-6", "text-green-600")} />
+                    <div className="flex items-center gap-3">
+                      {multiSelectMode && (
+                        <Checkbox
+                          checked={selectedIds.has(business.id)}
+                          onCheckedChange={() => toggleSelection(business.id)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
                       )}
+                      <div className={cn(
+                        "p-3 rounded-lg",
+                        business.business_type === 'company' ? 'bg-blue-500/10' : 'bg-green-500/10'
+                      )}>
+                        {business.business_type === 'company' ? (
+                          <Building2 className={cn("w-6 h-6", "text-blue-600")} />
+                        ) : (
+                          <User className={cn("w-6 h-6", "text-green-600")} />
+                        )}
+                      </div>
                     </div>
-                    <ArrowRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                    {!multiSelectMode && (
+                      <ArrowRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                    )}
                   </div>
                   <h3 className="font-semibold text-lg mb-1">{business.name}</h3>
                   <Badge variant="secondary" className="text-xs">
