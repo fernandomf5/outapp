@@ -1061,6 +1061,25 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     .filter(t => t.status === 'pending')
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
+  // A Receber: receitas pendentes
+  const pendingIncome = transactionsWithMonthStatus
+    .filter(t => t.type === 'income' && t.status === 'pending')
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  // A Pagar: despesas pendentes
+  const pendingExpense = transactionsWithMonthStatus
+    .filter(t => t.type === 'expense' && t.status === 'pending')
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  // Saldo atual (só pagos)
+  const currentBalance = totalIncome - totalExpense;
+
+  // Projeção COM receitas pendentes recebidas
+  const projectionWithIncome = currentBalance + pendingIncome - pendingExpense;
+
+  // Projeção SEM receitas pendentes (só paga despesas pendentes)
+  const projectionWithoutIncome = currentBalance - pendingExpense;
+
   // Cálculo da autosoma
   const handleTransactionSelect = (id: string, selected: boolean) => {
     const newSelected = new Set(selectedTransactionIds);
@@ -1400,27 +1419,77 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
             <Button variant="link" className="p-0 h-auto text-[10px] sm:text-xs mt-1">Ver detalhes</Button>
           </CardContent>
         </Card>
+        <Card className="border-blue-500/30 bg-blue-500/5">
+          <CardHeader className="pb-2 p-3 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-medium">A Receber</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0 p-3 sm:p-6">
+            <p className="text-lg sm:text-2xl font-bold text-blue-500">R$ {pendingIncome.toFixed(2)}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Receitas pendentes</p>
+          </CardContent>
+        </Card>
+        <Card className="border-orange-500/30 bg-orange-500/5">
+          <CardHeader className="pb-2 p-3 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-medium">A Pagar</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0 p-3 sm:p-6">
+            <p className="text-lg sm:text-2xl font-bold text-orange-500">R$ {pendingExpense.toFixed(2)}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Despesas pendentes</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Segunda linha de cards - Projeções */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Card>
           <CardHeader className="pb-2 p-3 sm:p-6">
-            <CardTitle className="text-xs sm:text-sm font-medium">Pendentes</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Saldo Atual</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0 p-3 sm:p-6">
+            <p className={cn(
+              "text-lg sm:text-2xl font-bold",
+              currentBalance >= 0 ? 'text-green-600' : 'text-red-600'
+            )}>
+              R$ {currentBalance.toFixed(2)}
+            </p>
+            <Button variant="link" className="p-0 h-auto text-[10px] sm:text-xs mt-1" onClick={() => setIsComparisonOpen(true)}>Comparar meses</Button>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 p-3 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-medium">Pendentes Total</CardTitle>
           </CardHeader>
           <CardContent className="pt-0 p-3 sm:p-6">
             <p className="text-lg sm:text-2xl font-bold text-yellow-600">R$ {pendingAmount.toFixed(2)}</p>
             <Button variant="link" className="p-0 h-auto text-[10px] sm:text-xs mt-1" onClick={() => setIsDetailsDialogOpen(true)}>Ver detalhes</Button>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-green-500/30 bg-green-500/5">
           <CardHeader className="pb-2 p-3 sm:p-6">
-            <CardTitle className="text-xs sm:text-sm font-medium">Saldo</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Projeção Otimista</CardTitle>
           </CardHeader>
           <CardContent className="pt-0 p-3 sm:p-6">
             <p className={cn(
               "text-lg sm:text-2xl font-bold",
-              (totalIncome - totalExpense) >= 0 ? 'text-green-600' : 'text-red-600'
+              projectionWithIncome >= 0 ? 'text-green-600' : 'text-red-600'
             )}>
-              R$ {(totalIncome - totalExpense).toFixed(2)}
+              R$ {projectionWithIncome.toFixed(2)}
             </p>
-            <Button variant="link" className="p-0 h-auto text-[10px] sm:text-xs mt-1" onClick={() => setIsComparisonOpen(true)}>Comparar meses</Button>
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Recebendo tudo pendente</p>
+          </CardContent>
+        </Card>
+        <Card className="border-red-500/30 bg-red-500/5">
+          <CardHeader className="pb-2 p-3 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-medium">Projeção Pessimista</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0 p-3 sm:p-6">
+            <p className={cn(
+              "text-lg sm:text-2xl font-bold",
+              projectionWithoutIncome >= 0 ? 'text-green-600' : 'text-red-600'
+            )}>
+              R$ {projectionWithoutIncome.toFixed(2)}
+            </p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Sem receber pendentes</p>
           </CardContent>
         </Card>
       </div>
