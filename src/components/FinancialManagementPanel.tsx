@@ -255,6 +255,8 @@ interface FinancialManagementPanelProps {
 export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPanelProps) => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [selectedBusinessId, setSelectedBusinessId] = useState<string>('');
+  const [selectedBusinessIds, setSelectedBusinessIds] = useState<string[]>([]);
+  const [isConsolidatedView, setIsConsolidatedView] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'MMMM', { locale: ptBR }));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -329,10 +331,10 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   }, [teamContext?.adminUserId]);
 
   useEffect(() => {
-    if (selectedBusinessId) {
+    if (selectedBusinessId || (isConsolidatedView && selectedBusinessIds.length > 0)) {
       loadTransactions();
     }
-  }, [selectedBusinessId, selectedMonth, selectedYear, teamContext?.adminUserId]);
+  }, [selectedBusinessId, selectedBusinessIds, isConsolidatedView, selectedMonth, selectedYear, teamContext?.adminUserId]);
 
   const loadBusinesses = async () => {
     try {
@@ -366,12 +368,23 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
 
   const handleSelectBusiness = (businessId: string) => {
     setSelectedBusinessId(businessId);
+    setIsConsolidatedView(false);
+    setSelectedBusinessIds([]);
+    setViewMode('management');
+  };
+
+  const handleSelectMultipleBusinesses = (businessIds: string[]) => {
+    setSelectedBusinessIds(businessIds);
+    setSelectedBusinessId('');
+    setIsConsolidatedView(true);
     setViewMode('management');
   };
 
   const handleBackToSelection = () => {
     setViewMode('selection');
     setSelectedBusinessId('');
+    setSelectedBusinessIds([]);
+    setIsConsolidatedView(false);
   };
 
   const handleCreateBusinessFromSelector = async (data: { name: string; business_type: 'personal' | 'company'; description: string }) => {
@@ -406,23 +419,29 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   };
 
   const loadTransactions = async () => {
-    if (!selectedBusinessId) return;
+    if (!selectedBusinessId && !isConsolidatedView) return;
     
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Use adminUserId if teamContext is provided
       const targetUserId = teamContext?.adminUserId || user.id;
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('financial_transactions')
         .select('*')
         .eq('user_id', targetUserId)
-        .eq('business_id', selectedBusinessId)
         .eq('year', selectedYear)
-        .order('due_date', { ascending: true});
+        .order('due_date', { ascending: true });
+
+      if (isConsolidatedView && selectedBusinessIds.length > 0) {
+        query = query.in('business_id', selectedBusinessIds);
+      } else {
+        query = query.eq('business_id', selectedBusinessId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setTransactions((data || []) as any);
@@ -1068,17 +1087,21 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   };
 
   // Show business selector when in selection mode or no business selected
-  if (viewMode === 'selection' || !selectedBusinessId) {
+  if (viewMode === 'selection' || (!selectedBusinessId && !isConsolidatedView)) {
     return (
       <BusinessSelector
         businesses={businesses}
         onSelectBusiness={handleSelectBusiness}
+        onSelectMultipleBusinesses={handleSelectMultipleBusinesses}
         onCreateBusiness={handleCreateBusinessFromSelector}
       />
     );
   }
 
   const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
+  const consolidatedBusinessNames = isConsolidatedView 
+    ? businesses.filter(b => selectedBusinessIds.includes(b.id)).map(b => b.name)
+    : [];
 
   return (
     <div className="space-y-6">
@@ -1090,9 +1113,15 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold">{selectedBusiness?.name || 'Gestão Financeira'}</h2>
+              <h2 className="text-xl sm:text-2xl font-bold">
+                {isConsolidatedView 
+                  ? 'Visão Consolidada' 
+                  : (selectedBusiness?.name || 'Gestão Financeira')}
+              </h2>
               <p className="text-sm text-muted-foreground">
-                {selectedBusiness?.business_type === 'company' ? 'Pessoa Jurídica' : 'Pessoa Física'}
+                {isConsolidatedView 
+                  ? consolidatedBusinessNames.join(' + ')
+                  : (selectedBusiness?.business_type === 'company' ? 'Pessoa Jurídica' : 'Pessoa Física')}
               </p>
             </div>
           </div>
@@ -1100,32 +1129,36 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
             <Button variant="outline" size="sm" onClick={() => setIsCategoryDialogOpen(true)} className="text-xs sm:text-sm">
               Categorias
             </Button>
-            <div className="flex gap-1">
-              <Button variant="outline" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => {
-                if (selectedBusiness) openEditBusiness(selectedBusiness);
-              }}>
-                <Edit2 className="w-4 h-4" />
-              </Button>
-              <Button variant="outline" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => {
-                if (selectedBusinessId) handleDeleteBusiness(selectedBusinessId);
-              }}>
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
-            <Button variant="outline" onClick={() => setIsMultiTransactionDialogOpen(true)} size="sm" className="text-xs sm:text-sm">
-              <ListPlus className="w-4 h-4 mr-1" />
-              <span className="hidden xs:inline">Múltiplas</span>
-            </Button>
-            <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="text-xs sm:text-sm">
-              <Plus className="w-4 h-4 mr-1" />
-              <span className="hidden xs:inline">Nova </span>Transação
-            </Button>
+            {!isConsolidatedView && (
+              <>
+                <div className="flex gap-1">
+                  <Button variant="outline" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => {
+                    if (selectedBusiness) openEditBusiness(selectedBusiness);
+                  }}>
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
+                  <Button variant="outline" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => {
+                    if (selectedBusinessId) handleDeleteBusiness(selectedBusinessId);
+                  }}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+                <Button variant="outline" onClick={() => setIsMultiTransactionDialogOpen(true)} size="sm" className="text-xs sm:text-sm">
+                  <ListPlus className="w-4 h-4 mr-1" />
+                  <span className="hidden xs:inline">Múltiplas</span>
+                </Button>
+                <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="text-xs sm:text-sm">
+                  <Plus className="w-4 h-4 mr-1" />
+                  <span className="hidden xs:inline">Nova </span>Transação
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
         {/* View Mode Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'table' | 'analytics' | 'debtors')} className="w-full">
-          <TabsList className="grid w-full max-w-xl grid-cols-3">
+          <TabsList className={cn("grid w-full max-w-xl", isConsolidatedView ? "grid-cols-2" : "grid-cols-3")}>
             <TabsTrigger value="table" className="flex items-center gap-2">
               <TableIcon className="w-4 h-4" />
               Planilha
@@ -1134,10 +1167,12 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
               <LineChart className="w-4 h-4" />
               Gráficos
             </TabsTrigger>
-            <TabsTrigger value="debtors" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Devedores
-            </TabsTrigger>
+            {!isConsolidatedView && (
+              <TabsTrigger value="debtors" className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Devedores
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {/* Analytics Tab Content */}
@@ -1145,7 +1180,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
             <FinancialAnalyticsPanel
               transactions={transactions}
               selectedYear={selectedYear}
-              businessName={selectedBusiness?.name || ''}
+              businessName={isConsolidatedView ? consolidatedBusinessNames.join(' + ') : (selectedBusiness?.name || '')}
             />
           </TabsContent>
 
