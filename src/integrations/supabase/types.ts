@@ -4172,6 +4172,50 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_cashbox: {
+        Row: {
+          business_id: string
+          created_at: string
+          description: string | null
+          id: string
+          initial_balance: number
+          month: string
+          updated_at: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          initial_balance?: number
+          month: string
+          updated_at?: string
+          user_id: string
+          year: number
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          initial_balance?: number
+          month?: string
+          updated_at?: string
+          user_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_cashbox_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_categories: {
         Row: {
           business_id: string | null
