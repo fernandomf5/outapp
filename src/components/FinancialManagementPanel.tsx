@@ -1030,12 +1030,14 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     return t.month === selectedMonth;
   }).filter(t => selectedCategory === 'all' || t.category === selectedCategory);
 
-  // Ajustar totais considerando o status específico por mês
-  const baseTransactionsWithMonthStatus = monthTransactions
-    .map((t) => ({
-      ...t,
-      status: getTransactionStatus(t),
-    }))
+  // Todas as transações do mês com status correto (sem filtro de status) — usadas para calcular totais
+  const allMonthTransactionsWithStatus = monthTransactions.map((t) => ({
+    ...t,
+    status: getTransactionStatus(t),
+  }));
+
+  // Ajustar totais considerando o status específico por mês (com filtro de status para exibição)
+  const baseTransactionsWithMonthStatus = allMonthTransactionsWithStatus
     .filter((t) => statusFilter === "all" || t.status === statusFilter);
 
   // Sync local transactions when base data changes
@@ -1046,29 +1048,29 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     setLocalTransactions(sorted);
   }, [transactions, selectedMonth, selectedYear, selectedCategory, statusFilter]);
 
-  // Use localTransactions for display
+  // Use localTransactions for display (respects statusFilter)
   const transactionsWithMonthStatus = localTransactions;
 
-
-  const totalIncome = transactionsWithMonthStatus
+  // Totais calculados SEMPRE sobre todas as transações do mês (sem depender de statusFilter)
+  const totalIncome = allMonthTransactionsWithStatus
     .filter(t => t.type === 'income' && t.status === 'paid')
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
-  const totalExpense = transactionsWithMonthStatus
+  const totalExpense = allMonthTransactionsWithStatus
     .filter(t => t.type === 'expense' && t.status === 'paid')
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
-  const pendingAmount = transactionsWithMonthStatus
+  const pendingAmount = allMonthTransactionsWithStatus
     .filter(t => t.status === 'pending')
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
   // A Receber: receitas pendentes
-  const pendingIncome = transactionsWithMonthStatus
+  const pendingIncome = allMonthTransactionsWithStatus
     .filter(t => t.type === 'income' && t.status === 'pending')
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
   // A Pagar: despesas pendentes
-  const pendingExpense = transactionsWithMonthStatus
+  const pendingExpense = allMonthTransactionsWithStatus
     .filter(t => t.type === 'expense' && t.status === 'pending')
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
