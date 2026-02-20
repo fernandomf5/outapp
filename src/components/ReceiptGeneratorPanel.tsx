@@ -73,7 +73,7 @@ interface SavedReceipt {
 
 const defaultReceipt: ReceiptData = {
   receipt_number: `REC-${Date.now().toString().slice(-6)}`,
-  date: new Date().toISOString().split('T')[0],
+  date: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })(),
   client_name: '',
   client_document: '',
   client_address: '',
@@ -326,7 +326,7 @@ export function ReceiptGeneratorPanel() {
     doc.text('RECIBO', logoPreview ? 50 : 15, 20);
     doc.setFontSize(11);
     doc.text(`Nº ${receipt.receipt_number}`, logoPreview ? 50 : 15, 30);
-    doc.text(`Data: ${new Date(receipt.date).toLocaleDateString('pt-BR')}`, 150, 20);
+    doc.text(`Data: ${receipt.date.split('-').reverse().join('/')}`, 150, 20);
 
     let y = 50;
     doc.setTextColor(0, 0, 0);
@@ -772,7 +772,7 @@ export function ReceiptGeneratorPanel() {
                 </div>
               </div>
               <div className="text-right text-sm text-gray-600">
-                <p>{new Date(receipt.date).toLocaleDateString('pt-BR')}</p>
+                <p>{receipt.date.split('-').reverse().join('/')}</p>
               </div>
             </div>
 
