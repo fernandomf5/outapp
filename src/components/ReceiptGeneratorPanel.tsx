@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Receipt, Send, Download, MessageCircle, Mail, Plus, Trash2, Eye, Loader2, Building2, Users, Save, Search, FileText, Edit, X } from "lucide-react";
+import { Receipt, Send, Download, MessageCircle, Mail, Plus, Trash2, Eye, Loader2, Building2, Users, Save, Search, FileText, Edit, X, Printer } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import jsPDF from "jspdf";
 
@@ -21,6 +21,7 @@ interface ReceiptItem {
 
 interface ReceiptData {
   receipt_number: string;
+  receipt_title: string;
   date: string;
   client_name: string;
   client_document: string;
@@ -36,6 +37,8 @@ interface ReceiptData {
   company_phone: string;
   primary_color: string;
   logo_url: string;
+  issuer_signer_name: string;
+  client_signer_name: string;
 }
 
 interface BusinessOption {
@@ -73,6 +76,7 @@ interface SavedReceipt {
 
 const defaultReceipt: ReceiptData = {
   receipt_number: `REC-${Date.now().toString().slice(-6)}`,
+  receipt_title: 'RECIBO',
   date: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })(),
   client_name: '',
   client_document: '',
@@ -88,6 +92,8 @@ const defaultReceipt: ReceiptData = {
   company_phone: '',
   primary_color: '#2563eb',
   logo_url: '',
+  issuer_signer_name: '',
+  client_signer_name: '',
 };
 
 export function ReceiptGeneratorPanel() {
@@ -323,7 +329,7 @@ export function ReceiptGeneratorPanel() {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.text('RECIBO', logoPreview ? 50 : 15, 20);
+    doc.text(receipt.receipt_title || 'RECIBO', logoPreview ? 50 : 15, 20);
     doc.setFontSize(11);
     doc.text(`Nº ${receipt.receipt_number}`, logoPreview ? 50 : 15, 30);
     doc.text(`Data: ${receipt.date.split('-').reverse().join('/')}`, 150, 20);
@@ -401,12 +407,20 @@ export function ReceiptGeneratorPanel() {
       doc.text(`Observações: ${receipt.notes}`, 15, y, { maxWidth: 180 });
     }
 
-    y = Math.max(y + 25, 240);
+    y = Math.max(y + 25, 220);
+
+    // Two signature lines side by side
+    const sigY = y;
+    // Issuer signature (left)
     doc.setDrawColor(0, 0, 0);
-    doc.line(50, y, 160, y);
+    doc.line(20, sigY, 90, sigY);
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text('Assinatura', 95, y + 5);
+    doc.text(receipt.issuer_signer_name || receipt.company_name || 'Emissor', 55, sigY + 5, { align: 'center' });
+
+    // Client signature (right)
+    doc.line(120, sigY, 190, sigY);
+    doc.text(receipt.client_signer_name || receipt.client_name || 'Cliente', 155, sigY + 5, { align: 'center' });
 
     return doc;
   };
@@ -415,6 +429,17 @@ export function ReceiptGeneratorPanel() {
     const doc = generatePDF();
     doc.save(`recibo-${receipt.receipt_number}.pdf`);
     toast({ title: "PDF gerado!", description: "O recibo foi baixado com sucesso." });
+  };
+
+  const handlePrint = () => {
+    const doc = generatePDF();
+    const blobUrl = doc.output('bloburl');
+    const printWindow = window.open(blobUrl as unknown as string, '_blank');
+    if (printWindow) {
+      printWindow.addEventListener('load', () => {
+        printWindow.print();
+      });
+    }
   };
 
   const handleSendWhatsApp = () => {
@@ -618,7 +643,11 @@ export function ReceiptGeneratorPanel() {
           <CardTitle className="text-base">Detalhes do Recibo</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div>
+              <Label className="text-xs">Título do Recibo</Label>
+              <Input value={receipt.receipt_title} onChange={e => updateField('receipt_title', e.target.value)} placeholder="RECIBO" />
+            </div>
             <div>
               <Label className="text-xs">Nº do Recibo</Label>
               <Input value={receipt.receipt_number} onChange={e => updateField('receipt_number', e.target.value)} />
@@ -682,6 +711,18 @@ export function ReceiptGeneratorPanel() {
             <Label className="text-xs">Observações</Label>
             <Textarea value={receipt.notes} onChange={e => updateField('notes', e.target.value)} placeholder="Observações adicionais..." rows={2} />
           </div>
+
+          {/* Signature Names */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Nome do Assinante (Emissor)</Label>
+              <Input value={receipt.issuer_signer_name} onChange={e => updateField('issuer_signer_name', e.target.value)} placeholder="Nome de quem emite o recibo" />
+            </div>
+            <div>
+              <Label className="text-xs">Nome do Assinante (Cliente)</Label>
+              <Input value={receipt.client_signer_name} onChange={e => updateField('client_signer_name', e.target.value)} placeholder="Nome do cliente que assina" />
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -696,6 +737,9 @@ export function ReceiptGeneratorPanel() {
         </Button>
         <Button onClick={handleDownloadPDF} variant="outline">
           <Download className="h-4 w-4 mr-2" /> Baixar PDF
+        </Button>
+        <Button onClick={handlePrint} variant="outline">
+          <Printer className="h-4 w-4 mr-2" /> Imprimir
         </Button>
         <Button onClick={handleSendWhatsApp} className="bg-green-600 hover:bg-green-700 text-white">
           <MessageCircle className="h-4 w-4 mr-2" /> Enviar por WhatsApp
@@ -767,7 +811,7 @@ export function ReceiptGeneratorPanel() {
               <div className="flex items-center gap-3">
                 {logoPreview && <img src={logoPreview} alt="Logo" className="w-16 h-16 object-contain" />}
                 <div>
-                  <h3 className="text-xl font-bold" style={{ color: receipt.primary_color }}>RECIBO</h3>
+                  <h3 className="text-xl font-bold" style={{ color: receipt.primary_color }}>{receipt.receipt_title || 'RECIBO'}</h3>
                   <p className="text-sm text-gray-500">Nº {receipt.receipt_number}</p>
                 </div>
               </div>
@@ -828,9 +872,16 @@ export function ReceiptGeneratorPanel() {
               <p className="text-sm text-gray-500 italic">Obs: {receipt.notes}</p>
             )}
 
-            <div className="mt-10 text-center">
-              <div className="border-t border-gray-400 w-48 mx-auto pt-1">
-                <p className="text-sm text-gray-500">Assinatura</p>
+            <div className="mt-10 flex justify-between px-8">
+              <div className="text-center">
+                <div className="border-t border-gray-400 w-48 pt-1">
+                  <p className="text-sm text-gray-500">{receipt.issuer_signer_name || receipt.company_name || 'Emissor'}</p>
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="border-t border-gray-400 w-48 pt-1">
+                  <p className="text-sm text-gray-500">{receipt.client_signer_name || receipt.client_name || 'Cliente'}</p>
+                </div>
               </div>
             </div>
           </div>
