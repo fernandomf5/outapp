@@ -331,10 +331,28 @@ export const DebtorsPanel = ({ businessId, teamContext }: DebtorsPanelProps) => 
     return d.status === statusFilter;
   });
 
-  // Totais
+  // Totais - considera pagamentos registrados E devedores com status 'paid' ou 'cancelled' sem pagamentos
   const totalToReceive = debtors.reduce((sum, d) => sum + Number(d.amount), 0);
-  const totalReceived = Object.values(payments).flat().reduce((sum, p) => sum + Number(p.amount), 0);
-  const totalPending = totalToReceive - totalReceived;
+
+  const totalReceived = debtors.reduce((sum, debtor) => {
+    const paymentsForDebtor = (payments[debtor.id] || []).reduce((s, p) => s + Number(p.amount), 0);
+    if (paymentsForDebtor > 0) {
+      // Tem pagamentos registrados — usa o valor real pago
+      return sum + paymentsForDebtor;
+    } else if (debtor.status === 'paid' || debtor.status === 'cancelled') {
+      // Status marcado manualmente sem pagamento registrado — considera o valor total como recebido
+      return sum + Number(debtor.amount);
+    }
+    return sum;
+  }, 0);
+
+  const totalPending = debtors.reduce((sum, debtor) => {
+    if (debtor.status === 'paid' || debtor.status === 'cancelled') return sum;
+    const paymentsForDebtor = (payments[debtor.id] || []).reduce((s, p) => s + Number(p.amount), 0);
+    const remaining = Number(debtor.amount) - paymentsForDebtor;
+    return sum + (remaining > 0 ? remaining : 0);
+  }, 0);
+
   const overdueCount = debtors.filter(d => d.status === 'overdue' || (d.due_date && new Date(d.due_date) < new Date() && d.status === 'pending')).length;
 
   if (loading) {
