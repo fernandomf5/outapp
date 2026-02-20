@@ -654,7 +654,17 @@ export function ReceiptGeneratorPanel() {
             </div>
             <div>
               <Label className="text-xs">Data</Label>
-              <Input type="date" value={receipt.date} onChange={e => updateField('date', e.target.value)} />
+              <Input 
+                type="date" 
+                value={receipt.date} 
+                onChange={e => {
+                  // Preserva a data exata selecionada sem conversão de fuso horário
+                  const rawValue = e.target.value; // formato YYYY-MM-DD
+                  if (rawValue) {
+                    updateField('date', rawValue);
+                  }
+                }} 
+              />
             </div>
             <div>
               <Label className="text-xs">Forma de Pagamento</Label>
