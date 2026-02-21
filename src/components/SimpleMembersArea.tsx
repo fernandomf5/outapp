@@ -18,6 +18,7 @@ import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } 
 import { CSS } from '@dnd-kit/utilities';
 import { SimpleMembersAreaPreview } from "@/components/members-area/SimpleMembersAreaPreview";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 interface ContentBlock {
   id: string;
   type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret';
@@ -1570,6 +1571,13 @@ export function SimpleMembersArea() {
                         </>
                       );
                     })()}
+                  </div>
+                ) : blockFormData.type === 'text' ? (
+                  <div className="space-y-1">
+                    <RichTextEditor
+                      value={blockFormData.content}
+                      onChange={(val) => setBlockFormData({ ...blockFormData, content: val })}
+                    />
                   </div>
                 ) : (
                   <div className="space-y-1">
