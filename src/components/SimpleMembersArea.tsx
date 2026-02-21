@@ -162,6 +162,34 @@ const SortableBlockContainer = ({ id, children }: { id: string; children: React.
   );
 };
 
+const SortableSection = ({ id, children }: { id: string; children: React.ReactNode }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <div className="flex items-start gap-1">
+        <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing mt-5 shrink-0 p-1 rounded hover:bg-muted">
+          <GripVertical className="w-5 h-5 text-muted-foreground" />
+        </div>
+        <div className="flex-1 min-w-0">{children}</div>
+      </div>
+    </div>
+  );
+};
+
 export function SimpleMembersArea() {
   const [areas, setAreas] = useState<MembersArea[]>([]);
   const [selectedArea, setSelectedArea] = useState<MembersArea | null>(null);
@@ -683,8 +711,9 @@ export function SimpleMembersArea() {
     const section = selectedArea.sections.find(s => s.id === sectionId);
     if (!section || !section.blocks_layout) return;
 
-    const oldIndex = parseInt(String(active.id).replace('block-container-', ''));
-    const newIndex = parseInt(String(over.id).replace('block-container-', ''));
+    const prefix = `block-container-${sectionId}-`;
+    const oldIndex = parseInt(String(active.id).replace(prefix, ''));
+    const newIndex = parseInt(String(over.id).replace(prefix, ''));
 
     const reorderedLayout = arrayMove(section.blocks_layout, oldIndex, newIndex);
 
@@ -726,6 +755,35 @@ export function SimpleMembersArea() {
       toast.success('Blocos reordenados!');
     } catch (error: any) {
       toast.error('Erro ao reordenar blocos: ' + error.message);
+    }
+  };
+
+  const handleSectionDragEnd = async (event: any) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !selectedArea) return;
+
+    const oldIndex = selectedArea.sections.findIndex(s => s.id === active.id);
+    const newIndex = selectedArea.sections.findIndex(s => s.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reorderedSections = arrayMove(selectedArea.sections, oldIndex, newIndex).map((s, idx) => ({
+      ...s,
+      order_index: idx,
+    }));
+
+    try {
+      const { error } = await supabase
+        .from('simple_members_areas' as any)
+        .update({ sections: reorderedSections as any })
+        .eq('id', selectedArea.id);
+
+      if (error) throw error;
+      const updatedArea = { ...selectedArea, sections: reorderedSections };
+      setSelectedArea(updatedArea);
+      setAreas(prev => prev.map(a => a.id === updatedArea.id ? updatedArea : a));
+      toast.success('Seções reordenadas!');
+    } catch (error: any) {
+      toast.error('Erro ao reordenar seções: ' + error.message);
     }
   };
 
@@ -817,151 +875,164 @@ export function SimpleMembersArea() {
                 </CardContent>
               </Card>
             ) : (
-              selectedArea.sections.map((section) => (
-                <Card key={section.id}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="truncate">{section.title}</CardTitle>
-                        {section.description && <p className="text-sm text-muted-foreground truncate">{section.description}</p>}
-                      </div>
-                      <div className="flex gap-2 shrink-0">
-                        <Button 
-                          variant="outline" 
-                          size="icon"
-                          onClick={() => {
-                            setEditingSection(section);
-                            setSectionFormData({
-                              title: section.title,
-                              description: section.description || '',
-                              blocks_layout: section.blocks_layout || ['full'],
-                            });
-                            setIsEditSectionDialogOpen(true);
-                          }}
-                        >
-                          <Settings className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="icon"
-                          onClick={() => {
-                            setSectionToDelete(section);
-                            setIsDeleteSectionDialogOpen(true);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                        <Button onClick={() => { setSelectedSection(section); setIsAddBlockDialogOpen(true); }}>
-                          <Plus className="w-4 h-4 mr-2" />
-                          Adicionar Conteúdo
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {/* Render blocks as containers based on layout */}
-                    <div className="space-y-4">
-                      {section.blocks_layout && section.blocks_layout.length > 0 ? (
-                        <DndContext
-                          sensors={sensors}
-                          collisionDetection={closestCenter}
-                          onDragEnd={(e) => handleBlockContainerDragEnd(e, section.id)}
-                        >
-                          <SortableContext
-                            items={section.blocks_layout.map((_, i) => `block-container-${i}`)}
-                            strategy={verticalListSortingStrategy}
-                          >
-                            <div className="space-y-4">
-                              {section.blocks_layout.map((layoutType, blockIndex) => {
-                                const blockContents = section.blocks
-                                  .filter(b => (b.block_position || 0) === blockIndex)
-                                  .sort((a, b) => a.order_index - b.order_index);
-                                
-                                const layoutLabel = layoutType === 'full' ? 'Largura Total' : 
-                                  layoutType === 'half' ? 'Metade' : 'Um Terço';
-
-                                return (
-                                  <SortableBlockContainer key={`block-container-${blockIndex}`} id={`block-container-${blockIndex}`}>
-                                    {/* Block Header */}
-                                    <div className="px-4 py-2 bg-muted/50 border-b flex items-center justify-between">
-                                      <div className="flex items-center gap-2">
-                                        <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
-                                        <Badge variant="outline" className="text-xs">
-                                          Bloco {blockIndex + 1}
-                                        </Badge>
-                                        <span className="text-xs text-muted-foreground">
-                                          ({layoutLabel}) • {blockContents.length} conteúdo(s)
-                                        </span>
-                                      </div>
-                                      <Button 
-                                        variant="ghost" 
-                                        size="sm"
-                                        onClick={() => { 
-                                          setSelectedSection(section); 
-                                          setBlockFormData({ ...blockFormData, block_position: blockIndex });
-                                          setIsAddBlockDialogOpen(true); 
-                                        }}
-                                      >
-                                        <Plus className="w-3 h-3 mr-1" />
-                                        Adicionar
-                                      </Button>
-                                    </div>
-                                    
-                                    {/* Block Contents with DnD */}
-                                    <div className="p-3">
-                                      {blockContents.length > 0 ? (
-                                        <DndContext 
-                                          sensors={sensors} 
-                                          collisionDetection={closestCenter} 
-                                          onDragEnd={(e) => handleDragEnd(e, section.id)}
-                                        >
-                                          <SortableContext 
-                                            items={blockContents.map(b => b.id)} 
-                                            strategy={verticalListSortingStrategy}
-                                          >
-                                            <div className="space-y-2">
-                                              {blockContents.map((block) => (
-                                                <SortableBlock
-                                                  key={block.id}
-                                                  block={block}
-                                                  onEdit={() => {
-                                                    setEditingBlock({ sectionId: section.id, block });
-                                                    setBlockFormData({
-                                                      type: block.type,
-                                                      title: block.title || '',
-                                                      content: block.content,
-                                                      block_position: block.block_position || 0,
-                                                      customer_id: block.customer_id || '',
-                                                    });
-                                                    setIsAddBlockDialogOpen(true);
-                                                  }}
-                                                  onDelete={() => handleDeleteBlock(section.id, block.id)}
-                                                />
-                                              ))}
-                                            </div>
-                                          </SortableContext>
-                                        </DndContext>
-                                      ) : (
-                                        <div className="text-center py-4 text-sm text-muted-foreground border-2 border-dashed rounded-lg">
-                                          Clique em "Adicionar" para incluir conteúdo neste bloco
-                                        </div>
-                                      )}
-                                    </div>
-                                  </SortableBlockContainer>
-                                );
-                              })}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleSectionDragEnd}
+              >
+                <SortableContext
+                  items={selectedArea.sections.map(s => s.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-4">
+                    {selectedArea.sections.map((section) => (
+                      <SortableSection key={section.id} id={section.id}>
+                        <Card>
+                          <CardHeader>
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                              <div className="flex-1 min-w-0">
+                                <CardTitle className="truncate">{section.title}</CardTitle>
+                                {section.description && <p className="text-sm text-muted-foreground truncate">{section.description}</p>}
+                              </div>
+                              <div className="flex gap-2 shrink-0">
+                                <Button 
+                                  variant="outline" 
+                                  size="icon"
+                                  onClick={() => {
+                                    setEditingSection(section);
+                                    setSectionFormData({
+                                      title: section.title,
+                                      description: section.description || '',
+                                      blocks_layout: section.blocks_layout || ['full'],
+                                    });
+                                    setIsEditSectionDialogOpen(true);
+                                  }}
+                                >
+                                  <Settings className="w-4 h-4" />
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="icon"
+                                  onClick={() => {
+                                    setSectionToDelete(section);
+                                    setIsDeleteSectionDialogOpen(true);
+                                  }}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                                <Button onClick={() => { setSelectedSection(section); setIsAddBlockDialogOpen(true); }}>
+                                  <Plus className="w-4 h-4 mr-2" />
+                                  Adicionar Conteúdo
+                                </Button>
+                              </div>
                             </div>
-                          </SortableContext>
-                        </DndContext>
-                      ) : (
-                        <div className="text-center py-8 text-muted-foreground">
-                          Configure o layout da seção para definir os blocos
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+                          </CardHeader>
+                          <CardContent>
+                            {/* Render blocks as containers based on layout */}
+                            <div className="space-y-4">
+                              {section.blocks_layout && section.blocks_layout.length > 0 ? (
+                                <DndContext
+                                  sensors={sensors}
+                                  collisionDetection={closestCenter}
+                                  onDragEnd={(e) => handleBlockContainerDragEnd(e, section.id)}
+                                >
+                                  <SortableContext
+                                    items={section.blocks_layout.map((_, i) => `block-container-${section.id}-${i}`)}
+                                    strategy={verticalListSortingStrategy}
+                                  >
+                                    <div className="space-y-4">
+                                      {section.blocks_layout.map((layoutType, blockIndex) => {
+                                        const blockContents = section.blocks
+                                          .filter(b => (b.block_position || 0) === blockIndex)
+                                          .sort((a, b) => a.order_index - b.order_index);
+                                        
+                                        const layoutLabel = layoutType === 'full' ? 'Largura Total' : 
+                                          layoutType === 'half' ? 'Metade' : 'Um Terço';
+
+                                        return (
+                                          <SortableBlockContainer key={`block-container-${section.id}-${blockIndex}`} id={`block-container-${section.id}-${blockIndex}`}>
+                                            {/* Block Header */}
+                                            <div className="px-4 py-2 bg-muted/50 border-b flex items-center justify-between">
+                                              <div className="flex items-center gap-2">
+                                                <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
+                                                <Badge variant="outline" className="text-xs">
+                                                  Bloco {blockIndex + 1}
+                                                </Badge>
+                                                <span className="text-xs text-muted-foreground">
+                                                  ({layoutLabel}) • {blockContents.length} conteúdo(s)
+                                                </span>
+                                              </div>
+                                              <Button 
+                                                variant="ghost" 
+                                                size="sm"
+                                                onClick={() => { 
+                                                  setSelectedSection(section); 
+                                                  setBlockFormData(prev => ({ ...prev, block_position: blockIndex }));
+                                                  setIsAddBlockDialogOpen(true); 
+                                                }}
+                                              >
+                                                <Plus className="w-4 h-4" />
+                                              </Button>
+                                            </div>
+                                            {/* Block Contents */}
+                                            <div className="p-3">
+                                              {blockContents.length > 0 ? (
+                                                <DndContext
+                                                  sensors={sensors}
+                                                  collisionDetection={closestCenter}
+                                                  onDragEnd={(e) => handleDragEnd(e, section.id)}
+                                                >
+                                                  <SortableContext
+                                                    items={blockContents.map(b => b.id)}
+                                                    strategy={verticalListSortingStrategy}
+                                                  >
+                                                    <div className="space-y-2">
+                                                      {blockContents.map((block) => (
+                                                        <SortableBlock
+                                                          key={block.id}
+                                                          block={block}
+                                                          onEdit={() => {
+                                                            setEditingBlock({ sectionId: section.id, block });
+                                                            setBlockFormData({
+                                                              type: block.type,
+                                                              title: block.title || '',
+                                                              content: block.content,
+                                                              block_position: block.block_position || 0,
+                                                              customer_id: block.customer_id || '',
+                                                            });
+                                                            setIsAddBlockDialogOpen(true);
+                                                          }}
+                                                          onDelete={() => handleDeleteBlock(section.id, block.id)}
+                                                        />
+                                                      ))}
+                                                    </div>
+                                                  </SortableContext>
+                                                </DndContext>
+                                              ) : (
+                                                <div className="text-center py-4 text-sm text-muted-foreground border-2 border-dashed rounded-lg">
+                                                  Clique em "Adicionar" para incluir conteúdo neste bloco
+                                                </div>
+                                              )}
+                                            </div>
+                                          </SortableBlockContainer>
+                                        );
+                                      })}
+                                    </div>
+                                  </SortableContext>
+                                </DndContext>
+                              ) : (
+                                <div className="text-center py-8 text-muted-foreground">
+                                  Configure o layout da seção para definir os blocos
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </SortableSection>
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
             )}
           </div>
 
