@@ -123,10 +123,12 @@ const SortableBlock = ({ block, onEdit, onDelete }: { block: ContentBlock; onEdi
       </div>
       <div className="shrink-0">{getIcon()}</div>
       <div className="flex-1 min-w-0 overflow-hidden">
-        <div className="font-medium text-sm truncate">{block.title || block.type}</div>
+        <div className="font-medium text-sm truncate">{block.title || (block.type === 'secret' ? 'Conteúdo Oculto' : block.type)}</div>
         <div className="text-xs text-muted-foreground truncate max-w-full">
           {block.type === 'customer_history' && block.customer_name 
             ? `Cliente: ${block.customer_name}` 
+            : block.type === 'secret'
+            ? '•'.repeat(Math.min((block.content || '').length || 10, 30))
             : block.content}
         </div>
       </div>
@@ -1564,11 +1566,18 @@ export function SimpleMembersArea() {
                     })()}
                   </div>
                 ) : (
-                  <Textarea
-                    value={blockFormData.content}
-                    onChange={(e) => setBlockFormData({ ...blockFormData, content: e.target.value })}
-                    placeholder="Conteúdo..."
-                  />
+                  <div className="space-y-1">
+                    <Textarea
+                      value={blockFormData.content}
+                      onChange={(e) => setBlockFormData({ ...blockFormData, content: e.target.value })}
+                      placeholder={blockFormData.type === 'secret' ? "Digite o conteúdo oculto (senha, chave, etc)..." : "Conteúdo..."}
+                    />
+                    {blockFormData.type === 'secret' && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <EyeOff className="w-3 h-3" /> Este conteúdo será exibido mascarado. O aluno poderá clicar para revelar.
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
               )}
