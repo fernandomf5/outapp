@@ -142,7 +142,7 @@ const SortableBlock = ({ block, onEdit, onDelete }: { block: ContentBlock; onEdi
   );
 };
 
-const SortableBlockContainer = ({ id, children }: { id: string; children: React.ReactNode }) => {
+const SortableBlockContainer = ({ id, children }: { id: string; children: (dragHandleProps: Record<string, any>) => React.ReactNode }) => {
   const {
     attributes,
     listeners,
@@ -159,8 +159,8 @@ const SortableBlockContainer = ({ id, children }: { id: string; children: React.
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="border rounded-lg overflow-hidden">
-      {children}
+    <div ref={setNodeRef} style={style} className="border rounded-lg overflow-hidden">
+      {children({ ...attributes, ...listeners })}
     </div>
   );
 };
@@ -954,69 +954,75 @@ export function SimpleMembersArea() {
 
                                         return (
                                           <SortableBlockContainer key={`block-container-${section.id}-${blockIndex}`} id={`block-container-${section.id}-${blockIndex}`}>
-                                            {/* Block Header */}
-                                            <div className="px-4 py-2 bg-muted/50 border-b flex items-center justify-between">
-                                              <div className="flex items-center gap-2">
-                                                <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
-                                                <Badge variant="outline" className="text-xs">
-                                                  Bloco {blockIndex + 1}
-                                                </Badge>
-                                                <span className="text-xs text-muted-foreground">
-                                                  ({layoutLabel}) • {blockContents.length} conteúdo(s)
-                                                </span>
-                                              </div>
-                                              <Button 
-                                                variant="ghost" 
-                                                size="sm"
-                                                onClick={() => { 
-                                                  setSelectedSection(section); 
-                                                  setBlockFormData(prev => ({ ...prev, block_position: blockIndex }));
-                                                  setIsAddBlockDialogOpen(true); 
-                                                }}
-                                              >
-                                                <Plus className="w-4 h-4" />
-                                              </Button>
-                                            </div>
-                                            {/* Block Contents */}
-                                            <div className="p-3">
-                                              {blockContents.length > 0 ? (
-                                                <DndContext
-                                                  sensors={sensors}
-                                                  collisionDetection={closestCenter}
-                                                  onDragEnd={(e) => handleDragEnd(e, section.id)}
-                                                >
-                                                  <SortableContext
-                                                    items={blockContents.map(b => b.id)}
-                                                    strategy={verticalListSortingStrategy}
-                                                  >
-                                                    <div className="space-y-2">
-                                                      {blockContents.map((block) => (
-                                                        <SortableBlock
-                                                          key={block.id}
-                                                          block={block}
-                                                          onEdit={() => {
-                                                            setEditingBlock({ sectionId: section.id, block });
-                                                            setBlockFormData({
-                                                              type: block.type,
-                                                              title: block.title || '',
-                                                              content: block.content,
-                                                              block_position: block.block_position || 0,
-                                                              customer_id: block.customer_id || '',
-                                                            });
-                                                            setIsAddBlockDialogOpen(true);
-                                                          }}
-                                                          onDelete={() => handleDeleteBlock(section.id, block.id)}
-                                                        />
-                                                      ))}
+                                            {(dragHandleProps) => (
+                                              <>
+                                                {/* Block Header */}
+                                                <div className="px-4 py-2 bg-muted/50 border-b flex items-center justify-between">
+                                                  <div className="flex items-center gap-2">
+                                                    <div {...dragHandleProps} className="cursor-grab active:cursor-grabbing">
+                                                      <GripVertical className="w-4 h-4 text-muted-foreground" />
                                                     </div>
-                                                  </SortableContext>
-                                                </DndContext>
-                                              ) : (
-                                                <div className="text-center py-4 text-sm text-muted-foreground border-2 border-dashed rounded-lg">
-                                                  Clique em "Adicionar" para incluir conteúdo neste bloco
+                                                    <Badge variant="outline" className="text-xs">
+                                                      Bloco {blockIndex + 1}
+                                                    </Badge>
+                                                    <span className="text-xs text-muted-foreground">
+                                                      ({layoutLabel}) • {blockContents.length} conteúdo(s)
+                                                    </span>
+                                                  </div>
+                                                  <Button 
+                                                    variant="ghost" 
+                                                    size="sm"
+                                                    onClick={() => { 
+                                                      setSelectedSection(section); 
+                                                      setBlockFormData(prev => ({ ...prev, block_position: blockIndex }));
+                                                      setIsAddBlockDialogOpen(true); 
+                                                    }}
+                                                  >
+                                                    <Plus className="w-4 h-4" />
+                                                  </Button>
                                                 </div>
-                                              )}
-                                            </div>
+                                                {/* Block Contents */}
+                                                <div className="p-3">
+                                                  {blockContents.length > 0 ? (
+                                                    <DndContext
+                                                      sensors={sensors}
+                                                      collisionDetection={closestCenter}
+                                                      onDragEnd={(e) => handleDragEnd(e, section.id)}
+                                                    >
+                                                      <SortableContext
+                                                        items={blockContents.map(b => b.id)}
+                                                        strategy={verticalListSortingStrategy}
+                                                      >
+                                                        <div className="space-y-2">
+                                                          {blockContents.map((block) => (
+                                                            <SortableBlock
+                                                              key={block.id}
+                                                              block={block}
+                                                              onEdit={() => {
+                                                                setEditingBlock({ sectionId: section.id, block });
+                                                                setBlockFormData({
+                                                                  type: block.type,
+                                                                  title: block.title || '',
+                                                                  content: block.content,
+                                                                  block_position: block.block_position || 0,
+                                                                  customer_id: block.customer_id || '',
+                                                                });
+                                                                setIsAddBlockDialogOpen(true);
+                                                              }}
+                                                              onDelete={() => handleDeleteBlock(section.id, block.id)}
+                                                            />
+                                                          ))}
+                                                        </div>
+                                                      </SortableContext>
+                                                    </DndContext>
+                                                  ) : (
+                                                    <div className="text-center py-4 text-sm text-muted-foreground border-2 border-dashed rounded-lg">
+                                                      Clique em "Adicionar" para incluir conteúdo neste bloco
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              </>
+                                            )}
                                           </SortableBlockContainer>
                                         );
                                       })}
