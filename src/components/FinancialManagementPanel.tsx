@@ -637,15 +637,22 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       
       const baseDueDate = new Date(formData.due_date + 'T12:00:00');
       
+      // Use the month selected by the user in the form, not derived from due_date
+      const baseMonthIndex = MONTHS.indexOf(formData.month);
+      
       const transactionsToInsert = [];
       
       for (let i = 0; i < installments; i++) {
         const installmentDate = new Date(baseDueDate);
         installmentDate.setMonth(installmentDate.getMonth() + i);
         
-        const monthIndex = installmentDate.getMonth();
-        const installmentMonth = MONTHS[monthIndex];
-        const installmentYear = installmentDate.getFullYear();
+        // For the first installment, use the user-selected month directly
+        // For subsequent installments, increment from the selected month
+        const currentMonthIndex = (baseMonthIndex + i) % 12;
+        const installmentMonth = MONTHS[currentMonthIndex];
+        const installmentYear = baseMonthIndex + i >= 12 
+          ? baseDueDate.getFullYear() + Math.floor((baseMonthIndex + i) / 12)
+          : baseDueDate.getFullYear();
         
         const description = installments > 1 
           ? `${formData.description} (${i + 1}/${installments})`
@@ -1699,7 +1706,15 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                 <Input
                   type="date"
                   value={formData.due_date}
-                  onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val) {
+                      const [year, month] = val.split('-').map(Number);
+                      setFormData({ ...formData, due_date: val, month: MONTHS[month - 1] || formData.month });
+                    } else {
+                      setFormData({ ...formData, due_date: val });
+                    }
+                  }}
                 />
               </div>
             </div>
