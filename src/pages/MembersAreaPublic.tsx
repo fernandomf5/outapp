@@ -27,9 +27,9 @@ const SecretContentBlock = ({ content, title, accentColor, textColor }: { conten
           {visible ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
         </button>
       </div>
-      <p className="text-sm font-mono break-all" style={{ color: textColor }}>
+      <pre className="text-sm font-mono break-all whitespace-pre-wrap" style={{ color: textColor, margin: 0 }}>
         {visible ? content : '•'.repeat(Math.min(content.length || 10, 40))}
-      </p>
+      </pre>
     </div>
   );
 };
