@@ -39,6 +39,8 @@ interface ReceiptData {
   logo_url: string;
   issuer_signer_name: string;
   client_signer_name: string;
+  warranty_text: string;
+  terms_text: string;
 }
 
 interface BusinessOption {
@@ -94,6 +96,8 @@ const defaultReceipt: ReceiptData = {
   logo_url: '',
   issuer_signer_name: '',
   client_signer_name: '',
+  warranty_text: '',
+  terms_text: '',
 };
 
 export function ReceiptGeneratorPanel() {
@@ -405,22 +409,59 @@ export function ReceiptGeneratorPanel() {
       doc.setFontSize(9);
       doc.setFont('helvetica', 'italic');
       doc.text(`Observações: ${receipt.notes}`, 15, y, { maxWidth: 180 });
+      const notesLines = doc.splitTextToSize(`Observações: ${receipt.notes}`, 180);
+      y += notesLines.length * 5;
+    }
+
+    // Warranty / Laudo
+    if (receipt.warranty_text) {
+      y += 8;
+      if (y > 250) { doc.addPage(); y = 20; }
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(r, g, b);
+      doc.text('GARANTIA / LAUDO', 15, y);
+      y += 5;
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      const warrantyLines = doc.splitTextToSize(receipt.warranty_text, 180);
+      doc.text(warrantyLines, 15, y);
+      y += warrantyLines.length * 4.5;
+    }
+
+    // Terms
+    if (receipt.terms_text) {
+      y += 8;
+      if (y > 250) { doc.addPage(); y = 20; }
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(r, g, b);
+      doc.text('TERMOS E CONDIÇÕES', 15, y);
+      y += 5;
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      const termsLines = doc.splitTextToSize(receipt.terms_text, 180);
+      doc.text(termsLines, 15, y);
+      y += termsLines.length * 4.5;
     }
 
     y = Math.max(y + 25, 220);
 
     // Two signature lines side by side
     const sigY = y;
+    if (sigY > 270) { doc.addPage(); }
+    const finalSigY = sigY > 270 ? 40 : sigY;
     // Issuer signature (left)
     doc.setDrawColor(0, 0, 0);
-    doc.line(20, sigY, 90, sigY);
+    doc.setTextColor(0, 0, 0);
+    doc.line(20, finalSigY, 90, finalSigY);
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text(receipt.issuer_signer_name || receipt.company_name || 'Emissor', 55, sigY + 5, { align: 'center' });
+    doc.text(receipt.issuer_signer_name || receipt.company_name || 'Emissor', 55, finalSigY + 5, { align: 'center' });
 
     // Client signature (right)
-    doc.line(120, sigY, 190, sigY);
-    doc.text(receipt.client_signer_name || receipt.client_name || 'Cliente', 155, sigY + 5, { align: 'center' });
+    doc.line(120, finalSigY, 190, finalSigY);
+    doc.text(receipt.client_signer_name || receipt.client_name || 'Cliente', 155, finalSigY + 5, { align: 'center' });
 
     return doc;
   };
@@ -733,6 +774,18 @@ export function ReceiptGeneratorPanel() {
               <Input value={receipt.client_signer_name} onChange={e => updateField('client_signer_name', e.target.value)} placeholder="Nome do cliente que assina" />
             </div>
           </div>
+
+          {/* Warranty & Terms */}
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">Garantia / Laudo</Label>
+              <Textarea value={receipt.warranty_text} onChange={e => updateField('warranty_text', e.target.value)} placeholder="Ex: Garantia de 90 dias para defeitos de fabricação. Laudo técnico incluso..." rows={3} />
+            </div>
+            <div>
+              <Label className="text-xs">Termos e Condições</Label>
+              <Textarea value={receipt.terms_text} onChange={e => updateField('terms_text', e.target.value)} placeholder="Ex: Este recibo não substitui nota fiscal. Produto sujeito a análise técnica..." rows={3} />
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -880,6 +933,20 @@ export function ReceiptGeneratorPanel() {
 
             {receipt.notes && (
               <p className="text-sm text-gray-500 italic">Obs: {receipt.notes}</p>
+            )}
+
+            {receipt.warranty_text && (
+              <div className="mt-4 p-3 border rounded bg-gray-50">
+                <p className="text-xs font-bold mb-1" style={{ color: receipt.primary_color }}>GARANTIA / LAUDO</p>
+                <p className="text-xs text-gray-600 whitespace-pre-line">{receipt.warranty_text}</p>
+              </div>
+            )}
+
+            {receipt.terms_text && (
+              <div className="mt-3 p-3 border rounded bg-gray-50">
+                <p className="text-xs font-bold mb-1" style={{ color: receipt.primary_color }}>TERMOS E CONDIÇÕES</p>
+                <p className="text-xs text-gray-600 whitespace-pre-line">{receipt.terms_text}</p>
+              </div>
             )}
 
             <div className="mt-10 flex justify-between px-8">
