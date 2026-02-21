@@ -26,12 +26,13 @@ import {
   MessageSquare,
   Presentation,
   Images,
-  Film
+  Film,
+  EyeOff
 } from "lucide-react";
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret';
   content: string;
   title?: string;
   order_index: number;
@@ -92,6 +93,7 @@ export function SimpleMembersAreaInternalPreview({
       text: <FileText className="w-3 h-3" />,
       gallery: <Images className="w-3 h-3" />,
       video_gallery: <Film className="w-3 h-3" />,
+      secret: <EyeOff className="w-3 h-3" />,
     };
     return icons[type] || <FileText className="w-3 h-3" />;
   };
@@ -119,6 +121,7 @@ export function SimpleMembersAreaInternalPreview({
       slides: 'Slides',
       gallery: 'Galeria',
       video_gallery: 'Vídeos',
+      secret: 'Oculto',
     };
     return labels[type] || type;
   };
