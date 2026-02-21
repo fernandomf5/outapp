@@ -13,9 +13,30 @@ import { AdsDashboardBlock } from "@/components/members-area/AdsDashboardBlock";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 
+const SecretContentBlock = ({ content, title, accentColor, textColor }: { content: string; title?: string; accentColor: string; textColor: string }) => {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div className="p-4 rounded-lg" style={{ backgroundColor: `${accentColor}10` }}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="font-medium text-sm" style={{ color: textColor }}>{title || 'Conteúdo Oculto'}</span>
+        <button
+          onClick={() => setVisible(!visible)}
+          className="p-1.5 rounded-md hover:bg-black/10 transition-colors"
+          style={{ color: accentColor }}
+        >
+          {visible ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+        </button>
+      </div>
+      <p className="text-sm font-mono break-all" style={{ color: textColor }}>
+        {visible ? content : '•'.repeat(Math.min(content.length || 10, 40))}
+      </p>
+    </div>
+  );
+};
+
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret';
   content: string;
   title?: string;
   order_index: number;
@@ -175,6 +196,7 @@ export default function MembersAreaPublic() {
       mindmap: <Brain className="w-4 h-4" />,
       slides: <Presentation className="w-4 h-4" />,
       text: <FileText className="w-4 h-4" />,
+      secret: <EyeOff className="w-4 h-4" />,
     };
     return icons[type] || <FileText className="w-4 h-4" />;
   };
@@ -347,6 +369,16 @@ export default function MembersAreaPublic() {
           <div 
             className="w-full rounded-lg overflow-hidden"
             dangerouslySetInnerHTML={{ __html: block.content }} 
+          />
+        );
+
+      case 'secret':
+        return (
+          <SecretContentBlock
+            content={block.content}
+            title={block.title}
+            accentColor={accentColor}
+            textColor={cardTextColor}
           />
         );
 
