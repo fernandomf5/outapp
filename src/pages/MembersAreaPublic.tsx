@@ -1173,8 +1173,12 @@ export default function MembersAreaPublic() {
                                     <div className="divide-y" style={{ borderColor: `${accentColor}10` }}>
                                       {blockContents.map((block, contentIndex) => (
                                         <div key={block.id}>
-                                          {/* Show only content, no header/title */}
-                                          <CardContent className="p-4">
+                                          <CardContent className="p-4 space-y-2">
+                                            {block.title && (
+                                              <h4 className="font-semibold text-sm" style={{ color: cardTextColor }}>
+                                                {block.title}
+                                              </h4>
+                                            )}
                                             {renderBlock(block, accentColor, cardTextColor, cardBackgroundColor)}
                                           </CardContent>
                                         </div>
