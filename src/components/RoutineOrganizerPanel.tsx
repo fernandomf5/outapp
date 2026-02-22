@@ -184,6 +184,9 @@ export default function RoutineOrganizerPanel() {
   const [isSaveTemplateOpen, setIsSaveTemplateOpen] = useState(false);
   const [isLoadTemplateOpen, setIsLoadTemplateOpen] = useState(false);
   const [templateName, setTemplateName] = useState('');
+  const [isCopyDayOpen, setIsCopyDayOpen] = useState(false);
+  const [copyFromDay, setCopyFromDay] = useState<number | null>(null);
+  const [copyToDays, setCopyToDays] = useState<number[]>([]);
   
   // Form data
   const [itemFormData, setItemFormData] = useState({
@@ -669,6 +672,51 @@ export default function RoutineOrganizerPanel() {
     }
   };
 
+  const handleCopyDay = async () => {
+    if (!user || copyFromDay === null || copyToDays.length === 0) {
+      toast.error('Selecione o dia de origem e os dias de destino');
+      return;
+    }
+
+    const sourceItems = getItemsByDay(copyFromDay);
+    if (sourceItems.length === 0) {
+      toast.error('O dia selecionado não tem atividades');
+      return;
+    }
+
+    try {
+      for (const targetDay of copyToDays) {
+        await supabase.from('routine_items').delete().eq('user_id', user.id).eq('day_of_week', targetDay);
+      }
+
+      const newItems = copyToDays.flatMap(targetDay =>
+        sourceItems.map((item, idx) => ({
+          user_id: user.id,
+          title: item.title,
+          description: item.description,
+          day_of_week: targetDay,
+          start_time: item.start_time,
+          end_time: item.end_time,
+          color: item.color,
+          is_recurring: item.is_recurring,
+          reminder_minutes: item.reminder_minutes,
+          order_index: idx,
+        }))
+      );
+
+      const { error } = await supabase.from('routine_items').insert(newItems);
+      if (error) throw error;
+
+      toast.success(`Atividades copiadas para ${copyToDays.length} dia(s)!`);
+      setIsCopyDayOpen(false);
+      setCopyFromDay(null);
+      setCopyToDays([]);
+      loadData();
+    } catch (error) {
+      console.error('Error copying day:', error);
+      toast.error('Erro ao copiar atividades');
+    }
+  };
 
   const getWeeklyObjectives = () => objectives.filter(o => o.objective_type === 'weekly');
   const getDailyObjectives = (dayOfWeek: number) => objectives.filter(o => o.objective_type === 'daily' && o.day_of_week === dayOfWeek);
@@ -780,6 +828,80 @@ export default function RoutineOrganizerPanel() {
               </ScrollArea>
             </DialogContent>
           </Dialog>
+
+          {/* Copy Day Dialog */}
+          <Dialog open={isCopyDayOpen} onOpenChange={(open) => { setIsCopyDayOpen(open); if (!open) { setCopyFromDay(null); setCopyToDays([]); } }}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Copy className="mr-2 h-4 w-4" />
+                Copiar Dia
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Copiar Atividades de um Dia</DialogTitle>
+                <DialogDescription>Escolha o dia de origem e os dias de destino para copiar as atividades</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label>Copiar de:</Label>
+                  <div className="grid grid-cols-4 gap-2 mt-2">
+                    {DAYS_OF_WEEK.map(day => {
+                      const count = getItemsByDay(day.value).length;
+                      return (
+                        <Button
+                          key={day.value}
+                          variant={copyFromDay === day.value ? "default" : "outline"}
+                          size="sm"
+                          className="text-xs"
+                          onClick={() => {
+                            setCopyFromDay(day.value);
+                            setCopyToDays(prev => prev.filter(d => d !== day.value));
+                          }}
+                        >
+                          {day.short} ({count})
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {copyFromDay !== null && (
+                  <div>
+                    <Label>Colar em:</Label>
+                    <div className="grid grid-cols-4 gap-2 mt-2">
+                      {DAYS_OF_WEEK.filter(d => d.value !== copyFromDay).map(day => (
+                        <Button
+                          key={day.value}
+                          variant={copyToDays.includes(day.value) ? "default" : "outline"}
+                          size="sm"
+                          className="text-xs"
+                          onClick={() => {
+                            setCopyToDays(prev =>
+                              prev.includes(day.value)
+                                ? prev.filter(d => d !== day.value)
+                                : [...prev, day.value]
+                            );
+                          }}
+                        >
+                          {day.short}
+                        </Button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      ⚠️ As atividades existentes nos dias de destino serão substituídas
+                    </p>
+                  </div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsCopyDayOpen(false)}>Cancelar</Button>
+                <Button onClick={handleCopyDay} disabled={copyFromDay === null || copyToDays.length === 0}>
+                  Copiar para {copyToDays.length} dia(s)
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
           <Dialog open={isAddItemDialogOpen} onOpenChange={setIsAddItemDialogOpen}>
             <DialogTrigger asChild>
               <Button>
