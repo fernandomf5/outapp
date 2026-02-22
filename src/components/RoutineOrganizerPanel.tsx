@@ -929,7 +929,7 @@ export default function RoutineOrganizerPanel() {
               return (
                 <Card 
                   key={day.value} 
-                  className={`w-[220px] flex-shrink-0 ${isCurrentDay ? 'ring-2 ring-primary' : ''}`}
+                  className={`w-[320px] flex-shrink-0 ${isCurrentDay ? 'ring-2 ring-primary' : ''}`}
                 >
                   <CardHeader className="p-4 pb-2">
                     <CardTitle className="text-base font-semibold flex items-center justify-between">
