@@ -210,21 +210,39 @@ export default function RoutineOrganizerPanel() {
     if (!editingItem || !itemFormData.title.trim()) return;
     
     try {
-      const { error } = await supabase
+      const originalDay = editingItem.day_of_week;
+      const selectedDays = itemFormData.days_of_week;
+      const commonData = {
+        title: itemFormData.title,
+        description: itemFormData.description || null,
+        start_time: itemFormData.start_time || null,
+        end_time: itemFormData.end_time || null,
+        color: itemFormData.color,
+        is_recurring: itemFormData.is_recurring,
+        reminder_minutes: itemFormData.reminder_minutes
+      };
+
+      // Update the existing record with the first selected day
+      const { error: updateError } = await supabase
         .from('routine_items')
-        .update({
-          title: itemFormData.title,
-          description: itemFormData.description || null,
-          day_of_week: itemFormData.days_of_week[0],
-          start_time: itemFormData.start_time || null,
-          end_time: itemFormData.end_time || null,
-          color: itemFormData.color,
-          is_recurring: itemFormData.is_recurring,
-          reminder_minutes: itemFormData.reminder_minutes
-        })
+        .update({ ...commonData, day_of_week: selectedDays[0] })
         .eq('id', editingItem.id);
         
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // Create new records for additional days
+      const newDays = selectedDays.slice(1).filter(d => d !== originalDay);
+      if (newDays.length > 0) {
+        const newItems = newDays.map(day => ({
+          user_id: user!.id,
+          ...commonData,
+          day_of_week: day
+        }));
+        const { error: insertError } = await supabase
+          .from('routine_items')
+          .insert(newItems);
+        if (insertError) throw insertError;
+      }
       
       toast.success('Atividade atualizada!');
       setEditingItem(null);
