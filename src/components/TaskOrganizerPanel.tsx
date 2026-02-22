@@ -58,6 +58,26 @@ interface TaskCardProps {
   onChangeOrder: (taskId: string, order1Based: number) => void;
 }
 
+function TaskDescription({ description }: { description: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = description.length > 100;
+
+  return (
+    <div className="mb-2">
+      <p className={`text-sm text-muted-foreground ${!expanded ? 'line-clamp-2' : ''}`}>
+        {description}
+      </p>
+      {isLong && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="text-xs text-primary hover:underline mt-1"
+        >
+          {expanded ? 'Ver menos' : 'Ver mais'}
+        </button>
+      )}
+    </div>
+  );
+}
 function TaskCard({ task, blocks, tasksInBlock, onEdit, onDelete, onMoveToBlock, onChangeOrder }: TaskCardProps) {
 
   const getPriorityColor = (priority: string) => {
@@ -105,7 +125,7 @@ function TaskCard({ task, blocks, tasksInBlock, onEdit, onDelete, onMoveToBlock,
         </div>
         
         {task.description && (
-          <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{task.description}</p>
+          <TaskDescription description={task.description} />
         )}
         
         <div className="flex flex-wrap gap-2 items-center mb-3">
