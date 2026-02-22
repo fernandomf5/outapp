@@ -31,9 +31,11 @@ import {
   TrendingUp,
   Award,
   Zap,
-  ChevronUp,
-  ChevronDown
+  GripVertical
 } from "lucide-react";
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { format, startOfWeek, addDays, isToday, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -95,6 +97,62 @@ const REMINDER_OPTIONS = [
   { value: 30, label: '30 minutos antes' },
   { value: 60, label: '1 hora antes' }
 ];
+
+function SortableRoutineItem({ item, onToggleComplete, onEdit, onDelete }: {
+  item: RoutineItem;
+  onToggleComplete: (item: RoutineItem) => void;
+  onEdit: (item: RoutineItem) => void;
+  onDelete: (id: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ ...style, backgroundColor: `${item.color}20`, borderLeft: `3px solid ${item.color}` }}
+      className={`p-2 rounded-md transition-all ${item.is_completed ? 'opacity-60' : ''}`}
+    >
+      <div className="flex items-start gap-2">
+        <div {...attributes} {...listeners} className="cursor-grab hover:bg-muted rounded p-0.5 mt-0.5">
+          <GripVertical className="h-3 w-3 text-muted-foreground" />
+        </div>
+        <Checkbox
+          checked={item.is_completed}
+          onCheckedChange={() => onToggleComplete(item)}
+          className="mt-0.5"
+        />
+        <div className="flex-1 min-w-0">
+          <p className={`text-xs font-medium break-words ${item.is_completed ? 'line-through' : ''}`}>
+            {item.title}
+          </p>
+          {item.start_time && (
+            <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+              <Clock className="h-2 w-2" />
+              {item.start_time}{item.end_time && ` - ${item.end_time}`}
+            </p>
+          )}
+          <div className="flex gap-1 mt-1">
+            {item.is_recurring && <RefreshCw className="h-2 w-2 text-muted-foreground" />}
+            {item.reminder_minutes && <Bell className="h-2 w-2 text-muted-foreground" />}
+          </div>
+        </div>
+        <div className="flex gap-0.5">
+          <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => onEdit(item)}>
+            <Edit className="h-2 w-2" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-5 w-5 text-destructive" onClick={() => onDelete(item.id)}>
+            <Trash2 className="h-2 w-2" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function RoutineOrganizerPanel() {
   const { user } = useAuth();
@@ -471,27 +529,39 @@ export default function RoutineOrganizerPanel() {
     return routineItems.filter(item => item.day_of_week === dayOfWeek).sort((a, b) => a.order_index - b.order_index);
   };
 
-  const handleMoveItem = async (dayOfWeek: number, itemId: string, direction: 'up' | 'down') => {
+  const handleDragEndDay = async (dayOfWeek: number, event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    
     const items = getItemsByDay(dayOfWeek);
-    const idx = items.findIndex(i => i.id === itemId);
-    if (idx < 0) return;
-    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
-    if (swapIdx < 0 || swapIdx >= items.length) return;
+    const oldIndex = items.findIndex(i => i.id === active.id);
+    const newIndex = items.findIndex(i => i.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
 
-    const itemA = items[idx];
-    const itemB = items[swapIdx];
+    const reordered = arrayMove(items, oldIndex, newIndex);
+    
+    // Update local state optimistically
+    setRoutineItems(prev => {
+      const otherItems = prev.filter(i => i.day_of_week !== dayOfWeek);
+      return [...otherItems, ...reordered.map((item, idx) => ({ ...item, order_index: idx }))];
+    });
 
     try {
-      await Promise.all([
-        supabase.from('routine_items').update({ order_index: itemB.order_index }).eq('id', itemA.id),
-        supabase.from('routine_items').update({ order_index: itemA.order_index }).eq('id', itemB.id),
-      ]);
-      loadData();
+      await Promise.all(
+        reordered.map((item, idx) =>
+          supabase.from('routine_items').update({ order_index: idx }).eq('id', item.id)
+        )
+      );
     } catch (error) {
       console.error('Error reordering:', error);
       toast.error('Erro ao reordenar atividade');
+      loadData();
     }
   };
+
+  const dndSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
 
   const getWeeklyObjectives = () => objectives.filter(o => o.objective_type === 'weekly');
   const getDailyObjectives = (dayOfWeek: number) => objectives.filter(o => o.objective_type === 'daily' && o.day_of_week === dayOfWeek);
@@ -972,80 +1042,20 @@ export default function RoutineOrganizerPanel() {
                           </div>
                         ))}
                         
-                        {/* Routine Items */}
-                        {items.map(item => (
-                          <div
-                            key={item.id}
-                            className={`p-2 rounded-md cursor-pointer transition-all ${item.is_completed ? 'opacity-60' : ''}`}
-                            style={{ backgroundColor: `${item.color}20`, borderLeft: `3px solid ${item.color}` }}
-                          >
-                            <div className="flex items-start gap-2">
-                              <Checkbox
-                                checked={item.is_completed}
-                                onCheckedChange={() => handleToggleItemComplete(item)}
-                                className="mt-0.5"
+                        {/* Routine Items with Drag and Drop */}
+                        <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEndDay(day.value, e)}>
+                          <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
+                            {items.map(item => (
+                              <SortableRoutineItem
+                                key={item.id}
+                                item={item}
+                                onToggleComplete={handleToggleItemComplete}
+                                onEdit={openEditItem}
+                                onDelete={handleDeleteItem}
                               />
-                              <div className="flex-1 min-w-0">
-                                <p className={`text-xs font-medium break-words ${item.is_completed ? 'line-through' : ''}`}>
-                                  {item.title}
-                                </p>
-                                {item.start_time && (
-                                  <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                    <Clock className="h-2 w-2" />
-                                    {item.start_time}{item.end_time && ` - ${item.end_time}`}
-                                  </p>
-                                )}
-                                <div className="flex gap-1 mt-1">
-                                  {item.is_recurring && (
-                                    <RefreshCw className="h-2 w-2 text-muted-foreground" />
-                                  )}
-                                  {item.reminder_minutes && (
-                                    <Bell className="h-2 w-2 text-muted-foreground" />
-                                  )}
-                                </div>
-                              </div>
-                              <div className="flex flex-col gap-0.5">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-5 w-5"
-                                  onClick={() => handleMoveItem(day.value, item.id, 'up')}
-                                  disabled={items.indexOf(item) === 0}
-                                >
-                                  <ChevronUp className="h-2 w-2" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-5 w-5"
-                                  onClick={() => handleMoveItem(day.value, item.id, 'down')}
-                                  disabled={items.indexOf(item) === items.length - 1}
-                                >
-                                  <ChevronDown className="h-2 w-2" />
-                                </Button>
-                              </div>
-                              <div className="flex gap-0.5">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-5 w-5"
-                                  onClick={() => openEditItem(item)}
-                                >
-                                  <Edit className="h-2 w-2" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-5 w-5 text-destructive"
-                                  onClick={() => handleDeleteItem(item.id)}
-                                >
-                                  <Trash2 className="h-2 w-2" />
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                        
+                            ))}
+                          </SortableContext>
+                        </DndContext>
                         {items.length === 0 && dailyObjectives.length === 0 && (
                           <p className="text-xs text-muted-foreground text-center py-4">
                             Nenhuma atividade
