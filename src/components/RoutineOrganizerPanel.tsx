@@ -30,7 +30,9 @@ import {
   Palette,
   TrendingUp,
   Award,
-  Zap
+  Zap,
+  ChevronUp,
+  ChevronDown
 } from "lucide-react";
 import { format, startOfWeek, addDays, isToday, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -448,7 +450,29 @@ export default function RoutineOrganizerPanel() {
   };
 
   const getItemsByDay = (dayOfWeek: number) => {
-    return routineItems.filter(item => item.day_of_week === dayOfWeek);
+    return routineItems.filter(item => item.day_of_week === dayOfWeek).sort((a, b) => a.order_index - b.order_index);
+  };
+
+  const handleMoveItem = async (dayOfWeek: number, itemId: string, direction: 'up' | 'down') => {
+    const items = getItemsByDay(dayOfWeek);
+    const idx = items.findIndex(i => i.id === itemId);
+    if (idx < 0) return;
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= items.length) return;
+
+    const itemA = items[idx];
+    const itemB = items[swapIdx];
+
+    try {
+      await Promise.all([
+        supabase.from('routine_items').update({ order_index: itemB.order_index }).eq('id', itemA.id),
+        supabase.from('routine_items').update({ order_index: itemA.order_index }).eq('id', itemB.id),
+      ]);
+      loadData();
+    } catch (error) {
+      console.error('Error reordering:', error);
+      toast.error('Erro ao reordenar atividade');
+    }
   };
 
   const getWeeklyObjectives = () => objectives.filter(o => o.objective_type === 'weekly');
@@ -961,6 +985,26 @@ export default function RoutineOrganizerPanel() {
                                     <Bell className="h-2 w-2 text-muted-foreground" />
                                   )}
                                 </div>
+                              </div>
+                              <div className="flex flex-col gap-0.5">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-5 w-5"
+                                  onClick={() => handleMoveItem(day.value, item.id, 'up')}
+                                  disabled={items.indexOf(item) === 0}
+                                >
+                                  <ChevronUp className="h-2 w-2" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-5 w-5"
+                                  onClick={() => handleMoveItem(day.value, item.id, 'down')}
+                                  disabled={items.indexOf(item) === items.length - 1}
+                                >
+                                  <ChevronDown className="h-2 w-2" />
+                                </Button>
                               </div>
                               <div className="flex gap-0.5">
                                 <Button
