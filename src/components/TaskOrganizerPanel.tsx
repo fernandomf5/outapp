@@ -84,7 +84,7 @@ function TaskCard({ task, blocks, tasksInBlock, onEdit, onDelete, onMoveToBlock,
     <Card className="mb-3 hover:shadow-md transition-smooth">
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h4 className="font-semibold text-sm truncate flex-1">{task.title}</h4>
+          <h4 className="font-semibold text-sm flex-1 break-words">{task.title}</h4>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="h-6 w-6 p-0 shrink-0">
