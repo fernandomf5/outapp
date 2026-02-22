@@ -31,7 +31,11 @@ import {
   TrendingUp,
   Award,
   Zap,
-  GripVertical
+  GripVertical,
+  Save,
+  FolderOpen,
+  Copy,
+  FileText
 } from "lucide-react";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -52,6 +56,13 @@ interface RoutineItem {
   is_completed: boolean;
   completed_at: string | null;
   order_index: number;
+}
+
+interface RoutineTemplate {
+  id: string;
+  name: string;
+  items: any[];
+  created_at: string;
 }
 
 interface RoutineObjective {
@@ -168,6 +179,12 @@ export default function RoutineOrganizerPanel() {
   const [editingItem, setEditingItem] = useState<RoutineItem | null>(null);
   const [editingObjective, setEditingObjective] = useState<RoutineObjective | null>(null);
   
+  // Templates
+  const [templates, setTemplates] = useState<RoutineTemplate[]>([]);
+  const [isSaveTemplateOpen, setIsSaveTemplateOpen] = useState(false);
+  const [isLoadTemplateOpen, setIsLoadTemplateOpen] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  
   // Form data
   const [itemFormData, setItemFormData] = useState({
     title: '',
@@ -200,7 +217,7 @@ export default function RoutineOrganizerPanel() {
     setIsLoading(true);
     
     try {
-      const [itemsRes, objectivesRes, completionsRes] = await Promise.all([
+      const [itemsRes, objectivesRes, completionsRes, templatesRes] = await Promise.all([
         supabase
           .from('routine_items')
           .select('*')
@@ -215,12 +232,18 @@ export default function RoutineOrganizerPanel() {
           .from('routine_completions')
           .select('*')
           .eq('user_id', user.id)
-          .gte('completion_date', format(startOfWeek(new Date(), { weekStartsOn: 0 }), 'yyyy-MM-dd'))
+          .gte('completion_date', format(startOfWeek(new Date(), { weekStartsOn: 0 }), 'yyyy-MM-dd')),
+        supabase
+          .from('routine_templates')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
       ]);
       
       if (itemsRes.data) setRoutineItems(itemsRes.data);
       if (objectivesRes.data) setObjectives(objectivesRes.data as RoutineObjective[]);
       if (completionsRes.data) setCompletions(completionsRes.data);
+      if (templatesRes.data) setTemplates(templatesRes.data as RoutineTemplate[]);
     } catch (error) {
       console.error('Error loading data:', error);
       toast.error('Erro ao carregar dados');
@@ -563,6 +586,90 @@ export default function RoutineOrganizerPanel() {
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
+  // Template handlers
+  const handleSaveTemplate = async () => {
+    if (!user || !templateName.trim()) {
+      toast.error('Nome do modelo é obrigatório');
+      return;
+    }
+
+    const templateItems = routineItems.map(item => ({
+      title: item.title,
+      description: item.description,
+      day_of_week: item.day_of_week,
+      start_time: item.start_time,
+      end_time: item.end_time,
+      color: item.color,
+      is_recurring: item.is_recurring,
+      reminder_minutes: item.reminder_minutes,
+      order_index: item.order_index,
+    }));
+
+    try {
+      const { error } = await supabase.from('routine_templates').insert({
+        user_id: user.id,
+        name: templateName.trim(),
+        items: templateItems,
+      });
+      if (error) throw error;
+      toast.success('Modelo salvo com sucesso!');
+      setTemplateName('');
+      setIsSaveTemplateOpen(false);
+      loadData();
+    } catch (error) {
+      console.error('Error saving template:', error);
+      toast.error('Erro ao salvar modelo');
+    }
+  };
+
+  const handleApplyTemplate = async (template: RoutineTemplate) => {
+    if (!user) return;
+
+    try {
+      // Delete existing items
+      await supabase.from('routine_items').delete().eq('user_id', user.id);
+
+      // Insert template items
+      const newItems = (template.items as any[]).map((item, idx) => ({
+        user_id: user.id,
+        title: item.title,
+        description: item.description,
+        day_of_week: item.day_of_week,
+        start_time: item.start_time,
+        end_time: item.end_time,
+        color: item.color,
+        is_recurring: item.is_recurring ?? true,
+        reminder_minutes: item.reminder_minutes,
+        order_index: item.order_index ?? idx,
+      }));
+
+      if (newItems.length > 0) {
+        const { error } = await supabase.from('routine_items').insert(newItems);
+        if (error) throw error;
+      }
+
+      toast.success('Modelo aplicado com sucesso!');
+      setIsLoadTemplateOpen(false);
+      loadData();
+    } catch (error) {
+      console.error('Error applying template:', error);
+      toast.error('Erro ao aplicar modelo');
+    }
+  };
+
+  const handleDeleteTemplate = async (templateId: string) => {
+    try {
+      const { error } = await supabase.from('routine_templates').delete().eq('id', templateId);
+      if (error) throw error;
+      toast.success('Modelo excluído');
+      loadData();
+    } catch (error) {
+      console.error('Error deleting template:', error);
+      toast.error('Erro ao excluir modelo');
+    }
+  };
+
+
   const getWeeklyObjectives = () => objectives.filter(o => o.objective_type === 'weekly');
   const getDailyObjectives = (dayOfWeek: number) => objectives.filter(o => o.objective_type === 'daily' && o.day_of_week === dayOfWeek);
 
@@ -597,7 +704,82 @@ export default function RoutineOrganizerPanel() {
           </h2>
           <p className="text-muted-foreground">Organize sua semana e acompanhe seus objetivos</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          {/* Template buttons */}
+          <Dialog open={isSaveTemplateOpen} onOpenChange={setIsSaveTemplateOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" disabled={routineItems.length === 0}>
+                <Save className="mr-2 h-4 w-4" />
+                Salvar Modelo
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Salvar Modelo de Semana</DialogTitle>
+                <DialogDescription>Salve sua configuração atual como modelo para reutilizar</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label>Nome do Modelo *</Label>
+                  <Input
+                    value={templateName}
+                    onChange={(e) => setTemplateName(e.target.value)}
+                    placeholder="Ex: Semana produtiva, Semana light..."
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  <FileText className="inline h-3 w-3 mr-1" />
+                  {routineItems.length} atividade(s) serão salvas neste modelo
+                </p>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsSaveTemplateOpen(false)}>Cancelar</Button>
+                <Button onClick={handleSaveTemplate}>Salvar Modelo</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isLoadTemplateOpen} onOpenChange={setIsLoadTemplateOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" disabled={templates.length === 0}>
+                <FolderOpen className="mr-2 h-4 w-4" />
+                Modelos ({templates.length})
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Modelos de Semana</DialogTitle>
+                <DialogDescription>Selecione um modelo para aplicar. Isso substituirá todas as atividades atuais.</DialogDescription>
+              </DialogHeader>
+              <ScrollArea className="max-h-[400px]">
+                <div className="space-y-3">
+                  {templates.map(template => (
+                    <Card key={template.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">{template.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {(template.items as any[]).length} atividades · Salvo em {format(new Date(template.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                            </p>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button size="sm" onClick={() => handleApplyTemplate(template)}>
+                              <Copy className="mr-1 h-3 w-3" />
+                              Aplicar
+                            </Button>
+                            <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDeleteTemplate(template.id)}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </ScrollArea>
+            </DialogContent>
+          </Dialog>
           <Dialog open={isAddItemDialogOpen} onOpenChange={setIsAddItemDialogOpen}>
             <DialogTrigger asChild>
               <Button>
