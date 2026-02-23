@@ -671,13 +671,18 @@ export default function RoutineOrganizerPanel() {
 
   const handleIncrementObjective = async (objective: RoutineObjective) => {
     const newValue = Math.min(objective.current_value + 1, objective.target_value);
-    const isCompleted = newValue >= objective.target_value;
+    await handleSetObjectiveValue(objective, newValue);
+  };
+
+  const handleSetObjectiveValue = async (objective: RoutineObjective, newValue: number) => {
+    const clampedValue = Math.max(0, Math.min(newValue, objective.target_value));
+    const isCompleted = clampedValue >= objective.target_value;
     
     try {
       const { error } = await supabase
         .from('routine_objectives')
         .update({
-          current_value: newValue,
+          current_value: clampedValue,
           is_completed: isCompleted,
           completed_at: isCompleted ? new Date().toISOString() : null
         })
@@ -1623,20 +1628,25 @@ export default function RoutineOrganizerPanel() {
                         <span>{objective.current_value} / {objective.target_value}</span>
                         <span>{Math.round((objective.current_value / objective.target_value) * 100)}%</span>
                       </div>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {Array.from({ length: objective.target_value }, (_, i) => i + 1).map(step => (
+                          <button
+                            key={step}
+                            onClick={() => handleSetObjectiveValue(objective, step === objective.current_value ? step - 1 : step)}
+                            className={`flex items-center justify-center rounded-md border text-[10px] font-medium transition-colors min-w-[28px] h-7 px-1 ${
+                              step <= objective.current_value
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted'
+                            }`}
+                          >
+                            {step <= objective.current_value ? <CheckCircle2 className="h-3 w-3" /> : step}
+                          </button>
+                        ))}
+                      </div>
                       <Progress 
                         value={(objective.current_value / objective.target_value) * 100} 
-                        className="h-2"
+                        className="h-1.5"
                       />
-                      {!objective.is_completed && (
-                        <Button
-                          size="sm"
-                          className="w-full mt-2"
-                          onClick={() => handleIncrementObjective(objective)}
-                        >
-                          <Plus className="mr-1 h-3 w-3" />
-                          +1
-                        </Button>
-                      )}
                       {objective.is_completed && (
                         <Badge className="w-full justify-center bg-green-500">
                           <CheckCircle2 className="mr-1 h-3 w-3" />
@@ -1710,18 +1720,21 @@ export default function RoutineOrganizerPanel() {
                             className="p-2 rounded-md text-xs"
                             style={{ backgroundColor: `${obj.color}20`, borderLeft: `3px solid ${obj.color}` }}
                           >
-                            <div className="flex items-center justify-between">
-                              <span className="font-medium text-wrap break-words">{obj.title}</span>
-                              {!obj.is_completed && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-5 w-5"
-                                  onClick={() => handleIncrementObjective(obj)}
+                            <span className="font-medium text-wrap break-words">{obj.title}</span>
+                            <div className="flex flex-wrap gap-0.5 mt-1">
+                              {Array.from({ length: obj.target_value }, (_, i) => i + 1).map(step => (
+                                <button
+                                  key={step}
+                                  onClick={() => handleSetObjectiveValue(obj, step === obj.current_value ? step - 1 : step)}
+                                  className={`flex items-center justify-center rounded text-[8px] font-medium transition-colors min-w-[20px] h-5 px-0.5 ${
+                                    step <= obj.current_value
+                                      ? 'bg-primary text-primary-foreground'
+                                      : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+                                  }`}
                                 >
-                                  <Plus className="h-3 w-3" />
-                                </Button>
-                              )}
+                                  {step <= obj.current_value ? '✓' : step}
+                                </button>
+                              ))}
                             </div>
                             <div className="flex items-center gap-1 mt-1">
                               <Progress 
@@ -1900,20 +1913,26 @@ export default function RoutineOrganizerPanel() {
                           <span>Progresso: {objective.current_value}/{objective.target_value}</span>
                           <span>{Math.round((objective.current_value / objective.target_value) * 100)}%</span>
                         </div>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {Array.from({ length: objective.target_value }, (_, i) => i + 1).map(step => (
+                            <button
+                              key={step}
+                              onClick={() => handleSetObjectiveValue(objective, step === objective.current_value ? step - 1 : step)}
+                              className={`flex items-center justify-center rounded-md border text-xs font-medium transition-colors min-w-[32px] h-8 px-1.5 ${
+                                step <= objective.current_value
+                                  ? 'bg-primary text-primary-foreground border-primary'
+                                  : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted'
+                              }`}
+                            >
+                              {step <= objective.current_value ? <CheckCircle2 className="h-3.5 w-3.5" /> : step}
+                            </button>
+                          ))}
+                        </div>
                         <Progress 
                           value={(objective.current_value / objective.target_value) * 100}
-                          className="h-2"
+                          className="h-1.5"
                         />
-                        {!objective.is_completed ? (
-                          <Button
-                            size="sm"
-                            className="w-full"
-                            onClick={() => handleIncrementObjective(objective)}
-                          >
-                            <Plus className="mr-1 h-4 w-4" />
-                            Incrementar
-                          </Button>
-                        ) : (
+                        {objective.is_completed && (
                           <Badge className="w-full justify-center bg-green-500">
                             <CheckCircle2 className="mr-1 h-4 w-4" />
                             Objetivo Concluído!
