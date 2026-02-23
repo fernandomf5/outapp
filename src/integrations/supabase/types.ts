@@ -7186,6 +7186,7 @@ export type Database = {
           created_at: string
           description: string | null
           duration: number | null
+          feature_key: string | null
           id: string
           is_published: boolean
           order_index: number
@@ -7199,6 +7200,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           duration?: number | null
+          feature_key?: string | null
           id?: string
           is_published?: boolean
           order_index?: number
@@ -7212,6 +7214,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           duration?: number | null
+          feature_key?: string | null
           id?: string
           is_published?: boolean
           order_index?: number

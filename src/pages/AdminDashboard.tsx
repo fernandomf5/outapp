@@ -95,6 +95,7 @@ interface Tutorial {
   videoUrl: string;
   duration: string;
   category: string;
+  featureKey: string;
 }
 
 const AdminDashboard = () => {
@@ -211,7 +212,8 @@ const AdminDashboard = () => {
           description: v.description || '',
           videoUrl: v.video_url,
           duration: v.duration?.toString() || '0',
-          category: v.category || 'Geral'
+          category: v.category || 'Geral',
+          featureKey: (v as any).feature_key || '',
         })));
       }
     };
@@ -451,6 +453,7 @@ const AdminDashboard = () => {
             video_url: editingVideo.videoUrl,
             duration: parseInt(editingVideo.duration) || 0,
             category: editingVideo.category,
+            feature_key: editingVideo.featureKey || null,
             is_published: true,
             order_index: tutorials.length
           })
@@ -464,7 +467,8 @@ const AdminDashboard = () => {
             description: data.description || '',
             videoUrl: data.video_url,
             duration: data.duration?.toString() || '0',
-            category: data.category || 'Geral'
+            category: data.category || 'Geral',
+            featureKey: (data as any).feature_key || '',
           }]);
           toast({
             title: "Vídeo adicionado! ✅",
@@ -479,7 +483,8 @@ const AdminDashboard = () => {
             description: editingVideo.description,
             video_url: editingVideo.videoUrl,
             duration: parseInt(editingVideo.duration) || 0,
-            category: editingVideo.category
+            category: editingVideo.category,
+            feature_key: editingVideo.featureKey || null,
           })
           .eq('id', editingVideo.id);
 
@@ -519,6 +524,7 @@ const AdminDashboard = () => {
       videoUrl: "",
       duration: "",
       category: "Iniciante",
+      featureKey: "",
     });
     setIsVideoDialogOpen(true);
   };
@@ -796,9 +802,12 @@ const AdminDashboard = () => {
                     </div>
                     <div>
                       <h3 className="text-lg font-bold">{tutorial.title}</h3>
-                      <div className="flex gap-2 mt-1">
+                      <div className="flex gap-2 mt-1 flex-wrap">
                         <span className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded-full">{tutorial.category}</span>
                         <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{tutorial.duration}</span>
+                        {tutorial.featureKey && (
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">📌 {tutorial.featureKey}</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -984,6 +993,56 @@ const AdminDashboard = () => {
                 </p>
               </div>
 
+              <div>
+                <Label htmlFor="video-feature">Recurso Associado (opcional)</Label>
+                <select
+                  id="video-feature"
+                  value={editingVideo.featureKey}
+                  onChange={(e) =>
+                    setEditingVideo({ ...editingVideo, featureKey: e.target.value })
+                  }
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="">Nenhum (vídeo geral)</option>
+                  <option value="tarefas">Organizador de Tarefas</option>
+                  <option value="agenda">Agenda / Agendamento</option>
+                  <option value="rotina">Organizador de Rotina</option>
+                  <option value="negocios">Gestão de Negócios</option>
+                  <option value="clientes">Gestão de Clientes</option>
+                  <option value="fornecedores">Gestão de Fornecedores</option>
+                  <option value="produtos-servicos">Produtos e Serviços</option>
+                  <option value="catalogo">Catálogo</option>
+                  <option value="equipe">Gestão de Equipe</option>
+                  <option value="financeiro">Gestão Financeira</option>
+                  <option value="recibos">Gerador de Recibos</option>
+                  <option value="crm-geral">CRM Geral / Leads</option>
+                  <option value="anuncios">Gestão de Anúncios</option>
+                  <option value="funil-vendas">Funil de Vendas</option>
+                  <option value="extrator-criativos">Extrator de Criativos</option>
+                  <option value="popups">Criador de Popups</option>
+                  <option value="ai-agents">Chat Online</option>
+                  <option value="tools">Gerador de Link WhatsApp</option>
+                  <option value="floating-button">Botão Flutuante</option>
+                  <option value="shortlinks">Encurtador de Links</option>
+                  <option value="qrcode">Gerador de QR Code</option>
+                  <option value="linkbio">Link na Bio</option>
+                  <option value="disparador">Disparador Zap Manual</option>
+                  <option value="cloner">Clonador de Páginas</option>
+                  <option value="criador-quizz">Criador de Quiz</option>
+                  <option value="briefing">Criador de Briefing</option>
+                  <option value="area-membros">Área de Membros</option>
+                  <option value="mapa-mental">Mapa Mental</option>
+                  <option value="propostas">Proposta Comercial</option>
+                  <option value="aprova-job">Aprova Job</option>
+                  <option value="portfolio">Portfólio</option>
+                  <option value="conversor-midia">Conversor de Mídia</option>
+                  <option value="conversor-documentos">Conversor de Documentos</option>
+                  <option value="video-downloader">Downloader de Vídeos</option>
+                </select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Se selecionado, o vídeo aparecerá como "Como usar" dentro do recurso correspondente no painel do usuário.
+                </p>
+              </div>
               <div className="flex gap-3 justify-end pt-4">
                 <Button variant="outline" onClick={() => setIsVideoDialogOpen(false)}>
                   Cancelar
