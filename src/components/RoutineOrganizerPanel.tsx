@@ -129,12 +129,15 @@ function SortableRoutineItem({ item, onToggleComplete, onEdit, onDelete }: {
   onEdit: (item: RoutineItem) => void;
   onDelete: (id: string) => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+  const DESC_LIMIT = 80;
+  const hasLongDesc = item.description && item.description.length > DESC_LIMIT;
 
   return (
     <div
@@ -155,6 +158,21 @@ function SortableRoutineItem({ item, onToggleComplete, onEdit, onDelete }: {
           <p className={`text-xs font-medium break-words ${item.is_completed ? 'line-through' : ''}`}>
             {item.title}
           </p>
+          {item.description && (
+            <div className="mt-0.5">
+              <p className="text-[10px] text-muted-foreground break-words whitespace-pre-wrap">
+                {hasLongDesc && !expanded ? item.description.slice(0, DESC_LIMIT) + '...' : item.description}
+              </p>
+              {hasLongDesc && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+                  className="text-[10px] text-primary hover:underline mt-0.5"
+                >
+                  {expanded ? 'Ver menos' : 'Ver mais'}
+                </button>
+              )}
+            </div>
+          )}
           {item.start_time && (
             <p className="text-[10px] text-muted-foreground flex items-center gap-1">
               <Clock className="h-2 w-2" />
