@@ -5919,6 +5919,7 @@ export type Database = {
           is_recurring: boolean | null
           order_index: number | null
           reminder_minutes: number | null
+          routine_id: string | null
           start_time: string | null
           title: string
           updated_at: string
@@ -5936,6 +5937,7 @@ export type Database = {
           is_recurring?: boolean | null
           order_index?: number | null
           reminder_minutes?: number | null
+          routine_id?: string | null
           start_time?: string | null
           title: string
           updated_at?: string
@@ -5953,12 +5955,21 @@ export type Database = {
           is_recurring?: boolean | null
           order_index?: number | null
           reminder_minutes?: number | null
+          routine_id?: string | null
           start_time?: string | null
           title?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "routine_items_routine_id_fkey"
+            columns: ["routine_id"]
+            isOneToOne: false
+            referencedRelation: "routines"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       routine_objectives: {
         Row: {
@@ -5971,6 +5982,7 @@ export type Database = {
           id: string
           is_completed: boolean | null
           objective_type: string
+          routine_id: string | null
           target_value: number | null
           title: string
           updated_at: string
@@ -5987,6 +5999,7 @@ export type Database = {
           id?: string
           is_completed?: boolean | null
           objective_type?: string
+          routine_id?: string | null
           target_value?: number | null
           title: string
           updated_at?: string
@@ -6003,13 +6016,22 @@ export type Database = {
           id?: string
           is_completed?: boolean | null
           objective_type?: string
+          routine_id?: string | null
           target_value?: number | null
           title?: string
           updated_at?: string
           user_id?: string
           week_start?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "routine_objectives_routine_id_fkey"
+            columns: ["routine_id"]
+            isOneToOne: false
+            referencedRelation: "routines"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       routine_templates: {
         Row: {
@@ -6032,6 +6054,33 @@ export type Database = {
           created_at?: string
           id?: string
           items?: Json
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      routines: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
           name?: string
           updated_at?: string
           user_id?: string
