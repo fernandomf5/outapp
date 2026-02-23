@@ -557,7 +557,13 @@ export default function RoutineOrganizerPanel() {
   };
 
   const getItemsByDay = (dayOfWeek: number) => {
-    return routineItems.filter(item => item.day_of_week === dayOfWeek).sort((a, b) => a.order_index - b.order_index);
+    return routineItems.filter(item => item.day_of_week === dayOfWeek).sort((a, b) => {
+      // Sort by start_time first, then by order_index for items without time
+      if (a.start_time && b.start_time) return a.start_time.localeCompare(b.start_time);
+      if (a.start_time && !b.start_time) return -1;
+      if (!a.start_time && b.start_time) return 1;
+      return a.order_index - b.order_index;
+    });
   };
 
   const handleDragEndDay = async (dayOfWeek: number, event: DragEndEvent) => {
