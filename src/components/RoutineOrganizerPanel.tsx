@@ -39,8 +39,11 @@ import {
   Share2,
   Download,
   MessageCircle,
-  Link2
+  Link2,
+  ListPlus,
+  ChevronDown
 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -66,6 +69,13 @@ interface RoutineTemplate {
   id: string;
   name: string;
   items: any[];
+  created_at: string;
+}
+
+interface Routine {
+  id: string;
+  name: string;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -177,6 +187,14 @@ export default function RoutineOrganizerPanel() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('weekly');
   
+  // Routines management
+  const [routines, setRoutines] = useState<Routine[]>([]);
+  const [activeRoutine, setActiveRoutine] = useState<Routine | null>(null);
+  const [isNewRoutineOpen, setIsNewRoutineOpen] = useState(false);
+  const [newRoutineName, setNewRoutineName] = useState('');
+  const [isRenameRoutineOpen, setIsRenameRoutineOpen] = useState(false);
+  const [renameRoutineName, setRenameRoutineName] = useState('');
+  
   // Dialogs
   const [isAddItemDialogOpen, setIsAddItemDialogOpen] = useState(false);
   const [isAddObjectiveDialogOpen, setIsAddObjectiveDialogOpen] = useState(false);
@@ -216,13 +234,66 @@ export default function RoutineOrganizerPanel() {
 
   useEffect(() => {
     if (user) {
-      loadData();
+      loadRoutines();
     }
   }, [user]);
 
-  const loadData = async () => {
+  useEffect(() => {
+    if (activeRoutine) {
+      loadRoutineData();
+    }
+  }, [activeRoutine]);
+
+  const loadRoutines = async () => {
     if (!user) return;
     setIsLoading(true);
+    
+    try {
+      const { data: routinesData } = await supabase
+        .from('routines')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at');
+
+      if (routinesData && routinesData.length > 0) {
+        setRoutines(routinesData as Routine[]);
+        const active = routinesData.find(r => r.is_active) || routinesData[0];
+        setActiveRoutine(active as Routine);
+      } else {
+        // Auto-create a default routine and migrate existing items
+        const { data: newRoutine } = await supabase
+          .from('routines')
+          .insert({ user_id: user.id, name: 'Minha Rotina', is_active: true })
+          .select()
+          .single();
+
+        if (newRoutine) {
+          // Migrate existing items without routine_id
+          await supabase
+            .from('routine_items')
+            .update({ routine_id: newRoutine.id })
+            .eq('user_id', user.id)
+            .is('routine_id', null);
+          await supabase
+            .from('routine_objectives')
+            .update({ routine_id: newRoutine.id })
+            .eq('user_id', user.id)
+            .is('routine_id', null);
+
+          setRoutines([newRoutine as Routine]);
+          setActiveRoutine(newRoutine as Routine);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading routines:', error);
+      toast.error('Erro ao carregar rotinas');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadRoutineData = async () => {
+    if (!user || !activeRoutine) return;
     
     try {
       const [itemsRes, objectivesRes, completionsRes, templatesRes] = await Promise.all([
@@ -230,11 +301,13 @@ export default function RoutineOrganizerPanel() {
           .from('routine_items')
           .select('*')
           .eq('user_id', user.id)
+          .eq('routine_id', activeRoutine.id)
           .order('order_index'),
         supabase
           .from('routine_objectives')
           .select('*')
           .eq('user_id', user.id)
+          .eq('routine_id', activeRoutine.id)
           .order('created_at'),
         supabase
           .from('routine_completions')
@@ -255,8 +328,104 @@ export default function RoutineOrganizerPanel() {
     } catch (error) {
       console.error('Error loading data:', error);
       toast.error('Erro ao carregar dados');
-    } finally {
-      setIsLoading(false);
+    }
+  };
+
+  const loadData = () => loadRoutineData();
+
+  const handleCreateRoutine = async () => {
+    if (!user || !newRoutineName.trim()) {
+      toast.error('Nome da rotina é obrigatório');
+      return;
+    }
+
+    try {
+      // Deactivate all other routines
+      await supabase
+        .from('routines')
+        .update({ is_active: false })
+        .eq('user_id', user.id);
+
+      const { data, error } = await supabase
+        .from('routines')
+        .insert({ user_id: user.id, name: newRoutineName.trim(), is_active: true })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setNewRoutineName('');
+      setIsNewRoutineOpen(false);
+      toast.success('Nova rotina criada!');
+      loadRoutines();
+    } catch (error) {
+      console.error('Error creating routine:', error);
+      toast.error('Erro ao criar rotina');
+    }
+  };
+
+  const handleSwitchRoutine = async (routine: Routine) => {
+    if (!user || routine.id === activeRoutine?.id) return;
+
+    try {
+      await supabase
+        .from('routines')
+        .update({ is_active: false })
+        .eq('user_id', user.id);
+
+      await supabase
+        .from('routines')
+        .update({ is_active: true })
+        .eq('id', routine.id);
+
+      setActiveRoutine(routine);
+      setRoutines(prev => prev.map(r => ({ ...r, is_active: r.id === routine.id })));
+    } catch (error) {
+      console.error('Error switching routine:', error);
+      toast.error('Erro ao trocar rotina');
+    }
+  };
+
+  const handleRenameRoutine = async () => {
+    if (!activeRoutine || !renameRoutineName.trim()) return;
+
+    try {
+      await supabase
+        .from('routines')
+        .update({ name: renameRoutineName.trim() })
+        .eq('id', activeRoutine.id);
+
+      setActiveRoutine(prev => prev ? { ...prev, name: renameRoutineName.trim() } : null);
+      setRoutines(prev => prev.map(r => r.id === activeRoutine.id ? { ...r, name: renameRoutineName.trim() } : r));
+      setIsRenameRoutineOpen(false);
+      toast.success('Rotina renomeada!');
+    } catch (error) {
+      console.error('Error renaming routine:', error);
+      toast.error('Erro ao renomear rotina');
+    }
+  };
+
+  const handleDeleteRoutine = async (routineId: string) => {
+    if (!user || routines.length <= 1) {
+      toast.error('Você precisa ter pelo menos uma rotina');
+      return;
+    }
+
+    try {
+      await supabase.from('routines').delete().eq('id', routineId);
+      
+      const remaining = routines.filter(r => r.id !== routineId);
+      if (activeRoutine?.id === routineId) {
+        // Activate the first remaining routine
+        await supabase.from('routines').update({ is_active: true }).eq('id', remaining[0].id);
+        remaining[0].is_active = true;
+        setActiveRoutine(remaining[0]);
+      }
+      setRoutines(remaining);
+      toast.success('Rotina excluída!');
+    } catch (error) {
+      console.error('Error deleting routine:', error);
+      toast.error('Erro ao excluir rotina');
     }
   };
 
@@ -269,6 +438,7 @@ export default function RoutineOrganizerPanel() {
     try {
       const itemsToInsert = itemFormData.days_of_week.map(day => ({
         user_id: user.id,
+        routine_id: activeRoutine?.id,
         title: itemFormData.title,
         description: itemFormData.description || null,
         day_of_week: day,
@@ -324,6 +494,7 @@ export default function RoutineOrganizerPanel() {
       if (newDays.length > 0) {
         const newItems = newDays.map(day => ({
           user_id: user!.id,
+          routine_id: activeRoutine?.id,
           ...commonData,
           day_of_week: day
         }));
@@ -413,6 +584,7 @@ export default function RoutineOrganizerPanel() {
         .from('routine_objectives')
         .insert({
           user_id: user.id,
+          routine_id: activeRoutine?.id,
           title: objectiveFormData.title,
           description: objectiveFormData.description || null,
           objective_type: objectiveFormData.objective_type,
@@ -640,12 +812,13 @@ export default function RoutineOrganizerPanel() {
     if (!user) return;
 
     try {
-      // Delete existing items
-      await supabase.from('routine_items').delete().eq('user_id', user.id);
+      // Delete existing items for this routine
+      await supabase.from('routine_items').delete().eq('user_id', user.id).eq('routine_id', activeRoutine?.id);
 
       // Insert template items
       const newItems = (template.items as any[]).map((item, idx) => ({
         user_id: user.id,
+        routine_id: activeRoutine?.id,
         title: item.title,
         description: item.description,
         day_of_week: item.day_of_week,
@@ -697,12 +870,13 @@ export default function RoutineOrganizerPanel() {
 
     try {
       for (const targetDay of copyToDays) {
-        await supabase.from('routine_items').delete().eq('user_id', user.id).eq('day_of_week', targetDay);
+        await supabase.from('routine_items').delete().eq('user_id', user.id).eq('routine_id', activeRoutine?.id).eq('day_of_week', targetDay);
       }
 
       const newItems = copyToDays.flatMap(targetDay =>
         sourceItems.map((item, idx) => ({
           user_id: user.id,
+          routine_id: activeRoutine?.id,
           title: item.title,
           description: item.description,
           day_of_week: targetDay,
@@ -863,7 +1037,49 @@ export default function RoutineOrganizerPanel() {
             <Calendar className="h-6 w-6" />
             Organizador de Rotina
           </h2>
-          <p className="text-muted-foreground">Organize sua semana e acompanhe seus objetivos</p>
+          <div className="flex items-center gap-2 mt-1">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground hover:text-foreground">
+                  <span className="font-medium">{activeRoutine?.name || 'Selecionar rotina'}</span>
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                {routines.map(routine => (
+                  <DropdownMenuItem 
+                    key={routine.id} 
+                    onClick={() => handleSwitchRoutine(routine)}
+                    className={routine.id === activeRoutine?.id ? 'bg-accent' : ''}
+                  >
+                    <span className="flex-1">{routine.name}</span>
+                    {routine.id === activeRoutine?.id && <CheckCircle2 className="h-3 w-3 ml-2 text-primary" />}
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setIsNewRoutineOpen(true)}>
+                  <ListPlus className="h-3 w-3 mr-2" />
+                  Nova Rotina
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                  setRenameRoutineName(activeRoutine?.name || '');
+                  setIsRenameRoutineOpen(true);
+                }}>
+                  <Edit className="h-3 w-3 mr-2" />
+                  Renomear
+                </DropdownMenuItem>
+                {routines.length > 1 && (
+                  <DropdownMenuItem 
+                    className="text-destructive"
+                    onClick={() => activeRoutine && handleDeleteRoutine(activeRoutine.id)}
+                  >
+                    <Trash2 className="h-3 w-3 mr-2" />
+                    Excluir Rotina
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
         <div className="flex gap-2 flex-wrap">
           {/* Template buttons */}
@@ -1918,6 +2134,49 @@ export default function RoutineOrganizerPanel() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingObjective(null)}>Cancelar</Button>
             <Button onClick={handleUpdateObjective}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* New Routine Dialog */}
+      <Dialog open={isNewRoutineOpen} onOpenChange={setIsNewRoutineOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nova Rotina</DialogTitle>
+            <DialogDescription>Crie uma nova rotina para organizar suas atividades</DialogDescription>
+          </DialogHeader>
+          <div>
+            <Label>Nome da Rotina *</Label>
+            <Input
+              value={newRoutineName}
+              onChange={(e) => setNewRoutineName(e.target.value)}
+              placeholder="Ex: Rotina de Treino, Rotina de Estudos..."
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsNewRoutineOpen(false)}>Cancelar</Button>
+            <Button onClick={handleCreateRoutine}>Criar Rotina</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rename Routine Dialog */}
+      <Dialog open={isRenameRoutineOpen} onOpenChange={setIsRenameRoutineOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Renomear Rotina</DialogTitle>
+          </DialogHeader>
+          <div>
+            <Label>Novo Nome *</Label>
+            <Input
+              value={renameRoutineName}
+              onChange={(e) => setRenameRoutineName(e.target.value)}
+              placeholder="Nome da rotina"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRenameRoutineOpen(false)}>Cancelar</Button>
+            <Button onClick={handleRenameRoutine}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
