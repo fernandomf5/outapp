@@ -52,6 +52,7 @@ import { BriefingCreatorPanel } from "@/components/BriefingCreatorPanel";
 // MembersAreaCreator removed - only Simple Members Area is used
 import { SimpleMembersArea } from "@/components/SimpleMembersArea";
 import { TutorialVideos } from "@/components/TutorialVideos";
+import { FeatureTutorialVideo } from "@/components/FeatureTutorialVideo";
 import { QuickNotesPanel } from "@/components/QuickNotesPanel";
 import { TaskReminder } from "@/components/TaskReminder";
 import { FeatureGate } from "@/components/FeatureGate";
@@ -1165,24 +1166,29 @@ const Dashboard = () => {
 
           <TabsContent value="crm-geral">
             <FeatureGate featureKey="crm_contacts">
+              <FeatureTutorialVideo featureKey="crm-geral" />
               <GeneralCRMPanel />
             </FeatureGate>
           </TabsContent>
 
           <TabsContent value="clientes">
+            <FeatureTutorialVideo featureKey="clientes" />
             <ClientsManagementPanel teamContext={getTeamContext('crm')} />
           </TabsContent>
 
           <TabsContent value="negocios">
+            <FeatureTutorialVideo featureKey="negocios" />
             <BusinessManagementPanel />
           </TabsContent>
 
           <TabsContent value="fornecedores">
+            <FeatureTutorialVideo featureKey="fornecedores" />
             <SuppliersManagementPanel />
           </TabsContent>
 
           <TabsContent value="floating-button">
             <FeatureGate featureKey="whatsapp_link">
+              <FeatureTutorialVideo featureKey="floating-button" />
               <FloatingMultiButtonGenerator />
             </FeatureGate>
           </TabsContent>
@@ -1190,21 +1196,25 @@ const Dashboard = () => {
 
           <TabsContent value="tools">
             <FeatureGate featureKey="whatsapp_link">
+              <FeatureTutorialVideo featureKey="tools" />
               <WhatsAppLinkGenerator />
             </FeatureGate>
           </TabsContent>
 
           <TabsContent value="qrcode">
             <FeatureGate featureKey="qrcode_generator">
+              <FeatureTutorialVideo featureKey="qrcode" />
               <QRCodeGenerator />
             </FeatureGate>
           </TabsContent>
 
           <TabsContent value="disparador">
+            <FeatureTutorialVideo featureKey="disparador" />
             <ManualDispatcherPanel />
           </TabsContent>
 
           <TabsContent value="funil-vendas">
+            <FeatureTutorialVideo featureKey="funil-vendas" />
             <SalesFunnelPanel />
           </TabsContent>
 
@@ -1280,6 +1290,7 @@ const Dashboard = () => {
           <TabsContent value="linkbio">
             <ErrorBoundary>
               <FeatureGate featureKey="link_bio">
+                <FeatureTutorialVideo featureKey="linkbio" />
                 <LinkBioCreator teamContext={getTeamContext('link_bio')} />
               </FeatureGate>
             </ErrorBoundary>
@@ -1287,6 +1298,7 @@ const Dashboard = () => {
 
           <TabsContent value="cloner">
             <FeatureGate featureKey="page_cloner">
+              <FeatureTutorialVideo featureKey="cloner" />
               <PageCloner teamContext={getTeamContext('cloner')} />
             </FeatureGate>
           </TabsContent>
@@ -1300,6 +1312,7 @@ const Dashboard = () => {
 
           <TabsContent value="shortlinks">
             <FeatureGate featureKey="link_shortener">
+              <FeatureTutorialVideo featureKey="shortlinks" />
               <LinkShortener />
             </FeatureGate>
           </TabsContent>
@@ -1312,6 +1325,7 @@ const Dashboard = () => {
 
           <TabsContent value="ai-agents">
             <FeatureGate featureKey="ai_agent">
+              <FeatureTutorialVideo featureKey="ai-agents" />
               {selectedAgentForManagement ? (
                 <Card className="p-6">
                   <div className="mb-6">
@@ -1357,46 +1371,55 @@ const Dashboard = () => {
 
           <TabsContent value="financeiro">
             <FeatureGate featureKey="financial_management">
+              <FeatureTutorialVideo featureKey="financeiro" />
               <FinancialManagementPanel teamContext={getTeamContext('financial')} />
             </FeatureGate>
           </TabsContent>
 
           <TabsContent value="equipe">
             <FeatureGate featureKey="team_management">
+              <FeatureTutorialVideo featureKey="equipe" />
               <TeamManagementPanel />
             </FeatureGate>
           </TabsContent>
 
           <TabsContent value="anuncios">
             <FeatureGate featureKey="ads_management">
+              <FeatureTutorialVideo featureKey="anuncios" />
               <AdsManagementPanel teamContext={getTeamContext('ads')} />
             </FeatureGate>
           </TabsContent>
 
           <TabsContent value="extrator-criativos">
+            <FeatureTutorialVideo featureKey="extrator-criativos" />
             <CreativeExtractorPanel />
           </TabsContent>
 
           <TabsContent value="video-downloader">
+            <FeatureTutorialVideo featureKey="video-downloader" />
             <VideoDownloaderPanel />
           </TabsContent>
 
           <TabsContent value="tarefas">
             <FeatureGate featureKey="task_organizer">
+              <FeatureTutorialVideo featureKey="tarefas" />
               <TaskOrganizerPanel teamContext={getTeamContext('tasks')} />
             </FeatureGate>
           </TabsContent>
 
           <TabsContent value="produtos-servicos">
+            <FeatureTutorialVideo featureKey="produtos-servicos" />
             <ProductsServicesPanel />
           </TabsContent>
 
           <TabsContent value="catalogo">
+            <FeatureTutorialVideo featureKey="catalogo" />
             <CatalogCreatorPanel />
           </TabsContent>
 
           <TabsContent value="popups">
             <FeatureGate featureKey="popup_creator">
+              <FeatureTutorialVideo featureKey="popups" />
               <PopupCreatorPanel />
             </FeatureGate>
           </TabsContent>
@@ -1404,6 +1427,7 @@ const Dashboard = () => {
           <TabsContent value="criador-quizz">
             <FeatureGate featureKey="quiz_creator">
               <ErrorBoundary>
+                <FeatureTutorialVideo featureKey="criador-quizz" />
                 <QuizCreatorPanel />
               </ErrorBoundary>
             </FeatureGate>
@@ -1411,6 +1435,7 @@ const Dashboard = () => {
 
           <TabsContent value="briefing">
             <FeatureGate featureKey="briefing_creator">
+              <FeatureTutorialVideo featureKey="briefing" />
               <Card>
                 <CardHeader>
                   <CardTitle>Briefing</CardTitle>
@@ -1447,6 +1472,7 @@ const Dashboard = () => {
           <TabsContent value="area-membros">
             <FeatureGate featureKey="members_area">
               <ErrorBoundary>
+                <FeatureTutorialVideo featureKey="area-membros" />
                 <SimpleMembersArea />
               </ErrorBoundary>
             </FeatureGate>
@@ -1467,42 +1493,51 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="mapa-mental">
+            <FeatureTutorialVideo featureKey="mapa-mental" />
             <MindMapCreatorPanel />
           </TabsContent>
 
           <TabsContent value="propostas">
+            <FeatureTutorialVideo featureKey="propostas" />
             <ProposalCreatorPanel />
           </TabsContent>
 
           <TabsContent value="agenda">
+            <FeatureTutorialVideo featureKey="agenda" />
             <AgendaPanel teamContext={getTeamContext('agenda')} />
           </TabsContent>
 
           <TabsContent value="aprova-job">
             <FeatureGate featureKey="aprova_job">
+              <FeatureTutorialVideo featureKey="aprova-job" />
               <AprovaJobPanel />
             </FeatureGate>
           </TabsContent>
 
           <TabsContent value="portfolio">
             <FeatureGate featureKey="portfolio_creator">
+              <FeatureTutorialVideo featureKey="portfolio" />
               <PortfolioCreatorPanel teamContext={getTeamContext('portfolio')} />
             </FeatureGate>
           </TabsContent>
 
           <TabsContent value="conversor-midia">
+            <FeatureTutorialVideo featureKey="conversor-midia" />
             <MediaConverterPanel />
           </TabsContent>
 
           <TabsContent value="conversor-documentos">
+            <FeatureTutorialVideo featureKey="conversor-documentos" />
             <DocumentConverterPanel />
           </TabsContent>
 
           <TabsContent value="rotina">
+            <FeatureTutorialVideo featureKey="rotina" />
             <RoutineOrganizerPanel />
           </TabsContent>
 
           <TabsContent value="recibos">
+            <FeatureTutorialVideo featureKey="recibos" />
             <ReceiptGeneratorPanel />
           </TabsContent>
         </Tabs>
