@@ -126,6 +126,9 @@ export const LandingFeaturesEditor = () => {
     toast({ title: "Recursos atualizados com sucesso!" });
   };
 
+  const [isBulkOpen, setIsBulkOpen] = useState(false);
+  const [bulkText, setBulkText] = useState("");
+
   const createNew = () => {
     setEditingFeature({
       id: "new",
@@ -135,6 +138,29 @@ export const LandingFeaturesEditor = () => {
       order_index: features.length,
     });
     setIsDialogOpen(true);
+  };
+
+  const handleBulkAdd = async () => {
+    const lines = bulkText.split("\n").map(l => l.trim()).filter(Boolean);
+    if (lines.length === 0) return;
+
+    setLoading(true);
+    const newFeatures = lines.map((line, i) => {
+      // Remove emoji prefix if present
+      const cleaned = line.replace(/^[\p{Emoji}\p{Emoji_Presentation}\p{Emoji_Modifier}\p{Emoji_Component}\uFE0F\u200D]+\s*/u, "").trim();
+      return {
+        id: (Date.now() + i).toString(),
+        icon: "Sparkles",
+        title: cleaned || line,
+        description: "",
+        order_index: features.length + i,
+      };
+    });
+
+    await saveFeatures([...features, ...newFeatures]);
+    setBulkText("");
+    setIsBulkOpen(false);
+    setLoading(false);
   };
 
   const getIcon = (iconName: string) => {
@@ -150,10 +176,16 @@ export const LandingFeaturesEditor = () => {
             <Sparkles className="w-5 h-5" />
             <CardTitle>Editor de Recursos da Landing Page</CardTitle>
           </div>
-          <Button onClick={createNew}>
-            <Plus className="w-4 h-4 mr-2" />
-            Adicionar Recurso
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsBulkOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar em Lote
+            </Button>
+            <Button onClick={createNew}>
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar Recurso
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -283,6 +315,38 @@ export const LandingFeaturesEditor = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isBulkOpen} onOpenChange={setIsBulkOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Adicionar Recursos em Lote</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Cole a lista de recursos (um por linha). Emojis no início serão removidos automaticamente.
+            </p>
+            <Textarea
+              value={bulkText}
+              onChange={(e) => setBulkText(e.target.value)}
+              placeholder={"📅 Agenda / Agendamento\n💬 Criação de Chat Online\n💰 Gestão Financeira"}
+              rows={12}
+            />
+            <p className="text-xs text-muted-foreground">
+              {bulkText.split("\n").filter(l => l.trim()).length} recurso(s) detectado(s)
+            </p>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setIsBulkOpen(false)}>
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+              <Button onClick={handleBulkAdd} disabled={loading || !bulkText.trim()}>
+                <Save className="w-4 h-4 mr-2" />
+                {loading ? "Salvando..." : "Adicionar Todos"}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </Card>
