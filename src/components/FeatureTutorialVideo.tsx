@@ -63,7 +63,7 @@ export const FeatureTutorialVideo = ({ featureKey }: FeatureTutorialVideoProps) 
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-4xl p-0">
+        <DialogContent className="max-w-lg p-0">
           <div>
             <div className="aspect-video bg-black rounded-t-lg overflow-hidden">
               <iframe
