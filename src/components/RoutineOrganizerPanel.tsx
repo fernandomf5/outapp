@@ -35,7 +35,11 @@ import {
   Save,
   FolderOpen,
   Copy,
-  FileText
+  FileText,
+  Share2,
+  Download,
+  MessageCircle,
+  Link2
 } from "lucide-react";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -187,6 +191,7 @@ export default function RoutineOrganizerPanel() {
   const [isCopyDayOpen, setIsCopyDayOpen] = useState(false);
   const [copyFromDay, setCopyFromDay] = useState<number | null>(null);
   const [copyToDays, setCopyToDays] = useState<number[]>([]);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   
   // Form data
   const [itemFormData, setItemFormData] = useState({
@@ -718,6 +723,108 @@ export default function RoutineOrganizerPanel() {
     }
   };
 
+
+  // Sharing functions
+  const generateRoutineText = () => {
+    let text = '📅 MINHA ROTINA SEMANAL\n\n';
+    DAYS_OF_WEEK.forEach(day => {
+      const items = getItemsByDay(day.value);
+      if (items.length > 0) {
+        text += `📌 ${day.label}\n`;
+        items.forEach(item => {
+          const time = item.start_time ? ` (${item.start_time}${item.end_time ? '-' + item.end_time : ''})` : '';
+          const status = item.is_completed ? '✅' : '⬜';
+          text += `  ${status} ${item.title}${time}\n`;
+        });
+        text += '\n';
+      }
+    });
+    
+    if (objectives.length > 0) {
+      text += '🎯 OBJETIVOS\n';
+      objectives.forEach(obj => {
+        const progress = Math.round((obj.current_value / obj.target_value) * 100);
+        text += `  ${obj.is_completed ? '✅' : '⬜'} ${obj.title} (${progress}%)\n`;
+      });
+    }
+    
+    return text;
+  };
+
+  const handleCopyRoutineText = () => {
+    navigator.clipboard.writeText(generateRoutineText());
+    toast.success('Rotina copiada!');
+  };
+
+  const handleShareWhatsApp = () => {
+    const text = encodeURIComponent(generateRoutineText());
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  };
+
+  const handleDownloadPDF = async () => {
+    try {
+      const { default: jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+      const margin = 15;
+      let y = 20;
+
+      doc.setFontSize(18);
+      doc.text('Minha Rotina Semanal', margin, y);
+      y += 12;
+
+      DAYS_OF_WEEK.forEach(day => {
+        const items = getItemsByDay(day.value);
+        if (items.length === 0) return;
+
+        if (y > 260) { doc.addPage(); y = 20; }
+        
+        doc.setFontSize(13);
+        doc.setFont('helvetica', 'bold');
+        doc.text(day.label, margin, y);
+        y += 7;
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        items.forEach(item => {
+          if (y > 275) { doc.addPage(); y = 20; }
+          const time = item.start_time ? ` (${item.start_time}${item.end_time ? '-' + item.end_time : ''})` : '';
+          const status = item.is_completed ? '[x]' : '[ ]';
+          doc.text(`${status} ${item.title}${time}`, margin + 5, y);
+          y += 5;
+        });
+        y += 4;
+      });
+
+      if (objectives.length > 0) {
+        if (y > 250) { doc.addPage(); y = 20; }
+        doc.setFontSize(13);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Objetivos', margin, y);
+        y += 7;
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        objectives.forEach(obj => {
+          if (y > 275) { doc.addPage(); y = 20; }
+          const progress = Math.round((obj.current_value / obj.target_value) * 100);
+          doc.text(`${obj.is_completed ? '[x]' : '[ ]'} ${obj.title} - ${progress}%`, margin + 5, y);
+          y += 5;
+        });
+      }
+
+      doc.save('minha-rotina.pdf');
+      toast.success('PDF baixado!');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('Erro ao gerar PDF');
+    }
+  };
+
+  const handleShareEmail = () => {
+    const subject = encodeURIComponent('Minha Rotina Semanal');
+    const body = encodeURIComponent(generateRoutineText());
+    window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+  };
+
   const getWeeklyObjectives = () => objectives.filter(o => o.objective_type === 'weekly');
   const getDailyObjectives = (dayOfWeek: number) => objectives.filter(o => o.objective_type === 'daily' && o.day_of_week === dayOfWeek);
 
@@ -826,6 +933,46 @@ export default function RoutineOrganizerPanel() {
                   ))}
                 </div>
               </ScrollArea>
+            </DialogContent>
+          </Dialog>
+
+          {/* Share Dialog */}
+          <Dialog open={isShareOpen} onOpenChange={setIsShareOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" disabled={routineItems.length === 0}>
+                <Share2 className="mr-2 h-4 w-4" />
+                Compartilhar
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Compartilhar Rotina</DialogTitle>
+                <DialogDescription>Escolha como deseja compartilhar sua rotina semanal</DialogDescription>
+              </DialogHeader>
+              <div className="grid grid-cols-2 gap-3">
+                <Button variant="outline" className="h-20 flex-col gap-2" onClick={handleCopyRoutineText}>
+                  <Copy className="h-5 w-5" />
+                  <span className="text-xs">Copiar Texto</span>
+                </Button>
+                <Button variant="outline" className="h-20 flex-col gap-2" onClick={handleDownloadPDF}>
+                  <Download className="h-5 w-5" />
+                  <span className="text-xs">Baixar PDF</span>
+                </Button>
+                <Button variant="outline" className="h-20 flex-col gap-2 text-green-600" onClick={handleShareWhatsApp}>
+                  <MessageCircle className="h-5 w-5" />
+                  <span className="text-xs">WhatsApp</span>
+                </Button>
+                <Button variant="outline" className="h-20 flex-col gap-2" onClick={handleShareEmail}>
+                  <Link2 className="h-5 w-5" />
+                  <span className="text-xs">Email</span>
+                </Button>
+              </div>
+              <div className="mt-2">
+                <Label className="text-xs text-muted-foreground">Pré-visualização:</Label>
+                <ScrollArea className="h-[200px] mt-1 rounded-md border p-3">
+                  <pre className="text-xs whitespace-pre-wrap font-sans">{generateRoutineText()}</pre>
+                </ScrollArea>
+              </div>
             </DialogContent>
           </Dialog>
 
