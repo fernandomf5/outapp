@@ -140,22 +140,30 @@ export const LandingFeaturesEditor = () => {
     setIsDialogOpen(true);
   };
 
+  const parseBulkText = (text: string) => {
+    // Split by double newline (blank line separator) into blocks
+    const blocks = text.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean);
+    return blocks.map(block => {
+      const lines = block.split("\n").map(l => l.trim()).filter(Boolean);
+      const titleRaw = lines[0] || "";
+      const title = titleRaw.replace(/^[\p{Emoji}\p{Emoji_Presentation}\p{Emoji_Modifier}\p{Emoji_Component}\uFE0F\u200D]+\s*/u, "").trim();
+      const description = lines.slice(1).join(" ").trim();
+      return { title: title || titleRaw, description };
+    });
+  };
+
   const handleBulkAdd = async () => {
-    const lines = bulkText.split("\n").map(l => l.trim()).filter(Boolean);
-    if (lines.length === 0) return;
+    const parsed = parseBulkText(bulkText);
+    if (parsed.length === 0) return;
 
     setLoading(true);
-    const newFeatures = lines.map((line, i) => {
-      // Remove emoji prefix if present
-      const cleaned = line.replace(/^[\p{Emoji}\p{Emoji_Presentation}\p{Emoji_Modifier}\p{Emoji_Component}\uFE0F\u200D]+\s*/u, "").trim();
-      return {
-        id: (Date.now() + i).toString(),
-        icon: "Sparkles",
-        title: cleaned || line,
-        description: "",
-        order_index: features.length + i,
-      };
-    });
+    const newFeatures = parsed.map((item, i) => ({
+      id: (Date.now() + i).toString(),
+      icon: "Sparkles",
+      title: item.title,
+      description: item.description,
+      order_index: features.length + i,
+    }));
 
     await saveFeatures([...features, ...newFeatures]);
     setBulkText("");
@@ -334,7 +342,7 @@ export const LandingFeaturesEditor = () => {
               rows={12}
             />
             <p className="text-xs text-muted-foreground">
-              {bulkText.split("\n").filter(l => l.trim()).length} recurso(s) detectado(s)
+              {parseBulkText(bulkText).length} recurso(s) detectado(s)
             </p>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setIsBulkOpen(false)}>
