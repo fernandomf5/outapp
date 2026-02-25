@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Plus, Edit2, Trash2, Check, Calculator, CalendarIcon, BarChart3, ArrowLeft, TableIcon, LineChart, ListPlus, Users, Wallet } from "lucide-react";
+import { DollarSign, Plus, Edit2, Trash2, Check, Calculator, CalendarIcon, BarChart3, ArrowLeft, TableIcon, LineChart, ListPlus, Users, Wallet, ShoppingCart } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -24,6 +24,7 @@ import { BusinessSelector } from "@/components/financial/BusinessSelector";
 import { FinancialAnalyticsPanel } from "@/components/financial/FinancialAnalyticsPanel";
 import { DebtorsPanel } from "@/components/financial/DebtorsPanel";
 import { CashboxPanel } from "@/components/financial/CashboxPanel";
+import { CheckoutCreatorPanel } from "@/components/CheckoutCreatorPanel";
 
 interface Business {
   id: string;
@@ -280,7 +281,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   
   // View modes
   const [viewMode, setViewMode] = useState<'selection' | 'management'>('selection');
-  const [activeTab, setActiveTab] = useState<'table' | 'analytics' | 'debtors' | 'cashbox'>('table');
+  const [activeTab, setActiveTab] = useState<'table' | 'analytics' | 'debtors' | 'cashbox' | 'checkout'>('table');
   
   
   // Filtro por data
@@ -1186,28 +1187,32 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
         </div>
 
         {/* View Mode Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'table' | 'analytics' | 'debtors' | 'cashbox')} className="w-full">
-          <TabsList className={cn("grid w-full max-w-xl", isConsolidatedView ? "grid-cols-2" : "grid-cols-4")}>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'table' | 'analytics' | 'debtors' | 'cashbox' | 'checkout')} className="w-full">
+          <TabsList className={cn("grid w-full max-w-2xl", isConsolidatedView ? "grid-cols-3" : "grid-cols-5")}>
             <TabsTrigger value="table" className="flex items-center gap-2">
               <TableIcon className="w-4 h-4" />
-              Planilha
+              <span className="hidden sm:inline">Planilha</span>
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <LineChart className="w-4 h-4" />
-              Gráficos
+              <span className="hidden sm:inline">Gráficos</span>
             </TabsTrigger>
             {!isConsolidatedView && (
               <TabsTrigger value="cashbox" className="flex items-center gap-2">
                 <Wallet className="w-4 h-4" />
-                Caixa
+                <span className="hidden sm:inline">Caixa</span>
               </TabsTrigger>
             )}
             {!isConsolidatedView && (
               <TabsTrigger value="debtors" className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
-                Devedores
+                <span className="hidden sm:inline">Devedores</span>
               </TabsTrigger>
             )}
+            <TabsTrigger value="checkout" className="flex items-center gap-2">
+              <ShoppingCart className="w-4 h-4" />
+              <span className="hidden sm:inline">Checkout</span>
+            </TabsTrigger>
           </TabsList>
 
           {/* Analytics Tab Content */}
@@ -1237,6 +1242,11 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
               transactions={transactions}
               teamContext={teamContext}
             />
+          </TabsContent>
+
+          {/* Checkout Tab Content */}
+          <TabsContent value="checkout" className="mt-6">
+            <CheckoutCreatorPanel />
           </TabsContent>
 
           {/* Table Tab Content */}
