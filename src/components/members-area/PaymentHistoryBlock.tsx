@@ -134,7 +134,7 @@ export function PaymentHistoryBlock({ customerId, accentColor, cardTextColor, ca
                     </Badge>
                   </div>
                   {(r.receipt_data?.receipt_title || r.receipt_data?.title) && (
-                    <p className="text-xs opacity-60 truncate max-w-[200px]">{r.receipt_data.receipt_title || r.receipt_data.title}</p>
+                    <p className="text-sm font-semibold opacity-90 truncate max-w-[250px]">{r.receipt_data.receipt_title || r.receipt_data.title}</p>
                   )}
                   <div className="flex items-center gap-2 text-xs opacity-70 mt-0.5">
                     <span className="flex items-center gap-0.5">
