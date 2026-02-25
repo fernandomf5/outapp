@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { 
   Users, Building2, Search, Calendar, DollarSign, 
-  TrendingUp, FileText, ChevronDown, ChevronUp, Receipt, X, CheckCircle2, Clock 
+  TrendingUp, FileText, ChevronDown, ChevronUp, Receipt, X, CheckCircle2, Clock, Edit, Trash2 
 } from "lucide-react";
 
 interface SavedReceipt {
@@ -24,6 +25,8 @@ interface SavedReceipt {
 interface PaymentHistoryPanelProps {
   receipts: SavedReceipt[];
   onLoadReceipt: (receipt: SavedReceipt) => void;
+  onEditReceipt?: (receipt: SavedReceipt) => void;
+  onDeleteReceipt?: (id: string) => void;
 }
 
 interface ClientGroup {
@@ -36,7 +39,8 @@ interface ClientGroup {
   lastDate: string;
 }
 
-export function PaymentHistoryPanel({ receipts, onLoadReceipt }: PaymentHistoryPanelProps) {
+export function PaymentHistoryPanel({ receipts, onLoadReceipt, onEditReceipt, onDeleteReceipt }: PaymentHistoryPanelProps) {
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterClient, setFilterClient] = useState('all');
   const [filterBusiness, setFilterBusiness] = useState('all');
@@ -336,6 +340,22 @@ export function PaymentHistoryPanel({ receipts, onLoadReceipt }: PaymentHistoryP
                               <p className="font-semibold text-sm text-primary flex-shrink-0">
                                 {formatCurrency(r.total_amount)}
                               </p>
+
+                              {/* Edit & Delete buttons */}
+                              {(onEditReceipt || onDeleteReceipt) && (
+                                <div className="flex items-center gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
+                                  {onEditReceipt && (
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEditReceipt(r)}>
+                                      <Edit className="w-3.5 h-3.5" />
+                                    </Button>
+                                  )}
+                                  {onDeleteReceipt && (
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteConfirmId(r.id)}>
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </Button>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           );
                         })}
@@ -358,6 +378,19 @@ export function PaymentHistoryPanel({ receipts, onLoadReceipt }: PaymentHistoryP
           )}
         </div>
       </ScrollArea>
+
+      <DeleteConfirmDialog
+        open={!!deleteConfirmId}
+        onOpenChange={(open) => { if (!open) setDeleteConfirmId(null); }}
+        onConfirm={() => {
+          if (deleteConfirmId && onDeleteReceipt) {
+            onDeleteReceipt(deleteConfirmId);
+            setDeleteConfirmId(null);
+          }
+        }}
+        title="Excluir recibo?"
+        description="Tem certeza que deseja excluir este recibo? Esta ação não pode ser desfeita."
+      />
     </div>
   );
 }
