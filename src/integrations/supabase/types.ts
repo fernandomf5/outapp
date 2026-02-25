@@ -2960,6 +2960,134 @@ export type Database = {
           },
         ]
       }
+      checkout_orders: {
+        Row: {
+          amount: number
+          checkout_id: string
+          created_at: string
+          customer_cpf: string | null
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          id: string
+          metadata: Json | null
+          payment_id: string | null
+          payment_method: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          checkout_id: string
+          created_at?: string
+          customer_cpf?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_id?: string | null
+          payment_method?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          checkout_id?: string
+          created_at?: string
+          customer_cpf?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_id?: string | null
+          payment_method?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkout_orders_checkout_id_fkey"
+            columns: ["checkout_id"]
+            isOneToOne: false
+            referencedRelation: "checkouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checkouts: {
+        Row: {
+          banner_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          item_description: string | null
+          item_image_url: string | null
+          item_name: string
+          mp_access_token: string | null
+          mp_public_key: string | null
+          name: string
+          price: number
+          primary_color: string | null
+          redirect_url: string | null
+          slug: string
+          success_message: string | null
+          total_revenue: number | null
+          total_sales: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          banner_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          item_description?: string | null
+          item_image_url?: string | null
+          item_name: string
+          mp_access_token?: string | null
+          mp_public_key?: string | null
+          name: string
+          price?: number
+          primary_color?: string | null
+          redirect_url?: string | null
+          slug: string
+          success_message?: string | null
+          total_revenue?: number | null
+          total_sales?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          banner_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          item_description?: string | null
+          item_image_url?: string | null
+          item_name?: string
+          mp_access_token?: string | null
+          mp_public_key?: string | null
+          name?: string
+          price?: number
+          primary_color?: string | null
+          redirect_url?: string | null
+          slug?: string
+          success_message?: string | null
+          total_revenue?: number | null
+          total_sales?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cloned_page_analytics: {
         Row: {
           browser: string | null

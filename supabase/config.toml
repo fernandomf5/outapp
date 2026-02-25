@@ -68,3 +68,9 @@ verify_jwt = false
 
 [functions.send-receipt-email]
 verify_jwt = false
+
+[functions.checkout-payment]
+verify_jwt = false
+
+[functions.checkout-webhook]
+verify_jwt = false
