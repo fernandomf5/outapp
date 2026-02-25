@@ -1338,6 +1338,13 @@ export function ReceiptGeneratorPanel() {
               handleLoadReceipt(r);
               setHistoryOpen(false);
             }}
+            onEditReceipt={(r) => {
+              handleLoadReceipt(r);
+              setHistoryOpen(false);
+            }}
+            onDeleteReceipt={(id) => {
+              handleDeleteReceipt(id);
+            }}
           />
         </DialogContent>
       </Dialog>
