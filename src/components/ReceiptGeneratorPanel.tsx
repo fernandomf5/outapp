@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Receipt, Send, Download, MessageCircle, Mail, Plus, Trash2, Eye, Loader2, Building2, Users, Save, Search, FileText, Edit, X, Printer, LayoutTemplate, Copy } from "lucide-react";
+import { Receipt, Send, Download, MessageCircle, Mail, Plus, Trash2, Eye, Loader2, Building2, Users, Save, Search, FileText, Edit, X, Printer, LayoutTemplate, Copy, History } from "lucide-react";
+import { PaymentHistoryPanel } from "./PaymentHistoryPanel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import jsPDF from "jspdf";
 
@@ -148,7 +149,7 @@ export function ReceiptGeneratorPanel() {
   const [templateName, setTemplateName] = useState('');
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
-
+  const [historyOpen, setHistoryOpen] = useState(false);
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
@@ -695,6 +696,9 @@ export function ReceiptGeneratorPanel() {
           Gerador de Recibo Online
         </h2>
         <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="outline" size="sm" onClick={() => { setHistoryOpen(true); fetchSavedReceipts(); }}>
+            <History className="h-4 w-4 mr-1" /> Histórico
+          </Button>
           <Button variant="outline" size="sm" onClick={() => { setTemplatesOpen(true); fetchTemplates(); }}>
             <LayoutTemplate className="h-4 w-4 mr-1" /> Modelos
           </Button>
@@ -1259,6 +1263,24 @@ export function ReceiptGeneratorPanel() {
               </div>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment History Dialog */}
+      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="w-5 h-5" /> Histórico de Pagamentos
+            </DialogTitle>
+          </DialogHeader>
+          <PaymentHistoryPanel
+            receipts={savedReceipts}
+            onLoadReceipt={(r) => {
+              handleLoadReceipt(r);
+              setHistoryOpen(false);
+            }}
+          />
         </DialogContent>
       </Dialog>
     </div>
