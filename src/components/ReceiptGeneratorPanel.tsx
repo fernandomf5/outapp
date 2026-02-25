@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Receipt, Send, Download, MessageCircle, Mail, Plus, Trash2, Eye, Loader2, Building2, Users, Save, Search, FileText, Edit, X, Printer } from "lucide-react";
+import { Receipt, Send, Download, MessageCircle, Mail, Plus, Trash2, Eye, Loader2, Building2, Users, Save, Search, FileText, Edit, X, Printer, LayoutTemplate, Copy } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import jsPDF from "jspdf";
 
@@ -76,6 +76,24 @@ interface SavedReceipt {
   updated_at: string;
 }
 
+interface ReceiptTemplate {
+  id: string;
+  name: string;
+  business_id: string | null;
+  company_name: string | null;
+  company_document: string | null;
+  company_address: string | null;
+  company_phone: string | null;
+  logo_url: string | null;
+  primary_color: string | null;
+  receipt_title: string | null;
+  issuer_signer_name: string | null;
+  warranty_text: string | null;
+  terms_text: string | null;
+  notes_template: string | null;
+  created_at: string;
+}
+
 const defaultReceipt: ReceiptData = {
   receipt_number: `REC-${Date.now().toString().slice(-6)}`,
   receipt_title: 'RECIBO',
@@ -124,6 +142,13 @@ export function ReceiptGeneratorPanel() {
   const [filterBusiness, setFilterBusiness] = useState<string>('all');
   const [filterClient, setFilterClient] = useState<string>('all');
 
+  // Templates state
+  const [templates, setTemplates] = useState<ReceiptTemplate[]>([]);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
+
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
@@ -136,6 +161,105 @@ export function ReceiptGeneratorPanel() {
     };
     fetchData();
   }, [user]);
+
+  // Templates
+  const fetchTemplates = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('receipt_templates')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('name');
+    if (data) setTemplates(data as unknown as ReceiptTemplate[]);
+  };
+
+  useEffect(() => {
+    fetchTemplates();
+  }, [user]);
+
+  const handleSaveTemplate = async () => {
+    if (!user || !templateName.trim()) {
+      toast({ title: "Erro", description: "Informe um nome para o modelo.", variant: "destructive" });
+      return;
+    }
+    setSavingTemplate(true);
+    try {
+      const payload = {
+        user_id: user.id,
+        name: templateName.trim(),
+        business_id: selectedBusinessId && selectedBusinessId !== '_none' ? selectedBusinessId : null,
+        company_name: receipt.company_name,
+        company_document: receipt.company_document,
+        company_address: receipt.company_address,
+        company_phone: receipt.company_phone,
+        logo_url: receipt.logo_url,
+        primary_color: receipt.primary_color,
+        receipt_title: receipt.receipt_title,
+        issuer_signer_name: receipt.issuer_signer_name,
+        warranty_text: receipt.warranty_text,
+        terms_text: receipt.terms_text,
+        notes_template: receipt.notes,
+      };
+      if (editingTemplateId) {
+        const { error } = await supabase.from('receipt_templates').update(payload).eq('id', editingTemplateId);
+        if (error) throw error;
+        toast({ title: "Modelo atualizado! ✅" });
+      } else {
+        const { error } = await supabase.from('receipt_templates').insert([payload]);
+        if (error) throw error;
+        toast({ title: "Modelo salvo! ✅", description: `Modelo "${templateName}" criado com sucesso.` });
+      }
+      setTemplateName('');
+      setEditingTemplateId(null);
+      await fetchTemplates();
+    } catch (error: any) {
+      toast({ title: "Erro ao salvar modelo", description: error.message, variant: "destructive" });
+    } finally {
+      setSavingTemplate(false);
+    }
+  };
+
+  const handleLoadTemplate = (tpl: ReceiptTemplate) => {
+    setReceipt(prev => ({
+      ...prev,
+      receipt_number: `REC-${Date.now().toString().slice(-6)}`,
+      company_name: tpl.company_name || '',
+      company_document: tpl.company_document || '',
+      company_address: tpl.company_address || '',
+      company_phone: tpl.company_phone || '',
+      logo_url: tpl.logo_url || '',
+      primary_color: tpl.primary_color || '#2563eb',
+      receipt_title: tpl.receipt_title || 'RECIBO',
+      issuer_signer_name: tpl.issuer_signer_name || '',
+      warranty_text: tpl.warranty_text || '',
+      terms_text: tpl.terms_text || '',
+      notes: tpl.notes_template || '',
+    }));
+    setLogoPreview(tpl.logo_url || '');
+    if (tpl.business_id) {
+      setSelectedBusinessId(tpl.business_id);
+    }
+    setTemplatesOpen(false);
+    toast({ title: "Modelo aplicado! 📋", description: `Modelo "${tpl.name}" carregado.` });
+  };
+
+  const handleEditTemplate = (tpl: ReceiptTemplate) => {
+    setTemplateName(tpl.name);
+    setEditingTemplateId(tpl.id);
+    handleLoadTemplate(tpl);
+    setTemplatesOpen(false);
+  };
+
+  const handleDeleteTemplate = async (id: string) => {
+    const { error } = await supabase.from('receipt_templates').delete().eq('id', id);
+    if (error) {
+      toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" });
+      return;
+    }
+    if (editingTemplateId === id) { setEditingTemplateId(null); setTemplateName(''); }
+    toast({ title: "Modelo excluído" });
+    await fetchTemplates();
+  };
 
   const fetchSavedReceipts = async () => {
     if (!user) return;
@@ -571,6 +695,9 @@ export function ReceiptGeneratorPanel() {
           Gerador de Recibo Online
         </h2>
         <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="outline" size="sm" onClick={() => { setTemplatesOpen(true); fetchTemplates(); }}>
+            <LayoutTemplate className="h-4 w-4 mr-1" /> Modelos
+          </Button>
           <Button variant="outline" size="sm" onClick={() => { setSearchOpen(true); fetchSavedReceipts(); }}>
             <Search className="h-4 w-4 mr-1" /> Buscar Recibos
           </Button>
@@ -1049,6 +1176,88 @@ export function ReceiptGeneratorPanel() {
                 </div>
               </div>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Templates Dialog */}
+      <Dialog open={templatesOpen} onOpenChange={setTemplatesOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <LayoutTemplate className="w-5 h-5" /> Modelos de Recibo
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Save current as template */}
+            <Card>
+              <CardContent className="pt-4 space-y-3">
+                <p className="text-sm font-medium">{editingTemplateId ? 'Atualizar Modelo' : 'Salvar Configuração Atual como Modelo'}</p>
+                <p className="text-xs text-muted-foreground">
+                  Salva os dados da empresa, logo, cor, título, garantia e termos como modelo reutilizável.
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Ex: Recibo da Klic Smart"
+                    value={templateName}
+                    onChange={e => setTemplateName(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button onClick={handleSaveTemplate} disabled={savingTemplate} size="sm">
+                    {savingTemplate ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
+                    {editingTemplateId ? 'Atualizar' : 'Salvar'}
+                  </Button>
+                  {editingTemplateId && (
+                    <Button variant="ghost" size="sm" onClick={() => { setEditingTemplateId(null); setTemplateName(''); }}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Template list */}
+            {templates.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <LayoutTemplate className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                <p>Nenhum modelo salvo ainda.</p>
+                <p className="text-xs">Preencha os dados da empresa e clique em "Salvar" acima.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {templates.map(tpl => (
+                  <div key={tpl.id} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                    {/* Color indicator + logo */}
+                    <div className="flex-shrink-0 w-10 h-10 rounded-lg border flex items-center justify-center overflow-hidden" style={{ backgroundColor: tpl.primary_color || '#2563eb' }}>
+                      {tpl.logo_url ? (
+                        <img src={tpl.logo_url} alt="" className="w-8 h-8 object-contain" />
+                      ) : (
+                        <Building2 className="w-5 h-5 text-white" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{tpl.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {tpl.company_name || 'Sem empresa'} 
+                        {tpl.warranty_text ? ' • Garantia ✓' : ''} 
+                        {tpl.terms_text ? ' • Termos ✓' : ''}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => handleLoadTemplate(tpl)} title="Usar modelo">
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleEditTemplate(tpl)} title="Editar modelo">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDeleteTemplate(tpl.id)} title="Excluir modelo">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
