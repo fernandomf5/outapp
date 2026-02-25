@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { Lock, Image as ImageIcon, Video, FileText, Link as LinkIcon, MousePointer, Download, LogOut, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Eye, EyeOff, Home, BookOpen, User, ChevronRight, Play, Menu, X, ChevronDown, Megaphone } from "lucide-react";
+import { Lock, Image as ImageIcon, Video, FileText, Link as LinkIcon, MousePointer, Download, LogOut, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Eye, EyeOff, Home, BookOpen, User, ChevronRight, Play, Menu, X, ChevronDown, Megaphone, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { CustomerHistoryTimeline } from "@/components/members-area/CustomerHistoryTimeline";
 import { AdsDashboardBlock } from "@/components/members-area/AdsDashboardBlock";
+import { PaymentHistoryBlock } from "@/components/members-area/PaymentHistoryBlock";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 
@@ -36,7 +37,7 @@ const SecretContentBlock = ({ content, title, accentColor, textColor }: { conten
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
   content: string;
   title?: string;
   order_index: number;
@@ -431,6 +432,32 @@ export default function MembersAreaPublic() {
             <CustomerHistoryTimeline 
               customerId={block.customer_id} 
               primaryColor={accentColor}
+            />
+          </div>
+        );
+
+      case 'payment_history':
+        if (!block.customer_id) {
+          return (
+            <div className="text-center py-8" style={{ color: cardTextColor }}>
+              <DollarSign className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>Cliente não selecionado</p>
+            </div>
+          );
+        }
+        return (
+          <div className="space-y-4">
+            {block.title && (
+              <h3 className="text-lg font-semibold flex items-center gap-2" style={{ color: cardTextColor }}>
+                <DollarSign className="w-5 h-5" style={{ color: accentColor }} />
+                {block.title}
+              </h3>
+            )}
+            <PaymentHistoryBlock
+              customerId={block.customer_id}
+              accentColor={accentColor}
+              cardTextColor={cardTextColor}
+              cardBackgroundColor={cardBackgroundColor}
             />
           </div>
         );

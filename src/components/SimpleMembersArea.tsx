@@ -21,7 +21,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
   content: string;
   title?: string;
   order_index: number;
@@ -113,6 +113,7 @@ const SortableBlock = ({ block, onEdit, onDelete }: { block: ContentBlock; onEdi
       gallery: <Images className="w-4 h-4" />,
       video_gallery: <Film className="w-4 h-4" />,
       secret: <EyeOff className="w-4 h-4" />,
+      payment_history: <History className="w-4 h-4" />,
     };
     return icons[block.type] || <FileText className="w-4 h-4" />;
   };
@@ -126,7 +127,7 @@ const SortableBlock = ({ block, onEdit, onDelete }: { block: ContentBlock; onEdi
       <div className="flex-1 min-w-0 overflow-hidden">
         <div className="font-medium text-sm truncate">{block.title || (block.type === 'secret' ? 'Conteúdo Oculto' : block.type)}</div>
         <div className="text-xs text-muted-foreground truncate max-w-full">
-          {block.type === 'customer_history' && block.customer_name 
+          {(block.type === 'customer_history' || block.type === 'payment_history') && block.customer_name 
             ? `Cliente: ${block.customer_name}` 
             : block.type === 'secret'
             ? '•'.repeat(Math.min((block.content || '').length || 10, 30))
@@ -454,7 +455,7 @@ export function SimpleMembersArea() {
 
     try {
       // Pegar nome do cliente se for histórico
-      const selectedCustomer = blockFormData.type === 'customer_history' 
+      const selectedCustomer = (blockFormData.type === 'customer_history' || blockFormData.type === 'payment_history')
         ? customers.find(c => c.id === blockFormData.customer_id)
         : null;
 
@@ -500,7 +501,7 @@ export function SimpleMembersArea() {
 
     try {
       // Pegar nome do cliente se for histórico
-      const selectedCustomer = blockFormData.type === 'customer_history' 
+      const selectedCustomer = (blockFormData.type === 'customer_history' || blockFormData.type === 'payment_history')
         ? customers.find(c => c.id === blockFormData.customer_id)
         : null;
 
@@ -1240,6 +1241,7 @@ export function SimpleMembersArea() {
                     <SelectItem value="certificate">🏆 Certificado</SelectItem>
                     <SelectItem value="customer_history">📜 Histórico do Cliente</SelectItem>
                     <SelectItem value="ads_dashboard">📊 Anúncios (Dashboard)</SelectItem>
+                    <SelectItem value="payment_history">💰 Histórico de Pagamentos</SelectItem>
                     <SelectItem value="secret">🔒 Conteúdo Oculto (Senha)</SelectItem>
                   </SelectContent>
                 </Select>
@@ -1254,7 +1256,7 @@ export function SimpleMembersArea() {
               </div>
 
               {/* Seleção de Cliente para Histórico */}
-              {blockFormData.type === 'customer_history' && (
+              {(blockFormData.type === 'customer_history' || blockFormData.type === 'payment_history') && (
                 <div>
                   <Label>Selecionar Cliente</Label>
                   <Select 
@@ -1320,7 +1322,7 @@ export function SimpleMembersArea() {
                 </div>
               )}
 
-              {blockFormData.type !== 'customer_history' && blockFormData.type !== 'ads_dashboard' && (
+              {blockFormData.type !== 'customer_history' && blockFormData.type !== 'payment_history' && blockFormData.type !== 'ads_dashboard' && (
               <div>
                 <Label>Conteúdo</Label>
                 {blockFormData.type === 'image' ? (
