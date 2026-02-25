@@ -7,9 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { downloadReceiptPDF } from "@/utils/receiptPdfGenerator";
 import { 
   Users, Building2, Search, Calendar, DollarSign, 
-  TrendingUp, FileText, ChevronDown, ChevronUp, Receipt, X, CheckCircle2, Clock, Edit, Trash2 
+  TrendingUp, FileText, ChevronDown, ChevronUp, Receipt, X, CheckCircle2, Clock, Edit, Trash2, Download 
 } from "lucide-react";
 
 interface SavedReceipt {
@@ -46,6 +48,16 @@ export function PaymentHistoryPanel({ receipts, onLoadReceipt, onEditReceipt, on
   const [filterBusiness, setFilterBusiness] = useState('all');
   const [filterMonth, setFilterMonth] = useState('all');
   const [expandedClient, setExpandedClient] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const handleDownloadPDF = (r: SavedReceipt) => {
+    try {
+      downloadReceiptPDF(r.receipt_data, r.receipt_data?.logo_url || undefined);
+      toast({ title: "PDF baixado!", description: `Recibo ${r.receipt_number} baixado com sucesso.` });
+    } catch (err) {
+      toast({ title: "Erro ao gerar PDF", variant: "destructive" });
+    }
+  };
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -341,21 +353,22 @@ export function PaymentHistoryPanel({ receipts, onLoadReceipt, onEditReceipt, on
                                 {formatCurrency(r.total_amount)}
                               </p>
 
-                              {/* Edit & Delete buttons */}
-                              {(onEditReceipt || onDeleteReceipt) && (
-                                <div className="flex items-center gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
-                                  {onEditReceipt && (
-                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEditReceipt(r)}>
-                                      <Edit className="w-3.5 h-3.5" />
-                                    </Button>
-                                  )}
-                                  {onDeleteReceipt && (
-                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteConfirmId(r.id)}>
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </Button>
-                                  )}
-                                </div>
-                              )}
+                              {/* Download, Edit & Delete buttons */}
+                              <div className="flex items-center gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" title="Baixar PDF" onClick={() => handleDownloadPDF(r)}>
+                                  <Download className="w-3.5 h-3.5" />
+                                </Button>
+                                {onEditReceipt && (
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEditReceipt(r)}>
+                                    <Edit className="w-3.5 h-3.5" />
+                                  </Button>
+                                )}
+                                {onDeleteReceipt && (
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteConfirmId(r.id)}>
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                                )}
+                              </div>
                             </div>
                           );
                         })}

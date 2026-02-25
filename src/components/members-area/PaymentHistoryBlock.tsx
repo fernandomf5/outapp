@@ -2,10 +2,12 @@ import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { downloadReceiptPDF } from "@/utils/receiptPdfGenerator";
 import { 
   DollarSign, FileText, Calendar, ChevronDown, ChevronUp, 
-  CheckCircle2, Receipt, TrendingUp 
+  CheckCircle2, Receipt, TrendingUp, Download 
 } from "lucide-react";
 
 interface SavedReceipt {
@@ -141,6 +143,20 @@ export function PaymentHistoryBlock({ customerId, accentColor, cardTextColor, ca
                 <p className="font-bold text-sm flex-shrink-0" style={{ color: accentColor }}>
                   {formatCurrency(r.total_amount)}
                 </p>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 flex-shrink-0"
+                  title="Baixar PDF"
+                  style={{ color: accentColor }}
+                  onClick={() => {
+                    try {
+                      downloadReceiptPDF(r.receipt_data, r.receipt_data?.logo_url || undefined);
+                    } catch {}
+                  }}
+                >
+                  <Download className="w-4 h-4" />
+                </Button>
               </div>
             );
           })}
