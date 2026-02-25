@@ -390,6 +390,7 @@ export function PaymentHistoryPanel({ receipts, onLoadReceipt, onEditReceipt, on
         }}
         title="Excluir recibo?"
         description="Tem certeza que deseja excluir este recibo? Esta ação não pode ser desfeita."
+        className="z-[200]"
       />
     </div>
   );
