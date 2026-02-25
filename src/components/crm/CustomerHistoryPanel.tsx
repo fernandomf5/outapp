@@ -21,7 +21,8 @@ import {
   Trash2,
   Clock,
   Package,
-  FileText
+  FileText,
+  Edit
 } from "lucide-react";
 
 interface ServiceHistory {
@@ -98,6 +99,11 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
   const [isServiceDialogOpen, setIsServiceDialogOpen] = useState(false);
   const [isPurchaseDialogOpen, setIsPurchaseDialogOpen] = useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  
+  // Edit states
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+  const [editingPurchaseId, setEditingPurchaseId] = useState<string | null>(null);
+  const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
   
   // Form states
   const [serviceInputMode, setServiceInputMode] = useState<"select" | "custom">("select");
@@ -301,6 +307,121 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
     }
   };
 
+  const handleEditService = (service: ServiceHistory) => {
+    setEditingServiceId(service.id);
+    setServiceInputMode("custom");
+    setNewService({
+      service_id: service.service_id || "",
+      service_name: service.service_name,
+      description: service.description || "",
+      price: Number(service.price),
+      service_date: service.service_date.slice(0, 16),
+      status: service.status,
+      notes: service.notes || ""
+    });
+    setIsServiceDialogOpen(true);
+  };
+
+  const handleUpdateService = async () => {
+    if (!editingServiceId || !newService.service_name) {
+      toast({ title: "Nome do serviço é obrigatório", variant: "destructive" });
+      return;
+    }
+    const { error } = await supabase.from('customer_services_history').update({
+      service_name: newService.service_name,
+      description: newService.description || null,
+      price: newService.price,
+      service_date: newService.service_date,
+      status: newService.status,
+      notes: newService.notes || null,
+    }).eq('id', editingServiceId);
+
+    if (error) {
+      toast({ title: "Erro ao atualizar serviço", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Serviço atualizado! ✅" });
+      setIsServiceDialogOpen(false);
+      setEditingServiceId(null);
+      resetServiceForm();
+      fetchAllHistory();
+    }
+  };
+
+  const handleEditPurchase = (purchase: PurchaseHistory) => {
+    setEditingPurchaseId(purchase.id);
+    setNewPurchase({
+      product_id: purchase.product_id || "",
+      product_name: purchase.product_name,
+      quantity: purchase.quantity,
+      unit_price: Number(purchase.unit_price),
+      purchase_date: purchase.purchase_date.slice(0, 16),
+      notes: purchase.notes || ""
+    });
+    setIsPurchaseDialogOpen(true);
+  };
+
+  const handleUpdatePurchase = async () => {
+    if (!editingPurchaseId || !newPurchase.product_name) {
+      toast({ title: "Nome do produto é obrigatório", variant: "destructive" });
+      return;
+    }
+    const totalPrice = newPurchase.quantity * newPurchase.unit_price;
+    const { error } = await supabase.from('customer_purchases_history').update({
+      product_name: newPurchase.product_name,
+      quantity: newPurchase.quantity,
+      unit_price: newPurchase.unit_price,
+      total_price: totalPrice,
+      purchase_date: newPurchase.purchase_date,
+      notes: newPurchase.notes || null,
+    }).eq('id', editingPurchaseId);
+
+    if (error) {
+      toast({ title: "Erro ao atualizar compra", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Compra atualizada! 🛒" });
+      setIsPurchaseDialogOpen(false);
+      setEditingPurchaseId(null);
+      resetPurchaseForm();
+      fetchAllHistory();
+    }
+  };
+
+  const handleEditPayment = (payment: PaymentHistory) => {
+    setEditingPaymentId(payment.id);
+    setNewPayment({
+      amount: Number(payment.amount),
+      payment_method: payment.payment_method,
+      payment_date: payment.payment_date.slice(0, 16),
+      description: payment.description || "",
+      notes: payment.notes || ""
+    });
+    setIsPaymentDialogOpen(true);
+  };
+
+  const handleUpdatePayment = async () => {
+    if (!editingPaymentId || newPayment.amount <= 0) {
+      toast({ title: "Valor deve ser maior que zero", variant: "destructive" });
+      return;
+    }
+    const { error } = await supabase.from('customer_payments_history').update({
+      amount: newPayment.amount,
+      payment_method: newPayment.payment_method,
+      payment_date: newPayment.payment_date,
+      description: newPayment.description || null,
+      notes: newPayment.notes || null,
+    }).eq('id', editingPaymentId);
+
+    if (error) {
+      toast({ title: "Erro ao atualizar pagamento", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Pagamento atualizado! 💰" });
+      setIsPaymentDialogOpen(false);
+      setEditingPaymentId(null);
+      resetPaymentForm();
+      fetchAllHistory();
+    }
+  };
+
   const resetServiceForm = () => {
     setServiceInputMode("select");
     setNewService({
@@ -434,7 +555,10 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
 
         {/* Services Tab */}
         <TabsContent value="services" className="space-y-3">
-          <Dialog open={isServiceDialogOpen} onOpenChange={setIsServiceDialogOpen}>
+          <Dialog open={isServiceDialogOpen} onOpenChange={(open) => {
+            setIsServiceDialogOpen(open);
+            if (!open) { setEditingServiceId(null); resetServiceForm(); }
+          }}>
             <DialogTrigger asChild>
               <Button size="sm" className="w-full">
                 <Plus className="w-4 h-4 mr-2" /> Registrar Serviço
@@ -442,10 +566,10 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Registrar Serviço para {contactName}</DialogTitle>
+                <DialogTitle>{editingServiceId ? 'Editar' : 'Registrar'} Serviço para {contactName}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 mt-4">
-                {availableServices.length > 0 && (
+                {!editingServiceId && availableServices.length > 0 && (
                   <div className="flex gap-2">
                     <Button
                       type="button"
@@ -550,8 +674,8 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
                     rows={2}
                   />
                 </div>
-                <Button onClick={handleAddService} className="w-full">
-                  Salvar Serviço
+                <Button onClick={editingServiceId ? handleUpdateService : handleAddService} className="w-full">
+                  {editingServiceId ? 'Atualizar Serviço' : 'Salvar Serviço'}
                 </Button>
               </div>
             </DialogContent>
@@ -587,9 +711,14 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
                         </span>
                       </div>
                     </div>
-                    <Button size="icon" variant="ghost" onClick={() => handleDeleteService(service.id)}>
-                      <Trash2 className="w-4 h-4 text-destructive" />
-                    </Button>
+                    <div className="flex flex-col gap-1">
+                      <Button size="icon" variant="ghost" onClick={() => handleEditService(service)}>
+                        <Edit className="w-4 h-4 text-primary" />
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => handleDeleteService(service.id)}>
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               ))
@@ -599,7 +728,10 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
 
         {/* Purchases Tab */}
         <TabsContent value="purchases" className="space-y-3">
-          <Dialog open={isPurchaseDialogOpen} onOpenChange={setIsPurchaseDialogOpen}>
+          <Dialog open={isPurchaseDialogOpen} onOpenChange={(open) => {
+            setIsPurchaseDialogOpen(open);
+            if (!open) { setEditingPurchaseId(null); resetPurchaseForm(); }
+          }}>
             <DialogTrigger asChild>
               <Button size="sm" className="w-full">
                 <Plus className="w-4 h-4 mr-2" /> Registrar Compra
@@ -607,7 +739,7 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Registrar Compra de {contactName}</DialogTitle>
+                <DialogTitle>{editingPurchaseId ? 'Editar' : 'Registrar'} Compra de {contactName}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 mt-4">
                 {availableProducts.length > 0 && (
@@ -677,8 +809,8 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
                     rows={2}
                   />
                 </div>
-                <Button onClick={handleAddPurchase} className="w-full">
-                  Salvar Compra
+                <Button onClick={editingPurchaseId ? handleUpdatePurchase : handleAddPurchase} className="w-full">
+                  {editingPurchaseId ? 'Atualizar Compra' : 'Salvar Compra'}
                 </Button>
               </div>
             </DialogContent>
@@ -708,9 +840,14 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
                         </span>
                       </div>
                     </div>
-                    <Button size="icon" variant="ghost" onClick={() => handleDeletePurchase(purchase.id)}>
-                      <Trash2 className="w-4 h-4 text-destructive" />
-                    </Button>
+                    <div className="flex flex-col gap-1">
+                      <Button size="icon" variant="ghost" onClick={() => handleEditPurchase(purchase)}>
+                        <Edit className="w-4 h-4 text-primary" />
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => handleDeletePurchase(purchase.id)}>
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               ))
@@ -720,7 +857,10 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
 
         {/* Payments Tab */}
         <TabsContent value="payments" className="space-y-3">
-          <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+          <Dialog open={isPaymentDialogOpen} onOpenChange={(open) => {
+            setIsPaymentDialogOpen(open);
+            if (!open) { setEditingPaymentId(null); resetPaymentForm(); }
+          }}>
             <DialogTrigger asChild>
               <Button size="sm" className="w-full">
                 <Plus className="w-4 h-4 mr-2" /> Registrar Pagamento
@@ -728,7 +868,7 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Registrar Pagamento de {contactName}</DialogTitle>
+                <DialogTitle>{editingPaymentId ? 'Editar' : 'Registrar'} Pagamento de {contactName}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 mt-4">
                 <div>
@@ -782,8 +922,8 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
                     rows={2}
                   />
                 </div>
-                <Button onClick={handleAddPayment} className="w-full">
-                  Salvar Pagamento
+                <Button onClick={editingPaymentId ? handleUpdatePayment : handleAddPayment} className="w-full">
+                  {editingPaymentId ? 'Atualizar Pagamento' : 'Salvar Pagamento'}
                 </Button>
               </div>
             </DialogContent>
@@ -813,9 +953,14 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
                         {new Date(payment.payment_date).toLocaleDateString('pt-BR')}
                       </div>
                     </div>
-                    <Button size="icon" variant="ghost" onClick={() => handleDeletePayment(payment.id)}>
-                      <Trash2 className="w-4 h-4 text-destructive" />
-                    </Button>
+                    <div className="flex flex-col gap-1">
+                      <Button size="icon" variant="ghost" onClick={() => handleEditPayment(payment)}>
+                        <Edit className="w-4 h-4 text-primary" />
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => handleDeletePayment(payment.id)}>
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               ))
