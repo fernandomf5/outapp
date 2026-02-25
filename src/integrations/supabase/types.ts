@@ -5864,6 +5864,74 @@ export type Database = {
         }
         Relationships: []
       }
+      receipt_templates: {
+        Row: {
+          business_id: string | null
+          company_address: string | null
+          company_document: string | null
+          company_name: string | null
+          company_phone: string | null
+          created_at: string
+          id: string
+          issuer_signer_name: string | null
+          logo_url: string | null
+          name: string
+          notes_template: string | null
+          primary_color: string | null
+          receipt_title: string | null
+          terms_text: string | null
+          updated_at: string
+          user_id: string
+          warranty_text: string | null
+        }
+        Insert: {
+          business_id?: string | null
+          company_address?: string | null
+          company_document?: string | null
+          company_name?: string | null
+          company_phone?: string | null
+          created_at?: string
+          id?: string
+          issuer_signer_name?: string | null
+          logo_url?: string | null
+          name: string
+          notes_template?: string | null
+          primary_color?: string | null
+          receipt_title?: string | null
+          terms_text?: string | null
+          updated_at?: string
+          user_id: string
+          warranty_text?: string | null
+        }
+        Update: {
+          business_id?: string | null
+          company_address?: string | null
+          company_document?: string | null
+          company_name?: string | null
+          company_phone?: string | null
+          created_at?: string
+          id?: string
+          issuer_signer_name?: string | null
+          logo_url?: string | null
+          name?: string
+          notes_template?: string | null
+          primary_color?: string | null
+          receipt_title?: string | null
+          terms_text?: string | null
+          updated_at?: string
+          user_id?: string
+          warranty_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipt_templates_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       routine_completions: {
         Row: {
           completed_at: string
