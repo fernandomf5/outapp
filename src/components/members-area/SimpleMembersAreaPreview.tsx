@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Lock, Play, FileText, Image, Video, Link as LinkIcon, MousePointer, Download, Eye, EyeOff, LogIn, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Monitor, Tablet, Smartphone, Home, BookOpen, User, ChevronRight, Images, Film } from "lucide-react";
+import { Lock, Play, FileText, Image, Video, Link as LinkIcon, MousePointer, Download, Eye, EyeOff, LogIn, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Monitor, Tablet, Smartphone, Home, BookOpen, User, ChevronRight, Images, Film, DollarSign } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
   content: string;
   title?: string;
   order_index: number;
@@ -121,6 +121,7 @@ export function SimpleMembersAreaPreview({
       gallery: <Images className="w-3 h-3" />,
       video_gallery: <Film className="w-3 h-3" />,
       secret: <EyeOff className="w-3 h-3" />,
+      payment_history: <DollarSign className="w-3 h-3" />,
     };
     return icons[type] || <FileText className="w-3 h-3" />;
   };

@@ -27,12 +27,13 @@ import {
   Presentation,
   Images,
   Film,
-  EyeOff
+  EyeOff,
+  DollarSign
 } from "lucide-react";
 
 interface ContentBlock {
   id: string;
-  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret';
+  type: 'image' | 'video' | 'document' | 'link' | 'button' | 'text' | 'download' | 'audio' | 'embed' | 'quiz' | 'timeline' | 'customer_history' | 'checklist' | 'certificate' | 'webinar' | 'notes' | 'faq' | 'mindmap' | 'slides' | 'gallery' | 'video_gallery' | 'ads_dashboard' | 'secret' | 'payment_history';
   content: string;
   title?: string;
   order_index: number;
@@ -93,6 +94,7 @@ export function SimpleMembersAreaInternalPreview({
       text: <FileText className="w-3 h-3" />,
       gallery: <Images className="w-3 h-3" />,
       video_gallery: <Film className="w-3 h-3" />,
+      payment_history: <DollarSign className="w-3 h-3" />,
       secret: <EyeOff className="w-3 h-3" />,
     };
     return icons[type] || <FileText className="w-3 h-3" />;
@@ -122,6 +124,7 @@ export function SimpleMembersAreaInternalPreview({
       gallery: 'Galeria',
       video_gallery: 'Vídeos',
       secret: 'Oculto',
+      payment_history: 'Pagamentos',
     };
     return labels[type] || type;
   };
@@ -321,6 +324,8 @@ export function SimpleMembersAreaInternalPreview({
                           <span className="text-[10px] truncate flex-1">
                             {block.type === 'customer_history' && block.customer_name 
                               ? `Histórico: ${block.customer_name}`
+                              : block.type === 'payment_history' && block.customer_name
+                              ? `Pagamentos: ${block.customer_name}`
                               : block.title || getBlockTypeLabel(block.type)}
                           </span>
                           {block.type === 'video' && (
