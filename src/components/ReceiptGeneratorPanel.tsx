@@ -42,6 +42,8 @@ interface ReceiptData {
   client_signer_name: string;
   warranty_text: string;
   terms_text: string;
+  discount_type: 'fixed' | 'percentage';
+  discount_value: number;
 }
 
 interface BusinessOption {
@@ -117,6 +119,8 @@ const defaultReceipt: ReceiptData = {
   client_signer_name: '',
   warranty_text: '',
   terms_text: '',
+  discount_type: 'fixed',
+  discount_value: 0,
 };
 
 export function ReceiptGeneratorPanel() {
@@ -346,7 +350,11 @@ export function ReceiptGeneratorPanel() {
     }));
   };
 
-  const total = receipt.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
+  const subtotal = receipt.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
+  const discountAmount = receipt.discount_type === 'percentage'
+    ? (subtotal * (receipt.discount_value || 0)) / 100
+    : (receipt.discount_value || 0);
+  const total = Math.max(0, subtotal - discountAmount);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -535,8 +543,23 @@ export function ReceiptGeneratorPanel() {
     doc.setDrawColor(r, g, b);
     doc.line(10, y, 200, y);
     y += 8;
+
+    if (discountAmount > 0) {
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.text('Subtotal:', 140, y);
+      doc.text(formatCurrency(subtotal), 175, y);
+      y += 6;
+      doc.setTextColor(200, 0, 0);
+      doc.text(`Desconto${receipt.discount_type === 'percentage' ? ` (${receipt.discount_value}%)` : ''}:`, 140, y);
+      doc.text(`- ${formatCurrency(discountAmount)}`, 175, y);
+      y += 8;
+    }
+
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
     doc.text('TOTAL:', 140, y);
     doc.setTextColor(r, g, b);
     doc.text(formatCurrency(total), 175, y);
@@ -898,11 +921,46 @@ export function ReceiptGeneratorPanel() {
             </Button>
           </div>
 
+          {/* Discount */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+            <div>
+              <Label className="text-xs">Tipo de Desconto</Label>
+              <Select value={receipt.discount_type} onValueChange={(v: 'fixed' | 'percentage') => updateField('discount_type', v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
+                  <SelectItem value="percentage">Porcentagem (%)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Valor do Desconto</Label>
+              <Input
+                type="number"
+                min={0}
+                step={0.01}
+                value={receipt.discount_value}
+                onChange={e => updateField('discount_value', parseFloat(e.target.value) || 0)}
+                placeholder={receipt.discount_type === 'percentage' ? '10' : '50.00'}
+              />
+            </div>
+            {discountAmount > 0 && (
+              <div className="text-sm text-destructive font-medium flex items-center h-10">
+                − {formatCurrency(discountAmount)}
+              </div>
+            )}
+          </div>
+
           {/* Total */}
           <div className="flex justify-end">
-            <div className="bg-primary/10 px-6 py-3 rounded-lg text-right">
-              <span className="text-sm text-muted-foreground">Total: </span>
-              <span className="text-xl font-bold text-primary">{formatCurrency(total)}</span>
+            <div className="bg-primary/10 px-6 py-3 rounded-lg text-right space-y-1">
+              {discountAmount > 0 && (
+                <>
+                  <div><span className="text-xs text-muted-foreground">Subtotal: </span><span className="text-sm text-muted-foreground">{formatCurrency(subtotal)}</span></div>
+                  <div><span className="text-xs text-destructive">Desconto: </span><span className="text-sm text-destructive">− {formatCurrency(discountAmount)}</span></div>
+                </>
+              )}
+              <div><span className="text-sm text-muted-foreground">Total: </span><span className="text-xl font-bold text-primary">{formatCurrency(total)}</span></div>
             </div>
           </div>
 
