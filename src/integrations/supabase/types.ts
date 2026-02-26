@@ -2960,8 +2960,59 @@ export type Database = {
           },
         ]
       }
+      checkout_additional_items: {
+        Row: {
+          checkout_id: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          item_type: string
+          name: string
+          price: number
+          product_id: string | null
+          sort_order: number | null
+        }
+        Insert: {
+          checkout_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          item_type?: string
+          name: string
+          price: number
+          product_id?: string | null
+          sort_order?: number | null
+        }
+        Update: {
+          checkout_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          item_type?: string
+          name?: string
+          price?: number
+          product_id?: string | null
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkout_additional_items_checkout_id_fkey"
+            columns: ["checkout_id"]
+            isOneToOne: false
+            referencedRelation: "checkouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checkout_orders: {
         Row: {
+          additional_items: Json | null
           amount: number
           checkout_id: string
           created_at: string
@@ -2978,6 +3029,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          additional_items?: Json | null
           amount: number
           checkout_id: string
           created_at?: string
@@ -2994,6 +3046,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          additional_items?: Json | null
           amount?: number
           checkout_id?: string
           created_at?: string
@@ -3024,6 +3077,14 @@ export type Database = {
           banner_url: string | null
           created_at: string
           description: string | null
+          downsell_checkout_url: string | null
+          downsell_description: string | null
+          downsell_image_url: string | null
+          downsell_price: number | null
+          downsell_product_id: string | null
+          downsell_title: string | null
+          footer_code: string | null
+          head_code: string | null
           id: string
           is_active: boolean
           item_description: string | null
@@ -3035,17 +3096,38 @@ export type Database = {
           price: number
           primary_color: string | null
           redirect_url: string | null
+          show_order_details: boolean | null
           slug: string
           success_message: string | null
+          thank_you_button_text: string | null
+          thank_you_button_url: string | null
+          thank_you_download_url: string | null
+          thank_you_image_url: string | null
+          thank_you_message: string | null
+          thank_you_title: string | null
           total_revenue: number | null
           total_sales: number | null
           updated_at: string
+          upsell_checkout_url: string | null
+          upsell_description: string | null
+          upsell_image_url: string | null
+          upsell_price: number | null
+          upsell_product_id: string | null
+          upsell_title: string | null
           user_id: string
         }
         Insert: {
           banner_url?: string | null
           created_at?: string
           description?: string | null
+          downsell_checkout_url?: string | null
+          downsell_description?: string | null
+          downsell_image_url?: string | null
+          downsell_price?: number | null
+          downsell_product_id?: string | null
+          downsell_title?: string | null
+          footer_code?: string | null
+          head_code?: string | null
           id?: string
           is_active?: boolean
           item_description?: string | null
@@ -3057,17 +3139,38 @@ export type Database = {
           price?: number
           primary_color?: string | null
           redirect_url?: string | null
+          show_order_details?: boolean | null
           slug: string
           success_message?: string | null
+          thank_you_button_text?: string | null
+          thank_you_button_url?: string | null
+          thank_you_download_url?: string | null
+          thank_you_image_url?: string | null
+          thank_you_message?: string | null
+          thank_you_title?: string | null
           total_revenue?: number | null
           total_sales?: number | null
           updated_at?: string
+          upsell_checkout_url?: string | null
+          upsell_description?: string | null
+          upsell_image_url?: string | null
+          upsell_price?: number | null
+          upsell_product_id?: string | null
+          upsell_title?: string | null
           user_id: string
         }
         Update: {
           banner_url?: string | null
           created_at?: string
           description?: string | null
+          downsell_checkout_url?: string | null
+          downsell_description?: string | null
+          downsell_image_url?: string | null
+          downsell_price?: number | null
+          downsell_product_id?: string | null
+          downsell_title?: string | null
+          footer_code?: string | null
+          head_code?: string | null
           id?: string
           is_active?: boolean
           item_description?: string | null
@@ -3079,11 +3182,24 @@ export type Database = {
           price?: number
           primary_color?: string | null
           redirect_url?: string | null
+          show_order_details?: boolean | null
           slug?: string
           success_message?: string | null
+          thank_you_button_text?: string | null
+          thank_you_button_url?: string | null
+          thank_you_download_url?: string | null
+          thank_you_image_url?: string | null
+          thank_you_message?: string | null
+          thank_you_title?: string | null
           total_revenue?: number | null
           total_sales?: number | null
           updated_at?: string
+          upsell_checkout_url?: string | null
+          upsell_description?: string | null
+          upsell_image_url?: string | null
+          upsell_price?: number | null
+          upsell_product_id?: string | null
+          upsell_title?: string | null
           user_id?: string
         }
         Relationships: []
