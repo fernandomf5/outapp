@@ -51,6 +51,7 @@ import CampaignPublicView from "./pages/CampaignPublicView";
 import ClientCampaignsPublicView from "./pages/ClientCampaignsPublicView";
 import CatalogPublicPage from "./pages/CatalogPublicPage";
 import CheckoutPage from "./pages/CheckoutPage";
+import CheckoutThankYouPage from "./pages/CheckoutThankYouPage";
 import TeamMemberAuth from "./pages/TeamMemberAuth";
 import TeamMemberDashboard from "./pages/TeamMemberDashboard";
 import AcceptInvitation from "./pages/AcceptInvitation";
@@ -123,6 +124,8 @@ const AppContent = () => {
               <Route path="/catalogo/:slug" element={<CatalogPublicPage />} />
               <Route path="/checkout/:checkoutId" element={<CheckoutPage />} />
               <Route path="/checkout/:checkoutId/:slug" element={<CheckoutPage />} />
+              <Route path="/checkout/:checkoutId/obrigado" element={<CheckoutThankYouPage />} />
+              <Route path="/checkout/:checkoutId/:slug/obrigado" element={<CheckoutThankYouPage />} />
               <Route path="/aceitar-convite" element={<AcceptInvitation />} />
               <Route path="/page-editor/:pageId" element={
                 <ProtectedRoute>
