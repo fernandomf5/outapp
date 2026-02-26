@@ -57,6 +57,9 @@ interface Checkout {
   downsell_price: number | null;
   downsell_image_url: string | null;
   downsell_checkout_url: string | null;
+  // Integration
+  integration_type: string | null;
+  integration_id: string | null;
 }
 
 interface CheckoutOrder {
@@ -105,6 +108,9 @@ export const CheckoutCreatorPanel = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [formTab, setFormTab] = useState('basic');
 
+  const [catalogs, setCatalogs] = useState<{ id: string; name: string }[]>([]);
+  const [membersAreas, setMembersAreas] = useState<{ id: string; name: string }[]>([]);
+
   const [formData, setFormData] = useState({
     name: '', description: '', slug: '', item_name: '', item_description: '',
     item_image_url: '', price: '', primary_color: '#8B5CF6', banner_url: '',
@@ -123,6 +129,8 @@ export const CheckoutCreatorPanel = () => {
     upsell_image_url: '', upsell_checkout_url: '',
     downsell_title: '', downsell_description: '', downsell_price: '',
     downsell_image_url: '', downsell_checkout_url: '',
+    // Integration
+    integration_type: '', integration_id: '',
   });
 
   const [itemForm, setItemForm] = useState({
@@ -131,7 +139,20 @@ export const CheckoutCreatorPanel = () => {
   });
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
-  useEffect(() => { loadCheckouts(); loadProducts(); }, []);
+  useEffect(() => { loadCheckouts(); loadProducts(); loadIntegrationOptions(); }, []);
+
+  const loadIntegrationOptions = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const [{ data: cats }, { data: areas }] = await Promise.all([
+        supabase.from('catalogs').select('id, name').eq('user_id', user.id),
+        supabase.from('simple_members_areas' as any).select('id, name').eq('user_id', user.id),
+      ]);
+      setCatalogs((cats || []) as any);
+      setMembersAreas((areas || []) as any);
+    } catch {}
+  };
 
   const loadCheckouts = async () => {
     try {
@@ -194,6 +215,7 @@ export const CheckoutCreatorPanel = () => {
       upsell_image_url: '', upsell_checkout_url: '',
       downsell_title: '', downsell_description: '', downsell_price: '',
       downsell_image_url: '', downsell_checkout_url: '',
+      integration_type: '', integration_id: '',
     });
     setFormTab('basic');
   };
@@ -231,6 +253,8 @@ export const CheckoutCreatorPanel = () => {
     downsell_price: formData.downsell_price ? parseFloat(formData.downsell_price) : null,
     downsell_image_url: formData.downsell_image_url || null,
     downsell_checkout_url: formData.downsell_checkout_url || null,
+    integration_type: formData.integration_type || null,
+    integration_id: formData.integration_id || null,
   });
 
   const handleCreate = async () => {
@@ -297,6 +321,7 @@ export const CheckoutCreatorPanel = () => {
       downsell_title: checkout.downsell_title || '', downsell_description: checkout.downsell_description || '',
       downsell_price: checkout.downsell_price ? String(checkout.downsell_price) : '',
       downsell_image_url: checkout.downsell_image_url || '', downsell_checkout_url: checkout.downsell_checkout_url || '',
+      integration_type: (checkout as any).integration_type || '', integration_id: (checkout as any).integration_id || '',
     });
     setIsEditDialogOpen(true);
   };
@@ -380,8 +405,9 @@ export const CheckoutCreatorPanel = () => {
   const renderFormFields = () => (
     <div className="max-h-[60vh] overflow-y-auto pr-2">
       <Tabs value={formTab} onValueChange={setFormTab}>
-        <TabsList className="grid grid-cols-5 w-full mb-4">
+        <TabsList className="grid grid-cols-6 w-full mb-4">
           <TabsTrigger value="basic">Básico</TabsTrigger>
+          <TabsTrigger value="integration">Integração</TabsTrigger>
           <TabsTrigger value="design">Design</TabsTrigger>
           <TabsTrigger value="thankyou">Obrigado</TabsTrigger>
           <TabsTrigger value="upsell">Upsell</TabsTrigger>
@@ -440,6 +466,48 @@ export const CheckoutCreatorPanel = () => {
               </div>
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="integration" className="space-y-4">
+          <h4 className="font-semibold">🔗 Integração com Produto</h4>
+          <p className="text-xs text-muted-foreground">Conecte este checkout a um catálogo ou área de membros para processar automaticamente após o pagamento.</p>
+          <div>
+            <Label>Tipo de Integração</Label>
+            <Select value={formData.integration_type || 'none'} onValueChange={(v) => setFormData({ ...formData, integration_type: v === 'none' ? '' : v, integration_id: '' })}>
+              <SelectTrigger><SelectValue placeholder="Sem integração" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem integração</SelectItem>
+                <SelectItem value="catalog">📦 Catálogo</SelectItem>
+                <SelectItem value="members_area">🎓 Área de Membros</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {formData.integration_type === 'catalog' && (
+            <div>
+              <Label>Selecionar Catálogo</Label>
+              <Select value={formData.integration_id || 'none'} onValueChange={(v) => setFormData({ ...formData, integration_id: v === 'none' ? '' : v })}>
+                <SelectTrigger><SelectValue placeholder="Selecione um catálogo" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Selecione...</SelectItem>
+                  {catalogs.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">Após o pagamento, o pedido será criado automaticamente no catálogo selecionado como "pago".</p>
+            </div>
+          )}
+          {formData.integration_type === 'members_area' && (
+            <div>
+              <Label>Selecionar Área de Membros</Label>
+              <Select value={formData.integration_id || 'none'} onValueChange={(v) => setFormData({ ...formData, integration_id: v === 'none' ? '' : v })}>
+                <SelectTrigger><SelectValue placeholder="Selecione uma área" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Selecione...</SelectItem>
+                  {membersAreas.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">Após o pagamento, um código de acesso exclusivo será gerado e exibido na página de obrigado.</p>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="design" className="space-y-4">

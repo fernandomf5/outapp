@@ -3086,6 +3086,8 @@ export type Database = {
           footer_code: string | null
           head_code: string | null
           id: string
+          integration_id: string | null
+          integration_type: string | null
           is_active: boolean
           item_description: string | null
           item_image_url: string | null
@@ -3129,6 +3131,8 @@ export type Database = {
           footer_code?: string | null
           head_code?: string | null
           id?: string
+          integration_id?: string | null
+          integration_type?: string | null
           is_active?: boolean
           item_description?: string | null
           item_image_url?: string | null
@@ -3172,6 +3176,8 @@ export type Database = {
           footer_code?: string | null
           head_code?: string | null
           id?: string
+          integration_id?: string | null
+          integration_type?: string | null
           is_active?: boolean
           item_description?: string | null
           item_image_url?: string | null
@@ -5245,6 +5251,60 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      members_area_access_codes: {
+        Row: {
+          access_code: string
+          checkout_order_id: string | null
+          created_at: string | null
+          customer_email: string | null
+          customer_name: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          members_area_id: string
+          user_id: string
+        }
+        Insert: {
+          access_code: string
+          checkout_order_id?: string | null
+          created_at?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          members_area_id: string
+          user_id: string
+        }
+        Update: {
+          access_code?: string
+          checkout_order_id?: string | null
+          created_at?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          members_area_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_area_access_codes_checkout_order_id_fkey"
+            columns: ["checkout_order_id"]
+            isOneToOne: false
+            referencedRelation: "checkout_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "members_area_access_codes_members_area_id_fkey"
+            columns: ["members_area_id"]
+            isOneToOne: false
+            referencedRelation: "simple_members_areas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mind_maps: {
         Row: {
@@ -8122,6 +8182,7 @@ export type Database = {
     }
     Functions: {
       generate_access_code: { Args: never; Returns: string }
+      generate_checkout_access_code: { Args: never; Returns: string }
       get_team_member_restrictions: {
         Args: { _module_key: string; _team_member_id: string }
         Returns: Json
