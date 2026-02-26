@@ -30,6 +30,8 @@ interface CheckoutData {
   downsell_price: number | null;
   downsell_image_url: string | null;
   downsell_checkout_url: string | null;
+  integration_type: string | null;
+  integration_id: string | null;
 }
 
 interface OrderData {
@@ -39,6 +41,7 @@ interface OrderData {
   amount: number;
   status: string;
   additional_items: any;
+  metadata: any;
   created_at: string;
 }
 
@@ -51,6 +54,8 @@ const CheckoutThankYouPage = () => {
   const [loading, setLoading] = useState(true);
   const [showUpsell, setShowUpsell] = useState(true);
   const [showDownsell, setShowDownsell] = useState(false);
+  const [accessCode, setAccessCode] = useState<string | null>(null);
+  const [membersAreaSlug, setMembersAreaSlug] = useState<string | null>(null);
 
   useEffect(() => { loadData(); }, [checkoutId, orderId]);
 
@@ -64,7 +69,23 @@ const CheckoutThankYouPage = () => {
       if (orderId) {
         const { data: orderData } = await supabase
           .from('checkout_orders').select('*').eq('id', orderId).single();
-        if (orderData) setOrder(orderData as any);
+        if (orderData) {
+          setOrder(orderData as any);
+          // Check for access code in metadata
+          const metadata = (orderData as any).metadata;
+          if (metadata?.access_code) {
+            setAccessCode(metadata.access_code);
+          }
+          // Get members area slug for link
+          if (metadata?.members_area_id) {
+            const { data: areaData } = await supabase
+              .from('simple_members_areas' as any)
+              .select('slug')
+              .eq('id', metadata.members_area_id)
+              .single();
+            if (areaData) setMembersAreaSlug((areaData as any).slug);
+          }
+        }
       }
     } catch {}
     finally { setLoading(false); }
@@ -151,6 +172,27 @@ const CheckoutThankYouPage = () => {
                       <span>Total</span><span style={{ color: primaryColor }}>R$ {Number(order.amount).toFixed(2)}</span>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* Access Code for Members Area */}
+              {accessCode && (
+                <div className="p-4 rounded-lg border-2 text-left space-y-2" style={{ borderColor: primaryColor, backgroundColor: `${primaryColor}10` }}>
+                  <h3 className="font-semibold text-sm flex items-center gap-2">🔑 Seu Código de Acesso</h3>
+                  <div className="flex items-center gap-2">
+                    <code className="text-2xl font-bold tracking-widest px-4 py-2 rounded bg-background border flex-1 text-center">{accessCode}</code>
+                    <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(accessCode); import('sonner').then(m => m.toast.success('Código copiado!')); }}>
+                      Copiar
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Use este código para acessar o conteúdo exclusivo.</p>
+                  {membersAreaSlug && (
+                    <Button className="w-full mt-2" variant="outline" style={{ borderColor: primaryColor, color: primaryColor }}
+                      onClick={() => window.open(`/members/${membersAreaSlug}`, '_blank')}>
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Acessar Área de Membros
+                    </Button>
+                  )}
                 </div>
               )}
 

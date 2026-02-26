@@ -129,6 +129,7 @@ export default function MembersAreaPublic() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loginMode, setLoginMode] = useState<'password' | 'code'>('password');
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -159,14 +160,36 @@ export default function MembersAreaPublic() {
     }
   };
 
-  const handlePasswordSubmit = () => {
+  const handlePasswordSubmit = async () => {
     if (!area) return;
     
-    if (passwordInput === area.password) {
-      setIsAuthenticated(true);
-      toast.success('Acesso liberado!');
+    if (loginMode === 'code') {
+      // Verify access code
+      try {
+        const { data: codeData, error } = await supabase
+          .from('members_area_access_codes' as any)
+          .select('*')
+          .eq('members_area_id', area.id)
+          .eq('access_code', passwordInput.toUpperCase().trim())
+          .eq('is_active', true)
+          .maybeSingle();
+        
+        if (error || !codeData) {
+          toast.error('Código de acesso inválido ou expirado');
+          return;
+        }
+        setIsAuthenticated(true);
+        toast.success('Acesso liberado!');
+      } catch {
+        toast.error('Erro ao verificar código');
+      }
     } else {
-      toast.error('Senha incorreta');
+      if (passwordInput === area.password) {
+        setIsAuthenticated(true);
+        toast.success('Acesso liberado!');
+      } else {
+        toast.error('Senha incorreta');
+      }
     }
   };
 
@@ -615,36 +638,65 @@ export default function MembersAreaPublic() {
 
             {/* Login Form */}
             <div className="space-y-4">
+              {/* Toggle between password and access code */}
+              <div className="flex gap-2 p-1 rounded-lg" style={{ backgroundColor: `${loginTextColor}10` }}>
+                <button
+                  onClick={() => { setLoginMode('password'); setPasswordInput(''); }}
+                  className="flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all"
+                  style={{
+                    backgroundColor: loginMode === 'password' ? primaryColor : 'transparent',
+                    color: loginMode === 'password' ? '#fff' : `${loginTextColor}80`,
+                  }}
+                >
+                  🔒 Senha
+                </button>
+                <button
+                  onClick={() => { setLoginMode('code'); setPasswordInput(''); }}
+                  className="flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all"
+                  style={{
+                    backgroundColor: loginMode === 'code' ? primaryColor : 'transparent',
+                    color: loginMode === 'code' ? '#fff' : `${loginTextColor}80`,
+                  }}
+                >
+                  🔑 Código de Acesso
+                </button>
+              </div>
+
               <div>
-                <Label htmlFor="password" style={{ color: loginTextColor }}>Digite a senha para acessar</Label>
+                <Label htmlFor="password" style={{ color: loginTextColor }}>
+                  {loginMode === 'code' ? 'Digite seu código de acesso' : 'Digite a senha para acessar'}
+                </Label>
                 <div className="relative mt-2">
                   <Input
                     id="password"
-                    type={showPassword ? "text" : "password"}
+                    type={loginMode === 'code' ? 'text' : (showPassword ? "text" : "password")}
                     value={passwordInput}
-                    onChange={(e) => setPasswordInput(e.target.value)}
+                    onChange={(e) => setPasswordInput(loginMode === 'code' ? e.target.value.toUpperCase() : e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handlePasswordSubmit()}
-                    placeholder="••••••••"
+                    placeholder={loginMode === 'code' ? 'EX: A1B2C3D4' : '••••••••'}
                     className="pr-10 border"
                     style={{ 
                       backgroundColor: `${loginTextColor}08`, 
                       borderColor: `${loginTextColor}20`,
-                      color: loginTextColor
+                      color: loginTextColor,
+                      ...(loginMode === 'code' ? { letterSpacing: '0.2em', fontFamily: 'monospace', textAlign: 'center' as const } : {}),
                     }}
                   />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" style={{ color: `${loginTextColor}60` }} />
-                    ) : (
-                      <Eye className="h-4 w-4" style={{ color: `${loginTextColor}60` }} />
-                    )}
-                  </Button>
+                  {loginMode === 'password' && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" style={{ color: `${loginTextColor}60` }} />
+                      ) : (
+                        <Eye className="h-4 w-4" style={{ color: `${loginTextColor}60` }} />
+                      )}
+                    </Button>
+                  )}
                 </div>
               </div>
               <Button 

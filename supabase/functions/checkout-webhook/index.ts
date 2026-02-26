@@ -28,9 +28,6 @@ serve(async (req) => {
 
     const paymentId = body.data.id;
 
-    // Get external_reference from payment to find the checkout and order
-    // First, we need the access token. Try to get it from the payment metadata.
-    // We'll try global config first
     const { data: mpSettings } = await supabase
       .from('site_settings')
       .select('value')
@@ -39,7 +36,6 @@ serve(async (req) => {
 
     let accessToken = mpSettings?.value;
 
-    // Fetch payment details
     const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
       headers: { 'Authorization': `Bearer ${accessToken}` },
     });
@@ -75,14 +71,15 @@ serve(async (req) => {
         })
         .eq('id', orderId);
 
-      // Update checkout stats
+      // Get checkout details including integration info
       const { data: checkout } = await supabase
         .from('checkouts')
-        .select('total_sales, total_revenue, user_id')
+        .select('total_sales, total_revenue, user_id, integration_type, integration_id')
         .eq('id', checkoutId)
         .single();
 
       if (checkout) {
+        // Update checkout stats
         await supabase
           .from('checkouts')
           .update({
@@ -90,6 +87,25 @@ serve(async (req) => {
             total_revenue: Number(checkout.total_revenue || 0) + Number(payment.transaction_amount),
           })
           .eq('id', checkoutId);
+
+        // Get order details for integration
+        const { data: orderData } = await supabase
+          .from('checkout_orders')
+          .select('*')
+          .eq('id', orderId)
+          .single();
+
+        // Handle catalog integration
+        if (checkout.integration_type === 'catalog' && checkout.integration_id && orderData) {
+          console.log('Processing catalog integration for catalog:', checkout.integration_id);
+          await handleCatalogIntegration(supabase, checkout, orderData, checkoutId);
+        }
+
+        // Handle members area integration
+        if (checkout.integration_type === 'members_area' && checkout.integration_id && orderData) {
+          console.log('Processing members area integration for area:', checkout.integration_id);
+          await handleMembersAreaIntegration(supabase, checkout, orderData, orderId);
+        }
       }
 
       console.log('Order and checkout updated successfully');
@@ -118,3 +134,119 @@ serve(async (req) => {
     );
   }
 });
+
+async function handleCatalogIntegration(supabase: any, checkout: any, orderData: any, checkoutId: string) {
+  try {
+    // Upsert catalog customer
+    const { data: existingCustomer } = await supabase
+      .from('catalog_customers')
+      .select('id')
+      .eq('catalog_id', checkout.integration_id)
+      .eq('email', orderData.customer_email)
+      .maybeSingle();
+
+    let customerId = existingCustomer?.id;
+
+    if (customerId) {
+      await supabase
+        .from('catalog_customers')
+        .update({
+          name: orderData.customer_name || 'Cliente',
+          phone: orderData.customer_phone || null,
+          orders_count: (existingCustomer.orders_count || 0) + 1,
+          total_spent: Number(existingCustomer.total_spent || 0) + Number(orderData.amount),
+        })
+        .eq('id', customerId);
+    } else {
+      const { data: newCustomer } = await supabase
+        .from('catalog_customers')
+        .insert({
+          catalog_id: checkout.integration_id,
+          name: orderData.customer_name || 'Cliente',
+          email: orderData.customer_email,
+          phone: orderData.customer_phone || null,
+          orders_count: 1,
+          total_spent: Number(orderData.amount),
+        })
+        .select('id')
+        .single();
+      customerId = newCustomer?.id;
+    }
+
+    // Create catalog order
+    const orderNumber = `CHK-${Date.now().toString(36).toUpperCase()}`;
+    const items = [{
+      name: 'Compra via Checkout',
+      quantity: 1,
+      price: Number(orderData.amount),
+    }];
+
+    // Add additional items if any
+    if (orderData.additional_items && Array.isArray(orderData.additional_items)) {
+      for (const extra of orderData.additional_items) {
+        items.push({
+          name: extra.name,
+          quantity: extra.qty || 1,
+          price: Number(extra.price),
+        });
+      }
+    }
+
+    await supabase
+      .from('catalog_orders')
+      .insert({
+        catalog_id: checkout.integration_id,
+        customer_id: customerId || null,
+        order_number: orderNumber,
+        customer_name: orderData.customer_name || 'Cliente',
+        customer_email: orderData.customer_email,
+        customer_phone: orderData.customer_phone || null,
+        items,
+        total_amount: Number(orderData.amount),
+        status: 'paid',
+        notes: `Pedido via Checkout #${checkoutId}`,
+      });
+
+    console.log('Catalog order created successfully');
+  } catch (err) {
+    console.error('Error in catalog integration:', err);
+  }
+}
+
+async function handleMembersAreaIntegration(supabase: any, checkout: any, orderData: any, orderId: string) {
+  try {
+    // Generate unique access code
+    const { data: codeData } = await supabase.rpc('generate_checkout_access_code');
+    const accessCode = codeData || Math.random().toString(36).substring(2, 10).toUpperCase();
+
+    // Insert access code
+    const { error: insertError } = await supabase
+      .from('members_area_access_codes')
+      .insert({
+        members_area_id: checkout.integration_id,
+        checkout_order_id: orderId,
+        user_id: checkout.user_id,
+        access_code: accessCode,
+        customer_name: orderData.customer_name,
+        customer_email: orderData.customer_email,
+        is_active: true,
+      });
+
+    if (insertError) {
+      console.error('Error inserting access code:', insertError);
+      return;
+    }
+
+    // Store access code in order metadata for display on thank you page
+    await supabase
+      .from('checkout_orders')
+      .update({
+        metadata: { access_code: accessCode, members_area_id: checkout.integration_id },
+      })
+      .eq('id', orderId);
+
+    console.log('Members area access code generated:', accessCode);
+  } catch (err) {
+    console.error('Error in members area integration:', err);
+  }
+}
