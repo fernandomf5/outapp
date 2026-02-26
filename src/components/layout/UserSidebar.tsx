@@ -139,6 +139,7 @@ export function UserSidebar() {
   const financialItems: MenuItem[] = [
     { title: t('financial_management'), icon: DollarSign, path: "/dashboard", tab: "financeiro", moduleKey: "financial" },
     { title: "Gerador de Recibos", icon: FileCheck, path: "/dashboard", tab: "recibos", hideForTeamMember: true },
+    { title: "Criador de Checkout", icon: ShoppingBag, path: "/dashboard", tab: "checkout-creator", hideForTeamMember: true },
   ];
 
   const crmItems: MenuItem[] = [

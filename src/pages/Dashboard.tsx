@@ -74,6 +74,7 @@ import ProductsServicesPanel from "@/components/ProductsServicesPanel";
 import CatalogCreatorPanel from "@/components/CatalogCreatorPanel";
 import RoutineOrganizerPanel from "@/components/RoutineOrganizerPanel";
 import { ReceiptGeneratorPanel } from "@/components/ReceiptGeneratorPanel";
+import { CheckoutCreatorPanel } from "@/components/CheckoutCreatorPanel";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { TeamMemberBanner } from "@/components/TeamMemberBanner";
@@ -1374,6 +1375,10 @@ const Dashboard = () => {
               <FeatureTutorialVideo featureKey="financeiro" />
               <FinancialManagementPanel teamContext={getTeamContext('financial')} />
             </FeatureGate>
+          </TabsContent>
+
+          <TabsContent value="checkout-creator">
+            <CheckoutCreatorPanel />
           </TabsContent>
 
           <TabsContent value="equipe">
