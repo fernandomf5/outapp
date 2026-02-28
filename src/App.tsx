@@ -15,6 +15,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 
 import AIAgentBuilder from "./pages/AIAgentBuilder";
+import AgentFlowBuilder from "./pages/AgentFlowBuilder";
 import FunnelBuilder from "./pages/FunnelBuilder";
 import AdminDashboard from "./pages/AdminDashboard";
 import Settings from "./pages/Settings";
@@ -141,6 +142,11 @@ const AppContent = () => {
               <Route path="/funnel-builder" element={
                 <ProtectedRoute>
                   <FunnelBuilder />
+                </ProtectedRoute>
+              } />
+              <Route path="/agent-flow-builder" element={
+                <ProtectedRoute>
+                  <AgentFlowBuilder />
                 </ProtectedRoute>
               } />
               <Route path="/admin" element={

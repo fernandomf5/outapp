@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, ShoppingBag, MessageSquare, Users, Package, Wrench, Clock, BarChart3, ArrowLeft } from "lucide-react";
+import { Calendar, ShoppingBag, MessageSquare, Users, Package, Wrench, Clock, BarChart3, ArrowLeft, Workflow } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import AgentAppointmentsPanel from "./AgentAppointmentsPanel";
@@ -14,6 +14,7 @@ import AgentProductsPanel from "./AgentProductsPanel";
 import AgentServicesPanel from "./AgentServicesPanel";
 import AgentSchedulePanel from "./AgentSchedulePanel";
 import AgentAnalyticsPanel from "./AgentAnalyticsPanel";
+import AgentFlowsPanel from "./AgentFlowsPanel";
 
 interface AgentManagementPanelProps {
   agentId: string;
@@ -89,6 +90,7 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
 
   const menuOptions: MenuOption[] = [
     { id: "conversations", label: "Conversas", icon: <MessageSquare className="w-6 h-6" /> },
+    { id: "flows", label: "Fluxos", icon: <Workflow className="w-6 h-6" /> },
     { id: "services", label: "Serviços", icon: <Wrench className="w-6 h-6" /> },
     { id: "products", label: "Produtos", icon: <Package className="w-6 h-6" /> },
     { id: "schedule", label: "Horários", icon: <Clock className="w-6 h-6" /> },
@@ -102,6 +104,8 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
     switch (activeTab) {
       case "conversations":
         return <AgentConversationsPanel agentId={agentId} />;
+      case "flows":
+        return <AgentFlowsPanel agentId={agentId} />;
       case "services":
         return <AgentServicesPanel agentId={agentId} />;
       case "products":
@@ -207,6 +211,10 @@ export default function AgentManagementPanel({ agentId, agentName }: AgentManage
 
         <TabsContent value="conversations">
           <AgentConversationsPanel agentId={agentId} />
+        </TabsContent>
+
+        <TabsContent value="flows">
+          <AgentFlowsPanel agentId={agentId} />
         </TabsContent>
 
         <TabsContent value="services">
