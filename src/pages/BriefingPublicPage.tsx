@@ -296,7 +296,6 @@ export default function BriefingPublicPage() {
               onCheckedChange={(checked) => setResponses({ ...responses, [field.label]: checked })}
               required={field.required}
             />
-            <span className="text-sm">{field.label}</span>
           </div>
         );
       case 'select':
