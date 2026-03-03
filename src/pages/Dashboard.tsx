@@ -43,6 +43,7 @@ import { FinancialManagementPanel } from "@/components/FinancialManagementPanel"
 import { TeamManagementPanel } from "@/components/TeamManagementPanel";
 import { AdsManagementPanel } from "@/components/AdsManagementPanel";
 import { TaskOrganizerPanel } from "@/components/TaskOrganizerPanel";
+import { ScriptOrganizerPanel } from "@/components/ScriptOrganizerPanel";
 import { PopupCreatorPanel } from "@/components/PopupCreatorPanel";
 import { AdSpyPanel } from "@/components/AdSpyPanel";
 import CreativeExtractorPanel from "@/components/CreativeExtractorPanel";
@@ -1544,6 +1545,10 @@ const Dashboard = () => {
           <TabsContent value="recibos">
             <FeatureTutorialVideo featureKey="recibos" />
             <ReceiptGeneratorPanel />
+          </TabsContent>
+
+          <TabsContent value="scripts">
+            <ScriptOrganizerPanel />
           </TabsContent>
         </Tabs>
       </main>
