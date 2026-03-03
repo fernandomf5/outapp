@@ -6632,6 +6632,89 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_scripts: {
+        Row: {
+          category_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_favorite: boolean | null
+          sort_order: number | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          use_count: number | null
+          user_id: string
+        }
+        Insert: {
+          category_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          sort_order?: number | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+          use_count?: number | null
+          user_id: string
+        }
+        Update: {
+          category_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          sort_order?: number | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+          use_count?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_scripts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "script_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      script_categories: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          icon: string | null
+          id: string
+          name: string
+          sort_order: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          sort_order?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          sort_order?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           created_at: string | null
