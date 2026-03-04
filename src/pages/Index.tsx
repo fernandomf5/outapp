@@ -730,7 +730,7 @@ const Index = () => {
 
       {/* Pricing Section */}
       <section id="planos" className="py-8 xs:py-10 sm:py-12 md:py-16 lg:py-20 3xl:py-28 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 bg-muted/30">
-        <div className="container mx-auto max-w-full sm:max-w-6xl lg:max-w-7xl 3xl:max-w-[2000px]">
+        <div className="container mx-auto max-w-full sm:max-w-6xl lg:max-w-[1400px] 3xl:max-w-[2000px]">
           <div className="text-center mb-6 xs:mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-1">
             <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 3xl:text-6xl font-bold mb-2 xs:mb-3 sm:mb-4 md:mb-5 leading-tight">
               {landingSettings.pricing_title}
@@ -740,7 +740,7 @@ const Index = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8 max-w-sm xs:max-w-md sm:max-w-2xl md:max-w-4xl lg:max-w-6xl 3xl:max-w-[2200px] mx-auto">
+          <div className="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8 max-w-sm xs:max-w-md sm:max-w-3xl md:max-w-5xl lg:max-w-7xl 3xl:max-w-[2200px] mx-auto">
             {plans.map((plan) => {
               const isPopular = plan.plan_type === 'monthly' && plan.price > 50 && plan.price < 150;
               const features = Array.isArray(plan.features) ? plan.features : [];
