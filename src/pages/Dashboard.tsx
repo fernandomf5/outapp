@@ -21,6 +21,7 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
+import { SubscriptionGate } from "@/components/SubscriptionGate";
 import { MyPlanSection } from "@/components/MyPlanSection";
 import { DraggableCalculator } from "@/components/DraggableCalculator";
 import { MercadoPagoCheckout } from "@/components/MercadoPagoCheckout";
@@ -548,6 +549,7 @@ const Dashboard = () => {
         <SubscriptionBanner />
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+          <SubscriptionGate currentTab={activeTab}>
 
           <TabsContent value="overview" className="space-y-3 xs:space-y-4 sm:space-y-6 md:space-y-8 lg:space-y-10">
         {/* Task Reminder */}
@@ -1174,18 +1176,24 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="clientes">
-            <FeatureTutorialVideo featureKey="clientes" />
-            <ClientsManagementPanel teamContext={getTeamContext('crm')} />
+            <FeatureGate featureKey="clients_management">
+              <FeatureTutorialVideo featureKey="clientes" />
+              <ClientsManagementPanel teamContext={getTeamContext('crm')} />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="negocios">
-            <FeatureTutorialVideo featureKey="negocios" />
-            <BusinessManagementPanel />
+            <FeatureGate featureKey="business_management">
+              <FeatureTutorialVideo featureKey="negocios" />
+              <BusinessManagementPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="fornecedores">
-            <FeatureTutorialVideo featureKey="fornecedores" />
-            <SuppliersManagementPanel />
+            <FeatureGate featureKey="suppliers_management">
+              <FeatureTutorialVideo featureKey="fornecedores" />
+              <SuppliersManagementPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="floating-button">
@@ -1211,13 +1219,17 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="disparador">
-            <FeatureTutorialVideo featureKey="disparador" />
-            <ManualDispatcherPanel />
+            <FeatureGate featureKey="manual_dispatcher">
+              <FeatureTutorialVideo featureKey="disparador" />
+              <ManualDispatcherPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="funil-vendas">
-            <FeatureTutorialVideo featureKey="funil-vendas" />
-            <SalesFunnelPanel />
+            <FeatureGate featureKey="sales_funnel">
+              <FeatureTutorialVideo featureKey="funil-vendas" />
+              <SalesFunnelPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="management">
@@ -1379,7 +1391,9 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="checkout-creator">
-            <CheckoutCreatorPanel />
+            <FeatureGate featureKey="checkout_creator">
+              <CheckoutCreatorPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="equipe">
@@ -1397,13 +1411,17 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="extrator-criativos">
-            <FeatureTutorialVideo featureKey="extrator-criativos" />
-            <CreativeExtractorPanel />
+            <FeatureGate featureKey="creative_extractor">
+              <FeatureTutorialVideo featureKey="extrator-criativos" />
+              <CreativeExtractorPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="video-downloader">
-            <FeatureTutorialVideo featureKey="video-downloader" />
-            <VideoDownloaderPanel />
+            <FeatureGate featureKey="video_downloader">
+              <FeatureTutorialVideo featureKey="video-downloader" />
+              <VideoDownloaderPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="tarefas">
@@ -1414,13 +1432,17 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="produtos-servicos">
-            <FeatureTutorialVideo featureKey="produtos-servicos" />
-            <ProductsServicesPanel />
+            <FeatureGate featureKey="products_services">
+              <FeatureTutorialVideo featureKey="produtos-servicos" />
+              <ProductsServicesPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="catalogo">
-            <FeatureTutorialVideo featureKey="catalogo" />
-            <CatalogCreatorPanel />
+            <FeatureGate featureKey="catalog_creator">
+              <FeatureTutorialVideo featureKey="catalogo" />
+              <CatalogCreatorPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="popups">
@@ -1499,18 +1521,24 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="mapa-mental">
-            <FeatureTutorialVideo featureKey="mapa-mental" />
-            <MindMapCreatorPanel />
+            <FeatureGate featureKey="mind_map">
+              <FeatureTutorialVideo featureKey="mapa-mental" />
+              <MindMapCreatorPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="propostas">
-            <FeatureTutorialVideo featureKey="propostas" />
-            <ProposalCreatorPanel />
+            <FeatureGate featureKey="proposal_creator">
+              <FeatureTutorialVideo featureKey="propostas" />
+              <ProposalCreatorPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="agenda">
-            <FeatureTutorialVideo featureKey="agenda" />
-            <AgendaPanel teamContext={getTeamContext('agenda')} />
+            <FeatureGate featureKey="agenda">
+              <FeatureTutorialVideo featureKey="agenda" />
+              <AgendaPanel teamContext={getTeamContext('agenda')} />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="aprova-job">
@@ -1528,28 +1556,39 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="conversor-midia">
-            <FeatureTutorialVideo featureKey="conversor-midia" />
-            <MediaConverterPanel />
+            <FeatureGate featureKey="media_converter">
+              <FeatureTutorialVideo featureKey="conversor-midia" />
+              <MediaConverterPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="conversor-documentos">
-            <FeatureTutorialVideo featureKey="conversor-documentos" />
-            <DocumentConverterPanel />
+            <FeatureGate featureKey="document_converter">
+              <FeatureTutorialVideo featureKey="conversor-documentos" />
+              <DocumentConverterPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="rotina">
-            <FeatureTutorialVideo featureKey="rotina" />
-            <RoutineOrganizerPanel />
+            <FeatureGate featureKey="routine_organizer">
+              <FeatureTutorialVideo featureKey="rotina" />
+              <RoutineOrganizerPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="recibos">
-            <FeatureTutorialVideo featureKey="recibos" />
-            <ReceiptGeneratorPanel />
+            <FeatureGate featureKey="receipt_generator">
+              <FeatureTutorialVideo featureKey="recibos" />
+              <ReceiptGeneratorPanel />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="scripts">
-            <ScriptOrganizerPanel />
+            <FeatureGate featureKey="script_organizer">
+              <ScriptOrganizerPanel />
+            </FeatureGate>
           </TabsContent>
+          </SubscriptionGate>
         </Tabs>
       </main>
 
