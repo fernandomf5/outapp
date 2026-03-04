@@ -16,6 +16,7 @@ export const useUserFeatures = () => {
   const { user } = useAuth();
   const { isTeamMember, teamMember } = useTeamMember();
   const [features, setFeatures] = useState<string[]>([]);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // For team members, use admin's user ID to fetch features
@@ -24,6 +25,7 @@ export const useUserFeatures = () => {
   useEffect(() => {
     if (!effectiveUserId) {
       setFeatures([]);
+      setHasActiveSubscription(false);
       setLoading(false);
       return;
     }
@@ -47,6 +49,7 @@ export const useUserFeatures = () => {
 
       if (!subscription) {
         setFeatures([]);
+        setHasActiveSubscription(false);
         setLoading(false);
         return;
       }
@@ -70,6 +73,7 @@ export const useUserFeatures = () => {
         // Se for free trial, bloquear imediatamente
         if (planData?.plan_type === 'free_trial') {
           setFeatures([]);
+          setHasActiveSubscription(false);
           setLoading(false);
           return;
         }
@@ -80,6 +84,7 @@ export const useUserFeatures = () => {
         
         if (now > threeDaysAfterExpiration) {
           setFeatures([]);
+          setHasActiveSubscription(false);
           setLoading(false);
           return;
         }
@@ -93,6 +98,7 @@ export const useUserFeatures = () => {
 
       const featureKeys = planFeatures?.map((pf: any) => pf.features.key) || [];
       setFeatures(featureKeys);
+      setHasActiveSubscription(true);
     } catch (error) {
       console.error('Erro ao buscar features:', error);
       setFeatures([]);
@@ -102,9 +108,8 @@ export const useUserFeatures = () => {
   };
 
   const hasFeature = (featureKey: string): boolean => {
-    // First check if user has feature in their plan
-    const hasInPlan = features.includes(featureKey);
-    return hasInPlan;
+    // If user has ANY active subscription, grant access to ALL features
+    return hasActiveSubscription;
   };
 
   return {
