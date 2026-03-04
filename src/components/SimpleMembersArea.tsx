@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink, Settings, Download, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Images, Film, Megaphone, Eye, EyeOff } from "lucide-react";
+import { Plus, Trash2, Edit, Lock, Unlock, Image, Video, FileText, Link as LinkIcon, MousePointer, GripVertical, ExternalLink, Settings, Download, Music, Code, HelpCircle, GitBranch, History, CheckSquare, Award, Radio, Brain, StickyNote, MessageSquare, Presentation, Images, Film, Megaphone, Eye, EyeOff, Mail, ShoppingCart, Key } from "lucide-react";
 import { DocumentUpload } from "@/components/DocumentUpload";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -54,6 +54,7 @@ interface MembersArea {
   customer_name?: string;
   business_id?: string;
   area_type?: string; // 'course' or 'exclusive'
+  access_type?: string; // 'password' or 'email_code'
   // Design da área interna
   background_color?: string;
   text_color?: string;
@@ -219,6 +220,7 @@ export function SimpleMembersArea() {
     name: '',
     description: '',
     password: '',
+    access_type: 'password' as string,
     primary_color: '#8B5CF6',
     secondary_color: '#EC4899',
     logo_url: '',
@@ -321,7 +323,7 @@ export function SimpleMembersArea() {
           user_id: user.id,
           name: areaFormData.name,
           description: areaFormData.description,
-          password: areaFormData.password,
+          password: areaFormData.access_type === 'email_code' ? 'email_code_access' : areaFormData.password,
           slug,
           sections: [],
           is_active: true,
@@ -332,6 +334,7 @@ export function SimpleMembersArea() {
           customer_name: selectedCustomer?.name || null,
           business_id: areaFormData.business_id || null,
           area_type: areaFormData.area_type,
+          access_type: areaFormData.access_type,
           login_background_color: areaFormData.login_background_color,
           login_text_color: areaFormData.login_text_color,
           background_color: areaFormData.background_color,
@@ -584,6 +587,7 @@ export function SimpleMembersArea() {
       name: area.name,
       description: area.description,
       password: area.password,
+      access_type: area.access_type || 'password',
       primary_color: area.primary_color || '#8B5CF6',
       secondary_color: area.secondary_color || '#EC4899',
       logo_url: area.logo_url || '',
@@ -619,7 +623,7 @@ export function SimpleMembersArea() {
         .update({
           name: areaFormData.name,
           description: areaFormData.description,
-          password: areaFormData.password,
+          password: areaFormData.access_type === 'email_code' ? 'email_code_access' : areaFormData.password,
           primary_color: areaFormData.primary_color,
           secondary_color: areaFormData.secondary_color,
           logo_url: areaFormData.logo_url || null,
@@ -627,6 +631,7 @@ export function SimpleMembersArea() {
           customer_name: selectedCustomer?.name || null,
           business_id: areaFormData.business_id || null,
           area_type: areaFormData.area_type,
+          access_type: areaFormData.access_type,
           login_background_color: areaFormData.login_background_color,
           login_text_color: areaFormData.login_text_color,
           background_color: areaFormData.background_color,
@@ -825,11 +830,18 @@ export function SimpleMembersArea() {
             <CardContent className="pt-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${selectedArea.primary_color || '#8B5CF6'}20` }}>
-                  <Lock className="w-5 h-5" style={{ color: selectedArea.primary_color || '#8B5CF6' }} />
+                  {selectedArea.access_type === 'email_code' 
+                    ? <Mail className="w-5 h-5" style={{ color: selectedArea.primary_color || '#8B5CF6' }} />
+                    : <Lock className="w-5 h-5" style={{ color: selectedArea.primary_color || '#8B5CF6' }} />
+                  }
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Senha de Acesso</p>
-                  <p className="font-mono font-medium">{selectedArea.password}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedArea.access_type === 'email_code' ? 'Acesso por Código (Venda)' : 'Senha de Acesso'}
+                  </p>
+                  <p className="font-mono font-medium">
+                    {selectedArea.access_type === 'email_code' ? 'Código automático via Checkout' : selectedArea.password}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -1719,15 +1731,67 @@ export function SimpleMembersArea() {
                   />
                 </div>
                 <div>
-                  <Label>Senha de Acesso</Label>
-                  <Input
-                    value={areaFormData.password}
-                    onChange={(e) => setAreaFormData({ ...areaFormData, password: e.target.value })}
-                    placeholder="Defina uma senha"
-                    type="text"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">Os membros precisarão desta senha para acessar o conteúdo</p>
+                  <Label>Tipo de Acesso</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    <button
+                      type="button"
+                      onClick={() => setAreaFormData({ ...areaFormData, access_type: 'password' })}
+                      className={`flex items-center gap-2 p-3 rounded-lg border-2 transition-all text-left ${
+                        areaFormData.access_type === 'password' 
+                          ? 'border-primary bg-primary/5' 
+                          : 'border-border hover:border-muted-foreground/30'
+                      }`}
+                    >
+                      <Key className="w-5 h-5 text-primary shrink-0" />
+                      <div>
+                        <p className="font-medium text-sm">Senha</p>
+                        <p className="text-xs text-muted-foreground">Acesso com senha manual</p>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAreaFormData({ ...areaFormData, access_type: 'email_code' })}
+                      className={`flex items-center gap-2 p-3 rounded-lg border-2 transition-all text-left ${
+                        areaFormData.access_type === 'email_code' 
+                          ? 'border-primary bg-primary/5' 
+                          : 'border-border hover:border-muted-foreground/30'
+                      }`}
+                    >
+                      <ShoppingCart className="w-5 h-5 text-primary shrink-0" />
+                      <div>
+                        <p className="font-medium text-sm">Venda</p>
+                        <p className="text-xs text-muted-foreground">Código por email após compra</p>
+                      </div>
+                    </button>
+                  </div>
                 </div>
+                {areaFormData.access_type === 'password' ? (
+                  <div>
+                    <Label>Senha de Acesso</Label>
+                    <Input
+                      value={areaFormData.password}
+                      onChange={(e) => setAreaFormData({ ...areaFormData, password: e.target.value })}
+                      placeholder="Defina uma senha"
+                      type="text"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Os membros precisarão desta senha para acessar o conteúdo</p>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-primary" />
+                      <p className="font-medium text-sm">Acesso por código de compra</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Ao vincular esta área ao <strong>Criador de Checkout</strong>, um código único será gerado automaticamente após cada compra e enviado por email ao cliente. O aluno usará esse código para acessar o conteúdo.
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <Badge variant="outline" className="text-xs">Automático</Badge>
+                      <Badge variant="outline" className="text-xs">Seguro</Badge>
+                      <Badge variant="outline" className="text-xs">Sem senha manual</Badge>
+                    </div>
+                  </div>
+                )}
                 <div>
                   <Label>Tipo de Área</Label>
                   <Select 
@@ -1955,14 +2019,61 @@ export function SimpleMembersArea() {
                   />
                 </div>
                 <div>
-                  <Label>Senha de Acesso</Label>
-                  <Input
-                    value={areaFormData.password}
-                    onChange={(e) => setAreaFormData({ ...areaFormData, password: e.target.value })}
-                    placeholder="Defina uma senha"
-                    type="text"
-                  />
+                  <Label>Tipo de Acesso</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    <button
+                      type="button"
+                      onClick={() => setAreaFormData({ ...areaFormData, access_type: 'password' })}
+                      className={`flex items-center gap-2 p-3 rounded-lg border-2 transition-all text-left ${
+                        areaFormData.access_type === 'password' 
+                          ? 'border-primary bg-primary/5' 
+                          : 'border-border hover:border-muted-foreground/30'
+                      }`}
+                    >
+                      <Key className="w-5 h-5 text-primary shrink-0" />
+                      <div>
+                        <p className="font-medium text-sm">Senha</p>
+                        <p className="text-xs text-muted-foreground">Acesso com senha manual</p>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAreaFormData({ ...areaFormData, access_type: 'email_code' })}
+                      className={`flex items-center gap-2 p-3 rounded-lg border-2 transition-all text-left ${
+                        areaFormData.access_type === 'email_code' 
+                          ? 'border-primary bg-primary/5' 
+                          : 'border-border hover:border-muted-foreground/30'
+                      }`}
+                    >
+                      <ShoppingCart className="w-5 h-5 text-primary shrink-0" />
+                      <div>
+                        <p className="font-medium text-sm">Venda</p>
+                        <p className="text-xs text-muted-foreground">Código por email após compra</p>
+                      </div>
+                    </button>
+                  </div>
                 </div>
+                {areaFormData.access_type === 'password' ? (
+                  <div>
+                    <Label>Senha de Acesso</Label>
+                    <Input
+                      value={areaFormData.password}
+                      onChange={(e) => setAreaFormData({ ...areaFormData, password: e.target.value })}
+                      placeholder="Defina uma senha"
+                      type="text"
+                    />
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-primary" />
+                      <p className="font-medium text-sm">Acesso por código de compra</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Código único gerado automaticamente pelo Checkout e enviado por email ao cliente.
+                    </p>
+                  </div>
+                )}
                 <div>
                   <Label>Tipo de Área</Label>
                   <Select 

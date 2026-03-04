@@ -6805,6 +6805,7 @@ export type Database = {
       simple_members_areas: {
         Row: {
           accent_color: string | null
+          access_type: string
           area_type: string
           background_color: string | null
           business_id: string | null
@@ -6832,6 +6833,7 @@ export type Database = {
         }
         Insert: {
           accent_color?: string | null
+          access_type?: string
           area_type?: string
           background_color?: string | null
           business_id?: string | null
@@ -6859,6 +6861,7 @@ export type Database = {
         }
         Update: {
           accent_color?: string | null
+          access_type?: string
           area_type?: string
           background_color?: string | null
           business_id?: string | null
