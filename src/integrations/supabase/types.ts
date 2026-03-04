@@ -6634,6 +6634,7 @@ export type Database = {
       }
       saved_scripts: {
         Row: {
+          business_id: string | null
           category_id: string | null
           content: string
           created_at: string | null
@@ -6647,6 +6648,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          business_id?: string | null
           category_id?: string | null
           content?: string
           created_at?: string | null
@@ -6660,6 +6662,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          business_id?: string | null
           category_id?: string | null
           content?: string
           created_at?: string | null
@@ -6674,6 +6677,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "saved_scripts_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "saved_scripts_category_id_fkey"
             columns: ["category_id"]
             isOneToOne: false
@@ -6684,6 +6694,7 @@ export type Database = {
       }
       script_categories: {
         Row: {
+          business_id: string | null
           color: string | null
           created_at: string | null
           icon: string | null
@@ -6694,6 +6705,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          business_id?: string | null
           color?: string | null
           created_at?: string | null
           icon?: string | null
@@ -6704,6 +6716,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          business_id?: string | null
           color?: string | null
           created_at?: string | null
           icon?: string | null
@@ -6713,7 +6726,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "script_categories_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       services: {
         Row: {
