@@ -22,8 +22,13 @@ import {
   Clock,
   Package,
   FileText,
-  Edit
+  Edit,
+  Receipt,
+  Link,
+  Download,
+  CheckCircle2
 } from "lucide-react";
+import { downloadReceiptPDF } from "@/utils/receiptPdfGenerator";
 
 interface ServiceHistory {
   id: string;
@@ -61,6 +66,15 @@ interface PaymentHistory {
   created_at: string;
 }
 
+interface SavedReceipt {
+  id: string;
+  receipt_number: string;
+  receipt_data: any;
+  total_amount: number;
+  client_name: string | null;
+  created_at: string;
+}
+
 interface UserService {
   id: string;
   name: string;
@@ -85,6 +99,9 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
   const entityType = contactId ? 'contact' : 'customer';
   const { user } = useAuth();
   const { toast } = useToast();
+  const [savedReceipts, setSavedReceipts] = useState<SavedReceipt[]>([]);
+  const [linkedReceipts, setLinkedReceipts] = useState<SavedReceipt[]>([]);
+  const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
   
   // States for history data
   const [servicesHistory, setServicesHistory] = useState<ServiceHistory[]>([]);
@@ -188,7 +205,56 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
       .select('id, name, price')
       .eq('user_id', user!.id);
     if (products) setAvailableProducts(products);
+
+    // Fetch ALL user's saved receipts (for linking)
+    const { data: allReceipts } = await supabase
+      .from('saved_receipts')
+      .select('*')
+      .eq('user_id', user!.id)
+      .order('created_at', { ascending: false });
+    if (allReceipts) setSavedReceipts(allReceipts as SavedReceipt[]);
+
+    // Fetch receipts linked to this customer (by client_name matching contactName)
+    const { data: customerReceipts } = await supabase
+      .from('saved_receipts')
+      .select('*')
+      .eq('user_id', user!.id)
+      .eq('client_name', contactName)
+      .order('created_at', { ascending: false });
+    if (customerReceipts) setLinkedReceipts(customerReceipts as SavedReceipt[]);
   };
+
+  const handleLinkReceipt = async (receiptId: string) => {
+    const { error } = await supabase
+      .from('saved_receipts')
+      .update({ client_name: contactName })
+      .eq('id', receiptId);
+
+    if (error) {
+      toast({ title: "Erro ao vincular recibo", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Recibo vinculado ao cliente! 🧾" });
+      setIsReceiptDialogOpen(false);
+      fetchAvailableData();
+    }
+  };
+
+  const handleUnlinkReceipt = async (receiptId: string) => {
+    const { error } = await supabase
+      .from('saved_receipts')
+      .update({ client_name: null })
+      .eq('id', receiptId);
+
+    if (error) {
+      toast({ title: "Erro ao desvincular recibo", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Recibo desvinculado" });
+      fetchAvailableData();
+    }
+  };
+
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
   const handleAddService = async () => {
     if (!newService.service_name || !entityId) {
@@ -506,11 +572,13 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
   const totalServices = servicesHistory.reduce((sum, s) => sum + Number(s.price), 0);
   const totalPurchases = purchasesHistory.reduce((sum, p) => sum + Number(p.total_price), 0);
   const totalPayments = paymentsHistory.reduce((sum, p) => sum + Number(p.amount), 0);
+  const totalReceipts = linkedReceipts.reduce((sum, r) => sum + Number(r.total_amount), 0);
+  const unlinkedReceipts = savedReceipts.filter(r => !r.client_name || r.client_name !== contactName);
 
   return (
     <div className="space-y-4">
       {/* Summary Cards */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Card className="p-3 bg-blue-500/10 border-blue-500/30">
           <div className="flex items-center gap-2">
             <Wrench className="w-4 h-4 text-blue-500" />
@@ -538,10 +606,19 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
             </div>
           </div>
         </Card>
+        <Card className="p-3 bg-amber-500/10 border-amber-500/30">
+          <div className="flex items-center gap-2">
+            <Receipt className="w-4 h-4 text-amber-500" />
+            <div>
+              <p className="text-xs text-muted-foreground">Recibos</p>
+              <p className="font-semibold text-amber-500">R$ {totalReceipts.toFixed(2)}</p>
+            </div>
+          </div>
+        </Card>
       </div>
 
       <Tabs defaultValue="services" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="services" className="text-xs">
             <Wrench className="w-3 h-3 mr-1" /> Serviços ({servicesHistory.length})
           </TabsTrigger>
@@ -550,6 +627,9 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
           </TabsTrigger>
           <TabsTrigger value="payments" className="text-xs">
             <CreditCard className="w-3 h-3 mr-1" /> Pagamentos ({paymentsHistory.length})
+          </TabsTrigger>
+          <TabsTrigger value="receipts" className="text-xs">
+            <Receipt className="w-3 h-3 mr-1" /> Recibos ({linkedReceipts.length})
           </TabsTrigger>
         </TabsList>
 
@@ -964,6 +1044,119 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
                   </div>
                 </Card>
               ))
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Receipts Tab */}
+        <TabsContent value="receipts" className="space-y-3">
+          <Dialog open={isReceiptDialogOpen} onOpenChange={setIsReceiptDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="w-full">
+                <Link className="w-4 h-4 mr-2" /> Vincular Recibo Existente
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Vincular Recibo a {contactName}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3 mt-4 max-h-[400px] overflow-y-auto">
+                {unlinkedReceipts.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-4 text-sm">
+                    Nenhum recibo disponível para vincular. Crie recibos no Gerador de Recibos primeiro.
+                  </p>
+                ) : (
+                  unlinkedReceipts.map(receipt => {
+                    const receiptTitle = receipt.receipt_data?.receipt_title || receipt.receipt_data?.title || '';
+                    return (
+                      <Card key={receipt.id} className="p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm">{receipt.receipt_number}</p>
+                            {receiptTitle && (
+                              <p className="text-xs font-semibold text-muted-foreground truncate">{receiptTitle}</p>
+                            )}
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                              <span>{new Date(receipt.created_at).toLocaleDateString('pt-BR')}</span>
+                              <span className="font-semibold text-green-500">
+                                {formatCurrency(receipt.total_amount)}
+                              </span>
+                              {receipt.client_name && (
+                                <Badge variant="outline" className="text-[10px]">{receipt.client_name}</Badge>
+                              )}
+                            </div>
+                          </div>
+                          <Button size="sm" onClick={() => handleLinkReceipt(receipt.id)}>
+                            <Link className="w-3 h-3 mr-1" /> Vincular
+                          </Button>
+                        </div>
+                      </Card>
+                    );
+                  })
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <div className="space-y-2 max-h-[250px] overflow-y-auto">
+            {linkedReceipts.length === 0 ? (
+              <p className="text-center text-muted-foreground py-4 text-sm">Nenhum recibo vinculado a este cliente</p>
+            ) : (
+              linkedReceipts.map(receipt => {
+                const receiptTitle = receipt.receipt_data?.receipt_title || receipt.receipt_data?.title || '';
+                const paymentMethod = receipt.receipt_data?.payment_method;
+                const methodLabels: Record<string, string> = {
+                  pix: 'PIX', cash: 'Dinheiro', credit_card: 'Cartão Crédito',
+                  debit_card: 'Cartão Débito', bank_transfer: 'Transferência', boleto: 'Boleto', other: 'Outro',
+                };
+                return (
+                  <Card key={receipt.id} className="p-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium text-sm">{receipt.receipt_number}</h4>
+                          <Badge className="bg-green-500/20 text-green-500 text-[10px] h-5 border-0">
+                            <CheckCircle2 className="w-3 h-3 mr-0.5" /> Pago
+                          </Badge>
+                        </div>
+                        {receiptTitle && (
+                          <p className="text-sm font-semibold text-muted-foreground mt-0.5">{receiptTitle}</p>
+                        )}
+                        <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(receipt.receipt_data?.date || receipt.created_at).toLocaleDateString('pt-BR')}
+                          </span>
+                          {paymentMethod && (
+                            <span>{methodLabels[paymentMethod] || paymentMethod}</span>
+                          )}
+                          <span className="flex items-center gap-1 text-amber-500 font-medium">
+                            <DollarSign className="w-3 h-3" />
+                            {formatCurrency(receipt.total_amount)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Baixar PDF"
+                          onClick={() => {
+                            try {
+                              downloadReceiptPDF(receipt.receipt_data, receipt.receipt_data?.logo_url || undefined);
+                            } catch {}
+                          }}
+                        >
+                          <Download className="w-4 h-4 text-primary" />
+                        </Button>
+                        <Button size="icon" variant="ghost" title="Desvincular" onClick={() => handleUnlinkReceipt(receipt.id)}>
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })
             )}
           </div>
         </TabsContent>
