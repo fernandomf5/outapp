@@ -105,7 +105,7 @@ const defaultInvoice: InvoiceData = {
 };
 
 const paymentMethods: Record<string, string> = {
-  pix: 'PIX', credit_card: 'Cartão de Crédito', debit_card: 'Cartão de Débito',
+  pix: 'PIX', mercadopago: 'Mercado Pago', credit_card: 'Cartão de Crédito', debit_card: 'Cartão de Débito',
   bank_transfer: 'Transferência', boleto: 'Boleto', other: 'Outro',
 };
 
