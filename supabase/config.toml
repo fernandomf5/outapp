@@ -74,3 +74,9 @@ verify_jwt = false
 
 [functions.checkout-webhook]
 verify_jwt = false
+
+[functions.invoice-mercadopago-payment]
+verify_jwt = false
+
+[functions.invoice-mercadopago-webhook]
+verify_jwt = false

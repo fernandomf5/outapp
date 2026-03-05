@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle, Clock, AlertCircle, XCircle, Download, Copy } from "lucide-react";
+import { Loader2, CheckCircle, Clock, AlertCircle, XCircle, Download, Copy, CreditCard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
 
@@ -20,20 +20,24 @@ const statusMap: Record<string, { label: string; color: string; icon: any }> = {
 };
 
 const paymentMethods: Record<string, string> = {
-  pix: 'PIX', credit_card: 'Cartão de Crédito', debit_card: 'Cartão de Débito',
+  pix: 'PIX', mercadopago: 'Mercado Pago', credit_card: 'Cartão de Crédito', debit_card: 'Cartão de Débito',
   bank_transfer: 'Transferência', boleto: 'Boleto', other: 'Outro',
 };
 
 export default function InvoicePublicPage() {
   const { token } = useParams<{ token: string }>();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [invoice, setInvoice] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMP, setLoadingMP] = useState(false);
+
+  const paymentStatus = searchParams.get('payment');
 
   useEffect(() => {
     const fetchInvoice = async () => {
       if (!token) return;
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('invoices')
         .select('*')
         .eq('public_token', token)
@@ -44,10 +48,55 @@ export default function InvoicePublicPage() {
     fetchInvoice();
   }, [token]);
 
+  // Handle payment redirect
+  useEffect(() => {
+    if (paymentStatus === 'success' && invoice && invoice.status !== 'paid') {
+      toast({ title: "Pagamento recebido! ✅", description: "Sua fatura será atualizada em instantes." });
+      // Re-fetch after a delay to catch webhook update
+      const timer = setTimeout(async () => {
+        const { data } = await supabase
+          .from('invoices')
+          .select('*')
+          .eq('public_token', token)
+          .maybeSingle();
+        if (data) setInvoice(data);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+    if (paymentStatus === 'failure') {
+      toast({ title: "Pagamento não concluído", description: "Tente novamente ou escolha outra forma de pagamento.", variant: "destructive" });
+    }
+  }, [paymentStatus, invoice?.id]);
+
   const handleCopyPix = () => {
     if (invoice?.pix_key) {
       navigator.clipboard.writeText(invoice.pix_key);
       toast({ title: "Chave PIX copiada! 📋" });
+    }
+  };
+
+  const handlePayWithMercadoPago = async () => {
+    if (!invoice) return;
+    setLoadingMP(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('invoice-mercadopago-payment', {
+        body: { public_token: invoice.public_token },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      if (data?.checkout_url) {
+        window.location.href = data.checkout_url;
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro ao gerar pagamento",
+        description: error.message || "Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingMP(false);
     }
   };
 
@@ -137,10 +186,27 @@ export default function InvoicePublicPage() {
   const StatusIcon = st.icon;
   const items = (invoice.items as any[]) || [];
   const color = invoice.primary_color || '#2563eb';
+  const showMercadoPago = invoice.payment_method === 'mercadopago' && invoice.status !== 'paid' && invoice.status !== 'cancelled';
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-2xl mx-auto">
+        {/* Payment status banner */}
+        {paymentStatus === 'success' && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center mb-4">
+            <CheckCircle className="w-6 h-6 text-green-600 mx-auto mb-1" />
+            <p className="font-semibold text-green-800">Pagamento processado com sucesso!</p>
+            <p className="text-xs text-green-600">A fatura será atualizada automaticamente.</p>
+          </div>
+        )}
+        {paymentStatus === 'pending' && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center mb-4">
+            <Clock className="w-6 h-6 text-yellow-600 mx-auto mb-1" />
+            <p className="font-semibold text-yellow-800">Pagamento pendente</p>
+            <p className="text-xs text-yellow-600">Aguardando confirmação do pagamento.</p>
+          </div>
+        )}
+
         <Card className="overflow-hidden shadow-lg">
           {/* Header */}
           <div className="p-6 text-white" style={{ backgroundColor: color }}>
@@ -218,8 +284,29 @@ export default function InvoicePublicPage() {
               Forma de Pagamento: {paymentMethods[invoice.payment_method] || invoice.payment_method}
             </p>
 
+            {/* Mercado Pago Payment Button */}
+            {showMercadoPago && (
+              <div className="border-2 rounded-lg p-5 text-center space-y-3" style={{ borderColor: color }}>
+                <p className="font-bold text-sm" style={{ color }}>💳 Pagar com Mercado Pago</p>
+                <p className="text-xs text-muted-foreground">Pague com cartão de crédito, débito, PIX ou boleto de forma segura.</p>
+                <Button 
+                  onClick={handlePayWithMercadoPago} 
+                  disabled={loadingMP}
+                  className="w-full"
+                  style={{ backgroundColor: color }}
+                >
+                  {loadingMP ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <CreditCard className="w-4 h-4 mr-2" />
+                  )}
+                  {loadingMP ? 'Gerando link...' : `Pagar ${formatCurrency(invoice.total_amount)}`}
+                </Button>
+              </div>
+            )}
+
             {/* PIX Key */}
-            {invoice.pix_key && invoice.status !== 'paid' && (
+            {invoice.pix_key && invoice.status !== 'paid' && invoice.payment_method === 'pix' && (
               <div className="border-2 rounded-lg p-4 text-center" style={{ borderColor: color }}>
                 <p className="font-bold text-sm mb-2" style={{ color }}>Pagar via PIX</p>
                 <p className="text-xs text-muted-foreground mb-1">Tipo: {(invoice.pix_key_type || 'cpf').toUpperCase()}</p>

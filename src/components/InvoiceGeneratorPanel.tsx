@@ -105,7 +105,7 @@ const defaultInvoice: InvoiceData = {
 };
 
 const paymentMethods: Record<string, string> = {
-  pix: 'PIX', credit_card: 'Cartão de Crédito', debit_card: 'Cartão de Débito',
+  pix: 'PIX', mercadopago: 'Mercado Pago', credit_card: 'Cartão de Crédito', debit_card: 'Cartão de Débito',
   bank_transfer: 'Transferência', boleto: 'Boleto', other: 'Outro',
 };
 
@@ -667,26 +667,38 @@ export function InvoiceGeneratorPanel() {
                     </div>
                   </div>
 
-                  {/* PIX Key */}
-                  {(invoice.payment_method === 'pix') && (
+              {/* PIX Key */}
+                  {(invoice.payment_method === 'pix' || invoice.payment_method === 'mercadopago') && (
                     <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <Label className="text-xs">Tipo Chave PIX</Label>
-                        <Select value={invoice.pix_key_type} onValueChange={v => updateField('pix_key_type', v)}>
-                          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="cpf">CPF</SelectItem>
-                            <SelectItem value="cnpj">CNPJ</SelectItem>
-                            <SelectItem value="email">Email</SelectItem>
-                            <SelectItem value="phone">Telefone</SelectItem>
-                            <SelectItem value="random">Aleatória</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label className="text-xs">Chave PIX</Label>
-                        <Input className="h-8 text-xs" value={invoice.pix_key} onChange={e => updateField('pix_key', e.target.value)} placeholder="Sua chave PIX" />
-                      </div>
+                      {invoice.payment_method === 'pix' && (
+                        <>
+                          <div>
+                            <Label className="text-xs">Tipo Chave PIX</Label>
+                            <Select value={invoice.pix_key_type} onValueChange={v => updateField('pix_key_type', v)}>
+                              <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="cpf">CPF</SelectItem>
+                                <SelectItem value="cnpj">CNPJ</SelectItem>
+                                <SelectItem value="email">Email</SelectItem>
+                                <SelectItem value="phone">Telefone</SelectItem>
+                                <SelectItem value="random">Aleatória</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label className="text-xs">Chave PIX</Label>
+                            <Input className="h-8 text-xs" value={invoice.pix_key} onChange={e => updateField('pix_key', e.target.value)} placeholder="Sua chave PIX" />
+                          </div>
+                        </>
+                      )}
+                      {invoice.payment_method === 'mercadopago' && (
+                        <div className="col-span-2">
+                          <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-950/30 rounded text-xs text-blue-700 dark:text-blue-300">
+                            <DollarSign className="w-3 h-3" />
+                            <span>O link de pagamento Mercado Pago será gerado automaticamente ao salvar a fatura. O cliente poderá pagar com cartão, PIX ou boleto.</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -890,6 +902,23 @@ export function InvoiceGeneratorPanel() {
                           {inv.status === 'pending' && (
                             <Button variant="ghost" size="sm" className="text-green-600 h-7 text-xs" onClick={() => handleUpdateStatus(inv.id, 'paid')}>
                               <CheckCircle className="w-3 h-3 mr-1" /> Pago
+                            </Button>
+                          )}
+                          {inv.payment_method === 'mercadopago' && inv.status === 'pending' && (
+                            <Button variant="ghost" size="sm" className="text-blue-600 h-7 text-xs" onClick={async () => {
+                              try {
+                                const { data, error } = await supabase.functions.invoke('invoice-mercadopago-payment', { body: { invoice_id: inv.id } });
+                                if (error) throw error;
+                                if (data?.error) throw new Error(data.error);
+                                if (data?.checkout_url) {
+                                  navigator.clipboard.writeText(data.checkout_url);
+                                  toast({ title: "Link MP copiado! 💳", description: "Link de pagamento copiado para a área de transferência." });
+                                }
+                              } catch (err: any) {
+                                toast({ title: "Erro", description: err.message, variant: "destructive" });
+                              }
+                            }} title="Gerar link Mercado Pago">
+                              <DollarSign className="w-3 h-3 mr-1" /> MP
                             </Button>
                           )}
                           <Button variant="ghost" size="sm" className="h-7" onClick={() => handleCopyLink(inv.public_token)} title="Copiar link">
