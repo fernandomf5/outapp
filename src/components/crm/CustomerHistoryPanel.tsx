@@ -572,6 +572,8 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
   const totalServices = servicesHistory.reduce((sum, s) => sum + Number(s.price), 0);
   const totalPurchases = purchasesHistory.reduce((sum, p) => sum + Number(p.total_price), 0);
   const totalPayments = paymentsHistory.reduce((sum, p) => sum + Number(p.amount), 0);
+  const totalReceipts = linkedReceipts.reduce((sum, r) => sum + Number(r.total_amount), 0);
+  const unlinkedReceipts = savedReceipts.filter(r => !r.client_name || r.client_name !== contactName);
 
   return (
     <div className="space-y-4">
