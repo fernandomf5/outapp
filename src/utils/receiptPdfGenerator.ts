@@ -122,21 +122,22 @@ export function generateReceiptPDF(receiptData: ReceiptData, logoDataUrl?: strin
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.text('Descrição', 15, y + 1);
-  doc.text('Qtd', 120, y + 1);
-  doc.text('Valor Unit.', 140, y + 1);
-  doc.text('Subtotal', 175, y + 1);
+  doc.text('Qtd', 125, y + 1, { align: 'center' });
+  doc.text('Valor Unit.', 155, y + 1, { align: 'right' });
+  doc.text('Subtotal', 195, y + 1, { align: 'right' });
   y += 8;
 
   doc.setTextColor(0, 0, 0);
   doc.setFont('helvetica', 'normal');
   const items = receiptData.items || [];
   items.forEach((item) => {
-    if (y > 260) { doc.addPage(); y = 20; }
-    doc.text(item.description || '-', 15, y);
-    doc.text(String(item.quantity), 120, y);
-    doc.text(formatCurrency(item.unit_price), 140, y);
-    doc.text(formatCurrency(item.quantity * item.unit_price), 175, y);
-    y += 7;
+    if (y > 255) { doc.addPage(); y = 20; }
+    const descLines = doc.splitTextToSize(item.description || '-', 95);
+    doc.text(descLines, 15, y);
+    doc.text(String(item.quantity), 125, y, { align: 'center' });
+    doc.text(formatCurrency(item.unit_price), 155, y, { align: 'right' });
+    doc.text(formatCurrency(item.quantity * item.unit_price), 195, y, { align: 'right' });
+    y += Math.max(descLines.length, 1) * 5 + 3;
   });
 
   const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
