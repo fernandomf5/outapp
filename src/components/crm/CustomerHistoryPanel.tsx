@@ -66,6 +66,15 @@ interface PaymentHistory {
   created_at: string;
 }
 
+interface SavedReceipt {
+  id: string;
+  receipt_number: string;
+  receipt_data: any;
+  total_amount: number;
+  client_name: string | null;
+  created_at: string;
+}
+
 interface UserService {
   id: string;
   name: string;
