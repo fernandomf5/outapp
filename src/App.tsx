@@ -57,6 +57,7 @@ import TeamMemberAuth from "./pages/TeamMemberAuth";
 import TeamMemberDashboard from "./pages/TeamMemberDashboard";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import PageEditor from "./pages/PageEditor";
+import InvoicePublicPage from "./pages/InvoicePublicPage";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { CookieNotice } from "@/components/CookieNotice";
 
