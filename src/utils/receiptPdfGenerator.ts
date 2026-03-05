@@ -42,47 +42,77 @@ export function generateReceiptPDF(receiptData: ReceiptData, logoDataUrl?: strin
   const cg = parseInt(color.slice(3, 5), 16);
   const cb = parseInt(color.slice(5, 7), 16);
 
-  // Header
+  // Header - taller to avoid overlap
   doc.setFillColor(cr, cg, cb);
-  doc.rect(0, 0, 210, 40, 'F');
+  doc.rect(0, 0, 210, 48, 'F');
+
+  const leftStart = logoDataUrl ? 50 : 15;
 
   if (logoDataUrl) {
-    try { doc.addImage(logoDataUrl, 'PNG', 10, 5, 30, 30); } catch {}
+    try { doc.addImage(logoDataUrl, 'PNG', 10, 6, 32, 32); } catch {}
   }
 
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(22);
+  doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
-  doc.text(receiptData.receipt_title || 'RECIBO', logoDataUrl ? 50 : 15, 20);
-  doc.setFontSize(11);
-  doc.text(`Nº ${receiptData.receipt_number}`, logoDataUrl ? 50 : 15, 30);
+  const title = receiptData.receipt_title || 'RECIBO';
+  // Truncate title to avoid overlapping date
+  const titleMaxWidth = 90;
+  const titleLines = doc.splitTextToSize(title, titleMaxWidth);
+  doc.text(titleLines[0], leftStart, 16);
+  if (titleLines[1]) {
+    doc.setFontSize(13);
+    doc.text(titleLines[1], leftStart, 24);
+  }
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Nº ${receiptData.receipt_number}`, leftStart, titleLines[1] ? 32 : 26);
 
   const dateStr = receiptData.date?.includes('-') ? receiptData.date.split('-').reverse().join('/') : receiptData.date;
-  doc.text(`Data: ${dateStr}`, 150, 20);
+  doc.setFontSize(10);
+  doc.text(`Data: ${dateStr}`, 155, 16, { align: 'left' });
 
-  let y = 50;
+  // Company info
+  let y = 56;
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  if (receiptData.company_name) { doc.text(receiptData.company_name, 15, y); y += 6; }
+  if (receiptData.company_name) { doc.text(receiptData.company_name, 15, y); y += 7; }
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   if (receiptData.company_document) { doc.text(`CNPJ/CPF: ${receiptData.company_document}`, 15, y); y += 5; }
-  if (receiptData.company_address) { doc.text(receiptData.company_address, 15, y); y += 5; }
+  if (receiptData.company_address) {
+    const addrLines = doc.splitTextToSize(receiptData.company_address, 180);
+    doc.text(addrLines, 15, y);
+    y += addrLines.length * 5;
+  }
   if (receiptData.company_phone) { doc.text(`Tel: ${receiptData.company_phone}`, 15, y); y += 5; }
 
-  y += 5;
+  // Client section - dynamic height
+  y += 6;
+  const clientStartY = y;
+  const clientLines: string[] = [];
+  if (receiptData.client_name) clientLines.push(`Nome: ${receiptData.client_name}`);
+  if (receiptData.client_document) clientLines.push(`CPF/CNPJ: ${receiptData.client_document}`);
+
+  let clientAddrLines: string[] = [];
+  if (receiptData.client_address) {
+    clientAddrLines = doc.splitTextToSize(`Endereço: ${receiptData.client_address}`, 175);
+  }
+
+  const totalClientLines = clientLines.length + clientAddrLines.length;
+  const clientBoxH = 12 + totalClientLines * 5;
   doc.setFillColor(245, 245, 245);
-  doc.rect(10, y - 4, 190, 25, 'F');
+  doc.rect(10, clientStartY - 4, 190, clientBoxH, 'F');
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
   doc.text('CLIENTE', 15, y + 2);
   y += 8;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  if (receiptData.client_name) { doc.text(`Nome: ${receiptData.client_name}`, 15, y); y += 5; }
-  if (receiptData.client_document) { doc.text(`CPF/CNPJ: ${receiptData.client_document}`, 15, y); y += 5; }
-  if (receiptData.client_address) { doc.text(`Endereço: ${receiptData.client_address}`, 15, y); y += 5; }
+  clientLines.forEach(line => { doc.text(line, 15, y); y += 5; });
+  if (clientAddrLines.length) { doc.text(clientAddrLines, 15, y); y += clientAddrLines.length * 5; }
 
   // Items header
   y += 8;
@@ -92,21 +122,22 @@ export function generateReceiptPDF(receiptData: ReceiptData, logoDataUrl?: strin
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.text('Descrição', 15, y + 1);
-  doc.text('Qtd', 120, y + 1);
-  doc.text('Valor Unit.', 140, y + 1);
-  doc.text('Subtotal', 175, y + 1);
+  doc.text('Qtd', 125, y + 1, { align: 'center' });
+  doc.text('Valor Unit.', 155, y + 1, { align: 'right' });
+  doc.text('Subtotal', 195, y + 1, { align: 'right' });
   y += 8;
 
   doc.setTextColor(0, 0, 0);
   doc.setFont('helvetica', 'normal');
   const items = receiptData.items || [];
   items.forEach((item) => {
-    if (y > 260) { doc.addPage(); y = 20; }
-    doc.text(item.description || '-', 15, y);
-    doc.text(String(item.quantity), 120, y);
-    doc.text(formatCurrency(item.unit_price), 140, y);
-    doc.text(formatCurrency(item.quantity * item.unit_price), 175, y);
-    y += 7;
+    if (y > 255) { doc.addPage(); y = 20; }
+    const descLines = doc.splitTextToSize(item.description || '-', 95);
+    doc.text(descLines, 15, y);
+    doc.text(String(item.quantity), 125, y, { align: 'center' });
+    doc.text(formatCurrency(item.unit_price), 155, y, { align: 'right' });
+    doc.text(formatCurrency(item.quantity * item.unit_price), 195, y, { align: 'right' });
+    y += Math.max(descLines.length, 1) * 5 + 3;
   });
 
   const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
