@@ -76,6 +76,7 @@ import ProductsServicesPanel from "@/components/ProductsServicesPanel";
 import CatalogCreatorPanel from "@/components/CatalogCreatorPanel";
 import RoutineOrganizerPanel from "@/components/RoutineOrganizerPanel";
 import { ReceiptGeneratorPanel } from "@/components/ReceiptGeneratorPanel";
+import { InvoiceGeneratorPanel } from "@/components/InvoiceGeneratorPanel";
 import { CheckoutCreatorPanel } from "@/components/CheckoutCreatorPanel";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
