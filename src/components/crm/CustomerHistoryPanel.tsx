@@ -90,6 +90,9 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
   const entityType = contactId ? 'contact' : 'customer';
   const { user } = useAuth();
   const { toast } = useToast();
+  const [savedReceipts, setSavedReceipts] = useState<SavedReceipt[]>([]);
+  const [linkedReceipts, setLinkedReceipts] = useState<SavedReceipt[]>([]);
+  const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
   
   // States for history data
   const [servicesHistory, setServicesHistory] = useState<ServiceHistory[]>([]);
