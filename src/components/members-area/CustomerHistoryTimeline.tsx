@@ -70,6 +70,24 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
 
       if (paymentsError) throw paymentsError;
 
+      // Buscar recibos vinculados ao cliente
+      const { data: customer } = await supabase
+        .from('customers')
+        .select('name, user_id')
+        .eq('id', customerId)
+        .single();
+
+      let receiptsData: any[] = [];
+      if (customer) {
+        const { data: receipts } = await supabase
+          .from('saved_receipts')
+          .select('*')
+          .eq('user_id', customer.user_id)
+          .eq('client_name', customer.name)
+          .order('created_at', { ascending: false });
+        receiptsData = (receipts as any[]) || [];
+      }
+
       // Combinar e formatar os dados
       const allItems: HistoryItem[] = [];
 
@@ -112,6 +130,19 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
           });
         });
       }
+
+      receiptsData.forEach((r: any) => {
+        allItems.push({
+          id: r.id,
+          type: 'receipt',
+          title: r.receipt_data?.receipt_title || `Recibo ${r.receipt_number}`,
+          description: r.receipt_number,
+          amount: r.total_amount,
+          date: r.created_at,
+          status: 'paid',
+          receiptData: r.receipt_data,
+        });
+      });
 
       // Ordenar por data (mais recente primeiro)
       allItems.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
