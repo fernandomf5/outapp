@@ -743,6 +743,10 @@ export function ReceiptGeneratorPanel() {
         </div>
       )}
 
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+        {/* LEFT: Form */}
+        <div className="xl:col-span-3 space-y-6">
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Company Info */}
         <Card>
