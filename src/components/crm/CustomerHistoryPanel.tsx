@@ -22,8 +22,13 @@ import {
   Clock,
   Package,
   FileText,
-  Edit
+  Edit,
+  Receipt,
+  Link,
+  Download,
+  CheckCircle2
 } from "lucide-react";
+import { downloadReceiptPDF } from "@/utils/receiptPdfGenerator";
 
 interface ServiceHistory {
   id: string;
