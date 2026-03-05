@@ -4965,6 +4965,208 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_recurring_plans: {
+        Row: {
+          amount: number
+          business_id: string | null
+          created_at: string
+          customer_id: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          next_invoice_date: string
+          pix_key: string | null
+          pix_key_type: string | null
+          plan_name: string
+          recurrence_type: string
+          start_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          business_id?: string | null
+          created_at?: string
+          customer_id?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          next_invoice_date?: string
+          pix_key?: string | null
+          pix_key_type?: string | null
+          plan_name: string
+          recurrence_type?: string
+          start_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          business_id?: string | null
+          created_at?: string
+          customer_id?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          next_invoice_date?: string
+          pix_key?: string | null
+          pix_key_type?: string | null
+          plan_name?: string
+          recurrence_type?: string
+          start_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_recurring_plans_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_recurring_plans_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          business_id: string | null
+          client_address: string | null
+          client_document: string | null
+          client_email: string | null
+          client_name: string | null
+          client_phone: string | null
+          company_address: string | null
+          company_document: string | null
+          company_name: string | null
+          company_phone: string | null
+          created_at: string
+          customer_id: string | null
+          discount_amount: number
+          due_date: string
+          id: string
+          invoice_number: string
+          invoice_title: string
+          items: Json
+          logo_url: string | null
+          mercadopago_payment_id: string | null
+          mercadopago_preference_id: string | null
+          notes: string | null
+          paid_at: string | null
+          payment_method: string | null
+          pix_key: string | null
+          pix_key_type: string | null
+          primary_color: string | null
+          public_token: string
+          recurring_plan_id: string | null
+          status: string
+          subtotal: number
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          business_id?: string | null
+          client_address?: string | null
+          client_document?: string | null
+          client_email?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          company_address?: string | null
+          company_document?: string | null
+          company_name?: string | null
+          company_phone?: string | null
+          created_at?: string
+          customer_id?: string | null
+          discount_amount?: number
+          due_date?: string
+          id?: string
+          invoice_number: string
+          invoice_title?: string
+          items?: Json
+          logo_url?: string | null
+          mercadopago_payment_id?: string | null
+          mercadopago_preference_id?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          pix_key?: string | null
+          pix_key_type?: string | null
+          primary_color?: string | null
+          public_token?: string
+          recurring_plan_id?: string | null
+          status?: string
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          business_id?: string | null
+          client_address?: string | null
+          client_document?: string | null
+          client_email?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          company_address?: string | null
+          company_document?: string | null
+          company_name?: string | null
+          company_phone?: string | null
+          created_at?: string
+          customer_id?: string | null
+          discount_amount?: number
+          due_date?: string
+          id?: string
+          invoice_number?: string
+          invoice_title?: string
+          items?: Json
+          logo_url?: string | null
+          mercadopago_payment_id?: string | null
+          mercadopago_preference_id?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          pix_key?: string | null
+          pix_key_type?: string | null
+          primary_color?: string | null
+          public_token?: string
+          recurring_plan_id?: string | null
+          status?: string
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_recurring_plan_id_fkey"
+            columns: ["recurring_plan_id"]
+            isOneToOne: false
+            referencedRelation: "invoice_recurring_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_categories: {
         Row: {
           color: string
