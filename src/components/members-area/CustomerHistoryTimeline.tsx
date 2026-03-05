@@ -30,6 +30,7 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [previewReceipt, setPreviewReceipt] = useState<any>(null);
 
   useEffect(() => {
     if (customerId) {
