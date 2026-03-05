@@ -205,7 +205,56 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
       .select('id, name, price')
       .eq('user_id', user!.id);
     if (products) setAvailableProducts(products);
+
+    // Fetch ALL user's saved receipts (for linking)
+    const { data: allReceipts } = await supabase
+      .from('saved_receipts')
+      .select('*')
+      .eq('user_id', user!.id)
+      .order('created_at', { ascending: false });
+    if (allReceipts) setSavedReceipts(allReceipts as SavedReceipt[]);
+
+    // Fetch receipts linked to this customer (by client_name matching contactName)
+    const { data: customerReceipts } = await supabase
+      .from('saved_receipts')
+      .select('*')
+      .eq('user_id', user!.id)
+      .eq('client_name', contactName)
+      .order('created_at', { ascending: false });
+    if (customerReceipts) setLinkedReceipts(customerReceipts as SavedReceipt[]);
   };
+
+  const handleLinkReceipt = async (receiptId: string) => {
+    const { error } = await supabase
+      .from('saved_receipts')
+      .update({ client_name: contactName })
+      .eq('id', receiptId);
+
+    if (error) {
+      toast({ title: "Erro ao vincular recibo", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Recibo vinculado ao cliente! 🧾" });
+      setIsReceiptDialogOpen(false);
+      fetchAvailableData();
+    }
+  };
+
+  const handleUnlinkReceipt = async (receiptId: string) => {
+    const { error } = await supabase
+      .from('saved_receipts')
+      .update({ client_name: null })
+      .eq('id', receiptId);
+
+    if (error) {
+      toast({ title: "Erro ao desvincular recibo", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Recibo desvinculado" });
+      fetchAvailableData();
+    }
+  };
+
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
   const handleAddService = async () => {
     if (!newService.service_name || !entityId) {
