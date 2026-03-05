@@ -280,6 +280,28 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
                       </span>
                     )}
                   </div>
+                  {item.type === 'receipt' && item.receiptData && (
+                    <div className="flex gap-1 mt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs flex-1"
+                        onClick={() => setPreviewReceipt(item.receiptData)}
+                      >
+                        <Eye className="w-3 h-3 mr-1" /> Ver
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs flex-1"
+                        onClick={() => {
+                          try { downloadReceiptPDF(item.receiptData, item.receiptData?.logo_url); } catch {}
+                        }}
+                      >
+                        <Download className="w-3 h-3 mr-1" /> PDF
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -287,6 +309,58 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
         </div>
       </div>
       <ScrollBar orientation="horizontal" />
+
+      {/* Receipt Preview Dialog */}
+      <Dialog open={!!previewReceipt} onOpenChange={() => setPreviewReceipt(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Receipt className="w-5 h-5" />
+              {previewReceipt?.receipt_title || 'Recibo'}
+            </DialogTitle>
+          </DialogHeader>
+          {previewReceipt && (
+            <div className="space-y-3 text-sm">
+              <div className="grid grid-cols-2 gap-2">
+                <div><span className="text-muted-foreground">Nº:</span> {previewReceipt.receipt_number}</div>
+                <div><span className="text-muted-foreground">Data:</span> {previewReceipt.date?.includes('-') ? previewReceipt.date.split('-').reverse().join('/') : previewReceipt.date}</div>
+              </div>
+              {previewReceipt.company_name && (
+                <div><span className="text-muted-foreground">Empresa:</span> {previewReceipt.company_name}</div>
+              )}
+              <div><span className="text-muted-foreground">Cliente:</span> {previewReceipt.client_name}</div>
+              {previewReceipt.items?.length > 0 && (
+                <div className="border rounded-md p-2 space-y-1">
+                  <p className="font-medium text-xs text-muted-foreground">Itens:</p>
+                  {previewReceipt.items.map((item: any, i: number) => (
+                    <div key={i} className="flex justify-between text-xs">
+                      <span>{item.description} x{item.quantity}</span>
+                      <span>R$ {(item.quantity * item.unit_price).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="flex justify-between font-bold border-t pt-2">
+                <span>Total:</span>
+                <span style={{ color: primaryColor }}>
+                  R$ {previewReceipt.items?.reduce((s: number, i: any) => s + i.quantity * i.unit_price, 0).toFixed(2)}
+                </span>
+              </div>
+              {previewReceipt.notes && (
+                <p className="text-xs text-muted-foreground italic">Obs: {previewReceipt.notes}</p>
+              )}
+              <Button
+                className="w-full"
+                onClick={() => {
+                  try { downloadReceiptPDF(previewReceipt, previewReceipt?.logo_url); } catch {}
+                }}
+              >
+                <Download className="w-4 h-4 mr-2" /> Baixar PDF
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </ScrollArea>
   );
 }
