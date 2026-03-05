@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Loader2, Package, CreditCard, Wrench, Clock, Receipt, Download, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { generateReceiptPDF, downloadReceiptPDF } from "@/utils/receiptPdfGenerator";
+import { downloadReceiptPDF } from "@/utils/receiptPdfGenerator";
 
 interface CustomerHistoryTimelineProps {
   customerId: string;
@@ -118,8 +118,38 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
         });
       }
 
+      const receiptFingerprints = new Set<string>();
+
+      receiptsData.forEach((r: any) => {
+        const receiptTitle = r.receipt_data?.receipt_title || `Recibo ${r.receipt_number}`;
+        const receiptDate = r.receipt_data?.date || r.created_at;
+        const normalizedDate = String(receiptDate).slice(0, 10);
+        const normalizedAmount = Number(r.total_amount || 0).toFixed(2);
+        const normalizedTitle = String(receiptTitle).trim().toLowerCase();
+
+        receiptFingerprints.add(`${normalizedDate}|${normalizedAmount}|${normalizedTitle}`);
+
+        allItems.push({
+          id: r.id,
+          type: 'receipt',
+          title: receiptTitle,
+          description: r.receipt_number,
+          amount: r.total_amount,
+          date: receiptDate,
+          status: 'paid',
+          receiptData: r.receipt_data,
+        });
+      });
+
       if (payments) {
         payments.forEach((pay: any) => {
+          const normalizedDate = String(pay.payment_date).slice(0, 10);
+          const normalizedAmount = Number(pay.amount || 0).toFixed(2);
+          const normalizedTitle = String(pay.description || 'Pagamento').trim().toLowerCase();
+          const paymentFingerprint = `${normalizedDate}|${normalizedAmount}|${normalizedTitle}`;
+
+          if (receiptFingerprints.has(paymentFingerprint)) return;
+
           allItems.push({
             id: pay.id,
             type: 'payment',
@@ -130,19 +160,6 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
           });
         });
       }
-
-      receiptsData.forEach((r: any) => {
-        allItems.push({
-          id: r.id,
-          type: 'receipt',
-          title: r.receipt_data?.receipt_title || `Recibo ${r.receipt_number}`,
-          description: r.receipt_number,
-          amount: r.total_amount,
-          date: r.created_at,
-          status: 'paid',
-          receiptData: r.receipt_data,
-        });
-      });
 
       // Ordenar por data (mais recente primeiro)
       allItems.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
