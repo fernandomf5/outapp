@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Loader2, Package, CreditCard, Wrench, Clock, Receipt, Download, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { generateReceiptPDF, downloadReceiptPDF } from "@/utils/receiptPdfGenerator";
+import { downloadReceiptPDF } from "@/utils/receiptPdfGenerator";
 
 interface CustomerHistoryTimelineProps {
   customerId: string;
