@@ -1024,6 +1024,124 @@ export function ReceiptGeneratorPanel() {
         </Button>
       </div>
 
+      </div>{/* END LEFT */}
+
+      {/* RIGHT: Live Preview */}
+      <div className="xl:col-span-2">
+        <div className="sticky top-4">
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Eye className="w-4 h-4 text-primary" /> Prévia em Tempo Real
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="bg-white text-black max-h-[80vh] overflow-y-auto">
+                {/* Header */}
+                <div className="p-4 text-white" style={{ backgroundColor: receipt.primary_color }}>
+                  <div className="flex items-center gap-3">
+                    {logoPreview && <img src={logoPreview} alt="Logo" className="w-10 h-10 object-contain rounded" />}
+                    <div>
+                      <h3 className="text-base font-bold">{receipt.receipt_title || 'RECIBO'}</h3>
+                      <p className="text-xs opacity-80">Nº {receipt.receipt_number}</p>
+                    </div>
+                    <span className="ml-auto text-xs opacity-80">{receipt.date ? receipt.date.split('-').reverse().join('/') : ''}</span>
+                  </div>
+                </div>
+
+                <div className="p-4 space-y-3 text-xs">
+                  {/* Company */}
+                  {receipt.company_name && (
+                    <div>
+                      <p className="font-semibold text-sm">{receipt.company_name}</p>
+                      {receipt.company_document && <p className="text-gray-500">CNPJ/CPF: {receipt.company_document}</p>}
+                      {receipt.company_address && <p className="text-gray-500">{receipt.company_address}</p>}
+                      {receipt.company_phone && <p className="text-gray-500">Tel: {receipt.company_phone}</p>}
+                    </div>
+                  )}
+
+                  {/* Client */}
+                  <div className="bg-gray-50 p-2.5 rounded">
+                    <p className="font-semibold mb-1" style={{ color: receipt.primary_color }}>CLIENTE</p>
+                    <p className="text-sm">{receipt.client_name || '—'}</p>
+                    {receipt.client_document && <p className="text-gray-500">CPF/CNPJ: {receipt.client_document}</p>}
+                    {receipt.client_address && <p className="text-gray-500">{receipt.client_address}</p>}
+                  </div>
+
+                  {/* Items table */}
+                  <table className="w-full">
+                    <thead>
+                      <tr style={{ backgroundColor: receipt.primary_color, color: 'white' }}>
+                        <th className="text-left p-1.5 rounded-tl text-[10px]">Descrição</th>
+                        <th className="text-center p-1.5 text-[10px]">Qtd</th>
+                        <th className="text-right p-1.5 text-[10px]">V.Unit</th>
+                        <th className="text-right p-1.5 rounded-tr text-[10px]">Sub</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {receipt.items.map((item, idx) => (
+                        <tr key={item.id} className={idx % 2 === 0 ? 'bg-gray-50' : ''}>
+                          <td className="p-1.5 text-[11px]">{item.description || '—'}</td>
+                          <td className="text-center p-1.5 text-[11px]">{item.quantity}</td>
+                          <td className="text-right p-1.5 text-[11px]">{formatCurrency(item.unit_price)}</td>
+                          <td className="text-right p-1.5 text-[11px] font-medium">{formatCurrency(item.quantity * item.unit_price)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {/* Totals */}
+                  <div className="border-t pt-2 text-right" style={{ borderColor: receipt.primary_color }}>
+                    {discountAmount > 0 && (
+                      <>
+                        <p className="text-gray-500">Subtotal: {formatCurrency(subtotal)}</p>
+                        <p className="text-red-500">Desconto{receipt.discount_type === 'percentage' ? ` (${receipt.discount_value}%)` : ''}: − {formatCurrency(discountAmount)}</p>
+                      </>
+                    )}
+                    <p className="text-sm font-bold mt-1" style={{ color: receipt.primary_color }}>Total: {formatCurrency(total)}</p>
+                  </div>
+
+                  {/* Payment method */}
+                  <p className="text-gray-600">Pagamento: {paymentMethods[receipt.payment_method]}</p>
+
+                  {receipt.notes && <p className="italic text-gray-500">Obs: {receipt.notes}</p>}
+
+                  {receipt.warranty_text && (
+                    <div className="p-2 border rounded bg-gray-50">
+                      <p className="font-bold text-[10px] mb-0.5" style={{ color: receipt.primary_color }}>GARANTIA / LAUDO</p>
+                      <p className="text-[10px] text-gray-600 whitespace-pre-line">{receipt.warranty_text}</p>
+                    </div>
+                  )}
+
+                  {receipt.terms_text && (
+                    <div className="p-2 border rounded bg-gray-50">
+                      <p className="font-bold text-[10px] mb-0.5" style={{ color: receipt.primary_color }}>TERMOS E CONDIÇÕES</p>
+                      <p className="text-[10px] text-gray-600 whitespace-pre-line">{receipt.terms_text}</p>
+                    </div>
+                  )}
+
+                  {/* Signatures */}
+                  <div className="flex justify-between px-2 pt-6">
+                    <div className="text-center">
+                      <div className="border-t border-gray-400 w-28 pt-1">
+                        <p className="text-[10px] text-gray-500">{receipt.issuer_signer_name || receipt.company_name || 'Emissor'}</p>
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="border-t border-gray-400 w-28 pt-1">
+                        <p className="text-[10px] text-gray-500">{receipt.client_signer_name || receipt.client_name || 'Cliente'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>{/* END RIGHT */}
+
+      </div>{/* END grid */}
+
       {/* Search Receipts Dialog */}
       <Dialog open={searchOpen} onOpenChange={(open) => { setSearchOpen(open); if (!open) { setFilterBusiness('all'); setFilterClient('all'); setSearchQuery(''); } }}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
