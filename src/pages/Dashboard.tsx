@@ -1584,6 +1584,12 @@ const Dashboard = () => {
             </FeatureGate>
           </TabsContent>
 
+          <TabsContent value="faturas">
+            <FeatureGate featureKey="invoice_generator">
+              <InvoiceGeneratorPanel />
+            </FeatureGate>
+          </TabsContent>
+
           <TabsContent value="scripts">
             <FeatureGate featureKey="script_organizer">
               <ScriptOrganizerPanel />
