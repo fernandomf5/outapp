@@ -618,7 +618,7 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
       </div>
 
       <Tabs defaultValue="services" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="services" className="text-xs">
             <Wrench className="w-3 h-3 mr-1" /> Serviços ({servicesHistory.length})
           </TabsTrigger>
@@ -627,6 +627,9 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
           </TabsTrigger>
           <TabsTrigger value="payments" className="text-xs">
             <CreditCard className="w-3 h-3 mr-1" /> Pagamentos ({paymentsHistory.length})
+          </TabsTrigger>
+          <TabsTrigger value="receipts" className="text-xs">
+            <Receipt className="w-3 h-3 mr-1" /> Recibos ({linkedReceipts.length})
           </TabsTrigger>
         </TabsList>
 
