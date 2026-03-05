@@ -289,7 +289,18 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
                   )}
                   <div className="flex items-center justify-between mt-2 gap-2">
                     <p className="text-xs text-muted-foreground">
-                      {format(new Date(item.date), "dd/MM/yyyy", { locale: ptBR })}
+                      {(() => {
+                        const d = item.date;
+                        if (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
+                          const [y, m, day] = d.split('-');
+                          return `${day}/${m}/${y}`;
+                        }
+                        if (typeof d === 'string' && d.includes('-')) {
+                          const parts = d.split('T')[0].split('-');
+                          return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                        }
+                        return format(new Date(d), "dd/MM/yyyy", { locale: ptBR });
+                      })()}
                     </p>
                     {item.amount !== undefined && item.amount > 0 && (
                       <span className="font-semibold text-sm flex-shrink-0" style={{ color: primaryColor }}>
