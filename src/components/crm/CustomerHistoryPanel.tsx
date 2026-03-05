@@ -1047,6 +1047,119 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
             )}
           </div>
         </TabsContent>
+
+        {/* Receipts Tab */}
+        <TabsContent value="receipts" className="space-y-3">
+          <Dialog open={isReceiptDialogOpen} onOpenChange={setIsReceiptDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="w-full">
+                <Link className="w-4 h-4 mr-2" /> Vincular Recibo Existente
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Vincular Recibo a {contactName}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3 mt-4 max-h-[400px] overflow-y-auto">
+                {unlinkedReceipts.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-4 text-sm">
+                    Nenhum recibo disponível para vincular. Crie recibos no Gerador de Recibos primeiro.
+                  </p>
+                ) : (
+                  unlinkedReceipts.map(receipt => {
+                    const receiptTitle = receipt.receipt_data?.receipt_title || receipt.receipt_data?.title || '';
+                    return (
+                      <Card key={receipt.id} className="p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm">{receipt.receipt_number}</p>
+                            {receiptTitle && (
+                              <p className="text-xs font-semibold text-muted-foreground truncate">{receiptTitle}</p>
+                            )}
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                              <span>{new Date(receipt.created_at).toLocaleDateString('pt-BR')}</span>
+                              <span className="font-semibold text-green-500">
+                                {formatCurrency(receipt.total_amount)}
+                              </span>
+                              {receipt.client_name && (
+                                <Badge variant="outline" className="text-[10px]">{receipt.client_name}</Badge>
+                              )}
+                            </div>
+                          </div>
+                          <Button size="sm" onClick={() => handleLinkReceipt(receipt.id)}>
+                            <Link className="w-3 h-3 mr-1" /> Vincular
+                          </Button>
+                        </div>
+                      </Card>
+                    );
+                  })
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <div className="space-y-2 max-h-[250px] overflow-y-auto">
+            {linkedReceipts.length === 0 ? (
+              <p className="text-center text-muted-foreground py-4 text-sm">Nenhum recibo vinculado a este cliente</p>
+            ) : (
+              linkedReceipts.map(receipt => {
+                const receiptTitle = receipt.receipt_data?.receipt_title || receipt.receipt_data?.title || '';
+                const paymentMethod = receipt.receipt_data?.payment_method;
+                const methodLabels: Record<string, string> = {
+                  pix: 'PIX', cash: 'Dinheiro', credit_card: 'Cartão Crédito',
+                  debit_card: 'Cartão Débito', bank_transfer: 'Transferência', boleto: 'Boleto', other: 'Outro',
+                };
+                return (
+                  <Card key={receipt.id} className="p-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium text-sm">{receipt.receipt_number}</h4>
+                          <Badge className="bg-green-500/20 text-green-500 text-[10px] h-5 border-0">
+                            <CheckCircle2 className="w-3 h-3 mr-0.5" /> Pago
+                          </Badge>
+                        </div>
+                        {receiptTitle && (
+                          <p className="text-sm font-semibold text-muted-foreground mt-0.5">{receiptTitle}</p>
+                        )}
+                        <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(receipt.receipt_data?.date || receipt.created_at).toLocaleDateString('pt-BR')}
+                          </span>
+                          {paymentMethod && (
+                            <span>{methodLabels[paymentMethod] || paymentMethod}</span>
+                          )}
+                          <span className="flex items-center gap-1 text-amber-500 font-medium">
+                            <DollarSign className="w-3 h-3" />
+                            {formatCurrency(receipt.total_amount)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Baixar PDF"
+                          onClick={() => {
+                            try {
+                              downloadReceiptPDF(receipt.receipt_data, receipt.receipt_data?.logo_url || undefined);
+                            } catch {}
+                          }}
+                        >
+                          <Download className="w-4 h-4 text-primary" />
+                        </Button>
+                        <Button size="icon" variant="ghost" title="Desvincular" onClick={() => handleUnlinkReceipt(receipt.id)}>
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })
+            )}
+          </div>
+        </TabsContent>
       </Tabs>
     </div>
   );
