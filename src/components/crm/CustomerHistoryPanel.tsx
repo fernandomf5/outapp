@@ -578,7 +578,7 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
   return (
     <div className="space-y-4">
       {/* Summary Cards */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Card className="p-3 bg-blue-500/10 border-blue-500/30">
           <div className="flex items-center gap-2">
             <Wrench className="w-4 h-4 text-blue-500" />
@@ -603,6 +603,15 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
             <div>
               <p className="text-xs text-muted-foreground">Pagamentos</p>
               <p className="font-semibold text-green-500">R$ {totalPayments.toFixed(2)}</p>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-3 bg-amber-500/10 border-amber-500/30">
+          <div className="flex items-center gap-2">
+            <Receipt className="w-4 h-4 text-amber-500" />
+            <div>
+              <p className="text-xs text-muted-foreground">Recibos</p>
+              <p className="font-semibold text-amber-500">R$ {totalReceipts.toFixed(2)}</p>
             </div>
           </div>
         </Card>
