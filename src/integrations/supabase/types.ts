@@ -5055,6 +5055,7 @@ export type Database = {
           invoice_title: string
           items: Json
           logo_url: string | null
+          mercadopago_checkout_url: string | null
           mercadopago_payment_id: string | null
           mercadopago_preference_id: string | null
           notes: string | null
@@ -5091,6 +5092,7 @@ export type Database = {
           invoice_title?: string
           items?: Json
           logo_url?: string | null
+          mercadopago_checkout_url?: string | null
           mercadopago_payment_id?: string | null
           mercadopago_preference_id?: string | null
           notes?: string | null
@@ -5127,6 +5129,7 @@ export type Database = {
           invoice_title?: string
           items?: Json
           logo_url?: string | null
+          mercadopago_checkout_url?: string | null
           mercadopago_payment_id?: string | null
           mercadopago_preference_id?: string | null
           notes?: string | null
