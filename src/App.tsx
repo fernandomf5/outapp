@@ -129,6 +129,7 @@ const AppContent = () => {
               <Route path="/checkout/:checkoutId/obrigado" element={<CheckoutThankYouPage />} />
               <Route path="/checkout/:checkoutId/:slug/obrigado" element={<CheckoutThankYouPage />} />
               <Route path="/aceitar-convite" element={<AcceptInvitation />} />
+              <Route path="/fatura/:token" element={<InvoicePublicPage />} />
               <Route path="/page-editor/:pageId" element={
                 <ProtectedRoute>
                   <PageEditor />
