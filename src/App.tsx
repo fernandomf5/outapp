@@ -57,6 +57,7 @@ import TeamMemberAuth from "./pages/TeamMemberAuth";
 import TeamMemberDashboard from "./pages/TeamMemberDashboard";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import PageEditor from "./pages/PageEditor";
+import InvoicePublicPage from "./pages/InvoicePublicPage";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { CookieNotice } from "@/components/CookieNotice";
 
@@ -128,6 +129,7 @@ const AppContent = () => {
               <Route path="/checkout/:checkoutId/obrigado" element={<CheckoutThankYouPage />} />
               <Route path="/checkout/:checkoutId/:slug/obrigado" element={<CheckoutThankYouPage />} />
               <Route path="/aceitar-convite" element={<AcceptInvitation />} />
+              <Route path="/fatura/:token" element={<InvoicePublicPage />} />
               <Route path="/page-editor/:pageId" element={
                 <ProtectedRoute>
                   <PageEditor />

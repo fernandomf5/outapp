@@ -76,6 +76,7 @@ import ProductsServicesPanel from "@/components/ProductsServicesPanel";
 import CatalogCreatorPanel from "@/components/CatalogCreatorPanel";
 import RoutineOrganizerPanel from "@/components/RoutineOrganizerPanel";
 import { ReceiptGeneratorPanel } from "@/components/ReceiptGeneratorPanel";
+import { InvoiceGeneratorPanel } from "@/components/InvoiceGeneratorPanel";
 import { CheckoutCreatorPanel } from "@/components/CheckoutCreatorPanel";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
@@ -1580,6 +1581,12 @@ const Dashboard = () => {
             <FeatureGate featureKey="receipt_generator">
               <FeatureTutorialVideo featureKey="recibos" />
               <ReceiptGeneratorPanel />
+            </FeatureGate>
+          </TabsContent>
+
+          <TabsContent value="faturas">
+            <FeatureGate featureKey="invoice_generator">
+              <InvoiceGeneratorPanel />
             </FeatureGate>
           </TabsContent>
 
