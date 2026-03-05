@@ -2,10 +2,13 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Loader2, Package, CreditCard, Wrench, Clock } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Loader2, Package, CreditCard, Wrench, Clock, Receipt, Download, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { generateReceiptPDF, downloadReceiptPDF } from "@/utils/receiptPdfGenerator";
 
 interface CustomerHistoryTimelineProps {
   customerId: string;
@@ -14,12 +17,13 @@ interface CustomerHistoryTimelineProps {
 
 interface HistoryItem {
   id: string;
-  type: 'service' | 'purchase' | 'payment';
+  type: 'service' | 'purchase' | 'payment' | 'receipt';
   title: string;
   description?: string;
   amount?: number;
   date: string;
   status?: string;
+  receiptData?: any;
 }
 
 export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }: CustomerHistoryTimelineProps) {
