@@ -2,10 +2,13 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Loader2, Package, CreditCard, Wrench, Clock } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Loader2, Package, CreditCard, Wrench, Clock, Receipt, Download, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { generateReceiptPDF, downloadReceiptPDF } from "@/utils/receiptPdfGenerator";
 
 interface CustomerHistoryTimelineProps {
   customerId: string;
@@ -14,18 +17,20 @@ interface CustomerHistoryTimelineProps {
 
 interface HistoryItem {
   id: string;
-  type: 'service' | 'purchase' | 'payment';
+  type: 'service' | 'purchase' | 'payment' | 'receipt';
   title: string;
   description?: string;
   amount?: number;
   date: string;
   status?: string;
+  receiptData?: any;
 }
 
 export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }: CustomerHistoryTimelineProps) {
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [previewReceipt, setPreviewReceipt] = useState<any>(null);
 
   useEffect(() => {
     if (customerId) {
@@ -64,6 +69,24 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
         .order('payment_date', { ascending: false });
 
       if (paymentsError) throw paymentsError;
+
+      // Buscar recibos vinculados ao cliente
+      const { data: customer } = await supabase
+        .from('customers')
+        .select('name, user_id')
+        .eq('id', customerId)
+        .single();
+
+      let receiptsData: any[] = [];
+      if (customer) {
+        const { data: receipts } = await supabase
+          .from('saved_receipts')
+          .select('*')
+          .eq('user_id', customer.user_id)
+          .eq('client_name', customer.name)
+          .order('created_at', { ascending: false });
+        receiptsData = (receipts as any[]) || [];
+      }
 
       // Combinar e formatar os dados
       const allItems: HistoryItem[] = [];
@@ -108,6 +131,19 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
         });
       }
 
+      receiptsData.forEach((r: any) => {
+        allItems.push({
+          id: r.id,
+          type: 'receipt',
+          title: r.receipt_data?.receipt_title || `Recibo ${r.receipt_number}`,
+          description: r.receipt_number,
+          amount: r.total_amount,
+          date: r.created_at,
+          status: 'paid',
+          receiptData: r.receipt_data,
+        });
+      });
+
       // Ordenar por data (mais recente primeiro)
       allItems.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -122,27 +158,21 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'service':
-        return <Wrench className="w-4 h-4" />;
-      case 'purchase':
-        return <Package className="w-4 h-4" />;
-      case 'payment':
-        return <CreditCard className="w-4 h-4" />;
-      default:
-        return <Clock className="w-4 h-4" />;
+      case 'service': return <Wrench className="w-4 h-4" />;
+      case 'purchase': return <Package className="w-4 h-4" />;
+      case 'payment': return <CreditCard className="w-4 h-4" />;
+      case 'receipt': return <Receipt className="w-4 h-4" />;
+      default: return <Clock className="w-4 h-4" />;
     }
   };
 
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'service':
-        return 'Serviço';
-      case 'purchase':
-        return 'Compra';
-      case 'payment':
-        return 'Pagamento';
-      default:
-        return type;
+      case 'service': return 'Serviço';
+      case 'purchase': return 'Compra';
+      case 'payment': return 'Pagamento';
+      case 'receipt': return 'Recibo';
+      default: return type;
     }
   };
 
@@ -250,6 +280,28 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
                       </span>
                     )}
                   </div>
+                  {item.type === 'receipt' && item.receiptData && (
+                    <div className="flex gap-1 mt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs flex-1"
+                        onClick={() => setPreviewReceipt(item.receiptData)}
+                      >
+                        <Eye className="w-3 h-3 mr-1" /> Ver
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs flex-1"
+                        onClick={() => {
+                          try { downloadReceiptPDF(item.receiptData, item.receiptData?.logo_url); } catch {}
+                        }}
+                      >
+                        <Download className="w-3 h-3 mr-1" /> PDF
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -257,6 +309,58 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
         </div>
       </div>
       <ScrollBar orientation="horizontal" />
+
+      {/* Receipt Preview Dialog */}
+      <Dialog open={!!previewReceipt} onOpenChange={() => setPreviewReceipt(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Receipt className="w-5 h-5" />
+              {previewReceipt?.receipt_title || 'Recibo'}
+            </DialogTitle>
+          </DialogHeader>
+          {previewReceipt && (
+            <div className="space-y-3 text-sm">
+              <div className="grid grid-cols-2 gap-2">
+                <div><span className="text-muted-foreground">Nº:</span> {previewReceipt.receipt_number}</div>
+                <div><span className="text-muted-foreground">Data:</span> {previewReceipt.date?.includes('-') ? previewReceipt.date.split('-').reverse().join('/') : previewReceipt.date}</div>
+              </div>
+              {previewReceipt.company_name && (
+                <div><span className="text-muted-foreground">Empresa:</span> {previewReceipt.company_name}</div>
+              )}
+              <div><span className="text-muted-foreground">Cliente:</span> {previewReceipt.client_name}</div>
+              {previewReceipt.items?.length > 0 && (
+                <div className="border rounded-md p-2 space-y-1">
+                  <p className="font-medium text-xs text-muted-foreground">Itens:</p>
+                  {previewReceipt.items.map((item: any, i: number) => (
+                    <div key={i} className="flex justify-between text-xs">
+                      <span>{item.description} x{item.quantity}</span>
+                      <span>R$ {(item.quantity * item.unit_price).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="flex justify-between font-bold border-t pt-2">
+                <span>Total:</span>
+                <span style={{ color: primaryColor }}>
+                  R$ {previewReceipt.items?.reduce((s: number, i: any) => s + i.quantity * i.unit_price, 0).toFixed(2)}
+                </span>
+              </div>
+              {previewReceipt.notes && (
+                <p className="text-xs text-muted-foreground italic">Obs: {previewReceipt.notes}</p>
+              )}
+              <Button
+                className="w-full"
+                onClick={() => {
+                  try { downloadReceiptPDF(previewReceipt, previewReceipt?.logo_url); } catch {}
+                }}
+              >
+                <Download className="w-4 h-4 mr-2" /> Baixar PDF
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </ScrollArea>
   );
 }
