@@ -338,55 +338,163 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
       </div>
       <ScrollBar orientation="horizontal" />
 
-      {/* Receipt Preview Dialog */}
+      {/* Receipt Full Preview Dialog */}
       <Dialog open={!!previewReceipt} onOpenChange={() => setPreviewReceipt(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Receipt className="w-5 h-5" />
-              {previewReceipt?.receipt_title || 'Recibo'}
-            </DialogTitle>
-          </DialogHeader>
-          {previewReceipt && (
-            <div className="space-y-3 text-sm">
-              <div className="grid grid-cols-2 gap-2">
-                <div><span className="text-muted-foreground">Nº:</span> {previewReceipt.receipt_number}</div>
-                <div><span className="text-muted-foreground">Data:</span> {previewReceipt.date?.includes('-') ? previewReceipt.date.split('-').reverse().join('/') : previewReceipt.date}</div>
-              </div>
-              {previewReceipt.company_name && (
-                <div><span className="text-muted-foreground">Empresa:</span> {previewReceipt.company_name}</div>
-              )}
-              <div><span className="text-muted-foreground">Cliente:</span> {previewReceipt.client_name}</div>
-              {previewReceipt.items?.length > 0 && (
-                <div className="border rounded-md p-2 space-y-1">
-                  <p className="font-medium text-xs text-muted-foreground">Itens:</p>
-                  {previewReceipt.items.map((item: any, i: number) => (
-                    <div key={i} className="flex justify-between text-xs">
-                      <span>{item.description} x{item.quantity}</span>
-                      <span>R$ {(item.quantity * item.unit_price).toFixed(2)}</span>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto p-0">
+          {previewReceipt && (() => {
+            const r = previewReceipt;
+            const dateStr = r.date?.includes('-') ? r.date.split('-').reverse().join('/') : r.date;
+            const items = r.items || [];
+            const subtotal = items.reduce((s: number, i: any) => s + i.quantity * i.unit_price, 0);
+            const discountValue = r.discount_value || 0;
+            const discountAmount = r.discount_type === 'percentage' ? (subtotal * discountValue) / 100 : discountValue;
+            const total = Math.max(0, subtotal - discountAmount);
+            const paymentLabels: Record<string, string> = {
+              pix: 'PIX', cash: 'Dinheiro', credit_card: 'Cartão de Crédito',
+              debit_card: 'Cartão de Débito', bank_transfer: 'Transferência Bancária',
+              boleto: 'Boleto', other: 'Outro',
+            };
+
+            return (
+              <div className="flex flex-col">
+                {/* Header */}
+                <div className="p-6 text-white" style={{ backgroundColor: r.primary_color || primaryColor }}>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      {r.logo_url && (
+                        <img src={r.logo_url} alt="Logo" className="w-12 h-12 object-contain rounded bg-white/20 p-1" />
+                      )}
+                      <div>
+                        <h2 className="text-xl font-bold">{r.receipt_title || 'RECIBO'}</h2>
+                        <p className="text-white/80 text-sm">Nº {r.receipt_number}</p>
+                      </div>
                     </div>
-                  ))}
+                    <div className="text-right text-sm text-white/80">
+                      <p>Data: {dateStr}</p>
+                    </div>
+                  </div>
                 </div>
-              )}
-              <div className="flex justify-between font-bold border-t pt-2">
-                <span>Total:</span>
-                <span style={{ color: primaryColor }}>
-                  R$ {previewReceipt.items?.reduce((s: number, i: any) => s + i.quantity * i.unit_price, 0).toFixed(2)}
-                </span>
+
+                <div className="p-6 space-y-5">
+                  {/* Company Info */}
+                  {(r.company_name || r.company_document) && (
+                    <div className="space-y-1">
+                      {r.company_name && <p className="font-semibold text-sm">{r.company_name}</p>}
+                      {r.company_document && <p className="text-xs text-muted-foreground">CNPJ/CPF: {r.company_document}</p>}
+                      {r.company_address && <p className="text-xs text-muted-foreground">{r.company_address}</p>}
+                      {r.company_phone && <p className="text-xs text-muted-foreground">Tel: {r.company_phone}</p>}
+                    </div>
+                  )}
+
+                  {/* Client Info */}
+                  <div className="bg-muted/50 rounded-lg p-4 space-y-1">
+                    <p className="font-semibold text-sm mb-2">CLIENTE</p>
+                    {r.client_name && <p className="text-sm">Nome: {r.client_name}</p>}
+                    {r.client_document && <p className="text-xs text-muted-foreground">CPF/CNPJ: {r.client_document}</p>}
+                    {r.client_address && <p className="text-xs text-muted-foreground">Endereço: {r.client_address}</p>}
+                    {r.client_email && <p className="text-xs text-muted-foreground">Email: {r.client_email}</p>}
+                    {r.client_phone && <p className="text-xs text-muted-foreground">Tel: {r.client_phone}</p>}
+                  </div>
+
+                  {/* Items Table */}
+                  {items.length > 0 && (
+                    <div className="border rounded-lg overflow-hidden">
+                      <div className="grid grid-cols-[1fr_60px_80px_80px] text-xs font-bold text-white p-2" style={{ backgroundColor: r.primary_color || primaryColor }}>
+                        <span>Descrição</span>
+                        <span className="text-center">Qtd</span>
+                        <span className="text-right">Valor Unit.</span>
+                        <span className="text-right">Subtotal</span>
+                      </div>
+                      {items.map((item: any, i: number) => (
+                        <div key={i} className="grid grid-cols-[1fr_60px_80px_80px] text-xs p-2 border-b last:border-b-0">
+                          <span>{item.description || '-'}</span>
+                          <span className="text-center">{item.quantity}</span>
+                          <span className="text-right">R$ {Number(item.unit_price).toFixed(2)}</span>
+                          <span className="text-right">R$ {(item.quantity * item.unit_price).toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Totals */}
+                  <div className="border-t pt-3 space-y-1">
+                    {discountAmount > 0 && (
+                      <>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Subtotal:</span>
+                          <span>R$ {subtotal.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm text-red-500">
+                          <span>Desconto{r.discount_type === 'percentage' ? ` (${discountValue}%)` : ''}:</span>
+                          <span>- R$ {discountAmount.toFixed(2)}</span>
+                        </div>
+                      </>
+                    )}
+                    <div className="flex justify-between text-base font-bold pt-1">
+                      <span>TOTAL:</span>
+                      <span style={{ color: r.primary_color || primaryColor }}>R$ {total.toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  {/* Payment Method */}
+                  {r.payment_method && (
+                    <p className="text-sm">
+                      <span className="text-muted-foreground">Forma de Pagamento:</span>{' '}
+                      {paymentLabels[r.payment_method] || r.payment_method}
+                    </p>
+                  )}
+
+                  {/* Notes */}
+                  {r.notes && (
+                    <p className="text-xs text-muted-foreground italic border-l-2 pl-3" style={{ borderColor: r.primary_color || primaryColor }}>
+                      Observações: {r.notes}
+                    </p>
+                  )}
+
+                  {/* Warranty */}
+                  {r.warranty_text && (
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold" style={{ color: r.primary_color || primaryColor }}>GARANTIA / LAUDO</p>
+                      <p className="text-xs text-muted-foreground">{r.warranty_text}</p>
+                    </div>
+                  )}
+
+                  {/* Terms */}
+                  {r.terms_text && (
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold" style={{ color: r.primary_color || primaryColor }}>TERMOS E CONDIÇÕES</p>
+                      <p className="text-xs text-muted-foreground">{r.terms_text}</p>
+                    </div>
+                  )}
+
+                  {/* Signatures */}
+                  <div className="grid grid-cols-2 gap-8 pt-6">
+                    <div className="text-center">
+                      <div className="border-t border-foreground/30 pt-2">
+                        <p className="text-xs">{r.issuer_signer_name || r.company_name || 'Emissor'}</p>
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="border-t border-foreground/30 pt-2">
+                        <p className="text-xs">{r.client_signer_name || r.client_name || 'Cliente'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Download Button */}
+                  <Button
+                    className="w-full"
+                    style={{ backgroundColor: r.primary_color || primaryColor }}
+                    onClick={() => {
+                      try { downloadReceiptPDF(r, r?.logo_url); } catch {}
+                    }}
+                  >
+                    <Download className="w-4 h-4 mr-2" /> Baixar PDF
+                  </Button>
+                </div>
               </div>
-              {previewReceipt.notes && (
-                <p className="text-xs text-muted-foreground italic">Obs: {previewReceipt.notes}</p>
-              )}
-              <Button
-                className="w-full"
-                onClick={() => {
-                  try { downloadReceiptPDF(previewReceipt, previewReceipt?.logo_url); } catch {}
-                }}
-              >
-                <Download className="w-4 h-4 mr-2" /> Baixar PDF
-              </Button>
-            </div>
-          )}
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </ScrollArea>
