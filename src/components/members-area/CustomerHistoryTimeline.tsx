@@ -127,7 +127,7 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
         const normalizedAmount = Number(r.total_amount || 0).toFixed(2);
         const normalizedTitle = String(receiptTitle).trim().toLowerCase();
 
-        receiptFingerprints.add(`${normalizedDate}|${normalizedAmount}|${normalizedTitle}`);
+        receiptFingerprints.add(`${normalizedDate}|${normalizedAmount}`);
 
         allItems.push({
           id: r.id,
