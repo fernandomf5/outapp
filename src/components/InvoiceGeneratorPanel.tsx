@@ -904,6 +904,23 @@ export function InvoiceGeneratorPanel() {
                               <CheckCircle className="w-3 h-3 mr-1" /> Pago
                             </Button>
                           )}
+                          {inv.payment_method === 'mercadopago' && inv.status === 'pending' && (
+                            <Button variant="ghost" size="sm" className="text-blue-600 h-7 text-xs" onClick={async () => {
+                              try {
+                                const { data, error } = await supabase.functions.invoke('invoice-mercadopago-payment', { body: { invoice_id: inv.id } });
+                                if (error) throw error;
+                                if (data?.error) throw new Error(data.error);
+                                if (data?.checkout_url) {
+                                  navigator.clipboard.writeText(data.checkout_url);
+                                  toast({ title: "Link MP copiado! 💳", description: "Link de pagamento copiado para a área de transferência." });
+                                }
+                              } catch (err: any) {
+                                toast({ title: "Erro", description: err.message, variant: "destructive" });
+                              }
+                            }} title="Gerar link Mercado Pago">
+                              <DollarSign className="w-3 h-3 mr-1" /> MP
+                            </Button>
+                          )}
                           <Button variant="ghost" size="sm" className="h-7" onClick={() => handleCopyLink(inv.public_token)} title="Copiar link">
                             <Copy className="w-3 h-3" />
                           </Button>
