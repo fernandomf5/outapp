@@ -158,27 +158,21 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'service':
-        return <Wrench className="w-4 h-4" />;
-      case 'purchase':
-        return <Package className="w-4 h-4" />;
-      case 'payment':
-        return <CreditCard className="w-4 h-4" />;
-      default:
-        return <Clock className="w-4 h-4" />;
+      case 'service': return <Wrench className="w-4 h-4" />;
+      case 'purchase': return <Package className="w-4 h-4" />;
+      case 'payment': return <CreditCard className="w-4 h-4" />;
+      case 'receipt': return <Receipt className="w-4 h-4" />;
+      default: return <Clock className="w-4 h-4" />;
     }
   };
 
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'service':
-        return 'Serviço';
-      case 'purchase':
-        return 'Compra';
-      case 'payment':
-        return 'Pagamento';
-      default:
-        return type;
+      case 'service': return 'Serviço';
+      case 'purchase': return 'Compra';
+      case 'payment': return 'Pagamento';
+      case 'receipt': return 'Recibo';
+      default: return type;
     }
   };
 
