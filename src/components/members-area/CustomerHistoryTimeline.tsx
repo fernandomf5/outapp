@@ -127,7 +127,7 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
         const normalizedAmount = Number(r.total_amount || 0).toFixed(2);
         const normalizedTitle = String(receiptTitle).trim().toLowerCase();
 
-        receiptFingerprints.add(`${normalizedDate}|${normalizedAmount}|${normalizedTitle}`);
+        receiptFingerprints.add(`${normalizedDate}|${normalizedAmount}`);
 
         allItems.push({
           id: r.id,
@@ -145,8 +145,7 @@ export function CustomerHistoryTimeline({ customerId, primaryColor = '#8B5CF6' }
         payments.forEach((pay: any) => {
           const normalizedDate = String(pay.payment_date).slice(0, 10);
           const normalizedAmount = Number(pay.amount || 0).toFixed(2);
-          const normalizedTitle = String(pay.description || 'Pagamento').trim().toLowerCase();
-          const paymentFingerprint = `${normalizedDate}|${normalizedAmount}|${normalizedTitle}`;
+          const paymentFingerprint = `${normalizedDate}|${normalizedAmount}`;
 
           if (receiptFingerprints.has(paymentFingerprint)) return;
 
