@@ -1626,6 +1626,12 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
                       <p className="font-medium">{selectedCustomer.phone}</p>
                     </div>
                   )}
+                  {(selectedCustomer as any).document && (
+                    <div>
+                      <Label className="text-muted-foreground">CPF/CNPJ</Label>
+                      <p className="font-medium">{(selectedCustomer as any).document}</p>
+                    </div>
+                  )}
                   {selectedCustomer.company && (
                     <div>
                       <Label className="text-muted-foreground">Empresa</Label>
