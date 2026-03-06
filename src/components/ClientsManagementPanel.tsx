@@ -1215,6 +1215,15 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="document">CPF/CNPJ</Label>
+              <Input
+                id="document"
+                value={formData.document}
+                onChange={(e) => setFormData({ ...formData, document: e.target.value })}
+                placeholder="000.000.000-00 ou 00.000.000/0001-00"
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="company">Empresa</Label>
               <Input
                 id="company"
