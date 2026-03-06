@@ -34,6 +34,7 @@ interface Customer {
   company: string | null;
   position: string | null;
   status: 'lead' | 'prospect' | 'customer' | 'inactive' | 'vip';
+  document: string | null;
   tags: string[] | null;
   notes: string | null;
   address: string | null;
@@ -118,6 +119,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
     phone: "",
     company: "",
     position: "",
+    document: "",
     status: "lead" as Customer['status'],
     tags: [] as string[],
     notes: "",
@@ -354,6 +356,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
       phone: "",
       company: "",
       position: "",
+      document: "",
       status: "lead",
       tags: [],
       notes: "",
@@ -377,6 +380,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
       phone: "",
       company: "",
       position: "",
+      document: "",
       status: "lead",
       tags: [],
       notes: "",
@@ -587,6 +591,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
       phone: customer.phone || "",
       company: customer.company || "",
       position: customer.position || "",
+      document: (customer as any).document || "",
       status: customer.status,
       tags: customer.tags || [],
       notes: customer.notes || "",
@@ -1210,6 +1215,15 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="document">CPF/CNPJ</Label>
+              <Input
+                id="document"
+                value={formData.document}
+                onChange={(e) => setFormData({ ...formData, document: e.target.value })}
+                placeholder="000.000.000-00 ou 00.000.000/0001-00"
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="company">Empresa</Label>
               <Input
                 id="company"
@@ -1403,6 +1417,15 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 placeholder="(11) 99999-9999"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-document">CPF/CNPJ</Label>
+              <Input
+                id="edit-document"
+                value={formData.document}
+                onChange={(e) => setFormData({ ...formData, document: e.target.value })}
+                placeholder="000.000.000-00 ou 00.000.000/0001-00"
               />
             </div>
             <div className="space-y-2">
@@ -1601,6 +1624,12 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
                     <div>
                       <Label className="text-muted-foreground">Telefone</Label>
                       <p className="font-medium">{selectedCustomer.phone}</p>
+                    </div>
+                  )}
+                  {(selectedCustomer as any).document && (
+                    <div>
+                      <Label className="text-muted-foreground">CPF/CNPJ</Label>
+                      <p className="font-medium">{(selectedCustomer as any).document}</p>
                     </div>
                   )}
                   {selectedCustomer.company && (
