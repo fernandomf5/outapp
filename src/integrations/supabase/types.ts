@@ -4190,6 +4190,7 @@ export type Database = {
           company: string | null
           country: string | null
           created_at: string
+          document: string | null
           email: string | null
           id: string
           last_contact_at: string | null
@@ -4213,6 +4214,7 @@ export type Database = {
           company?: string | null
           country?: string | null
           created_at?: string
+          document?: string | null
           email?: string | null
           id?: string
           last_contact_at?: string | null
@@ -4236,6 +4238,7 @@ export type Database = {
           company?: string | null
           country?: string | null
           created_at?: string
+          document?: string | null
           email?: string | null
           id?: string
           last_contact_at?: string | null
