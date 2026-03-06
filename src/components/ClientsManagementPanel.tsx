@@ -380,6 +380,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
       phone: "",
       company: "",
       position: "",
+      document: "",
       status: "lead",
       tags: [],
       notes: "",
