@@ -591,6 +591,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
       phone: customer.phone || "",
       company: customer.company || "",
       position: customer.position || "",
+      document: (customer as any).document || "",
       status: customer.status,
       tags: customer.tags || [],
       notes: customer.notes || "",
