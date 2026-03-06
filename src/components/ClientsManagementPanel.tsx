@@ -34,6 +34,7 @@ interface Customer {
   company: string | null;
   position: string | null;
   status: 'lead' | 'prospect' | 'customer' | 'inactive' | 'vip';
+  document: string | null;
   tags: string[] | null;
   notes: string | null;
   address: string | null;
