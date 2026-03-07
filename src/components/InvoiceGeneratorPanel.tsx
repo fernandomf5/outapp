@@ -799,26 +799,41 @@ export function InvoiceGeneratorPanel() {
                   )}
 
                   {/* Items */}
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <Label className="text-xs font-semibold">Itens</Label>
                     {invoice.items.map(item => (
-                      <div key={item.id} className="grid grid-cols-12 gap-1 items-end">
-                        <div className="col-span-5">
+                      <div key={item.id} className="border rounded-lg p-2 space-y-1.5 sm:p-0 sm:border-0 sm:rounded-none sm:space-y-0">
+                        {/* Mobile: stacked layout */}
+                        <div className="sm:hidden space-y-1.5">
                           <Input className="h-8 text-xs" value={item.description} onChange={e => updateItem(item.id, { description: e.target.value })} placeholder="Descrição" />
+                          <div className="flex gap-1.5 items-center">
+                            <Input type="number" className="h-8 text-xs flex-1" min={1} value={item.quantity} onChange={e => updateItem(item.id, { quantity: parseInt(e.target.value) || 1 })} placeholder="Qtd" />
+                            <Input type="number" className="h-8 text-xs flex-1" min={0} step={0.01} value={item.unit_price} onChange={e => updateItem(item.id, { unit_price: parseFloat(e.target.value) || 0 })} placeholder="Valor" />
+                            <span className="text-xs font-medium px-2 py-1.5 bg-muted rounded whitespace-nowrap">{formatCurrency(item.quantity * item.unit_price)}</span>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive shrink-0" onClick={() => removeItem(item.id)} disabled={invoice.items.length <= 1}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
-                        <div className="col-span-2">
-                          <Input type="number" className="h-8 text-xs" min={1} value={item.quantity} onChange={e => updateItem(item.id, { quantity: parseInt(e.target.value) || 1 })} />
-                        </div>
-                        <div className="col-span-2">
-                          <Input type="number" className="h-8 text-xs" min={0} step={0.01} value={item.unit_price} onChange={e => updateItem(item.id, { unit_price: parseFloat(e.target.value) || 0 })} />
-                        </div>
-                        <div className="col-span-2 text-xs font-medium flex items-center h-8 px-1 bg-muted rounded">
-                          {formatCurrency(item.quantity * item.unit_price)}
-                        </div>
-                        <div className="col-span-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeItem(item.id)} disabled={invoice.items.length <= 1}>
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
+                        {/* Desktop: grid layout */}
+                        <div className="hidden sm:grid grid-cols-12 gap-1 items-end">
+                          <div className="col-span-5">
+                            <Input className="h-8 text-xs" value={item.description} onChange={e => updateItem(item.id, { description: e.target.value })} placeholder="Descrição" />
+                          </div>
+                          <div className="col-span-2">
+                            <Input type="number" className="h-8 text-xs" min={1} value={item.quantity} onChange={e => updateItem(item.id, { quantity: parseInt(e.target.value) || 1 })} />
+                          </div>
+                          <div className="col-span-2">
+                            <Input type="number" className="h-8 text-xs" min={0} step={0.01} value={item.unit_price} onChange={e => updateItem(item.id, { unit_price: parseFloat(e.target.value) || 0 })} />
+                          </div>
+                          <div className="col-span-2 text-xs font-medium flex items-center h-8 px-1 bg-muted rounded">
+                            {formatCurrency(item.quantity * item.unit_price)}
+                          </div>
+                          <div className="col-span-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeItem(item.id)} disabled={invoice.items.length <= 1}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -982,19 +997,21 @@ export function InvoiceGeneratorPanel() {
                     const st = statusLabels[inv.status] || statusLabels.draft;
                     const StatusIcon = st.icon;
                     return (
-                      <div key={inv.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium text-sm truncate">{inv.invoice_number}</p>
-                            <Badge variant="outline" className={`text-[10px] ${st.color}`}>
-                              <StatusIcon className="w-3 h-3 mr-0.5" /> {st.label}
-                            </Badge>
+                      <div key={inv.id} className="p-3 border rounded-lg hover:bg-muted/50 transition-colors space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-medium text-sm truncate">{inv.invoice_number}</p>
+                              <Badge variant="outline" className={`text-[10px] ${st.color}`}>
+                                <StatusIcon className="w-3 h-3 mr-0.5" /> {st.label}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {inv.client_name || 'Sem cliente'} • {formatCurrency(inv.total_amount)} • Venc: {inv.due_date?.split('-').reverse().join('/')}
+                            </p>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {inv.client_name || 'Sem cliente'} • {formatCurrency(inv.total_amount)} • Venc: {inv.due_date?.split('-').reverse().join('/')}
-                          </p>
                         </div>
-                        <div className="flex items-center gap-1 ml-2">
+                        <div className="flex items-center gap-1 flex-wrap">
                           {inv.status === 'pending' && (
                             <Button variant="ghost" size="sm" className="text-green-600 h-7 text-xs" onClick={() => handleUpdateStatus(inv.id, 'paid')}>
                               <CheckCircle className="w-3 h-3 mr-1" /> Pago
@@ -1057,11 +1074,11 @@ export function InvoiceGeneratorPanel() {
         <TabsContent value="recorrentes" className="mt-4">
           <Card>
             <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <RefreshCw className="w-5 h-5" /> Planos Recorrentes ({recurringPlans.length})
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5" /> Planos ({recurringPlans.length})
                 </CardTitle>
-                <Button size="sm" onClick={() => { setPlanDialogOpen(true); setEditingPlanId(null); setPlanForm({ plan_name: '', description: '', amount: 0, recurrence_type: 'monthly', next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '', auto_send_email: false, reminder_days_before: 5, payment_method: 'pix' }); }}>
+                <Button size="sm" className="text-xs" onClick={() => { setPlanDialogOpen(true); setEditingPlanId(null); setPlanForm({ plan_name: '', description: '', amount: 0, recurrence_type: 'monthly', next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '', auto_send_email: false, reminder_days_before: 5, payment_method: 'pix' }); }}>
                   <Plus className="w-4 h-4 mr-1" /> Novo Plano
                 </Button>
               </div>
@@ -1078,9 +1095,9 @@ export function InvoiceGeneratorPanel() {
                   {recurringPlans.map(plan => {
                     const cust = customers.find(c => c.id === plan.customer_id);
                     return (
-                      <div key={plan.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
+                      <div key={plan.id} className="p-3 border rounded-lg hover:bg-muted/50 space-y-2">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-medium text-sm">{plan.plan_name}</p>
                             <Badge variant="outline" className="text-[10px]">
                               {recurrenceLabels[plan.recurrence_type] || plan.recurrence_type}
@@ -1096,7 +1113,7 @@ export function InvoiceGeneratorPanel() {
                             {plan.auto_send_email && <span className="ml-1 text-green-600">• 📧 {plan.reminder_days_before}d antes</span>}
                           </p>
                         </div>
-                        <div className="flex items-center gap-1 ml-2">
+                        <div className="flex items-center gap-1 flex-wrap">
                           <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => handleGenerateFromPlan(plan)} title="Gerar 1 fatura">
                             <FileText className="w-3 h-3 mr-1" /> 1
                           </Button>
@@ -1135,7 +1152,7 @@ export function InvoiceGeneratorPanel() {
 
       {/* Plan Dialog */}
       <Dialog open={planDialogOpen} onOpenChange={setPlanDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingPlanId ? 'Editar Plano' : 'Novo Plano Recorrente'}</DialogTitle>
           </DialogHeader>
