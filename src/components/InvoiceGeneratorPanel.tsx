@@ -1017,6 +1017,20 @@ export function InvoiceGeneratorPanel() {
                               <DollarSign className="w-3 h-3 mr-1" /> MP
                             </Button>
                           )}
+                          {inv.status === 'pending' && (
+                            <Button variant="ghost" size="sm" className="h-7 text-xs" 
+                              onClick={() => handleSendInvoiceEmail(inv.id, false)} 
+                              disabled={sendingEmail === inv.id} title="Enviar por email">
+                              {sendingEmail === inv.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Mail className="w-3 h-3" />}
+                            </Button>
+                          )}
+                          {inv.status === 'pending' && (inv as any).reminder_sent && (
+                            <Button variant="ghost" size="sm" className="h-7 text-xs text-orange-600" 
+                              onClick={() => handleSendInvoiceEmail(inv.id, true)} 
+                              disabled={sendingEmail === inv.id} title="Reenviar lembrete">
+                              {sendingEmail === inv.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                            </Button>
+                          )}
                           <Button variant="ghost" size="sm" className="h-7" onClick={() => handleCopyLink(inv.public_token)} title="Copiar link">
                             <Copy className="w-3 h-3" />
                           </Button>
