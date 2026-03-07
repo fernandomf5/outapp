@@ -1096,8 +1096,11 @@ export function InvoiceGeneratorPanel() {
                           </p>
                         </div>
                         <div className="flex items-center gap-1 ml-2">
-                          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => handleGenerateFromPlan(plan)} title="Gerar fatura">
-                            <FileText className="w-3 h-3 mr-1" /> Gerar
+                          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => handleGenerateFromPlan(plan)} title="Gerar 1 fatura">
+                            <FileText className="w-3 h-3 mr-1" /> 1
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 text-xs text-primary" onClick={() => handleGenerateAllFromPlan(plan)} disabled={generatingBulk} title="Gerar todas as faturas do ano">
+                            {generatingBulk ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Calendar className="w-3 h-3 mr-1" />} Todas
                           </Button>
                           <Button variant="ghost" size="sm" className="h-7" onClick={() => {
                             setEditingPlanId(plan.id);
