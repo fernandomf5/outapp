@@ -150,9 +150,12 @@ export function InvoiceGeneratorPanel() {
   const [planForm, setPlanForm] = useState({
     plan_name: '', description: '', amount: 0, recurrence_type: 'monthly',
     next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '',
+    auto_send_email: false, reminder_days_before: 5, payment_method: 'pix',
   });
   const [savingPlan, setSavingPlan] = useState(false);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
+  const [generatingBulk, setGeneratingBulk] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState<string | null>(null);
 
   // Search
   const [searchQuery, setSearchQuery] = useState('');
