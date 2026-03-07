@@ -1007,6 +1007,9 @@ export function InvoiceGeneratorPanel() {
                               next_invoice_date: plan.next_invoice_date, pix_key: plan.pix_key || '',
                               pix_key_type: plan.pix_key_type || 'cpf',
                               customer_id: plan.customer_id || '', business_id: plan.business_id || '',
+                              auto_send_email: plan.auto_send_email || false,
+                              reminder_days_before: plan.reminder_days_before || 5,
+                              payment_method: plan.payment_method || 'pix',
                             });
                             setPlanDialogOpen(true);
                           }}>
