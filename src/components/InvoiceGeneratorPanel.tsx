@@ -437,6 +437,7 @@ export function InvoiceGeneratorPanel() {
       client_address: [cust?.address, cust?.city, cust?.state].filter(Boolean).join(', '),
       pix_key: plan.pix_key || '',
       pix_key_type: plan.pix_key_type || 'cpf',
+      payment_method: plan.payment_method || 'pix',
     });
     if (plan.customer_id) setSelectedCustomerId(plan.customer_id);
     if (plan.business_id) {
@@ -446,6 +447,91 @@ export function InvoiceGeneratorPanel() {
     setEditingId(null);
     setActiveTab('criar');
     toast({ title: "Fatura gerada a partir do plano! 📋" });
+  };
+
+  const handleGenerateAllFromPlan = async (plan: RecurringPlan) => {
+    if (!user) return;
+    setGeneratingBulk(true);
+    try {
+      const cust = customers.find(c => c.id === plan.customer_id);
+      const biz = businesses.find(b => b.id === plan.business_id);
+      const startDate = new Date(plan.next_invoice_date || new Date().toISOString().slice(0, 10));
+      
+      // Calculate number of invoices based on recurrence
+      const monthsMap: Record<string, number> = { monthly: 1, quarterly: 3, semiannual: 6, annual: 12 };
+      const intervalMonths = monthsMap[plan.recurrence_type] || 1;
+      const totalInvoices = Math.floor(12 / intervalMonths);
+      
+      const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+      
+      const invoicesToCreate = [];
+      for (let i = 0; i < totalInvoices; i++) {
+        const dueDate = new Date(startDate);
+        dueDate.setMonth(dueDate.getMonth() + (i * intervalMonths));
+        const dueDateStr = `${dueDate.getFullYear()}-${String(dueDate.getMonth() + 1).padStart(2, '0')}-${String(dueDate.getDate()).padStart(2, '0')}`;
+        const monthLabel = monthNames[dueDate.getMonth()];
+        
+        const addr = biz ? [biz.address, biz.city, biz.state].filter(Boolean).join(', ') : '';
+        
+        invoicesToCreate.push({
+          user_id: user.id,
+          invoice_number: `FAT-${Date.now().toString().slice(-6)}-${String(i + 1).padStart(2, '0')}`,
+          invoice_title: `FATURA - ${plan.plan_name}`,
+          items: JSON.parse(JSON.stringify([{ id: crypto.randomUUID(), description: `${plan.plan_name} - ${monthLabel}/${dueDate.getFullYear()}${plan.description ? ` (${plan.description})` : ''}`, quantity: 1, unit_price: plan.amount }])),
+          subtotal: plan.amount,
+          discount_amount: 0,
+          total_amount: plan.amount,
+          status: 'pending',
+          due_date: dueDateStr,
+          payment_method: plan.payment_method || 'pix',
+          pix_key: plan.pix_key || null,
+          pix_key_type: plan.pix_key_type || null,
+          client_name: cust?.name || '',
+          client_email: cust?.email || '',
+          client_phone: cust?.phone || '',
+          client_document: '',
+          client_address: cust ? [cust.address, cust.city, cust.state].filter(Boolean).join(', ') : '',
+          company_name: biz?.company_name || biz?.name || '',
+          company_document: biz?.cnpj || '',
+          company_address: addr,
+          company_phone: biz?.phone || '',
+          logo_url: biz?.logo_url || '',
+          primary_color: '#2563eb',
+          notes: '',
+          business_id: plan.business_id || null,
+          customer_id: plan.customer_id || null,
+          recurring_plan_id: plan.id,
+        });
+      }
+      
+      const { error } = await supabase.from('invoices').insert(invoicesToCreate);
+      if (error) throw error;
+      
+      toast({ title: `${totalInvoices} faturas geradas! 🎉`, description: `Faturas criadas para o plano "${plan.plan_name}".` });
+      await refreshInvoices();
+      setActiveTab('faturas');
+    } catch (error: any) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    } finally {
+      setGeneratingBulk(false);
+    }
+  };
+
+  const handleSendInvoiceEmail = async (invoiceId: string, isReminder: boolean = false) => {
+    setSendingEmail(invoiceId);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-invoice-reminder', {
+        body: { invoice_id: invoiceId, is_reminder: isReminder },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: isReminder ? "Lembrete enviado! 📧" : "Fatura enviada por email! 📧" });
+      await refreshInvoices();
+    } catch (error: any) {
+      toast({ title: "Erro ao enviar email", description: error.message, variant: "destructive" });
+    } finally {
+      setSendingEmail(null);
+    }
   };
 
   const filteredInvoices = savedInvoices.filter(inv => {
