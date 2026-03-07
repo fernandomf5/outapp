@@ -1074,11 +1074,11 @@ export function InvoiceGeneratorPanel() {
         <TabsContent value="recorrentes" className="mt-4">
           <Card>
             <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <RefreshCw className="w-5 h-5" /> Planos Recorrentes ({recurringPlans.length})
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5" /> Planos ({recurringPlans.length})
                 </CardTitle>
-                <Button size="sm" onClick={() => { setPlanDialogOpen(true); setEditingPlanId(null); setPlanForm({ plan_name: '', description: '', amount: 0, recurrence_type: 'monthly', next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '', auto_send_email: false, reminder_days_before: 5, payment_method: 'pix' }); }}>
+                <Button size="sm" className="text-xs" onClick={() => { setPlanDialogOpen(true); setEditingPlanId(null); setPlanForm({ plan_name: '', description: '', amount: 0, recurrence_type: 'monthly', next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '', auto_send_email: false, reminder_days_before: 5, payment_method: 'pix' }); }}>
                   <Plus className="w-4 h-4 mr-1" /> Novo Plano
                 </Button>
               </div>
