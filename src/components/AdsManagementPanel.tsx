@@ -2192,7 +2192,176 @@ export const AdsManagementPanel = ({ teamContext }: AdsManagementPanelProps) => 
                 </Card>
               </div>
 
-              {/* Campaign Performance Evaluation */}
+              {/* Resumo por Tipo de Campanha */}
+              {!selectedCampaignId && filteredCampaigns.length > 0 && (() => {
+                // Agrupar campanhas por tipo
+                const typeGroups: Record<string, AdCampaign[]> = {};
+                filteredCampaigns.forEach(c => {
+                  if (!typeGroups[c.campaign_type]) typeGroups[c.campaign_type] = [];
+                  typeGroups[c.campaign_type].push(c);
+                });
+
+                const typeLabels: Record<string, string> = {
+                  conversion: 'Conversão', traffic: 'Tráfego', engagement: 'Engajamento',
+                  reach: 'Alcance', video: 'Vídeo', leads: 'Leads', messages: 'Mensagens',
+                  catalog: 'Catálogo', remarketing: 'Remarketing', ab_test: 'Teste A/B',
+                  followers: 'Seguidores', app_install: 'App Install', custom_conversion: 'Conv. Custom',
+                  promotion: 'Promoção', branding: 'Branding'
+                };
+
+                const typeIcons: Record<string, string> = {
+                  conversion: '🎯', traffic: '🚀', engagement: '💬', reach: '📡',
+                  video: '🎬', leads: '📋', messages: '💌', catalog: '🛒',
+                  remarketing: '🔄', ab_test: '🧪', followers: '👥', app_install: '📱',
+                  custom_conversion: '⚙️', promotion: '🏷️', branding: '🏢'
+                };
+
+                // Só mostrar se há mais de um tipo ou se o tipo não é financeiro
+                const nonFinancialTypes = Object.keys(typeGroups).filter(t => !['conversion', 'catalog', 'promotion', 'remarketing'].includes(t));
+                
+                if (nonFinancialTypes.length === 0 && Object.keys(typeGroups).length <= 1) return null;
+
+                return (
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5 text-primary" />
+                      Resultados por Tipo de Campanha
+                    </h3>
+                    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                      {Object.entries(typeGroups).map(([type, camps]) => {
+                        const totalSpentType = camps.reduce((s, c) => s + c.spent, 0);
+                        
+                        // Calcular métricas específicas por tipo
+                        let mainMetric = '';
+                        let mainValue = '';
+                        let secondaryMetric = '';
+                        let isGood = false;
+
+                        switch (type) {
+                          case 'engagement': {
+                            const totalEng = camps.reduce((s, c) => s + (c.engagement_count || 0), 0);
+                            const costPerEng = totalEng > 0 ? totalSpentType / totalEng : 0;
+                            const totalImp = camps.reduce((s, c) => s + c.impressions, 0);
+                            const engRate = totalImp > 0 ? (totalEng / totalImp) * 100 : 0;
+                            mainMetric = `${totalEng.toLocaleString()} engajamentos`;
+                            mainValue = `R$ ${costPerEng.toFixed(2)}/eng`;
+                            secondaryMetric = `Taxa: ${engRate.toFixed(2)}%`;
+                            isGood = engRate > 5;
+                            break;
+                          }
+                          case 'followers': {
+                            const totalFollowers = camps.reduce((s, c) => s + (c.followers_gained || 0), 0);
+                            const costPerFollower = totalFollowers > 0 ? totalSpentType / totalFollowers : 0;
+                            mainMetric = `${totalFollowers.toLocaleString()} seguidores`;
+                            mainValue = `R$ ${costPerFollower.toFixed(2)}/seguidor`;
+                            isGood = totalFollowers > 0 && costPerFollower < 5;
+                            break;
+                          }
+                          case 'reach':
+                          case 'branding': {
+                            const totalReach = camps.reduce((s, c) => s + (c.reach || 0), 0);
+                            const cpm = totalReach > 0 ? (totalSpentType / totalReach) * 1000 : 0;
+                            const avgFreq = camps.reduce((s, c) => s + (c.frequency || 0), 0) / camps.length;
+                            mainMetric = `${totalReach.toLocaleString()} alcance`;
+                            mainValue = `CPM: R$ ${cpm.toFixed(2)}`;
+                            secondaryMetric = avgFreq > 0 ? `Freq. média: ${avgFreq.toFixed(1)}x` : '';
+                            isGood = totalReach > 0 && cpm < 30;
+                            break;
+                          }
+                          case 'video': {
+                            const totalViews = camps.reduce((s, c) => s + (c.video_views || 0), 0);
+                            const cpv = totalViews > 0 ? totalSpentType / totalViews : 0;
+                            const totalWatchTime = camps.reduce((s, c) => s + (c.video_watch_time || 0), 0);
+                            const avgWatch = totalViews > 0 ? totalWatchTime / totalViews : 0;
+                            mainMetric = `${totalViews.toLocaleString()} views`;
+                            mainValue = `CPV: R$ ${cpv.toFixed(3)}`;
+                            secondaryMetric = `Média: ${avgWatch.toFixed(0)}s`;
+                            isGood = cpv < 0.10;
+                            break;
+                          }
+                          case 'leads': {
+                            const totalLeads = camps.reduce((s, c) => s + (c.leads_generated || 0), 0);
+                            const cpl = totalLeads > 0 ? totalSpentType / totalLeads : 0;
+                            mainMetric = `${totalLeads.toLocaleString()} leads`;
+                            mainValue = `CPL: R$ ${cpl.toFixed(2)}`;
+                            isGood = totalLeads > 0 && cpl < 20;
+                            break;
+                          }
+                          case 'messages': {
+                            const totalMsgs = camps.reduce((s, c) => s + (c.messages_count || 0), 0);
+                            const costPerMsg = totalMsgs > 0 ? totalSpentType / totalMsgs : 0;
+                            const avgResp = camps.reduce((s, c) => s + (c.response_rate || 0), 0) / camps.length;
+                            mainMetric = `${totalMsgs.toLocaleString()} mensagens`;
+                            mainValue = `R$ ${costPerMsg.toFixed(2)}/msg`;
+                            secondaryMetric = avgResp > 0 ? `Resp: ${avgResp.toFixed(1)}%` : '';
+                            isGood = avgResp > 40;
+                            break;
+                          }
+                          case 'traffic': {
+                            const totalClksType = camps.reduce((s, c) => s + c.clicks, 0);
+                            const totalImpType = camps.reduce((s, c) => s + c.impressions, 0);
+                            const cpc = totalClksType > 0 ? totalSpentType / totalClksType : 0;
+                            const ctr = totalImpType > 0 ? (totalClksType / totalImpType) * 100 : 0;
+                            mainMetric = `${totalClksType.toLocaleString()} cliques`;
+                            mainValue = `CPC: R$ ${cpc.toFixed(2)}`;
+                            secondaryMetric = `CTR: ${ctr.toFixed(2)}%`;
+                            isGood = ctr > 2;
+                            break;
+                          }
+                          case 'app_install': {
+                            const totalInstalls = camps.reduce((s, c) => s + (c.app_installs || 0), 0);
+                            const cpi = totalInstalls > 0 ? totalSpentType / totalInstalls : 0;
+                            mainMetric = `${totalInstalls.toLocaleString()} instalações`;
+                            mainValue = `CPI: R$ ${cpi.toFixed(2)}`;
+                            isGood = totalInstalls > 0;
+                            break;
+                          }
+                          default: {
+                            const totalRev = camps.reduce((s, c) => s + (c.revenue || 0), 0);
+                            const roiVal = totalSpentType > 0 ? ((totalRev - totalSpentType) / totalSpentType) * 100 : 0;
+                            mainMetric = `R$ ${totalRev.toFixed(2)} receita`;
+                            mainValue = `ROI: ${roiVal.toFixed(1)}%`;
+                            isGood = roiVal > 0;
+                            break;
+                          }
+                        }
+
+                        // Avaliar campanhas do grupo
+                        const evaluations = camps.map(c => evaluateCampaignPerformance(c));
+                        const avgPerf = evaluations.reduce((s, e) => s + e.percentage, 0) / evaluations.length;
+                        const perfIcon = avgPerf >= 80 ? '🎉' : avgPerf >= 60 ? '👍' : avgPerf >= 40 ? '⚠️' : '📉';
+
+                        return (
+                          <Card key={type} className={`glass border ${isGood ? 'border-success/30' : 'border-destructive/30'}`}>
+                            <CardContent className="pt-4 pb-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-lg">{typeIcons[type] || '📊'}</span>
+                                  <span className="font-semibold text-sm">{typeLabels[type] || type}</span>
+                                </div>
+                                <Badge variant="outline" className="text-[10px]">
+                                  {camps.length} camp.
+                                </Badge>
+                              </div>
+                              <div className={`text-xl font-bold ${isGood ? 'text-success' : 'text-destructive'}`}>
+                                {isGood ? '✅' : '❌'} {mainMetric}
+                              </div>
+                              <div className="text-sm text-muted-foreground mt-1">{mainValue}</div>
+                              {secondaryMetric && <div className="text-xs text-muted-foreground">{secondaryMetric}</div>}
+                              <div className="flex items-center justify-between mt-2 pt-2 border-t border-border">
+                                <span className="text-xs text-muted-foreground">Investido: R$ {totalSpentType.toFixed(2)}</span>
+                                <span className="text-xs">{perfIcon} {avgPerf.toFixed(0)}%</span>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
+
               {selectedCampaignId && filteredCampaigns.length > 0 && (() => {
                 const campaign = filteredCampaigns[0];
                 const evaluation = evaluateCampaignPerformance(campaign);
