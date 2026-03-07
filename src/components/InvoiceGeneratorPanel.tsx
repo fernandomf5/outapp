@@ -391,6 +391,9 @@ export function InvoiceGeneratorPanel() {
         pix_key_type: planForm.pix_key_type || null,
         customer_id: planForm.customer_id && planForm.customer_id !== '_none' ? planForm.customer_id : null,
         business_id: planForm.business_id && planForm.business_id !== '_none' ? planForm.business_id : null,
+        auto_send_email: planForm.auto_send_email,
+        reminder_days_before: planForm.reminder_days_before,
+        payment_method: planForm.payment_method,
       };
       if (editingPlanId) {
         const { error } = await supabase.from('invoice_recurring_plans').update(payload).eq('id', editingPlanId);
@@ -402,7 +405,8 @@ export function InvoiceGeneratorPanel() {
         toast({ title: "Plano criado! ✅" });
       }
       setPlanDialogOpen(false);
-      setPlanForm({ plan_name: '', description: '', amount: 0, recurrence_type: 'monthly', next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '' });
+      const defaultPlanForm = { plan_name: '', description: '', amount: 0, recurrence_type: 'monthly', next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '', auto_send_email: false, reminder_days_before: 5, payment_method: 'pix' };
+      setPlanForm(defaultPlanForm);
       setEditingPlanId(null);
       await refreshPlans();
     } catch (error: any) {
