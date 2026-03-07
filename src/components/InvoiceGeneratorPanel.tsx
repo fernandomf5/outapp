@@ -961,7 +961,7 @@ export function InvoiceGeneratorPanel() {
                 <CardTitle className="text-base flex items-center gap-2">
                   <RefreshCw className="w-5 h-5" /> Planos Recorrentes ({recurringPlans.length})
                 </CardTitle>
-                <Button size="sm" onClick={() => { setPlanDialogOpen(true); setEditingPlanId(null); setPlanForm({ plan_name: '', description: '', amount: 0, recurrence_type: 'monthly', next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '' }); }}>
+                <Button size="sm" onClick={() => { setPlanDialogOpen(true); setEditingPlanId(null); setPlanForm({ plan_name: '', description: '', amount: 0, recurrence_type: 'monthly', next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '', auto_send_email: false, reminder_days_before: 5, payment_method: 'pix' }); }}>
                   <Plus className="w-4 h-4 mr-1" /> Novo Plano
                 </Button>
               </div>
