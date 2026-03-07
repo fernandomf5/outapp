@@ -1210,6 +1210,41 @@ export function InvoiceGeneratorPanel() {
                 <Input className="h-8 text-xs" value={planForm.pix_key} onChange={e => setPlanForm(p => ({ ...p, pix_key: e.target.value }))} placeholder="Sua chave PIX" />
               </div>
             </div>
+            <div>
+              <Label className="text-xs">Forma de Pagamento</Label>
+              <Select value={planForm.payment_method} onValueChange={v => setPlanForm(p => ({ ...p, payment_method: v }))}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {Object.entries(paymentMethods).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="border rounded-lg p-3 space-y-3 bg-muted/30">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-xs font-semibold flex items-center gap-1"><Mail className="w-3 h-3" /> Envio automático por email</Label>
+                  <p className="text-[10px] text-muted-foreground">Enviar fatura para o email do cliente antes do vencimento</p>
+                </div>
+                <Switch checked={planForm.auto_send_email} onCheckedChange={v => setPlanForm(p => ({ ...p, auto_send_email: v }))} />
+              </div>
+              {planForm.auto_send_email && (
+                <div>
+                  <Label className="text-xs">Enviar quantos dias antes do vencimento?</Label>
+                  <Select value={String(planForm.reminder_days_before)} onValueChange={v => setPlanForm(p => ({ ...p, reminder_days_before: parseInt(v) }))}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 dia antes</SelectItem>
+                      <SelectItem value="3">3 dias antes</SelectItem>
+                      <SelectItem value="5">5 dias antes</SelectItem>
+                      <SelectItem value="7">7 dias antes</SelectItem>
+                      <SelectItem value="10">10 dias antes</SelectItem>
+                      <SelectItem value="15">15 dias antes</SelectItem>
+                      <SelectItem value="30">30 dias antes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
             <Button onClick={handleSavePlan} disabled={savingPlan} className="w-full">
               {savingPlan ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
               {editingPlanId ? 'Atualizar Plano' : 'Criar Plano'}
