@@ -1095,9 +1095,9 @@ export function InvoiceGeneratorPanel() {
                   {recurringPlans.map(plan => {
                     const cust = customers.find(c => c.id === plan.customer_id);
                     return (
-                      <div key={plan.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
+                      <div key={plan.id} className="p-3 border rounded-lg hover:bg-muted/50 space-y-2">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-medium text-sm">{plan.plan_name}</p>
                             <Badge variant="outline" className="text-[10px]">
                               {recurrenceLabels[plan.recurrence_type] || plan.recurrence_type}
@@ -1113,7 +1113,7 @@ export function InvoiceGeneratorPanel() {
                             {plan.auto_send_email && <span className="ml-1 text-green-600">• 📧 {plan.reminder_days_before}d antes</span>}
                           </p>
                         </div>
-                        <div className="flex items-center gap-1 ml-2">
+                        <div className="flex items-center gap-1 flex-wrap">
                           <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => handleGenerateFromPlan(plan)} title="Gerar 1 fatura">
                             <FileText className="w-3 h-3 mr-1" /> 1
                           </Button>
