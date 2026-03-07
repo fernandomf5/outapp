@@ -799,26 +799,41 @@ export function InvoiceGeneratorPanel() {
                   )}
 
                   {/* Items */}
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <Label className="text-xs font-semibold">Itens</Label>
                     {invoice.items.map(item => (
-                      <div key={item.id} className="grid grid-cols-12 gap-1 items-end">
-                        <div className="col-span-5">
+                      <div key={item.id} className="border rounded-lg p-2 space-y-1.5 sm:p-0 sm:border-0 sm:rounded-none sm:space-y-0">
+                        {/* Mobile: stacked layout */}
+                        <div className="sm:hidden space-y-1.5">
                           <Input className="h-8 text-xs" value={item.description} onChange={e => updateItem(item.id, { description: e.target.value })} placeholder="Descrição" />
+                          <div className="flex gap-1.5 items-center">
+                            <Input type="number" className="h-8 text-xs flex-1" min={1} value={item.quantity} onChange={e => updateItem(item.id, { quantity: parseInt(e.target.value) || 1 })} placeholder="Qtd" />
+                            <Input type="number" className="h-8 text-xs flex-1" min={0} step={0.01} value={item.unit_price} onChange={e => updateItem(item.id, { unit_price: parseFloat(e.target.value) || 0 })} placeholder="Valor" />
+                            <span className="text-xs font-medium px-2 py-1.5 bg-muted rounded whitespace-nowrap">{formatCurrency(item.quantity * item.unit_price)}</span>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive shrink-0" onClick={() => removeItem(item.id)} disabled={invoice.items.length <= 1}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
-                        <div className="col-span-2">
-                          <Input type="number" className="h-8 text-xs" min={1} value={item.quantity} onChange={e => updateItem(item.id, { quantity: parseInt(e.target.value) || 1 })} />
-                        </div>
-                        <div className="col-span-2">
-                          <Input type="number" className="h-8 text-xs" min={0} step={0.01} value={item.unit_price} onChange={e => updateItem(item.id, { unit_price: parseFloat(e.target.value) || 0 })} />
-                        </div>
-                        <div className="col-span-2 text-xs font-medium flex items-center h-8 px-1 bg-muted rounded">
-                          {formatCurrency(item.quantity * item.unit_price)}
-                        </div>
-                        <div className="col-span-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeItem(item.id)} disabled={invoice.items.length <= 1}>
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
+                        {/* Desktop: grid layout */}
+                        <div className="hidden sm:grid grid-cols-12 gap-1 items-end">
+                          <div className="col-span-5">
+                            <Input className="h-8 text-xs" value={item.description} onChange={e => updateItem(item.id, { description: e.target.value })} placeholder="Descrição" />
+                          </div>
+                          <div className="col-span-2">
+                            <Input type="number" className="h-8 text-xs" min={1} value={item.quantity} onChange={e => updateItem(item.id, { quantity: parseInt(e.target.value) || 1 })} />
+                          </div>
+                          <div className="col-span-2">
+                            <Input type="number" className="h-8 text-xs" min={0} step={0.01} value={item.unit_price} onChange={e => updateItem(item.id, { unit_price: parseFloat(e.target.value) || 0 })} />
+                          </div>
+                          <div className="col-span-2 text-xs font-medium flex items-center h-8 px-1 bg-muted rounded">
+                            {formatCurrency(item.quantity * item.unit_price)}
+                          </div>
+                          <div className="col-span-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeItem(item.id)} disabled={invoice.items.length <= 1}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))}
