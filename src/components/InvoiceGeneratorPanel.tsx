@@ -997,19 +997,21 @@ export function InvoiceGeneratorPanel() {
                     const st = statusLabels[inv.status] || statusLabels.draft;
                     const StatusIcon = st.icon;
                     return (
-                      <div key={inv.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium text-sm truncate">{inv.invoice_number}</p>
-                            <Badge variant="outline" className={`text-[10px] ${st.color}`}>
-                              <StatusIcon className="w-3 h-3 mr-0.5" /> {st.label}
-                            </Badge>
+                      <div key={inv.id} className="p-3 border rounded-lg hover:bg-muted/50 transition-colors space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-medium text-sm truncate">{inv.invoice_number}</p>
+                              <Badge variant="outline" className={`text-[10px] ${st.color}`}>
+                                <StatusIcon className="w-3 h-3 mr-0.5" /> {st.label}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {inv.client_name || 'Sem cliente'} • {formatCurrency(inv.total_amount)} • Venc: {inv.due_date?.split('-').reverse().join('/')}
+                            </p>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {inv.client_name || 'Sem cliente'} • {formatCurrency(inv.total_amount)} • Venc: {inv.due_date?.split('-').reverse().join('/')}
-                          </p>
                         </div>
-                        <div className="flex items-center gap-1 ml-2">
+                        <div className="flex items-center gap-1 flex-wrap">
                           {inv.status === 'pending' && (
                             <Button variant="ghost" size="sm" className="text-green-600 h-7 text-xs" onClick={() => handleUpdateStatus(inv.id, 'paid')}>
                               <CheckCircle className="w-3 h-3 mr-1" /> Pago
