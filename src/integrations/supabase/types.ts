@@ -4971,6 +4971,7 @@ export type Database = {
       invoice_recurring_plans: {
         Row: {
           amount: number
+          auto_send_email: boolean | null
           business_id: string | null
           created_at: string
           customer_id: string | null
@@ -4978,16 +4979,19 @@ export type Database = {
           id: string
           is_active: boolean
           next_invoice_date: string
+          payment_method: string | null
           pix_key: string | null
           pix_key_type: string | null
           plan_name: string
           recurrence_type: string
+          reminder_days_before: number | null
           start_date: string
           updated_at: string
           user_id: string
         }
         Insert: {
           amount?: number
+          auto_send_email?: boolean | null
           business_id?: string | null
           created_at?: string
           customer_id?: string | null
@@ -4995,16 +4999,19 @@ export type Database = {
           id?: string
           is_active?: boolean
           next_invoice_date?: string
+          payment_method?: string | null
           pix_key?: string | null
           pix_key_type?: string | null
           plan_name: string
           recurrence_type?: string
+          reminder_days_before?: number | null
           start_date?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           amount?: number
+          auto_send_email?: boolean | null
           business_id?: string | null
           created_at?: string
           customer_id?: string | null
@@ -5012,10 +5019,12 @@ export type Database = {
           id?: string
           is_active?: boolean
           next_invoice_date?: string
+          payment_method?: string | null
           pix_key?: string | null
           pix_key_type?: string | null
           plan_name?: string
           recurrence_type?: string
+          reminder_days_before?: number | null
           start_date?: string
           updated_at?: string
           user_id?: string
@@ -5057,6 +5066,7 @@ export type Database = {
           invoice_number: string
           invoice_title: string
           items: Json
+          last_reminder_sent_at: string | null
           logo_url: string | null
           mercadopago_checkout_url: string | null
           mercadopago_payment_id: string | null
@@ -5069,6 +5079,8 @@ export type Database = {
           primary_color: string | null
           public_token: string
           recurring_plan_id: string | null
+          reminder_sent: boolean | null
+          reminder_sent_at: string | null
           status: string
           subtotal: number
           total_amount: number
@@ -5094,6 +5106,7 @@ export type Database = {
           invoice_number: string
           invoice_title?: string
           items?: Json
+          last_reminder_sent_at?: string | null
           logo_url?: string | null
           mercadopago_checkout_url?: string | null
           mercadopago_payment_id?: string | null
@@ -5106,6 +5119,8 @@ export type Database = {
           primary_color?: string | null
           public_token?: string
           recurring_plan_id?: string | null
+          reminder_sent?: boolean | null
+          reminder_sent_at?: string | null
           status?: string
           subtotal?: number
           total_amount?: number
@@ -5131,6 +5146,7 @@ export type Database = {
           invoice_number?: string
           invoice_title?: string
           items?: Json
+          last_reminder_sent_at?: string | null
           logo_url?: string | null
           mercadopago_checkout_url?: string | null
           mercadopago_payment_id?: string | null
@@ -5143,6 +5159,8 @@ export type Database = {
           primary_color?: string | null
           public_token?: string
           recurring_plan_id?: string | null
+          reminder_sent?: boolean | null
+          reminder_sent_at?: string | null
           status?: string
           subtotal?: number
           total_amount?: number

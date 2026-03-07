@@ -62,6 +62,9 @@ interface RecurringPlan {
   business_id: string | null;
   pix_key: string | null;
   pix_key_type: string | null;
+  auto_send_email: boolean;
+  reminder_days_before: number;
+  payment_method: string | null;
 }
 
 interface SavedInvoice {
@@ -147,9 +150,12 @@ export function InvoiceGeneratorPanel() {
   const [planForm, setPlanForm] = useState({
     plan_name: '', description: '', amount: 0, recurrence_type: 'monthly',
     next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '',
+    auto_send_email: false, reminder_days_before: 5, payment_method: 'pix',
   });
   const [savingPlan, setSavingPlan] = useState(false);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
+  const [generatingBulk, setGeneratingBulk] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState<string | null>(null);
 
   // Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -161,7 +167,7 @@ export function InvoiceGeneratorPanel() {
       const [bizRes, custRes, invRes, planRes] = await Promise.all([
         supabase.from('businesses').select('id, name, cnpj, company_name, phone, address, city, state, logo_url').eq('user_id', user.id).order('name'),
         supabase.from('customers').select('id, name, email, phone, address, city, state, company').eq('user_id', user.id).order('name'),
-        supabase.from('invoices').select('id, invoice_number, invoice_title, total_amount, status, due_date, client_name, company_name, public_token, paid_at, payment_method, items, created_at').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('invoices').select('id, invoice_number, invoice_title, total_amount, status, due_date, client_name, company_name, public_token, paid_at, payment_method, items, created_at, reminder_sent, last_reminder_sent_at').eq('user_id', user.id).order('created_at', { ascending: false }),
         supabase.from('invoice_recurring_plans').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
       ]);
       if (bizRes.data) setBusinesses(bizRes.data);
@@ -174,7 +180,7 @@ export function InvoiceGeneratorPanel() {
 
   const refreshInvoices = async () => {
     if (!user) return;
-    const { data } = await supabase.from('invoices').select('id, invoice_number, invoice_title, total_amount, status, due_date, client_name, company_name, public_token, paid_at, payment_method, items, created_at').eq('user_id', user.id).order('created_at', { ascending: false });
+    const { data } = await supabase.from('invoices').select('id, invoice_number, invoice_title, total_amount, status, due_date, client_name, company_name, public_token, paid_at, payment_method, items, created_at, reminder_sent, last_reminder_sent_at').eq('user_id', user.id).order('created_at', { ascending: false });
     if (data) setSavedInvoices(data as any);
   };
 
@@ -385,6 +391,9 @@ export function InvoiceGeneratorPanel() {
         pix_key_type: planForm.pix_key_type || null,
         customer_id: planForm.customer_id && planForm.customer_id !== '_none' ? planForm.customer_id : null,
         business_id: planForm.business_id && planForm.business_id !== '_none' ? planForm.business_id : null,
+        auto_send_email: planForm.auto_send_email,
+        reminder_days_before: planForm.reminder_days_before,
+        payment_method: planForm.payment_method,
       };
       if (editingPlanId) {
         const { error } = await supabase.from('invoice_recurring_plans').update(payload).eq('id', editingPlanId);
@@ -396,7 +405,8 @@ export function InvoiceGeneratorPanel() {
         toast({ title: "Plano criado! ✅" });
       }
       setPlanDialogOpen(false);
-      setPlanForm({ plan_name: '', description: '', amount: 0, recurrence_type: 'monthly', next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '' });
+      const defaultPlanForm = { plan_name: '', description: '', amount: 0, recurrence_type: 'monthly', next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '', auto_send_email: false, reminder_days_before: 5, payment_method: 'pix' };
+      setPlanForm(defaultPlanForm);
       setEditingPlanId(null);
       await refreshPlans();
     } catch (error: any) {
@@ -427,6 +437,7 @@ export function InvoiceGeneratorPanel() {
       client_address: [cust?.address, cust?.city, cust?.state].filter(Boolean).join(', '),
       pix_key: plan.pix_key || '',
       pix_key_type: plan.pix_key_type || 'cpf',
+      payment_method: plan.payment_method || 'pix',
     });
     if (plan.customer_id) setSelectedCustomerId(plan.customer_id);
     if (plan.business_id) {
@@ -436,6 +447,91 @@ export function InvoiceGeneratorPanel() {
     setEditingId(null);
     setActiveTab('criar');
     toast({ title: "Fatura gerada a partir do plano! 📋" });
+  };
+
+  const handleGenerateAllFromPlan = async (plan: RecurringPlan) => {
+    if (!user) return;
+    setGeneratingBulk(true);
+    try {
+      const cust = customers.find(c => c.id === plan.customer_id);
+      const biz = businesses.find(b => b.id === plan.business_id);
+      const startDate = new Date(plan.next_invoice_date || new Date().toISOString().slice(0, 10));
+      
+      // Calculate number of invoices based on recurrence
+      const monthsMap: Record<string, number> = { monthly: 1, quarterly: 3, semiannual: 6, annual: 12 };
+      const intervalMonths = monthsMap[plan.recurrence_type] || 1;
+      const totalInvoices = Math.floor(12 / intervalMonths);
+      
+      const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+      
+      const invoicesToCreate = [];
+      for (let i = 0; i < totalInvoices; i++) {
+        const dueDate = new Date(startDate);
+        dueDate.setMonth(dueDate.getMonth() + (i * intervalMonths));
+        const dueDateStr = `${dueDate.getFullYear()}-${String(dueDate.getMonth() + 1).padStart(2, '0')}-${String(dueDate.getDate()).padStart(2, '0')}`;
+        const monthLabel = monthNames[dueDate.getMonth()];
+        
+        const addr = biz ? [biz.address, biz.city, biz.state].filter(Boolean).join(', ') : '';
+        
+        invoicesToCreate.push({
+          user_id: user.id,
+          invoice_number: `FAT-${Date.now().toString().slice(-6)}-${String(i + 1).padStart(2, '0')}`,
+          invoice_title: `FATURA - ${plan.plan_name}`,
+          items: JSON.parse(JSON.stringify([{ id: crypto.randomUUID(), description: `${plan.plan_name} - ${monthLabel}/${dueDate.getFullYear()}${plan.description ? ` (${plan.description})` : ''}`, quantity: 1, unit_price: plan.amount }])),
+          subtotal: plan.amount,
+          discount_amount: 0,
+          total_amount: plan.amount,
+          status: 'pending',
+          due_date: dueDateStr,
+          payment_method: plan.payment_method || 'pix',
+          pix_key: plan.pix_key || null,
+          pix_key_type: plan.pix_key_type || null,
+          client_name: cust?.name || '',
+          client_email: cust?.email || '',
+          client_phone: cust?.phone || '',
+          client_document: '',
+          client_address: cust ? [cust.address, cust.city, cust.state].filter(Boolean).join(', ') : '',
+          company_name: biz?.company_name || biz?.name || '',
+          company_document: biz?.cnpj || '',
+          company_address: addr,
+          company_phone: biz?.phone || '',
+          logo_url: biz?.logo_url || '',
+          primary_color: '#2563eb',
+          notes: '',
+          business_id: plan.business_id || null,
+          customer_id: plan.customer_id || null,
+          recurring_plan_id: plan.id,
+        });
+      }
+      
+      const { error } = await supabase.from('invoices').insert(invoicesToCreate);
+      if (error) throw error;
+      
+      toast({ title: `${totalInvoices} faturas geradas! 🎉`, description: `Faturas criadas para o plano "${plan.plan_name}".` });
+      await refreshInvoices();
+      setActiveTab('faturas');
+    } catch (error: any) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    } finally {
+      setGeneratingBulk(false);
+    }
+  };
+
+  const handleSendInvoiceEmail = async (invoiceId: string, isReminder: boolean = false) => {
+    setSendingEmail(invoiceId);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-invoice-reminder', {
+        body: { invoice_id: invoiceId, is_reminder: isReminder },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: isReminder ? "Lembrete enviado! 📧" : "Fatura enviada por email! 📧" });
+      await refreshInvoices();
+    } catch (error: any) {
+      toast({ title: "Erro ao enviar email", description: error.message, variant: "destructive" });
+    } finally {
+      setSendingEmail(null);
+    }
   };
 
   const filteredInvoices = savedInvoices.filter(inv => {
@@ -921,6 +1017,20 @@ export function InvoiceGeneratorPanel() {
                               <DollarSign className="w-3 h-3 mr-1" /> MP
                             </Button>
                           )}
+                          {inv.status === 'pending' && (
+                            <Button variant="ghost" size="sm" className="h-7 text-xs" 
+                              onClick={() => handleSendInvoiceEmail(inv.id, false)} 
+                              disabled={sendingEmail === inv.id} title="Enviar por email">
+                              {sendingEmail === inv.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Mail className="w-3 h-3" />}
+                            </Button>
+                          )}
+                          {inv.status === 'pending' && (inv as any).reminder_sent && (
+                            <Button variant="ghost" size="sm" className="h-7 text-xs text-orange-600" 
+                              onClick={() => handleSendInvoiceEmail(inv.id, true)} 
+                              disabled={sendingEmail === inv.id} title="Reenviar lembrete">
+                              {sendingEmail === inv.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                            </Button>
+                          )}
                           <Button variant="ghost" size="sm" className="h-7" onClick={() => handleCopyLink(inv.public_token)} title="Copiar link">
                             <Copy className="w-3 h-3" />
                           </Button>
@@ -951,7 +1061,7 @@ export function InvoiceGeneratorPanel() {
                 <CardTitle className="text-base flex items-center gap-2">
                   <RefreshCw className="w-5 h-5" /> Planos Recorrentes ({recurringPlans.length})
                 </CardTitle>
-                <Button size="sm" onClick={() => { setPlanDialogOpen(true); setEditingPlanId(null); setPlanForm({ plan_name: '', description: '', amount: 0, recurrence_type: 'monthly', next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '' }); }}>
+                <Button size="sm" onClick={() => { setPlanDialogOpen(true); setEditingPlanId(null); setPlanForm({ plan_name: '', description: '', amount: 0, recurrence_type: 'monthly', next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '', auto_send_email: false, reminder_days_before: 5, payment_method: 'pix' }); }}>
                   <Plus className="w-4 h-4 mr-1" /> Novo Plano
                 </Button>
               </div>
@@ -983,11 +1093,15 @@ export function InvoiceGeneratorPanel() {
                           </div>
                           <p className="text-xs text-muted-foreground mt-0.5">
                             {cust?.name || 'Sem cliente'} • {formatCurrency(plan.amount)} • Próx: {plan.next_invoice_date?.split('-').reverse().join('/')}
+                            {plan.auto_send_email && <span className="ml-1 text-green-600">• 📧 {plan.reminder_days_before}d antes</span>}
                           </p>
                         </div>
                         <div className="flex items-center gap-1 ml-2">
-                          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => handleGenerateFromPlan(plan)} title="Gerar fatura">
-                            <FileText className="w-3 h-3 mr-1" /> Gerar
+                          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => handleGenerateFromPlan(plan)} title="Gerar 1 fatura">
+                            <FileText className="w-3 h-3 mr-1" /> 1
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 text-xs text-primary" onClick={() => handleGenerateAllFromPlan(plan)} disabled={generatingBulk} title="Gerar todas as faturas do ano">
+                            {generatingBulk ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Calendar className="w-3 h-3 mr-1" />} Todas
                           </Button>
                           <Button variant="ghost" size="sm" className="h-7" onClick={() => {
                             setEditingPlanId(plan.id);
@@ -997,6 +1111,9 @@ export function InvoiceGeneratorPanel() {
                               next_invoice_date: plan.next_invoice_date, pix_key: plan.pix_key || '',
                               pix_key_type: plan.pix_key_type || 'cpf',
                               customer_id: plan.customer_id || '', business_id: plan.business_id || '',
+                              auto_send_email: plan.auto_send_email || false,
+                              reminder_days_before: plan.reminder_days_before || 5,
+                              payment_method: plan.payment_method || 'pix',
                             });
                             setPlanDialogOpen(true);
                           }}>
@@ -1092,6 +1209,41 @@ export function InvoiceGeneratorPanel() {
                 <Label className="text-xs">Chave PIX</Label>
                 <Input className="h-8 text-xs" value={planForm.pix_key} onChange={e => setPlanForm(p => ({ ...p, pix_key: e.target.value }))} placeholder="Sua chave PIX" />
               </div>
+            </div>
+            <div>
+              <Label className="text-xs">Forma de Pagamento</Label>
+              <Select value={planForm.payment_method} onValueChange={v => setPlanForm(p => ({ ...p, payment_method: v }))}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {Object.entries(paymentMethods).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="border rounded-lg p-3 space-y-3 bg-muted/30">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-xs font-semibold flex items-center gap-1"><Mail className="w-3 h-3" /> Envio automático por email</Label>
+                  <p className="text-[10px] text-muted-foreground">Enviar fatura para o email do cliente antes do vencimento</p>
+                </div>
+                <Switch checked={planForm.auto_send_email} onCheckedChange={v => setPlanForm(p => ({ ...p, auto_send_email: v }))} />
+              </div>
+              {planForm.auto_send_email && (
+                <div>
+                  <Label className="text-xs">Enviar quantos dias antes do vencimento?</Label>
+                  <Select value={String(planForm.reminder_days_before)} onValueChange={v => setPlanForm(p => ({ ...p, reminder_days_before: parseInt(v) }))}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 dia antes</SelectItem>
+                      <SelectItem value="3">3 dias antes</SelectItem>
+                      <SelectItem value="5">5 dias antes</SelectItem>
+                      <SelectItem value="7">7 dias antes</SelectItem>
+                      <SelectItem value="10">10 dias antes</SelectItem>
+                      <SelectItem value="15">15 dias antes</SelectItem>
+                      <SelectItem value="30">30 dias antes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
             <Button onClick={handleSavePlan} disabled={savingPlan} className="w-full">
               {savingPlan ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}

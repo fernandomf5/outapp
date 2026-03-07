@@ -80,3 +80,6 @@ verify_jwt = false
 
 [functions.invoice-mercadopago-webhook]
 verify_jwt = false
+
+[functions.send-invoice-reminder]
+verify_jwt = false
