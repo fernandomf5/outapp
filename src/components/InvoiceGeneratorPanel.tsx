@@ -1152,7 +1152,7 @@ export function InvoiceGeneratorPanel() {
 
       {/* Plan Dialog */}
       <Dialog open={planDialogOpen} onOpenChange={setPlanDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingPlanId ? 'Editar Plano' : 'Novo Plano Recorrente'}</DialogTitle>
           </DialogHeader>
