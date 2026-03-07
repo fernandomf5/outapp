@@ -180,7 +180,7 @@ export function InvoiceGeneratorPanel() {
 
   const refreshInvoices = async () => {
     if (!user) return;
-    const { data } = await supabase.from('invoices').select('id, invoice_number, invoice_title, total_amount, status, due_date, client_name, company_name, public_token, paid_at, payment_method, items, created_at').eq('user_id', user.id).order('created_at', { ascending: false });
+    const { data } = await supabase.from('invoices').select('id, invoice_number, invoice_title, total_amount, status, due_date, client_name, company_name, public_token, paid_at, payment_method, items, created_at, reminder_sent, last_reminder_sent_at').eq('user_id', user.id).order('created_at', { ascending: false });
     if (data) setSavedInvoices(data as any);
   };
 
