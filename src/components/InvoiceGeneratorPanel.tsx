@@ -1093,6 +1093,7 @@ export function InvoiceGeneratorPanel() {
                           </div>
                           <p className="text-xs text-muted-foreground mt-0.5">
                             {cust?.name || 'Sem cliente'} • {formatCurrency(plan.amount)} • Próx: {plan.next_invoice_date?.split('-').reverse().join('/')}
+                            {plan.auto_send_email && <span className="ml-1 text-green-600">• 📧 {plan.reminder_days_before}d antes</span>}
                           </p>
                         </div>
                         <div className="flex items-center gap-1 ml-2">
