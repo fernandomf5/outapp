@@ -62,6 +62,9 @@ interface RecurringPlan {
   business_id: string | null;
   pix_key: string | null;
   pix_key_type: string | null;
+  auto_send_email: boolean;
+  reminder_days_before: number;
+  payment_method: string | null;
 }
 
 interface SavedInvoice {
