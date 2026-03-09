@@ -322,6 +322,7 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
   const [selectedBusinessFilter, setSelectedBusinessFilter] = useState<string>("");
   const [filterMode, setFilterMode] = useState<"client" | "business">("client");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [showFilters, setShowFilters] = useState(false);
   const [dateStart, setDateStart] = useState<string>("");
   const [dateEnd, setDateEnd] = useState<string>("");
   const [taskForm, setTaskForm] = useState({
