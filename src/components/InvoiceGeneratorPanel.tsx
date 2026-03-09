@@ -1286,6 +1286,37 @@ export function InvoiceGeneratorPanel() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Email Dialog */}
+      <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-4 h-4" />
+              {emailDialogData.isReminder ? 'Enviar Lembrete' : 'Enviar Fatura por Email'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">Email do destinatário *</Label>
+              <Input
+                type="email"
+                className="h-9 text-sm"
+                value={emailDialogData.email}
+                onChange={e => setEmailDialogData(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="email@cliente.com"
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                O email será salvo no cadastro da fatura.
+              </p>
+            </div>
+            <Button onClick={handleSendInvoiceEmail} className="w-full" disabled={!emailDialogData.email}>
+              <Send className="w-4 h-4 mr-1" />
+              {emailDialogData.isReminder ? 'Enviar Lembrete' : 'Enviar Fatura'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
