@@ -12,44 +12,27 @@ import { QRCodeSVG } from "qrcode.react";
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
-// Generate PIX BRCode (EMV) payload
-const generatePixPayload = (pixKey: string, merchantName: string, city: string, amount: number, txid?: string) => {
-  const pad = (id: string, val: string) => {
-    const len = val.length.toString().padStart(2, '0');
-    return `${id}${len}${val}`;
-  };
-
-  // Merchant Account Information (GUI + key)
-  const gui = pad('00', 'br.gov.bcb.pix');
-  const key = pad('01', pixKey);
-  const merchantAccount = pad('26', gui + key);
-
-  const payloadFormat = pad('00', '01'); // Payload Format Indicator
-  const pointOfInit = pad('01', '12'); // Point of Initiation (dynamic if amount present)
+// Clean PIX key based on type (remove formatting)
+const cleanPixKey = (key: string, keyType?: string): string => {
+  if (!key) return '';
+  const type = (keyType || '').toLowerCase();
   
-  const mcc = pad('52', '0000'); // Merchant Category Code
-  const currency = pad('53', '986'); // BRL
-  
-  let payload = payloadFormat + pointOfInit + merchantAccount + mcc + currency;
-
-  if (amount > 0) {
-    payload += pad('54', amount.toFixed(2));
+  if (type === 'cpf' || type === 'cnpj' || type === 'telefone' || type === 'phone') {
+    // Remove all non-numeric characters except + for phone
+    return key.replace(/[^\d+]/g, '');
   }
+  if (type === 'email') {
+    return key.toLowerCase().trim();
+  }
+  // Random key or unknown - return as-is trimmed
+  return key.trim();
+};
 
-  const countryCode = pad('58', 'BR');
-  const name = pad('59', (merchantName || 'PAGAMENTO').substring(0, 25).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase());
-  const cityField = pad('60', (city || 'BRASIL').substring(0, 15).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase());
+// Generate PIX BRCode (EMV) payload - Banco Central format
+const generatePixPayload = (pixKey: string, pixKeyType: string, merchantName: string, city: string, amount: number, txid?: string) => {
+  const cleanedKey = cleanPixKey(pixKey, pixKeyType);
   
-  const txId = pad('05', (txid || '***').substring(0, 25));
-  const additionalData = pad('62', txId);
-
-  payload += countryCode + name + cityField + additionalData;
-
-  // CRC16 placeholder
-  payload += '6304';
-
-  // Calculate CRC16-CCITT
-  const crc16 = (str: string) => {
+  const crc16 = (str: string): string => {
     let crc = 0xFFFF;
     for (let i = 0; i < str.length; i++) {
       crc ^= str.charCodeAt(i) << 8;
@@ -65,7 +48,59 @@ const generatePixPayload = (pixKey: string, merchantName: string, city: string, 
     return crc.toString(16).toUpperCase().padStart(4, '0');
   };
 
-  return payload.slice(0, -4) + '6304' + crc16(payload);
+  const pad = (id: string, val: string): string => {
+    return id + val.length.toString().padStart(2, '0') + val;
+  };
+
+  // Build Merchant Account Information (field 26)
+  const gui = pad('00', 'br.gov.bcb.pix');
+  const key = pad('01', cleanedKey);
+  const merchantAccountInfo = pad('26', gui + key);
+
+  // Build payload
+  let payload = '';
+  payload += pad('00', '01'); // Payload Format Indicator
+  payload += merchantAccountInfo; // Merchant Account Info
+  payload += pad('52', '0000'); // Merchant Category Code
+  payload += pad('53', '986'); // Transaction Currency (BRL)
+  
+  if (amount > 0) {
+    payload += pad('54', amount.toFixed(2)); // Transaction Amount
+  }
+  
+  payload += pad('58', 'BR'); // Country Code
+  
+  // Clean merchant name (max 25 chars, no special chars)
+  const cleanName = (merchantName || 'PAGAMENTO')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Za-z0-9 ]/g, '')
+    .toUpperCase()
+    .substring(0, 25)
+    .trim();
+  payload += pad('59', cleanName || 'PAGAMENTO');
+  
+  // Clean city (max 15 chars)
+  const cleanCity = (city || 'BRASIL')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Za-z0-9 ]/g, '')
+    .toUpperCase()
+    .substring(0, 15)
+    .trim();
+  payload += pad('60', cleanCity || 'BRASIL');
+  
+  // Additional Data Field (field 62) with txid
+  const txidClean = (txid || '***')
+    .replace(/[^A-Za-z0-9]/g, '')
+    .substring(0, 25);
+  payload += pad('62', pad('05', txidClean || '***'));
+  
+  // Add CRC placeholder and calculate
+  payload += '6304';
+  const crcValue = crc16(payload);
+  
+  return payload + crcValue;
 };
 
 
@@ -375,11 +410,12 @@ export default function InvoicePublicPage() {
                   <QRCodeSVG 
                     value={generatePixPayload(
                       invoice.pix_key,
+                      invoice.pix_key_type || 'cpf',
                       invoice.company_name || 'PAGAMENTO',
                       'BRASIL',
                       invoice.total_amount || 0,
                       invoice.invoice_number
-                    )} 
+                    )}
                     size={180}
                     level="M"
                     includeMargin={true}
