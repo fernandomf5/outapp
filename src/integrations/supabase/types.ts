@@ -4983,6 +4983,7 @@ export type Database = {
           pix_key: string | null
           pix_key_type: string | null
           plan_name: string
+          recipient_email: string | null
           recurrence_type: string
           reminder_days_before: number | null
           start_date: string
@@ -5003,6 +5004,7 @@ export type Database = {
           pix_key?: string | null
           pix_key_type?: string | null
           plan_name: string
+          recipient_email?: string | null
           recurrence_type?: string
           reminder_days_before?: number | null
           start_date?: string
@@ -5023,6 +5025,7 @@ export type Database = {
           pix_key?: string | null
           pix_key_type?: string | null
           plan_name?: string
+          recipient_email?: string | null
           recurrence_type?: string
           reminder_days_before?: number | null
           start_date?: string
