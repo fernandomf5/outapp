@@ -1321,6 +1321,11 @@ export function InvoiceGeneratorPanel() {
                 onChange={e => setEmailDialogData(prev => ({ ...prev, email: e.target.value }))}
                 placeholder="email@cliente.com"
               />
+              {!emailDialogData.email && (
+                <p className="text-[11px] text-orange-600 mt-1">
+                  ⚠️ Nenhum email cadastrado. Preencha o email abaixo para enviar.
+                </p>
+              )}
               <p className="text-[10px] text-muted-foreground mt-1">
                 O email será salvo no cadastro da fatura.
               </p>
