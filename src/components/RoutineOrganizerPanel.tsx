@@ -2260,15 +2260,15 @@ export default function RoutineOrganizerPanel() {
       <AlertDialog open={isResetAllOpen} onOpenChange={setIsResetAllOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Zerar toda a rotina?</AlertDialogTitle>
+            <AlertDialogTitle>Reiniciar semana?</AlertDialogTitle>
             <AlertDialogDescription>
-              Isso irá excluir todas as atividades, objetivos e progressos da rotina "{activeRoutine?.name}". Esta ação não pode ser desfeita.
+              Isso irá desmarcar todas as atividades concluídas e resetar o progresso dos objetivos da rotina "{activeRoutine?.name}". As atividades e objetivos serão mantidos.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleResetAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Zerar Tudo
+              Reiniciar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
