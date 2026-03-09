@@ -410,11 +410,12 @@ export default function InvoicePublicPage() {
                   <QRCodeSVG 
                     value={generatePixPayload(
                       invoice.pix_key,
+                      invoice.pix_key_type || 'cpf',
                       invoice.company_name || 'PAGAMENTO',
                       'BRASIL',
                       invoice.total_amount || 0,
                       invoice.invoice_number
-                    )} 
+                    )}
                     size={180}
                     level="M"
                     includeMargin={true}
