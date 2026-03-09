@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
@@ -229,6 +230,8 @@ export default function RoutineOrganizerPanel() {
   const [copyToDays, setCopyToDays] = useState<number[]>([]);
   const [isShareOpen, setIsShareOpen] = useState(false);
   
+  const [isResetAllOpen, setIsResetAllOpen] = useState(false);
+  
   // Form data
   const [itemFormData, setItemFormData] = useState({
     title: '',
@@ -444,6 +447,25 @@ export default function RoutineOrganizerPanel() {
     } catch (error) {
       console.error('Error deleting routine:', error);
       toast.error('Erro ao excluir rotina');
+    }
+  };
+
+  const handleResetAll = async () => {
+    if (!user || !activeRoutine) return;
+    try {
+      await Promise.all([
+        supabase.from('routine_items').delete().eq('user_id', user.id).eq('routine_id', activeRoutine.id),
+        supabase.from('routine_objectives').delete().eq('user_id', user.id).eq('routine_id', activeRoutine.id),
+        supabase.from('routine_completions').delete().eq('user_id', user.id),
+      ]);
+      setRoutineItems([]);
+      setObjectives([]);
+      setCompletions([]);
+      setIsResetAllOpen(false);
+      toast.success('Rotina zerada com sucesso! Você pode recomeçar.');
+    } catch (error) {
+      console.error('Error resetting routine:', error);
+      toast.error('Erro ao zerar rotina');
     }
   };
 
@@ -1100,6 +1122,14 @@ export default function RoutineOrganizerPanel() {
                     Excluir Rotina
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  className="text-destructive"
+                  onClick={() => setIsResetAllOpen(true)}
+                >
+                  <RefreshCw className="h-3 w-3 mr-2" />
+                  Zerar Tudo
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -2217,6 +2247,24 @@ export default function RoutineOrganizerPanel() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Reset All Confirmation */}
+      <AlertDialog open={isResetAllOpen} onOpenChange={setIsResetAllOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Zerar toda a rotina?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Isso irá excluir todas as atividades, objetivos e progressos da rotina "{activeRoutine?.name}". Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleResetAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Zerar Tudo
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
