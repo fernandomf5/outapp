@@ -1136,7 +1136,7 @@ export default function RoutineOrganizerPanel() {
                   onClick={() => setIsResetAllOpen(true)}
                 >
                   <RefreshCw className="h-3 w-3 mr-2" />
-                  Zerar Tudo
+                  Reiniciar Semana
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
