@@ -169,7 +169,7 @@ export function InvoiceGeneratorPanel() {
       const [bizRes, custRes, invRes, planRes] = await Promise.all([
         supabase.from('businesses').select('id, name, cnpj, company_name, phone, address, city, state, logo_url').eq('user_id', user.id).order('name'),
         supabase.from('customers').select('id, name, email, phone, address, city, state, company').eq('user_id', user.id).order('name'),
-        supabase.from('invoices').select('id, invoice_number, invoice_title, total_amount, status, due_date, client_name, company_name, public_token, paid_at, payment_method, items, created_at, reminder_sent, last_reminder_sent_at').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('invoices').select('id, invoice_number, invoice_title, total_amount, status, due_date, client_name, client_email, company_name, public_token, paid_at, payment_method, items, created_at, reminder_sent, last_reminder_sent_at').eq('user_id', user.id).order('created_at', { ascending: false }),
         supabase.from('invoice_recurring_plans').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
       ]);
       if (bizRes.data) setBusinesses(bizRes.data);
