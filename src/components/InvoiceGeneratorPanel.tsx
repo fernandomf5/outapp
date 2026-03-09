@@ -150,7 +150,7 @@ export function InvoiceGeneratorPanel() {
   const [planForm, setPlanForm] = useState({
     plan_name: '', description: '', amount: 0, recurrence_type: 'monthly',
     next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '',
-    auto_send_email: false, reminder_days_before: 5, payment_method: 'pix',
+    auto_send_email: false, reminder_days_before: 5, payment_method: 'pix', recipient_email: '',
   });
   const [savingPlan, setSavingPlan] = useState(false);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
@@ -396,6 +396,7 @@ export function InvoiceGeneratorPanel() {
         auto_send_email: planForm.auto_send_email,
         reminder_days_before: planForm.reminder_days_before,
         payment_method: planForm.payment_method,
+        recipient_email: planForm.recipient_email || null,
       };
       if (editingPlanId) {
         const { error } = await supabase.from('invoice_recurring_plans').update(payload).eq('id', editingPlanId);
@@ -407,7 +408,7 @@ export function InvoiceGeneratorPanel() {
         toast({ title: "Plano criado! ✅" });
       }
       setPlanDialogOpen(false);
-      const defaultPlanForm = { plan_name: '', description: '', amount: 0, recurrence_type: 'monthly', next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '', auto_send_email: false, reminder_days_before: 5, payment_method: 'pix' };
+      const defaultPlanForm = { plan_name: '', description: '', amount: 0, recurrence_type: 'monthly', next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '', auto_send_email: false, reminder_days_before: 5, payment_method: 'pix', recipient_email: '' };
       setPlanForm(defaultPlanForm);
       setEditingPlanId(null);
       await refreshPlans();
@@ -1095,7 +1096,7 @@ export function InvoiceGeneratorPanel() {
                 <CardTitle className="text-sm sm:text-base flex items-center gap-2">
                   <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5" /> Planos ({recurringPlans.length})
                 </CardTitle>
-                <Button size="sm" className="text-xs" onClick={() => { setPlanDialogOpen(true); setEditingPlanId(null); setPlanForm({ plan_name: '', description: '', amount: 0, recurrence_type: 'monthly', next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '', auto_send_email: false, reminder_days_before: 5, payment_method: 'pix' }); }}>
+                <Button size="sm" className="text-xs" onClick={() => { setPlanDialogOpen(true); setEditingPlanId(null); setPlanForm({ plan_name: '', description: '', amount: 0, recurrence_type: 'monthly', next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '', auto_send_email: false, reminder_days_before: 5, payment_method: 'pix', recipient_email: '' }); }}>
                   <Plus className="w-4 h-4 mr-1" /> Novo Plano
                 </Button>
               </div>
@@ -1148,6 +1149,7 @@ export function InvoiceGeneratorPanel() {
                               auto_send_email: plan.auto_send_email || false,
                               reminder_days_before: plan.reminder_days_before || 5,
                               payment_method: plan.payment_method || 'pix',
+                              recipient_email: (plan as any).recipient_email || '',
                             });
                             setPlanDialogOpen(true);
                           }}>
@@ -1262,20 +1264,33 @@ export function InvoiceGeneratorPanel() {
                 <Switch checked={planForm.auto_send_email} onCheckedChange={v => setPlanForm(p => ({ ...p, auto_send_email: v }))} />
               </div>
               {planForm.auto_send_email && (
-                <div>
-                  <Label className="text-xs">Enviar quantos dias antes do vencimento?</Label>
-                  <Select value={String(planForm.reminder_days_before)} onValueChange={v => setPlanForm(p => ({ ...p, reminder_days_before: parseInt(v) }))}>
-                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 dia antes</SelectItem>
-                      <SelectItem value="3">3 dias antes</SelectItem>
-                      <SelectItem value="5">5 dias antes</SelectItem>
-                      <SelectItem value="7">7 dias antes</SelectItem>
-                      <SelectItem value="10">10 dias antes</SelectItem>
-                      <SelectItem value="15">15 dias antes</SelectItem>
-                      <SelectItem value="30">30 dias antes</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs">Email do destinatário</Label>
+                    <Input
+                      type="email"
+                      placeholder="email@cliente.com"
+                      className="h-8 text-xs"
+                      value={planForm.recipient_email}
+                      onChange={e => setPlanForm(p => ({ ...p, recipient_email: e.target.value }))}
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Email para onde a fatura será enviada automaticamente</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Enviar quantos dias antes do vencimento?</Label>
+                    <Select value={String(planForm.reminder_days_before)} onValueChange={v => setPlanForm(p => ({ ...p, reminder_days_before: parseInt(v) }))}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 dia antes</SelectItem>
+                        <SelectItem value="3">3 dias antes</SelectItem>
+                        <SelectItem value="5">5 dias antes</SelectItem>
+                        <SelectItem value="7">7 dias antes</SelectItem>
+                        <SelectItem value="10">10 dias antes</SelectItem>
+                        <SelectItem value="15">15 dias antes</SelectItem>
+                        <SelectItem value="30">30 dias antes</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               )}
             </div>
