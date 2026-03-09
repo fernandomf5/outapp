@@ -396,6 +396,7 @@ export function InvoiceGeneratorPanel() {
         auto_send_email: planForm.auto_send_email,
         reminder_days_before: planForm.reminder_days_before,
         payment_method: planForm.payment_method,
+        recipient_email: planForm.recipient_email || null,
       };
       if (editingPlanId) {
         const { error } = await supabase.from('invoice_recurring_plans').update(payload).eq('id', editingPlanId);
