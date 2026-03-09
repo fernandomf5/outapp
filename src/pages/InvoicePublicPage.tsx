@@ -370,14 +370,19 @@ export default function InvoicePublicPage() {
                   <QrCode className="w-4 h-4" /> Pagar via PIX
                 </p>
                 
-                {/* QR Code */}
+                {/* QR Code with proper PIX BRCode payload */}
                 <div className="bg-white p-4 rounded-lg inline-block mx-auto shadow-sm">
                   <QRCodeSVG 
-                    value={invoice.pix_key} 
+                    value={generatePixPayload(
+                      invoice.pix_key,
+                      invoice.company_name || 'PAGAMENTO',
+                      'BRASIL',
+                      invoice.total_amount || 0,
+                      invoice.invoice_number
+                    )} 
                     size={180}
-                    level="H"
+                    level="M"
                     includeMargin={true}
-                    fgColor={color}
                   />
                 </div>
                 
