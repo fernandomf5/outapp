@@ -230,6 +230,8 @@ export default function RoutineOrganizerPanel() {
   const [copyToDays, setCopyToDays] = useState<number[]>([]);
   const [isShareOpen, setIsShareOpen] = useState(false);
   
+  const [isResetAllOpen, setIsResetAllOpen] = useState(false);
+  
   // Form data
   const [itemFormData, setItemFormData] = useState({
     title: '',
