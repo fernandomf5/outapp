@@ -156,6 +156,8 @@ export function InvoiceGeneratorPanel() {
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [generatingBulk, setGeneratingBulk] = useState(false);
   const [sendingEmail, setSendingEmail] = useState<string | null>(null);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [emailDialogData, setEmailDialogData] = useState<{ invoiceId: string; isReminder: boolean; email: string }>({ invoiceId: '', isReminder: false, email: '' });
 
   // Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -167,7 +169,7 @@ export function InvoiceGeneratorPanel() {
       const [bizRes, custRes, invRes, planRes] = await Promise.all([
         supabase.from('businesses').select('id, name, cnpj, company_name, phone, address, city, state, logo_url').eq('user_id', user.id).order('name'),
         supabase.from('customers').select('id, name, email, phone, address, city, state, company').eq('user_id', user.id).order('name'),
-        supabase.from('invoices').select('id, invoice_number, invoice_title, total_amount, status, due_date, client_name, company_name, public_token, paid_at, payment_method, items, created_at, reminder_sent, last_reminder_sent_at').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('invoices').select('id, invoice_number, invoice_title, total_amount, status, due_date, client_name, client_email, company_name, public_token, paid_at, payment_method, items, created_at, reminder_sent, last_reminder_sent_at').eq('user_id', user.id).order('created_at', { ascending: false }),
         supabase.from('invoice_recurring_plans').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
       ]);
       if (bizRes.data) setBusinesses(bizRes.data);
@@ -180,7 +182,7 @@ export function InvoiceGeneratorPanel() {
 
   const refreshInvoices = async () => {
     if (!user) return;
-    const { data } = await supabase.from('invoices').select('id, invoice_number, invoice_title, total_amount, status, due_date, client_name, company_name, public_token, paid_at, payment_method, items, created_at, reminder_sent, last_reminder_sent_at').eq('user_id', user.id).order('created_at', { ascending: false });
+    const { data } = await supabase.from('invoices').select('id, invoice_number, invoice_title, total_amount, status, due_date, client_name, client_email, company_name, public_token, paid_at, payment_method, items, created_at, reminder_sent, last_reminder_sent_at').eq('user_id', user.id).order('created_at', { ascending: false });
     if (data) setSavedInvoices(data as any);
   };
 
@@ -517,9 +519,24 @@ export function InvoiceGeneratorPanel() {
     }
   };
 
-  const handleSendInvoiceEmail = async (invoiceId: string, isReminder: boolean = false) => {
+  const openEmailDialog = (invoiceId: string, isReminder: boolean = false) => {
+    const inv = savedInvoices.find(i => i.id === invoiceId);
+    const clientEmail = (inv as any)?.client_email || '';
+    setEmailDialogData({ invoiceId, isReminder, email: clientEmail });
+    setEmailDialogOpen(true);
+  };
+
+  const handleSendInvoiceEmail = async () => {
+    const { invoiceId, isReminder, email } = emailDialogData;
+    if (!email || !email.includes('@')) {
+      toast({ title: "Erro", description: "Informe um email válido.", variant: "destructive" });
+      return;
+    }
+    setEmailDialogOpen(false);
     setSendingEmail(invoiceId);
     try {
+      // Update invoice client_email if changed
+      await supabase.from('invoices').update({ client_email: email }).eq('id', invoiceId);
       const { data, error } = await supabase.functions.invoke('send-invoice-reminder', {
         body: { invoice_id: invoiceId, is_reminder: isReminder },
       });
@@ -1036,14 +1053,14 @@ export function InvoiceGeneratorPanel() {
                           )}
                           {inv.status === 'pending' && (
                             <Button variant="ghost" size="sm" className="h-7 text-xs" 
-                              onClick={() => handleSendInvoiceEmail(inv.id, false)} 
+                              onClick={() => openEmailDialog(inv.id, false)} 
                               disabled={sendingEmail === inv.id} title="Enviar por email">
                               {sendingEmail === inv.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Mail className="w-3 h-3" />}
                             </Button>
                           )}
                           {inv.status === 'pending' && (inv as any).reminder_sent && (
                             <Button variant="ghost" size="sm" className="h-7 text-xs text-orange-600" 
-                              onClick={() => handleSendInvoiceEmail(inv.id, true)} 
+                              onClick={() => openEmailDialog(inv.id, true)} 
                               disabled={sendingEmail === inv.id} title="Reenviar lembrete">
                               {sendingEmail === inv.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
                             </Button>
@@ -1265,6 +1282,37 @@ export function InvoiceGeneratorPanel() {
             <Button onClick={handleSavePlan} disabled={savingPlan} className="w-full">
               {savingPlan ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
               {editingPlanId ? 'Atualizar Plano' : 'Criar Plano'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Email Dialog */}
+      <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-4 h-4" />
+              {emailDialogData.isReminder ? 'Enviar Lembrete' : 'Enviar Fatura por Email'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">Email do destinatário *</Label>
+              <Input
+                type="email"
+                className="h-9 text-sm"
+                value={emailDialogData.email}
+                onChange={e => setEmailDialogData(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="email@cliente.com"
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                O email será salvo no cadastro da fatura.
+              </p>
+            </div>
+            <Button onClick={handleSendInvoiceEmail} className="w-full" disabled={!emailDialogData.email}>
+              <Send className="w-4 h-4 mr-1" />
+              {emailDialogData.isReminder ? 'Enviar Lembrete' : 'Enviar Fatura'}
             </Button>
           </div>
         </DialogContent>
