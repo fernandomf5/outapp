@@ -519,9 +519,24 @@ export function InvoiceGeneratorPanel() {
     }
   };
 
-  const handleSendInvoiceEmail = async (invoiceId: string, isReminder: boolean = false) => {
+  const openEmailDialog = (invoiceId: string, isReminder: boolean = false) => {
+    const inv = savedInvoices.find(i => i.id === invoiceId);
+    const clientEmail = (inv as any)?.client_email || '';
+    setEmailDialogData({ invoiceId, isReminder, email: clientEmail });
+    setEmailDialogOpen(true);
+  };
+
+  const handleSendInvoiceEmail = async () => {
+    const { invoiceId, isReminder, email } = emailDialogData;
+    if (!email || !email.includes('@')) {
+      toast({ title: "Erro", description: "Informe um email válido.", variant: "destructive" });
+      return;
+    }
+    setEmailDialogOpen(false);
     setSendingEmail(invoiceId);
     try {
+      // Update invoice client_email if changed
+      await supabase.from('invoices').update({ client_email: email }).eq('id', invoiceId);
       const { data, error } = await supabase.functions.invoke('send-invoice-reminder', {
         body: { invoice_id: invoiceId, is_reminder: isReminder },
       });
