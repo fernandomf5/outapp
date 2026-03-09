@@ -12,6 +12,63 @@ import { QRCodeSVG } from "qrcode.react";
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
+// Generate PIX BRCode (EMV) payload
+const generatePixPayload = (pixKey: string, merchantName: string, city: string, amount: number, txid?: string) => {
+  const pad = (id: string, val: string) => {
+    const len = val.length.toString().padStart(2, '0');
+    return `${id}${len}${val}`;
+  };
+
+  // Merchant Account Information (GUI + key)
+  const gui = pad('00', 'br.gov.bcb.pix');
+  const key = pad('01', pixKey);
+  const merchantAccount = pad('26', gui + key);
+
+  const payloadFormat = pad('00', '01'); // Payload Format Indicator
+  const pointOfInit = pad('01', '12'); // Point of Initiation (dynamic if amount present)
+  
+  const mcc = pad('52', '0000'); // Merchant Category Code
+  const currency = pad('53', '986'); // BRL
+  
+  let payload = payloadFormat + pointOfInit + merchantAccount + mcc + currency;
+
+  if (amount > 0) {
+    payload += pad('54', amount.toFixed(2));
+  }
+
+  const countryCode = pad('58', 'BR');
+  const name = pad('59', (merchantName || 'PAGAMENTO').substring(0, 25).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase());
+  const cityField = pad('60', (city || 'BRASIL').substring(0, 15).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase());
+  
+  const txId = pad('05', (txid || '***').substring(0, 25));
+  const additionalData = pad('62', txId);
+
+  payload += countryCode + name + cityField + additionalData;
+
+  // CRC16 placeholder
+  payload += '6304';
+
+  // Calculate CRC16-CCITT
+  const crc16 = (str: string) => {
+    let crc = 0xFFFF;
+    for (let i = 0; i < str.length; i++) {
+      crc ^= str.charCodeAt(i) << 8;
+      for (let j = 0; j < 8; j++) {
+        if (crc & 0x8000) {
+          crc = (crc << 1) ^ 0x1021;
+        } else {
+          crc = crc << 1;
+        }
+        crc &= 0xFFFF;
+      }
+    }
+    return crc.toString(16).toUpperCase().padStart(4, '0');
+  };
+
+  return payload.slice(0, -4) + '6304' + crc16(payload);
+};
+
+
 const statusMap: Record<string, { label: string; color: string; icon: any }> = {
   pending: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
   paid: { label: 'Pago', color: 'bg-green-100 text-green-800', icon: CheckCircle },
