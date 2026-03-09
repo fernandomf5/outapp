@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle, Clock, AlertCircle, XCircle, Download, Copy, CreditCard } from "lucide-react";
+import { Loader2, CheckCircle, Clock, AlertCircle, XCircle, Download, Copy, CreditCard, QrCode } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
+import { QRCodeSVG } from "qrcode.react";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
