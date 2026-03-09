@@ -156,6 +156,8 @@ export function InvoiceGeneratorPanel() {
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [generatingBulk, setGeneratingBulk] = useState(false);
   const [sendingEmail, setSendingEmail] = useState<string | null>(null);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [emailDialogData, setEmailDialogData] = useState<{ invoiceId: string; isReminder: boolean; email: string }>({ invoiceId: '', isReminder: false, email: '' });
 
   // Search
   const [searchQuery, setSearchQuery] = useState('');
