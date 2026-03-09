@@ -435,7 +435,7 @@ export function InvoiceGeneratorPanel() {
       due_date: plan.next_invoice_date,
       items: [{ id: crypto.randomUUID(), description: plan.plan_name + (plan.description ? ` - ${plan.description}` : ''), quantity: 1, unit_price: plan.amount }],
       client_name: cust?.name || '',
-      client_email: cust?.email || '',
+      client_email: (plan as any).recipient_email || cust?.email || '',
       client_phone: cust?.phone || '',
       client_address: [cust?.address, cust?.city, cust?.state].filter(Boolean).join(', '),
       pix_key: plan.pix_key || '',
