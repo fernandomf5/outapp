@@ -469,6 +469,7 @@ export default function RoutineOrganizerPanel() {
     }
   };
 
+  const handleAddItem = async () => {
     if (!user || !itemFormData.title.trim()) {
       toast.error('Título é obrigatório');
       return;
