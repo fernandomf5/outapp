@@ -306,13 +306,30 @@ export default function InvoicePublicPage() {
               </div>
             )}
 
-            {/* PIX Key */}
+            {/* PIX Key with QR Code */}
             {invoice.pix_key && invoice.status !== 'paid' && invoice.payment_method === 'pix' && (
-              <div className="border-2 rounded-lg p-4 text-center" style={{ borderColor: color }}>
-                <p className="font-bold text-sm mb-2" style={{ color }}>Pagar via PIX</p>
-                <p className="text-xs text-muted-foreground mb-1">Tipo: {(invoice.pix_key_type || 'cpf').toUpperCase()}</p>
-                <p className="font-mono text-sm bg-muted p-2 rounded break-all">{invoice.pix_key}</p>
-                <Button size="sm" variant="outline" className="mt-3" onClick={handleCopyPix}>
+              <div className="border-2 rounded-lg p-4 text-center space-y-4" style={{ borderColor: color }}>
+                <p className="font-bold text-sm flex items-center justify-center gap-2" style={{ color }}>
+                  <QrCode className="w-4 h-4" /> Pagar via PIX
+                </p>
+                
+                {/* QR Code */}
+                <div className="bg-white p-4 rounded-lg inline-block mx-auto shadow-sm">
+                  <QRCodeSVG 
+                    value={invoice.pix_key} 
+                    size={180}
+                    level="H"
+                    includeMargin={true}
+                    fgColor={color}
+                  />
+                </div>
+                
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Tipo: {(invoice.pix_key_type || 'cpf').toUpperCase()}</p>
+                  <p className="font-mono text-sm bg-muted p-2 rounded break-all">{invoice.pix_key}</p>
+                </div>
+                
+                <Button size="sm" variant="outline" onClick={handleCopyPix}>
                   <Copy className="w-4 h-4 mr-1" /> Copiar Chave PIX
                 </Button>
               </div>
