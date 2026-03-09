@@ -1053,14 +1053,14 @@ export function InvoiceGeneratorPanel() {
                           )}
                           {inv.status === 'pending' && (
                             <Button variant="ghost" size="sm" className="h-7 text-xs" 
-                              onClick={() => handleSendInvoiceEmail(inv.id, false)} 
+                              onClick={() => openEmailDialog(inv.id, false)} 
                               disabled={sendingEmail === inv.id} title="Enviar por email">
                               {sendingEmail === inv.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Mail className="w-3 h-3" />}
                             </Button>
                           )}
                           {inv.status === 'pending' && (inv as any).reminder_sent && (
                             <Button variant="ghost" size="sm" className="h-7 text-xs text-orange-600" 
-                              onClick={() => handleSendInvoiceEmail(inv.id, true)} 
+                              onClick={() => openEmailDialog(inv.id, true)} 
                               disabled={sendingEmail === inv.id} title="Reenviar lembrete">
                               {sendingEmail === inv.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
                             </Button>
