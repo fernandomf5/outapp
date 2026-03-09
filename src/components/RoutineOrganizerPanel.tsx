@@ -453,19 +453,27 @@ export default function RoutineOrganizerPanel() {
   const handleResetAll = async () => {
     if (!user || !activeRoutine) return;
     try {
-      await Promise.all([
-        supabase.from('routine_items').delete().eq('user_id', user.id).eq('routine_id', activeRoutine.id),
-        supabase.from('routine_objectives').delete().eq('user_id', user.id).eq('routine_id', activeRoutine.id),
-        supabase.from('routine_completions').delete().eq('user_id', user.id),
-      ]);
-      setRoutineItems([]);
-      setObjectives([]);
+      // Uncheck all completed items (set is_completed to false)
+      await supabase
+        .from('routine_items')
+        .update({ is_completed: false })
+        .eq('user_id', user.id)
+        .eq('routine_id', activeRoutine.id);
+
+      // Delete all completions for objectives
+      await supabase
+        .from('routine_completions')
+        .delete()
+        .eq('user_id', user.id);
+
+      // Update local state
+      setRoutineItems(prev => prev.map(item => ({ ...item, is_completed: false })));
       setCompletions([]);
       setIsResetAllOpen(false);
-      toast.success('Rotina zerada com sucesso! Você pode recomeçar.');
+      toast.success('Marcações resetadas! Sua rotina está pronta para recomeçar.');
     } catch (error) {
       console.error('Error resetting routine:', error);
-      toast.error('Erro ao zerar rotina');
+      toast.error('Erro ao resetar marcações');
     }
   };
 
