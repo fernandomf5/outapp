@@ -1148,6 +1148,7 @@ export function InvoiceGeneratorPanel() {
                               auto_send_email: plan.auto_send_email || false,
                               reminder_days_before: plan.reminder_days_before || 5,
                               payment_method: plan.payment_method || 'pix',
+                              recipient_email: (plan as any).recipient_email || '',
                             });
                             setPlanDialogOpen(true);
                           }}>
