@@ -490,7 +490,7 @@ export function InvoiceGeneratorPanel() {
           pix_key: plan.pix_key || null,
           pix_key_type: plan.pix_key_type || null,
           client_name: cust?.name || '',
-          client_email: cust?.email || '',
+          client_email: (plan as any).recipient_email || cust?.email || '',
           client_phone: cust?.phone || '',
           client_document: '',
           client_address: cust ? [cust.address, cust.city, cust.state].filter(Boolean).join(', ') : '',
