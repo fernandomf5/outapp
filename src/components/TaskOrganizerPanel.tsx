@@ -1828,35 +1828,53 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
               </SelectContent>
             </Select>
           )}
-          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filtrar por prioridade" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas Prioridades</SelectItem>
-              <SelectItem value="high">Alta</SelectItem>
-              <SelectItem value="medium">Média</SelectItem>
-              <SelectItem value="low">Baixa</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="flex items-center gap-2">
-            <Label className="text-sm whitespace-nowrap">Vencimento:</Label>
-            <Input 
-              type="date" 
-              value={dateStart} 
-              onChange={(e) => setDateStart(e.target.value)} 
-              placeholder="De"
-              className="w-[150px]" 
-            />
-            <span className="text-muted-foreground">até</span>
-            <Input 
-              type="date" 
-              value={dateEnd} 
-              onChange={(e) => setDateEnd(e.target.value)} 
-              placeholder="Até"
-              className="w-[150px]" 
-            />
-          </div>
+          <Button 
+            variant={showFilters ? "default" : "outline"} 
+            size="sm"
+            onClick={() => setShowFilters(!showFilters)}
+            className="gap-2"
+          >
+            <Filter className="h-4 w-4" />
+            Filtros
+            {(priorityFilter !== 'all' || dateStart || dateEnd) && (
+              <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                {(priorityFilter !== 'all' ? 1 : 0) + (dateStart || dateEnd ? 1 : 0)}
+              </Badge>
+            )}
+          </Button>
+          {showFilters && (
+            <div className="flex flex-wrap items-center gap-2">
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filtrar por prioridade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas Prioridades</SelectItem>
+                  <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="medium">Média</SelectItem>
+                  <SelectItem value="low">Baixa</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="flex items-center gap-2">
+                <Label className="text-sm whitespace-nowrap">Vencimento:</Label>
+                <Input 
+                  type="date" 
+                  value={dateStart} 
+                  onChange={(e) => setDateStart(e.target.value)} 
+                  placeholder="De"
+                  className="w-[150px]" 
+                />
+                <span className="text-muted-foreground">até</span>
+                <Input 
+                  type="date" 
+                  value={dateEnd} 
+                  onChange={(e) => setDateEnd(e.target.value)} 
+                  placeholder="Até"
+                  className="w-[150px]" 
+                />
+              </div>
+            </div>
+          )}
           <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" onClick={() => {
