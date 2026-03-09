@@ -1262,20 +1262,33 @@ export function InvoiceGeneratorPanel() {
                 <Switch checked={planForm.auto_send_email} onCheckedChange={v => setPlanForm(p => ({ ...p, auto_send_email: v }))} />
               </div>
               {planForm.auto_send_email && (
-                <div>
-                  <Label className="text-xs">Enviar quantos dias antes do vencimento?</Label>
-                  <Select value={String(planForm.reminder_days_before)} onValueChange={v => setPlanForm(p => ({ ...p, reminder_days_before: parseInt(v) }))}>
-                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 dia antes</SelectItem>
-                      <SelectItem value="3">3 dias antes</SelectItem>
-                      <SelectItem value="5">5 dias antes</SelectItem>
-                      <SelectItem value="7">7 dias antes</SelectItem>
-                      <SelectItem value="10">10 dias antes</SelectItem>
-                      <SelectItem value="15">15 dias antes</SelectItem>
-                      <SelectItem value="30">30 dias antes</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs">Email do destinatário</Label>
+                    <Input
+                      type="email"
+                      placeholder="email@cliente.com"
+                      className="h-8 text-xs"
+                      value={planForm.recipient_email}
+                      onChange={e => setPlanForm(p => ({ ...p, recipient_email: e.target.value }))}
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Email para onde a fatura será enviada automaticamente</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Enviar quantos dias antes do vencimento?</Label>
+                    <Select value={String(planForm.reminder_days_before)} onValueChange={v => setPlanForm(p => ({ ...p, reminder_days_before: parseInt(v) }))}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 dia antes</SelectItem>
+                        <SelectItem value="3">3 dias antes</SelectItem>
+                        <SelectItem value="5">5 dias antes</SelectItem>
+                        <SelectItem value="7">7 dias antes</SelectItem>
+                        <SelectItem value="10">10 dias antes</SelectItem>
+                        <SelectItem value="15">15 dias antes</SelectItem>
+                        <SelectItem value="30">30 dias antes</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               )}
             </div>
