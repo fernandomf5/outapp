@@ -1122,6 +1122,14 @@ export default function RoutineOrganizerPanel() {
                     Excluir Rotina
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  className="text-destructive"
+                  onClick={() => setIsResetAllOpen(true)}
+                >
+                  <RefreshCw className="h-3 w-3 mr-2" />
+                  Zerar Tudo
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
