@@ -435,7 +435,7 @@ export function InvoiceGeneratorPanel() {
       due_date: plan.next_invoice_date,
       items: [{ id: crypto.randomUUID(), description: plan.plan_name + (plan.description ? ` - ${plan.description}` : ''), quantity: 1, unit_price: plan.amount }],
       client_name: cust?.name || '',
-      client_email: cust?.email || '',
+      client_email: (plan as any).recipient_email || cust?.email || '',
       client_phone: cust?.phone || '',
       client_address: [cust?.address, cust?.city, cust?.state].filter(Boolean).join(', '),
       pix_key: plan.pix_key || '',
@@ -490,7 +490,7 @@ export function InvoiceGeneratorPanel() {
           pix_key: plan.pix_key || null,
           pix_key_type: plan.pix_key_type || null,
           client_name: cust?.name || '',
-          client_email: cust?.email || '',
+          client_email: (plan as any).recipient_email || cust?.email || '',
           client_phone: cust?.phone || '',
           client_document: '',
           client_address: cust ? [cust.address, cust.city, cust.state].filter(Boolean).join(', ') : '',
@@ -1321,6 +1321,11 @@ export function InvoiceGeneratorPanel() {
                 onChange={e => setEmailDialogData(prev => ({ ...prev, email: e.target.value }))}
                 placeholder="email@cliente.com"
               />
+              {!emailDialogData.email && (
+                <p className="text-[11px] text-orange-600 mt-1">
+                  ⚠️ Nenhum email cadastrado. Preencha o email abaixo para enviar.
+                </p>
+              )}
               <p className="text-[10px] text-muted-foreground mt-1">
                 O email será salvo no cadastro da fatura.
               </p>
