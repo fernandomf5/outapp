@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, Calendar, Flag, MoreVertical, ChevronLeft, ChevronRight, MoveRight, Users, UserPlus, Building2, ListPlus } from "lucide-react";
+import { Plus, Edit2, Trash2, Calendar, Flag, MoreVertical, ChevronLeft, ChevronRight, MoveRight, Users, UserPlus, Building2, ListPlus, Filter } from "lucide-react";
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, pointerWithin, closestCenter, PointerSensor, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -322,6 +322,7 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
   const [selectedBusinessFilter, setSelectedBusinessFilter] = useState<string>("");
   const [filterMode, setFilterMode] = useState<"client" | "business">("client");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [showFilters, setShowFilters] = useState(false);
   const [dateStart, setDateStart] = useState<string>("");
   const [dateEnd, setDateEnd] = useState<string>("");
   const [taskForm, setTaskForm] = useState({
@@ -1827,35 +1828,53 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
               </SelectContent>
             </Select>
           )}
-          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filtrar por prioridade" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas Prioridades</SelectItem>
-              <SelectItem value="high">Alta</SelectItem>
-              <SelectItem value="medium">Média</SelectItem>
-              <SelectItem value="low">Baixa</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="flex items-center gap-2">
-            <Label className="text-sm whitespace-nowrap">Vencimento:</Label>
-            <Input 
-              type="date" 
-              value={dateStart} 
-              onChange={(e) => setDateStart(e.target.value)} 
-              placeholder="De"
-              className="w-[150px]" 
-            />
-            <span className="text-muted-foreground">até</span>
-            <Input 
-              type="date" 
-              value={dateEnd} 
-              onChange={(e) => setDateEnd(e.target.value)} 
-              placeholder="Até"
-              className="w-[150px]" 
-            />
-          </div>
+          <Button 
+            variant={showFilters ? "default" : "outline"} 
+            size="sm"
+            onClick={() => setShowFilters(!showFilters)}
+            className="gap-2"
+          >
+            <Filter className="h-4 w-4" />
+            Filtros
+            {(priorityFilter !== 'all' || dateStart || dateEnd) && (
+              <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                {(priorityFilter !== 'all' ? 1 : 0) + (dateStart || dateEnd ? 1 : 0)}
+              </Badge>
+            )}
+          </Button>
+          {showFilters && (
+            <div className="flex flex-wrap items-center gap-2">
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filtrar por prioridade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas Prioridades</SelectItem>
+                  <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="medium">Média</SelectItem>
+                  <SelectItem value="low">Baixa</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="flex items-center gap-2">
+                <Label className="text-sm whitespace-nowrap">Vencimento:</Label>
+                <Input 
+                  type="date" 
+                  value={dateStart} 
+                  onChange={(e) => setDateStart(e.target.value)} 
+                  placeholder="De"
+                  className="w-[150px]" 
+                />
+                <span className="text-muted-foreground">até</span>
+                <Input 
+                  type="date" 
+                  value={dateEnd} 
+                  onChange={(e) => setDateEnd(e.target.value)} 
+                  placeholder="Até"
+                  className="w-[150px]" 
+                />
+              </div>
+            </div>
+          )}
           <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" onClick={() => {
