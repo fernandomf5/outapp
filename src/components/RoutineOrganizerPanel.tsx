@@ -450,7 +450,25 @@ export default function RoutineOrganizerPanel() {
     }
   };
 
-  const handleAddItem = async () => {
+  const handleResetAll = async () => {
+    if (!user || !activeRoutine) return;
+    try {
+      await Promise.all([
+        supabase.from('routine_items').delete().eq('user_id', user.id).eq('routine_id', activeRoutine.id),
+        supabase.from('routine_objectives').delete().eq('user_id', user.id).eq('routine_id', activeRoutine.id),
+        supabase.from('routine_completions').delete().eq('user_id', user.id),
+      ]);
+      setRoutineItems([]);
+      setObjectives([]);
+      setCompletions([]);
+      setIsResetAllOpen(false);
+      toast.success('Rotina zerada com sucesso! Você pode recomeçar.');
+    } catch (error) {
+      console.error('Error resetting routine:', error);
+      toast.error('Erro ao zerar rotina');
+    }
+  };
+
     if (!user || !itemFormData.title.trim()) {
       toast.error('Título é obrigatório');
       return;
