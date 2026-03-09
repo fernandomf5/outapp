@@ -2247,6 +2247,24 @@ export default function RoutineOrganizerPanel() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Reset All Confirmation */}
+      <AlertDialog open={isResetAllOpen} onOpenChange={setIsResetAllOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Zerar toda a rotina?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Isso irá excluir todas as atividades, objetivos e progressos da rotina "{activeRoutine?.name}". Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleResetAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Zerar Tudo
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
