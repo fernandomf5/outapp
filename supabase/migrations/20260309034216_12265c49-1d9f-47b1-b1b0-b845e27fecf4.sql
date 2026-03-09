@@ -1,0 +1,1 @@
+ALTER TABLE public.invoice_recurring_plans ADD COLUMN IF NOT EXISTS recipient_email text;
