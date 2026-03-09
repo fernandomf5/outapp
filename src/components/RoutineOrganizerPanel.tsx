@@ -453,19 +453,27 @@ export default function RoutineOrganizerPanel() {
   const handleResetAll = async () => {
     if (!user || !activeRoutine) return;
     try {
-      await Promise.all([
-        supabase.from('routine_items').delete().eq('user_id', user.id).eq('routine_id', activeRoutine.id),
-        supabase.from('routine_objectives').delete().eq('user_id', user.id).eq('routine_id', activeRoutine.id),
-        supabase.from('routine_completions').delete().eq('user_id', user.id),
-      ]);
-      setRoutineItems([]);
-      setObjectives([]);
+      // Uncheck all completed items (set is_completed to false)
+      await supabase
+        .from('routine_items')
+        .update({ is_completed: false })
+        .eq('user_id', user.id)
+        .eq('routine_id', activeRoutine.id);
+
+      // Delete all completions for objectives
+      await supabase
+        .from('routine_completions')
+        .delete()
+        .eq('user_id', user.id);
+
+      // Update local state
+      setRoutineItems(prev => prev.map(item => ({ ...item, is_completed: false })));
       setCompletions([]);
       setIsResetAllOpen(false);
-      toast.success('Rotina zerada com sucesso! Você pode recomeçar.');
+      toast.success('Marcações resetadas! Sua rotina está pronta para recomeçar.');
     } catch (error) {
       console.error('Error resetting routine:', error);
-      toast.error('Erro ao zerar rotina');
+      toast.error('Erro ao resetar marcações');
     }
   };
 
@@ -1128,7 +1136,7 @@ export default function RoutineOrganizerPanel() {
                   onClick={() => setIsResetAllOpen(true)}
                 >
                   <RefreshCw className="h-3 w-3 mr-2" />
-                  Zerar Tudo
+                  Reiniciar Semana
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -2252,15 +2260,15 @@ export default function RoutineOrganizerPanel() {
       <AlertDialog open={isResetAllOpen} onOpenChange={setIsResetAllOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Zerar toda a rotina?</AlertDialogTitle>
+            <AlertDialogTitle>Reiniciar semana?</AlertDialogTitle>
             <AlertDialogDescription>
-              Isso irá excluir todas as atividades, objetivos e progressos da rotina "{activeRoutine?.name}". Esta ação não pode ser desfeita.
+              Isso irá desmarcar todas as atividades concluídas e resetar o progresso dos objetivos da rotina "{activeRoutine?.name}". As atividades e objetivos serão mantidos.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleResetAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Zerar Tudo
+              Reiniciar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
