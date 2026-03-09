@@ -407,7 +407,7 @@ export function InvoiceGeneratorPanel() {
         toast({ title: "Plano criado! ✅" });
       }
       setPlanDialogOpen(false);
-      const defaultPlanForm = { plan_name: '', description: '', amount: 0, recurrence_type: 'monthly', next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '', auto_send_email: false, reminder_days_before: 5, payment_method: 'pix' };
+      const defaultPlanForm = { plan_name: '', description: '', amount: 0, recurrence_type: 'monthly', next_invoice_date: '', pix_key: '', pix_key_type: 'cpf', customer_id: '', business_id: '', auto_send_email: false, reminder_days_before: 5, payment_method: 'pix', recipient_email: '' };
       setPlanForm(defaultPlanForm);
       setEditingPlanId(null);
       await refreshPlans();
