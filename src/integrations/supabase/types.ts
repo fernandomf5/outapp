@@ -6965,6 +6965,206 @@ export type Database = {
           },
         ]
       }
+      service_order_history: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          new_status: Database["public"]["Enums"]["service_order_status"]
+          notes: string | null
+          order_id: string
+          previous_status:
+            | Database["public"]["Enums"]["service_order_status"]
+            | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          new_status: Database["public"]["Enums"]["service_order_status"]
+          notes?: string | null
+          order_id: string
+          previous_status?:
+            | Database["public"]["Enums"]["service_order_status"]
+            | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          new_status?: Database["public"]["Enums"]["service_order_status"]
+          notes?: string | null
+          order_id?: string
+          previous_status?:
+            | Database["public"]["Enums"]["service_order_status"]
+            | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_order_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_order_requests: {
+        Row: {
+          additional_notes: string | null
+          client_document: string | null
+          client_email: string | null
+          client_name: string
+          client_phone: string
+          client_user_id: string | null
+          created_at: string
+          equipment_brand: string
+          equipment_model: string
+          equipment_serial: string | null
+          equipment_type: string
+          id: string
+          reported_defect: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          additional_notes?: string | null
+          client_document?: string | null
+          client_email?: string | null
+          client_name: string
+          client_phone: string
+          client_user_id?: string | null
+          created_at?: string
+          equipment_brand: string
+          equipment_model: string
+          equipment_serial?: string | null
+          equipment_type: string
+          id?: string
+          reported_defect: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          additional_notes?: string | null
+          client_document?: string | null
+          client_email?: string | null
+          client_name?: string
+          client_phone?: string
+          client_user_id?: string | null
+          created_at?: string
+          equipment_brand?: string
+          equipment_model?: string
+          equipment_serial?: string | null
+          equipment_type?: string
+          id?: string
+          reported_defect?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      service_orders: {
+        Row: {
+          client_document: string | null
+          client_email: string | null
+          client_name: string
+          client_phone: string | null
+          client_user_id: string | null
+          completed_at: string | null
+          created_at: string
+          delivered_at: string | null
+          equipment_accessories: string | null
+          equipment_brand: string
+          equipment_color: string | null
+          equipment_model: string
+          equipment_photos: string[] | null
+          equipment_serial: string | null
+          equipment_type: Database["public"]["Enums"]["equipment_type"]
+          estimated_completion: string | null
+          id: string
+          internal_notes: string | null
+          labor_cost: number | null
+          order_number: string
+          parts_cost: number | null
+          parts_used: string | null
+          priority: string | null
+          received_at: string
+          reported_defect: string
+          service_description: string | null
+          status: Database["public"]["Enums"]["service_order_status"]
+          technical_diagnosis: string | null
+          total_cost: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_document?: string | null
+          client_email?: string | null
+          client_name: string
+          client_phone?: string | null
+          client_user_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          equipment_accessories?: string | null
+          equipment_brand: string
+          equipment_color?: string | null
+          equipment_model: string
+          equipment_photos?: string[] | null
+          equipment_serial?: string | null
+          equipment_type?: Database["public"]["Enums"]["equipment_type"]
+          estimated_completion?: string | null
+          id?: string
+          internal_notes?: string | null
+          labor_cost?: number | null
+          order_number: string
+          parts_cost?: number | null
+          parts_used?: string | null
+          priority?: string | null
+          received_at?: string
+          reported_defect: string
+          service_description?: string | null
+          status?: Database["public"]["Enums"]["service_order_status"]
+          technical_diagnosis?: string | null
+          total_cost?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_document?: string | null
+          client_email?: string | null
+          client_name?: string
+          client_phone?: string | null
+          client_user_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          equipment_accessories?: string | null
+          equipment_brand?: string
+          equipment_color?: string | null
+          equipment_model?: string
+          equipment_photos?: string[] | null
+          equipment_serial?: string | null
+          equipment_type?: Database["public"]["Enums"]["equipment_type"]
+          estimated_completion?: string | null
+          id?: string
+          internal_notes?: string | null
+          labor_cost?: number | null
+          order_number?: string
+          parts_cost?: number | null
+          parts_used?: string | null
+          priority?: string | null
+          received_at?: string
+          reported_defect?: string
+          service_description?: string | null
+          status?: Database["public"]["Enums"]["service_order_status"]
+          technical_diagnosis?: string | null
+          total_cost?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           created_at: string | null
@@ -8594,6 +8794,13 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      equipment_type:
+        | "computador"
+        | "notebook"
+        | "smartphone"
+        | "tablet"
+        | "impressora"
+        | "outro"
       job_approval_status: "pending" | "approved" | "revision" | "rejected"
       permission_action: "create" | "read" | "update" | "delete"
       plan_type:
@@ -8604,6 +8811,15 @@ export type Database = {
         | "monthly"
         | "annual"
         | "lifetime"
+      service_order_status:
+        | "recebido"
+        | "em_analise"
+        | "aguardando_aprovacao"
+        | "em_manutencao"
+        | "aguardando_peca"
+        | "concluido"
+        | "entregue"
+        | "cancelado"
       subscription_status: "active" | "expired" | "cancelled"
     }
     CompositeTypes: {
@@ -8733,6 +8949,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      equipment_type: [
+        "computador",
+        "notebook",
+        "smartphone",
+        "tablet",
+        "impressora",
+        "outro",
+      ],
       job_approval_status: ["pending", "approved", "revision", "rejected"],
       permission_action: ["create", "read", "update", "delete"],
       plan_type: [
@@ -8743,6 +8967,16 @@ export const Constants = {
         "monthly",
         "annual",
         "lifetime",
+      ],
+      service_order_status: [
+        "recebido",
+        "em_analise",
+        "aguardando_aprovacao",
+        "em_manutencao",
+        "aguardando_peca",
+        "concluido",
+        "entregue",
+        "cancelado",
       ],
       subscription_status: ["active", "expired", "cancelled"],
     },
