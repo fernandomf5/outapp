@@ -10,6 +10,12 @@ export const CookieNotice = () => {
   const [isEnabled, setIsEnabled] = useState(true);
 
   useEffect(() => {
+    // Don't show cookie notice inside iframes (embedded pages like briefings)
+    if (window.self !== window.top) {
+      setIsVisible(false);
+      return;
+    }
+
     // Check if user already accepted cookies
     const accepted = localStorage.getItem('cookies_accepted');
     if (accepted) {
