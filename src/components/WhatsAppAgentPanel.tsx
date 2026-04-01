@@ -92,7 +92,7 @@ export function WhatsAppAgentPanel({ agentId, agentName }: WhatsAppAgentPanelPro
 
   // Poll for QR code updates
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     
     if (selectedInstance && connectionStatus === 'qr_code' && isPollingQr) {
       interval = setInterval(async () => {

@@ -469,7 +469,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
         .order('name');
 
       if (error) throw error;
-      setCategories((data || []).map(c => c.name));
+      setCategories((data || []).map(c => c.name).filter(n => n && n.trim() !== ''));
     } catch (error: any) {
       toast.error('Erro ao carregar categorias');
     }
