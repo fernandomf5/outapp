@@ -1054,7 +1054,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       return (a.order_index || 0) - (b.order_index || 0);
     });
     setLocalTransactions(sorted);
-  }, [transactions, selectedMonth, selectedYear, selectedCategory, statusFilter]);
+  }, [transactions, selectedMonth, selectedYear, selectedCategories, statusFilter]);
 
   // Use localTransactions for display (respects statusFilter)
   const transactionsWithMonthStatus = localTransactions;
