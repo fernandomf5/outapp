@@ -1275,30 +1275,6 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                 </SelectContent>
               </Select>
             </div>
-            <div className="md:col-span-2">
-              <Label className="mb-2 block">Categoria</Label>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={selectedCategory === 'all' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedCategory('all')}
-                  className="rounded-full"
-                >
-                  Todas
-                </Button>
-                {categories.map(cat => (
-                  <Button
-                    key={cat}
-                    variant={selectedCategory === cat ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setSelectedCategory(cat)}
-                    className="rounded-full"
-                  >
-                    {cat}
-                  </Button>
-                ))}
-              </div>
-            </div>
             <div>
               <Label>Data Início</Label>
               <Popover>
