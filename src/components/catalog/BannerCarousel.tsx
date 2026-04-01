@@ -18,7 +18,7 @@ interface BannerCarouselProps {
 export function BannerCarousel({ banners, primaryColor, textColor }: BannerCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Auto-rotate banners
   useEffect(() => {

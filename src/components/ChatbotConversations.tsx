@@ -73,7 +73,7 @@ export const ChatbotConversations = () => {
   const [isVisitorTyping, setIsVisitorTyping] = useState(false);
   const [isVisitorOnline, setIsVisitorOnline] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);

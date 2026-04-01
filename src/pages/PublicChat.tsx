@@ -44,7 +44,7 @@ const PublicChat = () => {
   const [visitorPhone, setVisitorPhone] = useState("");
   const [visitorEmail, setVisitorEmail] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
   const [autoReplySent, setAutoReplySent] = useState(false);
 
