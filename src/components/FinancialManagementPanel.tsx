@@ -262,7 +262,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'MMMM', { locale: ptBR }));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -1036,7 +1036,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       return transactionMonthIndex <= selectedMonthIndex;
     }
     return t.month === selectedMonth;
-  }).filter(t => selectedCategory === 'all' || t.category === selectedCategory);
+  }).filter(t => selectedCategories.length === 0 || selectedCategories.includes(t.category || ''));
 
   // Todas as transações do mês com status correto (sem filtro de status) — usadas para calcular totais
   const allMonthTransactionsWithStatus = monthTransactions.map((t) => ({
@@ -1054,7 +1054,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       return (a.order_index || 0) - (b.order_index || 0);
     });
     setLocalTransactions(sorted);
-  }, [transactions, selectedMonth, selectedYear, selectedCategory, statusFilter]);
+  }, [transactions, selectedMonth, selectedYear, selectedCategories, statusFilter]);
 
   // Use localTransactions for display (respects statusFilter)
   const transactionsWithMonthStatus = localTransactions;
@@ -1510,14 +1510,14 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
         </Card>
       </div>
 
-      {/* Category Browser Tabs */}
+      {/* Category Browser Tabs - Multi-select */}
       <div className="overflow-x-auto -mx-1">
         <div className="flex items-center gap-0 border-b border-border min-w-max px-1">
           <button
-            onClick={() => setSelectedCategory('all')}
+            onClick={() => setSelectedCategories([])}
             className={cn(
               "px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors",
-              selectedCategory === 'all'
+              selectedCategories.length === 0
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30"
             )}
@@ -1527,10 +1527,17 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
           {categories.map(cat => (
             <button
               key={cat}
-              onClick={() => setSelectedCategory(cat)}
+              onClick={() => {
+                setSelectedCategories(prev => {
+                  if (prev.includes(cat)) {
+                    return prev.filter(c => c !== cat);
+                  }
+                  return [...prev, cat];
+                });
+              }}
               className={cn(
                 "px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors",
-                selectedCategory === cat
+                selectedCategories.includes(cat)
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30"
               )}
