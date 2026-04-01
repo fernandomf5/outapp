@@ -1248,7 +1248,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
           <CardTitle>Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <Label>Ano</Label>
               <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
@@ -1274,30 +1274,6 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="md:col-span-2">
-              <Label className="mb-2 block">Categoria</Label>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={selectedCategory === 'all' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedCategory('all')}
-                  className="rounded-full"
-                >
-                  Todas
-                </Button>
-                {categories.map(cat => (
-                  <Button
-                    key={cat}
-                    variant={selectedCategory === cat ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setSelectedCategory(cat)}
-                    className="rounded-full"
-                  >
-                    {cat}
-                  </Button>
-                ))}
-              </div>
             </div>
             <div>
               <Label>Data Início</Label>
@@ -1534,7 +1510,37 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
         </Card>
       </div>
 
-      {/* Tabela de Transações */}
+      {/* Category Browser Tabs */}
+      <div className="overflow-x-auto -mx-1">
+        <div className="flex items-center gap-0 border-b border-border min-w-max px-1">
+          <button
+            onClick={() => setSelectedCategory('all')}
+            className={cn(
+              "px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors",
+              selectedCategory === 'all'
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30"
+            )}
+          >
+            Todas
+          </button>
+          {categories.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={cn(
+                "px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors",
+                selectedCategory === cat
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30"
+              )}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base sm:text-lg">{selectedMonth} {selectedYear}</CardTitle>
