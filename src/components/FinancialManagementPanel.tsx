@@ -1510,14 +1510,14 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
         </Card>
       </div>
 
-      {/* Category Browser Tabs */}
+      {/* Category Browser Tabs - Multi-select */}
       <div className="overflow-x-auto -mx-1">
         <div className="flex items-center gap-0 border-b border-border min-w-max px-1">
           <button
-            onClick={() => setSelectedCategory('all')}
+            onClick={() => setSelectedCategories([])}
             className={cn(
               "px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors",
-              selectedCategory === 'all'
+              selectedCategories.length === 0
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30"
             )}
@@ -1527,10 +1527,17 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
           {categories.map(cat => (
             <button
               key={cat}
-              onClick={() => setSelectedCategory(cat)}
+              onClick={() => {
+                setSelectedCategories(prev => {
+                  if (prev.includes(cat)) {
+                    return prev.filter(c => c !== cat);
+                  }
+                  return [...prev, cat];
+                });
+              }}
               className={cn(
                 "px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors",
-                selectedCategory === cat
+                selectedCategories.includes(cat)
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30"
               )}
