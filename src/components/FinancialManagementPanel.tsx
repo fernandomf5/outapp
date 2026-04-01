@@ -1036,7 +1036,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       return transactionMonthIndex <= selectedMonthIndex;
     }
     return t.month === selectedMonth;
-  }).filter(t => selectedCategory === 'all' || t.category === selectedCategory);
+  }).filter(t => selectedCategories.length === 0 || selectedCategories.includes(t.category || ''));
 
   // Todas as transações do mês com status correto (sem filtro de status) — usadas para calcular totais
   const allMonthTransactionsWithStatus = monthTransactions.map((t) => ({
