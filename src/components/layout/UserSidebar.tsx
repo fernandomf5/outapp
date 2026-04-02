@@ -131,16 +131,12 @@ export function UserSidebar() {
     { title: "Negócios", icon: Building2, path: "/dashboard", tab: "negocios", hideForTeamMember: true },
     { title: "Clientes", icon: Users, path: "/dashboard", tab: "clientes", moduleKey: "crm" },
     { title: "Fornecedores", icon: Truck, path: "/dashboard", tab: "fornecedores", hideForTeamMember: true },
-    { title: "Produtos e Serviços", icon: ShoppingBag, path: "/dashboard", tab: "produtos-servicos", hideForTeamMember: true },
-    { title: "Catálogo", icon: BookOpen, path: "/dashboard", tab: "catalogo", hideForTeamMember: true },
     { title: "Equipe", icon: UserCog, path: "/dashboard", tab: "equipe", hideForTeamMember: true },
   ];
 
   const financialItems: MenuItem[] = [
     { title: t('financial_management'), icon: DollarSign, path: "/dashboard", tab: "financeiro", moduleKey: "financial" },
     { title: "Gerador de Recibos", icon: FileCheck, path: "/dashboard", tab: "recibos", hideForTeamMember: true },
-    { title: "Gerador de Faturas", icon: FileText, path: "/dashboard", tab: "faturas", hideForTeamMember: true },
-    { title: "Criador de Checkout", icon: ShoppingBag, path: "/dashboard", tab: "checkout-creator", hideForTeamMember: true },
   ];
 
   const crmItems: MenuItem[] = [
@@ -152,7 +148,7 @@ export function UserSidebar() {
     { title: t('floating_multilink_button'), icon: Zap, path: "/dashboard", tab: "floating-button", hideForTeamMember: true },
     { title: t('link_shortener_title'), icon: Link2, path: "/dashboard", tab: "shortlinks", feature: "link_shortener", hideForTeamMember: true },
     { title: t('qr_code_generator'), icon: QrCode, path: "/dashboard", tab: "qrcode", hideForTeamMember: true },
-    { title: t('manual_dispatcher'), icon: Zap, path: "/dashboard", tab: "disparador", hideForTeamMember: true },
+    
     { title: "Scripts de Atendimento", icon: MessageSquare, path: "/dashboard", tab: "scripts", hideForTeamMember: true },
   ];
 
