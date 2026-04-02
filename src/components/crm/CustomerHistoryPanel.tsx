@@ -14,19 +14,18 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Plus, 
   Wrench, 
-  ShoppingCart, 
   CreditCard, 
   Calendar, 
   DollarSign,
   Trash2,
-  Clock,
-  Package,
   FileText,
   Edit,
   Receipt,
   Link,
   Download,
-  CheckCircle2
+  CheckCircle2,
+  Upload,
+  Loader2
 } from "lucide-react";
 import { downloadReceiptPDF } from "@/utils/receiptPdfGenerator";
 
@@ -38,18 +37,6 @@ interface ServiceHistory {
   price: number;
   service_date: string;
   status: string;
-  notes: string | null;
-  created_at: string;
-}
-
-interface PurchaseHistory {
-  id: string;
-  product_id: string | null;
-  product_name: string;
-  quantity: number;
-  unit_price: number;
-  total_price: number;
-  purchase_date: string;
   notes: string | null;
   created_at: string;
 }
@@ -75,16 +62,14 @@ interface SavedReceipt {
   created_at: string;
 }
 
-interface UserService {
+interface Contract {
   id: string;
-  name: string;
-  price: number;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
+  title: string;
+  description: string | null;
+  file_url: string | null;
+  file_name: string | null;
+  contract_date: string;
+  created_at: string;
 }
 
 interface CustomerHistoryPanelProps {
@@ -94,7 +79,6 @@ interface CustomerHistoryPanelProps {
 }
 
 export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: CustomerHistoryPanelProps) => {
-  // Support both contact_id and customer_id
   const entityId = contactId || customerId;
   const entityType = contactId ? 'contact' : 'customer';
   const { user } = useAuth();
@@ -103,27 +87,19 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
   const [linkedReceipts, setLinkedReceipts] = useState<SavedReceipt[]>([]);
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
   
-  // States for history data
   const [servicesHistory, setServicesHistory] = useState<ServiceHistory[]>([]);
-  const [purchasesHistory, setPurchasesHistory] = useState<PurchaseHistory[]>([]);
   const [paymentsHistory, setPaymentsHistory] = useState<PaymentHistory[]>([]);
+  const [contracts, setContracts] = useState<Contract[]>([]);
   
-  // States for available services/products
-  const [availableServices, setAvailableServices] = useState<UserService[]>([]);
-  const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
-  
-  // Dialog states
   const [isServiceDialogOpen, setIsServiceDialogOpen] = useState(false);
-  const [isPurchaseDialogOpen, setIsPurchaseDialogOpen] = useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [isContractDialogOpen, setIsContractDialogOpen] = useState(false);
   
-  // Edit states
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
-  const [editingPurchaseId, setEditingPurchaseId] = useState<string | null>(null);
   const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
+  const [editingContractId, setEditingContractId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   
-  // Form states
-  const [serviceInputMode, setServiceInputMode] = useState<"select" | "custom">("select");
   const [newService, setNewService] = useState({
     service_id: "",
     service_name: "",
@@ -134,21 +110,20 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
     notes: ""
   });
   
-  const [newPurchase, setNewPurchase] = useState({
-    product_id: "",
-    product_name: "",
-    quantity: 1,
-    unit_price: 0,
-    purchase_date: new Date().toISOString().slice(0, 16),
-    notes: ""
-  });
-  
   const [newPayment, setNewPayment] = useState({
     amount: 0,
     payment_method: "pix",
     payment_date: new Date().toISOString().slice(0, 16),
     description: "",
     notes: ""
+  });
+
+  const [newContract, setNewContract] = useState({
+    title: "",
+    description: "",
+    file_url: "",
+    file_name: "",
+    contract_date: new Date().toISOString().slice(0, 16),
   });
 
   useEffect(() => {
@@ -161,12 +136,10 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
   const fetchAllHistory = async () => {
     if (!entityId) return;
     
-    // Build filter based on entity type
     const filterCondition = entityType === 'contact' 
       ? `contact_id.eq.${entityId}`
       : `customer_id.eq.${entityId}`;
     
-    // Fetch services history
     const { data: services } = await supabase
       .from('customer_services_history')
       .select('*')
@@ -174,39 +147,23 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
       .order('service_date', { ascending: false });
     if (services) setServicesHistory(services as ServiceHistory[]);
 
-    // Fetch purchases history
-    const { data: purchases } = await supabase
-      .from('customer_purchases_history')
-      .select('*')
-      .or(filterCondition)
-      .order('purchase_date', { ascending: false });
-    if (purchases) setPurchasesHistory(purchases as PurchaseHistory[]);
-
-    // Fetch payments history
     const { data: payments } = await supabase
       .from('customer_payments_history')
       .select('*')
       .or(filterCondition)
       .order('payment_date', { ascending: false });
     if (payments) setPaymentsHistory(payments as PaymentHistory[]);
+
+    // Fetch contracts
+    const { data: contractsData } = await supabase
+      .from('customer_contracts')
+      .select('*')
+      .or(filterCondition)
+      .order('contract_date', { ascending: false });
+    if (contractsData) setContracts(contractsData as Contract[]);
   };
 
   const fetchAvailableData = async () => {
-    // Fetch user's services
-    const { data: services } = await supabase
-      .from('user_services')
-      .select('id, name, price')
-      .eq('user_id', user!.id);
-    if (services) setAvailableServices(services);
-
-    // Fetch user's products
-    const { data: products } = await supabase
-      .from('products')
-      .select('id, name, price')
-      .eq('user_id', user!.id);
-    if (products) setAvailableProducts(products);
-
-    // Fetch ALL user's saved receipts (for linking)
     const { data: allReceipts } = await supabase
       .from('saved_receipts')
       .select('*')
@@ -214,7 +171,6 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
       .order('created_at', { ascending: false });
     if (allReceipts) setSavedReceipts(allReceipts as SavedReceipt[]);
 
-    // Fetch receipts linked to this customer (by client_name matching contactName)
     const { data: customerReceipts } = await supabase
       .from('saved_receipts')
       .select('*')
@@ -287,39 +243,6 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
     }
   };
 
-  const handleAddPurchase = async () => {
-    if (!newPurchase.product_name || !entityId) {
-      toast({ title: "Nome do produto é obrigatório", variant: "destructive" });
-      return;
-    }
-
-    const totalPrice = newPurchase.quantity * newPurchase.unit_price;
-
-    const baseData = {
-      user_id: user!.id,
-      product_id: newPurchase.product_id || null,
-      product_name: newPurchase.product_name,
-      quantity: newPurchase.quantity,
-      unit_price: newPurchase.unit_price,
-      total_price: totalPrice,
-      purchase_date: newPurchase.purchase_date,
-      notes: newPurchase.notes || null,
-      contact_id: entityType === 'contact' ? entityId : null,
-      customer_id: entityType === 'customer' ? entityId : null
-    };
-
-    const { error } = await supabase.from('customer_purchases_history').insert(baseData);
-
-    if (error) {
-      toast({ title: "Erro ao registrar compra", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Compra registrada! 🛒" });
-      setIsPurchaseDialogOpen(false);
-      resetPurchaseForm();
-      fetchAllHistory();
-    }
-  };
-
   const handleAddPayment = async () => {
     if (newPayment.amount <= 0 || !entityId) {
       toast({ title: "Valor deve ser maior que zero", variant: "destructive" });
@@ -349,18 +272,116 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
     }
   };
 
-  const handleDeleteService = async (id: string) => {
-    const { error } = await supabase.from('customer_services_history').delete().eq('id', id);
-    if (!error) {
-      toast({ title: "Serviço removido" });
+  const handleContractFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "Arquivo deve ter no máximo 10MB", variant: "destructive" });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user!.id}/contracts/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('chatbot-media')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('chatbot-media')
+        .getPublicUrl(fileName);
+
+      setNewContract({ ...newContract, file_url: publicUrl, file_name: file.name });
+      toast({ title: "Arquivo enviado com sucesso!" });
+    } catch (error: any) {
+      toast({ title: "Erro ao enviar arquivo", description: error.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleAddContract = async () => {
+    if (!newContract.title || !entityId) {
+      toast({ title: "Título do contrato é obrigatório", variant: "destructive" });
+      return;
+    }
+
+    const baseData = {
+      user_id: user!.id,
+      title: newContract.title,
+      description: newContract.description || null,
+      file_url: newContract.file_url || null,
+      file_name: newContract.file_name || null,
+      contract_date: newContract.contract_date,
+      contact_id: entityType === 'contact' ? entityId : null,
+      customer_id: entityType === 'customer' ? entityId : null
+    };
+
+    const { error } = await supabase.from('customer_contracts').insert(baseData);
+
+    if (error) {
+      toast({ title: "Erro ao registrar contrato", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Contrato registrado! 📄" });
+      setIsContractDialogOpen(false);
+      resetContractForm();
       fetchAllHistory();
     }
   };
 
-  const handleDeletePurchase = async (id: string) => {
-    const { error } = await supabase.from('customer_purchases_history').delete().eq('id', id);
+  const handleEditContract = (contract: Contract) => {
+    setEditingContractId(contract.id);
+    setNewContract({
+      title: contract.title,
+      description: contract.description || "",
+      file_url: contract.file_url || "",
+      file_name: contract.file_name || "",
+      contract_date: contract.contract_date.slice(0, 16),
+    });
+    setIsContractDialogOpen(true);
+  };
+
+  const handleUpdateContract = async () => {
+    if (!editingContractId || !newContract.title) {
+      toast({ title: "Título do contrato é obrigatório", variant: "destructive" });
+      return;
+    }
+    const { error } = await supabase.from('customer_contracts').update({
+      title: newContract.title,
+      description: newContract.description || null,
+      file_url: newContract.file_url || null,
+      file_name: newContract.file_name || null,
+      contract_date: newContract.contract_date,
+    }).eq('id', editingContractId);
+
+    if (error) {
+      toast({ title: "Erro ao atualizar contrato", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Contrato atualizado! 📄" });
+      setIsContractDialogOpen(false);
+      setEditingContractId(null);
+      resetContractForm();
+      fetchAllHistory();
+    }
+  };
+
+  const handleDeleteContract = async (id: string) => {
+    const { error } = await supabase.from('customer_contracts').delete().eq('id', id);
     if (!error) {
-      toast({ title: "Compra removida" });
+      toast({ title: "Contrato removido" });
+      fetchAllHistory();
+    }
+  };
+
+  const handleDeleteService = async (id: string) => {
+    const { error } = await supabase.from('customer_services_history').delete().eq('id', id);
+    if (!error) {
+      toast({ title: "Serviço removido" });
       fetchAllHistory();
     }
   };
@@ -375,7 +396,6 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
 
   const handleEditService = (service: ServiceHistory) => {
     setEditingServiceId(service.id);
-    setServiceInputMode("custom");
     setNewService({
       service_id: service.service_id || "",
       service_name: service.service_name,
@@ -409,45 +429,6 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
       setIsServiceDialogOpen(false);
       setEditingServiceId(null);
       resetServiceForm();
-      fetchAllHistory();
-    }
-  };
-
-  const handleEditPurchase = (purchase: PurchaseHistory) => {
-    setEditingPurchaseId(purchase.id);
-    setNewPurchase({
-      product_id: purchase.product_id || "",
-      product_name: purchase.product_name,
-      quantity: purchase.quantity,
-      unit_price: Number(purchase.unit_price),
-      purchase_date: purchase.purchase_date.slice(0, 16),
-      notes: purchase.notes || ""
-    });
-    setIsPurchaseDialogOpen(true);
-  };
-
-  const handleUpdatePurchase = async () => {
-    if (!editingPurchaseId || !newPurchase.product_name) {
-      toast({ title: "Nome do produto é obrigatório", variant: "destructive" });
-      return;
-    }
-    const totalPrice = newPurchase.quantity * newPurchase.unit_price;
-    const { error } = await supabase.from('customer_purchases_history').update({
-      product_name: newPurchase.product_name,
-      quantity: newPurchase.quantity,
-      unit_price: newPurchase.unit_price,
-      total_price: totalPrice,
-      purchase_date: newPurchase.purchase_date,
-      notes: newPurchase.notes || null,
-    }).eq('id', editingPurchaseId);
-
-    if (error) {
-      toast({ title: "Erro ao atualizar compra", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Compra atualizada! 🛒" });
-      setIsPurchaseDialogOpen(false);
-      setEditingPurchaseId(null);
-      resetPurchaseForm();
       fetchAllHistory();
     }
   };
@@ -489,7 +470,6 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
   };
 
   const resetServiceForm = () => {
-    setServiceInputMode("select");
     setNewService({
       service_id: "",
       service_name: "",
@@ -497,17 +477,6 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
       price: 0,
       service_date: new Date().toISOString().slice(0, 16),
       status: "completed",
-      notes: ""
-    });
-  };
-
-  const resetPurchaseForm = () => {
-    setNewPurchase({
-      product_id: "",
-      product_name: "",
-      quantity: 1,
-      unit_price: 0,
-      purchase_date: new Date().toISOString().slice(0, 16),
       notes: ""
     });
   };
@@ -522,28 +491,14 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
     });
   };
 
-  const handleServiceSelect = (serviceId: string) => {
-    const service = availableServices.find(s => s.id === serviceId);
-    if (service) {
-      setNewService({
-        ...newService,
-        service_id: serviceId,
-        service_name: service.name,
-        price: service.price
-      });
-    }
-  };
-
-  const handleProductSelect = (productId: string) => {
-    const product = availableProducts.find(p => p.id === productId);
-    if (product) {
-      setNewPurchase({
-        ...newPurchase,
-        product_id: productId,
-        product_name: product.name,
-        unit_price: product.price
-      });
-    }
+  const resetContractForm = () => {
+    setNewContract({
+      title: "",
+      description: "",
+      file_url: "",
+      file_name: "",
+      contract_date: new Date().toISOString().slice(0, 16),
+    });
   };
 
   const getStatusColor = (status: string) => {
@@ -570,7 +525,6 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
   };
 
   const totalServices = servicesHistory.reduce((sum, s) => sum + Number(s.price), 0);
-  const totalPurchases = purchasesHistory.reduce((sum, p) => sum + Number(p.total_price), 0);
   const totalPayments = paymentsHistory.reduce((sum, p) => sum + Number(p.amount), 0);
   const totalReceipts = linkedReceipts.reduce((sum, r) => sum + Number(r.total_amount), 0);
   const unlinkedReceipts = savedReceipts.filter(r => !r.client_name || r.client_name !== contactName);
@@ -585,15 +539,6 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
             <div>
               <p className="text-xs text-muted-foreground">Serviços</p>
               <p className="font-semibold text-blue-500">R$ {totalServices.toFixed(2)}</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-3 bg-purple-500/10 border-purple-500/30">
-          <div className="flex items-center gap-2">
-            <ShoppingCart className="w-4 h-4 text-purple-500" />
-            <div>
-              <p className="text-xs text-muted-foreground">Compras</p>
-              <p className="font-semibold text-purple-500">R$ {totalPurchases.toFixed(2)}</p>
             </div>
           </div>
         </Card>
@@ -615,6 +560,15 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
             </div>
           </div>
         </Card>
+        <Card className="p-3 bg-indigo-500/10 border-indigo-500/30">
+          <div className="flex items-center gap-2">
+            <FileText className="w-4 h-4 text-indigo-500" />
+            <div>
+              <p className="text-xs text-muted-foreground">Contratos</p>
+              <p className="font-semibold text-indigo-500">{contracts.length}</p>
+            </div>
+          </div>
+        </Card>
       </div>
 
       <Tabs defaultValue="services" className="w-full">
@@ -622,18 +576,18 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
           <TabsTrigger value="services" className="text-xs">
             <Wrench className="w-3 h-3 mr-1" /> Serviços ({servicesHistory.length})
           </TabsTrigger>
-          <TabsTrigger value="purchases" className="text-xs">
-            <ShoppingCart className="w-3 h-3 mr-1" /> Compras ({purchasesHistory.length})
-          </TabsTrigger>
           <TabsTrigger value="payments" className="text-xs">
             <CreditCard className="w-3 h-3 mr-1" /> Pagamentos ({paymentsHistory.length})
           </TabsTrigger>
           <TabsTrigger value="receipts" className="text-xs">
             <Receipt className="w-3 h-3 mr-1" /> Recibos ({linkedReceipts.length})
           </TabsTrigger>
+          <TabsTrigger value="contracts" className="text-xs">
+            <FileText className="w-3 h-3 mr-1" /> Contratos ({contracts.length})
+          </TabsTrigger>
         </TabsList>
 
-        {/* Services Tab */}
+        {/* Services Tab - Only custom/avulso */}
         <TabsContent value="services" className="space-y-3">
           <Dialog open={isServiceDialogOpen} onOpenChange={(open) => {
             setIsServiceDialogOpen(open);
@@ -649,61 +603,14 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
                 <DialogTitle>{editingServiceId ? 'Editar' : 'Registrar'} Serviço para {contactName}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 mt-4">
-                {!editingServiceId && availableServices.length > 0 && (
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={serviceInputMode === "select" ? "default" : "outline"}
-                      onClick={() => {
-                        setServiceInputMode("select");
-                        setNewService({ ...newService, service_id: "", service_name: "", price: 0 });
-                      }}
-                      className="flex-1"
-                    >
-                      Serviço Cadastrado
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={serviceInputMode === "custom" ? "default" : "outline"}
-                      onClick={() => {
-                        setServiceInputMode("custom");
-                        setNewService({ ...newService, service_id: "", service_name: "", price: 0 });
-                      }}
-                      className="flex-1"
-                    >
-                      Serviço Avulso
-                    </Button>
-                  </div>
-                )}
-
-                {serviceInputMode === "select" && availableServices.length > 0 ? (
-                  <div>
-                    <Label>Selecionar Serviço Cadastrado</Label>
-                    <Select onValueChange={handleServiceSelect}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Escolha um serviço..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableServices.map(s => (
-                          <SelectItem key={s.id} value={s.id}>
-                            {s.name} - R$ {s.price}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ) : (
-                  <div>
-                    <Label>Nome do Serviço *</Label>
-                    <Input
-                      value={newService.service_name}
-                      onChange={(e) => setNewService({ ...newService, service_name: e.target.value })}
-                      placeholder="Ex: Consultoria, Manutenção..."
-                    />
-                  </div>
-                )}
+                <div>
+                  <Label>Nome do Serviço *</Label>
+                  <Input
+                    value={newService.service_name}
+                    onChange={(e) => setNewService({ ...newService, service_name: e.target.value })}
+                    placeholder="Ex: Consultoria, Manutenção..."
+                  />
+                </div>
                 <div>
                   <Label>Descrição</Label>
                   <Input
@@ -796,135 +703,6 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
                         <Edit className="w-4 h-4 text-primary" />
                       </Button>
                       <Button size="icon" variant="ghost" onClick={() => handleDeleteService(service.id)}>
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))
-            )}
-          </div>
-        </TabsContent>
-
-        {/* Purchases Tab */}
-        <TabsContent value="purchases" className="space-y-3">
-          <Dialog open={isPurchaseDialogOpen} onOpenChange={(open) => {
-            setIsPurchaseDialogOpen(open);
-            if (!open) { setEditingPurchaseId(null); resetPurchaseForm(); }
-          }}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="w-full">
-                <Plus className="w-4 h-4 mr-2" /> Registrar Compra
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{editingPurchaseId ? 'Editar' : 'Registrar'} Compra de {contactName}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 mt-4">
-                {availableProducts.length > 0 && (
-                  <div>
-                    <Label>Selecionar Produto Cadastrado</Label>
-                    <Select onValueChange={handleProductSelect}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Escolha um produto..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableProducts.map(p => (
-                          <SelectItem key={p.id} value={p.id}>
-                            {p.name} - R$ {p.price}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-                <div>
-                  <Label>Nome do Produto *</Label>
-                  <Input
-                    value={newPurchase.product_name}
-                    onChange={(e) => setNewPurchase({ ...newPurchase, product_name: e.target.value })}
-                    placeholder="Ex: Camiseta"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Quantidade</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      value={newPurchase.quantity}
-                      onChange={(e) => setNewPurchase({ ...newPurchase, quantity: parseInt(e.target.value) || 1 })}
-                    />
-                  </div>
-                  <div>
-                    <Label>Preço Unitário (R$)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={newPurchase.unit_price}
-                      onChange={(e) => setNewPurchase({ ...newPurchase, unit_price: parseFloat(e.target.value) || 0 })}
-                    />
-                  </div>
-                </div>
-                <div className="p-2 bg-muted rounded-md">
-                  <p className="text-sm">
-                    Total: <strong>R$ {(newPurchase.quantity * newPurchase.unit_price).toFixed(2)}</strong>
-                  </p>
-                </div>
-                <div>
-                  <Label>Data da Compra</Label>
-                  <Input
-                    type="datetime-local"
-                    value={newPurchase.purchase_date}
-                    onChange={(e) => setNewPurchase({ ...newPurchase, purchase_date: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label>Observações</Label>
-                  <Textarea
-                    value={newPurchase.notes}
-                    onChange={(e) => setNewPurchase({ ...newPurchase, notes: e.target.value })}
-                    placeholder="Notas adicionais..."
-                    rows={2}
-                  />
-                </div>
-                <Button onClick={editingPurchaseId ? handleUpdatePurchase : handleAddPurchase} className="w-full">
-                  {editingPurchaseId ? 'Atualizar Compra' : 'Salvar Compra'}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          <div className="space-y-2 max-h-[250px] overflow-y-auto">
-            {purchasesHistory.length === 0 ? (
-              <p className="text-center text-muted-foreground py-4 text-sm">Nenhuma compra registrada</p>
-            ) : (
-              purchasesHistory.map(purchase => (
-                <Card key={purchase.id} className="p-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h4 className="font-medium text-sm">{purchase.product_name}</h4>
-                      <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Package className="w-3 h-3" />
-                          {purchase.quantity}x R$ {Number(purchase.unit_price).toFixed(2)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {new Date(purchase.purchase_date).toLocaleDateString('pt-BR')}
-                        </span>
-                        <span className="flex items-center gap-1 text-purple-500 font-medium">
-                          <DollarSign className="w-3 h-3" />
-                          R$ {Number(purchase.total_price).toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <Button size="icon" variant="ghost" onClick={() => handleEditPurchase(purchase)}>
-                        <Edit className="w-4 h-4 text-primary" />
-                      </Button>
-                      <Button size="icon" variant="ghost" onClick={() => handleDeletePurchase(purchase.id)}>
                         <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
                     </div>
@@ -1157,6 +935,127 @@ export const CustomerHistoryPanel = ({ contactId, customerId, contactName }: Cus
                   </Card>
                 );
               })
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Contracts Tab */}
+        <TabsContent value="contracts" className="space-y-3">
+          <Dialog open={isContractDialogOpen} onOpenChange={(open) => {
+            setIsContractDialogOpen(open);
+            if (!open) { setEditingContractId(null); resetContractForm(); }
+          }}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="w-full">
+                <Plus className="w-4 h-4 mr-2" /> Adicionar Contrato
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{editingContractId ? 'Editar' : 'Adicionar'} Contrato de {contactName}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 mt-4">
+                <div>
+                  <Label>Título do Contrato *</Label>
+                  <Input
+                    value={newContract.title}
+                    onChange={(e) => setNewContract({ ...newContract, title: e.target.value })}
+                    placeholder="Ex: Contrato de Prestação de Serviços"
+                  />
+                </div>
+                <div>
+                  <Label>Descrição</Label>
+                  <Textarea
+                    value={newContract.description}
+                    onChange={(e) => setNewContract({ ...newContract, description: e.target.value })}
+                    placeholder="Detalhes do contrato..."
+                    rows={2}
+                  />
+                </div>
+                <div>
+                  <Label>Data do Contrato</Label>
+                  <Input
+                    type="datetime-local"
+                    value={newContract.contract_date}
+                    onChange={(e) => setNewContract({ ...newContract, contract_date: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Anexar Arquivo</Label>
+                  {newContract.file_name && (
+                    <div className="flex items-center gap-2 mb-2 p-2 bg-muted rounded">
+                      <FileText className="w-4 h-4 text-indigo-500" />
+                      <span className="text-sm truncate flex-1">{newContract.file_name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setNewContract({ ...newContract, file_url: "", file_name: "" })}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="file"
+                      accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                      onChange={handleContractFileUpload}
+                      disabled={uploading}
+                      className="cursor-pointer"
+                    />
+                    {uploading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">PDF, DOC, DOCX, PNG ou JPG (máx. 10MB)</p>
+                </div>
+                <Button onClick={editingContractId ? handleUpdateContract : handleAddContract} className="w-full">
+                  {editingContractId ? 'Atualizar Contrato' : 'Salvar Contrato'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <div className="space-y-2 max-h-[250px] overflow-y-auto">
+            {contracts.length === 0 ? (
+              <p className="text-center text-muted-foreground py-4 text-sm">Nenhum contrato registrado</p>
+            ) : (
+              contracts.map(contract => (
+                <Card key={contract.id} className="p-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-sm">{contract.title}</h4>
+                      {contract.description && (
+                        <p className="text-xs text-muted-foreground mt-1">{contract.description}</p>
+                      )}
+                      <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {new Date(contract.contract_date).toLocaleDateString('pt-BR')}
+                        </span>
+                        {contract.file_name && (
+                          <span className="flex items-center gap-1 text-indigo-500">
+                            <FileText className="w-3 h-3" />
+                            {contract.file_name}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      {contract.file_url && (
+                        <Button size="icon" variant="ghost" title="Baixar" onClick={() => window.open(contract.file_url!, '_blank')}>
+                          <Download className="w-4 h-4 text-primary" />
+                        </Button>
+                      )}
+                      <Button size="icon" variant="ghost" onClick={() => handleEditContract(contract)}>
+                        <Edit className="w-4 h-4 text-primary" />
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => handleDeleteContract(contract.id)}>
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))
             )}
           </div>
         </TabsContent>
