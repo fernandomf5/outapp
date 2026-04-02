@@ -617,10 +617,11 @@ export const CheckoutCreatorPanel = () => {
                   <Label>Preço (R$)</Label>
                   <Input type="number" step="0.01" value={formData.downsell_price} onChange={(e) => setFormData({ ...formData, downsell_price: e.target.value })} />
                 </div>
-                <div>
-                  <Label>URL da Imagem</Label>
-                  <Input value={formData.downsell_image_url} onChange={(e) => setFormData({ ...formData, downsell_image_url: e.target.value })} />
-                </div>
+                <CheckoutImageUpload
+                  label="Imagem do Downsell"
+                  value={formData.downsell_image_url}
+                  onChange={(url) => setFormData({ ...formData, downsell_image_url: url })}
+                />
               </div>
               <div>
                 <Label>URL do Checkout (downsell)</Label>
