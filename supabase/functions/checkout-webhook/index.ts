@@ -223,7 +223,7 @@ async function handleCatalogIntegration(supabase: any, checkout: any, orderData:
   }
 }
 
-async function handleMembersAreaIntegration(supabase: any, checkout: any, orderData: any, orderId: string) {
+async function handleMembersAreaIntegration(supabase: any, checkout: any, orderData: any, orderId: string): Promise<string | null> {
   try {
     // Generate unique access code
     const { data: codeData } = await supabase.rpc('generate_checkout_access_code');
@@ -244,7 +244,7 @@ async function handleMembersAreaIntegration(supabase: any, checkout: any, orderD
 
     if (insertError) {
       console.error('Error inserting access code:', insertError);
-      return;
+      return null;
     }
 
     // Store access code in order metadata for display on thank you page
@@ -256,7 +256,70 @@ async function handleMembersAreaIntegration(supabase: any, checkout: any, orderD
       .eq('id', orderId);
 
     console.log('Members area access code generated:', accessCode);
+    return accessCode;
   } catch (err) {
     console.error('Error in members area integration:', err);
+    return null;
+  }
+}
+
+async function sendAccessCodeEmail(email: string, name: string, accessCode: string, productName: string) {
+  try {
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    if (!resendApiKey) {
+      console.error('RESEND_API_KEY not configured, skipping email');
+      return;
+    }
+
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; padding: 30px 0; background: linear-gradient(135deg, #8B5CF6, #6D28D9); border-radius: 12px; margin-bottom: 30px;">
+          <h1 style="color: white; margin: 0; font-size: 24px;">🎉 Pagamento Confirmado!</h1>
+        </div>
+        
+        <p style="font-size: 16px; color: #333;">Olá, <strong>${name}</strong>!</p>
+        
+        <p style="font-size: 14px; color: #555; line-height: 1.6;">
+          Seu pagamento para <strong>${productName}</strong> foi confirmado com sucesso! 
+          Use o código abaixo para acessar seu conteúdo:
+        </p>
+        
+        <div style="text-align: center; margin: 30px 0; padding: 25px; background: #F3F4F6; border-radius: 12px; border: 2px dashed #8B5CF6;">
+          <p style="font-size: 12px; color: #666; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 1px;">Seu Código de Acesso</p>
+          <p style="font-size: 32px; font-weight: bold; color: #8B5CF6; margin: 0; letter-spacing: 4px; font-family: monospace;">${accessCode}</p>
+        </div>
+        
+        <p style="font-size: 14px; color: #555; line-height: 1.6;">
+          📌 Guarde este código com segurança. Você precisará dele para acessar a área de membros.
+        </p>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #E5E7EB; text-align: center;">
+          <p style="font-size: 12px; color: #999;">Este é um email automático, não responda.</p>
+        </div>
+      </div>
+    `;
+
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'Pagamento Confirmado <onboarding@resend.dev>',
+        to: [email],
+        subject: `🎉 Seu código de acesso - ${productName}`,
+        html: htmlContent,
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('Resend error:', errText);
+    } else {
+      console.log('Access code email sent to:', email);
+    }
+  } catch (err) {
+    console.error('Error sending email:', err);
   }
 }
