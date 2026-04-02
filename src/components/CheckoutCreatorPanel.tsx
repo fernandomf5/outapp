@@ -520,10 +520,12 @@ export const CheckoutCreatorPanel = () => {
                 <Input value={formData.primary_color} onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })} />
               </div>
             </div>
-            <div>
-              <Label>URL do Banner</Label>
-              <Input value={formData.banner_url} onChange={(e) => setFormData({ ...formData, banner_url: e.target.value })} placeholder="https://..." />
-            </div>
+            <CheckoutImageUpload
+              label="Banner do Checkout"
+              value={formData.banner_url}
+              onChange={(url) => setFormData({ ...formData, banner_url: url })}
+              aspectHint="Recomendado: 1200x400px"
+            />
           </div>
           <div>
             <Label>Mensagem de Sucesso (legado)</Label>
