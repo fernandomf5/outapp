@@ -74,7 +74,7 @@ serve(async (req) => {
       // Get checkout details including integration info
       const { data: checkout } = await supabase
         .from('checkouts')
-        .select('total_sales, total_revenue, user_id, integration_type, integration_id')
+        .select('total_sales, total_revenue, user_id, integration_type, integration_id, item_name')
         .eq('id', checkoutId)
         .single();
 
