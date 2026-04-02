@@ -379,6 +379,17 @@ export const CheckoutCreatorPanel = () => {
     } catch { toast.error('Erro ao remover item'); }
   };
 
+  const handleDeleteOrder = async (orderId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este pedido?')) return;
+    if (!selectedCheckout) return;
+    try {
+      const { error } = await supabase.from('checkout_orders').delete().eq('id', orderId);
+      if (error) throw error;
+      toast.success('Pedido excluído!');
+      loadOrders(selectedCheckout.id);
+    } catch { toast.error('Erro ao excluir pedido'); }
+  };
+
   const handleSelectProduct = (productId: string) => {
     const product = products.find(p => p.id === productId);
     if (product) {
