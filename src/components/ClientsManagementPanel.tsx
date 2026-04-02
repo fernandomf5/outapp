@@ -1032,6 +1032,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
                     <TableHead>Nome</TableHead>
                     <TableHead>Contato</TableHead>
                     <TableHead>Empresa</TableHead>
+                    <TableHead>Negócio</TableHead>
                     <TableHead>Categoria</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Tags</TableHead>
