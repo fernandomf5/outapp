@@ -78,13 +78,23 @@ function TaskDescription({ description }: { description: string }) {
     </div>
   );
 }
-function TaskCard({ task, blocks, tasksInBlock, onEdit, onDelete, onMoveToBlock, onChangeOrder }: TaskCardProps) {
+function DraggableTaskCard({ task, blocks, tasksInBlock, onEdit, onDelete, onMoveToBlock, onChangeOrder }: TaskCardProps) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: task.id,
+    data: { type: 'task', task },
+  });
+
+  const style = transform ? {
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    zIndex: isDragging ? 50 : undefined,
+    opacity: isDragging ? 0.5 : 1,
+  } : undefined;
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "high": return "bg-destructive text-destructive-foreground";
-      case "medium": return "bg-warning text-warning-foreground";
-      case "low": return "bg-muted text-muted-foreground";
+      case "high": return "bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/30";
+      case "medium": return "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30";
+      case "low": return "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30";
       default: return "bg-muted text-muted-foreground";
     }
   };
@@ -98,101 +108,127 @@ function TaskCard({ task, blocks, tasksInBlock, onEdit, onDelete, onMoveToBlock,
     }
   };
 
-  const currentBlock = blocks.find(b => b.id === task.block_id);
+  const getPriorityIcon = (priority: string) => {
+    switch (priority) {
+      case "high": return "🔴";
+      case "medium": return "🟡";
+      case "low": return "🟢";
+      default: return "⚪";
+    }
+  };
 
   return (
-    <Card className="mb-3 hover:shadow-md transition-smooth">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <h4 className="font-semibold text-sm flex-1 break-words">{task.title}</h4>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 shrink-0">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={() => onEdit(task)}>
-                <Edit2 className="mr-2 h-4 w-4" />
-                Editar
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onDelete(task.id)} className="text-destructive">
-                <Trash2 className="mr-2 h-4 w-4" />
-                Deletar
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-        
-        {task.description && (
-          <TaskDescription description={task.description} />
-        )}
-        
-        <div className="flex flex-wrap gap-2 items-center mb-3">
-          <Badge variant="secondary" className={getPriorityColor(task.priority)}>
-            <Flag className="h-3 w-3 mr-1" />
-            {getPriorityLabel(task.priority)}
-          </Badge>
-          
-          {task.category && (
-            <Badge variant="outline">{task.category}</Badge>
-          )}
-          
-          {task.due_date && (
-            <Badge variant="outline" className="text-xs">
-              <Calendar className="h-3 w-3 mr-1" />
-              {task.due_date.split('-').reverse().join('/')}
-            </Badge>
-          )}
-        </div>
-
-        <div className="pt-2 border-t border-border/50 space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <Label className="text-xs font-medium">Posição no Bloco</Label>
-            <Input
-              type="number"
-              min={1}
-              max={tasksInBlock.length}
-              value={(task.task_order ?? 0) + 1}
-              onChange={(e) => {
-                const val = parseInt(e.currentTarget.value, 10);
-                if (!Number.isFinite(val)) return;
-                const clamped = Math.max(1, Math.min(tasksInBlock.length, val));
-                onChangeOrder(task.id, clamped);
-              }}
-              className="h-8 w-20 text-center font-semibold"
-            />
+    <div ref={setNodeRef} style={style}>
+      <Card className={`mb-3 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 border-l-4 ${
+        isDragging ? 'shadow-2xl ring-2 ring-primary/30' : ''
+      }`} style={{ borderLeftColor: blocks.find(b => b.id === task.block_id)?.color || 'hsl(var(--border))' }}>
+        <CardContent className="p-4">
+          <div className="flex items-start gap-2 mb-3">
+            <div 
+              {...attributes} 
+              {...listeners} 
+              className="cursor-grab active:cursor-grabbing hover:bg-accent rounded p-1 mt-0.5 transition-colors"
+            >
+              <GripVertical className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <h4 className="font-semibold text-sm flex-1 break-words leading-snug">{task.title}</h4>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0 shrink-0 hover:bg-accent">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => onEdit(task)}>
+                  <Edit2 className="mr-2 h-4 w-4" />
+                  Editar
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onDelete(task.id)} className="text-destructive">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Deletar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-          <div>
-            <Label className="text-xs text-muted-foreground mb-1.5 block">Mover para</Label>
-            <div className="flex items-center gap-2">
-              <MoveRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-              <Select 
-                value={task.block_id || ""} 
-                onValueChange={(value) => onMoveToBlock(task.id, value)}
-              >
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue placeholder="Selecione o bloco" />
-                </SelectTrigger>
-                <SelectContent>
-                  {blocks.map((block) => (
-                    <SelectItem key={block.id} value={block.id}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-2 h-2 rounded-full" 
-                          style={{ backgroundColor: block.color }}
-                        />
-                        <span>{block.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          
+          {task.description && (
+            <TaskDescription description={task.description} />
+          )}
+          
+          <div className="flex flex-wrap gap-1.5 items-center mb-3">
+            <Badge variant="outline" className={`${getPriorityColor(task.priority)} border text-xs font-medium`}>
+              <span className="mr-1">{getPriorityIcon(task.priority)}</span>
+              {getPriorityLabel(task.priority)}
+            </Badge>
+            
+            {task.category && (
+              <Badge variant="outline" className="bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-500/30 text-xs">
+                {task.category}
+              </Badge>
+            )}
+            
+            {task.due_date && (
+              <Badge variant="outline" className="bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/30 text-xs">
+                <Calendar className="h-3 w-3 mr-1" />
+                {task.due_date.split('-').reverse().join('/')}
+              </Badge>
+            )}
+
+            {task.request_date && (
+              <Badge variant="outline" className="bg-pink-500/10 text-pink-700 dark:text-pink-400 border-pink-500/30 text-xs">
+                📋 {task.request_date.split('-').reverse().join('/')}
+              </Badge>
+            )}
+          </div>
+
+          <div className="pt-2 border-t border-border/50 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <Label className="text-xs font-medium text-muted-foreground">Posição</Label>
+              <Input
+                type="number"
+                min={1}
+                max={tasksInBlock.length}
+                value={(task.task_order ?? 0) + 1}
+                onChange={(e) => {
+                  const val = parseInt(e.currentTarget.value, 10);
+                  if (!Number.isFinite(val)) return;
+                  const clamped = Math.max(1, Math.min(tasksInBlock.length, val));
+                  onChangeOrder(task.id, clamped);
+                }}
+                className="h-7 w-16 text-center text-xs font-semibold"
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1.5 block">Mover para</Label>
+              <div className="flex items-center gap-2">
+                <MoveRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <Select 
+                  value={task.block_id || ""} 
+                  onValueChange={(value) => onMoveToBlock(task.id, value)}
+                >
+                  <SelectTrigger className="h-7 text-xs">
+                    <SelectValue placeholder="Selecione o bloco" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {blocks.map((block) => (
+                      <SelectItem key={block.id} value={block.id}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-2.5 h-2.5 rounded-full" 
+                            style={{ backgroundColor: block.color }}
+                          />
+                          <span>{block.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
