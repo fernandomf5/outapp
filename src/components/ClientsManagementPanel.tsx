@@ -1032,6 +1032,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
                     <TableHead>Nome</TableHead>
                     <TableHead>Contato</TableHead>
                     <TableHead>Empresa</TableHead>
+                    <TableHead>Negócio</TableHead>
                     <TableHead>Categoria</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Tags</TableHead>
@@ -1056,6 +1057,19 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
                             {customer.position && <span className="text-sm text-muted-foreground">{customer.position}</span>}
                           </div>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        {(() => {
+                          const biz = businesses.find(b => b.id === customer.business_id);
+                          return biz ? (
+                            <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10">
+                              <Building className="w-3 h-3 mr-1" />
+                              {biz.name}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">-</span>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell>
                         {(() => {
