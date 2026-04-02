@@ -101,10 +101,22 @@ serve(async (req) => {
           await handleCatalogIntegration(supabase, checkout, orderData, checkoutId);
         }
 
-        // Handle members area integration
+      // Handle members area integration
         if (checkout.integration_type === 'members_area' && checkout.integration_id && orderData) {
           console.log('Processing members area integration for area:', checkout.integration_id);
           await handleMembersAreaIntegration(supabase, checkout, orderData, orderId);
+
+          // Send access code email
+          const metadata = orderData.metadata as any;
+          if (metadata?.access_code && orderData.customer_email) {
+            await sendAccessCodeEmail(
+              supabase,
+              orderData.customer_email,
+              orderData.customer_name || 'Cliente',
+              metadata.access_code,
+              checkout.item_name || 'Produto'
+            );
+          }
         }
       }
 
