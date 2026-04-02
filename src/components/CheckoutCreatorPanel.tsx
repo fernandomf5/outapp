@@ -441,16 +441,16 @@ export const CheckoutCreatorPanel = () => {
                 <Label>Descrição do Item</Label>
                 <Textarea value={formData.item_description} onChange={(e) => setFormData({ ...formData, item_description: e.target.value })} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Preço (R$) *</Label>
-                  <Input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} placeholder="99.90" />
-                </div>
-                <div>
-                  <Label>URL da Imagem</Label>
-                  <Input value={formData.item_image_url} onChange={(e) => setFormData({ ...formData, item_image_url: e.target.value })} placeholder="https://..." />
-                </div>
+              <div>
+                <Label>Preço (R$) *</Label>
+                <Input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} placeholder="99.90" />
               </div>
+              <CheckoutImageUpload
+                label="Imagem do Produto"
+                value={formData.item_image_url}
+                onChange={(url) => setFormData({ ...formData, item_image_url: url })}
+                aspectHint="Recomendado: 400x400px"
+              />
             </div>
           </div>
           <div className="border-t pt-4">
