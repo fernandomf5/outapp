@@ -2465,39 +2465,81 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
       </div>
 
       {/* Kanban Board */}
-      <div className="flex gap-4 overflow-x-auto pb-4">
-        {filteredBlocks.map((block) => (
-          <DroppableBlock
-            key={block.id}
-            block={block}
-            tasks={tasksByBlock[block.id] || []}
-            allBlocks={blocks}
-            onEdit={openEditTask}
-            onDelete={handleDeleteTask}
-            onEditBlock={openEditBlock}
-            onDeleteBlock={handleDeleteBlock}
-            onMoveTaskToBlock={handleMoveTaskToBlock}
-            onChangeOrder={handleChangeBlockOrder}
-            onChangeTaskOrder={handleChangeTaskOrder}
-          />
-        ))}
-        
-        {filteredBlocks.length === 0 && (
-          <Card className="w-80">
-            <CardContent className="flex items-center justify-center h-64">
-              <div className="text-center">
-                <p className="text-muted-foreground mb-4">
-                  {selectedClientFilter === "all" ? "Nenhum bloco criado ainda" : "Nenhum bloco para este cliente"}
-                </p>
-                <Button onClick={() => setIsBlockDialogOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Criar Bloco
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={collisionDetection}
+        onDragStart={(event: DragStartEvent) => {
+          setActiveId(event.active.id as string);
+        }}
+        onDragEnd={(event: DragEndEvent) => {
+          setActiveId(null);
+          const { active, over } = event;
+          if (!over) return;
+          
+          const taskId = active.id as string;
+          const overId = over.id as string;
+          
+          // Check if dropped on a block
+          if (overId.startsWith('block-')) {
+            const blockId = overId.replace('block-', '');
+            const task = tasks.find(t => t.id === taskId);
+            if (task && task.block_id !== blockId) {
+              handleMoveTaskToBlock(taskId, blockId);
+            }
+          }
+        }}
+      >
+        <div className="flex gap-4 overflow-x-auto pb-4">
+          {filteredBlocks.map((block) => (
+            <DroppableBlock
+              key={block.id}
+              block={block}
+              tasks={tasksByBlock[block.id] || []}
+              allBlocks={blocks}
+              onEdit={openEditTask}
+              onDelete={handleDeleteTask}
+              onEditBlock={openEditBlock}
+              onDeleteBlock={handleDeleteBlock}
+              onMoveTaskToBlock={handleMoveTaskToBlock}
+              onChangeOrder={handleChangeBlockOrder}
+              onChangeTaskOrder={handleChangeTaskOrder}
+            />
+          ))}
+          
+          {filteredBlocks.length === 0 && (
+            <Card className="w-80">
+              <CardContent className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <p className="text-muted-foreground mb-4">
+                    {selectedClientFilter === "all" ? "Nenhum bloco criado ainda" : "Nenhum bloco para este cliente"}
+                  </p>
+                  <Button onClick={() => setIsBlockDialogOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Criar Bloco
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        <DragOverlay>
+          {activeId ? (() => {
+            const draggedTask = tasks.find(t => t.id === activeId);
+            if (!draggedTask) return null;
+            return (
+              <Card className="w-72 shadow-2xl rotate-2 border-l-4 opacity-90" style={{ borderLeftColor: blocks.find(b => b.id === draggedTask.block_id)?.color || 'hsl(var(--primary))' }}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2">
+                    <GripVertical className="h-4 w-4 text-muted-foreground" />
+                    <h4 className="font-semibold text-sm">{draggedTask.title}</h4>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })() : null}
+        </DragOverlay>
+      </DndContext>
     </div>
   );
 };
