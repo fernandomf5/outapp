@@ -552,7 +552,6 @@ export const CheckoutCreatorPanel = () => {
             value={formData.thank_you_image_url}
             onChange={(url) => setFormData({ ...formData, thank_you_image_url: url })}
           />
-          </div>
           <div className="flex items-center gap-2">
             <Switch checked={formData.show_order_details} onCheckedChange={(v) => setFormData({ ...formData, show_order_details: v })} />
             <Label>Mostrar detalhes do pedido</Label>
