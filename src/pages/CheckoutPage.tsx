@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { CreditCard, Loader2, ShoppingCart, Shield, Plus, Minus } from "lucide-react";
+import { CreditCard, Loader2, ShoppingCart, Shield, Plus, Minus, CheckCircle2 } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import { TransparentCheckout } from "@/components/TransparentCheckout";
 
 interface CheckoutData {
   id: string;
@@ -24,6 +25,7 @@ interface CheckoutData {
   success_message: string;
   redirect_url: string | null;
   mp_access_token: string | null;
+  mp_public_key: string | null;
   user_id: string;
   head_code: string | null;
   footer_code: string | null;
@@ -45,10 +47,14 @@ const CheckoutPage = () => {
   const [checkout, setCheckout] = useState<CheckoutData | null>(null);
   const [additionalItems, setAdditionalItems] = useState<AdditionalItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedBumps, setSelectedBumps] = useState<Set<string>>(new Set());
   const [relatedCart, setRelatedCart] = useState<Map<string, number>>(new Map());
+  const [mpPublicKey, setMpPublicKey] = useState<string | null>(null);
+  const [showPayment, setShowPayment] = useState(false);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [accessCode, setAccessCode] = useState<string | null>(null);
 
   const [customerData, setCustomerData] = useState({
     name: '', email: '', phone: '', cpf: '',
@@ -64,6 +70,15 @@ const CheckoutPage = () => {
         .from('checkouts').select('*').eq('id', checkoutId).eq('is_active', true).single();
       if (fetchError || !data) { setError('Checkout não encontrado ou inativo'); return; }
       setCheckout(data as any);
+
+      // Get MP public key - from checkout or site settings
+      let pubKey = (data as any).mp_public_key;
+      if (!pubKey) {
+        const { data: mpSettings } = await supabase
+          .from('site_settings').select('value').eq('key', 'mercadopago_public_key').single();
+        pubKey = mpSettings?.value;
+      }
+      setMpPublicKey(pubKey);
 
       // Load additional items
       const { data: items } = await supabase
@@ -118,12 +133,15 @@ const CheckoutPage = () => {
     return extras;
   };
 
-  const handlePayment = async () => {
+  const handleProceedToPayment = async () => {
     if (!checkout) return;
     if (!customerData.name.trim() || !customerData.email.trim()) {
       alert('Preencha nome e email para continuar'); return;
     }
-    setProcessing(true);
+    if (!customerData.cpf.trim()) {
+      alert('Preencha o CPF para pagamento'); return;
+    }
+
     try {
       const totalAmount = calculateTotal();
       const extras = getSelectedExtras();
@@ -138,21 +156,21 @@ const CheckoutPage = () => {
         }).select().single();
       if (orderError) throw orderError;
 
-      const { data, error: fnError } = await supabase.functions.invoke('checkout-payment', {
-        body: {
-          checkoutId: checkout.id, orderId: order.id,
-          customerName: customerData.name, customerEmail: customerData.email,
-          amount: totalAmount, additionalItems: extras,
-        },
-      });
-      if (fnError) throw fnError;
-      if (data?.init_point) { window.location.href = data.init_point; }
-      else throw new Error('Erro ao processar pagamento');
+      setOrderId(order.id);
+      setShowPayment(true);
     } catch (err: any) {
-      console.error('Erro no pagamento:', err);
-      alert(err.message || 'Erro ao processar pagamento');
-      setProcessing(false);
+      console.error('Erro ao criar pedido:', err);
+      alert(err.message || 'Erro ao processar');
     }
+  };
+
+  const handlePaymentSuccess = (data: { accessCode?: string; paymentId: string }) => {
+    setPaymentSuccess(true);
+    if (data.accessCode) setAccessCode(data.accessCode);
+  };
+
+  const handlePaymentError = (errorMsg: string) => {
+    alert(errorMsg);
   };
 
   if (loading) {
@@ -179,6 +197,52 @@ const CheckoutPage = () => {
 
   const primaryColor = checkout.primary_color || '#8B5CF6';
   const total = calculateTotal();
+
+  // Payment success screen
+  if (paymentSuccess) {
+    return (
+      <>
+        <Helmet><title>Pagamento Confirmado!</title></Helmet>
+        <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex items-center justify-center p-4">
+          <Card className="w-full max-w-lg text-center overflow-hidden shadow-xl">
+            <div className="p-8 space-y-6">
+              <div className="w-20 h-20 mx-auto rounded-full flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
+                <CheckCircle2 className="w-10 h-10" style={{ color: primaryColor }} />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold mb-2">🎉 Pagamento Confirmado!</h1>
+                <p className="text-muted-foreground">Seu pagamento foi processado com sucesso.</p>
+              </div>
+
+              {accessCode && (
+                <div className="p-6 rounded-xl border-2 border-dashed" style={{ borderColor: primaryColor, backgroundColor: `${primaryColor}08` }}>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Seu Código de Acesso</p>
+                  <p className="text-3xl font-bold font-mono tracking-widest" style={{ color: primaryColor }}>{accessCode}</p>
+                  <p className="text-xs text-muted-foreground mt-3">
+                    📧 Este código também foi enviado para seu e-mail
+                  </p>
+                </div>
+              )}
+
+              <p className="text-sm text-muted-foreground">
+                {checkout.success_message || 'Obrigado pela sua compra!'}
+              </p>
+
+              {checkout.redirect_url && (
+                <Button
+                  className="w-full"
+                  style={{ backgroundColor: primaryColor }}
+                  onClick={() => window.location.href = checkout.redirect_url!}
+                >
+                  Continuar
+                </Button>
+              )}
+            </div>
+          </Card>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -215,7 +279,7 @@ const CheckoutPage = () => {
               </div>
 
               {/* Order Bumps */}
-              {bumps.length > 0 && (
+              {bumps.length > 0 && !showPayment && (
                 <div className="space-y-2">
                   <h4 className="font-semibold text-sm flex items-center gap-2">🔥 Aproveite e adicione:</h4>
                   {bumps.map(bump => (
@@ -235,27 +299,29 @@ const CheckoutPage = () => {
                 </div>
               )}
 
-              {/* Customer Form */}
-              <div className="space-y-4">
-                <div>
-                  <Label>Nome Completo *</Label>
-                  <Input value={customerData.name} onChange={(e) => setCustomerData({ ...customerData, name: e.target.value })} placeholder="Seu nome completo" />
-                </div>
-                <div>
-                  <Label>Email *</Label>
-                  <Input type="email" value={customerData.email} onChange={(e) => setCustomerData({ ...customerData, email: e.target.value })} placeholder="seu@email.com" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
+              {/* Customer Form - only show before payment */}
+              {!showPayment && (
+                <div className="space-y-4">
                   <div>
-                    <Label>Telefone</Label>
-                    <Input value={customerData.phone} onChange={(e) => setCustomerData({ ...customerData, phone: e.target.value })} placeholder="(00) 00000-0000" />
+                    <Label>Nome Completo *</Label>
+                    <Input value={customerData.name} onChange={(e) => setCustomerData({ ...customerData, name: e.target.value })} placeholder="Seu nome completo" />
                   </div>
                   <div>
-                    <Label>CPF</Label>
-                    <Input value={customerData.cpf} onChange={(e) => setCustomerData({ ...customerData, cpf: e.target.value })} placeholder="000.000.000-00" />
+                    <Label>Email *</Label>
+                    <Input type="email" value={customerData.email} onChange={(e) => setCustomerData({ ...customerData, email: e.target.value })} placeholder="seu@email.com" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Telefone</Label>
+                      <Input value={customerData.phone} onChange={(e) => setCustomerData({ ...customerData, phone: e.target.value })} placeholder="(00) 00000-0000" />
+                    </div>
+                    <div>
+                      <Label>CPF *</Label>
+                      <Input value={customerData.cpf} onChange={(e) => setCustomerData({ ...customerData, cpf: e.target.value })} placeholder="000.000.000-00" />
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Total */}
               {(selectedBumps.size > 0 || relatedCart.size > 0) && (
@@ -273,12 +339,32 @@ const CheckoutPage = () => {
                 </div>
               )}
 
-              {/* Pay Button */}
-              <Button className="w-full h-12 text-lg font-semibold" style={{ backgroundColor: primaryColor }}
-                onClick={handlePayment} disabled={processing}>
-                {processing ? (<><Loader2 className="w-5 h-5 mr-2 animate-spin" />Processando...</>)
-                  : (<><CreditCard className="w-5 h-5 mr-2" />Pagar R$ {total.toFixed(2)}</>)}
-              </Button>
+              {/* Transparent Payment Form */}
+              {showPayment && orderId && mpPublicKey ? (
+                <TransparentCheckout
+                  checkoutId={checkout.id}
+                  orderId={orderId}
+                  amount={total}
+                  customerName={customerData.name}
+                  customerEmail={customerData.email}
+                  customerCpf={customerData.cpf}
+                  primaryColor={primaryColor}
+                  itemName={checkout.item_name}
+                  onSuccess={handlePaymentSuccess}
+                  onError={handlePaymentError}
+                  mpPublicKey={mpPublicKey}
+                />
+              ) : !showPayment ? (
+                <Button className="w-full h-12 text-lg font-semibold" style={{ backgroundColor: primaryColor }}
+                  onClick={handleProceedToPayment}>
+                  <CreditCard className="w-5 h-5 mr-2" />
+                  Continuar para Pagamento - R$ {total.toFixed(2)}
+                </Button>
+              ) : !mpPublicKey ? (
+                <div className="text-center p-4 bg-destructive/10 rounded-lg">
+                  <p className="text-sm text-destructive">Mercado Pago Public Key não configurada. Configure nas configurações do checkout ou nas integrações de pagamento.</p>
+                </div>
+              ) : null}
 
               <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
                 <Shield className="w-4 h-4" /><span>Pagamento 100% seguro via Mercado Pago</span>
@@ -286,8 +372,8 @@ const CheckoutPage = () => {
             </CardContent>
           </Card>
 
-          {/* Related Products */}
-          {related.length > 0 && (
+          {/* Related Products - only show before payment */}
+          {!showPayment && related.length > 0 && (
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">🛍️ Você também pode gostar</CardTitle>
