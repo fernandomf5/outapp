@@ -1060,6 +1060,19 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
                       </TableCell>
                       <TableCell>
                         {(() => {
+                          const biz = businesses.find(b => b.id === customer.business_id);
+                          return biz ? (
+                            <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10">
+                              <Building className="w-3 h-3 mr-1" />
+                              {biz.name}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">-</span>
+                          );
+                        })()}
+                      </TableCell>
+                      <TableCell>
+                        {(() => {
                           const category = getCategoryById(customer.category_id);
                           return category ? (
                             <Badge 
