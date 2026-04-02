@@ -1190,12 +1190,6 @@ const Dashboard = () => {
             </FeatureGate>
           </TabsContent>
 
-          <TabsContent value="fornecedores">
-            <FeatureGate featureKey="suppliers_management">
-              <FeatureTutorialVideo featureKey="fornecedores" />
-              <SuppliersManagementPanel />
-            </FeatureGate>
-          </TabsContent>
 
           <TabsContent value="floating-button">
             <FeatureGate featureKey="whatsapp_link">

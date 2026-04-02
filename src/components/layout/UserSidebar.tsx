@@ -130,7 +130,7 @@ export function UserSidebar() {
   const managementItems: MenuItem[] = [
     { title: "Negócios", icon: Building2, path: "/dashboard", tab: "negocios", hideForTeamMember: true },
     { title: "Clientes", icon: Users, path: "/dashboard", tab: "clientes", moduleKey: "crm" },
-    { title: "Fornecedores", icon: Truck, path: "/dashboard", tab: "fornecedores", hideForTeamMember: true },
+    
     { title: "Equipe", icon: UserCog, path: "/dashboard", tab: "equipe", hideForTeamMember: true },
   ];
 
