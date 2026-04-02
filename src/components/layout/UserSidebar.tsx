@@ -154,7 +154,7 @@ export function UserSidebar() {
 
   const advancedResourcesItems: MenuItem[] = [
     { title: t('members_area'), icon: UserCog, path: "/dashboard", tab: "area-membros", hideForTeamMember: true },
-    { title: "Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios", moduleKey: "ads" },
+    { title: "Apresentador de Anúncios", icon: Megaphone, path: "/dashboard", tab: "anuncios", moduleKey: "ads" },
     { title: t('portfolio'), icon: Layers, path: "/dashboard", tab: "portfolio", moduleKey: "portfolio" },
     { title: t('online_chat'), icon: MessageSquare, path: "/dashboard", tab: "ai-agents", moduleKey: "ai_agents" },
     { title: t('page_cloner_title'), icon: Copy, path: "/dashboard", tab: "cloner", feature: "page_cloner", moduleKey: "cloner" },
