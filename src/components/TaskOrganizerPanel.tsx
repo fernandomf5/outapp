@@ -248,18 +248,35 @@ interface DroppableBlockProps {
 function DroppableBlock({ block, tasks, allBlocks, onEdit, onDelete, onEditBlock, onDeleteBlock, onMoveTaskToBlock, onChangeOrder, onChangeTaskOrder }: DroppableBlockProps) {
   const sortedTasks = [...tasks].sort((a, b) => (a.task_order ?? 0) - (b.task_order ?? 0));
   
+  const { isOver, setNodeRef } = useDroppable({
+    id: `block-${block.id}`,
+    data: { type: 'block', blockId: block.id },
+  });
+
   return (
-    <div className="flex-shrink-0 w-80">
-      <Card className="h-full flex flex-col">
-        <CardHeader className="pb-3" style={{ borderTopColor: block.color, borderTopWidth: '4px' }}>
+    <div className="flex-shrink-0 w-80" ref={setNodeRef}>
+      <Card className={`h-full flex flex-col transition-all duration-200 ${
+        isOver ? 'ring-2 ring-primary/50 shadow-xl scale-[1.01] bg-accent/30' : 'shadow-md'
+      }`}>
+        <CardHeader className="pb-3 rounded-t-lg" style={{ 
+          borderTopColor: block.color, 
+          borderTopWidth: '4px',
+          background: `linear-gradient(180deg, ${block.color}08 0%, transparent 100%)`
+        }}>
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <div 
-                className="w-3 h-3 rounded-full flex-shrink-0" 
+                className="w-3.5 h-3.5 rounded-full flex-shrink-0 shadow-sm ring-2 ring-background" 
                 style={{ backgroundColor: block.color }}
               />
               <CardTitle className="text-base truncate flex-1" title={block.name}>{block.name}</CardTitle>
-              <Badge variant="secondary" className="flex-shrink-0">{tasks.length}</Badge>
+              <Badge 
+                variant="secondary" 
+                className="flex-shrink-0 font-bold text-xs min-w-[28px] justify-center"
+                style={{ backgroundColor: `${block.color}20`, color: block.color }}
+              >
+                {tasks.length}
+              </Badge>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1">
@@ -301,9 +318,9 @@ function DroppableBlock({ block, tasks, allBlocks, onEdit, onDelete, onEditBlock
             </div>
           </div>
         </CardHeader>
-        <CardContent className="flex-1 overflow-y-auto p-4 min-h-[300px]">
+        <CardContent className="flex-1 overflow-y-auto p-3 min-h-[300px]">
           {sortedTasks.map((task) => (
-            <TaskCard
+            <DraggableTaskCard
               key={task.id}
               task={task}
               blocks={allBlocks}
@@ -315,8 +332,12 @@ function DroppableBlock({ block, tasks, allBlocks, onEdit, onDelete, onEditBlock
             />
           ))}
           {sortedTasks.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground text-sm">
-              Nenhuma tarefa neste bloco
+            <div className={`text-center py-12 rounded-lg border-2 border-dashed transition-colors ${
+              isOver ? 'border-primary/50 bg-primary/5' : 'border-border/50'
+            }`}>
+              <p className="text-muted-foreground text-sm">
+                {isOver ? 'Solte aqui!' : 'Arraste tarefas para cá'}
+              </p>
             </div>
           )}
         </CardContent>
