@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Plus, Edit2, Trash2, Copy, ExternalLink, ShoppingCart, DollarSign, Eye, BarChart3, Package, Code, Gift } from "lucide-react";
+import { CheckoutImageUpload } from "@/components/checkout/CheckoutImageUpload";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -440,16 +441,16 @@ export const CheckoutCreatorPanel = () => {
                 <Label>Descrição do Item</Label>
                 <Textarea value={formData.item_description} onChange={(e) => setFormData({ ...formData, item_description: e.target.value })} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Preço (R$) *</Label>
-                  <Input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} placeholder="99.90" />
-                </div>
-                <div>
-                  <Label>URL da Imagem</Label>
-                  <Input value={formData.item_image_url} onChange={(e) => setFormData({ ...formData, item_image_url: e.target.value })} placeholder="https://..." />
-                </div>
+              <div>
+                <Label>Preço (R$) *</Label>
+                <Input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} placeholder="99.90" />
               </div>
+              <CheckoutImageUpload
+                label="Imagem do Produto"
+                value={formData.item_image_url}
+                onChange={(url) => setFormData({ ...formData, item_image_url: url })}
+                aspectHint="Recomendado: 400x400px"
+              />
             </div>
           </div>
           <div className="border-t pt-4">
@@ -519,10 +520,12 @@ export const CheckoutCreatorPanel = () => {
                 <Input value={formData.primary_color} onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })} />
               </div>
             </div>
-            <div>
-              <Label>URL do Banner</Label>
-              <Input value={formData.banner_url} onChange={(e) => setFormData({ ...formData, banner_url: e.target.value })} placeholder="https://..." />
-            </div>
+            <CheckoutImageUpload
+              label="Banner do Checkout"
+              value={formData.banner_url}
+              onChange={(url) => setFormData({ ...formData, banner_url: url })}
+              aspectHint="Recomendado: 1200x400px"
+            />
           </div>
           <div>
             <Label>Mensagem de Sucesso (legado)</Label>
@@ -544,10 +547,11 @@ export const CheckoutCreatorPanel = () => {
             <Label>Mensagem</Label>
             <Textarea value={formData.thank_you_message} onChange={(e) => setFormData({ ...formData, thank_you_message: e.target.value })} />
           </div>
-          <div>
-            <Label>URL da Imagem</Label>
-            <Input value={formData.thank_you_image_url} onChange={(e) => setFormData({ ...formData, thank_you_image_url: e.target.value })} placeholder="https://..." />
-          </div>
+          <CheckoutImageUpload
+            label="Imagem da Página de Obrigado"
+            value={formData.thank_you_image_url}
+            onChange={(url) => setFormData({ ...formData, thank_you_image_url: url })}
+          />
           <div className="flex items-center gap-2">
             <Switch checked={formData.show_order_details} onCheckedChange={(v) => setFormData({ ...formData, show_order_details: v })} />
             <Label>Mostrar detalhes do pedido</Label>
@@ -584,10 +588,11 @@ export const CheckoutCreatorPanel = () => {
                 <Label>Preço (R$)</Label>
                 <Input type="number" step="0.01" value={formData.upsell_price} onChange={(e) => setFormData({ ...formData, upsell_price: e.target.value })} />
               </div>
-              <div>
-                <Label>URL da Imagem</Label>
-                <Input value={formData.upsell_image_url} onChange={(e) => setFormData({ ...formData, upsell_image_url: e.target.value })} />
-              </div>
+              <CheckoutImageUpload
+                label="Imagem do Upsell"
+                value={formData.upsell_image_url}
+                onChange={(url) => setFormData({ ...formData, upsell_image_url: url })}
+              />
             </div>
             <div>
               <Label>URL do Checkout (upsell)</Label>
@@ -611,10 +616,11 @@ export const CheckoutCreatorPanel = () => {
                   <Label>Preço (R$)</Label>
                   <Input type="number" step="0.01" value={formData.downsell_price} onChange={(e) => setFormData({ ...formData, downsell_price: e.target.value })} />
                 </div>
-                <div>
-                  <Label>URL da Imagem</Label>
-                  <Input value={formData.downsell_image_url} onChange={(e) => setFormData({ ...formData, downsell_image_url: e.target.value })} />
-                </div>
+                <CheckoutImageUpload
+                  label="Imagem do Downsell"
+                  value={formData.downsell_image_url}
+                  onChange={(url) => setFormData({ ...formData, downsell_image_url: url })}
+                />
               </div>
               <div>
                 <Label>URL do Checkout (downsell)</Label>
