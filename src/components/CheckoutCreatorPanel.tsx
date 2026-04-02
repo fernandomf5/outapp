@@ -379,6 +379,17 @@ export const CheckoutCreatorPanel = () => {
     } catch { toast.error('Erro ao remover item'); }
   };
 
+  const handleDeleteOrder = async (orderId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este pedido?')) return;
+    if (!selectedCheckout) return;
+    try {
+      const { error } = await supabase.from('checkout_orders').delete().eq('id', orderId);
+      if (error) throw error;
+      toast.success('Pedido excluído!');
+      loadOrders(selectedCheckout.id);
+    } catch { toast.error('Erro ao excluir pedido'); }
+  };
+
   const handleSelectProduct = (productId: string) => {
     const product = products.find(p => p.id === productId);
     if (product) {
@@ -871,6 +882,7 @@ export const CheckoutCreatorPanel = () => {
                   <TableHead>Email</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -884,6 +896,11 @@ export const CheckoutCreatorPanel = () => {
                       <Badge variant={order.status === 'approved' ? 'default' : order.status === 'pending' ? 'secondary' : 'destructive'}>
                         {order.status === 'approved' ? 'Aprovado' : order.status === 'pending' ? 'Pendente' : order.status}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Button size="sm" variant="ghost" onClick={() => handleDeleteOrder(order.id)}>
+                        <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
