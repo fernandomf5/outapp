@@ -1537,7 +1537,6 @@ const Dashboard = () => {
       </AlertDialog>
         </div>
       </div>
-      </div>
     </SidebarProvider>
     </>
   );
