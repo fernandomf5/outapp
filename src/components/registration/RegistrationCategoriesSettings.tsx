@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Trash2, Plus, Building2, Users, UserCog, Truck, Database, Palette, Briefcase, Handshake, Wrench, Target, DollarSign, Globe, LayoutList, Smartphone, Package, ShieldCheck, HardHat, HeartPulse, GraduationCap, Gavel } from "lucide-react";
+import { Trash2, Plus, Building2, Users, UserCog, Truck, Database, Palette, Briefcase, Handshake, Wrench, Target, DollarSign, Globe, LayoutList, Smartphone, Package, ShieldCheck, HardHat, HeartPulse, GraduationCap, Gavel, Edit } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface Category {
   id: string;
@@ -42,6 +43,10 @@ export function RegistrationCategoriesSettings() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     icon: "Database",
@@ -80,46 +85,85 @@ export function RegistrationCategoriesSettings() {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('registration_categories')
-        .insert({
-          user_id: user.id,
-          name: formData.name,
-          icon: formData.icon,
-          color: formData.color,
-          system_type: formData.system_type,
-        });
+      if (editingId) {
+        const { error } = await supabase
+          .from('registration_categories')
+          .update({
+            name: formData.name,
+            icon: formData.icon,
+            color: formData.color,
+            system_type: formData.system_type,
+          })
+          .eq('id', editingId);
 
-      if (error) throw error;
-      toast.success('Categoria criada com sucesso!');
+        if (error) throw error;
+        toast.success('Categoria atualizada com sucesso!');
+      } else {
+        const { error } = await supabase
+          .from('registration_categories')
+          .insert({
+            user_id: user.id,
+            name: formData.name,
+            icon: formData.icon,
+            color: formData.color,
+            system_type: formData.system_type,
+          });
+
+        if (error) throw error;
+        toast.success('Categoria criada com sucesso!');
+      }
+      
       setIsDialogOpen(false);
+      setEditingId(null);
       setFormData({ name: "", icon: "Database", color: "#3b82f6", system_type: "client" });
       fetchCategories();
       
-      // Force reload sidebar categories (dispatch custom event or use a state manager)
       window.dispatchEvent(new CustomEvent('registration-categories-updated'));
     } catch (error) {
-      console.error('Error creating category:', error);
-      toast.error('Erro ao criar categoria');
+      console.error('Error saving category:', error);
+      toast.error('Erro ao salvar categoria');
     }
   };
 
-  const handleDelete = async (id: string, systemType: string | null) => {
-    if (systemType) {
+  const handleEdit = (category: Category) => {
+    setEditingId(category.id);
+    setFormData({
+      name: category.name,
+      icon: category.icon || "Database",
+      color: category.color,
+      system_type: category.system_type || "client",
+    });
+    setIsDialogOpen(true);
+  };
+
+  const confirmDelete = (category: Category) => {
+    if (category.system_type && false) { // Logic to keep system categories if needed, but user said remove them
       toast.error('Categorias do sistema não podem ser excluídas.');
       return;
     }
+    setCategoryToDelete(category);
+    setDeleteConfirmText("");
+    setIsDeleteDialogOpen(true);
+  };
 
-    if (!confirm('Tem certeza que deseja excluir esta categoria? Contatos vinculados perderão a categoria.')) return;
+  const handleDelete = async () => {
+    if (!categoryToDelete) return;
+
+    if (deleteConfirmText.toLowerCase() !== "excluir") {
+      toast.error('Você deve digitar "excluir" para confirmar.');
+      return;
+    }
 
     try {
       const { error } = await supabase
         .from('registration_categories')
         .delete()
-        .eq('id', id);
+        .eq('id', categoryToDelete.id);
 
       if (error) throw error;
       toast.success('Categoria excluída!');
+      setIsDeleteDialogOpen(false);
+      setCategoryToDelete(null);
       fetchCategories();
       window.dispatchEvent(new CustomEvent('registration-categories-updated'));
     } catch (error) {
@@ -135,7 +179,11 @@ export function RegistrationCategoriesSettings() {
           <h2 className="text-2xl font-bold">Gerenciar Categorias de Cadastro</h2>
           <p className="text-muted-foreground">Personalize suas categorias de fornecedores, clientes, equipe, etc.</p>
         </div>
-        <Button onClick={() => setIsDialogOpen(true)} className="gradient-primary">
+        <Button onClick={() => {
+          setEditingId(null);
+          setFormData({ name: "", icon: "Database", color: "#3b82f6", system_type: "client" });
+          setIsDialogOpen(true);
+        }} className="gradient-primary">
           <Plus className="h-4 w-4 mr-2" />
           Nova Categoria
         </Button>
@@ -151,16 +199,24 @@ export function RegistrationCategoriesSettings() {
                   <div className="p-2 rounded-lg" style={{ backgroundColor: `${cat.color}20` }}>
                     <Icon className="h-6 w-6" style={{ color: cat.color }} />
                   </div>
-                  {!cat.system_type && (
+                  <div className="flex gap-1">
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      onClick={() => handleDelete(cat.id, cat.system_type)}
+                      onClick={() => handleEdit(cat)}
+                      className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => confirmDelete(cat)}
                       className="text-destructive hover:text-destructive hover:bg-destructive/10"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
-                  )}
+                  </div>
                 </div>
                 <CardTitle className="mt-4">{cat.name}</CardTitle>
                 <CardDescription>
@@ -172,12 +228,15 @@ export function RegistrationCategoriesSettings() {
         })}
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={(open) => {
+        setIsDialogOpen(open);
+        if (!open) setEditingId(null);
+      }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Nova Categoria</DialogTitle>
+            <DialogTitle>{editingId ? "Editar Categoria" : "Nova Categoria"}</DialogTitle>
             <DialogDescription>
-              Crie uma nova categoria para organizar seus cadastros.
+              {editingId ? "Atualize as informações da categoria." : "Crie uma nova categoria para organizar seus cadastros."}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4 pt-4">
@@ -254,16 +313,59 @@ export function RegistrationCategoriesSettings() {
             </div>
 
             <DialogFooter className="pt-4">
-              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => {
+                setIsDialogOpen(false);
+                setEditingId(null);
+              }}>
                 Cancelar
               </Button>
               <Button type="submit" className="gradient-primary">
-                Criar Categoria
+                {editingId ? "Salvar Alterações" : "Criar Categoria"}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Categoria?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-4">
+              <p>
+                Esta ação não pode ser desfeita. Todos os cadastros vinculados a esta categoria 
+                (<strong>{categoryToDelete?.name}</strong>) perderão o vínculo.
+              </p>
+              <div className="space-y-2">
+                <Label htmlFor="delete-confirm">Para confirmar, digite <strong>excluir</strong> abaixo:</Label>
+                <Input
+                  id="delete-confirm"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  placeholder="excluir"
+                  className="border-destructive focus-visible:ring-destructive"
+                />
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setIsDeleteDialogOpen(false);
+              setCategoryToDelete(null);
+              setDeleteConfirmText("");
+            }}>
+              Cancelar
+            </AlertDialogCancel>
+            <Button 
+              variant="destructive" 
+              onClick={handleDelete}
+              disabled={deleteConfirmText.toLowerCase() !== "excluir"}
+            >
+              Excluir Permanentemente
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
