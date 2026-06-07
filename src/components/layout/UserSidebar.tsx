@@ -308,6 +308,10 @@ export function UserSidebar() {
         collapsed ? "w-[60px]" : "w-64"
       )} 
       collapsible="icon"
+      style={{
+        "--sidebar-width": "16rem",
+        "--sidebar-width-icon": "60px",
+      } as React.CSSProperties}
     >
       <div className={cn(
         "flex items-center border-b border-border overflow-hidden h-[72px]",
