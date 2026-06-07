@@ -116,10 +116,6 @@ export function UserSidebar() {
       console.error('Error fetching registration categories:', error);
     }
   };
-    } catch (error) {
-      console.error('Error fetching registration categories:', error);
-    }
-  };
 
   const checkTeamMembership = async () => {
     if (!user) return;
