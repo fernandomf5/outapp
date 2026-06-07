@@ -1882,6 +1882,7 @@ export type Database = {
           logo_url: string | null
           name: string
           phone: string | null
+          registration_category_id: string | null
           settings: Json | null
           state: string | null
           status: string
@@ -1903,6 +1904,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           phone?: string | null
+          registration_category_id?: string | null
           settings?: Json | null
           state?: string | null
           status?: string
@@ -1924,6 +1926,7 @@ export type Database = {
           logo_url?: string | null
           name?: string
           phone?: string | null
+          registration_category_id?: string | null
           settings?: Json | null
           state?: string | null
           status?: string
@@ -1932,7 +1935,15 @@ export type Database = {
           website?: string | null
           zip_code?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "businesses_registration_category_id_fkey"
+            columns: ["registration_category_id"]
+            isOneToOne: false
+            referencedRelation: "registration_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       button_link_clicks: {
         Row: {
@@ -3765,6 +3776,7 @@ export type Database = {
           notes: string | null
           phone: string | null
           position: string | null
+          registration_category_id: string | null
           source: string | null
           status: string
           tags: Json | null
@@ -3782,6 +3794,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           position?: string | null
+          registration_category_id?: string | null
           source?: string | null
           status?: string
           tags?: Json | null
@@ -3799,6 +3812,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           position?: string | null
+          registration_category_id?: string | null
           source?: string | null
           status?: string
           tags?: Json | null
@@ -3811,6 +3825,13 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_registration_category_id_fkey"
+            columns: ["registration_category_id"]
+            isOneToOne: false
+            referencedRelation: "registration_categories"
             referencedColumns: ["id"]
           },
         ]
@@ -6566,6 +6587,39 @@ export type Database = {
           },
         ]
       }
+      registration_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          icon: string | null
+          id: string
+          name: string
+          system_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name: string
+          system_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          system_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       routine_completions: {
         Row: {
           completed_at: string
@@ -7985,6 +8039,7 @@ export type Database = {
           notes: string | null
           phone: string | null
           position: string | null
+          registration_category_id: string | null
           role: string
           status: string
           updated_at: string
@@ -8003,6 +8058,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           position?: string | null
+          registration_category_id?: string | null
           role: string
           status?: string
           updated_at?: string
@@ -8021,12 +8077,21 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           position?: string | null
+          registration_category_id?: string | null
           role?: string
           status?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "team_members_registration_category_id_fkey"
+            columns: ["registration_category_id"]
+            isOneToOne: false
+            referencedRelation: "registration_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ticket_messages: {
         Row: {

@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck, Layers, LogIn, Filter, Download, Smartphone, RefreshCw, FileType, Video, Truck, Building2, Package, CalendarCheck, BookOpen, Search, X } from "lucide-react";
+import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck, Layers, LogIn, Filter, Download, Smartphone, RefreshCw, FileType, Video, Truck, Building2, Package, CalendarCheck, BookOpen, Search, X, ChevronDown, PlusCircle } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { useTheme } from "next-themes";
 import logoLight from "@/assets/logo-light.png";
@@ -25,6 +25,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { toast } from "sonner";
 
 interface MenuItem {
   title: string;
@@ -37,6 +39,14 @@ interface MenuItem {
   superscript?: string;
   moduleKey?: string; // Key for team member permission check
   hideForTeamMember?: boolean; // Explicitly hide this item for team members
+}
+
+interface RegistrationCategory {
+  id: string;
+  name: string;
+  icon: string | null;
+  color: string;
+  system_type: string | null;
 }
 
 export function UserSidebar() {
@@ -53,8 +63,12 @@ export function UserSidebar() {
   const currentPath = location.pathname;
   const searchParams = new URLSearchParams(location.search);
   const currentTab = searchParams.get('tab') || 'overview';
+  const categoryId = searchParams.get('categoryId');
   const collapsed = state === "collapsed";
 
+  const [registrationCategories, setRegistrationCategories] = useState<RegistrationCategory[]>([]);
+  const [isCadastroOpen, setIsCadastroOpen] = useState(true);
+  
   // State for team membership check (for regular users who are also team members elsewhere)
   const [teamMembership, setTeamMembership] = useState<{ adminName: string; adminUserId: string } | null>(null);
   
@@ -63,10 +77,49 @@ export function UserSidebar() {
 
   useEffect(() => {
     // Only check team membership for regular users (not when already logged as team member)
-    if (user && !isTeamMember) {
-      checkTeamMembership();
+    if (user) {
+      if (!isTeamMember) {
+        checkTeamMembership();
+      }
+      fetchRegistrationCategories();
     }
   }, [user, isTeamMember]);
+
+  const fetchRegistrationCategories = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('registration_categories')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('name');
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        setRegistrationCategories(data);
+      } else {
+        // Create default categories if none exist
+        const defaultCategories = [
+          { name: "Negócios", system_type: "business", icon: "Building2", color: "#3b82f6", user_id: user.id },
+          { name: "Clientes", system_type: "client", icon: "Users", color: "#10b981", user_id: user.id },
+          { name: "Equipe", system_type: "team", icon: "UserCog", color: "#8b5cf6", user_id: user.id },
+          { name: "Fornecedores", system_type: "supplier", icon: "Truck", color: "#f59e0b", user_id: user.id },
+        ];
+        
+        const { data: inserted, error: insertError } = await supabase
+          .from('registration_categories')
+          .insert(defaultCategories)
+          .select();
+        
+        if (!insertError && inserted) {
+          setRegistrationCategories(inserted);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching registration categories:', error);
+    }
+  };
 
   const checkTeamMembership = async () => {
     if (!user) return;
@@ -101,19 +154,27 @@ export function UserSidebar() {
     }
   };
 
-  const isActive = (path: string, tab?: string) => {
+  const isActive = (path: string, tab?: string, catId?: string) => {
+    if (catId) {
+      return currentPath === path && currentTab === tab && categoryId === catId;
+    }
     if (tab) {
       return currentPath === path && currentTab === tab;
     }
     return currentPath === path;
   };
 
-  const handleNavigation = (path: string, tab?: string) => {
-    if (tab) {
-      navigate(`${path}?tab=${tab}`);
-    } else {
-      navigate(path);
+  const handleNavigation = (path: string, tab?: string, catId?: string) => {
+    let url = path;
+    const params = new URLSearchParams();
+    if (tab) params.set('tab', tab);
+    if (catId) params.set('categoryId', catId);
+    
+    const queryString = params.toString();
+    if (queryString) {
+      url += `?${queryString}`;
     }
+    navigate(url);
   };
 
   // Main items - overview is always visible, Blog is external
@@ -127,11 +188,9 @@ export function UserSidebar() {
     { title: "Rotina", icon: CalendarCheck, path: "/dashboard", tab: "rotina", hideForTeamMember: true },
   ];
 
+  // Categories are now handled dynamically
   const managementItems: MenuItem[] = [
-    { title: "Negócios", icon: Building2, path: "/dashboard", tab: "negocios", hideForTeamMember: true },
-    { title: "Clientes", icon: Users, path: "/dashboard", tab: "clientes", moduleKey: "crm" },
-    
-    { title: "Equipe", icon: UserCog, path: "/dashboard", tab: "equipe", hideForTeamMember: true },
+    // These will be moved to the "Cadastro" dropdown
   ];
 
   const financialItems: MenuItem[] = [
@@ -321,6 +380,58 @@ export function UserSidebar() {
                   ))}
                 </SidebarMenu>
               </SidebarGroupContent>
+            </SidebarGroup>
+          )}
+
+          {/* Cadastro section */}
+          {!isTeamMember && (
+            <SidebarGroup>
+              <Collapsible
+                open={isCadastroOpen}
+                onOpenChange={setIsCadastroOpen}
+                className="w-full"
+              >
+                <CollapsibleTrigger asChild>
+                  <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm cursor-pointer flex items-center justify-between w-full group">
+                    <span>Cadastro</span>
+                    <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${isCadastroOpen ? "" : "-rotate-90"}`} />
+                  </SidebarGroupLabel>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <SidebarGroupContent className="pt-1">
+                    <SidebarMenu>
+                      {registrationCategories.map((cat) => {
+                        const IconComponent = cat.icon === "Building2" ? Building2 : 
+                                              cat.icon === "Users" ? Users : 
+                                              cat.icon === "UserCog" ? UserCog : 
+                                              cat.icon === "Truck" ? Truck : 
+                                              Database;
+                        
+                        return (
+                          <SidebarMenuItem key={cat.id}>
+                            <SidebarMenuButton
+                              onClick={() => handleNavigation("/dashboard", "cadastro", cat.id)}
+                              className={`text-sm py-2 ${isActive("/dashboard", "cadastro", cat.id) ? "bg-primary text-primary-foreground" : ""}`}
+                            >
+                              <IconComponent className="h-4 w-4 shrink-0" style={{ color: isActive("/dashboard", "cadastro", cat.id) ? "inherit" : cat.color }} />
+                              {!collapsed && <span className="truncate">{cat.name}</span>}
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        );
+                      })}
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          onClick={() => handleNavigation("/dashboard", "cadastro-settings")}
+                          className={`text-sm py-2 opacity-70 hover:opacity-100 ${isActive("/dashboard", "cadastro-settings") ? "bg-primary/20" : ""}`}
+                        >
+                          <PlusCircle className="h-4 w-4 shrink-0" />
+                          {!collapsed && <span className="truncate italic">Gerenciar Categorias</span>}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </CollapsibleContent>
+              </Collapsible>
             </SidebarGroup>
           )}
 
