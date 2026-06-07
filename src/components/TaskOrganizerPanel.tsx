@@ -377,7 +377,7 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
   const [overId, setOverId] = useState<string | null>(null);
   const [selectedClientFilter, setSelectedClientFilter] = useState<string>("");
   const [selectedBusinessFilter, setSelectedBusinessFilter] = useState<string>("");
-  const [filterMode, setFilterMode] = useState<"client" | "business">("client");
+  const [filterMode, setFilterMode] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [selectedRegistrationCategoryFilter, setSelectedRegistrationCategoryFilter] = useState<string>("all");
   const [registrationCategories, setRegistrationCategories] = useState<Array<{id: string, name: string}>>([]);
@@ -454,6 +454,12 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
     fetchRegistrationCategories();
   }, [teamContext]);
 
+  useEffect(() => {
+    if (registrationCategories.length > 0 && filterMode === "all") {
+      setFilterMode(registrationCategories[0].id);
+    }
+  }, [registrationCategories]);
+
   const fetchRegistrationCategories = async () => {
     const userId = await getTargetUserId();
     if (!userId) return;
@@ -478,44 +484,23 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
       const userId = await getTargetUserId();
       if (!userId) return;
 
-      // Get linked customers via task_client_links
-      const { data: links, error: linksError } = await supabase
-        .from("task_client_links")
-        .select("customer_id")
-        .eq("user_id", userId);
-
-      if (linksError) throw linksError;
-
-      if (!links || links.length === 0) {
-        setClients([]);
-        return;
-      }
-
-      const customerIds = links.map(l => l.customer_id);
-
-      // Get customer details
-      let query = supabase
-        .from("customers")
-        .select("id, name, email, phone")
-        .in("id", customerIds)
+      // Load all contacts from the new registration system
+      const { data, error } = await supabase
+        .from("contacts")
+        .select("id, name, email, phone, registration_category_id")
+        .eq("user_id", userId)
         .order("name", { ascending: true });
-
-      // If team member with restrictions, filter by allowed client IDs
-      if (teamContext?.allowedIds && teamContext.allowedIds.length > 0) {
-        query = query.in("id", teamContext.allowedIds);
-      }
-
-      const { data, error } = await query;
 
       if (error) throw error;
       setClients((data || []).map(c => ({
         id: c.id,
         name: c.name,
         email: c.email || undefined,
-        phone: c.phone || undefined
+        phone: c.phone || undefined,
+        registration_category_id: c.registration_category_id
       })));
     } catch (error: any) {
-      console.error("Erro ao carregar clientes:", error?.message || error);
+      console.error("Erro ao carregar contatos:", error?.message || error);
       setClients([]);
     }
   };
@@ -1832,73 +1817,51 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
           <p className="text-muted-foreground">Organize suas tarefas com drag-and-drop</p>
         </div>
         <div className="flex flex-wrap gap-2 items-center">
-          {/* Mode Toggle */}
-          <div className="flex border rounded-md">
-            <Button 
-              variant={filterMode === "client" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => {
-                setFilterMode("client");
-                setSelectedBusinessFilter("");
-              }}
-              className="rounded-r-none"
-            >
-              <Users className="h-4 w-4 mr-1" />
-              Cliente
-            </Button>
-            <Button 
-              variant={filterMode === "business" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => {
-                setFilterMode("business");
-                setSelectedClientFilter("");
-              }}
-              className="rounded-l-none"
-            >
-              <Building2 className="h-4 w-4 mr-1" />
-              Negócio
-            </Button>
+          {/* Mode Toggle with Registration Categories */}
+          <div className="flex border rounded-md overflow-x-auto max-w-[400px] no-scrollbar">
+            {registrationCategories.map((cat) => (
+              <Button 
+                key={cat.id}
+                variant={filterMode === cat.id ? "default" : "ghost"}
+                size="sm"
+                onClick={() => {
+                  setFilterMode(cat.id);
+                  setSelectedClientFilter("");
+                  setSelectedBusinessFilter("");
+                }}
+                className="rounded-none border-r last:border-r-0 whitespace-nowrap"
+              >
+                {cat.name}
+              </Button>
+            ))}
           </div>
 
-          {filterMode === "client" ? (
-            <Select value={selectedClientFilter} onValueChange={setSelectedClientFilter}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Selecionar cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                {!isTeamMember && (
-                  <>
-                    <SelectItem value="all">Todos os Clientes</SelectItem>
-                    <SelectItem value="none">Sem Cliente</SelectItem>
-                  </>
-                )}
-                {clients.map(client => (
-                  <SelectItem key={client.id} value={client.id}>
-                    {client.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : (
-            <Select value={selectedBusinessFilter} onValueChange={setSelectedBusinessFilter}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Selecionar negócio" />
-              </SelectTrigger>
-              <SelectContent>
-                {!isTeamMember && (
-                  <>
-                    <SelectItem value="all">Todos os Negócios</SelectItem>
-                    <SelectItem value="none">Sem Negócio</SelectItem>
-                  </>
-                )}
-                {businesses.map(business => (
-                  <SelectItem key={business.id} value={business.id}>
-                    {business.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+          <Select 
+            value={selectedClientFilter} 
+            onValueChange={setSelectedClientFilter}
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Selecionar cadastro" />
+            </SelectTrigger>
+            <SelectContent>
+              {!isTeamMember && (
+                <>
+                  <SelectItem value="all">Ver Todos</SelectItem>
+                  <SelectItem value="none">Sem Vínculo</SelectItem>
+                </>
+              )}
+              {(() => {
+                // Filter items from contacts table based on current category
+                return clients
+                  .filter(c => (c as any).registration_category_id === filterMode)
+                  .map(item => (
+                    <SelectItem key={item.id} value={item.id}>
+                      {item.name}
+                    </SelectItem>
+                  ));
+              })()}
+            </SelectContent>
+          </Select>
           <Button 
             variant={showFilters ? "default" : "outline"} 
             size="sm"
@@ -2030,141 +1993,6 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
             </DialogContent>
           </Dialog>
 
-          {!isTeamMember && (
-            <>
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  loadAllCustomers();
-                  setIsAddClientDialogOpen(true);
-                }}
-              >
-                <UserPlus className="mr-2 h-4 w-4" />
-                Adicionar Cliente
-              </Button>
-
-              {/* Add Client from Customers Dialog - Main View */}
-              <Dialog open={isAddClientDialogOpen} onOpenChange={(open) => {
-                setIsAddClientDialogOpen(open);
-                if (!open) setSelectedCategoryFilter("all");
-              }}>
-                <DialogContent className="max-h-[80vh] overflow-y-auto max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Selecionar Cliente</DialogTitle>
-                    <DialogDescription>
-                      Escolha um cliente da gestão de clientes para adicionar ao organizador de tarefas
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  {/* Category Filter Buttons */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <Button
-                      variant={selectedCategoryFilter === "all" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedCategoryFilter("all")}
-                    >
-                      Todos
-                    </Button>
-                    <Button
-                      variant={selectedCategoryFilter === "uncategorized" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedCategoryFilter("uncategorized")}
-                    >
-                      Sem Categoria
-                    </Button>
-                    {customerCategories.map((category) => (
-                      <Button
-                        key={category.id}
-                        variant={selectedCategoryFilter === category.id ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setSelectedCategoryFilter(category.id)}
-                        style={{
-                          backgroundColor: selectedCategoryFilter === category.id ? category.color : 'transparent',
-                          borderColor: category.color,
-                          color: selectedCategoryFilter === category.id ? 'white' : category.color
-                        }}
-                      >
-                        {category.name}
-                      </Button>
-                    ))}
-                  </div>
-
-                  <div className="grid gap-3 max-h-96 overflow-y-auto">
-                    {allCustomers.length === 0 ? (
-                      <p className="text-center text-muted-foreground py-4">
-                        Nenhum cliente disponível na gestão de clientes.
-                      </p>
-                    ) : (() => {
-                      const linkedIds = clients.map(c => c.id);
-                      const availableCustomers = allCustomers.filter(c => !linkedIds.includes(c.id));
-                      
-                      const filteredCustomers = availableCustomers.filter(customer => {
-                        if (selectedCategoryFilter === "all") return true;
-                        if (selectedCategoryFilter === "uncategorized") return !customer.category_id;
-                        return customer.category_id === selectedCategoryFilter;
-                      });
-
-                      if (availableCustomers.length === 0) {
-                        return (
-                          <p className="text-center text-muted-foreground py-4">
-                            Todos os clientes já foram adicionados ao organizador.
-                          </p>
-                        );
-                      }
-
-                      if (filteredCustomers.length === 0) {
-                        return (
-                          <p className="text-center text-muted-foreground py-4">
-                            Nenhum cliente encontrado nesta categoria.
-                          </p>
-                        );
-                      }
-                      
-                      return filteredCustomers.map(customer => {
-                        const category = customerCategories.find(c => c.id === customer.category_id);
-                        return (
-                          <Card 
-                            key={customer.id} 
-                            className="p-4 cursor-pointer hover:bg-accent transition-colors"
-                            onClick={() => {
-                              handleLinkCustomer(customer.id);
-                              setIsAddClientDialogOpen(false);
-                              setSelectedCategoryFilter("all");
-                            }}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <h4 className="font-semibold">{customer.name}</h4>
-                                  {category && (
-                                    <Badge 
-                                      variant="secondary" 
-                                      className="text-xs"
-                                      style={{ 
-                                        backgroundColor: `${category.color}20`, 
-                                        color: category.color,
-                                        borderColor: category.color 
-                                      }}
-                                    >
-                                      {category.name}
-                                    </Badge>
-                                  )}
-                                </div>
-                                {customer.email && (
-                                  <p className="text-sm text-muted-foreground">{customer.email}</p>
-                                )}
-                              </div>
-                              <Plus className="h-5 w-5 text-muted-foreground" />
-                            </div>
-                          </Card>
-                        );
-                      });
-                    })()}
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </>
-          )}
 
           <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
             <DialogTrigger asChild>
