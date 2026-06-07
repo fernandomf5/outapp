@@ -64,11 +64,23 @@ export const KanbanColumn = ({
   return (
     <div 
       ref={setNodeRef}
-      className={`flex flex-col w-80 shrink-0 rounded-2xl bg-secondary/20 dark:bg-secondary/10 border-2 transition-all duration-300 ${
-        isOver ? 'border-primary shadow-[0_0_20px_rgba(var(--primary-rgb),0.15)] bg-secondary/40' : 'border-transparent'
+      style={{ 
+        borderColor: block.color + '40', // 25% opacity
+        boxShadow: `0 10px 20px -5px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05), inset 0 -4px 0 ${block.color}20`,
+        backgroundColor: block.color + '08' // ~3% opacity for a subtle tint
+      }}
+      className={`flex flex-col w-80 shrink-0 rounded-2xl border-2 transition-all duration-300 relative overflow-hidden ${
+        isOver ? 'scale-[1.02] bg-secondary/20 shadow-xl' : ''
       }`}
     >
-      <div className="p-4 flex items-center justify-between border-b border-border/5 bg-secondary/10 rounded-t-2xl">
+      <div 
+        className="p-4 flex items-center justify-between border-b border-border/5 rounded-t-2xl relative"
+        style={{ backgroundColor: block.color + '15' }}
+      >
+        <div 
+          className="absolute inset-x-0 bottom-0 h-[2px]" 
+          style={{ backgroundColor: block.color }}
+        />
         <div className="flex items-center gap-3">
           <div className="w-1.5 h-6 rounded-full" style={{ backgroundColor: block.color }} />
           <h3 className="font-bold text-sm uppercase tracking-widest text-foreground/80">{block.name}</h3>
