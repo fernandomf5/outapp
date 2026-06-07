@@ -3766,12 +3766,16 @@ export type Database = {
       }
       contacts: {
         Row: {
+          address: string | null
           business_id: string | null
           company: string | null
+          contact_person: string | null
           created_at: string
+          document: string | null
           email: string | null
           id: string
           last_contact_at: string | null
+          market_area: string | null
           name: string
           notes: string | null
           phone: string | null
@@ -3782,14 +3786,19 @@ export type Database = {
           tags: Json | null
           updated_at: string
           user_id: string
+          website: string | null
         }
         Insert: {
+          address?: string | null
           business_id?: string | null
           company?: string | null
+          contact_person?: string | null
           created_at?: string
+          document?: string | null
           email?: string | null
           id?: string
           last_contact_at?: string | null
+          market_area?: string | null
           name: string
           notes?: string | null
           phone?: string | null
@@ -3800,14 +3809,19 @@ export type Database = {
           tags?: Json | null
           updated_at?: string
           user_id: string
+          website?: string | null
         }
         Update: {
+          address?: string | null
           business_id?: string | null
           company?: string | null
+          contact_person?: string | null
           created_at?: string
+          document?: string | null
           email?: string | null
           id?: string
           last_contact_at?: string | null
+          market_area?: string | null
           name?: string
           notes?: string | null
           phone?: string | null
@@ -3818,6 +3832,7 @@ export type Database = {
           tags?: Json | null
           updated_at?: string
           user_id?: string
+          website?: string | null
         }
         Relationships: [
           {
