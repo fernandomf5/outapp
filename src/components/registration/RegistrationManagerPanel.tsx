@@ -80,7 +80,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
     case 'team':
       return <TeamManagementPanel />;
     case 'supplier':
-      return <SuppliersManagementPanel />;
+      return <SuppliersManagementPanel categoryId={categoryId} />;
     default:
       // For custom categories, we use ClientsManagementPanel pre-filtered
       return <ClientsManagementPanel categoryId={categoryId} />;
