@@ -79,6 +79,8 @@ import { useUserPresence } from "@/hooks/useUserPresence";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { TeamMemberBanner } from "@/components/TeamMemberBanner";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
+import { RegistrationManagerPanel } from "@/components/registration/RegistrationManagerPanel";
+import { RegistrationCategoriesSettings } from "@/components/registration/RegistrationCategoriesSettings";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -1117,6 +1119,20 @@ const Dashboard = () => {
             </div>
           )}
         </Card>
+          </TabsContent>
+
+          <TabsContent value="cadastro">
+            <ErrorBoundary>
+              <RegistrationManagerPanel 
+                categoryId={searchParams.get('categoryId')} 
+              />
+            </ErrorBoundary>
+          </TabsContent>
+
+          <TabsContent value="cadastro-settings">
+            <ErrorBoundary>
+              <RegistrationCategoriesSettings />
+            </ErrorBoundary>
           </TabsContent>
 
           <TabsContent value="crm-geral">

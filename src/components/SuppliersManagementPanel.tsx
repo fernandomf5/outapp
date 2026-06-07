@@ -59,7 +59,7 @@ const CATEGORIES = [
   "Outros"
 ];
 
-export const SuppliersManagementPanel = () => {
+export const SuppliersManagementPanel = ({ categoryId }: { categoryId?: string | null }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -109,6 +109,12 @@ export const SuppliersManagementPanel = () => {
       fetchSuppliers();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (categoryId) {
+      setCategoryFilter(categoryId);
+    }
+  }, [categoryId]);
 
   useEffect(() => {
     if (selectedSupplier) {

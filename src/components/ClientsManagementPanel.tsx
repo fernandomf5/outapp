@@ -78,9 +78,10 @@ interface TeamContext {
 
 interface ClientsManagementPanelProps {
   teamContext?: TeamContext;
+  categoryId?: string | null;
 }
 
-export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelProps) {
+export function ClientsManagementPanel({ teamContext, categoryId: propCategoryId }: ClientsManagementPanelProps) {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -111,6 +112,12 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
   
   // Selected category for adding clients
   const [selectedCategoryForAdd, setSelectedCategoryForAdd] = useState<Category | null>(null);
+  
+  useEffect(() => {
+    if (propCategoryId) {
+      setCategoryFilter(propCategoryId);
+    }
+  }, [propCategoryId]);
   const categoryFileInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
@@ -150,7 +157,7 @@ export function ClientsManagementPanel({ teamContext }: ClientsManagementPanelPr
     if (!user) return;
     try {
       const { data, error } = await supabase
-        .from('customer_categories')
+        .from('registration_categories')
         .select('*')
         .eq('user_id', user.id)
         .order('name');
