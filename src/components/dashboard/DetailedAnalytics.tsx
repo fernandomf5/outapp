@@ -42,7 +42,7 @@ export const DetailedAnalytics = () => {
       } else if (selectedFeature === "cloner") {
         const { data } = await supabase
           .from('cloned_pages')
-          .select('id, title')
+          .select('id, slug')
           .eq('user_id', user.id);
         setClonedPages(data || []);
         if (data && data.length > 0) setSelectedItemId(data[0].id);
@@ -98,14 +98,14 @@ export const DetailedAnalytics = () => {
             {(selectedFeature === "cloner" && clonedPages.length > 0) && (
               <Select value={selectedItemId} onValueChange={setSelectedItemId}>
                 <SelectTrigger className="w-[200px] bg-background/50 border-primary/20">
-                  <SelectValue placeholder="Selecione a Página" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clonedPages.map(page => (
-                    <SelectItem key={page.id} value={page.id}>{page.title}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <SelectValue placeholder="Selecione a Página" />
+              </SelectTrigger>
+              <SelectContent>
+                {clonedPages.map(page => (
+                  <SelectItem key={page.id} value={page.id}>{page.slug || 'Página sem nome'}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             )}
           </div>
         </div>
@@ -246,11 +246,15 @@ const CRMAnalyticsView = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
-      const [{ count: c }, { count: l }] = await Promise.all([
-        supabase.from('customers').select('*', { count: 'exact', head: true }),
-        supabase.from('leads').select('*', { count: 'exact', head: true })
-      ]);
-      setStats({ customers: c || 0, leads: l || 0, active: (c || 0) + (l || 0) });
+      // Usar contagens separadas para evitar erros de tipos complexos
+      const { count: c } = await supabase.from('customers').select('*', { count: 'exact', head: true });
+      const { count: l } = await supabase.from('cloned_page_leads').select('*', { count: 'exact', head: true });
+      
+      setStats({ 
+        customers: c || 0, 
+        leads: l || 0, 
+        active: (c || 0) + (l || 0) 
+      });
     };
     fetchStats();
   }, []);
