@@ -74,7 +74,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   // Dispatch based on system_type
   switch (category.system_type) {
     case 'client':
-      return <ClientsManagementPanel />;
+      return <ClientsManagementPanel categoryId={categoryId} />;
     case 'business':
       return <BusinessManagementPanel />;
     case 'team':
@@ -82,8 +82,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
     case 'supplier':
       return <SuppliersManagementPanel />;
     default:
-      // For custom categories, we can use ClientsManagementPanel but pre-filtered
-      // In a real scenario, we might want a more generic panel
-      return <ClientsManagementPanel />;
+      // For custom categories, we use ClientsManagementPanel pre-filtered
+      return <ClientsManagementPanel categoryId={categoryId} />;
   }
 }
