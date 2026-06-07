@@ -358,7 +358,7 @@ interface TaskOrganizerPanelProps {
 export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [blocks, setBlocks] = useState<TaskBlock[]>([]);
-  const [clients, setClients] = useState<Array<{id: string, name: string, email?: string, phone?: string, notes?: string}>>([]);
+  const [clients, setClients] = useState<Array<{id: string, name: string, email?: string, phone?: string, notes?: string, registration_category_id?: string | null}>>([]);
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
