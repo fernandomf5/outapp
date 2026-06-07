@@ -453,53 +453,44 @@ const Dashboard = () => {
           <div className="flex-1 flex flex-col min-w-0 bg-background">
             {/* Header */}
             <header className="bg-card/80 backdrop-blur-md border-b border-border px-4 sm:px-6 lg:px-8 h-[72px] flex items-center sticky top-0 z-40">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              {/* Greeting - on top on mobile, center on desktop */}
-              <div className="flex flex-col order-1 sm:order-2 min-w-0 flex-1 sm:items-center">
-                <h1 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl font-bold leading-tight truncate flex items-center gap-1">
-                  {isTeamMember && teamMember 
-                    ? `Painel de ${teamMember.adminName.split(' ')[0]}`
-                    : `${t('hello')}, ${(userFullName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário').split(' ')[0]}! 👋`
-                  }
-                  {/* Mobile: welcome message inline */}
-                  {!isTeamMember && (
-                    <span className="font-normal text-muted-foreground ml-1 text-[10px] xs:text-xs sm:hidden whitespace-nowrap">
-                      - {t('welcome_back')}
-                    </span>
+              <div className="flex items-center justify-between w-full gap-4">
+                {/* Greeting */}
+                <div className="flex flex-col flex-1 min-w-0">
+                  <h1 className="text-base sm:text-lg md:text-xl font-bold leading-tight truncate flex items-center gap-2">
+                    {isTeamMember && teamMember 
+                      ? `Painel de ${teamMember.adminName.split(' ')[0]}`
+                      : `${t('hello')}, ${(userFullName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário').split(' ')[0]}! 👋`
+                    }
+                  </h1>
+                  {isTeamMember ? (
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">
+                      Acesso como membro da equipe
+                    </p>
+                  ) : (
+                    <p className="hidden sm:block text-xs text-muted-foreground">
+                      {t('welcome_back')}
+                    </p>
                   )}
-                </h1>
-                {/* Desktop: welcome message below */}
-                {!isTeamMember && (
-                  <p className="hidden sm:block text-xs md:text-sm lg:text-base text-muted-foreground">
-                    {t('welcome_back')}
-                  </p>
-                )}
-                {isTeamMember && (
-                  <p className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm lg:text-base 3xl:text-lg text-muted-foreground">
-                    Acesso como membro da equipe
-                  </p>
-                )}
-              </div>
-
-              {/* Menu row - below greeting on mobile, sides on desktop */}
-              <div className="flex items-center justify-between gap-2 order-2 sm:order-1 sm:contents">
-                {/* Left side - Sidebar trigger and logo */}
-                <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 shrink-0 sm:order-1">
-                  <SidebarTrigger className="shrink-0 h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10" />
-                  <Link
-                    to="/dashboard"
-                    className="bg-primary/10 p-1 xs:p-1.5 sm:p-2 rounded-lg sm:rounded-xl cursor-pointer hover:bg-primary/20 transition-smooth shrink-0"
-                  >
-                    <img
-                      src={currentLogo}
-                      alt="Out App"
-                      className="w-5 h-5 xs:w-6 xs:h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 3xl:w-12 3xl:h-12"
-                    />
-                  </Link>
                 </div>
 
-                {/* Right side - Actions */}
-                <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-2 lg:gap-3 shrink-0 sm:order-3">
+                {/* Actions */}
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <div className="hidden sm:flex items-center gap-1 sm:gap-2 mr-2">
+                    <SidebarTrigger className="h-9 w-9" />
+                    <Link
+                      to="/dashboard"
+                      className="bg-primary/10 p-2 rounded-xl cursor-pointer hover:bg-primary/20 transition-smooth"
+                    >
+                      <img
+                        src={currentLogo}
+                        alt="Out App"
+                        className="w-6 h-6 sm:w-7 sm:h-7"
+                      />
+                    </Link>
+                  </div>
+
+                  {!isTeamMember && (
+                    <div className="flex items-center gap-1 sm:gap-2 border-l border-border pl-2 sm:pl-4 ml-1 sm:ml-2">
                   {!isTeamMember && (
                     <>
                       <Button
