@@ -428,21 +428,23 @@ export function UserSidebar() {
 
           {/* Cadastro section */}
           {!isTeamMember && (
-            <SidebarGroup>
+            <SidebarGroup className={cn(collapsed && "px-0")}>
               <Collapsible
                 open={isCadastroOpen}
                 onOpenChange={setIsCadastroOpen}
                 className="w-full"
               >
-                <CollapsibleTrigger asChild>
-                  <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm cursor-pointer flex items-center justify-between w-full group">
-                    <span>Cadastro</span>
-                    <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${isCadastroOpen ? "" : "-rotate-90"}`} />
-                  </SidebarGroupLabel>
-                </CollapsibleTrigger>
+                {!collapsed && (
+                  <CollapsibleTrigger asChild>
+                    <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm cursor-pointer flex items-center justify-between w-full group mb-1">
+                      <span>Cadastro</span>
+                      <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${isCadastroOpen ? "" : "-rotate-90"}`} />
+                    </SidebarGroupLabel>
+                  </CollapsibleTrigger>
+                )}
                 <CollapsibleContent>
                   <SidebarGroupContent className="pt-1">
-                    <SidebarMenu>
+                    <SidebarMenu className={cn(collapsed && "items-center")}>
                       {registrationCategories.map((cat) => {
                         const IconComponent = cat.icon === "Building2" ? Building2 : 
                                               cat.icon === "Users" ? Users : 
@@ -451,24 +453,34 @@ export function UserSidebar() {
                                               Database;
                         
                         return (
-                          <SidebarMenuItem key={cat.id}>
+                          <SidebarMenuItem key={cat.id} className={cn(collapsed && "w-full flex justify-center")}>
                             <SidebarMenuButton
                               onClick={() => handleNavigation("/dashboard", "cadastro", cat.id)}
-                              className={`text-sm py-2 ${isActive("/dashboard", "cadastro", cat.id) ? "bg-primary text-primary-foreground" : ""}`}
+                              className={cn(
+                                "text-sm py-2 transition-all duration-200",
+                                isActive("/dashboard", "cadastro", cat.id) ? "bg-primary text-primary-foreground" : "",
+                                collapsed && "justify-center !p-0 w-10 h-10 rounded-xl"
+                              )}
+                              tooltip={collapsed ? cat.name : undefined}
                             >
-                              <IconComponent className="h-4 w-4 shrink-0" style={{ color: isActive("/dashboard", "cadastro", cat.id) ? "inherit" : cat.color }} />
+                              <IconComponent className="h-5 w-5 shrink-0" style={{ color: isActive("/dashboard", "cadastro", cat.id) ? "inherit" : cat.color }} />
                               {!collapsed && <span className="truncate">{cat.name}</span>}
                             </SidebarMenuButton>
                           </SidebarMenuItem>
                         );
                       })}
-                      <SidebarMenuItem>
+                      <SidebarMenuItem className={cn(collapsed && "w-full flex justify-center")}>
                         <SidebarMenuButton
                           onClick={() => handleNavigation("/dashboard", "cadastro-settings")}
-                          className={`text-sm py-2 opacity-70 hover:opacity-100 ${isActive("/dashboard", "cadastro-settings") ? "bg-primary/20" : ""}`}
+                          className={cn(
+                            "text-sm py-2 opacity-70 hover:opacity-100 transition-all duration-200",
+                            isActive("/dashboard", "cadastro-settings") ? "bg-primary/20" : "",
+                            collapsed && "justify-center !p-0 w-10 h-10 rounded-xl"
+                          )}
+                          tooltip={collapsed ? "Gerenciar Categorias" : undefined}
                         >
-                          <PlusCircle className="h-4 w-4 shrink-0" />
-                          {!collapsed && <span className="truncate italic">Gerenciar Categorias</span>}
+                          <PlusCircle className="h-5 w-5 shrink-0" />
+                          {!collapsed && <span className="truncate italic text-xs">Gerenciar</span>}
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     </SidebarMenu>
