@@ -310,8 +310,8 @@ export function UserSidebar() {
       collapsible="icon"
     >
       <div className={cn(
-        "flex items-center border-b border-border overflow-hidden",
-        collapsed ? "justify-center h-[60px] p-0" : "px-4 h-[72px]"
+        "flex items-center border-b border-border overflow-hidden h-[72px]",
+        collapsed ? "justify-center p-0" : "px-4"
       )}>
         <Link 
           to="/dashboard" 
