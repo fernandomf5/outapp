@@ -301,11 +301,33 @@ export function UserSidebar() {
   };
 
   return (
-    <Sidebar className={collapsed ? "w-14" : "w-56 sm:w-60"} collapsible="icon">
-      <div className="flex items-center justify-center p-3 sm:p-4 border-b border-border">
-        <Link to="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <img src={currentLogo} alt="Out App" className="w-7 h-7 sm:w-8 sm:h-8" />
-          {!collapsed && <span className="font-bold text-base sm:text-lg">Out App</span>}
+    <Sidebar 
+      className={cn(
+        "border-r border-border transition-all duration-300 ease-in-out",
+        collapsed ? "w-[60px]" : "w-64"
+      )} 
+      collapsible="icon"
+    >
+      <div className={cn(
+        "flex items-center border-b border-border overflow-hidden",
+        collapsed ? "justify-center h-[60px] p-0" : "px-4 h-[72px]"
+      )}>
+        <Link 
+          to="/dashboard" 
+          className={cn(
+            "flex items-center gap-3 hover:opacity-80 transition-opacity",
+            collapsed && "justify-center w-full"
+          )}
+        >
+          <img 
+            src={currentLogo} 
+            alt="Out App" 
+            className={cn(
+              "transition-all duration-300",
+              collapsed ? "w-8 h-8" : "w-9 h-9"
+            )} 
+          />
+          {!collapsed && <span className="font-bold text-lg tracking-tight whitespace-nowrap">Out App</span>}
         </Link>
       </div>
       
