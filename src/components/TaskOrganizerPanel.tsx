@@ -1246,9 +1246,7 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
   const isTeamMember = !!teamContext?.allowedIds && teamContext.allowedIds.length > 0;
 
   // Show selection screen if no filter selected or manager is open
-  const showSelectionScreen = filterMode === "client" 
-    ? (!selectedClientFilter || showClientManager)
-    : (!selectedBusinessFilter || showBusinessManager);
+  const showSelectionScreen = filterMode !== "all" && !registrationCategories.find(c => c.id === filterMode);
 
   if (showSelectionScreen) {
     return (
