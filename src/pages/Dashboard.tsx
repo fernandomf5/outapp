@@ -499,15 +499,26 @@ const Dashboard = () => {
                 {/* Right side - Actions */}
                 <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-2 lg:gap-3 shrink-0 sm:order-3">
                   {!isTeamMember && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setIsCalculatorOpen(true)}
-                      title="Calculadora"
-                      className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
-                    >
-                      <Calculator className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-                    </Button>
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => window.open("/anotacoes", "_blank")}
+                        title="Anotações Rápidas"
+                        className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
+                      >
+                        <StickyNote className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsCalculatorOpen(true)}
+                        title="Calculadora"
+                        className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
+                      >
+                        <Calculator className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+                      </Button>
+                    </>
                   )}
                   {!isTeamMember && <ConversationNotificationBell />}
                   {!isTeamMember && <NotificationBell />}
