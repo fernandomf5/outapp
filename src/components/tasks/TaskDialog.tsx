@@ -129,7 +129,7 @@ export const TaskDialog = ({
             client_id: userId,
             task_order: nextOrder,
             status: "pending" // Default status
-          });
+          } as any);
         
         if (error) throw error;
         toast.success("Tarefa criada");
