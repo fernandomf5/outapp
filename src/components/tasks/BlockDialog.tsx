@@ -11,11 +11,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ImageUpload } from "@/components/ImageUpload";
 
 interface Block {
   id: string;
   name: string;
   color: string;
+  logo_url?: string;
 }
 
 interface BlockDialogProps {
@@ -57,19 +59,22 @@ export const BlockDialog = ({
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
-    color: COLORS[0]
+    color: COLORS[0],
+    logo_url: ""
   });
 
   useEffect(() => {
     if (block) {
       setFormData({
         name: block.name,
-        color: block.color
+        color: block.color,
+        logo_url: block.logo_url || ""
       });
     } else {
       setFormData({
         name: "",
-        color: COLORS[0]
+        color: COLORS[0],
+        logo_url: ""
       });
     }
   }, [block, open]);
@@ -91,6 +96,7 @@ export const BlockDialog = ({
           .update({
             name: formData.name,
             color: formData.color,
+            logo_url: formData.logo_url,
             updated_at: new Date().toISOString()
           })
           .eq("id", block.id);
@@ -115,6 +121,7 @@ export const BlockDialog = ({
           .insert({
             name: formData.name,
             color: formData.color,
+            logo_url: formData.logo_url,
             user_id: effectiveUserId,
             client_id: userId,
             order_index: nextOrder
@@ -149,6 +156,15 @@ export const BlockDialog = ({
               placeholder="Ex: Em revisão" 
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <ImageUpload 
+              label="Logo do Bloco"
+              currentImage={formData.logo_url}
+              onImageSelect={(url) => setFormData({ ...formData, logo_url: url })}
+              bucketName="task-media"
             />
           </div>
 

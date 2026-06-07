@@ -34,6 +34,7 @@ interface Block {
   id: string;
   name: string;
   color: string;
+  logo_url?: string;
 }
 
 interface KanbanColumnProps {
@@ -83,7 +84,15 @@ export const KanbanColumn = ({
           style={{ backgroundColor: block.color }}
         />
         <div className="flex items-center gap-3">
-          <div className="w-1.5 h-6 rounded-full" style={{ backgroundColor: block.color }} />
+          {block.logo_url ? (
+            <img 
+              src={block.logo_url} 
+              alt={block.name} 
+              className="w-8 h-8 rounded-lg object-cover border border-border/20 shadow-sm"
+            />
+          ) : (
+            <div className="w-1.5 h-6 rounded-full" style={{ backgroundColor: block.color }} />
+          )}
           <h3 className="font-bold text-sm uppercase tracking-widest text-foreground/80">{block.name}</h3>
           <Badge variant="outline" className="h-5 px-2 text-[10px] font-bold bg-background/50 border-border/50">
             {tasks.length}
