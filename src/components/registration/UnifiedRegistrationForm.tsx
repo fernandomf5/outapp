@@ -62,17 +62,21 @@ export function UnifiedRegistrationForm({ categoryId, categoryName, systemType, 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">
-                {systemType === 'supplier' || systemType === 'business' ? 'Razão Social / Nome da Empresa' : 'Nome Completo'}
+                {['supplier', 'business', 'logistics', 'investors', 'infrastructure'].includes(systemType) 
+                  ? 'Razão Social / Nome da Entidade' 
+                  : 'Nome Completo'}
               </Label>
               <Input
                 id="name"
-                placeholder={systemType === 'supplier' || systemType === 'business' ? 'Nome da empresa' : 'Nome completo'}
+                placeholder={['supplier', 'business', 'logistics', 'investors', 'infrastructure'].includes(systemType) 
+                  ? 'Nome da empresa ou entidade' 
+                  : 'Nome completo'}
                 {...register('name', { required: 'Nome é obrigatório' })}
               />
               {errors.name && <p className="text-sm text-red-500">{(errors.name as any).message}</p>}
             </div>
 
-            {(systemType === 'supplier' || systemType === 'business') && (
+            {['supplier', 'business', 'partners', 'maintenance', 'services', 'legal'].includes(systemType) && (
               <div className="space-y-2">
                 <Label htmlFor="contact_person">Pessoa de Contato</Label>
                 <Input
@@ -83,12 +87,12 @@ export function UnifiedRegistrationForm({ categoryId, categoryName, systemType, 
               </div>
             )}
 
-            {systemType === 'team' && (
+            {['team', 'maintenance', 'services'].includes(systemType) && (
               <div className="space-y-2">
-                <Label htmlFor="role">Cargo / Função</Label>
+                <Label htmlFor="role">Cargo / Especialidade</Label>
                 <Input
                   id="role"
-                  placeholder="Ex: Vendedor, Gerente..."
+                  placeholder="Ex: Vendedor, Técnico, Consultor..."
                   {...register('position')}
                 />
               </div>
@@ -115,30 +119,34 @@ export function UnifiedRegistrationForm({ categoryId, categoryName, systemType, 
 
             <div className="space-y-2">
               <Label htmlFor="document">
-                {systemType === 'supplier' || systemType === 'business' ? 'CNPJ' : 'CPF / Documento'}
+                {['supplier', 'business', 'logistics', 'partners'].includes(systemType) ? 'CNPJ' : 'CPF / Documento'}
               </Label>
               <Input
                 id="document"
-                placeholder={systemType === 'supplier' || systemType === 'business' ? '00.000.000/0000-00' : '000.000.000-00'}
+                placeholder={['supplier', 'business', 'logistics', 'partners'].includes(systemType) ? '00.000.000/0000-00' : '000.000.000-00'}
                 {...register('document')}
               />
             </div>
 
-            {systemType === 'business' && (
+            {['business', 'leads', 'investors', 'services', 'education'].includes(systemType) && (
               <div className="space-y-2">
-                <Label htmlFor="market_area">Área de Atuação</Label>
+                <Label htmlFor="market_area">
+                  {systemType === 'leads' ? 'Origem / Interesse' : 
+                   systemType === 'education' ? 'Curso / Série' :
+                   systemType === 'investors' ? 'Área de Investimento' : 'Área de Atuação'}
+                </Label>
                 <Input
                   id="market_area"
-                  placeholder="Ex: Tecnologia, Varejo..."
+                  placeholder="Informação adicional..."
                   {...register('market_area')}
                 />
               </div>
             )}
           </div>
 
-          {(systemType === 'client' || systemType === 'supplier' || systemType === 'other') && (
+          {!['team', 'leads', 'investors'].includes(systemType) && (
             <div className="space-y-2">
-              <Label htmlFor="address">Endereço</Label>
+              <Label htmlFor="address">Endereço / Localização</Label>
               <Input
                 id="address"
                 placeholder="Rua, número, bairro, cidade"
@@ -147,9 +155,9 @@ export function UnifiedRegistrationForm({ categoryId, categoryName, systemType, 
             </div>
           )}
 
-          {systemType === 'supplier' && (
+          {['supplier', 'business', 'services', 'logistics'].includes(systemType) && (
             <div className="space-y-2">
-              <Label htmlFor="website">Website</Label>
+              <Label htmlFor="website">Website / Link</Label>
               <Input
                 id="website"
                 placeholder="https://exemplo.com"
