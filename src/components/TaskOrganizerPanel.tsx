@@ -484,44 +484,23 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
       const userId = await getTargetUserId();
       if (!userId) return;
 
-      // Get linked customers via task_client_links
-      const { data: links, error: linksError } = await supabase
-        .from("task_client_links")
-        .select("customer_id")
-        .eq("user_id", userId);
-
-      if (linksError) throw linksError;
-
-      if (!links || links.length === 0) {
-        setClients([]);
-        return;
-      }
-
-      const customerIds = links.map(l => l.customer_id);
-
-      // Get customer details
-      let query = supabase
-        .from("customers")
-        .select("id, name, email, phone")
-        .in("id", customerIds)
+      // Load all contacts from the new registration system
+      const { data, error } = await supabase
+        .from("contacts")
+        .select("id, name, email, phone, registration_category_id")
+        .eq("user_id", userId)
         .order("name", { ascending: true });
-
-      // If team member with restrictions, filter by allowed client IDs
-      if (teamContext?.allowedIds && teamContext.allowedIds.length > 0) {
-        query = query.in("id", teamContext.allowedIds);
-      }
-
-      const { data, error } = await query;
 
       if (error) throw error;
       setClients((data || []).map(c => ({
         id: c.id,
         name: c.name,
         email: c.email || undefined,
-        phone: c.phone || undefined
+        phone: c.phone || undefined,
+        registration_category_id: c.registration_category_id
       })));
     } catch (error: any) {
-      console.error("Erro ao carregar clientes:", error?.message || error);
+      console.error("Erro ao carregar contatos:", error?.message || error);
       setClients([]);
     }
   };
