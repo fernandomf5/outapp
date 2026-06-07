@@ -443,119 +443,103 @@ const Dashboard = () => {
       <PushNotificationPrompt />
       <DraggableCalculator isOpen={isCalculatorOpen} onClose={() => setIsCalculatorOpen(false)} />
       <SidebarProvider>
-        <div className="min-h-screen flex flex-col w-full bg-background safe-area-inset">
-        {/* Team Member Banner - Above everything including logo */}
-        <TeamMemberBanner />
-        
-        <div className="flex flex-1">
-        <UserSidebar />
-        
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="min-h-screen flex flex-col w-full bg-background overflow-hidden">
+          <TeamMemberBanner />
+          
           {/* Header */}
-          <header className="bg-card border-b border-border px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 py-2 xs:py-3 sm:py-4 sticky top-0 z-40 safe-area-bottom">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              {/* Greeting - on top on mobile, center on desktop */}
-              <div className="flex flex-col order-1 sm:order-2 min-w-0 flex-1 sm:items-center">
-                <h1 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl 3xl:text-3xl font-bold leading-tight truncate flex items-center gap-1">
-                  {isTeamMember && teamMember 
-                    ? `Painel de ${teamMember.adminName.split(' ')[0]}`
-                    : `${t('hello')}, ${(userFullName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário').split(' ')[0]}! 👋`
-                  }
-                  {/* Mobile: welcome message inline */}
-                  {!isTeamMember && (
-                    <span className="font-normal text-muted-foreground ml-1 text-[10px] xs:text-xs sm:hidden whitespace-nowrap">
-                      - {t('welcome_back')}
-                    </span>
+          <header className="bg-card/80 backdrop-blur-md border-b border-border px-4 sm:px-6 lg:px-8 h-[72px] flex items-center sticky top-0 z-40">
+            <div className="flex items-center justify-between w-full gap-4">
+                {/* Greeting */}
+                <div className="flex flex-col flex-1 min-w-0">
+                  <h1 className="text-base sm:text-lg md:text-xl font-bold leading-tight truncate flex items-center gap-2">
+                    {isTeamMember && teamMember 
+                      ? `Painel de ${teamMember.adminName.split(' ')[0]}`
+                      : `${t('hello')}, ${(userFullName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário').split(' ')[0]}! 👋`
+                    }
+                  </h1>
+                  {isTeamMember ? (
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">
+                      Acesso como membro da equipe
+                    </p>
+                  ) : (
+                    <p className="hidden sm:block text-xs text-muted-foreground">
+                      {t('welcome_back')}
+                    </p>
                   )}
-                </h1>
-                {/* Desktop: welcome message below */}
-                {!isTeamMember && (
-                  <p className="hidden sm:block text-xs md:text-sm lg:text-base text-muted-foreground">
-                    {t('welcome_back')}
-                  </p>
-                )}
-                {isTeamMember && (
-                  <p className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm lg:text-base 3xl:text-lg text-muted-foreground">
-                    Acesso como membro da equipe
-                  </p>
-                )}
-              </div>
-
-              {/* Menu row - below greeting on mobile, sides on desktop */}
-              <div className="flex items-center justify-between gap-2 order-2 sm:order-1 sm:contents">
-                {/* Left side - Sidebar trigger and logo */}
-                <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 shrink-0 sm:order-1">
-                  <SidebarTrigger className="shrink-0 h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10" />
-                  <Link
-                    to="/dashboard"
-                    className="bg-primary/10 p-1 xs:p-1.5 sm:p-2 rounded-lg sm:rounded-xl cursor-pointer hover:bg-primary/20 transition-smooth shrink-0"
-                  >
-                    <img
-                      src={currentLogo}
-                      alt="Out App"
-                      className="w-5 h-5 xs:w-6 xs:h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 3xl:w-12 3xl:h-12"
-                    />
-                  </Link>
                 </div>
 
-                {/* Right side - Actions */}
-                <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-2 lg:gap-3 shrink-0 sm:order-3">
+                {/* Actions */}
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2 mr-1 sm:mr-2">
+                    <SidebarTrigger className="h-8 w-8 sm:h-9 sm:w-9" />
+                    <Link
+                      to="/dashboard"
+                      className="hidden xs:block bg-primary/10 p-1.5 sm:p-2 rounded-lg sm:rounded-xl cursor-pointer hover:bg-primary/20 transition-smooth"
+                    >
+                      <img
+                        src={currentLogo}
+                        alt="Out App"
+                        className="w-5 h-5 sm:w-6 sm:h-6"
+                      />
+                    </Link>
+                  </div>
+
                   {!isTeamMember && (
-                    <>
+                    <div className="flex items-center gap-1 sm:gap-2 border-l border-border pl-2 sm:pl-4 ml-1 sm:ml-2">
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => window.open("/anotacoes", "_blank")}
                         title="Anotações Rápidas"
-                        className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
+                        className="h-8 w-8 sm:h-9 sm:w-9"
                       >
-                        <StickyNote className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+                        <StickyNote className="w-4 h-4 sm:w-5 sm:h-5" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => setIsCalculatorOpen(true)}
                         title="Calculadora"
-                        className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
+                        className="h-8 w-8 sm:h-9 sm:w-9"
                       >
-                        <Calculator className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+                        <Calculator className="w-4 h-4 sm:w-5 sm:h-5" />
                       </Button>
-                    </>
+                    </div>
                   )}
-                  {!isTeamMember && <ConversationNotificationBell />}
-                  {!isTeamMember && <NotificationBell />}
-                  {!isTeamMember && <TicketNotificationBell />}
-                  <div className="hidden md:flex items-center gap-1 lg:gap-2">
-                    <LanguageSelector />
-                    <ThemeToggle />
-                  </div>
-                  {!isTeamMember && (
-                    <>
+                  
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    {!isTeamMember && <ConversationNotificationBell />}
+                    {!isTeamMember && <NotificationBell />}
+                    {!isTeamMember && <TicketNotificationBell />}
+                    <div className="hidden md:flex items-center gap-1">
+                      <LanguageSelector />
+                      <ThemeToggle />
+                    </div>
+                    {!isTeamMember && (
                       <Button
                         variant="outline"
                         onClick={() => navigate("/settings")}
                         size="icon"
-                        className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
+                        className="h-8 w-8 sm:h-9 sm:w-9 ml-1"
                       >
-                        <Settings className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
+                        <Settings className="w-4 h-4" />
                       </Button>
-                      <Button
-                        onClick={handleLogout}
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
-                      >
-                        <LogOut className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
-                      </Button>
-                    </>
-                  )}
+                    )}
+                    <Button
+                      onClick={handleLogout}
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 sm:h-9 sm:w-9"
+                    >
+                      <LogOut className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </header>
-
-          {/* Main Content */}
-          <main className="flex-1 overflow-auto px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 3xl:px-12 py-3 xs:py-4 sm:py-6 md:py-8 lg:py-10 3xl:py-12">
+            </header>
+          <div className="flex flex-1 overflow-hidden">
+            <UserSidebar />
+            <main className="flex-1 overflow-auto px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 3xl:px-12 py-3 xs:py-4 sm:py-6 md:py-8 lg:py-10 3xl:py-12">
         {/* Subscription Banner */}
         <SubscriptionBanner />
 
@@ -1552,7 +1536,6 @@ const Dashboard = () => {
         </AlertDialogContent>
       </AlertDialog>
         </div>
-      </div>
       </div>
     </SidebarProvider>
     </>
