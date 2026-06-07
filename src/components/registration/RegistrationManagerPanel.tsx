@@ -123,6 +123,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
         <UnifiedRegistrationForm 
           categoryId={category.id} 
           categoryName={category.name}
+          systemType={category.system_type || 'other'}
           onSuccess={() => {
             setShowForm(false);
             fetchItems();

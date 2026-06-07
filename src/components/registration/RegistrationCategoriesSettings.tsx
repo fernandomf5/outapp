@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Trash2, Plus, Building2, Users, UserCog, Truck, Database, Palette } from "lucide-react";
+import { Trash2, Plus, Building2, Users, UserCog, Truck, Database, Palette, Briefcase } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Category {
   id: string;
@@ -34,6 +35,7 @@ export function RegistrationCategoriesSettings() {
     name: "",
     icon: "Database",
     color: "#3b82f6",
+    system_type: "client",
   });
 
   useEffect(() => {
@@ -74,12 +76,13 @@ export function RegistrationCategoriesSettings() {
           name: formData.name,
           icon: formData.icon,
           color: formData.color,
+          system_type: formData.system_type,
         });
 
       if (error) throw error;
       toast.success('Categoria criada com sucesso!');
       setIsDialogOpen(false);
-      setFormData({ name: "", icon: "Database", color: "#3b82f6" });
+      setFormData({ name: "", icon: "Database", color: "#3b82f6", system_type: "client" });
       fetchCategories();
       
       // Force reload sidebar categories (dispatch custom event or use a state manager)
@@ -176,6 +179,26 @@ export function RegistrationCategoriesSettings() {
                 placeholder="Ex: Fornecedores, Parceiros..."
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="system_type">Tipo de Cadastro</Label>
+              <Select 
+                value={formData.system_type} 
+                onValueChange={(value) => setFormData({ ...formData, system_type: value })}
+              >
+                <SelectTrigger id="system_type">
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="client">Clientes</SelectItem>
+                  <SelectItem value="supplier">Fornecedores</SelectItem>
+                  <SelectItem value="team">Equipe / Funcionários</SelectItem>
+                  <SelectItem value="business">Negócios / Parceiros</SelectItem>
+                  <SelectItem value="other">Outros</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">O tipo define os campos que aparecerão no formulário.</p>
             </div>
             
             <div className="space-y-2">
