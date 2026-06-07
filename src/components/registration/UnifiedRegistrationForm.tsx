@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 interface UnifiedRegistrationFormProps {
   categoryId: string;
   categoryName: string;
+  systemType: string;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
