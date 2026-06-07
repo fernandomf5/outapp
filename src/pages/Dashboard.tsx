@@ -537,9 +537,9 @@ const Dashboard = () => {
                 </div>
               </div>
             </header>
-
-          {/* Main Content */}
-          <main className="flex-1 overflow-auto px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 3xl:px-12 py-3 xs:py-4 sm:py-6 md:py-8 lg:py-10 3xl:py-12">
+          <div className="flex flex-1 overflow-hidden">
+            <UserSidebar />
+            <main className="flex-1 overflow-auto px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 3xl:px-12 py-3 xs:py-4 sm:py-6 md:py-8 lg:py-10 3xl:py-12">
         {/* Subscription Banner */}
         <SubscriptionBanner />
 
