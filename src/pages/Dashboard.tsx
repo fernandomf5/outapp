@@ -1119,6 +1119,20 @@ const Dashboard = () => {
         </Card>
           </TabsContent>
 
+          <TabsContent value="cadastro">
+            <ErrorBoundary>
+              <RegistrationManagerPanel 
+                categoryId={searchParams.get('categoryId')} 
+              />
+            </ErrorBoundary>
+          </TabsContent>
+
+          <TabsContent value="cadastro-settings">
+            <ErrorBoundary>
+              <RegistrationCategoriesSettings />
+            </ErrorBoundary>
+          </TabsContent>
+
           <TabsContent value="crm-geral">
             <FeatureGate featureKey="crm_contacts">
               <FeatureTutorialVideo featureKey="crm-geral" />
