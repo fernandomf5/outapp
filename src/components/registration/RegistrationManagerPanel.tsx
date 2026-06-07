@@ -8,7 +8,8 @@ import { UnifiedRegistrationForm } from "./UnifiedRegistrationForm";
 import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Phone, Mail, Trash2 } from "lucide-react";
+import { Phone, Mail, Trash2, List, ClipboardList } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 interface RegistrationManagerPanelProps {
   categoryId: string | null;
@@ -34,7 +35,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const [category, setCategory] = useState<Category | null>(null);
   const [items, setItems] = useState<RegisteredItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("form"); // Default to form as requested
 
   useEffect(() => {
     if (categoryId && user) {
