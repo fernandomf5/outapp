@@ -138,7 +138,7 @@ export const BlockDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
-          <DialogTitle>{block ? "Editar Bloco" : "Novo Bloco"}</DialogTitle>
+          <DialogTitle>{block ? "Editar Bloco" : "Criar Bloco"}</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6 py-4">

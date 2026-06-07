@@ -288,11 +288,11 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
         </div>
         
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <Button variant="outline" size="sm" onClick={handleAddBlock} className="gap-2">
-            <Layout className="h-4 w-4" />
-            Novo Bloco
+          <Button variant="outline" size="sm" onClick={handleAddBlock} className="gap-2 border-primary/20 hover:bg-primary/5">
+            <Layout className="h-4 w-4 text-primary" />
+            Criar Bloco
           </Button>
-          <Button size="sm" onClick={() => { setEditingTask(null); setIsTaskDialogOpen(true); }} className="gap-2 shadow-md">
+          <Button size="sm" onClick={() => { setEditingTask(null); setIsTaskDialogOpen(true); }} className="gap-2 shadow-md bg-primary hover:bg-primary/90">
             <Plus className="h-4 w-4" />
             Nova Tarefa
           </Button>

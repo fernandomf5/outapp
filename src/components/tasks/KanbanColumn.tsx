@@ -64,15 +64,15 @@ export const KanbanColumn = ({
   return (
     <div 
       ref={setNodeRef}
-      className={`flex flex-col w-80 shrink-0 rounded-xl bg-secondary/30 border-2 transition-all duration-200 ${
-        isOver ? 'border-primary/50 ring-4 ring-primary/5' : 'border-transparent'
+      className={`flex flex-col w-80 shrink-0 rounded-2xl bg-secondary/20 dark:bg-secondary/10 border-2 transition-all duration-300 ${
+        isOver ? 'border-primary shadow-[0_0_20px_rgba(var(--primary-rgb),0.15)] bg-secondary/40' : 'border-transparent'
       }`}
     >
-      <div className="p-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: block.color }} />
-          <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">{block.name}</h3>
-          <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-bold">
+      <div className="p-4 flex items-center justify-between border-b border-border/5 bg-secondary/10 rounded-t-2xl">
+        <div className="flex items-center gap-3">
+          <div className="w-1.5 h-6 rounded-full" style={{ backgroundColor: block.color }} />
+          <h3 className="font-bold text-sm uppercase tracking-widest text-foreground/80">{block.name}</h3>
+          <Badge variant="outline" className="h-5 px-2 text-[10px] font-bold bg-background/50 border-border/50">
             {tasks.length}
           </Badge>
         </div>
@@ -109,9 +109,9 @@ export const KanbanColumn = ({
         </SortableContext>
         
         {tasks.length === 0 && !isOver && (
-          <div className="flex flex-col items-center justify-center py-8 opacity-20 pointer-events-none">
-            <Plus className="h-8 w-8 mb-1" />
-            <span className="text-xs font-medium uppercase tracking-widest">Vazio</span>
+          <div className="flex flex-col items-center justify-center py-12 opacity-10 pointer-events-none border-2 border-dashed border-foreground/20 rounded-xl m-2">
+            <Plus className="h-8 w-8 mb-2" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-center">Arraste aqui ou<br/>adicione tarefa</span>
           </div>
         )}
       </div>
