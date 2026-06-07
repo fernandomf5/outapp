@@ -334,21 +334,26 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
       >
         <div className="relative group/board">
           {/* Scroll Indicators/Arrows */}
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover/board:opacity-100 transition-opacity pointer-events-none">
-            <div className="bg-background/80 backdrop-blur-sm border shadow-md p-2 rounded-r-full -ml-4 flex items-center gap-1 text-primary animate-pulse">
-              <ChevronLeft className="h-4 w-4" />
-              <span className="text-[10px] font-bold uppercase tracking-wider pr-1">Anterior</span>
-            </div>
-          </div>
+          <button 
+            onClick={() => scrollBoard("left")}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover/board:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm border shadow-md p-2 rounded-r-full -ml-4 flex items-center gap-1 text-primary hover:bg-primary hover:text-white transition-all cursor-pointer pointer-events-auto"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            <span className="text-[10px] font-bold uppercase tracking-wider pr-1">Anterior</span>
+          </button>
           
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover/board:opacity-100 transition-opacity pointer-events-none">
-            <div className="bg-background/80 backdrop-blur-sm border shadow-md p-2 rounded-l-full -mr-4 flex items-center gap-1 text-primary animate-pulse">
-              <span className="text-[10px] font-bold uppercase tracking-wider pl-1">Próximo</span>
-              <ChevronRight className="h-4 w-4" />
-            </div>
-          </div>
+          <button 
+            onClick={() => scrollBoard("right")}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover/board:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm border shadow-md p-2 rounded-l-full -mr-4 flex items-center gap-1 text-primary hover:bg-primary hover:text-white transition-all cursor-pointer pointer-events-auto"
+          >
+            <span className="text-[10px] font-bold uppercase tracking-wider pl-1">Próximo</span>
+            <ChevronRight className="h-4 w-4" />
+          </button>
 
-          <div className="flex gap-6 overflow-x-auto pb-6 -mx-4 px-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent hover:scrollbar-thumb-primary/40 transition-colors">
+          <div 
+            ref={scrollContainerRef}
+            className="flex gap-6 overflow-x-auto pb-6 -mx-4 px-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent hover:scrollbar-thumb-primary/40 transition-colors scroll-smooth"
+          >
             {blocks.map((block) => (
               <KanbanColumn
                 key={block.id}
