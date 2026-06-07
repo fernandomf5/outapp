@@ -64,6 +64,7 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
   
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
@@ -82,6 +83,25 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
 
   useEffect(() => {
     fetchData();
+    
+    const handleScroll = () => {
+      if (scrollContainerRef.current) {
+        setShowLeftArrow(scrollContainerRef.current.scrollLeft > 10);
+      }
+    };
+
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      // Check initial state
+      handleScroll();
+    }
+
+    return () => {
+      if (container) {
+        container.removeEventListener('scroll', handleScroll);
+      }
+    };
   }, [userId, effectiveUserId]);
 
   const fetchData = async () => {
@@ -334,13 +354,15 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
       >
         <div className="relative group/board">
           {/* Scroll Indicators/Arrows */}
-          <button 
-            onClick={() => scrollBoard("left")}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover/board:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm border shadow-md p-2 rounded-r-full -ml-4 flex items-center gap-1 text-primary hover:bg-primary hover:text-white transition-all cursor-pointer pointer-events-auto"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span className="text-[10px] font-bold uppercase tracking-wider pr-1">Anterior</span>
-          </button>
+          {showLeftArrow && (
+            <button 
+              onClick={() => scrollBoard("left")}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover/board:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm border shadow-md p-2 rounded-r-full -ml-4 flex items-center gap-1 text-primary hover:bg-primary hover:text-white transition-all cursor-pointer pointer-events-auto"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span className="text-[10px] font-bold uppercase tracking-wider pr-1">Anterior</span>
+            </button>
+          )}
           
           <button 
             onClick={() => scrollBoard("right")}
