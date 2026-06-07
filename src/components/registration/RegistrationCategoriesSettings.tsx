@@ -260,7 +260,7 @@ export function RegistrationCategoriesSettings() {
                 <SelectTrigger id="system_type">
                   <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-[300px] overflow-y-auto">
                   <SelectItem value="client">Clientes</SelectItem>
                   <SelectItem value="supplier">Fornecedores</SelectItem>
                   <SelectItem value="team">Equipe / Funcionários</SelectItem>
@@ -275,6 +275,12 @@ export function RegistrationCategoriesSettings() {
                   <SelectItem value="health">Saúde / Pacientes</SelectItem>
                   <SelectItem value="education">Educação / Alunos</SelectItem>
                   <SelectItem value="legal">Jurídico / Processos</SelectItem>
+                  <SelectItem value="security">Segurança / Monitoramento</SelectItem>
+                  <SelectItem value="marketing">Marketing / Agências</SelectItem>
+                  <SelectItem value="consultancy">Consultoria / Assessoria</SelectItem>
+                  <SelectItem value="hr">Recursos Humanos / Talentos</SelectItem>
+                  <SelectItem value="finance">Financeiro / Bancos</SelectItem>
+                  <SelectItem value="retail">Varejo / Comércio</SelectItem>
                   <SelectItem value="other">Outros</SelectItem>
                 </SelectContent>
               </Select>
