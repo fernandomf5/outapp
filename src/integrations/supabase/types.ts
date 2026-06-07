@@ -3767,6 +3767,7 @@ export type Database = {
       contacts: {
         Row: {
           address: string | null
+          avatar_url: string | null
           business_id: string | null
           company: string | null
           contact_person: string | null
@@ -3790,6 +3791,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          avatar_url?: string | null
           business_id?: string | null
           company?: string | null
           contact_person?: string | null
@@ -3813,6 +3815,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          avatar_url?: string | null
           business_id?: string | null
           company?: string | null
           contact_person?: string | null
@@ -6618,6 +6621,7 @@ export type Database = {
           created_at: string
           icon: string | null
           id: string
+          logo_url: string | null
           name: string
           system_type: string | null
           updated_at: string
@@ -6628,6 +6632,7 @@ export type Database = {
           created_at?: string
           icon?: string | null
           id?: string
+          logo_url?: string | null
           name: string
           system_type?: string | null
           updated_at?: string
@@ -6638,6 +6643,7 @@ export type Database = {
           created_at?: string
           icon?: string | null
           id?: string
+          logo_url?: string | null
           name?: string
           system_type?: string | null
           updated_at?: string

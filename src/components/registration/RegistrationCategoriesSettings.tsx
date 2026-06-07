@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Trash2, Plus, Building2, Users, UserCog, Truck, Database, Palette, Briefcase, Handshake, Wrench, Target, DollarSign, Globe, LayoutList, Smartphone, Package, ShieldCheck, HardHat, HeartPulse, GraduationCap, Gavel, Edit } from "lucide-react";
+import { Trash2, Plus, Building2, Users, UserCog, Truck, Database, Palette, Briefcase, Handshake, Wrench, Target, DollarSign, Globe, LayoutList, Smartphone, Package, ShieldCheck, HardHat, HeartPulse, GraduationCap, Gavel, Edit, Image as ImageIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ImageUpload } from "../ImageUpload";
 
 interface Category {
   id: string;
@@ -52,6 +53,7 @@ export function RegistrationCategoriesSettings() {
     icon: "Database",
     color: "#3b82f6",
     system_type: "client",
+    logo_url: "",
   });
 
   useEffect(() => {
@@ -93,6 +95,7 @@ export function RegistrationCategoriesSettings() {
             icon: formData.icon,
             color: formData.color,
             system_type: formData.system_type,
+            logo_url: formData.logo_url,
           })
           .eq('id', editingId);
 
@@ -107,6 +110,7 @@ export function RegistrationCategoriesSettings() {
             icon: formData.icon,
             color: formData.color,
             system_type: formData.system_type,
+            logo_url: formData.logo_url,
           });
 
         if (error) throw error;
@@ -115,7 +119,7 @@ export function RegistrationCategoriesSettings() {
       
       setIsDialogOpen(false);
       setEditingId(null);
-      setFormData({ name: "", icon: "Database", color: "#3b82f6", system_type: "client" });
+      setFormData({ name: "", icon: "Database", color: "#3b82f6", system_type: "client", logo_url: "" });
       fetchCategories();
       
       window.dispatchEvent(new CustomEvent('registration-categories-updated'));
@@ -132,6 +136,7 @@ export function RegistrationCategoriesSettings() {
       icon: category.icon || "Database",
       color: category.color,
       system_type: category.system_type || "client",
+      logo_url: (category as any).logo_url || "",
     });
     setIsDialogOpen(true);
   };
@@ -181,7 +186,7 @@ export function RegistrationCategoriesSettings() {
         </div>
         <Button onClick={() => {
           setEditingId(null);
-          setFormData({ name: "", icon: "Database", color: "#3b82f6", system_type: "client" });
+          setFormData({ name: "", icon: "Database", color: "#3b82f6", system_type: "client", logo_url: "" });
           setIsDialogOpen(true);
         }} className="gradient-primary">
           <Plus className="h-4 w-4 mr-2" />
@@ -192,12 +197,19 @@ export function RegistrationCategoriesSettings() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {categories.map((cat) => {
           const Icon = AVAILABLE_ICONS.find(i => i.name === cat.icon)?.icon || Database;
+          const logoUrl = (cat as any).logo_url;
           return (
-            <Card key={cat.id} className="glass">
+            <Card key={cat.id} className="glass overflow-hidden">
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
-                  <div className="p-2 rounded-lg" style={{ backgroundColor: `${cat.color}20` }}>
-                    <Icon className="h-6 w-6" style={{ color: cat.color }} />
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg" style={{ backgroundColor: `${cat.color}20` }}>
+                      {logoUrl ? (
+                        <img src={logoUrl} alt={cat.name} className="h-6 w-6 object-cover rounded" />
+                      ) : (
+                        <Icon className="h-6 w-6" style={{ color: cat.color }} />
+                      )}
+                    </div>
                   </div>
                   <div className="flex gap-1">
                     <Button 
@@ -248,6 +260,15 @@ export function RegistrationCategoriesSettings() {
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Ex: Fornecedores, Parceiros..."
                 required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <ImageUpload 
+                label="Logo da Categoria (opcional)"
+                currentImage={formData.logo_url}
+                onImageSelect={(url) => setFormData({ ...formData, logo_url: url })}
+                bucketName="avatars"
               />
             </div>
 

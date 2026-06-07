@@ -8,6 +8,7 @@ import { UnifiedRegistrationForm } from "./UnifiedRegistrationForm";
 import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface RegistrationManagerPanelProps {
   categoryId: string | null;
@@ -197,6 +198,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12"></TableHead>
                     <TableHead>Nome</TableHead>
                     <TableHead>Contato</TableHead>
                     <TableHead>Data de Cadastro</TableHead>
@@ -212,8 +214,14 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                     </TableRow>
                   ) : (
                     items.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.name}</TableCell>
+                       <TableRow key={item.id}>
+                         <TableCell>
+                           <Avatar className="h-8 w-8">
+                             <AvatarImage src={(item as any).avatar_url} />
+                             <AvatarFallback>{item.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                           </Avatar>
+                         </TableCell>
+                         <TableCell className="font-medium">{item.name}</TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
                             {item.email && (

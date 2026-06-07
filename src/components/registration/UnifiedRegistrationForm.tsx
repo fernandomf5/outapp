@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ImageUpload } from '../ImageUpload';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface UnifiedRegistrationFormProps {
   categoryId: string;
@@ -30,9 +32,11 @@ export function UnifiedRegistrationForm({
 }: UnifiedRegistrationFormProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm({
     defaultValues: initialData || {}
   });
+
+  const avatarUrl = watch('avatar_url');
 
   const onSubmit = async (data: any) => {
     if (!user || isViewOnly) return;
@@ -89,6 +93,24 @@ export function UnifiedRegistrationForm({
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="flex justify-center mb-6">
+            <div className="flex flex-col items-center gap-2">
+              <Avatar className="w-24 h-24 border-2 border-primary/20">
+                <AvatarImage src={avatarUrl} />
+                <AvatarFallback className="text-2xl bg-primary/10 text-primary">
+                  {watch('name')?.slice(0, 2).toUpperCase() || 'UP'}
+                </AvatarFallback>
+              </Avatar>
+              {!isViewOnly && (
+                <ImageUpload 
+                  label="Foto ou Logo"
+                  currentImage={avatarUrl}
+                  onImageSelect={(url) => setValue('avatar_url', url)}
+                  bucketName="avatars"
+                />
+              )}
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">
