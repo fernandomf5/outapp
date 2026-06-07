@@ -107,21 +107,28 @@ export function UserSidebar() {
       if (data && data.length > 0) {
         setRegistrationCategories(data);
       } else {
-        // Create default categories if none exist
-        const defaultCategories = [
-          { name: "Negócios", system_type: "business", icon: "Building2", color: "#3b82f6", user_id: user.id },
-          { name: "Clientes", system_type: "client", icon: "Users", color: "#10b981", user_id: user.id },
-          { name: "Equipe", system_type: "team", icon: "UserCog", color: "#8b5cf6", user_id: user.id },
-          { name: "Fornecedores", system_type: "supplier", icon: "Truck", color: "#f59e0b", user_id: user.id },
-        ];
-        
-        const { data: inserted, error: insertError } = await supabase
-          .from('registration_categories')
-          .insert(defaultCategories)
-          .select();
-        
-        if (!insertError && inserted) {
-          setRegistrationCategories(inserted);
+        // Use a flag to avoid multiple simultaneous creation calls
+        if ((window as any).isCreatingDefaultCategories) return;
+        (window as any).isCreatingDefaultCategories = true;
+
+        try {
+          const defaultCategories = [
+            { name: "Negócios", system_type: "business", icon: "Building2", color: "#3b82f6", user_id: user.id },
+            { name: "Clientes", system_type: "client", icon: "Users", color: "#10b981", user_id: user.id },
+            { name: "Equipe", system_type: "team", icon: "UserCog", color: "#8b5cf6", user_id: user.id },
+            { name: "Fornecedores", system_type: "supplier", icon: "Truck", color: "#f59e0b", user_id: user.id },
+          ];
+          
+          const { data: inserted, error: insertError } = await supabase
+            .from('registration_categories')
+            .insert(defaultCategories)
+            .select();
+          
+          if (!insertError && inserted) {
+            setRegistrationCategories(inserted);
+          }
+        } finally {
+          (window as any).isCreatingDefaultCategories = false;
         }
       }
     } catch (error) {
