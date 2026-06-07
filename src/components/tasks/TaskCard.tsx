@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { 
@@ -35,6 +36,7 @@ interface TaskCardProps {
 }
 
 export const TaskCard = ({ task, isOverlay, onEdit, onDelete }: TaskCardProps) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const {
     attributes,
     listeners,
@@ -118,9 +120,22 @@ export const TaskCard = ({ task, isOverlay, onEdit, onDelete }: TaskCardProps) =
         </div>
 
         {task.description && (
-          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-            {task.description}
-          </p>
+          <div className="flex flex-col gap-1">
+            <p className={`text-xs text-muted-foreground leading-relaxed transition-all duration-300 ${isExpanded ? '' : 'line-clamp-2'}`}>
+              {task.description}
+            </p>
+            {task.description.length > 80 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(!isExpanded);
+                }}
+                className="text-[10px] text-primary font-bold hover:underline self-start mt-1 uppercase tracking-wider"
+              >
+                {isExpanded ? "Ver menos" : "Ver mais"}
+              </button>
+            )}
+          </div>
         )}
 
         <div className="flex flex-wrap items-center gap-2 pt-1">
