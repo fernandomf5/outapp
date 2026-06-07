@@ -379,30 +379,43 @@ export function UserSidebar() {
         </div>
       )}
       
-      <ScrollArea className="flex-1 overflow-y-auto">
-        <SidebarContent className="p-1 sm:p-2">
+      <ScrollArea className="flex-1 overflow-x-hidden">
+        <SidebarContent className={cn("p-2", collapsed && "items-center px-0")}>
           {/* Main section - hide for team members */}
           {!isTeamMember && (
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">{t('main')}</SidebarGroupLabel>
+            <SidebarGroup className={cn(collapsed && "px-0")}>
+              {!collapsed && (
+                <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm mb-1">
+                  {t('main')}
+                </SidebarGroupLabel>
+              )}
               <SidebarGroupContent>
-                <SidebarMenu>
+                <SidebarMenu className={cn(collapsed && "items-center")}>
                   {mainItems.map((item) => (
-                    <SidebarMenuItem key={item.title}>
+                    <SidebarMenuItem key={item.title} className={cn(collapsed && "w-full flex justify-center")}>
                         {item.title === "Blog" ? (
                           <SidebarMenuButton
                             onClick={() => window.open(item.path, '_blank')}
-                            className="text-sm py-2"
+                            className={cn(
+                              "text-sm py-2 transition-all duration-200",
+                              collapsed && "justify-center !p-0 w-10 h-10 rounded-xl"
+                            )}
+                            tooltip={collapsed ? item.title : undefined}
                           >
-                            <item.icon className="h-4 w-4 shrink-0" />
+                            <item.icon className="h-5 w-5 shrink-0" />
                             {!collapsed && <span className="truncate">{item.title}</span>}
                           </SidebarMenuButton>
                         ) : (
                           <SidebarMenuButton
                             onClick={() => handleNavigation(item.path, item.tab)}
-                            className={`text-sm py-2 ${isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}`}
+                            className={cn(
+                              "text-sm py-2 transition-all duration-200",
+                              isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : "",
+                              collapsed && "justify-center !p-0 w-10 h-10 rounded-xl"
+                            )}
+                            tooltip={collapsed ? item.title : undefined}
                           >
-                            <item.icon className="h-4 w-4 shrink-0" />
+                            <item.icon className="h-5 w-5 shrink-0" />
                             {!collapsed && <span className="truncate">{item.title}</span>}
                           </SidebarMenuButton>
                         )}
