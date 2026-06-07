@@ -17,7 +17,7 @@ interface UnifiedRegistrationFormProps {
   onCancel?: () => void;
 }
 
-export function UnifiedRegistrationForm({ categoryId, categoryName, onSuccess, onCancel }: UnifiedRegistrationFormProps) {
+export function UnifiedRegistrationForm({ categoryId, categoryName, systemType, onSuccess, onCancel }: UnifiedRegistrationFormProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
