@@ -46,7 +46,7 @@ import MindMapPresentation from "./pages/MindMapPresentation";
 import MindMapFullEditor from "./pages/MindMapFullEditor";
 import ProposalPublicView from "./pages/ProposalPublicView";
 import AprovaJobClient from "./pages/AprovaJobClient";
-import PortfolioPublicPage from "./pages/PortfolioPublicPage";
+
 import InstallApp from "./pages/InstallApp";
 import CampaignPublicView from "./pages/CampaignPublicView";
 import ClientCampaignsPublicView from "./pages/ClientCampaignsPublicView";
@@ -118,8 +118,6 @@ const AppContent = () => {
           } />
           <Route path="/proposta/:slug" element={<ProposalPublicView />} />
           <Route path="/aprova-job/:token" element={<AprovaJobClient />} />
-          <Route path="/portfolio/:portfolioId" element={<PortfolioPublicPage />} />
-              <Route path="/portfolio/:portfolioId/:slug" element={<PortfolioPublicPage />} />
               <Route path="/instalar" element={<InstallApp />} />
               <Route path="/campanha/:campaignId" element={<CampaignPublicView />} />
               <Route path="/cliente-campanhas/:clientId" element={<ClientCampaignsPublicView />} />

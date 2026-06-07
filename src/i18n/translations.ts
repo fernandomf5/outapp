@@ -91,7 +91,7 @@ export const translations = {
     popup_creator: "Criador de Popup",
     mind_map: "Mapa Mental",
     proposal_creator: "Criador de Propostas",
-    portfolio: "Portfólio",
+    
     aprova_job: "Aprova Job",
     tracking_pixels: "Pixels de Rastreamento",
     ad_spy: "Ad Spy",
@@ -296,7 +296,7 @@ export const translations = {
     popup_creator_desc: "Crie popups para seu site",
     mind_map_desc: "Organize ideias visualmente",
     proposal_creator_desc: "Crie propostas profissionais",
-    portfolio_desc: "Mostre seus trabalhos",
+    
     aprova_job_desc: "Sistema de aprovação de jobs",
     tracking_pixels_desc: "Rastreie conversões",
     ad_spy_desc: "Espione anúncios da concorrência",
@@ -500,7 +500,7 @@ export const translations = {
     popup_creator: "Popup Creator",
     mind_map: "Mind Map",
     proposal_creator: "Proposal Creator",
-    portfolio: "Portfolio",
+    
     aprova_job: "Aprova Job",
     tracking_pixels: "Tracking Pixels",
     ad_spy: "Ad Spy",
@@ -908,7 +908,7 @@ export const translations = {
     popup_creator: "Creador de Popup",
     mind_map: "Mapa Mental",
     proposal_creator: "Creador de Propuestas",
-    portfolio: "Portafolio",
+    
     aprova_job: "Aprova Job",
     tracking_pixels: "Píxeles de Seguimiento",
     ad_spy: "Ad Spy",
@@ -1113,7 +1113,7 @@ export const translations = {
     popup_creator_desc: "Crea popups para tu sitio",
     mind_map_desc: "Organiza ideas visualmente",
     proposal_creator_desc: "Crea propuestas profesionales",
-    portfolio_desc: "Muestra tus trabajos",
+    
     aprova_job_desc: "Sistema de aprobación de jobs",
     tracking_pixels_desc: "Rastrea conversiones",
     ad_spy_desc: "Espía anuncios de la competencia",

@@ -64,7 +64,7 @@ import { AgendaPanel } from "@/components/AgendaPanel";
 import { AgendaReminders } from "@/components/AgendaReminders";
 import { AprovaJobPanel } from "@/components/AprovaJobPanel";
 import { GlobalChatNotification } from "@/components/GlobalChatNotification";
-import { PortfolioCreatorPanel } from "@/components/PortfolioCreatorPanel";
+
 import { ManualDispatcherPanel } from "@/components/ManualDispatcherPanel";
 import SalesFunnelPanel from "@/components/SalesFunnelPanel";
 import { SuppliersManagementPanel } from "@/components/SuppliersManagementPanel";
@@ -153,7 +153,7 @@ const Dashboard = () => {
       { moduleKey: 'ai_agents', tab: 'ai-agents' },
       { moduleKey: 'link_bio', tab: 'linkbio' },
       { moduleKey: 'briefings', tab: 'briefing' },
-      { moduleKey: 'portfolio', tab: 'portfolio' },
+      
       { moduleKey: 'cloner', tab: 'cloner' },
     ];
 
@@ -1534,12 +1534,6 @@ const Dashboard = () => {
             </FeatureGate>
           </TabsContent>
 
-          <TabsContent value="portfolio">
-            <FeatureGate featureKey="portfolio_creator">
-              <FeatureTutorialVideo featureKey="portfolio" />
-              <PortfolioCreatorPanel teamContext={getTeamContext('portfolio')} />
-            </FeatureGate>
-          </TabsContent>
 
 
           <TabsContent value="rotina">

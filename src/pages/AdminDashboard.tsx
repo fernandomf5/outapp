@@ -1034,7 +1034,7 @@ const AdminDashboard = () => {
                   <option value="mapa-mental">Mapa Mental</option>
                   <option value="propostas">Proposta Comercial</option>
                   <option value="aprova-job">Aprova Job</option>
-                  <option value="portfolio">Portfólio</option>
+                  
                 </select>
                 <p className="text-xs text-muted-foreground mt-1">
                   Se selecionado, o vídeo aparecerá como "Como usar" dentro do recurso correspondente no painel do usuário.
