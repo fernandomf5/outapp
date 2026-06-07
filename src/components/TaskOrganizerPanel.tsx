@@ -379,7 +379,7 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
   const [selectedBusinessFilter, setSelectedBusinessFilter] = useState<string>("");
   const [filterMode, setFilterMode] = useState<"client" | "business">("client");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
-  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("all");
+  const [selectedRegistrationCategoryFilter, setSelectedRegistrationCategoryFilter] = useState<string>("all");
   const [registrationCategories, setRegistrationCategories] = useState<Array<{id: string, name: string}>>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [dateStart, setDateStart] = useState<string>("");
