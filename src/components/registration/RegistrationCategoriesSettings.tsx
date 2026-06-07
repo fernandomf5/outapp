@@ -179,6 +179,26 @@ export function RegistrationCategoriesSettings() {
                 required
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="system_type">Tipo de Cadastro</Label>
+              <Select 
+                value={formData.system_type} 
+                onValueChange={(value) => setFormData({ ...formData, system_type: value })}
+              >
+                <SelectTrigger id="system_type">
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="client">Clientes</SelectItem>
+                  <SelectItem value="supplier">Fornecedores</SelectItem>
+                  <SelectItem value="team">Equipe / Funcionários</SelectItem>
+                  <SelectItem value="business">Negócios / Parceiros</SelectItem>
+                  <SelectItem value="other">Outros</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">O tipo define os campos que aparecerão no formulário.</p>
+            </div>
             
             <div className="space-y-2">
               <Label>Ícone</Label>
