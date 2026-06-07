@@ -1293,27 +1293,15 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  {filterMode === "client" ? (
-                    <>
-                      <CardTitle>{showClientManager ? "Gerenciar Clientes" : "Selecione o Cliente"}</CardTitle>
-                      <CardDescription>
-                        {showClientManager 
-                          ? "Adicione ou remova clientes do organizador de tarefas"
-                          : "Escolha um cliente para gerenciar suas tarefas"
-                        }
-                      </CardDescription>
-                    </>
-                  ) : (
-                    <>
-                      <CardTitle>{showBusinessManager ? "Gerenciar Negócios" : "Selecione o Negócio"}</CardTitle>
-                      <CardDescription>
-                        {showBusinessManager 
-                          ? "Adicione ou remova negócios do organizador de tarefas"
-                          : "Escolha um negócio para gerenciar suas tarefas"
-                        }
-                      </CardDescription>
-                    </>
-                  )}
+                  <CardTitle>
+                    {filterMode === "all" 
+                      ? "Selecione o Usuário (Todas as Categorias)" 
+                      : `Selecione o Usuário (${registrationCategories.find(c => c.id === filterMode)?.name || 'Categoria'})`
+                    }
+                  </CardTitle>
+                  <CardDescription>
+                    Escolha um cadastro para gerenciar suas tarefas
+                  </CardDescription>
                 </div>
                 {!isTeamMember && (
                   <div className="flex gap-2">
