@@ -1303,35 +1303,6 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
                     Escolha um cadastro para gerenciar suas tarefas
                   </CardDescription>
                 </div>
-                {!isTeamMember && (
-                  <div className="flex gap-2">
-                    {filterMode === "client" ? (
-                      showClientManager ? (
-                        <Button variant="outline" onClick={() => setShowClientManager(false)}>
-                          <ChevronLeft className="mr-2 h-4 w-4" />
-                          Voltar
-                        </Button>
-                      ) : (
-                        <Button variant="outline" onClick={() => setShowClientManager(true)}>
-                          <Users className="mr-2 h-4 w-4" />
-                          Gerenciar Clientes
-                        </Button>
-                      )
-                    ) : (
-                      showBusinessManager ? (
-                        <Button variant="outline" onClick={() => setShowBusinessManager(false)}>
-                          <ChevronLeft className="mr-2 h-4 w-4" />
-                          Voltar
-                        </Button>
-                      ) : (
-                        <Button variant="outline" onClick={() => setShowBusinessManager(true)}>
-                          <Building2 className="mr-2 h-4 w-4" />
-                          Gerenciar Negócios
-                        </Button>
-                      )
-                    )}
-                  </div>
-                )}
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -1365,21 +1336,6 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
                   </div>
                 )}
               </div>
-                        <p className="text-muted-foreground mb-4">
-                          Nenhum negócio cadastrado no organizador de tarefas.
-                        </p>
-                        <Button onClick={() => {
-                          loadAllBusinesses();
-                          setIsAddBusinessDialogOpen(true);
-                        }}>
-                          <Building2 className="mr-2 h-4 w-4" />
-                          Adicionar Negócio
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )
-              )}
             </CardContent>
           </Card>
         </div>
