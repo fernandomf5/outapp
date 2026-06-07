@@ -1335,227 +1335,36 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {filterMode === "client" ? (
-                showClientManager ? (
-                  <>
-                    <Button 
-                      className="w-full" 
-                      onClick={() => {
-                        loadAllCustomers();
-                        setIsAddClientDialogOpen(true);
-                      }}
-                    >
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      Adicionar Cliente da Gestão
-                    </Button>
-                    
-                    <div className="grid gap-3 mt-4">
-                      {clients.map(client => (
-                        <Card key={client.id} className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h4 className="font-semibold">{client.name}</h4>
-                              {client.email && (
-                                <p className="text-sm text-muted-foreground">{client.email}</p>
-                              )}
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {tasks.filter(t => t.client_id === client.id).length} tarefas vinculadas
-                              </p>
-                            </div>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => setClientToRemove(client.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+              <div className="grid gap-3">
+                {clients
+                  .filter(client => filterMode === "all" || client.registration_category_id === filterMode)
+                  .map(client => (
+                    <div key={client.id} className="flex items-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        className="justify-start h-auto py-4 px-4 flex-1"
+                        onClick={() => {
+                          setSelectedClientFilter(client.id);
+                          setFilterMode("client"); // To show the board for this client
+                        }}
+                      >
+                        <div className="text-left">
+                          <div className="font-semibold">{client.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {tasks.filter(t => t.client_id === client.id).length} tarefas
                           </div>
-                        </Card>
-                      ))}
-                      {clients.length === 0 && (
-                        <p className="text-center text-muted-foreground py-4">
-                          Nenhum cliente adicionado. Clique em "Adicionar Cliente da Gestão" para selecionar.
-                        </p>
-                      )}
+                        </div>
+                      </Button>
                     </div>
-                  </>
-                ) : (
-                  <div className="grid gap-3">
-                    {!isTeamMember && (
-                      <>
-                        <Button 
-                          variant="outline" 
-                          className="justify-start h-auto py-4 px-4"
-                          onClick={() => setSelectedClientFilter("all")}
-                        >
-                          <div className="text-left">
-                            <div className="font-semibold">Todos os Clientes</div>
-                            <div className="text-sm text-muted-foreground">Ver tarefas de todos os clientes</div>
-                          </div>
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          className="justify-start h-auto py-4 px-4"
-                          onClick={() => setSelectedClientFilter("none")}
-                        >
-                          <div className="text-left">
-                            <div className="font-semibold">Sem Cliente</div>
-                            <div className="text-sm text-muted-foreground">Tarefas não vinculadas</div>
-                          </div>
-                        </Button>
-                      </>
-                    )}
-                    {clients.map(client => (
-                      <div key={client.id} className="flex items-center gap-2">
-                        <Button 
-                          variant="outline" 
-                          className="justify-start h-auto py-4 px-4 flex-1"
-                          onClick={() => setSelectedClientFilter(client.id)}
-                        >
-                          <div className="text-left">
-                            <div className="font-semibold">{client.name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {tasks.filter(t => t.client_id === client.id).length} tarefas
-                            </div>
-                          </div>
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          className="text-destructive hover:text-destructive shrink-0"
-                          onClick={() => setClientToRemove(client.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                    {clients.length === 0 && !isTeamMember && (
-                      <div className="text-center py-4">
-                        <p className="text-muted-foreground mb-4">
-                          Nenhum cliente cadastrado no organizador de tarefas.
-                        </p>
-                        <Button onClick={() => {
-                          loadAllCustomers();
-                          setIsAddClientDialogOpen(true);
-                        }}>
-                          <UserPlus className="mr-2 h-4 w-4" />
-                          Adicionar Cliente
-                        </Button>
-                      </div>
-                    )}
+                  ))}
+                {clients.filter(client => filterMode === "all" || client.registration_category_id === filterMode).length === 0 && (
+                  <div className="text-center py-4">
+                    <p className="text-muted-foreground">
+                      Nenhum cadastro encontrado nesta categoria.
+                    </p>
                   </div>
-                )
-              ) : (
-                showBusinessManager ? (
-                  <>
-                    <Button 
-                      className="w-full" 
-                      onClick={() => {
-                        loadAllBusinesses();
-                        setIsAddBusinessDialogOpen(true);
-                      }}
-                    >
-                      <Building2 className="mr-2 h-4 w-4" />
-                      Adicionar Negócio da Gestão
-                    </Button>
-                    
-                    <div className="grid gap-3 mt-4">
-                      {businesses.map(business => (
-                        <Card key={business.id} className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-3 flex-1">
-                              {business.logo_url ? (
-                                <img src={business.logo_url} alt={business.name} className="w-10 h-10 rounded-lg object-cover" />
-                              ) : (
-                                <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                                  <Building2 className="h-5 w-5 text-muted-foreground" />
-                                </div>
-                              )}
-                              <div>
-                                <h4 className="font-semibold">{business.name}</h4>
-                                <p className="text-xs text-muted-foreground">
-                                  {tasks.filter(t => t.business_id === business.id).length} tarefas vinculadas
-                                </p>
-                              </div>
-                            </div>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => setBusinessToRemove(business.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </Card>
-                      ))}
-                      {businesses.length === 0 && (
-                        <p className="text-center text-muted-foreground py-4">
-                          Nenhum negócio adicionado. Clique em "Adicionar Negócio da Gestão" para selecionar.
-                        </p>
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  <div className="grid gap-3">
-                    {!isTeamMember && (
-                      <>
-                        <Button 
-                          variant="outline" 
-                          className="justify-start h-auto py-4 px-4"
-                          onClick={() => setSelectedBusinessFilter("all")}
-                        >
-                          <div className="text-left">
-                            <div className="font-semibold">Todos os Negócios</div>
-                            <div className="text-sm text-muted-foreground">Ver tarefas de todos os negócios</div>
-                          </div>
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          className="justify-start h-auto py-4 px-4"
-                          onClick={() => setSelectedBusinessFilter("none")}
-                        >
-                          <div className="text-left">
-                            <div className="font-semibold">Sem Negócio</div>
-                            <div className="text-sm text-muted-foreground">Tarefas não vinculadas</div>
-                          </div>
-                        </Button>
-                      </>
-                    )}
-                    {businesses.map(business => (
-                      <div key={business.id} className="flex items-center gap-2">
-                        <Button 
-                          variant="outline" 
-                          className="justify-start h-auto py-4 px-4 gap-3 flex-1"
-                          onClick={() => setSelectedBusinessFilter(business.id)}
-                        >
-                          {business.logo_url ? (
-                            <img src={business.logo_url} alt={business.name} className="w-8 h-8 rounded-lg object-cover" />
-                          ) : (
-                            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
-                              <Building2 className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                          )}
-                          <div className="text-left">
-                            <div className="font-semibold">{business.name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {tasks.filter(t => t.business_id === business.id).length} tarefas
-                            </div>
-                          </div>
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          className="text-destructive hover:text-destructive shrink-0"
-                          onClick={() => setBusinessToRemove(business.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                    {businesses.length === 0 && !isTeamMember && (
-                      <div className="text-center py-4">
+                )}
+              </div>
                         <p className="text-muted-foreground mb-4">
                           Nenhum negócio cadastrado no organizador de tarefas.
                         </p>
