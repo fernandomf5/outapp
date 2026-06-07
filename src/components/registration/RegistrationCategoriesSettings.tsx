@@ -80,7 +80,7 @@ export function RegistrationCategoriesSettings() {
       if (error) throw error;
       toast.success('Categoria criada com sucesso!');
       setIsDialogOpen(false);
-      setFormData({ name: "", icon: "Database", color: "#3b82f6" });
+      setFormData({ name: "", icon: "Database", color: "#3b82f6", system_type: "client" });
       fetchCategories();
       
       // Force reload sidebar categories (dispatch custom event or use a state manager)
