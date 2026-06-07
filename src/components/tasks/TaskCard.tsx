@@ -155,7 +155,10 @@ export const TaskCard = ({ task, isOverlay, onEdit, onDelete }: TaskCardProps) =
           {task.due_date && (
             <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium ml-auto">
               <Clock className="h-3 w-3" />
-              {new Date(task.due_date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+              {(() => {
+                const [year, month, day] = task.due_date.split('-');
+                return `${day}/${month}`;
+              })()}
             </div>
           )}
         </div>
