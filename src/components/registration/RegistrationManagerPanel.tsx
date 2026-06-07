@@ -2,14 +2,12 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, AlertCircle, PlusCircle } from "lucide-react";
+import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UnifiedRegistrationForm } from "./UnifiedRegistrationForm";
 import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Phone, Mail, Trash2, List, ClipboardList } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface RegistrationManagerPanelProps {
   categoryId: string | null;
@@ -35,7 +33,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const [category, setCategory] = useState<Category | null>(null);
   const [items, setItems] = useState<RegisteredItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>("form"); // Default to form as requested
+  const [activeTab, setActiveTab] = useState<string>("form");
 
   useEffect(() => {
     if (categoryId && user) {
@@ -70,6 +68,13 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
 
       if (error) throw error;
       setItems(data || []);
+      
+      // If there are items, default to the list tab
+      if (data && data.length > 0) {
+        setActiveTab("list");
+      } else {
+        setActiveTab("form");
+      }
     } catch (error) {
       console.error('Error fetching items:', error);
     } finally {
@@ -118,97 +123,103 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
     );
   }
 
-  if (showForm) {
-    return (
-      <div className="space-y-6">
-        <UnifiedRegistrationForm 
-          categoryId={category.id} 
-          categoryName={category.name}
-          systemType={category.system_type || 'other'}
-          onSuccess={() => {
-            setShowForm(false);
-            fetchItems();
-          }}
-          onCancel={() => setShowForm(false)}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">{category.name}</h2>
           <p className="text-muted-foreground">
-            Gerencie todos os cadastros na categoria {category.name.toLowerCase()}.
+            {activeTab === "form" ? `Preencha os dados para cadastrar em ${category.name.toLowerCase()}.` : `Gerencie os cadastros na categoria ${category.name.toLowerCase()}.`}
           </p>
         </div>
-        <Button onClick={() => setShowForm(true)} className="gap-2">
-          <PlusCircle className="h-4 w-4" />
-          Cadastrar
-        </Button>
+        
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="form" className="gap-2">
+              <PlusCircle className="h-4 w-4" />
+              Cadastrar
+            </TabsTrigger>
+            <TabsTrigger value="list" className="gap-2">
+              <List className="h-4 w-4" />
+              Ver Lista
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Contato</TableHead>
-                <TableHead>Data de Cadastro</TableHead>
-                <TableHead className="w-[100px]">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {items.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                    Nenhum cadastro encontrado nesta categoria.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                items.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        {item.email && (
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Mail className="h-3 w-3" />
-                            {item.email}
-                          </div>
-                        )}
-                        {item.phone && (
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Phone className="h-3 w-3" />
-                            {item.phone}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {new Date(item.created_at).toLocaleDateString('pt-BR')}
-                    </TableCell>
-                    <TableCell>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => handleDelete(item.id)}
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
+      <div className="mt-6">
+        {activeTab === "form" ? (
+          <UnifiedRegistrationForm 
+            categoryId={category.id} 
+            categoryName={category.name}
+            systemType={category.system_type || 'other'}
+            onSuccess={() => {
+              setActiveTab("list");
+              fetchItems();
+            }}
+            onCancel={() => setActiveTab("list")}
+          />
+        ) : (
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Contato</TableHead>
+                    <TableHead>Data de Cadastro</TableHead>
+                    <TableHead className="w-[100px]">Ações</TableHead>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {items.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                        Nenhum cadastro encontrado nesta categoria.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    items.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium">{item.name}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            {item.email && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Mail className="h-3 w-3" />
+                                {item.email}
+                              </div>
+                            )}
+                            {item.phone && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Phone className="h-3 w-3" />
+                                {item.phone}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {new Date(item.created_at).toLocaleDateString('pt-BR')}
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => handleDelete(item.id)}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
-
