@@ -90,7 +90,12 @@ export function UserSidebar() {
       fetchRegistrationCategories();
     };
     window.addEventListener('registration-categories-updated', handleUpdate);
-    return () => window.removeEventListener('registration-categories-updated', handleUpdate);
+    window.addEventListener('registration-items-updated', handleUpdate);
+    return () => {
+      window.removeEventListener('registration-categories-updated', handleUpdate);
+      window.removeEventListener('registration-items-updated', handleUpdate);
+    };
+
   }, [user, isTeamMember]);
 
   const fetchRegistrationCategories = async () => {
@@ -203,11 +208,6 @@ export function UserSidebar() {
     { title: "Rotina", icon: CalendarCheck, path: "/dashboard", tab: "rotina", hideForTeamMember: true },
   ];
 
-  // Categories are now handled dynamically
-  const managementItems: MenuItem[] = [
-    // These will be moved to the "Cadastro" dropdown
-  ];
-
   const financialItems: MenuItem[] = [
     { title: t('financial_management'), icon: DollarSign, path: "/dashboard", tab: "financeiro", moduleKey: "financial" },
     { title: "Gerador de Recibos", icon: FileCheck, path: "/dashboard", tab: "recibos", hideForTeamMember: true },
@@ -216,6 +216,7 @@ export function UserSidebar() {
   const crmItems: MenuItem[] = [
     { title: t('lead_control'), icon: Database, path: "/dashboard", tab: "crm-geral", moduleKey: "crm" },
   ];
+
 
   const basicResourcesItems: MenuItem[] = [
     { title: t('whatsapp_link_generator'), icon: Wrench, path: "/dashboard", tab: "tools", hideForTeamMember: true },
@@ -412,13 +413,8 @@ export function UserSidebar() {
                   if (!isCat && !canShowItem(item)) return null;
                   
                   const title = isCat ? item.name : item.title;
-                  const icon = isCat ? (
-                    item.icon === "Building2" ? Building2 : 
-                    item.icon === "Users" ? Users : 
-                    item.icon === "UserCog" ? UserCog : 
-                    item.icon === "Truck" ? Truck : 
-                    Database
-                  ) : item.icon;
+                  const icon = isCat ? PlusCircle : item.icon;
+
                   
                   const path = isCat ? "/dashboard" : item.path;
                   const tab = isCat ? "cadastro" : item.tab;
