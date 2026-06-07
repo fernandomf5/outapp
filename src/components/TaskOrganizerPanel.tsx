@@ -358,7 +358,7 @@ interface TaskOrganizerPanelProps {
 export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [blocks, setBlocks] = useState<TaskBlock[]>([]);
-  const [clients, setClients] = useState<Array<{id: string, name: string, email?: string, phone?: string, notes?: string}>>([]);
+  const [clients, setClients] = useState<Array<{id: string, name: string, email?: string, phone?: string, notes?: string, registration_category_id?: string | null}>>([]);
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
@@ -1202,18 +1202,14 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
     );
   }
 
-  // Filter tasks and blocks based on filter mode
-  const filteredTasksBase = filterMode === "client"
-    ? (selectedClientFilter === "all" 
-        ? tasks 
-        : selectedClientFilter === "none"
-        ? tasks.filter(task => !task.client_id && !task.business_id)
-        : tasks.filter(task => task.client_id === selectedClientFilter))
-    : (selectedBusinessFilter === "all"
-        ? tasks
-        : selectedBusinessFilter === "none"
-        ? tasks.filter(task => !task.business_id && !task.client_id)
-        : tasks.filter(task => task.business_id === selectedBusinessFilter));
+  // Filter tasks and blocks based on filter mode (registration categories)
+  const filteredTasksBase = tasks.filter(task => {
+    if (filterMode === "all") return true;
+    
+    // Find the contact associated with this task to check its category
+    const contact = clients.find(c => c.id === task.client_id);
+    return contact?.registration_category_id === filterMode;
+  });
 
   const filteredByPriority = priorityFilter === 'all' 
     ? filteredTasksBase 
@@ -1230,17 +1226,13 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
 
   const filteredTasks = filteredByDate;
 
-  const filteredBlocks = filterMode === "client"
-    ? (selectedClientFilter === "all"
-        ? blocks
-        : selectedClientFilter === "none"
-        ? blocks.filter(block => !block.client_id && !block.business_id)
-        : blocks.filter(block => block.client_id === selectedClientFilter || (!block.client_id && !block.business_id)))
-    : (selectedBusinessFilter === "all"
-        ? blocks
-        : selectedBusinessFilter === "none"
-        ? blocks.filter(block => !block.business_id && !block.client_id)
-        : blocks.filter(block => block.business_id === selectedBusinessFilter || (!block.business_id && !block.client_id)));
+  const filteredBlocks = blocks.filter(block => {
+    if (filterMode === "all") return true;
+    
+    // Find the contact associated with this block to check its category
+    const contact = clients.find(c => c.id === block.client_id);
+    return contact?.registration_category_id === filterMode || (!block.client_id && !block.business_id);
+  });
 
   const tasksByBlock = filteredTasks.reduce((acc, task) => {
     if (!acc[task.block_id || '']) {
@@ -1254,9 +1246,7 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
   const isTeamMember = !!teamContext?.allowedIds && teamContext.allowedIds.length > 0;
 
   // Show selection screen if no filter selected or manager is open
-  const showSelectionScreen = filterMode === "client" 
-    ? (!selectedClientFilter || showClientManager)
-    : (!selectedBusinessFilter || showBusinessManager);
+  const showSelectionScreen = filterMode !== "all" && !registrationCategories.find(c => c.id === filterMode);
 
   if (showSelectionScreen) {
     return (
@@ -1264,36 +1254,38 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
         <div className="text-center">
           <h2 className="text-3xl font-bold mb-2">Organizador de Tarefas</h2>
           <p className="text-muted-foreground mb-4">
-            Organize suas tarefas por cliente ou negócio
+            Organize suas tarefas pelas categorias de cadastro
           </p>
           
-          {/* Mode Toggle */}
-          {!isTeamMember && !showClientManager && !showBusinessManager && (
-            <div className="flex justify-center gap-2 mb-8">
+          {/* Mode Toggle with Registration Categories */}
+          <div className="flex flex-wrap justify-center gap-2 mb-8">
+            <Button 
+              variant={filterMode === "all" ? "default" : "outline"}
+              onClick={() => {
+                setFilterMode("all");
+              }}
+              className="gap-2"
+            >
+              <ListPlus className="h-4 w-4" />
+              Todas as Categorias
+            </Button>
+            
+            {registrationCategories.map(category => (
               <Button 
-                variant={filterMode === "client" ? "default" : "outline"}
+                key={category.id}
+                variant={filterMode === category.id ? "default" : "outline"}
                 onClick={() => {
-                  setFilterMode("client");
+                  setFilterMode(category.id);
+                  setSelectedClientFilter("");
                   setSelectedBusinessFilter("");
                 }}
                 className="gap-2"
               >
                 <Users className="h-4 w-4" />
-                Por Cliente
+                {category.name}
               </Button>
-              <Button 
-                variant={filterMode === "business" ? "default" : "outline"}
-                onClick={() => {
-                  setFilterMode("business");
-                  setSelectedClientFilter("");
-                }}
-                className="gap-2"
-              >
-                <Building2 className="h-4 w-4" />
-                Por Negócio
-              </Button>
-            </div>
-          )}
+            ))}
+          </div>
         </div>
         
         <div className="max-w-2xl mx-auto">
@@ -1301,296 +1293,49 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  {filterMode === "client" ? (
-                    <>
-                      <CardTitle>{showClientManager ? "Gerenciar Clientes" : "Selecione o Cliente"}</CardTitle>
-                      <CardDescription>
-                        {showClientManager 
-                          ? "Adicione ou remova clientes do organizador de tarefas"
-                          : "Escolha um cliente para gerenciar suas tarefas"
-                        }
-                      </CardDescription>
-                    </>
-                  ) : (
-                    <>
-                      <CardTitle>{showBusinessManager ? "Gerenciar Negócios" : "Selecione o Negócio"}</CardTitle>
-                      <CardDescription>
-                        {showBusinessManager 
-                          ? "Adicione ou remova negócios do organizador de tarefas"
-                          : "Escolha um negócio para gerenciar suas tarefas"
-                        }
-                      </CardDescription>
-                    </>
-                  )}
+                  <CardTitle>
+                    {filterMode === "all" 
+                      ? "Selecione o Usuário (Todas as Categorias)" 
+                      : `Selecione o Usuário (${registrationCategories.find(c => c.id === filterMode)?.name || 'Categoria'})`
+                    }
+                  </CardTitle>
+                  <CardDescription>
+                    Escolha um cadastro para gerenciar suas tarefas
+                  </CardDescription>
                 </div>
-                {!isTeamMember && (
-                  <div className="flex gap-2">
-                    {filterMode === "client" ? (
-                      showClientManager ? (
-                        <Button variant="outline" onClick={() => setShowClientManager(false)}>
-                          <ChevronLeft className="mr-2 h-4 w-4" />
-                          Voltar
-                        </Button>
-                      ) : (
-                        <Button variant="outline" onClick={() => setShowClientManager(true)}>
-                          <Users className="mr-2 h-4 w-4" />
-                          Gerenciar Clientes
-                        </Button>
-                      )
-                    ) : (
-                      showBusinessManager ? (
-                        <Button variant="outline" onClick={() => setShowBusinessManager(false)}>
-                          <ChevronLeft className="mr-2 h-4 w-4" />
-                          Voltar
-                        </Button>
-                      ) : (
-                        <Button variant="outline" onClick={() => setShowBusinessManager(true)}>
-                          <Building2 className="mr-2 h-4 w-4" />
-                          Gerenciar Negócios
-                        </Button>
-                      )
-                    )}
-                  </div>
-                )}
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {filterMode === "client" ? (
-                showClientManager ? (
-                  <>
-                    <Button 
-                      className="w-full" 
-                      onClick={() => {
-                        loadAllCustomers();
-                        setIsAddClientDialogOpen(true);
-                      }}
-                    >
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      Adicionar Cliente da Gestão
-                    </Button>
-                    
-                    <div className="grid gap-3 mt-4">
-                      {clients.map(client => (
-                        <Card key={client.id} className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h4 className="font-semibold">{client.name}</h4>
-                              {client.email && (
-                                <p className="text-sm text-muted-foreground">{client.email}</p>
-                              )}
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {tasks.filter(t => t.client_id === client.id).length} tarefas vinculadas
-                              </p>
-                            </div>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => setClientToRemove(client.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+              <div className="grid gap-3">
+                {clients
+                  .filter(client => filterMode === "all" || client.registration_category_id === filterMode)
+                  .map(client => (
+                    <div key={client.id} className="flex items-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        className="justify-start h-auto py-4 px-4 flex-1"
+                        onClick={() => {
+                          setSelectedClientFilter(client.id);
+                          setFilterMode("client"); // To show the board for this client
+                        }}
+                      >
+                        <div className="text-left">
+                          <div className="font-semibold">{client.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {tasks.filter(t => t.client_id === client.id).length} tarefas
                           </div>
-                        </Card>
-                      ))}
-                      {clients.length === 0 && (
-                        <p className="text-center text-muted-foreground py-4">
-                          Nenhum cliente adicionado. Clique em "Adicionar Cliente da Gestão" para selecionar.
-                        </p>
-                      )}
+                        </div>
+                      </Button>
                     </div>
-                  </>
-                ) : (
-                  <div className="grid gap-3">
-                    {!isTeamMember && (
-                      <>
-                        <Button 
-                          variant="outline" 
-                          className="justify-start h-auto py-4 px-4"
-                          onClick={() => setSelectedClientFilter("all")}
-                        >
-                          <div className="text-left">
-                            <div className="font-semibold">Todos os Clientes</div>
-                            <div className="text-sm text-muted-foreground">Ver tarefas de todos os clientes</div>
-                          </div>
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          className="justify-start h-auto py-4 px-4"
-                          onClick={() => setSelectedClientFilter("none")}
-                        >
-                          <div className="text-left">
-                            <div className="font-semibold">Sem Cliente</div>
-                            <div className="text-sm text-muted-foreground">Tarefas não vinculadas</div>
-                          </div>
-                        </Button>
-                      </>
-                    )}
-                    {clients.map(client => (
-                      <div key={client.id} className="flex items-center gap-2">
-                        <Button 
-                          variant="outline" 
-                          className="justify-start h-auto py-4 px-4 flex-1"
-                          onClick={() => setSelectedClientFilter(client.id)}
-                        >
-                          <div className="text-left">
-                            <div className="font-semibold">{client.name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {tasks.filter(t => t.client_id === client.id).length} tarefas
-                            </div>
-                          </div>
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          className="text-destructive hover:text-destructive shrink-0"
-                          onClick={() => setClientToRemove(client.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                    {clients.length === 0 && !isTeamMember && (
-                      <div className="text-center py-4">
-                        <p className="text-muted-foreground mb-4">
-                          Nenhum cliente cadastrado no organizador de tarefas.
-                        </p>
-                        <Button onClick={() => {
-                          loadAllCustomers();
-                          setIsAddClientDialogOpen(true);
-                        }}>
-                          <UserPlus className="mr-2 h-4 w-4" />
-                          Adicionar Cliente
-                        </Button>
-                      </div>
-                    )}
+                  ))}
+                {clients.filter(client => filterMode === "all" || client.registration_category_id === filterMode).length === 0 && (
+                  <div className="text-center py-4">
+                    <p className="text-muted-foreground">
+                      Nenhum cadastro encontrado nesta categoria.
+                    </p>
                   </div>
-                )
-              ) : (
-                showBusinessManager ? (
-                  <>
-                    <Button 
-                      className="w-full" 
-                      onClick={() => {
-                        loadAllBusinesses();
-                        setIsAddBusinessDialogOpen(true);
-                      }}
-                    >
-                      <Building2 className="mr-2 h-4 w-4" />
-                      Adicionar Negócio da Gestão
-                    </Button>
-                    
-                    <div className="grid gap-3 mt-4">
-                      {businesses.map(business => (
-                        <Card key={business.id} className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-3 flex-1">
-                              {business.logo_url ? (
-                                <img src={business.logo_url} alt={business.name} className="w-10 h-10 rounded-lg object-cover" />
-                              ) : (
-                                <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                                  <Building2 className="h-5 w-5 text-muted-foreground" />
-                                </div>
-                              )}
-                              <div>
-                                <h4 className="font-semibold">{business.name}</h4>
-                                <p className="text-xs text-muted-foreground">
-                                  {tasks.filter(t => t.business_id === business.id).length} tarefas vinculadas
-                                </p>
-                              </div>
-                            </div>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => setBusinessToRemove(business.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </Card>
-                      ))}
-                      {businesses.length === 0 && (
-                        <p className="text-center text-muted-foreground py-4">
-                          Nenhum negócio adicionado. Clique em "Adicionar Negócio da Gestão" para selecionar.
-                        </p>
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  <div className="grid gap-3">
-                    {!isTeamMember && (
-                      <>
-                        <Button 
-                          variant="outline" 
-                          className="justify-start h-auto py-4 px-4"
-                          onClick={() => setSelectedBusinessFilter("all")}
-                        >
-                          <div className="text-left">
-                            <div className="font-semibold">Todos os Negócios</div>
-                            <div className="text-sm text-muted-foreground">Ver tarefas de todos os negócios</div>
-                          </div>
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          className="justify-start h-auto py-4 px-4"
-                          onClick={() => setSelectedBusinessFilter("none")}
-                        >
-                          <div className="text-left">
-                            <div className="font-semibold">Sem Negócio</div>
-                            <div className="text-sm text-muted-foreground">Tarefas não vinculadas</div>
-                          </div>
-                        </Button>
-                      </>
-                    )}
-                    {businesses.map(business => (
-                      <div key={business.id} className="flex items-center gap-2">
-                        <Button 
-                          variant="outline" 
-                          className="justify-start h-auto py-4 px-4 gap-3 flex-1"
-                          onClick={() => setSelectedBusinessFilter(business.id)}
-                        >
-                          {business.logo_url ? (
-                            <img src={business.logo_url} alt={business.name} className="w-8 h-8 rounded-lg object-cover" />
-                          ) : (
-                            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
-                              <Building2 className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                          )}
-                          <div className="text-left">
-                            <div className="font-semibold">{business.name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {tasks.filter(t => t.business_id === business.id).length} tarefas
-                            </div>
-                          </div>
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          className="text-destructive hover:text-destructive shrink-0"
-                          onClick={() => setBusinessToRemove(business.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                    {businesses.length === 0 && !isTeamMember && (
-                      <div className="text-center py-4">
-                        <p className="text-muted-foreground mb-4">
-                          Nenhum negócio cadastrado no organizador de tarefas.
-                        </p>
-                        <Button onClick={() => {
-                          loadAllBusinesses();
-                          setIsAddBusinessDialogOpen(true);
-                        }}>
-                          <Building2 className="mr-2 h-4 w-4" />
-                          Adicionar Negócio
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )
-              )}
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -1817,8 +1562,30 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
           <p className="text-muted-foreground">Organize suas tarefas com drag-and-drop</p>
         </div>
         <div className="flex flex-wrap gap-2 items-center">
-          {/* Mode Toggle with Registration Categories */}
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setFilterMode("all");
+              setSelectedClientFilter("");
+              setSelectedBusinessFilter("");
+            }}
+            className="gap-2"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Voltar
+          </Button>
+
           <div className="flex border rounded-md overflow-x-auto max-w-[400px] no-scrollbar">
+            <Button 
+              variant={filterMode === "all" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => {
+                setFilterMode("all");
+              }}
+              className="rounded-none border-r whitespace-nowrap"
+            >
+              Todas
+            </Button>
             {registrationCategories.map((cat) => (
               <Button 
                 key={cat.id}
@@ -1844,21 +1611,13 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
               <SelectValue placeholder="Selecionar cadastro" />
             </SelectTrigger>
             <SelectContent>
-              {!isTeamMember && (
-                <>
-                  <SelectItem value="all">Ver Todos</SelectItem>
-                  <SelectItem value="none">Sem Vínculo</SelectItem>
-                </>
-              )}
               {(() => {
-                // Filter items from contacts table based on current category
-                return clients
-                  .filter(c => (c as any).registration_category_id === filterMode)
-                  .map(item => (
-                    <SelectItem key={item.id} value={item.id}>
-                      {item.name}
-                    </SelectItem>
-                  ));
+                const filteredClients = clients.filter(c => filterMode === "all" || c.registration_category_id === filterMode);
+                return filteredClients.map(client => (
+                  <SelectItem key={client.id} value={client.id}>
+                    {client.name}
+                  </SelectItem>
+                ));
               })()}
             </SelectContent>
           </Select>
