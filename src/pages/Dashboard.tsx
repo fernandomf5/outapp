@@ -1541,19 +1541,6 @@ const Dashboard = () => {
             </FeatureGate>
           </TabsContent>
 
-          <TabsContent value="conversor-midia">
-            <FeatureGate featureKey="media_converter">
-              <FeatureTutorialVideo featureKey="conversor-midia" />
-              <MediaConverterPanel />
-            </FeatureGate>
-          </TabsContent>
-
-          <TabsContent value="conversor-documentos">
-            <FeatureGate featureKey="document_converter">
-              <FeatureTutorialVideo featureKey="conversor-documentos" />
-              <DocumentConverterPanel />
-            </FeatureGate>
-          </TabsContent>
 
           <TabsContent value="rotina">
             <FeatureGate featureKey="routine_organizer">
