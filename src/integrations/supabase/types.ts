@@ -7767,7 +7767,7 @@ export type Database = {
             foreignKeyName: "task_blocks_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "customers"
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
         ]
@@ -7936,7 +7936,7 @@ export type Database = {
             foreignKeyName: "tasks_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "customers"
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
         ]
