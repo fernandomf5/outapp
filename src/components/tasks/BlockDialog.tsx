@@ -126,9 +126,9 @@ export const BlockDialog = ({
 
       onSuccess();
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving block:", error);
-      toast.error("Erro ao salvar bloco");
+      toast.error(`Erro ao salvar bloco: ${error.message || 'Erro desconhecido'}`);
     } finally {
       setLoading(false);
     }
