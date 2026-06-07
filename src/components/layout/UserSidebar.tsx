@@ -285,7 +285,6 @@ export function UserSidebar() {
     const items = [
       ...mainItems,
       ...organizerItems,
-      ...managementItems,
       ...financialItems,
       ...crmItems,
       ...basicResourcesItems,
@@ -293,7 +292,8 @@ export function UserSidebar() {
       ...supportItems,
     ];
     return items.filter(item => canShowItem(item));
-  }, [mainItems, organizerItems, managementItems, financialItems, crmItems, basicResourcesItems, advancedResourcesItems, supportItems, canShowItem]);
+  }, [mainItems, organizerItems, financialItems, crmItems, basicResourcesItems, advancedResourcesItems, supportItems, canShowItem]);
+
   
   // Filter items based on search query
   const searchResults = useMemo(() => {
