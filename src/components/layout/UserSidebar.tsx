@@ -1,6 +1,5 @@
+import React, { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck, Layers, LogIn, Filter, Download, Smartphone, RefreshCw, FileType, Video, Truck, Building2, Package, CalendarCheck, BookOpen, Search, X, ChevronDown, PlusCircle } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import logoLight from "@/assets/logo-light.png";
