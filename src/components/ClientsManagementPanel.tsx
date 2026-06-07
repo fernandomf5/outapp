@@ -512,6 +512,7 @@ export function ClientsManagementPanel({ teamContext, categoryId: propCategoryId
         ...formData,
         user_id: user.id,
         category_id: formData.category_id || null,
+        registration_category_id: formData.category_id || null,
         business_id: formData.business_id || null,
       };
 
@@ -543,6 +544,7 @@ export function ClientsManagementPanel({ teamContext, categoryId: propCategoryId
       const updateData = {
         ...formData,
         category_id: formData.category_id || null,
+        registration_category_id: formData.category_id || null,
         business_id: formData.business_id || null,
       };
 
