@@ -35,6 +35,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { TeamDelegationPanel } from "@/components/team/TeamDelegationPanel";
 import { useAuth } from "@/contexts/AuthContext";
+import { ImageUpload } from "@/components/ImageUpload";
 
 interface TeamMemberOfAdmin {
   adminName: string;
@@ -487,11 +488,11 @@ export const TeamManagementPanel = () => {
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label>Avatar / Logo</Label>
-                  <Input 
-                    placeholder="URL da imagem"
-                    value={formData.avatar_url}
-                    onChange={(e) => setFormData({...formData, avatar_url: e.target.value})}
+                  <ImageUpload 
+                    label="Avatar / Logo"
+                    currentImage={formData.avatar_url}
+                    onImageSelect={(url) => setFormData({...formData, avatar_url: url})}
+                    bucketName="team-media"
                   />
                 </div>
                 <div className="grid gap-2">
