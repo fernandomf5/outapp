@@ -38,6 +38,10 @@ export function UnifiedRegistrationForm({ categoryId, categoryName, onSuccess, o
 
       toast.success(`${categoryName} cadastrado com sucesso!`);
       reset();
+      
+      // Emit event to refresh sidebar if needed
+      window.dispatchEvent(new CustomEvent('registration-items-updated'));
+      
       if (onSuccess) onSuccess();
     } catch (error: any) {
       console.error('Error saving registration:', error);
