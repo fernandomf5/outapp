@@ -443,29 +443,6 @@ export function UserSidebar() {
           )}
 
           {/* Organizer section */}
-          {hasVisibleItems(organizerItems) && (
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">Organizador de:</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {organizerItems.map((item) => {
-                    if (!canShowItem(item)) return null;
-                    return (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton
-                          onClick={() => handleNavigation(item.path, item.tab)}
-                          className={`text-sm py-2 ${isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}`}
-                        >
-                          <item.icon className="h-4 w-4 shrink-0" />
-                          {!collapsed && <span className="truncate">{item.title}</span>}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )}
 
           {/* Organizer section */}
           {hasVisibleItems(organizerItems) && (
