@@ -491,59 +491,56 @@ const Dashboard = () => {
 
                   {!isTeamMember && (
                     <div className="flex items-center gap-1 sm:gap-2 border-l border-border pl-2 sm:pl-4 ml-1 sm:ml-2">
-                  {!isTeamMember && (
-                    <>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => window.open("/anotacoes", "_blank")}
                         title="Anotações Rápidas"
-                        className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
+                        className="h-8 w-8 sm:h-9 sm:w-9"
                       >
-                        <StickyNote className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+                        <StickyNote className="w-4 h-4 sm:w-5 sm:h-5" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => setIsCalculatorOpen(true)}
                         title="Calculadora"
-                        className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
+                        className="h-8 w-8 sm:h-9 sm:w-9"
                       >
-                        <Calculator className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+                        <Calculator className="w-4 h-4 sm:w-5 sm:h-5" />
                       </Button>
-                    </>
+                    </div>
                   )}
-                  {!isTeamMember && <ConversationNotificationBell />}
-                  {!isTeamMember && <NotificationBell />}
-                  {!isTeamMember && <TicketNotificationBell />}
-                  <div className="hidden md:flex items-center gap-1 lg:gap-2">
-                    <LanguageSelector />
-                    <ThemeToggle />
-                  </div>
-                  {!isTeamMember && (
-                    <>
+                  
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    {!isTeamMember && <ConversationNotificationBell />}
+                    {!isTeamMember && <NotificationBell />}
+                    <div className="hidden md:flex items-center gap-1">
+                      <LanguageSelector />
+                      <ThemeToggle />
+                    </div>
+                    {!isTeamMember && (
                       <Button
                         variant="outline"
                         onClick={() => navigate("/settings")}
                         size="icon"
-                        className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
+                        className="h-8 w-8 sm:h-9 sm:w-9 ml-1"
                       >
-                        <Settings className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
+                        <Settings className="w-4 h-4" />
                       </Button>
-                      <Button
-                        onClick={handleLogout}
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 3xl:h-12 3xl:w-12"
-                      >
-                        <LogOut className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
-                      </Button>
-                    </>
-                  )}
+                    )}
+                    <Button
+                      onClick={handleLogout}
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 sm:h-9 sm:w-9"
+                    >
+                      <LogOut className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </header>
+            </header>
 
           {/* Main Content */}
           <main className="flex-1 overflow-auto px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 3xl:px-12 py-3 xs:py-4 sm:py-6 md:py-8 lg:py-10 3xl:py-12">
