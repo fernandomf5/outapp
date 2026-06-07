@@ -4,7 +4,9 @@ import {
   Plus, 
   Search,
   Layout,
-  Loader2
+  Loader2,
+  ChevronRight,
+  ChevronLeft
 } from "lucide-react";
 import { 
   DndContext, 
@@ -314,18 +316,35 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-6 overflow-x-auto pb-6 -mx-4 px-4 scrollbar-hide">
-          {blocks.map((block) => (
-            <KanbanColumn
-              key={block.id}
-              block={block}
-              tasks={filteredTasks.filter(t => t.block_id === block.id)}
-              onEditTask={handleEditTask}
-              onDeleteTask={handleDeleteTask}
-              onEditBlock={handleEditBlock}
-              onDeleteBlock={handleDeleteBlock}
-            />
-          ))}
+        <div className="relative group/board">
+          {/* Scroll Indicators/Arrows */}
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover/board:opacity-100 transition-opacity pointer-events-none">
+            <div className="bg-background/80 backdrop-blur-sm border shadow-md p-2 rounded-r-full -ml-4 flex items-center gap-1 text-primary animate-pulse">
+              <ChevronLeft className="h-4 w-4" />
+              <span className="text-[10px] font-bold uppercase tracking-wider pr-1">Anterior</span>
+            </div>
+          </div>
+          
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover/board:opacity-100 transition-opacity pointer-events-none">
+            <div className="bg-background/80 backdrop-blur-sm border shadow-md p-2 rounded-l-full -mr-4 flex items-center gap-1 text-primary animate-pulse">
+              <span className="text-[10px] font-bold uppercase tracking-wider pl-1">Próximo</span>
+              <ChevronRight className="h-4 w-4" />
+            </div>
+          </div>
+
+          <div className="flex gap-6 overflow-x-auto pb-6 -mx-4 px-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent hover:scrollbar-thumb-primary/40 transition-colors">
+            {blocks.map((block) => (
+              <KanbanColumn
+                key={block.id}
+                block={block}
+                tasks={filteredTasks.filter(t => t.block_id === block.id)}
+                onEditTask={handleEditTask}
+                onDeleteTask={handleDeleteTask}
+                onEditBlock={handleEditBlock}
+                onDeleteBlock={handleDeleteBlock}
+              />
+            ))}
+          </div>
         </div>
 
         <DragOverlay>
