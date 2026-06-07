@@ -124,12 +124,17 @@ export const TaskDialog = ({
         const { error } = await supabase
           .from("tasks")
           .insert({
-            ...formData,
+            title: formData.title,
+            description: formData.description,
+            priority: formData.priority,
+            category: formData.category,
+            due_date: formData.due_date || null,
+            block_id: formData.block_id,
             user_id: effectiveUserId,
             client_id: userId,
             task_order: nextOrder,
-            status: "pending" // Default status
-          } as any);
+            status: "pending"
+          });
         
         if (error) throw error;
         toast.success("Tarefa criada");
