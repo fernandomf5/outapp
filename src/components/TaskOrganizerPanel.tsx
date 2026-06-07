@@ -1226,17 +1226,13 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
 
   const filteredTasks = filteredByDate;
 
-  const filteredBlocks = filterMode === "client"
-    ? (selectedClientFilter === "all"
-        ? blocks
-        : selectedClientFilter === "none"
-        ? blocks.filter(block => !block.client_id && !block.business_id)
-        : blocks.filter(block => block.client_id === selectedClientFilter || (!block.client_id && !block.business_id)))
-    : (selectedBusinessFilter === "all"
-        ? blocks
-        : selectedBusinessFilter === "none"
-        ? blocks.filter(block => !block.business_id && !block.client_id)
-        : blocks.filter(block => block.business_id === selectedBusinessFilter || (!block.business_id && !block.client_id)));
+  const filteredBlocks = blocks.filter(block => {
+    if (filterMode === "all") return true;
+    
+    // Find the contact associated with this block to check its category
+    const contact = clients.find(c => c.id === block.client_id);
+    return contact?.registration_category_id === filterMode || (!block.client_id && !block.business_id);
+  });
 
   const tasksByBlock = filteredTasks.reduce((acc, task) => {
     if (!acc[task.block_id || '']) {
