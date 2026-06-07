@@ -365,7 +365,10 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
           )}
           
           <button 
-            onClick={() => scrollBoard("right")}
+            onClick={() => {
+              scrollBoard("right");
+              setShowLeftArrow(true);
+            }}
             className="absolute right-0 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover/board:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm border shadow-md p-2 rounded-l-full -mr-4 flex items-center gap-1 text-primary hover:bg-primary hover:text-white transition-all cursor-pointer pointer-events-auto"
           >
             <span className="text-[10px] font-bold uppercase tracking-wider pl-1">Próximo</span>
