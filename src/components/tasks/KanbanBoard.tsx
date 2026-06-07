@@ -2,18 +2,9 @@ import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Plus, 
-  MoreVertical, 
-  GripVertical, 
-  Calendar, 
-  Flag, 
-  Edit2, 
-  Trash2, 
   Search,
-  Filter,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
-  Layout
+  Layout,
+  Loader2
 } from "lucide-react";
 import { 
   DndContext, 
@@ -23,24 +14,13 @@ import {
   PointerSensor, 
   useSensor, 
   useSensors,
-  closestCorners,
-  rectIntersection
+  closestCorners
 } from "@dnd-kit/core";
 import { 
-  SortableContext, 
-  verticalListSortingStrategy, 
   arrayMove 
 } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { KanbanColumn } from "./KanbanColumn";
 import { TaskCard } from "./TaskCard";
@@ -82,7 +62,6 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   
-  // Dialog states
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -106,7 +85,6 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
     try {
       setLoading(true);
       
-      // Fetch Blocks (Columns)
       const { data: blocksData, error: blocksError } = await supabase
         .from("task_blocks")
         .select("*")
@@ -116,7 +94,6 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
 
       if (blocksError) throw blocksError;
 
-      // If no blocks exist, create default ones
       let currentBlocks = blocksData || [];
       if (currentBlocks.length === 0) {
         const defaultBlocks = [
@@ -135,7 +112,6 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
       }
       setBlocks(currentBlocks);
 
-      // Fetch Tasks
       const { data: tasksData, error: tasksError } = await supabase
         .from("tasks")
         .select("*")
@@ -144,7 +120,14 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
         .order("task_order");
 
       if (tasksError) throw tasksError;
-      setTasks(tasksData || []);
+      
+      // Ensure priority matches the expected literal type
+      const sanitizedTasks: Task[] = (tasksData || []).map((t: any) => ({
+        ...t,
+        priority: (t.priority === "high" || t.priority === "low" || t.priority === "medium") ? t.priority : "medium"
+      }));
+
+      setTasks(sanitizedTasks);
 
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -176,7 +159,6 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    // Check if dropping over a block or another task
     let targetBlockId = "";
     if (over.data.current?.type === "block") {
       targetBlockId = over.data.current.blockId;
@@ -189,25 +171,21 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
     const activeTaskIndex = tasks.findIndex(t => t.id === activeId);
     const task = tasks[activeTaskIndex];
 
+    if (!task) return;
+
     if (task.block_id !== targetBlockId || activeId !== overId) {
-      // Logic for reordering and moving
-      const updatedTasks = [...tasks];
-      const movedTask = { ...task, block_id: targetBlockId };
+      let updatedTasks = [...tasks];
       
-      // If reordering in the same column
       if (task.block_id === targetBlockId) {
         const oldIndex = updatedTasks.findIndex(t => t.id === activeId);
         const newIndex = updatedTasks.findIndex(t => t.id === overId);
         const reordered = arrayMove(updatedTasks, oldIndex, newIndex);
         
-        // Update task_order locally
         const finalTasks = reordered.map((t, index) => ({ ...t, task_order: index }));
         setTasks(finalTasks);
-        
-        // Update DB
         await updateTasksInDB(finalTasks);
       } else {
-        // Moving to a different column
+        const movedTask = { ...task, block_id: targetBlockId };
         const filtered = updatedTasks.filter(t => t.id !== activeId);
         const overIndex = filtered.findIndex(t => t.id === overId);
         
@@ -216,8 +194,6 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
         
         const finalTasks = filtered.map((t, index) => ({ ...t, task_order: index }));
         setTasks(finalTasks);
-        
-        // Update DB
         await updateTasksInDB(finalTasks);
       }
     }
@@ -225,21 +201,24 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
 
   const updateTasksInDB = async (updatedTasks: Task[]) => {
     try {
-      // In a real scenario, we'd only update the changed ones to be efficient
-      // For simplicity here, we update all task_orders and block_ids
+      // Create updates ensuring all required fields for DB (like title, user_id) are present if necessary,
+      // but usually PostgREST handles partial updates on upsert with ID correctly if RLS allows.
+      // However, to satisfy TS and be safe, we map to the exact structure.
       const updates = updatedTasks.map(t => ({
         id: t.id,
+        title: t.title, // Required field
+        user_id: effectiveUserId, // Required field
         block_id: t.block_id,
         task_order: t.task_order,
         updated_at: new Date().toISOString()
       }));
 
-      const { error } = await supabase.from("tasks").upsert(updates);
+      const { error } = await supabase.from("tasks").upsert(updates as any);
       if (error) throw error;
     } catch (error) {
       console.error("Error updating tasks:", error);
       toast.error("Erro ao salvar alterações");
-      fetchData(); // Rollback
+      fetchData();
     }
   };
 
