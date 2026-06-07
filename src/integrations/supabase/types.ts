@@ -4277,6 +4277,7 @@ export type Database = {
           phone: string | null
           position: string | null
           postal_code: string | null
+          registration_category_id: string | null
           state: string | null
           status: string
           tags: string[] | null
@@ -4301,6 +4302,7 @@ export type Database = {
           phone?: string | null
           position?: string | null
           postal_code?: string | null
+          registration_category_id?: string | null
           state?: string | null
           status?: string
           tags?: string[] | null
@@ -4325,6 +4327,7 @@ export type Database = {
           phone?: string | null
           position?: string | null
           postal_code?: string | null
+          registration_category_id?: string | null
           state?: string | null
           status?: string
           tags?: string[] | null
@@ -4345,6 +4348,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "customer_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customers_registration_category_id_fkey"
+            columns: ["registration_category_id"]
+            isOneToOne: false
+            referencedRelation: "registration_categories"
             referencedColumns: ["id"]
           },
         ]
