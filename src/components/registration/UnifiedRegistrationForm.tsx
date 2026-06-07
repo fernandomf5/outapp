@@ -89,7 +89,7 @@ export function UnifiedRegistrationForm({ categoryId, categoryName, systemType, 
                 <Input
                   id="role"
                   placeholder="Ex: Vendedor, Gerente..."
-                  {...register('role')}
+                  {...register('position')}
                 />
               </div>
             )}
