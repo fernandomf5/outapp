@@ -76,6 +76,7 @@ export function RegistrationCategoriesSettings() {
           name: formData.name,
           icon: formData.icon,
           color: formData.color,
+          system_type: formData.system_type,
         });
 
       if (error) throw error;
