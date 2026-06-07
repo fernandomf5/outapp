@@ -16,7 +16,6 @@ import { ConversationNotificationBell } from "@/components/ConversationNotificat
 import { TicketNotificationBell } from "@/components/TicketNotificationBell";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { UserSidebar } from "@/components/layout/UserSidebar";
-import { DetailedAnalytics } from "@/components/dashboard/DetailedAnalytics";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -550,95 +549,14 @@ const Dashboard = () => {
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <SubscriptionGate currentTab={activeTab}>
 
-          <TabsContent value="overview" className="space-y-3 xs:space-y-4 sm:space-y-6 md:space-y-8 lg:space-y-10">
-        {/* Task Reminder */}
-        <TaskReminder />
-        
-        {/* Quick Notes Panel */}
-        <QuickNotesPanel />
-        
-        {/* Dashboard Analytics & KPIs */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Key Metrics - Vertical on Desktop */}
-          <div className="lg:col-span-4 xl:col-span-3 grid grid-cols-2 xs:grid-cols-2 gap-3 sm:gap-4 content-start">
-            <Card className="group hover:border-primary/50 transition-all duration-300 bg-gradient-to-br from-card to-primary/5 border-primary/10 overflow-hidden relative">
-              <div className="absolute -right-2 -top-2 opacity-5 group-hover:opacity-10 transition-opacity">
-                <MessageSquare className="w-16 h-16" />
-              </div>
-              <CardHeader className="p-4 pb-1">
-                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                  Chats IA
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 pt-0">
-                <div className="text-2xl sm:text-3xl font-bold tracking-tight">{stats.totalAgents}</div>
-                <p className="text-[10px] text-muted-foreground mt-1">Ativos e operando</p>
-              </CardContent>
-            </Card>
-
-            <Card className="group hover:border-green-500/50 transition-all duration-300 bg-gradient-to-br from-card to-green-500/5 border-green-500/10 overflow-hidden relative">
-              <div className="absolute -right-2 -top-2 opacity-5 group-hover:opacity-10 transition-opacity">
-                <Users className="w-16 h-16" />
-              </div>
-              <CardHeader className="p-4 pb-1">
-                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                  Membros
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 pt-0">
-                <div className="text-2xl sm:text-3xl font-bold tracking-tight">{stats.totalMembersAreas}</div>
-                <p className="text-[10px] text-muted-foreground mt-1">Áreas exclusivas</p>
-              </CardContent>
-            </Card>
-
-            <Card className="group hover:border-orange-500/50 transition-all duration-300 bg-gradient-to-br from-card to-orange-500/5 border-orange-500/10 overflow-hidden relative">
-              <div className="absolute -right-2 -top-2 opacity-5 group-hover:opacity-10 transition-opacity">
-                <Link2 className="w-16 h-16" />
-              </div>
-              <CardHeader className="p-4 pb-1">
-                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-                  Links
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 pt-0">
-                <div className="text-2xl sm:text-3xl font-bold tracking-tight">{stats.totalShortLinks}</div>
-                <p className="text-[10px] text-muted-foreground mt-1">Redirecionamentos</p>
-              </CardContent>
-            </Card>
-
-            <Card className="group hover:border-purple-500/50 transition-all duration-300 bg-gradient-to-br from-card to-purple-500/5 border-purple-500/10 overflow-hidden relative">
-              <div className="absolute -right-2 -top-2 opacity-5 group-hover:opacity-10 transition-opacity">
-                <FileText className="w-16 h-16" />
-              </div>
-              <CardHeader className="p-4 pb-1">
-                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-                  Páginas
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 pt-0">
-                <div className="text-2xl sm:text-3xl font-bold tracking-tight">{stats.totalClonedPages}</div>
-                <p className="text-[10px] text-muted-foreground mt-1">LPs publicadas</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Detailed Analytics Panel */}
-          <div className="lg:col-span-8 xl:col-span-9">
-            <DetailedAnalytics />
-          </div>
-        </div>
-
-        {/* Quick Access Grid Title */}
-        <div className="flex items-center gap-3 pt-4">
+          <TabsContent value="overview" className="space-y-6 sm:space-y-8">
+        {/* Resources Section Title */}
+        <div className="flex items-center gap-3">
           <div className="h-8 w-1 bg-primary rounded-full" />
           <h2 className="text-xl font-bold tracking-tight">Recursos da Plataforma</h2>
         </div>
 
-        {/* All Resources Grid - Refined Card Style */}
+        {/* All Resources Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
           {/* Chat Online */}
           {hasFeature('ai_agent') && (
