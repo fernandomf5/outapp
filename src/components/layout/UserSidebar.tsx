@@ -83,6 +83,13 @@ export function UserSidebar() {
       }
       fetchRegistrationCategories();
     }
+
+    // Listen for category updates
+    const handleUpdate = () => {
+      fetchRegistrationCategories();
+    };
+    window.addEventListener('registration-categories-updated', handleUpdate);
+    return () => window.removeEventListener('registration-categories-updated', handleUpdate);
   }, [user, isTeamMember]);
 
   const fetchRegistrationCategories = async () => {
