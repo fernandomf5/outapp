@@ -11,7 +11,7 @@ import { AgendaPanel } from "@/components/AgendaPanel";
 import { ClientsManagementPanel } from "@/components/ClientsManagementPanel";
 import { FinancialManagementPanel } from "@/components/FinancialManagementPanel";
 import { AdsManagementPanel } from "@/components/AdsManagementPanel";
-import { TaskOrganizerPanel } from "@/components/TaskOrganizerPanel";
+import { TaskManagerContainer } from "@/components/tasks/TaskManagerContainer";
 import { ChatbotConversationsPanel } from "@/components/ChatbotConversationsPanel";
 import { GlobalChatNotification } from "@/components/GlobalChatNotification";
 import AgentConversationsPanel from "@/components/AgentConversationsPanel";
@@ -85,7 +85,7 @@ export default function TeamMemberDashboard() {
       case "ads":
         return <AdsManagementPanel teamContext={{ adminUserId, allowedIds }} />;
       case "tasks":
-        return <TaskOrganizerPanel teamContext={{ adminUserId, allowedIds }} />;
+        return <TaskManagerContainer teamContext={{ adminUserId, allowedIds }} />;
       case "chatbots":
         // For chatbots, allowedIds contains chatbot IDs
         // If only one chatbot is allowed, pass it directly
