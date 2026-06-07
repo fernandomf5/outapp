@@ -1612,20 +1612,12 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
             </SelectTrigger>
             <SelectContent>
               {(() => {
-                // Filter items from contacts table based on current category
                 const filteredClients = clients.filter(c => filterMode === "all" || c.registration_category_id === filterMode);
                 return filteredClients.map(client => (
                   <SelectItem key={client.id} value={client.id}>
                     {client.name}
                   </SelectItem>
                 ));
-              })()}
-                  .filter(c => (c as any).registration_category_id === filterMode)
-                  .map(item => (
-                    <SelectItem key={item.id} value={item.id}>
-                      {item.name}
-                    </SelectItem>
-                  ));
               })()}
             </SelectContent>
           </Select>
