@@ -1202,18 +1202,14 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
     );
   }
 
-  // Filter tasks and blocks based on filter mode
-  const filteredTasksBase = filterMode === "client"
-    ? (selectedClientFilter === "all" 
-        ? tasks 
-        : selectedClientFilter === "none"
-        ? tasks.filter(task => !task.client_id && !task.business_id)
-        : tasks.filter(task => task.client_id === selectedClientFilter))
-    : (selectedBusinessFilter === "all"
-        ? tasks
-        : selectedBusinessFilter === "none"
-        ? tasks.filter(task => !task.business_id && !task.client_id)
-        : tasks.filter(task => task.business_id === selectedBusinessFilter));
+  // Filter tasks and blocks based on filter mode (registration categories)
+  const filteredTasksBase = tasks.filter(task => {
+    if (filterMode === "all") return true;
+    
+    // Find the contact associated with this task to check its category
+    const contact = clients.find(c => c.id === task.client_id);
+    return contact?.registration_category_id === filterMode;
+  });
 
   const filteredByPriority = priorityFilter === 'all' 
     ? filteredTasksBase 
