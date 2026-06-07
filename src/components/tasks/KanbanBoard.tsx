@@ -104,7 +104,7 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
         
         const { data: insertedBlocks, error: insertError } = await supabase
           .from("task_blocks")
-          .insert(defaultBlocks)
+          .insert(defaultBlocks as any)
           .select();
         
         if (insertError) throw insertError;
