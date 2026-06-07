@@ -35,6 +35,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { TeamDelegationPanel } from "@/components/team/TeamDelegationPanel";
 import { useAuth } from "@/contexts/AuthContext";
+import { ImageUpload } from "@/components/ImageUpload";
 
 interface TeamMemberOfAdmin {
   adminName: string;
@@ -88,7 +89,8 @@ export const TeamManagementPanel = () => {
     phone: '',
     role: '',
     department: '',
-    status: 'active' as 'active' | 'inactive' | 'on_leave'
+    status: 'active' as 'active' | 'inactive' | 'on_leave',
+    avatar_url: ''
   });
 
   useEffect(() => {
@@ -211,7 +213,8 @@ export const TeamManagementPanel = () => {
         phone: '',
         role: '',
         department: '',
-        status: 'active'
+        status: 'active',
+        avatar_url: ''
       });
     } catch (error: any) {
       toast.error(error.message || "Erro ao enviar convite");
@@ -318,7 +321,8 @@ export const TeamManagementPanel = () => {
       phone: member.phone || '',
       role: member.role,
       department: member.department,
-      status: member.status
+      status: member.status,
+      avatar_url: member.avatar_url || ''
     });
     setIsEditDialogOpen(true);
   };
@@ -334,7 +338,8 @@ export const TeamManagementPanel = () => {
           phone: formData.phone,
           role: formData.role,
           department: formData.department,
-          status: formData.status
+          status: formData.status,
+          avatar_url: formData.avatar_url
         })
         .eq('id', editingMember.id);
 
@@ -351,7 +356,8 @@ export const TeamManagementPanel = () => {
         phone: '',
         role: '',
         department: '',
-        status: 'active'
+        status: 'active',
+        avatar_url: ''
       });
     } catch (error: any) {
       toast.error("Erro ao atualizar membro");
@@ -480,6 +486,14 @@ export const TeamManagementPanel = () => {
                       <SelectItem value="suporte">Suporte</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="grid gap-2">
+                  <ImageUpload 
+                    label="Avatar / Logo (opcional)"
+                    currentImage={formData.avatar_url}
+                    onImageSelect={(url) => setFormData({...formData, avatar_url: url})}
+                    bucketName="team-media"
+                  />
                 </div>
               </div>
               <DialogFooter>
