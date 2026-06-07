@@ -34,6 +34,7 @@ export function RegistrationCategoriesSettings() {
     name: "",
     icon: "Database",
     color: "#3b82f6",
+    system_type: "client",
   });
 
   useEffect(() => {
