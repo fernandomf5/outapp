@@ -489,23 +489,11 @@ export const TeamManagementPanel = () => {
                 </div>
                 <div className="grid gap-2">
                   <ImageUpload 
-                    label="Avatar / Logo"
+                    label="Avatar / Logo (opcional)"
                     currentImage={formData.avatar_url}
                     onImageSelect={(url) => setFormData({...formData, avatar_url: url})}
                     bucketName="team-media"
                   />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Avatar / Logo (opcional)</Label>
-                  <Input 
-                    placeholder="URL da imagem ou cole um link"
-                    value={formData.avatar_url}
-                    onChange={(e) => setFormData({...formData, avatar_url: e.target.value})}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Link de uma imagem para o perfil.
-                  </p>
-                </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
