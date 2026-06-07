@@ -80,9 +80,11 @@ export const TaskCard = ({ task, isOverlay, onEdit, onDelete }: TaskCardProps) =
     <Card 
       ref={setNodeRef}
       style={style}
-      className={`group cursor-grab active:cursor-grabbing hover:shadow-lg transition-all duration-300 border-border/40 rounded-xl hover:-translate-y-1 ${
-        isOverlay ? 'shadow-2xl ring-2 ring-primary border-primary rotate-2 scale-105 bg-card' : 'bg-card/50'
-      }`}
+      className={`group cursor-grab active:cursor-grabbing hover:shadow-lg transition-all duration-300 rounded-xl hover:-translate-y-1 overflow-hidden ${
+        isOverlay 
+          ? 'shadow-2xl ring-2 ring-primary border-primary rotate-2 scale-105 bg-card' 
+          : 'bg-card/50 border-2 border-primary/40'
+      } shadow-[0_10px_20px_rgba(0,0,0,0.1),inset_0_-4px_0_rgba(0,0,0,0.05)] hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] hover:shadow-primary/20`}
       {...attributes}
       {...listeners}
     >
