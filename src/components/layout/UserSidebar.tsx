@@ -381,287 +381,119 @@ export function UserSidebar() {
       
       <ScrollArea className="flex-1 overflow-x-hidden">
         <SidebarContent className={cn("p-2", collapsed && "items-center px-0")}>
-          {/* Main section - hide for team members */}
-          {!isTeamMember && (
-            <SidebarGroup className={cn(collapsed && "px-0")}>
-              {!collapsed && (
-                <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm mb-1">
-                  {t('main')}
-                </SidebarGroupLabel>
-              )}
-              <SidebarGroupContent>
-                <SidebarMenu className={cn(collapsed && "items-center")}>
-                  {mainItems.map((item) => (
-                    <SidebarMenuItem key={item.title} className={cn(collapsed && "w-full flex justify-center")}>
-                        {item.title === "Blog" ? (
-                          <SidebarMenuButton
-                            onClick={() => window.open(item.path, '_blank')}
-                            className={cn(
-                              "text-sm py-2 transition-all duration-200",
-                              collapsed && "justify-center !p-0 w-10 h-10 rounded-xl"
-                            )}
-                            tooltip={collapsed ? item.title : undefined}
-                          >
-                            <item.icon className="h-5 w-5 shrink-0" />
-                            {!collapsed && <span className="truncate">{item.title}</span>}
-                          </SidebarMenuButton>
-                        ) : (
-                          <SidebarMenuButton
-                            onClick={() => handleNavigation(item.path, item.tab)}
-                            className={cn(
-                              "text-sm py-2 transition-all duration-200",
-                              isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : "",
-                              collapsed && "justify-center !p-0 w-10 h-10 rounded-xl"
-                            )}
-                            tooltip={collapsed ? item.title : undefined}
-                          >
-                            <item.icon className="h-5 w-5 shrink-0" />
-                            {!collapsed && <span className="truncate">{item.title}</span>}
-                          </SidebarMenuButton>
+          {/* Group Rendering Helper */}
+          {Object.entries({
+            main: { label: t('main'), items: mainItems, show: !isTeamMember },
+            cadastro: { label: "Cadastro", items: registrationCategories, show: !isTeamMember, isCollapsible: true },
+            organizer: { label: "Organizador", items: organizerItems, show: hasVisibleItems(organizerItems) },
+            financial: { label: t('financial'), items: financialItems, show: hasVisibleItems(financialItems) },
+            crm: { label: t('captured_leads'), items: crmItems, show: hasVisibleItems(crmItems) },
+            basic: { label: t('basic_resources'), items: basicResourcesItems, show: !isTeamMember && hasVisibleItems(basicResourcesItems) },
+            advanced: { label: t('advanced_resources'), items: advancedResourcesItems, show: hasVisibleItems(advancedResourcesItems) },
+            support: { label: "Suporte e Essenciais", items: supportItems, show: !isTeamMember }
+          }).map(([key, group]) => {
+            if (!group.show) return null;
+
+            const renderItems = (items: any[]) => (
+              <SidebarMenu className={cn(collapsed && "items-center")}>
+                {items.map((item, idx) => {
+                  const isCat = key === 'cadastro' && item.id;
+                  if (!isCat && !canShowItem(item)) return null;
+                  
+                  const title = isCat ? item.name : item.title;
+                  const icon = isCat ? (
+                    item.icon === "Building2" ? Building2 : 
+                    item.icon === "Users" ? Users : 
+                    item.icon === "UserCog" ? UserCog : 
+                    item.icon === "Truck" ? Truck : 
+                    Database
+                  ) : item.icon;
+                  
+                  const path = isCat ? "/dashboard" : item.path;
+                  const tab = isCat ? "cadastro" : item.tab;
+                  const catId = isCat ? item.id : undefined;
+                  const active = isActive(path, tab, catId);
+                  const color = isCat ? item.color : undefined;
+
+                  return (
+                    <SidebarMenuItem key={title + idx} className={cn(collapsed && "w-full flex justify-center")}>
+                      <SidebarMenuButton
+                        onClick={() => {
+                          if (item.title === "Blog") window.open(item.path, '_blank');
+                          else handleNavigation(path, tab, catId);
+                        }}
+                        className={cn(
+                          "text-sm py-2 transition-all duration-200",
+                          active ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-accent/50",
+                          collapsed && "justify-center !p-0 w-10 h-10 rounded-xl"
                         )}
+                        tooltip={collapsed ? title : undefined}
+                      >
+                        {React.createElement(icon, { 
+                          className: "h-5 w-5 shrink-0", 
+                          style: isCat && !active ? { color } : undefined 
+                        })}
+                        {!collapsed && <span className="truncate">{title}</span>}
+                      </SidebarMenuButton>
                     </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )}
-
-          {/* Cadastro section */}
-          {!isTeamMember && (
-            <SidebarGroup className={cn(collapsed && "px-0")}>
-              <Collapsible
-                open={isCadastroOpen}
-                onOpenChange={setIsCadastroOpen}
-                className="w-full"
-              >
-                {!collapsed && (
-                  <CollapsibleTrigger asChild>
-                    <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm cursor-pointer flex items-center justify-between w-full group mb-1">
-                      <span>Cadastro</span>
-                      <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${isCadastroOpen ? "" : "-rotate-90"}`} />
-                    </SidebarGroupLabel>
-                  </CollapsibleTrigger>
+                  );
+                })}
+                {key === 'cadastro' && (
+                  <SidebarMenuItem className={cn(collapsed && "w-full flex justify-center")}>
+                    <SidebarMenuButton
+                      onClick={() => handleNavigation("/dashboard", "cadastro-settings")}
+                      className={cn(
+                        "text-sm py-2 opacity-70 hover:opacity-100 transition-all duration-200",
+                        isActive("/dashboard", "cadastro-settings") ? "bg-primary/20" : "",
+                        collapsed && "justify-center !p-0 w-10 h-10 rounded-xl"
+                      )}
+                      tooltip={collapsed ? "Gerenciar Categorias" : undefined}
+                    >
+                      <PlusCircle className="h-5 w-5 shrink-0" />
+                      {!collapsed && <span className="truncate italic text-xs">Gerenciar</span>}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 )}
-                <CollapsibleContent>
-                  <SidebarGroupContent className="pt-1">
-                    <SidebarMenu className={cn(collapsed && "items-center")}>
-                      {registrationCategories.map((cat) => {
-                        const IconComponent = cat.icon === "Building2" ? Building2 : 
-                                              cat.icon === "Users" ? Users : 
-                                              cat.icon === "UserCog" ? UserCog : 
-                                              cat.icon === "Truck" ? Truck : 
-                                              Database;
-                        
-                        return (
-                          <SidebarMenuItem key={cat.id} className={cn(collapsed && "w-full flex justify-center")}>
-                            <SidebarMenuButton
-                              onClick={() => handleNavigation("/dashboard", "cadastro", cat.id)}
-                              className={cn(
-                                "text-sm py-2 transition-all duration-200",
-                                isActive("/dashboard", "cadastro", cat.id) ? "bg-primary text-primary-foreground" : "",
-                                collapsed && "justify-center !p-0 w-10 h-10 rounded-xl"
-                              )}
-                              tooltip={collapsed ? cat.name : undefined}
-                            >
-                              <IconComponent className="h-5 w-5 shrink-0" style={{ color: isActive("/dashboard", "cadastro", cat.id) ? "inherit" : cat.color }} />
-                              {!collapsed && <span className="truncate">{cat.name}</span>}
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        );
-                      })}
-                      <SidebarMenuItem className={cn(collapsed && "w-full flex justify-center")}>
-                        <SidebarMenuButton
-                          onClick={() => handleNavigation("/dashboard", "cadastro-settings")}
-                          className={cn(
-                            "text-sm py-2 opacity-70 hover:opacity-100 transition-all duration-200",
-                            isActive("/dashboard", "cadastro-settings") ? "bg-primary/20" : "",
-                            collapsed && "justify-center !p-0 w-10 h-10 rounded-xl"
-                          )}
-                          tooltip={collapsed ? "Gerenciar Categorias" : undefined}
-                        >
-                          <PlusCircle className="h-5 w-5 shrink-0" />
-                          {!collapsed && <span className="truncate italic text-xs">Gerenciar</span>}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </CollapsibleContent>
-              </Collapsible>
-            </SidebarGroup>
-          )}
+              </SidebarMenu>
+            );
 
-          {/* Organizer section */}
+            if (group.isCollapsible && !collapsed) {
+              return (
+                <SidebarGroup key={key} className={cn(collapsed && "px-0")}>
+                  <Collapsible
+                    open={isCadastroOpen}
+                    onOpenChange={setIsCadastroOpen}
+                    className="w-full"
+                  >
+                    <CollapsibleTrigger asChild>
+                      <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm cursor-pointer flex items-center justify-between w-full group mb-1">
+                        <span>{group.label}</span>
+                        <ChevronDown className={cn("h-3 w-3 transition-transform duration-200", isCadastroOpen ? "" : "-rotate-90")} />
+                      </SidebarGroupLabel>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarGroupContent className="pt-1">
+                        {renderItems(group.items)}
+                      </SidebarGroupContent>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </SidebarGroup>
+              );
+            }
 
-          {/* Organizer section */}
-          {hasVisibleItems(organizerItems) && (
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">Organizador de:</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {organizerItems.map((item) => {
-                    if (!canShowItem(item)) return null;
-                    return (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton
-                          onClick={() => handleNavigation(item.path, item.tab)}
-                          className={`text-sm py-2 ${isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}`}
-                        >
-                          <item.icon className="h-4 w-4 shrink-0" />
-                          {!collapsed && <span className="truncate">{item.title}</span>}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )}
-
-          {/* Financial section */}
-          {hasVisibleItems(financialItems) && (
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">{t('financial')}</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {financialItems.map((item) => {
-                    if (!canShowItem(item)) return null;
-                    return (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton
-                          onClick={() => handleNavigation(item.path, item.tab)}
-                          className={`text-sm py-2 ${isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}`}
-                        >
-                          <item.icon className="h-4 w-4 shrink-0" />
-                          {!collapsed && <span className="truncate">{item.title}</span>}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )}
-
-          {/* Leads section */}
-          {hasVisibleItems(crmItems) && (
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">{t('captured_leads')}</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {crmItems.map((item) => {
-                    if (!canShowItem(item)) return null;
-                    return (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton
-                          onClick={() => handleNavigation(item.path, item.tab)}
-                          className={`text-sm py-2 ${isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}`}
-                        >
-                          <item.icon className="h-4 w-4 shrink-0" />
-                          {!collapsed && <span className="truncate">{item.title}</span>}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )}
-          {/* Basic Resources section - hide for team members */}
-          {!isTeamMember && hasVisibleItems(basicResourcesItems) && (
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">{t('basic_resources')}</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <TooltipProvider delayDuration={300}>
-                    {basicResourcesItems.map((item) => {
-                      if (!canShowItem(item)) return null;
-                      return (
-                        <SidebarMenuItem key={item.title}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <SidebarMenuButton
-                                onClick={() => handleNavigation(item.path, item.tab)}
-                                className={`text-sm py-2 ${isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}`}
-                              >
-                                <item.icon className="h-4 w-4 shrink-0" />
-                                {!collapsed && <span className="truncate">{item.title}</span>}
-                              </SidebarMenuButton>
-                            </TooltipTrigger>
-                            {collapsed && (
-                              <TooltipContent side="right">
-                                <p>{item.title}</p>
-                              </TooltipContent>
-                            )}
-                          </Tooltip>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </TooltipProvider>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )}
-
-          {/* Advanced Resources section */}
-          {hasVisibleItems(advancedResourcesItems) && (
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">{t('advanced_resources')}</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <TooltipProvider delayDuration={300}>
-                    {advancedResourcesItems.map((item) => {
-                      if (!canShowItem(item)) return null;
-                      return (
-                        <SidebarMenuItem key={item.title}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <SidebarMenuButton
-                                onClick={() => handleNavigation(item.path, item.tab)}
-                                className={`text-sm py-2 ${isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}`}
-                              >
-                                <item.icon className="h-4 w-4 shrink-0" />
-                                {!collapsed && <span className="truncate">{item.title}</span>}
-                              </SidebarMenuButton>
-                            </TooltipTrigger>
-                            {collapsed && (
-                              <TooltipContent side="right">
-                                <p>{item.title}</p>
-                              </TooltipContent>
-                            )}
-                          </Tooltip>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </TooltipProvider>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )}
-
-          {/* Support section - hide for team members */}
-          {!isTeamMember && (
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">Suporte e Essenciais</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {supportItems.map((item) => {
-                    if (!canShowItem(item)) return null;
-                    return (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton
-                          onClick={() => handleNavigation(item.path, item.tab)}
-                          className={`text-sm py-2 ${isActive(item.path, item.tab) ? "bg-primary text-primary-foreground" : ""}`}
-                        >
-                          <item.icon className="h-4 w-4 shrink-0" />
-                          {!collapsed && <span className="truncate">{item.title}</span>}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )}
+            return (
+              <SidebarGroup key={key} className={cn(collapsed && "px-0")}>
+                {!collapsed && (
+                  <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm mb-1">
+                    {group.label}
+                  </SidebarGroupLabel>
+                )}
+                <SidebarGroupContent>
+                  {renderItems(group.items)}
+                </SidebarGroupContent>
+              </SidebarGroup>
+            );
+          })}
         </SidebarContent>
       </ScrollArea>
     </Sidebar>
