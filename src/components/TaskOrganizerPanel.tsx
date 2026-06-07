@@ -1254,36 +1254,38 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
         <div className="text-center">
           <h2 className="text-3xl font-bold mb-2">Organizador de Tarefas</h2>
           <p className="text-muted-foreground mb-4">
-            Organize suas tarefas por cliente ou negócio
+            Organize suas tarefas pelas categorias de cadastro
           </p>
           
-          {/* Mode Toggle */}
-          {!isTeamMember && !showClientManager && !showBusinessManager && (
-            <div className="flex justify-center gap-2 mb-8">
+          {/* Mode Toggle with Registration Categories */}
+          <div className="flex flex-wrap justify-center gap-2 mb-8">
+            <Button 
+              variant={filterMode === "all" ? "default" : "outline"}
+              onClick={() => {
+                setFilterMode("all");
+              }}
+              className="gap-2"
+            >
+              <ListPlus className="h-4 w-4" />
+              Todas as Categorias
+            </Button>
+            
+            {registrationCategories.map(category => (
               <Button 
-                variant={filterMode === "client" ? "default" : "outline"}
+                key={category.id}
+                variant={filterMode === category.id ? "default" : "outline"}
                 onClick={() => {
-                  setFilterMode("client");
+                  setFilterMode(category.id);
+                  setSelectedClientFilter("");
                   setSelectedBusinessFilter("");
                 }}
                 className="gap-2"
               >
                 <Users className="h-4 w-4" />
-                Por Cliente
+                {category.name}
               </Button>
-              <Button 
-                variant={filterMode === "business" ? "default" : "outline"}
-                onClick={() => {
-                  setFilterMode("business");
-                  setSelectedClientFilter("");
-                }}
-                className="gap-2"
-              >
-                <Building2 className="h-4 w-4" />
-                Por Negócio
-              </Button>
-            </div>
-          )}
+            ))}
+          </div>
         </div>
         
         <div className="max-w-2xl mx-auto">
