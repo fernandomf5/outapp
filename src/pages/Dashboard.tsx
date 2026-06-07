@@ -475,16 +475,16 @@ const Dashboard = () => {
 
                 {/* Actions */}
                 <div className="flex items-center gap-1 sm:gap-2">
-                  <div className="hidden sm:flex items-center gap-1 sm:gap-2 mr-2">
-                    <SidebarTrigger className="h-9 w-9" />
+                  <div className="flex items-center gap-1 sm:gap-2 mr-1 sm:mr-2">
+                    <SidebarTrigger className="h-8 w-8 sm:h-9 sm:w-9" />
                     <Link
                       to="/dashboard"
-                      className="bg-primary/10 p-2 rounded-xl cursor-pointer hover:bg-primary/20 transition-smooth"
+                      className="hidden xs:block bg-primary/10 p-1.5 sm:p-2 rounded-lg sm:rounded-xl cursor-pointer hover:bg-primary/20 transition-smooth"
                     >
                       <img
                         src={currentLogo}
                         alt="Out App"
-                        className="w-6 h-6 sm:w-7 sm:h-7"
+                        className="w-5 h-5 sm:w-6 sm:h-6"
                       />
                     </Link>
                   </div>
