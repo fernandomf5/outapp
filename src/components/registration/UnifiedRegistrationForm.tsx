@@ -13,29 +13,57 @@ interface UnifiedRegistrationFormProps {
   categoryId: string;
   categoryName: string;
   systemType: string;
+  initialData?: any;
+  isViewOnly?: boolean;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
-export function UnifiedRegistrationForm({ categoryId, categoryName, systemType, onSuccess, onCancel }: UnifiedRegistrationFormProps) {
+export function UnifiedRegistrationForm({ 
+  categoryId, 
+  categoryName, 
+  systemType, 
+  initialData,
+  isViewOnly = false,
+  onSuccess, 
+  onCancel 
+}: UnifiedRegistrationFormProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+    defaultValues: initialData || {}
+  });
 
   const onSubmit = async (data: any) => {
-    if (!user) return;
+    if (!user || isViewOnly) return;
     setLoading(true);
 
     try {
-      const { error } = await supabase
-        .from('contacts')
-        .insert([{
-          ...data,
-          user_id: user.id,
-          registration_category_id: categoryId,
-        }]);
+      if (initialData?.id) {
+        // Update existing registration
+        const { error } = await supabase
+          .from('contacts')
+          .update({
+            ...data,
+            registration_category_id: categoryId,
+          })
+          .eq('id', initialData.id);
 
-      if (error) throw error;
+        if (error) throw error;
+        toast.success(`${categoryName} atualizado com sucesso!`);
+      } else {
+        // Insert new registration
+        const { error } = await supabase
+          .from('contacts')
+          .insert([{
+            ...data,
+            user_id: user.id,
+            registration_category_id: categoryId,
+          }]);
+
+        if (error) throw error;
+        toast.success(`${categoryName} cadastrado com sucesso!`);
+      }
 
       toast.success(`${categoryName} cadastrado com sucesso!`);
       reset();
@@ -55,7 +83,9 @@ export function UnifiedRegistrationForm({ categoryId, categoryName, systemType, 
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle>Cadastrar em {categoryName}</CardTitle>
+        <CardTitle>
+          {isViewOnly ? `Detalhes de ${categoryName}` : initialData?.id ? `Editar ${categoryName}` : `Cadastrar em ${categoryName}`}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -72,6 +102,7 @@ export function UnifiedRegistrationForm({ categoryId, categoryName, systemType, 
                   ? 'Nome da empresa ou entidade' 
                   : 'Nome completo'}
                 {...register('name', { required: 'Nome é obrigatório' })}
+                disabled={isViewOnly}
               />
               {errors.name && <p className="text-sm text-red-500">{(errors.name as any).message}</p>}
             </div>
@@ -83,6 +114,7 @@ export function UnifiedRegistrationForm({ categoryId, categoryName, systemType, 
                   id="contact_person"
                   placeholder="Nome do responsável"
                   {...register('contact_person')}
+                  disabled={isViewOnly}
                 />
               </div>
             )}
@@ -94,6 +126,7 @@ export function UnifiedRegistrationForm({ categoryId, categoryName, systemType, 
                   id="role"
                   placeholder="Ex: Vendedor, Técnico, Consultor..."
                   {...register('position')}
+                  disabled={isViewOnly}
                 />
               </div>
             )}
@@ -105,6 +138,7 @@ export function UnifiedRegistrationForm({ categoryId, categoryName, systemType, 
                 type="email"
                 placeholder="email@exemplo.com"
                 {...register('email')}
+                disabled={isViewOnly}
               />
             </div>
 
@@ -114,6 +148,7 @@ export function UnifiedRegistrationForm({ categoryId, categoryName, systemType, 
                 id="phone"
                 placeholder="(00) 00000-0000"
                 {...register('phone')}
+                disabled={isViewOnly}
               />
             </div>
 
@@ -125,6 +160,7 @@ export function UnifiedRegistrationForm({ categoryId, categoryName, systemType, 
                 id="document"
                 placeholder={['supplier', 'business', 'logistics', 'partners'].includes(systemType) ? '00.000.000/0000-00' : '000.000.000-00'}
                 {...register('document')}
+                disabled={isViewOnly}
               />
             </div>
 
@@ -139,6 +175,7 @@ export function UnifiedRegistrationForm({ categoryId, categoryName, systemType, 
                   id="market_area"
                   placeholder="Informação adicional..."
                   {...register('market_area')}
+                  disabled={isViewOnly}
                 />
               </div>
             )}
@@ -151,6 +188,7 @@ export function UnifiedRegistrationForm({ categoryId, categoryName, systemType, 
                 id="address"
                 placeholder="Rua, número, bairro, cidade"
                 {...register('address')}
+                disabled={isViewOnly}
               />
             </div>
           )}
@@ -162,6 +200,7 @@ export function UnifiedRegistrationForm({ categoryId, categoryName, systemType, 
                 id="website"
                 placeholder="https://exemplo.com"
                 {...register('website')}
+                disabled={isViewOnly}
               />
             </div>
           )}
@@ -172,18 +211,19 @@ export function UnifiedRegistrationForm({ categoryId, categoryName, systemType, 
               id="notes"
               placeholder="Informações adicionais..."
               {...register('notes')}
+              disabled={isViewOnly}
             />
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
-            {onCancel && (
-              <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
-                Cancelar
+            <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
+              {isViewOnly ? 'Fechar' : 'Cancelar'}
+            </Button>
+            {!isViewOnly && (
+              <Button type="submit" disabled={loading}>
+                {loading ? 'Salvando...' : initialData?.id ? 'Atualizar' : 'Cadastrar'}
               </Button>
             )}
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Salvando...' : 'Cadastrar'}
-            </Button>
           </div>
         </form>
       </CardContent>

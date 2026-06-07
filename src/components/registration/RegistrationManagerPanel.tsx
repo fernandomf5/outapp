@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2 } from "lucide-react";
+import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UnifiedRegistrationForm } from "./UnifiedRegistrationForm";
 import { toast } from "sonner";
@@ -34,6 +34,8 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const [items, setItems] = useState<RegisteredItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>("form");
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [isViewOnly, setIsViewOnly] = useState(false);
 
   useEffect(() => {
     if (categoryId && user) {
@@ -99,6 +101,24 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
     }
   };
 
+  const handleEdit = (item: any) => {
+    setSelectedItem(item);
+    setIsViewOnly(false);
+    setActiveTab("form");
+  };
+
+  const handleViewDetails = (item: any) => {
+    setSelectedItem(item);
+    setIsViewOnly(true);
+    setActiveTab("form");
+  };
+
+  const handleAddNew = () => {
+    setSelectedItem(null);
+    setIsViewOnly(false);
+    setActiveTab("form");
+  };
+
   if (loading && !category) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -133,7 +153,13 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
           </p>
         </div>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
+        <Tabs value={activeTab} onValueChange={(val) => {
+          if (val === "form" && activeTab !== "form") {
+            handleAddNew();
+          } else {
+            setActiveTab(val);
+          }
+        }} className="w-full md:w-auto">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="form" className="gap-2">
               <PlusCircle className="h-4 w-4" />
@@ -153,11 +179,17 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
             categoryId={category.id} 
             categoryName={category.name}
             systemType={category.system_type || 'other'}
+            initialData={selectedItem}
+            isViewOnly={isViewOnly}
             onSuccess={() => {
               setActiveTab("list");
               fetchItems();
+              setSelectedItem(null);
             }}
-            onCancel={() => setActiveTab("list")}
+            onCancel={() => {
+              setActiveTab("list");
+              setSelectedItem(null);
+            }}
           />
         ) : (
           <Card>
@@ -168,7 +200,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                     <TableHead>Nome</TableHead>
                     <TableHead>Contato</TableHead>
                     <TableHead>Data de Cadastro</TableHead>
-                    <TableHead className="w-[100px]">Ações</TableHead>
+                    <TableHead className="w-[150px]">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -202,14 +234,33 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                           {new Date(item.created_at).toLocaleDateString('pt-BR')}
                         </TableCell>
                         <TableCell>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => handleDelete(item.id)}
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => handleViewDetails(item)}
+                              title="Ver Detalhes"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => handleEdit(item)}
+                              title="Editar"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => handleDelete(item.id)}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              title="Excluir"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
