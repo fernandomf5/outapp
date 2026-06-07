@@ -92,7 +92,10 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
         .eq("client_id", userId)
         .order("order_index");
 
-      if (blocksError) throw blocksError;
+      if (blocksError) {
+        console.error("Supabase error fetching blocks:", blocksError);
+        throw blocksError;
+      }
 
       let currentBlocks = blocksData || [];
       if (currentBlocks.length === 0) {
@@ -107,7 +110,10 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
           .insert(defaultBlocks as any)
           .select();
         
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error("Supabase error inserting default blocks:", insertError);
+          throw insertError;
+        }
         currentBlocks = insertedBlocks || [];
       }
       setBlocks(currentBlocks);
@@ -119,7 +125,10 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
         .eq("client_id", userId)
         .order("task_order");
 
-      if (tasksError) throw tasksError;
+      if (tasksError) {
+        console.error("Supabase error fetching tasks:", tasksError);
+        throw tasksError;
+      }
       
       // Ensure priority matches the expected literal type
       const sanitizedTasks: Task[] = (tasksData || []).map((t: any) => ({
