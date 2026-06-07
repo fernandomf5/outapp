@@ -63,6 +63,7 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
