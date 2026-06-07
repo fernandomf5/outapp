@@ -277,6 +277,21 @@ export const KanbanBoard = ({ userId, userName, teamContext }: KanbanBoardProps)
     }
   };
 
+  const scrollBoard = (direction: "left" | "right") => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 350; // Largura aproximada de uma coluna + gap
+      const newScrollLeft = 
+        direction === "left" 
+          ? scrollContainerRef.current.scrollLeft - scrollAmount 
+          : scrollContainerRef.current.scrollLeft + scrollAmount;
+      
+      scrollContainerRef.current.scrollTo({
+        left: newScrollLeft,
+        behavior: "smooth"
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-2">
