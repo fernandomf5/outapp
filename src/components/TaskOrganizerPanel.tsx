@@ -1562,8 +1562,30 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
           <p className="text-muted-foreground">Organize suas tarefas com drag-and-drop</p>
         </div>
         <div className="flex flex-wrap gap-2 items-center">
-          {/* Mode Toggle with Registration Categories */}
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setFilterMode("all");
+              setSelectedClientFilter("");
+              setSelectedBusinessFilter("");
+            }}
+            className="gap-2"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Voltar
+          </Button>
+
           <div className="flex border rounded-md overflow-x-auto max-w-[400px] no-scrollbar">
+            <Button 
+              variant={filterMode === "all" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => {
+                setFilterMode("all");
+              }}
+              className="rounded-none border-r whitespace-nowrap"
+            >
+              Todas
+            </Button>
             {registrationCategories.map((cat) => (
               <Button 
                 key={cat.id}
