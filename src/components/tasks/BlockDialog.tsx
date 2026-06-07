@@ -118,7 +118,7 @@ export const BlockDialog = ({
             user_id: effectiveUserId,
             client_id: userId,
             order_index: nextOrder
-          });
+          } as any);
         
         if (error) throw error;
         toast.success("Bloco criado");
