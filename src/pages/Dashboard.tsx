@@ -43,7 +43,7 @@ import { FloatingMultiButtonGenerator } from "@/components/FloatingMultiButtonGe
 import { FinancialManagementPanel } from "@/components/FinancialManagementPanel";
 import { TeamManagementPanel } from "@/components/TeamManagementPanel";
 import { AdsManagementPanel } from "@/components/AdsManagementPanel";
-import { TaskOrganizerPanel } from "@/components/TaskOrganizerPanel";
+import { TaskManagerContainer } from "@/components/tasks/TaskManagerContainer";
 import { ScriptOrganizerPanel } from "@/components/ScriptOrganizerPanel";
 import { PopupCreatorPanel } from "@/components/PopupCreatorPanel";
 import { AdSpyPanel } from "@/components/AdSpyPanel";
@@ -1366,7 +1366,7 @@ const Dashboard = () => {
           <TabsContent value="tarefas">
             <FeatureGate featureKey="task_organizer">
               <FeatureTutorialVideo featureKey="tarefas" />
-              <TaskOrganizerPanel teamContext={getTeamContext('tasks')} />
+              <TaskManagerContainer teamContext={getTeamContext('tasks')} />
             </FeatureGate>
           </TabsContent>
 
