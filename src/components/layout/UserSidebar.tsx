@@ -168,9 +168,6 @@ export function UserSidebar() {
     { title: t('proposal_creator'), icon: FileCheck, path: "/dashboard", tab: "propostas", hideForTeamMember: true },
     { title: t('aprova_job'), icon: ClipboardCheck, path: "/dashboard", tab: "aprova-job", hideForTeamMember: true },
     { title: t('creative_extractor'), icon: Download, path: "/dashboard", tab: "extrator-criativos", hideForTeamMember: true },
-    { title: t('video_downloader'), icon: Video, path: "/dashboard", tab: "video-downloader", hideForTeamMember: true },
-    { title: t('media_converter'), icon: RefreshCw, path: "/dashboard", tab: "conversor-midia", hideForTeamMember: true },
-    { title: t('document_converter'), icon: FileType, path: "/dashboard", tab: "conversor-documentos", hideForTeamMember: true },
   ];
 
   // Support items - all hidden for team members

@@ -1035,9 +1035,6 @@ const AdminDashboard = () => {
                   <option value="propostas">Proposta Comercial</option>
                   <option value="aprova-job">Aprova Job</option>
                   <option value="portfolio">Portfólio</option>
-                  <option value="conversor-midia">Conversor de Mídia</option>
-                  <option value="conversor-documentos">Conversor de Documentos</option>
-                  <option value="video-downloader">Downloader de Vídeos</option>
                 </select>
                 <p className="text-xs text-muted-foreground mt-1">
                   Se selecionado, o vídeo aparecerá como "Como usar" dentro do recurso correspondente no painel do usuário.

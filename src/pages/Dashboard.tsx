@@ -67,9 +67,6 @@ import { GlobalChatNotification } from "@/components/GlobalChatNotification";
 import { PortfolioCreatorPanel } from "@/components/PortfolioCreatorPanel";
 import { ManualDispatcherPanel } from "@/components/ManualDispatcherPanel";
 import SalesFunnelPanel from "@/components/SalesFunnelPanel";
-import { MediaConverterPanel } from "@/components/MediaConverterPanel";
-import { DocumentConverterPanel } from "@/components/DocumentConverterPanel";
-import VideoDownloaderPanel from "@/components/VideoDownloaderPanel";
 import { SuppliersManagementPanel } from "@/components/SuppliersManagementPanel";
 import { BusinessManagementPanel } from "@/components/BusinessManagementPanel";
 import ProductsServicesPanel from "@/components/ProductsServicesPanel";
@@ -1412,12 +1409,6 @@ const Dashboard = () => {
             </FeatureGate>
           </TabsContent>
 
-          <TabsContent value="video-downloader">
-            <FeatureGate featureKey="video_downloader">
-              <FeatureTutorialVideo featureKey="video-downloader" />
-              <VideoDownloaderPanel />
-            </FeatureGate>
-          </TabsContent>
 
           <TabsContent value="tarefas">
             <FeatureGate featureKey="task_organizer">
@@ -1550,19 +1541,6 @@ const Dashboard = () => {
             </FeatureGate>
           </TabsContent>
 
-          <TabsContent value="conversor-midia">
-            <FeatureGate featureKey="media_converter">
-              <FeatureTutorialVideo featureKey="conversor-midia" />
-              <MediaConverterPanel />
-            </FeatureGate>
-          </TabsContent>
-
-          <TabsContent value="conversor-documentos">
-            <FeatureGate featureKey="document_converter">
-              <FeatureTutorialVideo featureKey="conversor-documentos" />
-              <DocumentConverterPanel />
-            </FeatureGate>
-          </TabsContent>
 
           <TabsContent value="rotina">
             <FeatureGate featureKey="routine_organizer">
