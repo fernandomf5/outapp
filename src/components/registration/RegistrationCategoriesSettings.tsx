@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Trash2, Plus, Building2, Users, UserCog, Truck, Database, Palette, Briefcase } from "lucide-react";
+import { Trash2, Plus, Building2, Users, UserCog, Truck, Database, Palette, Briefcase, Handshake, Wrench, Target, DollarSign, Globe, LayoutList, Smartphone, Package, ShieldCheck, HardHat, HeartPulse, GraduationCap, Gavel } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -24,6 +24,17 @@ const AVAILABLE_ICONS = [
   { name: "UserCog", icon: UserCog },
   { name: "Truck", icon: Truck },
   { name: "Database", icon: Database },
+  { name: "Handshake", icon: Handshake },
+  { name: "Wrench", icon: Wrench },
+  { name: "Target", icon: Target },
+  { name: "DollarSign", icon: DollarSign },
+  { name: "Globe", icon: Globe },
+  { name: "Package", icon: Package },
+  { name: "Briefcase", icon: Briefcase },
+  { name: "HardHat", icon: HardHat },
+  { name: "HeartPulse", icon: HeartPulse },
+  { name: "GraduationCap", icon: GraduationCap },
+  { name: "Gavel", icon: Gavel },
 ];
 
 export function RegistrationCategoriesSettings() {
@@ -194,7 +205,17 @@ export function RegistrationCategoriesSettings() {
                   <SelectItem value="client">Clientes</SelectItem>
                   <SelectItem value="supplier">Fornecedores</SelectItem>
                   <SelectItem value="team">Equipe / Funcionários</SelectItem>
-                  <SelectItem value="business">Negócios / Parceiros</SelectItem>
+                  <SelectItem value="business">Negócios / B2B</SelectItem>
+                  <SelectItem value="logistics">Logística / Transportes</SelectItem>
+                  <SelectItem value="partners">Parceiros</SelectItem>
+                  <SelectItem value="maintenance">Manutenção / Serviços Técnicos</SelectItem>
+                  <SelectItem value="leads">Leads / Prospectos</SelectItem>
+                  <SelectItem value="investors">Investidores</SelectItem>
+                  <SelectItem value="services">Prestadores de Serviços</SelectItem>
+                  <SelectItem value="infrastructure">Infraestrutura / Ativos</SelectItem>
+                  <SelectItem value="health">Saúde / Pacientes</SelectItem>
+                  <SelectItem value="education">Educação / Alunos</SelectItem>
+                  <SelectItem value="legal">Jurídico / Processos</SelectItem>
                   <SelectItem value="other">Outros</SelectItem>
                 </SelectContent>
               </Select>
@@ -203,7 +224,7 @@ export function RegistrationCategoriesSettings() {
             
             <div className="space-y-2">
               <Label>Ícone</Label>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {AVAILABLE_ICONS.map((item) => (
                   <Button
                     key={item.name}

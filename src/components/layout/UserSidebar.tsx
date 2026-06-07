@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck, Layers, LogIn, Filter, Download, Smartphone, RefreshCw, FileType, Video, Truck, Building2, Package, CalendarCheck, BookOpen, Search, X, ChevronDown, PlusCircle } from "lucide-react";
+import { Sparkles, Volume2, MessageSquare, Wrench, Link2, Copy, LifeBuoy, Gift, CreditCard, TrendingUp, Users, ExternalLink, QrCode, Calendar, BarChart3, ShoppingBag, DollarSign, Clock, Zap, Star, Bell, FileText, FileCheck, Database, Target, Globe, HelpCircle, Lightbulb, UserCog, Megaphone, Brain, ClipboardCheck, Layers, LogIn, Filter, Download, Smartphone, RefreshCw, FileType, Video, Truck, Building2, Package, CalendarCheck, BookOpen, Search, X, ChevronDown, PlusCircle, Handshake, Settings, HardHat, HeartPulse, GraduationCap, Gavel, Briefcase } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import logoLight from "@/assets/logo-light.png";
@@ -382,63 +382,80 @@ export function UserSidebar() {
           }).map(([key, group]) => {
             if (!group.show) return null;
 
-            const renderItems = (items: any[]) => (
-              <SidebarMenu className={cn(collapsed && "items-center")}>
-                {items.map((item, idx) => {
-                  const isCat = key === 'cadastro' && item.id;
-                  if (!isCat && !canShowItem(item)) return null;
-                  
-                  const title = isCat ? item.name : item.title;
-                  const icon = isCat ? PlusCircle : item.icon;
-
-                  
-                  const path = isCat ? "/dashboard" : item.path;
-                  const tab = isCat ? "cadastro" : item.tab;
-                  const catId = isCat ? item.id : undefined;
-                  const active = isActive(path, tab, catId);
-                  const color = isCat ? item.color : undefined;
-
-                  return (
-                    <SidebarMenuItem key={title + idx} className={cn(collapsed && "w-full flex justify-center")}>
+            const renderItems = (items: any[]) => {
+              const allItems = [...items];
+              
+              return (
+                <SidebarMenu className={cn(collapsed && "items-center")}>
+                  {/* Always show "Gerenciar" as the first item in Cadastro group */}
+                  {key === 'cadastro' && (
+                    <SidebarMenuItem className={cn(collapsed && "w-full flex justify-center")}>
                       <SidebarMenuButton
-                        onClick={() => {
-                          if (item.title === "Blog") window.open(item.path, '_blank');
-                          else handleNavigation(path, tab, catId);
-                        }}
+                        onClick={() => handleNavigation("/dashboard", "cadastro-settings")}
                         className={cn(
                           "text-sm py-2 transition-all duration-200",
-                          active ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-accent/50",
+                          isActive("/dashboard", "cadastro-settings") ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-accent/50",
                           collapsed && "justify-center !p-0 w-10 h-10 rounded-xl"
                         )}
-                        tooltip={collapsed ? title : undefined}
+                        tooltip={collapsed ? "Gerenciar" : undefined}
                       >
-                        {React.createElement(icon, { 
-                          className: "h-5 w-5 shrink-0", 
-                          style: isCat && !active ? { color } : undefined 
-                        })}
-                        {!collapsed && <span className="truncate">{title}</span>}
+                        <Settings className="h-5 w-5 shrink-0" />
+                        {!collapsed && <span className="truncate">Gerenciar</span>}
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                  );
-                })}
-                {key === 'cadastro' && (
-                  <SidebarMenuItem className={cn(collapsed && "w-full flex justify-center")}>
-                    <SidebarMenuButton
-                      onClick={() => handleNavigation("/dashboard", "cadastro-settings")}
-                      className={cn(
-                        "text-sm py-2 opacity-70 hover:opacity-100 transition-all duration-200",
-                        isActive("/dashboard", "cadastro-settings") ? "bg-primary/20" : "",
-                        collapsed && "justify-center !p-0 w-10 h-10 rounded-xl"
-                      )}
-                      tooltip={collapsed ? "Gerenciar Categorias" : undefined}
-                    >
-                      <PlusCircle className="h-5 w-5 shrink-0" />
-                      {!collapsed && <span className="truncate italic text-xs">Gerenciar</span>}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )}
-              </SidebarMenu>
-            );
+                  )}
+
+                  {items.map((item, idx) => {
+                    const isCat = key === 'cadastro' && item.id;
+                    if (!isCat && !canShowItem(item)) return null;
+                    
+                    const title = isCat ? item.name : item.title;
+                    
+                    // Map icon name to component for categories
+                    let IconComponent = item.icon;
+                    if (isCat && typeof item.icon === 'string') {
+                      const icons: Record<string, any> = {
+                        Building2, Users, UserCog, Truck, Database, Handshake, 
+                        Wrench, Target, DollarSign, Globe, Package, Briefcase,
+                        HardHat, HeartPulse, GraduationCap, Gavel
+                      };
+                      IconComponent = icons[item.icon] || Database;
+                    } else if (isCat && !item.icon) {
+                      IconComponent = Database;
+                    }
+
+                    const path = isCat ? "/dashboard" : item.path;
+                    const tab = isCat ? "cadastro" : item.tab;
+                    const catId = isCat ? item.id : undefined;
+                    const active = isActive(path, tab, catId);
+                    const color = isCat ? item.color : undefined;
+
+                    return (
+                      <SidebarMenuItem key={title + idx} className={cn(collapsed && "w-full flex justify-center")}>
+                        <SidebarMenuButton
+                          onClick={() => {
+                            if (item.title === "Blog") window.open(item.path, '_blank');
+                            else handleNavigation(path, tab, catId);
+                          }}
+                          className={cn(
+                            "text-sm py-2 transition-all duration-200",
+                            active ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-accent/50",
+                            collapsed && "justify-center !p-0 w-10 h-10 rounded-xl"
+                          )}
+                          tooltip={collapsed ? title : undefined}
+                        >
+                          {React.createElement(IconComponent, { 
+                            className: "h-5 w-5 shrink-0", 
+                            style: isCat && !active ? { color } : undefined 
+                          })}
+                          {!collapsed && <span className="truncate">{title}</span>}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              );
+            };
 
             if (group.isCollapsible && !collapsed) {
               return (
