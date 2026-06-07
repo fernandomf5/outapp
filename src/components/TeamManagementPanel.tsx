@@ -494,6 +494,7 @@ export const TeamManagementPanel = () => {
                     onImageSelect={(url) => setFormData({...formData, avatar_url: url})}
                     bucketName="team-media"
                   />
+                </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
