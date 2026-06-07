@@ -447,12 +447,12 @@ const Dashboard = () => {
         {/* Team Member Banner - Above everything including logo */}
         <TeamMemberBanner />
         
-        <div className="flex flex-1">
-        <UserSidebar />
-        
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Header */}
-          <header className="bg-card border-b border-border px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 py-2 xs:py-3 sm:py-4 sticky top-0 z-40 safe-area-bottom">
+        <div className="flex flex-1 overflow-hidden">
+          <UserSidebar />
+          
+          <div className="flex-1 flex flex-col min-w-0 bg-background">
+            {/* Header */}
+            <header className="bg-card/80 backdrop-blur-md border-b border-border px-4 sm:px-6 lg:px-8 h-[72px] flex items-center sticky top-0 z-40">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               {/* Greeting - on top on mobile, center on desktop */}
               <div className="flex flex-col order-1 sm:order-2 min-w-0 flex-1 sm:items-center">
