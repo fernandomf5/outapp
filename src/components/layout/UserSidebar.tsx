@@ -467,16 +467,14 @@ export function UserSidebar() {
             </SidebarGroup>
           )}
 
-          {/* Management section */}
-          {hasVisibleItems(managementItems) && (
+          {/* Organizer section */}
+          {hasVisibleItems(organizerItems) && (
             <SidebarGroup>
-              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">Gestão de:</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-green-500 font-bold bg-gradient-to-r from-green-500/20 to-green-500/10 rounded-md px-2 py-1 text-xs sm:text-sm">Organizador de:</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {managementItems.map((item) => {
+                  {organizerItems.map((item) => {
                     if (!canShowItem(item)) return null;
-                    
-                    // Special handling removed: no "Acessar Área do Administrador" shortcut
                     return (
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
