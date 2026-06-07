@@ -443,17 +443,12 @@ const Dashboard = () => {
       <PushNotificationPrompt />
       <DraggableCalculator isOpen={isCalculatorOpen} onClose={() => setIsCalculatorOpen(false)} />
       <SidebarProvider>
-        <div className="min-h-screen flex flex-col w-full bg-background safe-area-inset">
-        {/* Team Member Banner - Above everything including logo */}
-        <TeamMemberBanner />
-        
-        <div className="flex flex-1 overflow-hidden">
-          <UserSidebar />
+        <div className="min-h-screen flex flex-col w-full bg-background overflow-hidden">
+          <TeamMemberBanner />
           
-          <div className="flex-1 flex flex-col min-w-0 bg-background">
-            {/* Header */}
-            <header className="bg-card/80 backdrop-blur-md border-b border-border px-4 sm:px-6 lg:px-8 h-[72px] flex items-center sticky top-0 z-40">
-              <div className="flex items-center justify-between w-full gap-4">
+          {/* Header */}
+          <header className="bg-card/80 backdrop-blur-md border-b border-border px-4 sm:px-6 lg:px-8 h-[72px] flex items-center sticky top-0 z-40">
+            <div className="flex items-center justify-between w-full gap-4">
                 {/* Greeting */}
                 <div className="flex flex-col flex-1 min-w-0">
                   <h1 className="text-base sm:text-lg md:text-xl font-bold leading-tight truncate flex items-center gap-2">
