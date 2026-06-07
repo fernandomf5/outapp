@@ -379,6 +379,8 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
   const [selectedBusinessFilter, setSelectedBusinessFilter] = useState<string>("");
   const [filterMode, setFilterMode] = useState<"client" | "business">("client");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("all");
+  const [registrationCategories, setRegistrationCategories] = useState<Array<{id: string, name: string}>>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [dateStart, setDateStart] = useState<string>("");
   const [dateEnd, setDateEnd] = useState<string>("");
@@ -449,7 +451,19 @@ export const TaskOrganizerPanel = ({ teamContext }: TaskOrganizerPanelProps) => 
     loadData();
     loadClients();
     loadBusinesses();
+    fetchRegistrationCategories();
   }, [teamContext]);
+
+  const fetchRegistrationCategories = async () => {
+    const userId = await getTargetUserId();
+    if (!userId) return;
+    const { data } = await supabase
+      .from('registration_categories')
+      .select('id, name')
+      .eq('user_id', userId)
+      .order('name');
+    if (data) setRegistrationCategories(data);
+  };
 
   useEffect(() => {
     if (taskForm.client_id) {
