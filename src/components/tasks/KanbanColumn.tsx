@@ -65,12 +65,13 @@ export const KanbanColumn = ({
     <div 
       ref={setNodeRef}
       style={{ 
-        borderColor: block.color + '40', // 25% opacity
-        boxShadow: `0 10px 20px -5px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05), inset 0 -4px 0 ${block.color}20`,
-        backgroundColor: block.color + '08' // ~3% opacity for a subtle tint
+        borderColor: block.color,
+        boxShadow: `0 10px 30px -10px rgba(0,0,0,0.3), inset 0 -6px 0 ${block.color}40, 0 4px 0 ${block.color}60`,
+        backgroundColor: block.color + '05',
+        transform: isOver ? 'translateY(-4px) scale(1.01)' : 'none'
       }}
-      className={`flex flex-col w-80 shrink-0 rounded-2xl border-2 transition-all duration-300 relative overflow-hidden ${
-        isOver ? 'scale-[1.02] bg-secondary/20 shadow-xl' : ''
+      className={`flex flex-col w-80 shrink-0 rounded-2xl border-[3px] transition-all duration-300 relative overflow-hidden ${
+        isOver ? 'shadow-2xl' : ''
       }`}
     >
       <div 
