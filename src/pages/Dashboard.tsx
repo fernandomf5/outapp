@@ -41,6 +41,7 @@ import { ClientsManagementPanel } from "@/components/ClientsManagementPanel";
 import AgentManagementPanel from "@/components/AgentManagementPanel";
 import { FloatingMultiButtonGenerator } from "@/components/FloatingMultiButtonGenerator";
 import { FinancialManagementPanel } from "@/components/FinancialManagementPanel";
+import { SecureDeleteDialog } from "@/components/ui/secure-delete-dialog";
 import { TeamManagementPanel } from "@/components/TeamManagementPanel";
 import { AdsManagementPanel } from "@/components/AdsManagementPanel";
 import { TaskManagerContainer } from "@/components/tasks/TaskManagerContainer";
@@ -123,6 +124,7 @@ const Dashboard = () => {
   });
   const [aiAgents, setAiAgents] = useState<any[]>([]);
   const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null);
+  const [agentToDelete, setAgentToDelete] = useState<{id: string, name: string} | null>(null);
   const [selectedAgentForManagement, setSelectedAgentForManagement] = useState<any>(null);
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const activeTab = searchParams.get('tab') || 'overview';
@@ -382,12 +384,12 @@ const Dashboard = () => {
   };
 
   const handleDeleteAgent = async () => {
-    if (!deletingAgentId) return;
+    if (!agentToDelete) return;
 
     const { error } = await supabase
       .from('ai_agents')
       .delete()
-      .eq('id', deletingAgentId);
+      .eq('id', agentToDelete.id);
 
     if (error) {
       toast({
@@ -396,13 +398,13 @@ const Dashboard = () => {
         variant: "destructive",
       });
     } else {
-      setAiAgents(aiAgents.filter(agent => agent.id !== deletingAgentId));
+      setAiAgents(aiAgents.filter(agent => agent.id !== agentToDelete.id));
       toast({
         title: "Agente IA excluído",
         description: "O agente foi removido com sucesso.",
       });
     }
-    setDeletingAgentId(null);
+    setAgentToDelete(null);
   };
 
   const handleEditAgent = (agentId: string, e: React.MouseEvent) => {
@@ -1091,7 +1093,7 @@ const Dashboard = () => {
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setDeletingAgentId(agent.id);
+                        setAgentToDelete({ id: agent.id, name: agent.name });
                       }}
                       className="text-destructive hover:text-destructive"
                     >
@@ -1517,24 +1519,15 @@ const Dashboard = () => {
           </SubscriptionGate>
         </Tabs>
       </main>
-
       {/* Delete Confirmation Dialog for Agent */}
-      <AlertDialog open={!!deletingAgentId} onOpenChange={() => setDeletingAgentId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Agente IA</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir este agente IA? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteAgent} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <SecureDeleteDialog
+        open={!!agentToDelete}
+        onOpenChange={(open) => !open && setAgentToDelete(null)}
+        onConfirm={handleDeleteAgent}
+        title="Excluir Agente IA"
+        description="Esta ação excluirá permanentemente este agente IA e todas as suas configurações. Para confirmar, digite 'excluir' abaixo."
+        itemName={agentToDelete?.name}
+      />
         </div>
       </div>
     </SidebarProvider>
