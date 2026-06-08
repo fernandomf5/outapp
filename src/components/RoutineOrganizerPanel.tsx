@@ -1185,8 +1185,8 @@ export default function RoutineOrganizerPanel() {
             )}
           </div>
         </div>
-      </div>
-        <div className="flex gap-1 flex-wrap">
+
+        <div className="flex gap-1 flex-wrap justify-end">
           {/* Template buttons */}
           <Dialog open={isSaveTemplateOpen} onOpenChange={setIsSaveTemplateOpen}>
             <DialogTrigger asChild>
