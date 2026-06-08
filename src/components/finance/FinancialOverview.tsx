@@ -9,6 +9,8 @@ interface Transaction {
   type: 'income' | 'expense';
   status: string;
   category: string;
+  description: string;
+  due_date: string;
 }
 
 interface FinancialOverviewProps {
@@ -116,8 +118,8 @@ export const FinancialOverview = ({ transactions, bankAccounts }: FinancialOverv
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-base font-semibold">Comparativo Receitas vs Despesas</CardTitle>
           </CardHeader>
@@ -141,6 +143,34 @@ export const FinancialOverview = ({ transactions, bankAccounts }: FinancialOverv
         </Card>
 
         <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-semibold">Próximos Vencimentos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {transactions
+                .filter(t => t.status === 'pending')
+                .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
+                .slice(0, 5)
+                .map(t => (
+                  <div key={t.id} className="flex justify-between items-center p-2 rounded-lg bg-muted/50">
+                    <div>
+                      <p className="text-sm font-medium">{t.description}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(t.due_date + 'T00:00:00').toLocaleDateString('pt-BR')}</p>
+                    </div>
+                    <p className={`text-sm font-bold ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                      R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                ))}
+              {transactions.filter(t => t.status === 'pending').length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">Nenhum vencimento pendente.</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-3">
           <CardHeader>
             <CardTitle className="text-base font-semibold">Distribuição por Categoria</CardTitle>
           </CardHeader>
