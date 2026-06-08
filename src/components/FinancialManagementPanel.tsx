@@ -809,7 +809,9 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
           status: formData.status,
           is_recurring: formData.is_recurring,
           reminder_enabled: formData.reminder_enabled,
+          bank_account_id: formData.bank_account_id || null
         })
+
         .eq('id', editingTransaction.id);
 
       if (error) throw error;
