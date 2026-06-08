@@ -907,7 +907,7 @@ export function QRCodeGenerator() {
                 <h3 className="font-semibold text-lg">Visualização para Impressão</h3>
                 <div 
                   ref={printRef}
-                  className="flex flex-col items-center shadow-lg"
+                  className="flex flex-col items-center shadow-lg transition-all duration-300"
                   style={{
                     padding: `${padding}px`,
                     backgroundColor: bgColor,
