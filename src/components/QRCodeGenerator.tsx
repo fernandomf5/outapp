@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import * as htmlToImage from 'html-to-image';
+
 import { QRCodeSVG } from 'qrcode.react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, Copy, Check, Save, Trash2, Edit2, ImagePlus, X, Printer, Eye } from 'lucide-react';
+import { Copy, Check, Save, Trash2, Edit2, ImagePlus, X, Printer, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -114,55 +114,6 @@ export function QRCodeGenerator() {
     }
   };
 
-  const downloadQRCode = async (format: 'svg' | 'png') => {
-    if (!text) return;
-
-    if (!printRef.current) return;
-
-    try {
-      const originalStyle = printRef.current.style.cssText;
-      
-      // Ajuste para download: Garantir que a imagem contenha apenas o que está dentro da borda
-      // E que o fundo fora da borda seja transparente
-      printRef.current.style.height = 'auto';
-      printRef.current.style.maxHeight = 'none';
-      printRef.current.style.width = '400px'; 
-      
-      const options = {
-        // Para remover o fundo branco indesejado fora da borda, usamos transparência
-        backgroundColor: null, 
-        pixelRatio: 4,
-        skipAutoScale: true,
-        cacheBust: true,
-      };
-
-      let dataUrl;
-      if (format === 'svg') {
-        dataUrl = await htmlToImage.toSvg(printRef.current, options);
-      } else {
-        dataUrl = await htmlToImage.toPng(printRef.current, options);
-      }
-
-      printRef.current.style.cssText = originalStyle;
-
-      const link = document.createElement('a');
-      link.download = `qrcode-${businessName || 'personalizado'}.${format}`;
-      link.href = dataUrl;
-      link.click();
-      
-      toast({
-        title: 'QR Code baixado',
-        description: `${format.toUpperCase()} completo com personalização salvo com sucesso`,
-      });
-    } catch (error) {
-      console.error(`Erro ao gerar ${format.toUpperCase()}:`, error);
-      toast({
-        title: 'Erro ao baixar',
-        description: `Não foi possível gerar a imagem ${format.toUpperCase()} completa.`,
-        variant: 'destructive',
-      });
-    }
-  };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -745,11 +696,8 @@ export function QRCodeGenerator() {
         </div>
       </div>
       
-      <div className="grid grid-cols-2 gap-2 w-full mt-2">
-        <Button size="sm" onClick={() => downloadQRCode('png')} className="h-9">
-          <Download className="w-4 h-4 mr-2" /> PNG
-        </Button>
-        <Button size="sm" variant="outline" onClick={handlePrint} className="h-9">
+      <div className="w-full mt-2">
+        <Button size="sm" variant="outline" onClick={handlePrint} className="w-full h-9">
           <Printer className="w-4 h-4 mr-2" /> Imprimir
         </Button>
       </div>
@@ -1079,23 +1027,6 @@ export function QRCodeGenerator() {
                   </Collapsible>
 
                   <div className="flex gap-2 pt-4">
-                    <Button
-                      onClick={() => downloadQRCode('png')}
-                      disabled={!text}
-                      className="flex-1"
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      PNG
-                    </Button>
-                    <Button
-                      onClick={() => downloadQRCode('svg')}
-                      disabled={!text}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      SVG
-                    </Button>
                     <Button
                       onClick={handlePrint}
                       disabled={!text}
