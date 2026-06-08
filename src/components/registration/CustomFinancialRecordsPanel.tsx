@@ -537,12 +537,12 @@ export const CustomFinancialRecordsPanel = () => {
                       <div className="min-w-full inline-block align-middle">
                       <Table>
                         <TableHeader>
-                          <TableRow>
-                            <TableHead>Nome</TableHead>
+                          <TableRow className="bg-muted/30">
+                            <TableHead className="w-[300px] text-xs font-bold uppercase tracking-wider">Identificação</TableHead>
                             {fields.slice(0, 3).map(field => (
-                              <TableHead key={field.id} className="hidden md:table-cell">{field.label}</TableHead>
+                              <TableHead key={field.id} className="hidden md:table-cell text-xs font-bold uppercase tracking-wider">{field.label}</TableHead>
                             ))}
-                            <TableHead className="text-right">Ações</TableHead>
+                            <TableHead className="text-right text-xs font-bold uppercase tracking-wider">Ações</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
