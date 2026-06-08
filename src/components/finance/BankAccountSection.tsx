@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Wallet, Trash2, Building2, UserCircle, Globe } from "lucide-react";
+import { Plus, Wallet, Trash2, Building2, UserCircle, Globe, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { SecureDeleteDialog } from "@/components/ui/secure-delete-dialog";
 
 interface BankAccount {
   id: string;
@@ -27,6 +28,9 @@ interface BankAccountSectionProps {
 export const BankAccountSection = ({ businessId, bankAccounts, onRefresh }: BankAccountSectionProps) => {
   const [isAdding, setIsAdding] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [accountToDelete, setAccountToDelete] = useState<{id: string, name: string} | null>(null);
   const [formData, setFormData] = useState({
     bank_name: "",
     account_type: "PF" as "PF" | "PJ",
@@ -43,7 +47,7 @@ export const BankAccountSection = ({ businessId, bankAccounts, onRefresh }: Bank
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { error } = await supabase.from('financial_bank_accounts').insert({
+      const accountData = {
         user_id: user.id,
         business_id: businessId,
         bank_name: formData.bank_name,
@@ -52,28 +56,62 @@ export const BankAccountSection = ({ businessId, bankAccounts, onRefresh }: Bank
         agency: formData.agency,
         account_number: formData.account_number,
         is_active: formData.is_active
-      });
+      };
 
-      if (error) throw error;
-      toast.success("Conta bancária cadastrada!");
+      if (editingId) {
+        const { error } = await supabase
+          .from('financial_bank_accounts')
+          .update(accountData)
+          .eq('id', editingId);
+        if (error) throw error;
+        toast.success("Conta bancária atualizada!");
+      } else {
+        const { error } = await supabase.from('financial_bank_accounts').insert(accountData);
+        if (error) throw error;
+        toast.success("Conta bancária cadastrada!");
+      }
+
       setIsAdding(false);
+      setEditingId(null);
       setFormData({ bank_name: "", account_type: "PF", current_balance: "", agency: "", account_number: "", is_active: true });
       onRefresh();
     } catch (error) {
-      toast.error("Erro ao cadastrar conta");
+      toast.error(editingId ? "Erro ao atualizar conta" : "Erro ao cadastrar conta");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleEdit = (account: BankAccount) => {
+    setFormData({
+      bank_name: account.bank_name,
+      account_type: account.account_type,
+      current_balance: account.current_balance.toString(),
+      agency: account.agency || "",
+      account_number: account.account_number || "",
+      is_active: account.is_active
+    });
+    setEditingId(account.id);
+    setIsAdding(true);
+  };
+
+  const confirmDelete = (id: string, name: string) => {
+    setAccountToDelete({ id, name });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!accountToDelete) return;
     try {
-      const { error } = await supabase.from('financial_bank_accounts').delete().eq('id', id);
+      const { error } = await supabase.from('financial_bank_accounts').delete().eq('id', accountToDelete.id);
       if (error) throw error;
       toast.success("Conta removida");
       onRefresh();
     } catch (error) {
       toast.error("Erro ao remover conta");
+    } finally {
+      setDeleteDialogOpen(false);
+      setAccountToDelete(null);
     }
   };
 
@@ -86,7 +124,13 @@ export const BankAccountSection = ({ businessId, bankAccounts, onRefresh }: Bank
           </h3>
           <p className="text-sm text-muted-foreground">Gerencie seus saldos e tipos de conta</p>
         </div>
-        <Button onClick={() => setIsAdding(!isAdding)} variant={isAdding ? "outline" : "default"}>
+        <Button onClick={() => {
+          setIsAdding(!isAdding);
+          if (isAdding) {
+            setEditingId(null);
+            setFormData({ bank_name: "", account_type: "PF", current_balance: "", agency: "", account_number: "", is_active: true });
+          }
+        }} variant={isAdding ? "outline" : "default"}>
           {isAdding ? "Cancelar" : <><Plus className="w-4 h-4 mr-2" /> Nova Conta</>}
         </Button>
       </div>
@@ -145,7 +189,7 @@ export const BankAccountSection = ({ businessId, bankAccounts, onRefresh }: Bank
               </div>
               <div className="flex items-end">
                 <Button type="submit" disabled={loading} className="w-full">
-                  {loading ? "Salvando..." : "Cadastrar Conta"}
+                  {loading ? "Salvando..." : editingId ? "Atualizar Conta" : "Cadastrar Conta"}
                 </Button>
               </div>
             </form>
@@ -167,14 +211,24 @@ export const BankAccountSection = ({ businessId, bankAccounts, onRefresh }: Bank
                   {account.account_type === 'PJ' ? <Building2 className="w-4 h-4 text-primary" /> : <UserCircle className="w-4 h-4 text-blue-500" />}
                   <CardTitle className="text-base font-bold">{account.bank_name}</CardTitle>
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity" 
-                  onClick={() => handleDelete(account.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 text-primary" 
+                    onClick={() => handleEdit(account)}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 text-destructive" 
+                    onClick={() => confirmDelete(account.id, account.bank_name)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-1">
@@ -192,6 +246,14 @@ export const BankAccountSection = ({ businessId, bankAccounts, onRefresh }: Bank
           ))
         )}
       </div>
+      <SecureDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDelete}
+        title="Excluir Conta Bancária"
+        description="Esta ação excluirá permanentemente a conta bancária e poderá afetar o histórico de transações vinculadas. Para confirmar, digite 'excluir' abaixo."
+        itemName={accountToDelete?.name}
+      />
     </div>
   );
 };
