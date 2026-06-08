@@ -55,12 +55,9 @@ export function ScriptOrganizerPanel() {
   const { user } = useAuth();
   const [categories, setCategories] = useState<ScriptCategory[]>([]);
   const [scripts, setScripts] = useState<SavedScript[]>([]);
-  const [businesses, setBusinesses] = useState<Business[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("all");
 
   // Dialog states
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
@@ -71,30 +68,20 @@ export function ScriptOrganizerPanel() {
   // Form states
   const [categoryName, setCategoryName] = useState("");
   const [categoryColor, setCategoryColor] = useState("#3b82f6");
-  const [categoryBusinessId, setCategoryBusinessId] = useState<string>("");
+  
   const [scriptTitle, setScriptTitle] = useState("");
   const [scriptContent, setScriptContent] = useState("");
   const [scriptCategoryId, setScriptCategoryId] = useState<string>("");
-  const [scriptBusinessId, setScriptBusinessId] = useState<string>("");
+  
   const [scriptTags, setScriptTags] = useState("");
 
   useEffect(() => {
     if (user) {
       fetchCategories();
       fetchScripts();
-      fetchBusinesses();
     }
   }, [user]);
 
-  const fetchBusinesses = async () => {
-    const { data } = await supabase
-      .from('businesses')
-      .select('id, name, logo_url, category')
-      .eq('user_id', user!.id)
-      .eq('status', 'active')
-      .order('name');
-    if (data) setBusinesses(data);
-  };
 
   const fetchCategories = async () => {
     const { data, error } = await supabase
@@ -120,7 +107,7 @@ export function ScriptOrganizerPanel() {
   // Category CRUD
   const handleSaveCategory = async () => {
     if (!categoryName.trim()) return;
-    const bizId = categoryBusinessId && categoryBusinessId !== "none" ? categoryBusinessId : null;
+    const bizId = null;
     
     if (editingCategory) {
       const { error } = await supabase
@@ -164,7 +151,7 @@ export function ScriptOrganizerPanel() {
     }
     
     const tags = scriptTags.split(",").map(t => t.trim()).filter(Boolean);
-    const bizId = scriptBusinessId && scriptBusinessId !== "none" ? scriptBusinessId : null;
+    const bizId = null;
     const catId = scriptCategoryId && scriptCategoryId !== "none" ? scriptCategoryId : null;
     const payload = {
       user_id: user!.id,
@@ -219,7 +206,7 @@ export function ScriptOrganizerPanel() {
     setEditingCategory(null);
     setCategoryName("");
     setCategoryColor("#3b82f6");
-    setCategoryBusinessId("");
+    
   };
 
   const resetScriptForm = () => {
@@ -228,7 +215,7 @@ export function ScriptOrganizerPanel() {
     setScriptTitle("");
     setScriptContent("");
     setScriptCategoryId("");
-    setScriptBusinessId("");
+    
     setScriptTags("");
   };
 
@@ -236,7 +223,7 @@ export function ScriptOrganizerPanel() {
     setEditingCategory(cat);
     setCategoryName(cat.name);
     setCategoryColor(cat.color);
-    setCategoryBusinessId(cat.business_id || "");
+    
     setShowCategoryDialog(true);
   };
 
@@ -245,22 +232,17 @@ export function ScriptOrganizerPanel() {
     setScriptTitle(s.title);
     setScriptContent(s.content);
     setScriptCategoryId(s.category_id || "");
-    setScriptBusinessId(s.business_id || "");
+    
     setScriptTags(s.tags?.join(", ") || "");
     setShowScriptDialog(true);
   };
 
   // Filtering
-  const getBusinessById = (id: string | null) => businesses.find(b => b.id === id);
   const getCategoryById = (id: string | null) => categories.find(c => c.id === id);
 
   const filteredScripts = scripts.filter(s => {
-    // Tab filter
-    if (activeTab === "business" && !s.business_id) return false;
-    if (activeTab === "standalone" && s.business_id) return false;
+    // Business filter removed
 
-    // Business filter
-    if (selectedBusiness && s.business_id !== selectedBusiness) return false;
 
     // Category filter
     const matchCategory = !selectedCategory || 
@@ -275,19 +257,6 @@ export function ScriptOrganizerPanel() {
     return matchCategory && matchSearch;
   });
 
-  const filteredCategories = categories.filter(c => {
-    if (activeTab === "business" && !c.business_id) return false;
-    if (activeTab === "standalone" && c.business_id) return false;
-    if (selectedBusiness && c.business_id !== selectedBusiness) return false;
-    return true;
-  });
-
-  const businessScriptCounts = businesses.map(b => ({
-    ...b,
-    count: scripts.filter(s => s.business_id === b.id).length
-  }));
-
-  const standaloneCount = scripts.filter(s => !s.business_id).length;
 
   return (
     <div className="space-y-4">
@@ -316,44 +285,6 @@ export function ScriptOrganizerPanel() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Tabs: All / Business / Standalone */}
-          <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setSelectedCategory(null); setSelectedBusiness(null); }}>
-            <TabsList className="w-full grid grid-cols-3">
-              <TabsTrigger value="all" className="gap-1.5">
-                <Filter className="h-3.5 w-3.5" />
-                Todos ({scripts.length})
-              </TabsTrigger>
-              <TabsTrigger value="business" className="gap-1.5">
-                <Building2 className="h-3.5 w-3.5" />
-                Por Negócio ({scripts.length - standaloneCount})
-              </TabsTrigger>
-              <TabsTrigger value="standalone" className="gap-1.5">
-                <Briefcase className="h-3.5 w-3.5" />
-                Avulsos ({standaloneCount})
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          {/* Business filter (only in "all" or "business" tab) */}
-          {(activeTab === "all" || activeTab === "business") && businesses.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              <span className="text-xs font-medium text-muted-foreground flex items-center gap-1 mr-1">
-                <Building2 className="h-3.5 w-3.5" /> Negócios:
-              </span>
-              {businessScriptCounts.map(b => (
-                <Badge
-                  key={b.id}
-                  variant={selectedBusiness === b.id ? "default" : "outline"}
-                  className="cursor-pointer hover:opacity-80 transition-opacity gap-1.5"
-                  onClick={() => setSelectedBusiness(selectedBusiness === b.id ? null : b.id)}
-                >
-                  {b.logo_url && <img src={b.logo_url} alt="" className="w-3.5 h-3.5 rounded-full object-cover" />}
-                  {b.name} ({b.count})
-                </Badge>
-              ))}
-            </div>
-          )}
-
           {/* Search bar */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -374,7 +305,7 @@ export function ScriptOrganizerPanel() {
             >
               Todos
             </Badge>
-            {filteredCategories.map(cat => {
+            {categories.map(cat => {
               const count = scripts.filter(s => s.category_id === cat.id).length;
               return (
                 <Badge
@@ -392,17 +323,13 @@ export function ScriptOrganizerPanel() {
           </div>
 
           {/* Category management */}
-          {filteredCategories.length > 0 && (
+          {categories.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {filteredCategories.map(cat => {
-                const biz = getBusinessById(cat.business_id);
+              {categories.map(cat => {
                 return (
                   <div key={cat.id} className="flex items-center gap-1 bg-muted rounded-lg px-2 py-1 text-xs">
                     <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
                     <span className="font-medium">{cat.name}</span>
-                    {biz && (
-                      <span className="text-muted-foreground">• {biz.name}</span>
-                    )}
                     <button onClick={() => openEditCategory(cat)} className="text-muted-foreground hover:text-foreground ml-1">
                       <Edit className="h-3 w-3" />
                     </button>
@@ -432,7 +359,7 @@ export function ScriptOrganizerPanel() {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
               {filteredScripts.map(script => {
                 const cat = getCategoryById(script.category_id);
-                const biz = getBusinessById(script.business_id);
+                
                 return (
                   <Card key={script.id} className="group relative hover:shadow-md transition-shadow border-l-4" style={{ borderLeftColor: cat?.color || 'hsl(var(--border))' }}>
                     <CardContent className="p-4 space-y-2">
@@ -441,18 +368,6 @@ export function ScriptOrganizerPanel() {
                         <div className="flex-1 min-w-0">
                           <h4 className="font-semibold text-sm truncate">{script.title}</h4>
                           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
-                            {biz && (
-                              <span className="text-xs text-primary flex items-center gap-1">
-                                <Building2 className="h-2.5 w-2.5" />
-                                {biz.name}
-                              </span>
-                            )}
-                            {!biz && (
-                              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                <Briefcase className="h-2.5 w-2.5" />
-                                Avulso
-                              </span>
-                            )}
                             {cat && (
                               <span className="text-xs text-muted-foreground flex items-center gap-1">
                                 <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
@@ -533,25 +448,6 @@ export function ScriptOrganizerPanel() {
               onChange={(e) => setCategoryName(e.target.value)}
             />
 
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Vincular a um Negócio (opcional)</label>
-              <Select value={categoryBusinessId} onValueChange={setCategoryBusinessId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Nenhum (categoria avulsa)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhum (avulsa)</SelectItem>
-                  {businesses.map(b => (
-                    <SelectItem key={b.id} value={b.id}>
-                      <span className="flex items-center gap-2">
-                        <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                        {b.name}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
             <div>
               <label className="text-sm font-medium mb-2 block">Cor</label>
@@ -591,27 +487,7 @@ export function ScriptOrganizerPanel() {
               onChange={(e) => setScriptTitle(e.target.value)}
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">Negócio</label>
-                <Select value={scriptBusinessId} onValueChange={setScriptBusinessId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Avulso (sem negócio)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Avulso (sem negócio)</SelectItem>
-                    {businesses.map(b => (
-                      <SelectItem key={b.id} value={b.id}>
-                        <span className="flex items-center gap-2">
-                          <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                          {b.name}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Categoria</label>
                 <Select value={scriptCategoryId} onValueChange={setScriptCategoryId}>
