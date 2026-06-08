@@ -439,16 +439,6 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
   };
 
 
-  const handleDeleteTable = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    const { error } = await supabase.from("organization_tables").delete().eq("id", id);
-    if (error) {
-      toast({ title: "Erro ao excluir tabela", variant: "destructive" });
-    } else {
-      if (selectedTable?.id === id) setSelectedTable(null);
-      fetchTables();
-    }
-  };
 
   const handleDownloadPDF = () => {
     if (!selectedTable || rows.length === 0) return;
