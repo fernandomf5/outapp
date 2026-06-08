@@ -233,9 +233,15 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     }
   };
 
-  const handleDeleteColumn = async (columnId: string) => {
+  const handleDeleteColumn = (column: TableColumn) => {
     if (!selectedTable) return;
+    setItemToDelete({ id: column.id, type: 'column', name: column.name });
+    setDeleteConfirmationText("");
+    setIsDeleteModalOpen(true);
+  };
 
+  const executeDeleteColumn = async (columnId: string) => {
+    if (!selectedTable) return;
     const { error } = await supabase
       .from("organization_table_columns")
       .delete()
@@ -247,6 +253,60 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       fetchTableDetails(selectedTable.id);
       toast({ title: "Coluna excluída com sucesso!" });
     }
+  };
+
+  const handleDeleteTable = (e: React.MouseEvent, table: any) => {
+    e.stopPropagation();
+    setItemToDelete({ id: table.id, type: 'table', name: table.name });
+    setDeleteConfirmationText("");
+    setIsDeleteModalOpen(true);
+  };
+
+  const executeDeleteTable = async (id: string) => {
+    const { error } = await supabase.from("organization_tables").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Erro ao excluir tabela", variant: "destructive" });
+    } else {
+      if (selectedTable?.id === id) setSelectedTable(null);
+      fetchTables();
+      toast({ title: "Tabela excluída com sucesso!" });
+    }
+  };
+
+  const handleDeleteRow = (rowId: string, index: number) => {
+    setItemToDelete({ id: rowId, type: 'row', name: `Linha ${index + 1}` });
+    setDeleteConfirmationText("");
+    setIsDeleteModalOpen(true);
+  };
+
+  const executeDeleteRow = async (rowId: string) => {
+    const { error } = await supabase.from('organization_table_rows').delete().eq('id', rowId);
+    if (error) {
+      toast({ title: "Erro ao excluir linha", variant: "destructive" });
+    } else {
+      fetchTableDetails(selectedTable.id);
+      toast({ title: "Linha excluída com sucesso!" });
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+    if (deleteConfirmationText.toLowerCase() !== 'excluir') {
+      toast({ title: "Texto de confirmação incorreto", description: "Digite 'excluir' para confirmar.", variant: "destructive" });
+      return;
+    }
+
+    if (itemToDelete.type === 'table') {
+      await executeDeleteTable(itemToDelete.id);
+    } else if (itemToDelete.type === 'column') {
+      await executeDeleteColumn(itemToDelete.id);
+    } else if (itemToDelete.type === 'row') {
+      await executeDeleteRow(itemToDelete.id);
+    }
+
+    setIsDeleteModalOpen(false);
+    setItemToDelete(null);
+    setDeleteConfirmationText("");
   };
 
   const handleAddRow = async () => {
