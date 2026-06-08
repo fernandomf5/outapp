@@ -313,8 +313,10 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     is_recurring: false,
     reminder_enabled: false,
     business_id: '',
+    bank_account_id: '',
     installments: 1
   });
+
 
   // Multi-transaction dialog state
   const [isMultiTransactionDialogOpen, setIsMultiTransactionDialogOpen] = useState(false);
