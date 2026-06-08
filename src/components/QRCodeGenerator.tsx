@@ -504,13 +504,15 @@ export function QRCodeGenerator() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="text" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="text">Texto</TabsTrigger>
-              <TabsTrigger value="url">URL</TabsTrigger>
-              <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
-              <TabsTrigger value="email">Email</TabsTrigger>
-            </TabsList>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative items-start">
+            <div className="space-y-6">
+              <Tabs defaultValue="text" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="text">Texto</TabsTrigger>
+                  <TabsTrigger value="url">URL</TabsTrigger>
+                  <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+                  <TabsTrigger value="email">Email</TabsTrigger>
+                </TabsList>
 
             <TabsContent value="text" className="space-y-4">
               <div className="space-y-2">
@@ -563,7 +565,7 @@ export function QRCodeGenerator() {
             </TabsContent>
           </Tabs>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 items-start">
+          <div className="space-y-6 mt-6 items-start">
             {/* Settings */}
             <div className="space-y-4">
               <h3 className="font-semibold text-lg">Personalização Básica</h3>
@@ -900,10 +902,11 @@ export function QRCodeGenerator() {
                 </Button>
               </div>
             </div>
+          </div>
 
-            {/* Real-time floating preview */}
-            <div className="flex flex-col items-center">
-              <div className="fixed bottom-6 right-6 z-[100] md:sticky md:top-24 md:bottom-auto md:right-auto flex flex-col items-center space-y-4 bg-background/95 backdrop-blur-md p-6 rounded-2xl border-2 border-primary shadow-[0_0_25px_rgba(var(--primary-rgb),0.3)] w-full max-w-[320px] animate-in fade-in zoom-in duration-300">
+            {/* Sticky Preview container */}
+            <div className="relative">
+              <div className="sticky top-6 flex flex-col items-center space-y-4 bg-background/95 backdrop-blur-md p-6 rounded-2xl border-2 border-primary shadow-[0_0_25px_rgba(var(--primary-rgb),0.3)] w-full max-w-[350px] mx-auto animate-in fade-in zoom-in duration-300">
                 <div className="flex items-center justify-between w-full mb-2">
                   <h3 className="font-bold text-primary flex items-center gap-2">
                     <Eye className="w-5 h-5" />
@@ -916,7 +919,7 @@ export function QRCodeGenerator() {
 
                 <div 
                   ref={printRef}
-                  className="flex flex-col items-center bg-white p-4 rounded-lg shadow-inner w-full"
+                  className="flex flex-col items-center bg-white p-4 rounded-lg shadow-inner w-full overflow-hidden"
                   style={{
                     backgroundColor: bgColor,
                     border: showBorder ? `${borderWidth}px solid ${borderColor}` : 'none',
@@ -925,7 +928,7 @@ export function QRCodeGenerator() {
                 >
                   {businessName && (
                     <p 
-                      className="font-bold text-center break-all mb-2"
+                      className="font-bold text-center break-all mb-2 px-2"
                       style={{ color: fgColor, fontSize: '1.1rem' }}
                     >
                       {businessName}
@@ -969,20 +972,19 @@ export function QRCodeGenerator() {
                     <div className="flex flex-wrap justify-center gap-2 mt-3 p-2 bg-black/5 rounded-md w-full">
                       {socialMedia.instagram && <FaInstagram className="w-4 h-4 text-pink-500" />}
                       {socialMedia.facebook && <FaFacebook className="w-4 h-4 text-blue-600" />}
-                      {socialMedia.tiktok && <FaTiktok className="w-4 h-4" />}
+                      {socialMedia.tiktok && <FaTiktok className="w-4 h-4 text-black" />}
                       {socialMedia.youtube && <FaYoutube className="w-4 h-4 text-red-600" />}
                     </div>
                   )}
                 </div>
                 
                 <div className="grid grid-cols-2 gap-2 w-full mt-2">
-                  <Button size="sm" onClick={() => downloadQRCode('png')} className="h-8">
-                    <Download className="w-3 h-3 mr-1" /> PNG
+                  <Button size="sm" onClick={() => downloadQRCode('png')} className="h-9">
+                    <Download className="w-4 h-4 mr-2" /> PNG
                   </Button>
-                  <Button size="sm" variant="outline" onClick={handlePrint} className="h-8">
-                    <Printer className="w-3 h-3 mr-1" /> Imprimir
+                  <Button size="sm" variant="outline" onClick={handlePrint} className="h-9">
+                    <Printer className="w-4 h-4 mr-2" /> Imprimir
                   </Button>
-                </div>
               </div>
             </div>
           </div>
