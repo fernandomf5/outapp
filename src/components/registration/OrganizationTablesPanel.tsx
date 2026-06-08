@@ -194,7 +194,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       const filePath = `${user.id}/${fileName}`; // Organizar por user_id no bucket
 
       const { data, error: uploadError } = await supabase.storage
-        .from('images')
+        .from('business-logos')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
@@ -206,7 +206,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       }
 
       const { data: { publicUrl } } = supabase.storage
-        .from('images')
+        .from('business-logos')
         .getPublicUrl(filePath);
 
       console.log("Upload concluído com sucesso. URL pública:", publicUrl);
