@@ -58,6 +58,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
   // Create Table State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newTable, setNewTable] = useState({ name: "", description: "", color: "#3b82f6", logo_url: "" });
+  const [editingTable, setEditingTable] = useState<any>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   
   // Confirmation Modal State
