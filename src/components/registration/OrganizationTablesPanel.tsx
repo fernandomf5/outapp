@@ -57,6 +57,11 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newTable, setNewTable] = useState({ name: "", description: "", color: "#3b82f6", logo_url: "" });
   
+  // Confirmation Modal State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState("");
+  const [itemToDelete, setItemToDelete] = useState<{ id: string, type: 'table' | 'column' | 'row', name?: string } | null>(null);
+  
   // Column State
   const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
   const [newColumn, setNewColumn] = useState({ name: "", type: 'text' as ColumnType, header_text_color: "#000000" });
