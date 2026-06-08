@@ -166,6 +166,39 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     setRows(formattedRows);
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingLogo(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `table-logos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('images')
+        .getPublicUrl(filePath);
+
+      setNewTable(prev => ({ ...prev, logo_url: publicUrl }));
+      toast({ title: "Logo carregado com sucesso!" });
+    } catch (error: any) {
+      toast({ 
+        title: "Erro ao carregar logo", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
   const handleCreateTable = async () => {
     if (!newTable.name) return;
     const { data: userData } = await supabase.auth.getUser();
