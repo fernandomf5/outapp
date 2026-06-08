@@ -1144,6 +1144,23 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
 
   return (
     <div className="space-y-6">
+      {/* Finance Summary and Bank Accounts */}
+      {!isConsolidatedView && (
+        <>
+          <FinanceSummary 
+            currentBalance={bankAccounts.reduce((acc, curr) => acc + curr.current_balance, 0)}
+            pendingExpenses={transactionsWithMonthStatus
+              .filter(t => t.type === 'expense' && getTransactionStatus(t) === 'pending')
+              .reduce((acc, curr) => acc + Number(curr.amount), 0)}
+          />
+          <BankAccountsPanel 
+            businessId={selectedBusinessId} 
+            bankAccounts={bankAccounts} 
+            onRefresh={refetchBankAccounts} 
+          />
+        </>
+      )}
+
       {/* Header with back button and tabs */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1164,6 +1181,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
               </p>
             </div>
           </div>
+
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={() => setIsCategoryDialogOpen(true)} className="text-xs sm:text-sm">
               Categorias
