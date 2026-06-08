@@ -152,20 +152,22 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     if (rowsError) return;
 
     const formattedRows: TableRow[] = rowsData.map((r: any) => {
-      const cells: Record<string, { value: string, text_color?: string }> = {};
+      const cells: Record<string, { value: string, text_color?: string, is_bold?: boolean }> = {};
       r.organization_table_cells.forEach((c: any) => {
         cells[c.column_id] = { 
           value: c.value || "", 
-          text_color: c.text_color 
+          text_color: c.text_color,
+          is_bold: c.is_bold 
         };
       });
       return { 
         id: r.id, 
         cells, 
         row_background_color: r.row_background_color,
+        row_text_color: r.row_text_color,
+        is_bold: r.is_bold,
         order_index: r.order_index || 0
       };
-
     });
 
     setRows(formattedRows);
