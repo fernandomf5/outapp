@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Plus, Edit2, Trash2, Check, Calculator, CalendarIcon, BarChart3, ArrowLeft, TableIcon, LineChart, ListPlus, Users, Wallet } from "lucide-react";
+import { DollarSign, Plus, Edit2, Trash2, Check, Calculator, CalendarIcon, BarChart3, ArrowLeft, TableIcon, LineChart, ListPlus, Users, Wallet, TrendingUp, TrendingDown, History, PieChart } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -15,7 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
 import { arrayMove } from "@dnd-kit/sortable";
@@ -24,6 +24,10 @@ import { BusinessSelector } from "@/components/financial/BusinessSelector";
 import { FinancialAnalyticsPanel } from "@/components/financial/FinancialAnalyticsPanel";
 import { DebtorsPanel } from "@/components/financial/DebtorsPanel";
 import { CashboxPanel } from "@/components/financial/CashboxPanel";
+import { BankAccountsPanel } from "@/components/financial/BankAccountsPanel";
+import { FinanceSummary } from "@/components/financial/FinanceSummary";
+import { useBankAccounts } from "@/hooks/useBankAccounts";
+
 
 
 interface Business {
