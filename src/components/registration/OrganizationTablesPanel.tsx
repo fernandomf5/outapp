@@ -57,6 +57,11 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newTable, setNewTable] = useState({ name: "", description: "", color: "#3b82f6", logo_url: "" });
   
+  // Confirmation Modal State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState("");
+  const [itemToDelete, setItemToDelete] = useState<{ id: string, type: 'table' | 'column' | 'row', name?: string } | null>(null);
+  
   // Column State
   const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
   const [newColumn, setNewColumn] = useState({ name: "", type: 'text' as ColumnType, header_text_color: "#000000" });
@@ -228,9 +233,15 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     }
   };
 
-  const handleDeleteColumn = async (columnId: string) => {
+  const handleDeleteColumn = (column: TableColumn) => {
     if (!selectedTable) return;
+    setItemToDelete({ id: column.id, type: 'column', name: column.name });
+    setDeleteConfirmationText("");
+    setIsDeleteModalOpen(true);
+  };
 
+  const executeDeleteColumn = async (columnId: string) => {
+    if (!selectedTable) return;
     const { error } = await supabase
       .from("organization_table_columns")
       .delete()
@@ -242,6 +253,60 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       fetchTableDetails(selectedTable.id);
       toast({ title: "Coluna excluída com sucesso!" });
     }
+  };
+
+  const handleDeleteTable = (e: React.MouseEvent, table: any) => {
+    e.stopPropagation();
+    setItemToDelete({ id: table.id, type: 'table', name: table.name });
+    setDeleteConfirmationText("");
+    setIsDeleteModalOpen(true);
+  };
+
+  const executeDeleteTable = async (id: string) => {
+    const { error } = await supabase.from("organization_tables").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Erro ao excluir tabela", variant: "destructive" });
+    } else {
+      if (selectedTable?.id === id) setSelectedTable(null);
+      fetchTables();
+      toast({ title: "Tabela excluída com sucesso!" });
+    }
+  };
+
+  const handleDeleteRow = (rowId: string, index: number) => {
+    setItemToDelete({ id: rowId, type: 'row', name: `Linha ${index + 1}` });
+    setDeleteConfirmationText("");
+    setIsDeleteModalOpen(true);
+  };
+
+  const executeDeleteRow = async (rowId: string) => {
+    const { error } = await supabase.from('organization_table_rows').delete().eq('id', rowId);
+    if (error) {
+      toast({ title: "Erro ao excluir linha", variant: "destructive" });
+    } else {
+      fetchTableDetails(selectedTable.id);
+      toast({ title: "Linha excluída com sucesso!" });
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+    if (deleteConfirmationText.toLowerCase() !== 'excluir') {
+      toast({ title: "Texto de confirmação incorreto", description: "Digite 'excluir' para confirmar.", variant: "destructive" });
+      return;
+    }
+
+    if (itemToDelete.type === 'table') {
+      await executeDeleteTable(itemToDelete.id);
+    } else if (itemToDelete.type === 'column') {
+      await executeDeleteColumn(itemToDelete.id);
+    } else if (itemToDelete.type === 'row') {
+      await executeDeleteRow(itemToDelete.id);
+    }
+
+    setIsDeleteModalOpen(false);
+    setItemToDelete(null);
+    setDeleteConfirmationText("");
   };
 
   const handleAddRow = async () => {
@@ -374,16 +439,6 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
   };
 
 
-  const handleDeleteTable = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    const { error } = await supabase.from("organization_tables").delete().eq("id", id);
-    if (error) {
-      toast({ title: "Erro ao excluir tabela", variant: "destructive" });
-    } else {
-      if (selectedTable?.id === id) setSelectedTable(null);
-      fetchTables();
-    }
-  };
 
   const handleDownloadPDF = () => {
     if (!selectedTable || rows.length === 0) return;
@@ -676,7 +731,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                           <Button 
                             variant="ghost" 
                             className="w-full justify-start text-xs h-8 px-2 text-destructive hover:text-destructive"
-                            onClick={() => handleDeleteColumn(col.id)}
+                            onClick={() => handleDeleteColumn(col)}
                           >
                             <Trash2 className="mr-2 h-3 w-3" /> Excluir
                           </Button>
@@ -830,10 +885,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                       variant="ghost" 
                       size="icon" 
                       className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
-                      onClick={async () => {
-                        await supabase.from('organization_table_rows').delete().eq('id', row.id);
-                        fetchTableDetails(selectedTable.id);
-                      }}
+                      onClick={() => handleDeleteRow(row.id, idx)}
                     >
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />
                     </Button>
@@ -1073,7 +1125,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                       <Button 
                         variant="ghost" 
                         className="w-full justify-start text-xs h-8 px-2 text-destructive hover:text-destructive" 
-                        onClick={(e) => handleDeleteTable(e, table.id)}
+                        onClick={(e) => handleDeleteTable(e, table)}
                       >
                         <Trash2 className="mr-2 h-3 w-3" /> Excluir
                       </Button>
@@ -1161,6 +1213,45 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>Cancelar</Button>
             <Button onClick={handleCreateTable}>Criar Tabela</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="h-5 w-5" /> Confirmar Exclusão
+            </DialogTitle>
+            <DialogDescription>
+              Esta ação não pode ser desfeita. O item <strong>{itemToDelete?.name}</strong> será removido permanentemente.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Para confirmar, digite <span className="font-bold text-foreground select-none">excluir</span> no campo abaixo:
+            </p>
+            <Input
+              value={deleteConfirmationText}
+              onChange={(e) => setDeleteConfirmationText(e.target.value)}
+              placeholder="Digite excluir para confirmar"
+              className={cn(
+                "border-2 transition-all",
+                deleteConfirmationText.toLowerCase() === 'excluir' ? "border-green-500 focus-visible:ring-green-500" : "focus-visible:ring-destructive"
+              )}
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>Cancelar</Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleConfirmDelete}
+              disabled={deleteConfirmationText.toLowerCase() !== 'excluir'}
+            >
+              Excluir Permanentemente
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
