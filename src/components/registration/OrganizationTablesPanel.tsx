@@ -431,7 +431,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     }
   };
 
-  const handleCellColorUpdate = async (rowId: string, columnId: string, color: string) => {
+  const handleCellColorUpdate = (rowId: string, columnId: string, color: string) => {
     // Update local state
     const updatedRows = rows.map(r => {
       if (r.id === rowId) {
@@ -447,30 +447,6 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       return r;
     });
     setRows(updatedRows);
-
-    // Upsert to DB
-    const { data: existing } = await supabase
-      .from("organization_table_cells")
-      .select("id")
-      .eq("row_id", rowId)
-      .eq("column_id", columnId)
-      .maybeSingle();
-
-    if (existing) {
-      await supabase
-        .from("organization_table_cells")
-        .update({ text_color: color === 'inherit' ? null : color })
-        .eq("id", existing.id);
-    } else {
-      await supabase
-        .from("organization_table_cells")
-        .insert({ 
-          row_id: rowId, 
-          column_id: columnId, 
-          value: "", 
-          text_color: color === 'inherit' ? null : color 
-        });
-    }
   };
 
   const handleUpdateRowColor = async (rowId: string, color: string) => {
