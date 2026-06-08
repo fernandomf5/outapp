@@ -370,15 +370,15 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[120px]">Tipo</TableHead>
-                        <TableHead className="min-w-[250px]">Descrição</TableHead>
-                        <TableHead className="w-[140px]">Valor (R$)</TableHead>
+                        <TableHead className="w-[140px]">Tipo</TableHead>
+                        <TableHead className="min-w-[300px]">Descrição</TableHead>
+                        <TableHead className="w-[160px]">Valor (R$)</TableHead>
                         <TableHead className="w-[180px]">Categoria</TableHead>
                         <TableHead className="w-[160px]">Vencimento</TableHead>
                         <TableHead className="w-[180px]">Conta</TableHead>
                         <TableHead className="w-[140px]">Forma</TableHead>
                         <TableHead className="w-[120px]">Status</TableHead>
-                        <TableHead className="w-[50px]"></TableHead>
+                        <TableHead className="w-[60px]"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
