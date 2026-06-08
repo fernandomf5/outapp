@@ -424,7 +424,8 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                 row_id: row.id, 
                 column_id: columnId, 
                 value: cellData.value,
-                text_color: cellData.text_color === 'inherit' ? null : cellData.text_color
+                text_color: cellData.text_color === 'inherit' ? null : cellData.text_color,
+                is_bold: cellData.is_bold || false
               });
           }
         }
