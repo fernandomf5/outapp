@@ -332,7 +332,9 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
 
   const handleConfirmDelete = async () => {
     if (!itemToDelete) return;
-    if (deleteConfirmationText.toLowerCase() !== 'excluir') {
+    
+    // Check confirmation text only for 'table' and 'column' types
+    if (itemToDelete.type !== 'row' && deleteConfirmationText.toLowerCase() !== 'excluir') {
       toast({ title: "Texto de confirmação incorreto", description: "Digite 'excluir' para confirmar.", variant: "destructive" });
       return;
     }
