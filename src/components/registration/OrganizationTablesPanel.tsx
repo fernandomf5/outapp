@@ -40,7 +40,7 @@ interface TableRow {
 
 
 const COLOR_PALETTE = [
-  '#000000', '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b',
+  '#10b981', '#000000', '#3b82f6', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b',
   '#2563eb', '#dc2626', '#16a34a', '#d97706', '#7c3aed', '#db2777', '#475569', '#0891b2'
 ];
 
@@ -65,7 +65,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
   
   // Column State
   const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
-  const [newColumn, setNewColumn] = useState({ name: "", type: 'text' as ColumnType, header_text_color: "#000000" });
+  const [newColumn, setNewColumn] = useState({ name: "", type: 'text' as ColumnType, header_text_color: "#10b981" });
   const [editingColumn, setEditingColumn] = useState<TableColumn | null>(null);
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
   const [selectedCells, setSelectedCells] = useState<Record<string, string[]>>({}); // rowId -> columnIds[]
@@ -242,7 +242,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       toast({ title: "Erro ao adicionar coluna", variant: "destructive" });
     } else {
       setIsColumnModalOpen(false);
-      setNewColumn({ name: "", type: 'text', header_text_color: "#000000" });
+      setNewColumn({ name: "", type: 'text', header_text_color: "#10b981" });
       fetchTableDetails(selectedTable.id);
     }
   };
