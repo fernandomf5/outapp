@@ -421,6 +421,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                               value={row.category} 
                               onChange={e => updateBulkRow(index, 'category', e.target.value)}
                               placeholder="Categoria"
+                              className="w-full text-sm"
                             />
                           </TableCell>
                           <TableCell>
@@ -428,12 +429,13 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                               type="date" 
                               value={row.due_date} 
                               onChange={e => updateBulkRow(index, 'due_date', e.target.value)}
+                              className="w-full text-sm"
                             />
                           </TableCell>
                           <TableCell>
                             <Select value={row.bank_account_id} onValueChange={(v) => updateBulkRow(index, 'bank_account_id', v)}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="..." />
+                              <SelectTrigger className="text-sm">
+                                <SelectValue placeholder="Conta" />
                               </SelectTrigger>
                               <SelectContent>
                                 {bankAccounts.map(acc => (
@@ -444,7 +446,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                           </TableCell>
                           <TableCell>
                             <Select value={row.payment_method} onValueChange={(v) => updateBulkRow(index, 'payment_method', v)}>
-                              <SelectTrigger>
+                              <SelectTrigger className="text-sm">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
