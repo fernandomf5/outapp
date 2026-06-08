@@ -1005,6 +1005,7 @@ export function QRCodeGenerator() {
               <p className="text-xs text-muted-foreground text-center">
                 Esta é a visualização de como ficará na impressão
               </p>
+              </div>
             </div>
           </div>
         </CardContent>
