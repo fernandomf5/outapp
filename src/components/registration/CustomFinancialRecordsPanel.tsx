@@ -555,21 +555,32 @@ export const CustomFinancialRecordsPanel = () => {
                           ) : (
                             records.map(record => (
                               <TableRow key={record.id}>
-                                <TableCell className="font-medium">{record.name}</TableCell>
+                                <TableCell className="font-medium">
+                                  <div className="flex items-center gap-3">
+                                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                                      {record.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                      <p className="font-semibold text-sm">{record.name}</p>
+                                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">#{record.id.slice(0, 8)}</p>
+                                    </div>
+                                  </div>
+                                </TableCell>
                                 {fields.slice(0, 3).map(field => {
                                   const val = record.field_values.find((v: any) => v.field_id === field.id)?.value;
                                   return (
                                     <TableCell key={field.id} className="hidden md:table-cell">
-                                      {val || "-"}
+                                      <span className="text-sm text-muted-foreground">{val || "-"}</span>
                                     </TableCell>
                                   );
                                 })}
                                 <TableCell className="text-right">
-                                  <div className="flex justify-end gap-2">
-                                    <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
+                                  <div className="flex justify-end gap-1">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8"><Pencil className="h-4 w-4 text-muted-foreground" /></Button>
                                     <Button 
                                       variant="ghost" 
                                       size="icon"
+                                      className="h-8 w-8"
                                       onClick={() => handleDeleteRecord(record.id)}
                                     >
                                       <Trash2 className="h-4 w-4 text-destructive" />
