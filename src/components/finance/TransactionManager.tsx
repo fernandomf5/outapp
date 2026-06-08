@@ -618,7 +618,8 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
               </DialogFooter>
             </form>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       <Card>
