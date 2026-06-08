@@ -498,7 +498,7 @@ export function QRCodeGenerator() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative">
             <div className="space-y-6">
               <Tabs defaultValue="text" className="w-full">
                 <TabsList className="grid w-full grid-cols-4">
