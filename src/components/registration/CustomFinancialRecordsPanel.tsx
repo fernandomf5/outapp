@@ -574,7 +574,6 @@ export const CustomFinancialRecordsPanel = () => {
               </>
             )}
           </div>
-        </div>
       )}
     </div>
   );
