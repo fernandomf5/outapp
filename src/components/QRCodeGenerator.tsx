@@ -105,26 +105,24 @@ export function QRCodeGenerator() {
   const downloadQRCode = async (format: 'svg' | 'png') => {
     if (!text) return;
 
-    if (format === 'svg') {
-      const svg = document.getElementById('qr-code-svg');
-      if (!svg) return;
-      const svgData = new XMLSerializer().serializeToString(svg);
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(svgBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'qrcode.svg';
-      link.click();
-      URL.revokeObjectURL(url);
-      
-      toast({
-        title: 'QR Code baixado',
-        description: 'Arquivo SVG salvo com sucesso',
-      });
-    } else {
-      if (!printRef.current) return;
-      
-      try {
+    if (!printRef.current) return;
+
+    try {
+      if (format === 'svg') {
+        const dataUrl = await htmlToImage.toSvg(printRef.current, {
+          backgroundColor: bgColor,
+        });
+        
+        const link = document.createElement('a');
+        link.download = 'qrcode-personalizado.svg';
+        link.href = dataUrl;
+        link.click();
+        
+        toast({
+          title: 'QR Code baixado',
+          description: 'Arquivo SVG completo com personalização salvo com sucesso',
+        });
+      } else {
         const dataUrl = await htmlToImage.toPng(printRef.current, {
           backgroundColor: bgColor,
           pixelRatio: 3,
@@ -142,14 +140,14 @@ export function QRCodeGenerator() {
           title: 'QR Code baixado',
           description: 'PNG completo com personalização salvo com sucesso',
         });
-      } catch (error) {
-        console.error('Erro ao gerar PNG:', error);
-        toast({
-          title: 'Erro ao baixar',
-          description: 'Não foi possível gerar a imagem completa.',
-          variant: 'destructive',
-        });
       }
+    } catch (error) {
+      console.error(`Erro ao gerar ${format.toUpperCase()}:`, error);
+      toast({
+        title: 'Erro ao baixar',
+        description: `Não foi possível gerar a imagem ${format.toUpperCase()} completa.`,
+        variant: 'destructive',
+      });
     }
   };
 
