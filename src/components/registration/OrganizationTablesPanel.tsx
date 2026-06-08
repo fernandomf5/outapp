@@ -365,7 +365,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     }
   };
 
-  const handleCellUpdate = async (rowId: string, columnId: string, value: string) => {
+  const handleCellUpdate = (rowId: string, columnId: string, value: string) => {
     // Update local state first for performance
     const updatedRows = rows.map(r => {
       if (r.id === rowId) {
@@ -381,24 +381,53 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       return r;
     });
     setRows(updatedRows);
+  };
 
-    // Upsert to DB
-    const { data: existing } = await supabase
-      .from("organization_table_cells")
-      .select("id")
-      .eq("row_id", rowId)
-      .eq("column_id", columnId)
-      .maybeSingle();
+  const handleSaveChanges = async () => {
+    if (!selectedTable) return;
+    
+    try {
+      setLoading(true);
+      
+      // Batch update cells
+      // In a real production app with many rows, we might want to only update changed cells
+      // But for simplicity and to ensure everything is saved as requested:
+      for (const row of rows) {
+        for (const [columnId, cellData] of Object.entries(row.cells)) {
+          const { data: existing } = await supabase
+            .from("organization_table_cells")
+            .select("id")
+            .eq("row_id", row.id)
+            .eq("column_id", columnId)
+            .maybeSingle();
 
-    if (existing) {
-      await supabase
-        .from("organization_table_cells")
-        .update({ value })
-        .eq("id", existing.id);
-    } else {
-      await supabase
-        .from("organization_table_cells")
-        .insert({ row_id: rowId, column_id: columnId, value });
+          if (existing) {
+            await supabase
+              .from("organization_table_cells")
+              .update({ 
+                value: cellData.value,
+                text_color: cellData.text_color === 'inherit' ? null : cellData.text_color
+              })
+              .eq("id", existing.id);
+          } else {
+            await supabase
+              .from("organization_table_cells")
+              .insert({ 
+                row_id: row.id, 
+                column_id: columnId, 
+                value: cellData.value,
+                text_color: cellData.text_color === 'inherit' ? null : cellData.text_color
+              });
+          }
+        }
+      }
+      
+      toast({ title: "Alterações salvas com sucesso!" });
+      fetchTableDetails(selectedTable.id);
+    } catch (error) {
+      toast({ title: "Erro ao salvar alterações", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
   };
 
