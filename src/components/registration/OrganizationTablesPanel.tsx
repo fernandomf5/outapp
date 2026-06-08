@@ -45,6 +45,7 @@ export const OrganizationTablesPanel = () => {
   // Column State
   const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
   const [newColumn, setNewColumn] = useState({ name: "", type: 'text' as ColumnType });
+  const [editingColumn, setEditingColumn] = useState<TableColumn | null>(null);
 
   const { toast } = useToast();
 
@@ -156,6 +157,42 @@ export const OrganizationTablesPanel = () => {
     }
   };
 
+  const handleUpdateColumn = async () => {
+    if (!editingColumn || !selectedTable) return;
+
+    const { error } = await supabase
+      .from("organization_table_columns")
+      .update({
+        name: editingColumn.name,
+        type: editingColumn.type,
+      })
+      .eq("id", editingColumn.id);
+
+    if (error) {
+      toast({ title: "Erro ao atualizar coluna", variant: "destructive" });
+    } else {
+      setEditingColumn(null);
+      fetchTableDetails(selectedTable.id);
+      toast({ title: "Coluna atualizada com sucesso!" });
+    }
+  };
+
+  const handleDeleteColumn = async (columnId: string) => {
+    if (!selectedTable) return;
+
+    const { error } = await supabase
+      .from("organization_table_columns")
+      .delete()
+      .eq("id", columnId);
+
+    if (error) {
+      toast({ title: "Erro ao excluir coluna", variant: "destructive" });
+    } else {
+      fetchTableDetails(selectedTable.id);
+      toast({ title: "Coluna excluída com sucesso!" });
+    }
+  };
+
   const handleAddRow = async () => {
     if (!selectedTable) return;
     const { data: userData } = await supabase.auth.getUser();
@@ -254,14 +291,38 @@ export const OrganizationTablesPanel = () => {
               <tr className="border-b">
                 <th className="w-12 px-4 py-3 text-left font-medium text-muted-foreground border-r">#</th>
                 {columns.map((col) => (
-                  <th key={col.id} className="min-w-[150px] px-4 py-3 text-left font-medium text-muted-foreground border-r group">
+                  <th key={col.id} className="min-w-[180px] px-4 py-3 text-left font-medium text-muted-foreground border-r group">
                     <div className="flex items-center justify-between">
-                      <span className="flex items-center gap-2">
-                        {col.name}
-                        <Badge variant="outline" className="text-[10px] font-normal py-0">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <span className="truncate">{col.name}</span>
+                        <Badge variant="outline" className="text-[9px] font-normal py-0 px-1 opacity-70">
                           {col.type}
                         </Badge>
-                      </span>
+                      </div>
+                      
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <MoreHorizontal className="h-3 w-3" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-40 p-1" align="end">
+                          <Button 
+                            variant="ghost" 
+                            className="w-full justify-start text-xs h-8 px-2"
+                            onClick={() => setEditingColumn(col)}
+                          >
+                            <Edit2 className="mr-2 h-3 w-3" /> Editar
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            className="w-full justify-start text-xs h-8 px-2 text-destructive hover:text-destructive"
+                            onClick={() => handleDeleteColumn(col.id)}
+                          >
+                            <Trash2 className="mr-2 h-3 w-3" /> Excluir
+                          </Button>
+                        </PopoverContent>
+                      </Popover>
                     </div>
                   </th>
                 ))}
@@ -346,6 +407,49 @@ export const OrganizationTablesPanel = () => {
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsColumnModalOpen(false)}>Cancelar</Button>
               <Button onClick={handleAddColumn}>Adicionar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Edit Column Modal */}
+        <Dialog open={!!editingColumn} onOpenChange={(open) => !open && setEditingColumn(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Coluna</DialogTitle>
+            </DialogHeader>
+            {editingColumn && (
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>Nome da Coluna</Label>
+                  <Input 
+                    placeholder="Ex: Cliente, Valor, Data..." 
+                    value={editingColumn.name}
+                    onChange={(e) => setEditingColumn({...editingColumn, name: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Tipo de Dado</Label>
+                  <Select 
+                    value={editingColumn.type} 
+                    onValueChange={(val: ColumnType) => setEditingColumn({...editingColumn, type: val})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="text">Texto</SelectItem>
+                      <SelectItem value="number">Número</SelectItem>
+                      <SelectItem value="date">Data</SelectItem>
+                      <SelectItem value="currency">Moeda</SelectItem>
+                      <SelectItem value="status">Status</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditingColumn(null)}>Cancelar</Button>
+              <Button onClick={handleUpdateColumn}>Salvar Alterações</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
