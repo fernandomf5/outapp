@@ -554,11 +554,34 @@ export function QRCodeGenerator() {
         </div>
 
         {showSocialMedia && Object.entries(socialMedia).some(([_, v]) => v.trim()) && (
-          <div className="flex flex-wrap justify-center gap-2 mt-3 p-2 bg-black/5 rounded-md w-full">
-            {socialMedia.instagram && <FaInstagram className="w-4 h-4 text-pink-500" />}
-            {socialMedia.facebook && <FaFacebook className="w-4 h-4 text-blue-600" />}
-            {socialMedia.tiktok && <FaTiktok className="w-4 h-4 text-black" />}
-            {socialMedia.youtube && <FaYoutube className="w-4 h-4 text-red-600" />}
+          <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-3 px-2 w-full">
+            {Object.entries(socialMedia).map(([platform, handle]) => {
+              if (!handle.trim()) return null;
+              const Icon = {
+                instagram: FaInstagram,
+                facebook: FaFacebook,
+                tiktok: FaTiktok,
+                youtube: FaYoutube,
+                twitter: FaTwitter,
+                linkedin: FaLinkedin
+              }[platform as keyof SocialMedia];
+
+              const colors: Record<string, string> = {
+                instagram: '#E4405F',
+                facebook: '#1877F2',
+                tiktok: '#000000',
+                youtube: '#FF0000',
+                twitter: '#1DA1F2',
+                linkedin: '#0A66C2',
+              };
+
+              return (
+                <div key={platform} className="flex items-center gap-1">
+                  {Icon && <Icon className="w-3 h-3" style={{ color: colors[platform] }} />}
+                  <span className="text-[10px] font-bold" style={{ color: colors[platform] }}>@{handle}</span>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
