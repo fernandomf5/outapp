@@ -438,10 +438,6 @@ export const OrganizationTablesPanel = () => {
                     </Popover>
                   </td>
 
-
-                      </PopoverContent>
-                    </Popover>
-                  </td>
                   {columns.map((col) => (
                     <td key={col.id} className="px-0 py-0 border-r min-w-[150px]">
                       <input
