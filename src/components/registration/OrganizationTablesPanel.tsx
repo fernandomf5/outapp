@@ -714,23 +714,22 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                           "px-0 py-0 border-r min-w-[150px] transition-colors relative",
                           isSelected && "bg-primary/20 ring-1 ring-inset ring-primary"
                         )}
-                        onClick={() => toggleCellSelection(row.id, col.id)}
                       >
+                        <div 
+                          className="absolute inset-0 z-10 cursor-pointer"
+                          style={{ display: isSelectionMode ? 'block' : 'none' }}
+                          onClick={() => toggleCellSelection(row.id, col.id)}
+                        />
                         <input
                           type="text"
                           className={cn(
-                            "w-full h-full px-4 py-2 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-primary/30",
-                            isSelectionMode && "cursor-pointer"
+                            "w-full h-full px-4 py-2 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-primary/30"
                           )}
-                          readOnly={isSelectionMode}
                           style={{ color: row.row_background_color && row.row_background_color !== 'transparent' ? 'inherit' : undefined }}
                           value={row.cells[col.id] || ""}
                           onChange={(e) => handleCellUpdate(row.id, col.id, e.target.value)}
                           placeholder="..."
                         />
-                        {isSelectionMode && (
-                          <div className="absolute inset-0 z-10" />
-                        )}
                       </td>
                     );
                   })}
