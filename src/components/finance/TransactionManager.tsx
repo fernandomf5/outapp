@@ -370,23 +370,23 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[120px]">Tipo</TableHead>
-                        <TableHead className="min-w-[250px]">Descrição</TableHead>
-                        <TableHead className="w-[140px]">Valor (R$)</TableHead>
+                        <TableHead className="w-[140px]">Tipo</TableHead>
+                        <TableHead className="min-w-[300px]">Descrição</TableHead>
+                        <TableHead className="w-[160px]">Valor (R$)</TableHead>
                         <TableHead className="w-[180px]">Categoria</TableHead>
                         <TableHead className="w-[160px]">Vencimento</TableHead>
                         <TableHead className="w-[180px]">Conta</TableHead>
                         <TableHead className="w-[140px]">Forma</TableHead>
                         <TableHead className="w-[120px]">Status</TableHead>
-                        <TableHead className="w-[50px]"></TableHead>
+                        <TableHead className="w-[60px]"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {bulkRows.map((row, index) => (
                         <TableRow key={index}>
-                          <TableCell>
+                          <TableCell className="px-1 py-2">
                             <Select value={row.type} onValueChange={(v: any) => updateBulkRow(index, 'type', v)}>
-                              <SelectTrigger>
+                              <SelectTrigger className="h-10 text-xs sm:text-sm">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -395,41 +395,47 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                               </SelectContent>
                             </Select>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="px-1 py-2">
                             <Input 
                               value={row.description} 
                               onChange={e => updateBulkRow(index, 'description', e.target.value)}
-                              placeholder="Descrição"
+                              placeholder="Descrição da transação"
+                              className="h-10 text-sm"
                             />
                           </TableCell>
-                          <TableCell>
-                            <Input 
-                              type="number" 
-                              step="0.01" 
-                              value={row.amount} 
-                              onChange={e => updateBulkRow(index, 'amount', e.target.value)}
-                              placeholder="0,00"
-                              className="font-medium text-right"
-                            />
+                          <TableCell className="px-1 py-2">
+                            <div className="relative">
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-[10px] font-bold">R$</span>
+                              <Input 
+                                type="number" 
+                                step="0.01" 
+                                value={row.amount} 
+                                onChange={e => updateBulkRow(index, 'amount', e.target.value)}
+                                placeholder="0,00"
+                                className="h-10 pl-7 font-bold text-right text-base border-primary/40 focus:border-primary bg-background"
+                              />
+                            </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="px-1 py-2">
                             <Input 
                               value={row.category} 
                               onChange={e => updateBulkRow(index, 'category', e.target.value)}
                               placeholder="Categoria"
+                              className="h-10 text-sm"
                             />
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="px-1 py-2">
                             <Input 
                               type="date" 
                               value={row.due_date} 
                               onChange={e => updateBulkRow(index, 'due_date', e.target.value)}
+                              className="h-10 text-sm px-1"
                             />
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="px-1 py-2">
                             <Select value={row.bank_account_id} onValueChange={(v) => updateBulkRow(index, 'bank_account_id', v)}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="..." />
+                              <SelectTrigger className="h-10 text-sm">
+                                <SelectValue placeholder="Conta" />
                               </SelectTrigger>
                               <SelectContent>
                                 {bankAccounts.map(acc => (
@@ -438,9 +444,9 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                               </SelectContent>
                             </Select>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="px-1 py-2">
                             <Select value={row.payment_method} onValueChange={(v) => updateBulkRow(index, 'payment_method', v)}>
-                              <SelectTrigger>
+                              <SelectTrigger className="h-10 text-sm">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -453,9 +459,9 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                               </SelectContent>
                             </Select>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="px-1 py-2">
                             <Select value={row.status} onValueChange={(v) => updateBulkRow(index, 'status', v)}>
-                              <SelectTrigger>
+                              <SelectTrigger className="h-10 text-sm">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -464,13 +470,14 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                               </SelectContent>
                             </Select>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="px-1 py-2">
                             <Button 
                               type="button" 
                               variant="ghost" 
                               size="icon" 
                               onClick={() => removeBulkRow(index)}
                               disabled={bulkRows.length === 1}
+                              className="h-10 w-10 hover:bg-destructive/10"
                             >
                               <X className="h-4 w-4 text-destructive" />
                             </Button>
