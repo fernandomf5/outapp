@@ -2,14 +2,38 @@ import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { format, startOfMonth, addMonths } from "date-fns";
+import { 
+  format, 
+  startOfMonth, 
+  addMonths, 
+  startOfWeek, 
+  endOfWeek, 
+  eachDayOfInterval, 
+  subWeeks, 
+  subMonths, 
+  subYears, 
+  isWithinInterval,
+  parseISO,
+  startOfQuarter,
+  endOfQuarter,
+  subDays,
+  startOfYear,
+  endOfYear
+} from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { Download, Save, FolderOpen, Trash2, FileText, Loader2 } from "lucide-react";
+import { Download, Save, FolderOpen, Trash2, FileText, Loader2, Calendar } from "lucide-react";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Transaction {
   amount: number;
