@@ -241,21 +241,18 @@ export function QRCodeGenerator() {
               color: ${fgColor};
             }
             .qr-wrapper {
-              position: relative;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+            }
+            .logo-top {
+              margin-bottom: 8px;
               display: flex;
               align-items: center;
               justify-content: center;
             }
-            .logo-overlay {
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);
-              background: white;
-              padding: 4px;
-              border-radius: 8px;
-            }
-            .logo-overlay img {
+            .logo-top img {
               width: ${logoSize}px;
               height: ${logoSize}px;
               object-fit: contain;
@@ -279,12 +276,12 @@ export function QRCodeGenerator() {
           <div class="container">
             ${businessName ? `<div class="business-name">${businessName}</div>` : ''}
             <div class="qr-wrapper">
-              ${svgData}
               ${showLogo && logoUrl ? `
-                <div class="logo-overlay">
+                <div class="logo-top">
                   <img src="${logoUrl}" alt="Logo" />
                 </div>
               ` : ''}
+              ${svgData}
             </div>
             ${showSocialMedia && activeSocials.length > 0 ? `
               <div class="socials">
@@ -926,34 +923,30 @@ export function QRCodeGenerator() {
                   </p>
                 )}
                 
-                <div className="relative">
-                  {text ? (
-                    <>
-                      <QRCodeSVG
-                        id="qr-code-svg"
-                        value={text}
-                        size={Math.min(size, 280)}
-                        fgColor={fgColor}
-                        bgColor={bgColor}
-                        level="H"
-                        includeMargin={false}
+                <div className="flex flex-col items-center">
+                  {showLogo && logoUrl && (
+                    <div className="mb-3">
+                      <img 
+                        src={logoUrl} 
+                        alt="Logo" 
+                        style={{ 
+                          width: logoSize, 
+                          height: logoSize, 
+                          objectFit: 'contain' 
+                        }} 
                       />
-                      {showLogo && logoUrl && (
-                        <div 
-                          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-1 rounded-lg"
-                        >
-                          <img 
-                            src={logoUrl} 
-                            alt="Logo" 
-                            style={{ 
-                              width: logoSize, 
-                              height: logoSize, 
-                              objectFit: 'contain' 
-                            }} 
-                          />
-                        </div>
-                      )}
-                    </>
+                    </div>
+                  )}
+                  {text ? (
+                    <QRCodeSVG
+                      id="qr-code-svg"
+                      value={text}
+                      size={Math.min(size, 280)}
+                      fgColor={fgColor}
+                      bgColor={bgColor}
+                      level="H"
+                      includeMargin={false}
+                    />
                   ) : (
                     <div
                       className="flex items-center justify-center bg-muted-foreground/10 rounded"
