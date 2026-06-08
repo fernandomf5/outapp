@@ -2020,6 +2020,22 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
             )}
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <Label>Conta Bancária (Opcional)</Label>
+                <Select value={formData.bank_account_id} onValueChange={(v) => setFormData({ ...formData, bank_account_id: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma conta" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Sem conta específica</SelectItem>
+                    {bankAccounts.map(account => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.bank_name} (R$ {account.current_balance.toLocaleString('pt-BR')})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <Label>Mês</Label>
                 <Select value={formData.month} onValueChange={(v) => setFormData({ ...formData, month: v })}>
                   <SelectTrigger>
@@ -2032,15 +2048,16 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label>Data de Vencimento</Label>
-                <Input
-                  type="date"
-                  value={formData.due_date}
-                  onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-                />
-              </div>
             </div>
+            <div>
+              <Label>Data de Vencimento</Label>
+              <Input
+                type="date"
+                value={formData.due_date}
+                onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+              />
+            </div>
+
             <div className="flex items-center space-x-2">
               <Switch
                 id="edit_reminder"
