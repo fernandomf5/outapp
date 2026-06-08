@@ -936,13 +936,17 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                       <Checkbox 
                         checked={selectedRowIds.includes(row.id)} 
                         onCheckedChange={() => toggleRow(row.id)}
+                        onClick={(e) => e.stopPropagation()}
                       />
                       {selectedRowIds.includes(row.id) && (
                         <Button 
                           variant="ghost" 
                           size="icon" 
                           className="h-8 w-8 text-destructive hover:bg-destructive/10 animate-in fade-in scale-in-95 duration-200"
-                          onClick={() => handleDeleteRow(row.id, idx)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteRow(row.id, idx);
+                          }}
                           title="Excluir Registro"
                         >
                           <Trash2 className="h-4 w-4" />
