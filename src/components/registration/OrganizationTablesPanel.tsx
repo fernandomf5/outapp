@@ -391,8 +391,35 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       selectedRows.forEach(row => {
         const val = row.cells[col.id];
         if (val) {
-          // Clean the string to try to get a number (handle currency/commas)
-          const cleanVal = val.replace(/[^\d,.-]/g, '').replace(',', '.');
+          // Check if it looks like a date (DD/MM/YYYY or DD/MM/YY)
+          const isDatePattern = /^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}$/.test(val.trim());
+          if (isDatePattern) return;
+
+          // Clean the string to try to get a number (handle currency/commas/dots)
+          // For currency like R$ 1.250,00 -> 1250.00
+          let cleanVal = val.trim();
+          
+          // Remove currency symbols and spaces, keeping digits, commas, dots and minus sign
+          cleanVal = cleanVal.replace(/[^\d,.-]/g, '');
+          
+          // Logic to handle different decimal separators
+          if (cleanVal.includes(',') && cleanVal.includes('.')) {
+            // Format like 1.250,00 or 1,250.00
+            const lastComma = cleanVal.lastIndexOf(',');
+            const lastDot = cleanVal.lastIndexOf('.');
+            
+            if (lastComma > lastDot) {
+              // 1.250,00 (Brazilian/European)
+              cleanVal = cleanVal.replace(/\./g, '').replace(',', '.');
+            } else {
+              // 1,250.00 (US)
+              cleanVal = cleanVal.replace(/,/g, '');
+            }
+          } else if (cleanVal.includes(',')) {
+            // Probably 1250,00 (Brazilian/European decimal)
+            cleanVal = cleanVal.replace(',', '.');
+          }
+          
           const num = parseFloat(cleanVal);
           if (!isNaN(num)) {
             sum += num;
