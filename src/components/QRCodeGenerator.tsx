@@ -331,11 +331,9 @@ export function QRCodeGenerator() {
       return;
     }
     
-    // If already editing an existing QR code, save directly
     if (editingId) {
       saveExistingQRCode();
     } else {
-      // New QR code - show dialog to enter name
       setQrName('');
       setShowSaveDialog(true);
     }
@@ -377,7 +375,6 @@ export function QRCodeGenerator() {
     setBgColor('#ffffff');
     setEditingId(null);
     setEditingName(null);
-    // Reset advanced options
     setLogoUrl('');
     setShowLogo(false);
     setLogoSize(50);
@@ -417,7 +414,6 @@ export function QRCodeGenerator() {
       return;
     }
 
-    // Save new QR code
     const { data, error } = await supabase
       .from('saved_qr_codes')
       .insert({
@@ -440,7 +436,6 @@ export function QRCodeGenerator() {
       return;
     }
 
-    // Keep editing the newly saved QR code
     setEditingId(data.id);
     setEditingName(qrName);
     
@@ -482,7 +477,6 @@ export function QRCodeGenerator() {
       return;
     }
 
-    // If deleting the currently editing QR code, clear editing state
     if (editingId === id) {
       clearEditing();
     }
@@ -504,406 +498,397 @@ export function QRCodeGenerator() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="text" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="text">Texto</TabsTrigger>
-              <TabsTrigger value="url">URL</TabsTrigger>
-              <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
-              <TabsTrigger value="email">Email</TabsTrigger>
-            </TabsList>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative items-start">
+            <div className="space-y-6">
+              <Tabs defaultValue="text" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="text">Texto</TabsTrigger>
+                  <TabsTrigger value="url">URL</TabsTrigger>
+                  <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+                  <TabsTrigger value="email">Email</TabsTrigger>
+                </TabsList>
 
-            <TabsContent value="text" className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="text-input">Digite seu texto</Label>
-                <Input
-                  id="text-input"
-                  placeholder="Insira qualquer texto..."
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="url" className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="url-input">Digite a URL</Label>
-                <Input
-                  id="url-input"
-                  type="url"
-                  placeholder="https://exemplo.com"
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="whatsapp" className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="whatsapp-input">Número do WhatsApp</Label>
-                <Input
-                  id="whatsapp-input"
-                  placeholder="+5511999999999"
-                  value={text.replace('https://wa.me/', '')}
-                  onChange={(e) => setText(`https://wa.me/${e.target.value.replace(/\D/g, '')}`)}
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="email" className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email-input">Endereço de Email</Label>
-                <Input
-                  id="email-input"
-                  type="email"
-                  placeholder="exemplo@email.com"
-                  value={text.replace('mailto:', '')}
-                  onChange={(e) => setText(`mailto:${e.target.value}`)}
-                />
-              </div>
-            </TabsContent>
-          </Tabs>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 items-start">
-            {/* Settings */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-lg">Personalização Básica</h3>
-              
-              <div className="space-y-2">
-                <Label htmlFor="size-input">Tamanho (px)</Label>
-                <Input
-                  id="size-input"
-                  type="number"
-                  min="128"
-                  max="512"
-                  value={size}
-                  onChange={(e) => setSize(Number(e.target.value))}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="fg-color">Cor do QR Code</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="fg-color"
-                    type="color"
-                    value={fgColor}
-                    onChange={(e) => setFgColor(e.target.value)}
-                    className="w-20 h-10 cursor-pointer"
-                  />
-                  <Input
-                    type="text"
-                    value={fgColor}
-                    onChange={(e) => setFgColor(e.target.value)}
-                    placeholder="#000000"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="bg-color">Cor de Fundo</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="bg-color"
-                    type="color"
-                    value={bgColor}
-                    onChange={(e) => setBgColor(e.target.value)}
-                    className="w-20 h-10 cursor-pointer"
-                  />
-                  <Input
-                    type="text"
-                    value={bgColor}
-                    onChange={(e) => setBgColor(e.target.value)}
-                    placeholder="#ffffff"
-                  />
-                </div>
-              </div>
-
-              {/* Advanced Customization Toggle */}
-              <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
-                <CollapsibleTrigger asChild>
-                  <Button variant="outline" className="w-full justify-between">
-                    Personalização Avançada
-                    <span className={`transition-transform ${showAdvanced ? 'rotate-180' : ''}`}>▼</span>
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-4 mt-4">
-                  {/* Business Name */}
+                <TabsContent value="text" className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Nome do Negócio</Label>
+                    <Label htmlFor="text-input">Digite seu texto</Label>
                     <Input
-                      placeholder="Minha Empresa"
-                      value={businessName}
-                      onChange={(e) => setBusinessName(e.target.value)}
+                      id="text-input"
+                      placeholder="Insira qualquer texto..."
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Aparece acima do QR Code na impressão
-                    </p>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="url" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="url-input">Digite a URL</Label>
+                    <Input
+                      id="url-input"
+                      type="url"
+                      placeholder="https://exemplo.com"
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="whatsapp" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="whatsapp-input">Número do WhatsApp</Label>
+                    <Input
+                      id="whatsapp-input"
+                      placeholder="+5511999999999"
+                      value={text.replace('https://wa.me/', '')}
+                      onChange={(e) => setText(`https://wa.me/${e.target.value.replace(/\D/g, '')}`)}
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="email" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email-input">Endereço de Email</Label>
+                    <Input
+                      id="email-input"
+                      type="email"
+                      placeholder="exemplo@email.com"
+                      value={text.replace('mailto:', '')}
+                      onChange={(e) => setText(`mailto:${e.target.value}`)}
+                    />
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              <div className="space-y-6 mt-6 items-start">
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Personalização Básica</h3>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="size-input">Tamanho (px)</Label>
+                    <Input
+                      id="size-input"
+                      type="number"
+                      min="128"
+                      max="512"
+                      value={size}
+                      onChange={(e) => setSize(Number(e.target.value))}
+                    />
                   </div>
 
-                  {/* Logo Upload */}
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label>Logo da Marca</Label>
-                      <Switch
-                        checked={showLogo}
-                        onCheckedChange={(checked) => {
-                          setShowLogo(checked);
-                          if (!checked) removeLogo();
-                        }}
-                        disabled={!logoUrl}
-                      />
-                    </div>
+                    <Label htmlFor="fg-color">Cor do QR Code</Label>
                     <div className="flex gap-2">
-                      <input
-                        ref={logoInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleLogoUpload}
-                        className="hidden"
+                      <Input
+                        id="fg-color"
+                        type="color"
+                        value={fgColor}
+                        onChange={(e) => setFgColor(e.target.value)}
+                        className="w-20 h-10 cursor-pointer"
                       />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="flex-1"
-                        onClick={() => logoInputRef.current?.click()}
-                      >
-                        <ImagePlus className="w-4 h-4 mr-2" />
-                        {logoUrl ? 'Trocar Logo' : 'Enviar Logo'}
-                      </Button>
-                      {logoUrl && (
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          onClick={removeLogo}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      )}
+                      <Input
+                        type="text"
+                        value={fgColor}
+                        onChange={(e) => setFgColor(e.target.value)}
+                        placeholder="#000000"
+                      />
                     </div>
-                    {logoUrl && (
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="bg-color">Cor de Fundo</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="bg-color"
+                        type="color"
+                        value={bgColor}
+                        onChange={(e) => setBgColor(e.target.value)}
+                        className="w-20 h-10 cursor-pointer"
+                      />
+                      <Input
+                        type="text"
+                        value={bgColor}
+                        onChange={(e) => setBgColor(e.target.value)}
+                        placeholder="#ffffff"
+                      />
+                    </div>
+                  </div>
+
+                  <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+                    <CollapsibleTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between">
+                        Personalização Avançada
+                        <span className={`transition-transform ${showAdvanced ? 'rotate-180' : ''}`}>▼</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-4 mt-4">
                       <div className="space-y-2">
-                        <Label>Tamanho do Logo: {logoSize}px</Label>
-                        <Slider
-                          value={[logoSize]}
-                          onValueChange={(value) => setLogoSize(value[0])}
-                          min={30}
-                          max={100}
-                          step={5}
+                        <Label>Nome do Negócio</Label>
+                        <Input
+                          placeholder="Minha Empresa"
+                          value={businessName}
+                          onChange={(e) => setBusinessName(e.target.value)}
                         />
                       </div>
-                    )}
-                  </div>
 
-                  {/* Border Settings */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label>Borda ao Redor</Label>
-                      <Switch
-                        checked={showBorder}
-                        onCheckedChange={setShowBorder}
-                      />
-                    </div>
-                    {showBorder && (
-                      <div className="space-y-3 pl-4 border-l-2 border-primary/20">
-                        <div className="space-y-2">
-                          <Label>Cor da Borda</Label>
-                          <div className="flex gap-2">
-                            <Input
-                              type="color"
-                              value={borderColor}
-                              onChange={(e) => setBorderColor(e.target.value)}
-                              className="w-20 h-10 cursor-pointer"
-                            />
-                            <Input
-                              type="text"
-                              value={borderColor}
-                              onChange={(e) => setBorderColor(e.target.value)}
-                              placeholder="#000000"
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label>Logo da Marca</Label>
+                          <Switch
+                            checked={showLogo}
+                            onCheckedChange={(checked) => {
+                              setShowLogo(checked);
+                              if (!checked) removeLogo();
+                            }}
+                            disabled={!logoUrl}
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <input
+                            ref={logoInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleLogoUpload}
+                            className="hidden"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="flex-1"
+                            onClick={() => logoInputRef.current?.click()}
+                          >
+                            <ImagePlus className="w-4 h-4 mr-2" />
+                            {logoUrl ? 'Trocar Logo' : 'Enviar Logo'}
+                          </Button>
+                          {logoUrl && (
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              onClick={removeLogo}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                        {logoUrl && (
+                          <div className="space-y-2">
+                            <Label>Tamanho do Logo: {logoSize}px</Label>
+                            <Slider
+                              value={[logoSize]}
+                              onValueChange={(value) => setLogoSize(value[0])}
+                              min={30}
+                              max={100}
+                              step={5}
                             />
                           </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Espessura: {borderWidth}px</Label>
-                          <Slider
-                            value={[borderWidth]}
-                            onValueChange={(value) => setBorderWidth(value[0])}
-                            min={2}
-                            max={20}
-                            step={1}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Arredondamento: {cornerRadius}px</Label>
-                          <Slider
-                            value={[cornerRadius]}
-                            onValueChange={(value) => setCornerRadius(value[0])}
-                            min={0}
-                            max={30}
-                            step={2}
-                          />
-                        </div>
+                        )}
                       </div>
-                    )}
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label>Borda ao Redor</Label>
+                          <Switch
+                            checked={showBorder}
+                            onCheckedChange={setShowBorder}
+                          />
+                        </div>
+                        {showBorder && (
+                          <div className="space-y-3 pl-4 border-l-2 border-primary/20">
+                            <div className="space-y-2">
+                              <Label>Cor da Borda</Label>
+                              <div className="flex gap-2">
+                                <Input
+                                  type="color"
+                                  value={borderColor}
+                                  onChange={(e) => setBorderColor(e.target.value)}
+                                  className="w-20 h-10 cursor-pointer"
+                                />
+                                <Input
+                                  type="text"
+                                  value={borderColor}
+                                  onChange={(e) => setBorderColor(e.target.value)}
+                                  placeholder="#000000"
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Espessura: {borderWidth}px</Label>
+                              <Slider
+                                value={[borderWidth]}
+                                onValueChange={(value) => setBorderWidth(value[0])}
+                                min={2}
+                                max={20}
+                                step={1}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Arredondamento: {cornerRadius}px</Label>
+                              <Slider
+                                value={[cornerRadius]}
+                                onValueChange={(value) => setCornerRadius(value[0])}
+                                min={0}
+                                max={30}
+                                step={2}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Espaçamento Interno: {padding}px</Label>
+                        <Slider
+                          value={[padding]}
+                          onValueChange={(value) => setPadding(value[0])}
+                          min={0}
+                          max={40}
+                          step={4}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label>Redes Sociais</Label>
+                          <Switch
+                            checked={showSocialMedia}
+                            onCheckedChange={setShowSocialMedia}
+                          />
+                        </div>
+                        {showSocialMedia && (
+                          <div className="space-y-3 pl-4 border-l-2 border-primary/20">
+                            <div className="flex items-center gap-2">
+                              <FaInstagram className="w-5 h-5 text-pink-500" />
+                              <Input
+                                placeholder="seu_instagram"
+                                value={socialMedia.instagram}
+                                onChange={(e) => setSocialMedia({ ...socialMedia, instagram: e.target.value })}
+                              />
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <FaFacebook className="w-5 h-5 text-blue-600" />
+                              <Input
+                                placeholder="seu_facebook"
+                                value={socialMedia.facebook}
+                                onChange={(e) => setSocialMedia({ ...socialMedia, facebook: e.target.value })}
+                              />
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <FaTiktok className="w-5 h-5" />
+                              <Input
+                                placeholder="seu_tiktok"
+                                value={socialMedia.tiktok}
+                                onChange={(e) => setSocialMedia({ ...socialMedia, tiktok: e.target.value })}
+                              />
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <FaYoutube className="w-5 h-5 text-red-600" />
+                              <Input
+                                placeholder="seu_canal"
+                                value={socialMedia.youtube}
+                                onChange={(e) => setSocialMedia({ ...socialMedia, youtube: e.target.value })}
+                              />
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <FaTwitter className="w-5 h-5 text-sky-500" />
+                              <Input
+                                placeholder="seu_twitter"
+                                value={socialMedia.twitter}
+                                onChange={(e) => setSocialMedia({ ...socialMedia, twitter: e.target.value })}
+                              />
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <FaLinkedin className="w-5 h-5 text-blue-700" />
+                              <Input
+                                placeholder="seu_linkedin"
+                                value={socialMedia.linkedin}
+                                onChange={(e) => setSocialMedia({ ...socialMedia, linkedin: e.target.value })}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  <div className="flex gap-2 pt-4">
+                    <Button
+                      onClick={() => downloadQRCode('png')}
+                      disabled={!text}
+                      className="flex-1"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      PNG
+                    </Button>
+                    <Button
+                      onClick={() => downloadQRCode('svg')}
+                      disabled={!text}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      SVG
+                    </Button>
+                    <Button
+                      onClick={handlePrint}
+                      disabled={!text}
+                      variant="secondary"
+                      className="flex-1"
+                    >
+                      <Printer className="w-4 h-4 mr-2" />
+                      Imprimir
+                    </Button>
                   </div>
 
-                  {/* Padding */}
-                  <div className="space-y-2">
-                    <Label>Espaçamento Interno: {padding}px</Label>
-                    <Slider
-                      value={[padding]}
-                      onValueChange={(value) => setPadding(value[0])}
-                      min={0}
-                      max={40}
-                      step={4}
-                    />
-                  </div>
-
-                  {/* Social Media */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label>Redes Sociais</Label>
-                      <Switch
-                        checked={showSocialMedia}
-                        onCheckedChange={setShowSocialMedia}
-                      />
+                  {editingId && editingName && (
+                    <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg border border-primary/20">
+                      <span className="text-sm">
+                        Editando: <strong>{editingName}</strong>
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={clearEditing}
+                      >
+                        Novo QR Code
+                      </Button>
                     </div>
-                    {showSocialMedia && (
-                      <div className="space-y-3 pl-4 border-l-2 border-primary/20">
-                        <div className="flex items-center gap-2">
-                          <FaInstagram className="w-5 h-5 text-pink-500" />
-                          <Input
-                            placeholder="seu_instagram"
-                            value={socialMedia.instagram}
-                            onChange={(e) => setSocialMedia({ ...socialMedia, instagram: e.target.value })}
-                          />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <FaFacebook className="w-5 h-5 text-blue-600" />
-                          <Input
-                            placeholder="seu_facebook"
-                            value={socialMedia.facebook}
-                            onChange={(e) => setSocialMedia({ ...socialMedia, facebook: e.target.value })}
-                          />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <FaTiktok className="w-5 h-5" />
-                          <Input
-                            placeholder="seu_tiktok"
-                            value={socialMedia.tiktok}
-                            onChange={(e) => setSocialMedia({ ...socialMedia, tiktok: e.target.value })}
-                          />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <FaYoutube className="w-5 h-5 text-red-600" />
-                          <Input
-                            placeholder="seu_canal"
-                            value={socialMedia.youtube}
-                            onChange={(e) => setSocialMedia({ ...socialMedia, youtube: e.target.value })}
-                          />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <FaTwitter className="w-5 h-5 text-sky-500" />
-                          <Input
-                            placeholder="seu_twitter"
-                            value={socialMedia.twitter}
-                            onChange={(e) => setSocialMedia({ ...socialMedia, twitter: e.target.value })}
-                          />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <FaLinkedin className="w-5 h-5 text-blue-700" />
-                          <Input
-                            placeholder="seu_linkedin"
-                            value={socialMedia.linkedin}
-                            onChange={(e) => setSocialMedia({ ...socialMedia, linkedin: e.target.value })}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-
-              {/* Action Buttons */}
-              <div className="flex gap-2 pt-4">
-                <Button
-                  onClick={() => downloadQRCode('png')}
-                  disabled={!text}
-                  className="flex-1"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  PNG
-                </Button>
-                <Button
-                  onClick={() => downloadQRCode('svg')}
-                  disabled={!text}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  SVG
-                </Button>
-                <Button
-                  onClick={handlePrint}
-                  disabled={!text}
-                  variant="secondary"
-                  className="flex-1"
-                >
-                  <Printer className="w-4 h-4 mr-2" />
-                  Imprimir
-                </Button>
-              </div>
-
-              {/* Editing indicator */}
-              {editingId && editingName && (
-                <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg border border-primary/20">
-                  <span className="text-sm">
-                    Editando: <strong>{editingName}</strong>
-                  </span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={clearEditing}
-                  >
-                    Novo QR Code
-                  </Button>
-                </div>
-              )}
-
-              <div className="flex gap-2">
-                <Button
-                  onClick={copyToClipboard}
-                  disabled={!text}
-                  variant="secondary"
-                  className="flex-1"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-4 h-4 mr-2" />
-                      Copiado!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copiar Texto
-                    </>
                   )}
-                </Button>
-                <Button
-                  onClick={handleSaveClick}
-                  disabled={!text || !user}
-                  variant="default"
-                  className="flex-1"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  {editingId ? 'Atualizar' : 'Salvar'}
-                </Button>
+
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={copyToClipboard}
+                      disabled={!text}
+                      variant="secondary"
+                      className="flex-1"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-4 h-4 mr-2" />
+                          Copiado!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4 mr-2" />
+                          Copiar Texto
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={handleSaveClick}
+                      disabled={!text || !user}
+                      variant="default"
+                      className="flex-1"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      {editingId ? 'Atualizar' : 'Salvar'}
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Real-time floating preview */}
-            <div className="flex flex-col items-center">
-              <div className="fixed bottom-6 right-6 z-[100] md:sticky md:top-24 md:bottom-auto md:right-auto flex flex-col items-center space-y-4 bg-background/95 backdrop-blur-md p-6 rounded-2xl border-2 border-primary shadow-[0_0_25px_rgba(var(--primary-rgb),0.3)] w-full max-w-[320px] animate-in fade-in zoom-in duration-300">
+            <div className="relative">
+              <div className="sticky top-6 flex flex-col items-center space-y-4 bg-background/95 backdrop-blur-md p-6 rounded-2xl border-2 border-primary shadow-[0_0_25px_rgba(var(--primary-rgb),0.3)] w-full max-w-[350px] mx-auto animate-in fade-in zoom-in duration-300">
                 <div className="flex items-center justify-between w-full mb-2">
                   <h3 className="font-bold text-primary flex items-center gap-2">
                     <Eye className="w-5 h-5" />
@@ -916,7 +901,7 @@ export function QRCodeGenerator() {
 
                 <div 
                   ref={printRef}
-                  className="flex flex-col items-center bg-white p-4 rounded-lg shadow-inner w-full"
+                  className="flex flex-col items-center bg-white p-4 rounded-lg shadow-inner w-full overflow-hidden"
                   style={{
                     backgroundColor: bgColor,
                     border: showBorder ? `${borderWidth}px solid ${borderColor}` : 'none',
@@ -925,7 +910,7 @@ export function QRCodeGenerator() {
                 >
                   {businessName && (
                     <p 
-                      className="font-bold text-center break-all mb-2"
+                      className="font-bold text-center break-all mb-2 px-2"
                       style={{ color: fgColor, fontSize: '1.1rem' }}
                     >
                       {businessName}
@@ -969,18 +954,18 @@ export function QRCodeGenerator() {
                     <div className="flex flex-wrap justify-center gap-2 mt-3 p-2 bg-black/5 rounded-md w-full">
                       {socialMedia.instagram && <FaInstagram className="w-4 h-4 text-pink-500" />}
                       {socialMedia.facebook && <FaFacebook className="w-4 h-4 text-blue-600" />}
-                      {socialMedia.tiktok && <FaTiktok className="w-4 h-4" />}
+                      {socialMedia.tiktok && <FaTiktok className="w-4 h-4 text-black" />}
                       {socialMedia.youtube && <FaYoutube className="w-4 h-4 text-red-600" />}
                     </div>
                   )}
                 </div>
                 
                 <div className="grid grid-cols-2 gap-2 w-full mt-2">
-                  <Button size="sm" onClick={() => downloadQRCode('png')} className="h-8">
-                    <Download className="w-3 h-3 mr-1" /> PNG
+                  <Button size="sm" onClick={() => downloadQRCode('png')} className="h-9">
+                    <Download className="w-4 h-4 mr-2" /> PNG
                   </Button>
-                  <Button size="sm" variant="outline" onClick={handlePrint} className="h-8">
-                    <Printer className="w-3 h-3 mr-1" /> Imprimir
+                  <Button size="sm" variant="outline" onClick={handlePrint} className="h-9">
+                    <Printer className="w-4 h-4 mr-2" /> Imprimir
                   </Button>
                 </div>
               </div>
@@ -989,7 +974,6 @@ export function QRCodeGenerator() {
         </CardContent>
       </Card>
 
-      {/* Saved QR Codes */}
       {user && savedQRCodes.length > 0 && (
         <Card>
           <CardHeader>
@@ -1041,7 +1025,6 @@ export function QRCodeGenerator() {
         </Card>
       )}
 
-      {/* Save Dialog */}
       <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
         <DialogContent>
           <DialogHeader>
