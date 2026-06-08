@@ -6033,6 +6033,7 @@ export type Database = {
       organization_table_columns: {
         Row: {
           created_at: string
+          header_text_color: string | null
           id: string
           name: string
           options: Json | null
@@ -6042,6 +6043,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          header_text_color?: string | null
           id?: string
           name: string
           options?: Json | null
@@ -6051,6 +6053,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          header_text_color?: string | null
           id?: string
           name?: string
           options?: Json | null
@@ -6070,22 +6073,28 @@ export type Database = {
       }
       organization_table_rows: {
         Row: {
+          border_color: string | null
           created_at: string
           id: string
+          row_background_color: string | null
           table_id: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          border_color?: string | null
           created_at?: string
           id?: string
+          row_background_color?: string | null
           table_id: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          border_color?: string | null
           created_at?: string
           id?: string
+          row_background_color?: string | null
           table_id?: string
           updated_at?: string
           user_id?: string
