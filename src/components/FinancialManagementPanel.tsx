@@ -890,6 +890,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       is_recurring: false,
       reminder_enabled: false,
       business_id: selectedBusinessId,
+      bank_account_id: '',
       installments: 1
     });
   };
@@ -908,10 +909,12 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       is_recurring: transaction.is_recurring,
       reminder_enabled: transaction.reminder_enabled,
       business_id: transaction.business_id || selectedBusinessId,
+      bank_account_id: (transaction as any).bank_account_id || '',
       installments: 1
     });
     setIsEditDialogOpen(true);
   };
+
 
   // Função para obter o status de uma transação fixa no mês selecionado
   const getTransactionStatus = (transaction: Transaction) => {
