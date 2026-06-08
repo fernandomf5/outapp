@@ -504,20 +504,61 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     if (!tableRef.current || !selectedTable) return;
     
     try {
-      const canvas = await html2canvas(tableRef.current, {
+      // Create a clone to ensure we don't capture UI elements like buttons or cursors
+      const element = tableRef.current;
+      
+      // Temporary style changes for better export
+      const originalHeight = element.style.height;
+      const originalOverflow = element.style.overflow;
+      
+      // Expand to show all content if it's scrollable
+      element.style.height = 'auto';
+      element.style.overflow = 'visible';
+
+      const canvas = await html2canvas(element, {
         backgroundColor: resolvedTheme === 'dark' ? '#0a0a0a' : '#ffffff',
-        scale: 2,
+        scale: 3, // Increased scale for better resolution
         logging: false,
-        useCORS: true
+        useCORS: true,
+        allowTaint: true,
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        onclone: (clonedDoc) => {
+          // Find all inputs in the cloned document and replace them with spans/divs 
+          // to ensure their text content is rendered correctly by html2canvas
+          const inputs = clonedDoc.querySelectorAll('input');
+          inputs.forEach(input => {
+            const span = clonedDoc.createElement('span');
+            span.textContent = input.value;
+            span.style.cssText = window.getComputedStyle(input).cssText;
+            span.style.display = 'inline-block';
+            span.style.border = 'none';
+            span.style.background = 'transparent';
+            if (input.parentElement) {
+              input.parentElement.replaceChild(span, input);
+            }
+          });
+
+          // Remove UI-only elements from the clone
+          const uiElements = clonedDoc.querySelectorAll('button, .popover, [role="combobox"]');
+          uiElements.forEach(el => {
+            if (el instanceof HTMLElement) el.style.display = 'none';
+          });
+        }
       });
+      
+      // Restore original styles
+      element.style.height = originalHeight;
+      element.style.overflow = originalOverflow;
       
       const link = document.createElement('a');
       link.download = `${selectedTable.name}.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.href = canvas.toDataURL('image/png', 1.0);
       link.click();
       
       toast({ title: "Imagem gerada com sucesso!" });
     } catch (error) {
+      console.error("PNG export error:", error);
       toast({ title: "Erro ao gerar imagem", variant: "destructive" });
     }
   };
