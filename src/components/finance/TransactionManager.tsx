@@ -14,6 +14,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 
+const PAYMENT_METHODS: Record<string, string> = {
+  pix: "PIX",
+  credit_card: "Cartão de Crédito",
+  debit_card: "Cartão de Débito",
+  cash: "Dinheiro",
+  transfer: "Transferência",
+  boleto: "Boleto"
+};
+
 interface Transaction {
   id: string;
   description: string;
@@ -40,6 +49,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   const [statusFilter, setStatusFilter] = useState("all");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     description: "",
@@ -63,6 +73,27 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     });
   }, [transactions, searchTerm, typeFilter, statusFilter]);
 
+  const updateAccountBalance = async (accountId: string, amountChange: number) => {
+    try {
+      const { data: account, error: fetchError } = await supabase
+        .from('financial_bank_accounts')
+        .select('current_balance')
+        .eq('id', accountId)
+        .single();
+
+      if (fetchError || !account) return;
+
+      const newBalance = (account.current_balance || 0) + amountChange;
+
+      await supabase
+        .from('financial_bank_accounts')
+        .update({ current_balance: newBalance })
+        .eq('id', accountId);
+    } catch (error) {
+      console.error("Erro ao atualizar saldo:", error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -70,11 +101,12 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { error } = await supabase.from('financial_transactions').insert({
+      const amount = parseFloat(formData.amount);
+      const transactionData = {
         user_id: user.id,
         business_id: businessId,
         description: formData.description,
-        amount: parseFloat(formData.amount),
+        amount: amount,
         type: formData.type,
         category: formData.category,
         due_date: formData.due_date,
@@ -84,34 +116,99 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         is_recurring: formData.is_recurring,
         year: new Date(formData.due_date).getFullYear(),
         month: format(new Date(formData.due_date + 'T00:00:00'), 'MMMM', { locale: ptBR })
-      });
+      };
 
-      if (error) throw error;
-      toast.success("Transação adicionada!");
+      if (editingTransactionId) {
+        // Obter transação antiga para comparar saldo
+        const oldTransaction = transactions.find(t => t.id === editingTransactionId);
+        
+        const { error } = await supabase
+          .from('financial_transactions')
+          .update(transactionData)
+          .eq('id', editingTransactionId);
+
+        if (error) throw error;
+
+        // Lógica de atualização de saldo se o status for 'paid'
+        if (oldTransaction) {
+          // Reverter transação antiga se era 'paid'
+          if (oldTransaction.status === 'paid' && oldTransaction.bank_account_id) {
+            const oldAmountChange = oldTransaction.type === 'income' ? -oldTransaction.amount : oldTransaction.amount;
+            await updateAccountBalance(oldTransaction.bank_account_id, oldAmountChange);
+          }
+          // Aplicar nova transação se é 'paid'
+          if (formData.status === 'paid' && formData.bank_account_id) {
+            const newAmountChange = formData.type === 'income' ? amount : -amount;
+            await updateAccountBalance(formData.bank_account_id, newAmountChange);
+          }
+        }
+
+        toast.success("Transação atualizada!");
+      } else {
+        const { error } = await supabase.from('financial_transactions').insert(transactionData);
+        if (error) throw error;
+
+        // Atualizar saldo se o status for 'paid'
+        if (formData.status === 'paid' && formData.bank_account_id) {
+          const amountChange = formData.type === 'income' ? amount : -amount;
+          await updateAccountBalance(formData.bank_account_id, amountChange);
+        }
+
+        toast.success("Transação adicionada!");
+      }
+
       setIsAddOpen(false);
-      setFormData({
-        description: "",
-        amount: "",
-        type: "expense",
-        category: "",
-        due_date: format(new Date(), "yyyy-MM-dd"),
-        status: "pending",
-        payment_method: "pix",
-        bank_account_id: "",
-        is_recurring: false
-      });
+      resetForm();
       onRefresh();
     } catch (error) {
-      toast.error("Erro ao adicionar transação");
+      toast.error(editingTransactionId ? "Erro ao atualizar transação" : "Erro ao adicionar transação");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const resetForm = () => {
+    setFormData({
+      description: "",
+      amount: "",
+      type: "expense",
+      category: "",
+      due_date: format(new Date(), "yyyy-MM-dd"),
+      status: "pending",
+      payment_method: "pix",
+      bank_account_id: "",
+      is_recurring: false
+    });
+    setEditingTransactionId(null);
+  };
+
+  const handleEdit = (t: Transaction) => {
+    setFormData({
+      description: t.description,
+      amount: t.amount.toString(),
+      type: t.type,
+      category: t.category,
+      due_date: t.due_date,
+      status: t.status,
+      payment_method: t.payment_method,
+      bank_account_id: t.bank_account_id || "",
+      is_recurring: t.is_recurring
+    });
+    setEditingTransactionId(t.id);
+    setIsAddOpen(true);
+  };
+
+  const handleDelete = async (t: Transaction) => {
     try {
-      const { error } = await supabase.from('financial_transactions').delete().eq('id', id);
+      const { error } = await supabase.from('financial_transactions').delete().eq('id', t.id);
       if (error) throw error;
+
+      // Reverter saldo se estava paga
+      if (t.status === 'paid' && t.bank_account_id) {
+        const amountChange = t.type === 'income' ? -t.amount : t.amount;
+        await updateAccountBalance(t.bank_account_id, amountChange);
+      }
+
       toast.success("Transação excluída");
       onRefresh();
     } catch (error) {
@@ -128,6 +225,15 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
         .eq('id', t.id);
       
       if (error) throw error;
+
+      // Atualizar saldo
+      if (t.bank_account_id) {
+        const amountChange = t.type === 'income' ? t.amount : -t.amount;
+        // Se mudou para pago, aplica o valor. Se mudou para pendente, reverte.
+        const direction = newStatus === 'paid' ? 1 : -1;
+        await updateAccountBalance(t.bank_account_id, amountChange * direction);
+      }
+
       onRefresh();
     } catch (error) {
       toast.error("Erro ao atualizar status");
@@ -160,7 +266,10 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
           </Select>
         </div>
 
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+        <Dialog open={isAddOpen} onOpenChange={(open) => {
+          setIsAddOpen(open);
+          if (!open) resetForm();
+        }}>
           <DialogTrigger asChild>
             <Button className="w-full md:w-auto">
               <Plus className="h-4 w-4 mr-2" /> Nova Transação
@@ -168,7 +277,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Adicionar Transação</DialogTitle>
+              <DialogTitle>{editingTransactionId ? "Editar Transação" : "Adicionar Transação"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
@@ -243,6 +352,25 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                   </Select>
                 </div>
                 <div className="space-y-2">
+                  <Label>Forma de Pagamento</Label>
+                  <Select value={formData.payment_method} onValueChange={(v) => setFormData({...formData, payment_method: v})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pix">PIX</SelectItem>
+                      <SelectItem value="credit_card">Cartão de Crédito</SelectItem>
+                      <SelectItem value="debit_card">Cartão de Débito</SelectItem>
+                      <SelectItem value="cash">Dinheiro</SelectItem>
+                      <SelectItem value="transfer">Transferência</SelectItem>
+                      <SelectItem value="boleto">Boleto</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
                   <Label>Status</Label>
                   <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
                     <SelectTrigger>
@@ -304,7 +432,9 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                       <TableCell>
                         <div className="flex flex-col">
                           <span className="font-medium">{t.description}</span>
-                          <span className="text-xs text-muted-foreground">{t.payment_method}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {PAYMENT_METHODS[t.payment_method] || t.payment_method}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -327,10 +457,10 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(t)}>
                             <Edit2 className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(t.id)}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(t)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
