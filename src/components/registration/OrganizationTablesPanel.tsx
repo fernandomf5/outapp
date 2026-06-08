@@ -62,6 +62,8 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
   const [newColumn, setNewColumn] = useState({ name: "", type: 'text' as ColumnType, header_text_color: "#000000" });
   const [editingColumn, setEditingColumn] = useState<TableColumn | null>(null);
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
+  const [selectedCells, setSelectedCells] = useState<Record<string, string[]>>({}); // rowId -> columnIds[]
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
 
   const { toast } = useToast();
   const { resolvedTheme } = useTheme();
@@ -381,58 +383,118 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
   };
 
   const totals = useMemo(() => {
-    if (selectedRowIds.length === 0) return {};
-    const selectedRows = rows.filter(r => selectedRowIds.includes(r.id));
+    // If we have specific cells selected, use those
+    const cellRowIds = Object.keys(selectedCells);
+    const hasCellSelection = cellRowIds.some(id => selectedCells[id].length > 0);
+    
+    if (!hasCellSelection && selectedRowIds.length === 0) return {};
+
     const results: Record<string, { sum: number, count: number }> = {};
     
     columns.forEach(col => {
       let sum = 0;
       let count = 0;
-      selectedRows.forEach(row => {
-        const val = row.cells[col.id];
-        if (val) {
-          // Check if it looks like a date (DD/MM/YYYY or DD/MM/YY)
-          const isDatePattern = /^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}$/.test(val.trim());
-          if (isDatePattern) return;
 
-          // Clean the string to try to get a number (handle currency/commas/dots)
-          // For currency like R$ 1.250,00 -> 1250.00
-          let cleanVal = val.trim();
-          
-          // Remove currency symbols and spaces, keeping digits, commas, dots and minus sign
-          cleanVal = cleanVal.replace(/[^\d,.-]/g, '');
-          
-          // Logic to handle different decimal separators
-          if (cleanVal.includes(',') && cleanVal.includes('.')) {
-            // Format like 1.250,00 or 1,250.00
-            const lastComma = cleanVal.lastIndexOf(',');
-            const lastDot = cleanVal.lastIndexOf('.');
-            
-            if (lastComma > lastDot) {
-              // 1.250,00 (Brazilian/European)
-              cleanVal = cleanVal.replace(/\./g, '').replace(',', '.');
-            } else {
-              // 1,250.00 (US)
-              cleanVal = cleanVal.replace(/,/g, '');
+      if (hasCellSelection) {
+        // Mode: Specific cells selected
+        cellRowIds.forEach(rowId => {
+          if (selectedCells[rowId]?.includes(col.id)) {
+            const row = rows.find(r => r.id === rowId);
+            const val = row?.cells[col.id];
+            if (val) {
+              const num = parseValueToNumber(val);
+              if (num !== null) {
+                sum += num;
+                count++;
+              }
             }
-          } else if (cleanVal.includes(',')) {
-            // Probably 1250,00 (Brazilian/European decimal)
-            cleanVal = cleanVal.replace(',', '.');
           }
-          
-          const num = parseFloat(cleanVal);
-          if (!isNaN(num)) {
-            sum += num;
-            count++;
+        });
+      } else {
+        // Mode: Entire rows selected
+        const selectedRows = rows.filter(r => selectedRowIds.includes(r.id));
+        selectedRows.forEach(row => {
+          const val = row.cells[col.id];
+          if (val) {
+            const num = parseValueToNumber(val);
+            if (num !== null) {
+              sum += num;
+              count++;
+            }
           }
-        }
-      });
+        });
+      }
+
       if (count > 0) {
         results[col.id] = { sum, count };
       }
     });
     return results;
-  }, [selectedRowIds, rows, columns]);
+  }, [selectedRowIds, selectedCells, rows, columns]);
+
+  const parseValueToNumber = (val: string) => {
+    const trimmedVal = val.trim();
+    // Check if it looks like a date (DD/MM/YYYY or DD/MM/YY)
+    if (/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}$/.test(trimmedVal)) return null;
+
+    let cleanVal = trimmedVal.replace(/[^\d,.-]/g, '');
+    
+    if (cleanVal.includes(',') && cleanVal.includes('.')) {
+      const lastComma = cleanVal.lastIndexOf(',');
+      const lastDot = cleanVal.lastIndexOf('.');
+      if (lastComma > lastDot) cleanVal = cleanVal.replace(/\./g, '').replace(',', '.');
+      else cleanVal = cleanVal.replace(/,/g, '');
+    } else if (cleanVal.includes(',')) {
+      cleanVal = cleanVal.replace(',', '.');
+    }
+    
+    const num = parseFloat(cleanVal);
+    return isNaN(num) ? null : num;
+  };
+
+  const toggleCellSelection = (rowId: string, colId: string) => {
+    if (!isSelectionMode) return;
+    setSelectedCells(prev => {
+      const rowCols = prev[rowId] || [];
+      const newCols = rowCols.includes(colId) 
+        ? rowCols.filter(id => id !== colId) 
+        : [...rowCols, colId];
+      return { ...prev, [rowId]: newCols };
+    });
+  };
+
+  const handleSaveTotal = async (colId: string, sum: number) => {
+    if (!selectedTable) return;
+    const { data: userData } = await supabase.auth.getUser();
+    
+    const { data: newRow, error: rowError } = await supabase
+      .from("organization_table_rows")
+      .insert({
+        table_id: selectedTable.id,
+        user_id: userData.user?.id,
+        order_index: rows.length > 0 ? Math.max(...rows.map(r => r.order_index)) + 1 : 0,
+        row_background_color: '#fef9c3' // Light yellow for totals
+      })
+      .select()
+      .single();
+
+    if (rowError) {
+      toast({ title: "Erro ao criar linha de total", variant: "destructive" });
+      return;
+    }
+
+    const value = sum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    await supabase
+      .from("organization_table_cells")
+      .insert({ 
+        row_id: newRow.id, 
+        column_id: colId, 
+        value: `TOTAL: ${value}` 
+      });
+
+    toast({ title: "Total salvo com sucesso!" });
+    fetchTableDetails(selectedTable.id);
+  };
 
   const toggleAllRows = () => {
     if (selectedRowIds.length === rows.length) {
@@ -498,6 +560,20 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                 </PopoverContent>
               </Popover>
             )}
+            <Button 
+              variant={isSelectionMode ? "secondary" : "outline"} 
+              size="sm" 
+              onClick={() => {
+                setIsSelectionMode(!isSelectionMode);
+                if (!isSelectionMode) {
+                  setSelectedRowIds([]);
+                  setSelectedCells({});
+                }
+              }}
+              className={cn(isSelectionMode && "ring-2 ring-primary")}
+            >
+              <Calculator className="mr-2 h-4 w-4" /> {isSelectionMode ? "Saindo da Soma" : "Somar"}
+            </Button>
             <Button variant="outline" size="sm" onClick={() => setIsColumnModalOpen(true)}>
               <Plus className="mr-2 h-4 w-4" /> Coluna
             </Button>
@@ -620,18 +696,35 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                     </Popover>
                   </td>
 
-                  {columns.map((col) => (
-                    <td key={col.id} className="px-0 py-0 border-r min-w-[150px]">
-                      <input
-                        type="text"
-                        className="w-full h-full px-4 py-2 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-primary/30"
-                        style={{ color: row.row_background_color && row.row_background_color !== 'transparent' ? 'inherit' : undefined }}
-                        value={row.cells[col.id] || ""}
-                        onChange={(e) => handleCellUpdate(row.id, col.id, e.target.value)}
-                        placeholder="..."
-                      />
-                    </td>
-                  ))}
+                  {columns.map((col) => {
+                    const isSelected = selectedCells[row.id]?.includes(col.id);
+                    return (
+                      <td 
+                        key={col.id} 
+                        className={cn(
+                          "px-0 py-0 border-r min-w-[150px] transition-colors relative",
+                          isSelected && "bg-primary/20 ring-1 ring-inset ring-primary"
+                        )}
+                        onClick={() => toggleCellSelection(row.id, col.id)}
+                      >
+                        <input
+                          type="text"
+                          className={cn(
+                            "w-full h-full px-4 py-2 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-primary/30",
+                            isSelectionMode && "cursor-pointer"
+                          )}
+                          readOnly={isSelectionMode}
+                          style={{ color: row.row_background_color && row.row_background_color !== 'transparent' ? 'inherit' : undefined }}
+                          value={row.cells[col.id] || ""}
+                          onChange={(e) => handleCellUpdate(row.id, col.id, e.target.value)}
+                          placeholder="..."
+                        />
+                        {isSelectionMode && (
+                          <div className="absolute inset-0 z-10" />
+                        )}
+                      </td>
+                    );
+                  })}
                   <td className="px-4 py-2 text-right">
                     <Button 
                       variant="ghost" 
@@ -662,7 +755,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
           <div className="bg-primary/5 border-t px-6 py-3 flex flex-wrap items-center gap-6 animate-in slide-in-from-bottom-2 duration-300">
             <div className="flex items-center gap-2 text-sm font-semibold text-primary">
               <Calculator className="h-4 w-4" />
-              Cálculos ({selectedRowIds.length} selecionados):
+              Cálculos ({Object.values(selectedCells).flat().length || selectedRowIds.length} selecionados):
             </div>
             <div className="flex flex-wrap gap-4">
               {columns.filter(col => totals[col.id]).map(col => (
@@ -675,6 +768,15 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                     <span className="text-[10px] text-muted-foreground">
                       (Média: {(totals[col.id].sum / totals[col.id].count).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
                     </span>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-5 w-5 ml-1 text-primary hover:text-primary hover:bg-primary/10"
+                      title="Salvar Total como Novo Registro"
+                      onClick={() => handleSaveTotal(col.id, totals[col.id].sum)}
+                    >
+                      <Save className="h-3 w-3" />
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -683,7 +785,10 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
               variant="ghost" 
               size="sm" 
               className="ml-auto text-xs h-7"
-              onClick={() => setSelectedRowIds([])}
+              onClick={() => {
+                setSelectedRowIds([]);
+                setSelectedCells({});
+              }}
             >
               Limpar Seleção
             </Button>
