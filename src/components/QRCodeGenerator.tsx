@@ -361,18 +361,14 @@ export function QRCodeGenerator() {
         </head>
         <body>
           <div class="container">
-            ${businessName ? `
-              <div class="business-name-container">
+            <div class="header-container">
+              ${showLogo && logoUrl ? `<img src="${logoUrl}" class="logo-top" alt="Logo" />` : ''}
+              ${businessName ? `
                 <div class="business-name">${businessName}</div>
                 <div class="name-underline"></div>
-              </div>
-            ` : ''}
-            <div class="qr-wrapper">
-              ${showLogo && logoUrl ? `
-                <div class="logo-center">
-                  <img src="${logoUrl}" alt="Logo" />
-                </div>
               ` : ''}
+            </div>
+            <div class="qr-wrapper">
               ${svgData}
             </div>
             ${showSocialMedia && activeSocials.length > 0 ? `
