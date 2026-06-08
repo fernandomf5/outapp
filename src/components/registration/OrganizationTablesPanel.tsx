@@ -1064,6 +1064,15 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                                 >
                                   <X className="mr-1 h-3 w-3" /> Padrão
                                 </Button>
+                                <Button 
+                                  variant={cellData.is_bold ? "secondary" : "ghost"} 
+                                  size="sm" 
+                                  className="w-full h-7 text-[10px] justify-start px-1 mt-1"
+                                  onClick={() => handleCellBoldUpdate(row.id, col.id, !cellData.is_bold)}
+                                >
+                                  <span className={cn("mr-2 font-bold", cellData.is_bold ? "text-primary" : "")}>B</span>
+                                  {cellData.is_bold ? "Remover Negrito" : "Negrito"}
+                                </Button>
                               </div>
                             </PopoverContent>
                           </Popover>
