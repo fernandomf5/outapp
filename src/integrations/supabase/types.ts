@@ -5994,6 +5994,7 @@ export type Database = {
           created_at: string
           id: string
           row_id: string
+          text_color: string | null
           updated_at: string
           value: string | null
         }
@@ -6002,6 +6003,7 @@ export type Database = {
           created_at?: string
           id?: string
           row_id: string
+          text_color?: string | null
           updated_at?: string
           value?: string | null
         }
@@ -6010,6 +6012,7 @@ export type Database = {
           created_at?: string
           id?: string
           row_id?: string
+          text_color?: string | null
           updated_at?: string
           value?: string | null
         }
