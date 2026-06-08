@@ -5988,6 +5988,151 @@ export type Database = {
         }
         Relationships: []
       }
+      organization_table_cells: {
+        Row: {
+          column_id: string
+          created_at: string
+          id: string
+          row_id: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          column_id: string
+          created_at?: string
+          id?: string
+          row_id: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          column_id?: string
+          created_at?: string
+          id?: string
+          row_id?: string
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_table_cells_column_id_fkey"
+            columns: ["column_id"]
+            isOneToOne: false
+            referencedRelation: "organization_table_columns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_table_cells_row_id_fkey"
+            columns: ["row_id"]
+            isOneToOne: false
+            referencedRelation: "organization_table_rows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_table_columns: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          options: Json | null
+          order_index: number
+          table_id: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          options?: Json | null
+          order_index?: number
+          table_id: string
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          options?: Json | null
+          order_index?: number
+          table_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_table_columns_table_id_fkey"
+            columns: ["table_id"]
+            isOneToOne: false
+            referencedRelation: "organization_tables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_table_rows: {
+        Row: {
+          created_at: string
+          id: string
+          table_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          table_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          table_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_table_rows_table_id_fkey"
+            columns: ["table_id"]
+            isOneToOne: false
+            referencedRelation: "organization_tables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_tables: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payment_integrations: {
         Row: {
           api_key: string | null

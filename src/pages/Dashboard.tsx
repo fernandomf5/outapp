@@ -81,7 +81,7 @@ import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { TeamMemberBanner } from "@/components/TeamMemberBanner";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
 import { RegistrationManagerPanel } from "@/components/registration/RegistrationManagerPanel";
-import { CustomFinancialRecordsPanel } from "@/components/registration/CustomFinancialRecordsPanel";
+import { OrganizationTablesPanel } from "@/components/registration/OrganizationTablesPanel";
 import { RegistrationCategoriesSettings } from "@/components/registration/RegistrationCategoriesSettings";
 import {
   AlertDialog,
@@ -1338,10 +1338,10 @@ const Dashboard = () => {
             </FeatureGate>
           </TabsContent>
 
-          <TabsContent value="registros-personalizados" className="m-0 p-0 border-none outline-none">
+          <TabsContent value="tabelas-organizacao" className="m-0 p-0 border-none outline-none">
             <FeatureGate featureKey="financial_management">
-              <div className="py-6">
-                <CustomFinancialRecordsPanel />
+              <div className="py-0">
+                <OrganizationTablesPanel />
               </div>
             </FeatureGate>
           </TabsContent>
