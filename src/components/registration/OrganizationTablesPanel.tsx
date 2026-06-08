@@ -886,13 +886,15 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
               </tr>
             </thead>
             <tbody>
-              {rows.map((row, idx) => (
                 <tr 
                   key={row.id} 
-                  className="border-b hover:bg-muted/30 transition-colors group"
+                  className={cn(
+                    "border-b hover:bg-muted/30 transition-colors group",
+                    row.is_bold && "font-bold"
+                  )}
                   style={{ 
                     backgroundColor: row.row_background_color || 'transparent',
-                    color: row.row_background_color && row.row_background_color !== 'transparent' && row.row_background_color !== '#f8fafc' ? '#000000' : 'inherit'
+                    color: row.row_text_color || (row.row_background_color && row.row_background_color !== 'transparent' && row.row_background_color !== '#f8fafc' ? '#000000' : 'inherit')
                   }}
                 >
                   <td className="px-4 py-2 text-center border-r">
