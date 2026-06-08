@@ -6,6 +6,7 @@ import { Loader2, AlertCircle, PlusCircle, List, Mail, Phone, Trash2, Eye, Penci
 import { Button } from "@/components/ui/button";
 import { UnifiedRegistrationForm } from "./UnifiedRegistrationForm";
 import { toast } from "sonner";
+import { SecureDeleteDialog } from "@/components/ui/secure-delete-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,6 +38,8 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
   const [activeTab, setActiveTab] = useState<string>("form");
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isViewOnly, setIsViewOnly] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{id: string, name: string} | null>(null);
 
   useEffect(() => {
     if (categoryId && user) {
@@ -85,20 +88,28 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este cadastro?')) return;
+  const confirmDelete = (id: string, name: string) => {
+    setItemToDelete({ id, name });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!itemToDelete) return;
     
     try {
       const { error } = await supabase
         .from('contacts')
         .delete()
-        .eq('id', id);
+        .eq('id', itemToDelete.id);
 
       if (error) throw error;
       toast.success('Cadastro excluído com sucesso!');
       fetchItems();
     } catch (error: any) {
       toast.error('Erro ao excluir: ' + error.message);
+    } finally {
+      setDeleteDialogOpen(false);
+      setItemToDelete(null);
     }
   };
 
@@ -262,7 +273,7 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              onClick={() => handleDelete(item.id)}
+                              onClick={() => confirmDelete(item.id, item.name)}
                               className="text-destructive hover:text-destructive hover:bg-destructive/10"
                               title="Excluir"
                             >
@@ -279,6 +290,14 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
           </Card>
         )}
       </div>
+      <SecureDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDelete}
+        title="Excluir Cadastro"
+        description="Esta ação excluirá permanentemente este cadastro. Para confirmar, digite 'excluir' abaixo."
+        itemName={itemToDelete?.name}
+      />
     </div>
   );
 }

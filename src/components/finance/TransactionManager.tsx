@@ -13,6 +13,7 @@ import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
+import { SecureDeleteDialog } from "@/components/ui/secure-delete-dialog";
 
 const PAYMENT_METHODS: Record<string, string> = {
   pix: "PIX",
@@ -50,6 +51,8 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
 
   const [formData, setFormData] = useState({
     description: "",
@@ -198,7 +201,14 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     setIsAddOpen(true);
   };
 
-  const handleDelete = async (t: Transaction) => {
+  const confirmDelete = (t: Transaction) => {
+    setTransactionToDelete(t);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!transactionToDelete) return;
+    const t = transactionToDelete;
     try {
       const { error } = await supabase.from('financial_transactions').delete().eq('id', t.id);
       if (error) throw error;
@@ -213,6 +223,9 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
       onRefresh();
     } catch (error) {
       toast.error("Erro ao excluir");
+    } finally {
+      setDeleteDialogOpen(false);
+      setTransactionToDelete(null);
     }
   };
 
@@ -460,7 +473,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(t)}>
                             <Edit2 className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(t)}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => confirmDelete(t)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -473,6 +486,15 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
           </div>
         </CardContent>
       </Card>
+
+      <SecureDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDelete}
+        title="Excluir Transação"
+        description="Esta ação excluirá permanentemente os dados desta transação e reverterá qualquer impacto no saldo da conta vinculada (se paga). Para confirmar, digite 'excluir' abaixo."
+        itemName={transactionToDelete?.description}
+      />
     </div>
   );
 };
