@@ -3963,6 +3963,213 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_financial_entries: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string
+          due_date: string
+          entry_type: string
+          id: string
+          is_recurring: boolean | null
+          notes: string | null
+          payment_date: string | null
+          record_id: string
+          recurring_period: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description: string
+          due_date: string
+          entry_type: string
+          id?: string
+          is_recurring?: boolean | null
+          notes?: string | null
+          payment_date?: string | null
+          record_id: string
+          recurring_period?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string
+          due_date?: string
+          entry_type?: string
+          id?: string
+          is_recurring?: boolean | null
+          notes?: string | null
+          payment_date?: string | null
+          record_id?: string
+          recurring_period?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_financial_entries_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "custom_financial_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_financial_field_values: {
+        Row: {
+          created_at: string
+          field_id: string
+          id: string
+          record_id: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          created_at?: string
+          field_id: string
+          id?: string
+          record_id: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          created_at?: string
+          field_id?: string
+          id?: string
+          record_id?: string
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_financial_field_values_field_id_fkey"
+            columns: ["field_id"]
+            isOneToOne: false
+            referencedRelation: "custom_financial_fields"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "custom_financial_field_values_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "custom_financial_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_financial_fields: {
+        Row: {
+          created_at: string
+          field_type: string
+          id: string
+          is_required: boolean | null
+          label: string
+          options: Json | null
+          order_index: number | null
+          structure_id: string
+        }
+        Insert: {
+          created_at?: string
+          field_type: string
+          id?: string
+          is_required?: boolean | null
+          label: string
+          options?: Json | null
+          order_index?: number | null
+          structure_id: string
+        }
+        Update: {
+          created_at?: string
+          field_type?: string
+          id?: string
+          is_required?: boolean | null
+          label?: string
+          options?: Json | null
+          order_index?: number | null
+          structure_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_financial_fields_structure_id_fkey"
+            columns: ["structure_id"]
+            isOneToOne: false
+            referencedRelation: "custom_financial_structures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_financial_records: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          structure_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          structure_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          structure_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_financial_records_structure_id_fkey"
+            columns: ["structure_id"]
+            isOneToOne: false
+            referencedRelation: "custom_financial_structures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_financial_structures: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       custom_pages: {
         Row: {
           content: string
