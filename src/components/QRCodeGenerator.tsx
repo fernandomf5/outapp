@@ -902,8 +902,8 @@ export function QRCodeGenerator() {
             </div>
 
             {/* Preview */}
-            <div className="relative flex flex-col items-center justify-start h-full">
-              <div className="sticky top-28 flex flex-col items-center space-y-4">
+            <div className="relative flex flex-col items-center">
+              <div className="sticky top-[100px] z-[50] flex flex-col items-center space-y-4 bg-background/80 backdrop-blur-sm p-4 rounded-xl border shadow-xl">
                 <h3 className="font-semibold text-lg">Visualização para Impressão</h3>
                 <div 
                   ref={printRef}
