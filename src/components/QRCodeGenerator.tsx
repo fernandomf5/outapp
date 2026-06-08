@@ -903,6 +903,7 @@ export function QRCodeGenerator() {
 
             {/* Preview */}
             <div className="flex flex-col items-center justify-start space-y-4">
+              <div className="sticky top-4 flex flex-col items-center space-y-4">
               <h3 className="font-semibold text-lg">Visualização para Impressão</h3>
               <div 
                 ref={printRef}
@@ -1004,6 +1005,7 @@ export function QRCodeGenerator() {
               <p className="text-xs text-muted-foreground text-center">
                 Esta é a visualização de como ficará na impressão
               </p>
+              </div>
             </div>
           </div>
         </CardContent>
