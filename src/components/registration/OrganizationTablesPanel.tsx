@@ -30,7 +30,9 @@ interface TableRow {
   id: string;
   cells: Record<string, string>; // columnId -> value
   row_background_color?: string;
+  order_index: number;
 }
+
 
 const COLOR_PALETTE = [
   '#000000', '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b',
@@ -99,12 +101,15 @@ export const OrganizationTablesPanel = () => {
       .select(`
         id,
         row_background_color,
+        order_index,
         organization_table_cells (
           column_id,
           value
         )
       `)
-      .eq("table_id", tableId);
+      .eq("table_id", tableId)
+      .order("order_index", { ascending: true });
+
 
     if (rowsError) return;
 
@@ -116,8 +121,10 @@ export const OrganizationTablesPanel = () => {
       return { 
         id: r.id, 
         cells, 
-        row_background_color: r.row_background_color 
+        row_background_color: r.row_background_color,
+        order_index: r.order_index || 0
       };
+
     });
 
     setRows(formattedRows);
@@ -216,7 +223,9 @@ export const OrganizationTablesPanel = () => {
       .insert({
         table_id: selectedTable.id,
         user_id: userData.user?.id,
+        order_index: rows.length > 0 ? Math.max(...rows.map(r => r.order_index)) + 1 : 0
       })
+
       .select()
       .single();
 
@@ -271,6 +280,22 @@ export const OrganizationTablesPanel = () => {
       fetchTableDetails(selectedTable.id);
     }
   };
+  
+  const handleUpdateRowOrder = async (rowId: string, newOrder: number) => {
+    // Basic logic: update the specific row. 
+    // If the user wants to "move" a row to position 4, they can type 4.
+    const { error } = await supabase
+      .from("organization_table_rows")
+      .update({ order_index: newOrder })
+      .eq("id", rowId);
+
+    if (error) {
+      toast({ title: "Erro ao atualizar posição", variant: "destructive" });
+    } else {
+      fetchTableDetails(selectedTable.id);
+    }
+  };
+
 
   const handleDeleteTable = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
