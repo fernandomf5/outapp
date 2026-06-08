@@ -205,7 +205,7 @@ export const CustomFinancialRecordsPanel = () => {
       if (valuesToInsert.length > 0) {
         const { error: valuesError } = await supabase
           .from('custom_financial_field_values')
-          .insert(valuesToInsert);
+          .insert(valuesToInsert as any);
         
         if (valuesError) throw valuesError;
       }
