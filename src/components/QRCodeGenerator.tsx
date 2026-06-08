@@ -565,34 +565,38 @@ export function QRCodeGenerator() {
 
       <div 
         ref={printRef}
-        className="flex flex-col items-center bg-white p-6 rounded-lg shadow-inner w-full overflow-hidden"
+        className="flex flex-col items-center bg-white rounded-lg shadow-inner w-full overflow-hidden"
         style={{
           backgroundColor: bgColor,
           border: showBorder ? `${borderWidth}px solid ${borderColor}` : 'none',
           borderRadius: `${cornerRadius}px`,
-          minHeight: '400px',
-          justifyContent: 'space-between'
+          minHeight: '420px',
+          justifyContent: 'space-between',
+          padding: `${padding}px`
         }}
       >
         <div className="flex flex-col items-center w-full">
           {businessName && (
-            <p 
-              className="font-bold text-center break-all mb-4 px-2 uppercase tracking-wider"
-              style={{ color: fgColor, fontSize: '1.4rem' }}
-            >
-              {businessName}
-            </p>
+            <div className="w-full flex flex-col items-center mb-6">
+              <p 
+                className="font-black text-center break-all px-2 uppercase tracking-tighter leading-none"
+                style={{ color: fgColor, fontSize: '2rem' }}
+              >
+                {businessName}
+              </p>
+              <div className="h-1.5 w-16 mt-2 rounded-full" style={{ backgroundColor: fgColor }}></div>
+            </div>
           )}
           
-          <div className="relative group flex flex-col items-center">
+          <div className="relative group flex flex-col items-center p-4 bg-white rounded-2xl shadow-sm border border-gray-100">
             {showLogo && logoUrl && (
-              <div className="mb-4 flex justify-center">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-white p-1 rounded-lg shadow-md border border-gray-100">
                 <img 
                   src={logoUrl} 
                   alt="Logo" 
                   style={{ 
-                    width: Math.min(logoSize, 80), 
-                    height: Math.min(logoSize, 80), 
+                    width: Math.min(logoSize, 50), 
+                    height: Math.min(logoSize, 50), 
                     objectFit: 'contain' 
                   }} 
                 />
@@ -602,14 +606,14 @@ export function QRCodeGenerator() {
               <QRCodeSVG
                 id="qr-code-svg"
                 value={text}
-                size={220}
+                size={200}
                 fgColor={fgColor}
-                bgColor={bgColor}
+                bgColor="#ffffff"
                 level="H"
                 includeMargin={false}
               />
             ) : (
-              <div className="w-[220px] h-[220px] flex items-center justify-center bg-muted rounded-md border-2 border-dashed">
+              <div className="w-[200px] h-[200px] flex items-center justify-center bg-muted rounded-md border-2 border-dashed">
                 <p className="text-xs text-muted-foreground text-center px-4">
                   Aguardando conteúdo...
                 </p>
@@ -619,34 +623,41 @@ export function QRCodeGenerator() {
         </div>
 
         {showSocialMedia && Object.entries(socialMedia).some(([_, v]) => v.trim()) && (
-          <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-6 pt-6 px-4 w-full border-t border-gray-100/50">
-            {Object.entries(socialMedia).map(([platform, handle]) => {
-              if (!handle.trim()) return null;
-              const Icon = {
-                instagram: FaInstagram,
-                facebook: FaFacebook,
-                tiktok: FaTiktok,
-                youtube: FaYoutube,
-                twitter: FaTwitter,
-                linkedin: FaLinkedin
-              }[platform as keyof SocialMedia];
+          <div className="w-full mt-auto pt-6 flex flex-col items-center">
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 w-full py-4 rounded-xl" style={{ backgroundColor: `${fgColor}10` }}>
+              {Object.entries(socialMedia).map(([platform, handle]) => {
+                if (!handle.trim()) return null;
+                const Icon = {
+                  instagram: FaInstagram,
+                  facebook: FaFacebook,
+                  tiktok: FaTiktok,
+                  youtube: FaYoutube,
+                  twitter: FaTwitter,
+                  linkedin: FaLinkedin
+                }[platform as keyof SocialMedia];
 
-              const colors: Record<string, string> = {
-                instagram: '#E4405F',
-                facebook: '#1877F2',
-                tiktok: '#000000',
-                youtube: '#FF0000',
-                twitter: '#1DA1F2',
-                linkedin: '#0A66C2',
-              };
+                const colors: Record<string, string> = {
+                  instagram: '#E4405F',
+                  facebook: '#1877F2',
+                  tiktok: '#000000',
+                  youtube: '#FF0000',
+                  twitter: '#1DA1F2',
+                  linkedin: '#0A66C2',
+                };
 
-              return (
-                <div key={platform} className="flex items-center gap-2 bg-gray-50/50 px-3 py-1.5 rounded-full border border-gray-100">
-                  {Icon && <Icon className="w-4 h-4" style={{ color: colors[platform] }} />}
-                  <span className="text-xs font-bold" style={{ color: colors[platform] }}>@{handle}</span>
-                </div>
-              );
-            })}
+                return (
+                  <div key={platform} className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-white shadow-sm border border-gray-50">
+                      {Icon && <Icon className="w-4 h-4" style={{ color: colors[platform] }} />}
+                    </div>
+                    <span className="text-sm font-black italic tracking-tight" style={{ color: fgColor }}>@{handle}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-4 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] opacity-40" style={{ color: fgColor }}>
+              Escaneie para nos seguir
+            </div>
           </div>
         )}
       </div>
