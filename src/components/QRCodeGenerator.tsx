@@ -256,33 +256,33 @@ export function QRCodeGenerator() {
               display: flex;
               flex-direction: column;
               align-items: center;
-              margin-bottom: 24px;
+              margin-bottom: 30px;
               width: 100%;
             }
             .business-name {
-              font-size: 32px;
+              font-size: 48px;
               font-weight: 900;
               text-align: center;
               color: ${fgColor};
               text-transform: uppercase;
-              letter-spacing: -1px;
-              line-height: 1;
+              letter-spacing: -2px;
+              line-height: 0.9;
               margin: 0;
             }
             .name-underline {
-              height: 6px;
-              width: 60px;
+              height: 8px;
+              width: 100px;
               background-color: ${fgColor};
-              margin-top: 8px;
+              margin-top: 12px;
               border-radius: 10px;
             }
             .qr-wrapper {
               position: relative;
               background: white;
-              padding: 16px;
-              border-radius: 20px;
-              box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-              border: 1px solid #f0f0f0;
+              padding: 24px;
+              border-radius: 30px;
+              box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+              border: 1px solid #eeeeee;
               display: flex;
               justify-content: center;
               align-items: center;
@@ -293,47 +293,72 @@ export function QRCodeGenerator() {
               left: 50%;
               transform: translate(-50%, -50%);
               background: white;
-              padding: 4px;
-              border-radius: 8px;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+              padding: 6px;
+              border-radius: 12px;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.15);
               z-index: 10;
               display: flex;
               align-items: center;
               justify-content: center;
-              border: 1px solid #f0f0f0;
+              border: 1px solid #eeeeee;
             }
             .logo-center img {
-              width: ${Math.min(logoSize, 50)}px;
-              height: ${Math.min(logoSize, 50)}px;
+              width: ${Math.min(logoSize, 70)}px;
+              height: ${Math.min(logoSize, 70)}px;
               object-fit: contain;
             }
             .socials-container {
               width: 100%;
-              margin-top: auto;
-              padding-top: 24px;
+              margin-top: 30px;
               display: flex;
               flex-direction: column;
               align-items: center;
+              gap: 15px;
             }
             .socials {
               display: flex;
-              flex-wrap: wrap;
-              gap: 24px;
-              justify-content: center;
-              background-color: ${fgColor}15;
-              padding: 16px;
-              border-radius: 16px;
+              flex-direction: column;
+              gap: 15px;
               width: 100%;
-              box-sizing: border-box;
+              align-items: center;
+            }
+            .social-item {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              width: 100%;
+              max-width: 300px;
+              padding: 12px 20px;
+              background: white;
+              border-radius: 15px;
+              border: 2px solid ${fgColor}20;
+            }
+            .social-icon {
+              font-size: 24px;
+              font-weight: bold;
+              color: white;
+              background-color: ${fgColor};
+              width: 36px;
+              height: 36px;
+              border-radius: 10px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .social-handle {
+              font-size: 20px;
+              font-weight: 800;
+              color: ${fgColor};
+              letter-spacing: -0.5px;
             }
             .scan-text {
-              margin-top: 12px;
-              font-size: 10px;
-              font-weight: bold;
+              margin-top: 10px;
+              font-size: 14px;
+              font-weight: 800;
               text-transform: uppercase;
-              letter-spacing: 2px;
+              letter-spacing: 3px;
               color: ${fgColor};
-              opacity: 0.6;
+              opacity: 0.8;
             }
             @media print {
               body {
@@ -362,9 +387,24 @@ export function QRCodeGenerator() {
             ${showSocialMedia && activeSocials.length > 0 ? `
               <div class="socials-container">
                 <div class="socials">
-                  ${socialIconsHtml}
+                  ${activeSocials.map(([platform, handle]) => {
+                    const colors: Record<string, string> = {
+                      instagram: '#E4405F',
+                      facebook: '#1877F2',
+                      tiktok: '#000000',
+                      youtube: '#FF0000',
+                      twitter: '#1DA1F2',
+                      linkedin: '#0A66C2',
+                    };
+                    return `
+                      <div class="social-item">
+                        <div class="social-icon" style="background-color: ${colors[platform]}">#</div>
+                        <div class="social-handle">@${handle}</div>
+                      </div>
+                    `;
+                  }).join('')}
                 </div>
-                <div class="scan-text">Escaneie para nos seguir</div>
+                <div class="scan-text">ESCANEIE PARA NOS SEGUIR</div>
               </div>
             ` : ''}
           </div>
@@ -635,24 +675,24 @@ export function QRCodeGenerator() {
           {businessName && (
             <div className="w-full flex flex-col items-center mb-6">
               <p 
-                className="font-black text-center break-all px-2 uppercase tracking-tighter leading-none"
-                style={{ color: fgColor, fontSize: '2rem' }}
+                className="font-black text-center break-all px-2 uppercase tracking-tighter leading-[0.85]"
+                style={{ color: fgColor, fontSize: '2.5rem' }}
               >
                 {businessName}
               </p>
-              <div className="h-1.5 w-16 mt-2 rounded-full" style={{ backgroundColor: fgColor }}></div>
+              <div className="h-2 w-20 mt-3 rounded-full" style={{ backgroundColor: fgColor }}></div>
             </div>
           )}
           
-          <div className="relative group flex flex-col items-center p-4 bg-white rounded-2xl shadow-sm border border-gray-100">
+          <div className="relative group flex flex-col items-center p-6 bg-white rounded-[32px] shadow-sm border border-gray-100">
             {showLogo && logoUrl && (
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-white p-1 rounded-lg shadow-md border border-gray-100">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-white p-1.5 rounded-xl shadow-lg border border-gray-100">
                 <img 
                   src={logoUrl} 
                   alt="Logo" 
                   style={{ 
-                    width: Math.min(logoSize, 50), 
-                    height: Math.min(logoSize, 50), 
+                    width: Math.min(logoSize, 60), 
+                    height: Math.min(logoSize, 60), 
                     objectFit: 'contain' 
                   }} 
                 />
@@ -662,14 +702,14 @@ export function QRCodeGenerator() {
               <QRCodeSVG
                 id="qr-code-svg"
                 value={text}
-                size={200}
+                size={220}
                 fgColor={fgColor}
                 bgColor="#ffffff"
                 level="H"
                 includeMargin={false}
               />
             ) : (
-              <div className="w-[200px] h-[200px] flex items-center justify-center bg-muted rounded-md border-2 border-dashed">
+              <div className="w-[220px] h-[220px] flex items-center justify-center bg-muted rounded-md border-2 border-dashed">
                 <p className="text-xs text-muted-foreground text-center px-4">
                   Aguardando conteúdo...
                 </p>
@@ -679,8 +719,8 @@ export function QRCodeGenerator() {
         </div>
 
         {showSocialMedia && Object.entries(socialMedia).some(([_, v]) => v.trim()) && (
-          <div className="w-full mt-auto pt-6 flex flex-col items-center">
-            <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 w-full py-4 rounded-xl" style={{ backgroundColor: `${fgColor}10` }}>
+          <div className="w-full mt-8 flex flex-col items-center space-y-4">
+            <div className="flex flex-col gap-3 w-full">
               {Object.entries(socialMedia).map(([platform, handle]) => {
                 if (!handle.trim()) return null;
                 const Icon = {
@@ -702,17 +742,17 @@ export function QRCodeGenerator() {
                 };
 
                 return (
-                  <div key={platform} className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-white shadow-sm border border-gray-50">
-                      {Icon && <Icon className="w-4 h-4" style={{ color: colors[platform] }} />}
+                  <div key={platform} className="flex items-center gap-4 bg-white p-3 rounded-2xl border-2 shadow-sm" style={{ borderColor: `${fgColor}20` }}>
+                    <div className="p-2 rounded-xl text-white shadow-inner" style={{ backgroundColor: colors[platform] }}>
+                      {Icon && <Icon className="w-5 h-5" />}
                     </div>
-                    <span className="text-sm font-black italic tracking-tight" style={{ color: fgColor }}>@{handle}</span>
+                    <span className="text-lg font-black italic tracking-tighter" style={{ color: fgColor }}>@{handle}</span>
                   </div>
                 );
               })}
             </div>
-            <div className="mt-4 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] opacity-40" style={{ color: fgColor }}>
-              Escaneie para nos seguir
+            <div className="mt-2 text-[12px] font-black uppercase tracking-[0.3em] opacity-60" style={{ color: fgColor }}>
+              ESCANEIE PARA NOS SEGUIR
             </div>
           </div>
         )}
