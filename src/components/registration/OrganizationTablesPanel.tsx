@@ -380,6 +380,47 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     }
   };
 
+  const totals = useMemo(() => {
+    if (selectedRowIds.length === 0) return {};
+    const selectedRows = rows.filter(r => selectedRowIds.includes(r.id));
+    const results: Record<string, { sum: number, count: number }> = {};
+    
+    columns.forEach(col => {
+      let sum = 0;
+      let count = 0;
+      selectedRows.forEach(row => {
+        const val = row.cells[col.id];
+        if (val) {
+          // Clean the string to try to get a number (handle currency/commas)
+          const cleanVal = val.replace(/[^\d,.-]/g, '').replace(',', '.');
+          const num = parseFloat(cleanVal);
+          if (!isNaN(num)) {
+            sum += num;
+            count++;
+          }
+        }
+      });
+      if (count > 0) {
+        results[col.id] = { sum, count };
+      }
+    });
+    return results;
+  }, [selectedRowIds, rows, columns]);
+
+  const toggleAllRows = () => {
+    if (selectedRowIds.length === rows.length) {
+      setSelectedRowIds([]);
+    } else {
+      setSelectedRowIds(rows.map(r => r.id));
+    }
+  };
+
+  const toggleRow = (id: string) => {
+    setSelectedRowIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
   if (view === 'table' && selectedTable) {
     return (
       <div className={cn("flex flex-col bg-background", isFullPage ? "h-full" : "h-screen max-h-[calc(100vh-140px)]")}>
