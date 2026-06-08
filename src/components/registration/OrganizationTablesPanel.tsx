@@ -474,6 +474,15 @@ export const OrganizationTablesPanel = () => {
               />
             </div>
             <div className="grid gap-2">
+              <Label htmlFor="logo">URL da Imagem ou Logo (Opcional)</Label>
+              <Input 
+                id="logo" 
+                placeholder="https://exemplo.com/imagem.png" 
+                value={newTable.logo_url}
+                onChange={(e) => setNewTable({...newTable, logo_url: e.target.value})}
+              />
+            </div>
+            <div className="grid gap-2">
               <Label>Cor de Identificação</Label>
               <div className="flex gap-2 flex-wrap">
                 {['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'].map(c => (
