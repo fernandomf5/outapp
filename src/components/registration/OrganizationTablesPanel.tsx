@@ -1249,6 +1249,53 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Delete Confirmation Modal */}
+        <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-destructive">
+                <Trash2 className="h-5 w-5" /> Confirmar Exclusão
+              </DialogTitle>
+              <DialogDescription>
+                Esta ação não pode ser desfeita. O item <strong>{itemToDelete?.name}</strong> será removido permanentemente.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+              {itemToDelete?.type !== 'row' ? (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Para confirmar, digite <span className="font-bold text-foreground select-none">excluir</span> no campo abaixo:
+                  </p>
+                  <Input
+                    value={deleteConfirmationText}
+                    onChange={(e) => setDeleteConfirmationText(e.target.value)}
+                    placeholder="Digite excluir para confirmar"
+                    className={cn(
+                      "border-2 transition-all",
+                      deleteConfirmationText.toLowerCase() === 'excluir' ? "border-green-500 focus-visible:ring-green-500" : "focus-visible:ring-destructive"
+                    )}
+                    autoFocus
+                  />
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Tem certeza que deseja excluir este registro? Esta ação é imediata.
+                </p>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>Cancelar</Button>
+              <Button 
+                variant="destructive" 
+                onClick={handleConfirmDelete}
+                disabled={itemToDelete?.type !== 'row' && deleteConfirmationText.toLowerCase() !== 'excluir'}
+              >
+                Excluir Permanentemente
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
