@@ -58,32 +58,117 @@ export const ReportCenter = ({ transactions }: ReportCenterProps) => {
   const [loading, setLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
+  const [period, setPeriod] = useState<'week' | 'month' | 'semester' | 'year' | 'projection'>('projection');
 
-  const cashFlowData = useMemo(() => {
-    const months = Array.from({ length: 6 }).map((_, i) => {
-      const date = addMonths(startOfMonth(new Date()), i);
-      return {
-        key: format(date, 'yyyy-MM'),
-        label: format(date, 'MMM/yy', { locale: ptBR }),
+  const filteredData = useMemo(() => {
+    const now = new Date();
+    let start: Date;
+    let end: Date = now;
+    let dataPoints: { key: string; label: string; income: number; expense: number }[] = [];
+
+    if (period === 'week') {
+      start = startOfWeek(now, { weekStartsOn: 0 });
+      end = endOfWeek(now, { weekStartsOn: 0 });
+      dataPoints = eachDayOfInterval({ start, end }).map(date => ({
+        key: format(date, 'yyyy-MM-dd'),
+        label: format(date, 'EEE', { locale: ptBR }),
         income: 0,
         expense: 0
-      };
-    });
+      }));
+    } else if (period === 'month') {
+      start = startOfMonth(now);
+      end = now;
+      // Group by week of month or chunks of days
+      dataPoints = Array.from({ length: 4 }).map((_, i) => {
+        const d = subDays(now, (3 - i) * 7);
+        return {
+          key: `week-${i}`,
+          label: `Semana ${i + 1}`,
+          income: 0,
+          expense: 0
+        };
+      });
+    } else if (period === 'semester') {
+      start = subMonths(now, 6);
+      dataPoints = Array.from({ length: 6 }).map((_, i) => {
+        const date = addMonths(start, i + 1);
+        return {
+          key: format(date, 'yyyy-MM'),
+          label: format(date, 'MMM/yy', { locale: ptBR }),
+          income: 0,
+          expense: 0
+        };
+      });
+    } else if (period === 'year') {
+      start = startOfYear(now);
+      end = endOfYear(now);
+      dataPoints = Array.from({ length: 12 }).map((_, i) => {
+        const date = new Date(now.getFullYear(), i, 1);
+        return {
+          key: format(date, 'yyyy-MM'),
+          label: format(date, 'MMM', { locale: ptBR }),
+          income: 0,
+          expense: 0
+        };
+      });
+    } else {
+      // Default projection (original behavior)
+      dataPoints = Array.from({ length: 6 }).map((_, i) => {
+        const date = addMonths(startOfMonth(now), i);
+        return {
+          key: format(date, 'yyyy-MM'),
+          label: format(date, 'MMM/yy', { locale: ptBR }),
+          income: 0,
+          expense: 0
+        };
+      });
+    }
 
     transactions.forEach(t => {
-      const monthKey = t.due_date.substring(0, 7);
-      const monthData = months.find(m => m.key === monthKey);
-      if (monthData) {
-        if (t.type === 'income') monthData.income += t.amount;
-        else monthData.expense += t.amount;
+      const tDate = parseISO(t.due_date);
+      if (period === 'projection') {
+        const monthKey = t.due_date.substring(0, 7);
+        const point = dataPoints.find(p => p.key === monthKey);
+        if (point) {
+          if (t.type === 'income') point.income += t.amount;
+          else point.expense += t.amount;
+        }
+      } else if (period === 'week') {
+        if (isWithinInterval(tDate, { start, end })) {
+          const key = format(tDate, 'yyyy-MM-dd');
+          const point = dataPoints.find(p => p.key === key);
+          if (point) {
+            if (t.type === 'income') point.income += t.amount;
+            else point.expense += t.amount;
+          }
+        }
+      } else if (period === 'month') {
+        if (isWithinInterval(tDate, { start: startOfMonth(now), end: now })) {
+          // Simple logic: divide month into 4 weeks
+          const day = tDate.getDate();
+          const weekIdx = Math.min(Math.floor((day - 1) / 7), 3);
+          const point = dataPoints[weekIdx];
+          if (t.type === 'income') point.income += t.amount;
+          else point.expense += t.amount;
+        }
+      } else {
+        // Semester or Year
+        const monthKey = t.due_date.substring(0, 7);
+        const point = dataPoints.find(p => p.key === monthKey);
+        if (point) {
+          if (t.type === 'income') point.income += t.amount;
+          else point.expense += t.amount;
+        }
       }
     });
 
-    return months.map(m => ({
-      ...m,
-      balance: m.income - m.expense
+    return dataPoints.map(p => ({
+      ...p,
+      balance: p.income - p.expense
     }));
-  }, [transactions]);
+  }, [transactions, period]);
+
+  const cashFlowData = filteredData; // Keep original variable name for compatibility with existing code
 
   useEffect(() => {
     loadSavedReports();
