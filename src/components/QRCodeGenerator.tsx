@@ -276,12 +276,12 @@ export function QRCodeGenerator() {
           <div class="container">
             ${businessName ? `<div class="business-name">${businessName}</div>` : ''}
             <div class="qr-wrapper">
-              ${svgData}
               ${showLogo && logoUrl ? `
-                <div class="logo-overlay">
+                <div class="logo-top">
                   <img src="${logoUrl}" alt="Logo" />
                 </div>
               ` : ''}
+              ${svgData}
             </div>
             ${showSocialMedia && activeSocials.length > 0 ? `
               <div class="socials">
