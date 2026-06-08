@@ -195,6 +195,14 @@ export function QRCodeGenerator() {
     const activeSocials = Object.entries(socialMedia).filter(([_, value]) => value.trim() !== '');
     
     const socialIconsHtml = activeSocials.map(([platform, handle]) => {
+      const IconMap: Record<string, string> = {
+        instagram: 'Instagram',
+        facebook: 'Facebook',
+        tiktok: 'TikTok',
+        youtube: 'YouTube',
+        twitter: 'Twitter',
+        linkedin: 'LinkedIn',
+      };
       const colors: Record<string, string> = {
         instagram: '#E4405F',
         facebook: '#1877F2',
@@ -203,7 +211,7 @@ export function QRCodeGenerator() {
         twitter: '#1DA1F2',
         linkedin: '#0A66C2',
       };
-      return `<div style="display: flex; align-items: center; gap: 6px; font-size: 14px;">
+      return `<div style="display: flex; align-items: center; gap: 4px; font-size: 14px;">
         <span style="color: ${colors[platform]}; font-weight: bold;">@${handle}</span>
       </div>`;
     }).join('');
