@@ -81,6 +81,7 @@ import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { TeamMemberBanner } from "@/components/TeamMemberBanner";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
 import { RegistrationManagerPanel } from "@/components/registration/RegistrationManagerPanel";
+import { CustomFinancialRecordsPanel } from "@/components/registration/CustomFinancialRecordsPanel";
 import { RegistrationCategoriesSettings } from "@/components/registration/RegistrationCategoriesSettings";
 import {
   AlertDialog,
@@ -1334,6 +1335,12 @@ const Dashboard = () => {
             <FeatureGate featureKey="financial_management">
               <FeatureTutorialVideo featureKey="financeiro" />
               <FinancialManagementPanel teamContext={getTeamContext('financial')} />
+            </FeatureGate>
+          </TabsContent>
+
+          <TabsContent value="registros-personalizados">
+            <FeatureGate featureKey="financial_management">
+              <CustomFinancialRecordsPanel />
             </FeatureGate>
           </TabsContent>
 
