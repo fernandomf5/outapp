@@ -9,6 +9,8 @@ interface Transaction {
   type: 'income' | 'expense';
   status: string;
   category: string;
+  description: string;
+  due_date: string;
 }
 
 interface FinancialOverviewProps {
