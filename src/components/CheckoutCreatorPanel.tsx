@@ -16,6 +16,8 @@ import { Plus, Edit2, Trash2, Copy, ExternalLink, ShoppingCart, DollarSign, Eye,
 import { CheckoutImageUpload } from "@/components/checkout/CheckoutImageUpload";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { CheckoutPreview } from "./checkout/CheckoutPreview";
+
 
 interface Checkout {
   id: string;
@@ -416,15 +418,23 @@ export const CheckoutCreatorPanel = () => {
 
   const renderFormFields = () => (
     <div className="max-h-[60vh] overflow-y-auto pr-2">
-      <Tabs value={formTab} onValueChange={setFormTab}>
-        <TabsList className="grid grid-cols-6 w-full mb-4">
-          <TabsTrigger value="basic">Básico</TabsTrigger>
-          <TabsTrigger value="integration">Integração</TabsTrigger>
-          <TabsTrigger value="design">Design</TabsTrigger>
-          <TabsTrigger value="thankyou">Obrigado</TabsTrigger>
-          <TabsTrigger value="upsell">Upsell</TabsTrigger>
-          <TabsTrigger value="tracking">Tracking</TabsTrigger>
-        </TabsList>
+        <Tabs value={formTab} onValueChange={setFormTab}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2">
+              <TabsList className="grid grid-cols-6 w-full mb-4 h-auto">
+                <TabsTrigger value="basic">Básico</TabsTrigger>
+                <TabsTrigger value="integration">Integração</TabsTrigger>
+                <TabsTrigger value="design">Design</TabsTrigger>
+                <TabsTrigger value="thankyou">Obrigado</TabsTrigger>
+                <TabsTrigger value="upsell">Upsell</TabsTrigger>
+                <TabsTrigger value="tracking">Tracking</TabsTrigger>
+              </TabsList>
+            </div>
+            <div className="hidden md:block">
+              <Label className="text-xs mb-2 block">Prévia</Label>
+              <CheckoutPreview checkout={formData} />
+            </div>
+          </div>
 
         <TabsContent value="basic" className="space-y-4">
           <div className="grid grid-cols-2 gap-4">

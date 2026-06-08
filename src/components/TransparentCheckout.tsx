@@ -239,7 +239,8 @@ export const TransparentCheckout = ({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="credit_card" className="flex items-center gap-2">
@@ -330,15 +331,18 @@ export const TransparentCheckout = ({
 
         <TabsContent value="pix" className="space-y-4 mt-4">
           {!pixPending ? (
-            <div className="text-center space-y-4">
-              <div className="p-4 bg-muted/50 rounded-lg">
-                <QrCode className="w-12 h-12 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  Clique no botão abaixo para gerar o QR Code PIX
+            <div className="text-center space-y-6 py-4">
+              <div className="p-6 bg-primary/5 rounded-2xl border-2 border-dashed border-primary/20">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <QrCode className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="font-semibold text-lg">Pagar com PIX</h3>
+                <p className="text-sm text-muted-foreground max-w-[250px] mx-auto mt-2">
+                  Liberação imediata! Gere o seu código PIX agora para finalizar.
                 </p>
               </div>
               <Button
-                className="w-full h-12 text-base font-semibold"
+                className="w-full h-14 text-lg font-bold rounded-xl shadow-lg hover:shadow-xl transition-all"
                 style={{ backgroundColor: primaryColor }}
                 onClick={handlePixPayment}
                 disabled={processing}
@@ -346,10 +350,11 @@ export const TransparentCheckout = ({
                 {processing ? (
                   <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Gerando PIX...</>
                 ) : (
-                  <><QrCode className="w-5 h-5 mr-2" />Pagar R$ {amount.toFixed(2)} com PIX</>
+                  <><QrCode className="w-5 h-5 mr-2" />Gerar QR Code PIX</>
                 )}
               </Button>
             </div>
+
           ) : (
             <div className="text-center space-y-4">
               <div className="p-4 bg-muted/50 rounded-lg space-y-3">
