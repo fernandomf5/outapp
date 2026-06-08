@@ -731,7 +731,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                           <Button 
                             variant="ghost" 
                             className="w-full justify-start text-xs h-8 px-2 text-destructive hover:text-destructive"
-                            onClick={() => handleDeleteColumn(col.id)}
+                            onClick={() => handleDeleteColumn(col)}
                           >
                             <Trash2 className="mr-2 h-3 w-3" /> Excluir
                           </Button>
