@@ -1277,7 +1277,13 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
         </Dialog>
 
         {/* Delete Confirmation Modal */}
-        <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <Dialog open={isDeleteModalOpen} onOpenChange={(open) => {
+          setIsDeleteModalOpen(open);
+          if (!open) {
+            setItemToDelete(null);
+            setDeleteConfirmationText("");
+          }
+        }}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-destructive">
