@@ -130,7 +130,8 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
         order_index,
         organization_table_cells (
           column_id,
-          value
+          value,
+          text_color
         )
       `)
       .eq("table_id", tableId)
@@ -139,10 +140,13 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
 
     if (rowsError) return;
 
-    const formattedRows = rowsData.map((r: any) => {
-      const cells: Record<string, string> = {};
+    const formattedRows: TableRow[] = rowsData.map((r: any) => {
+      const cells: Record<string, { value: string, text_color?: string }> = {};
       r.organization_table_cells.forEach((c: any) => {
-        cells[c.column_id] = c.value;
+        cells[c.column_id] = { 
+          value: c.value || "", 
+          text_color: c.text_color 
+        };
       });
       return { 
         id: r.id, 
