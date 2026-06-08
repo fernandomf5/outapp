@@ -361,7 +361,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                 <ListPlus className="h-4 w-4 mr-2" /> Adicionar Múltiplas
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[1200px] w-[95vw] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Adicionar Múltiplas Transações</DialogTitle>
               </DialogHeader>
@@ -370,14 +370,14 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[150px]">Tipo</TableHead>
-                        <TableHead className="min-w-[200px]">Descrição</TableHead>
-                        <TableHead className="w-[120px]">Valor</TableHead>
-                        <TableHead className="w-[150px]">Categoria</TableHead>
-                        <TableHead className="w-[150px]">Vencimento</TableHead>
-                        <TableHead className="w-[150px]">Conta</TableHead>
-                        <TableHead className="w-[150px]">Forma</TableHead>
-                        <TableHead className="w-[100px]">Status</TableHead>
+                        <TableHead className="w-[120px]">Tipo</TableHead>
+                        <TableHead className="min-w-[250px]">Descrição</TableHead>
+                        <TableHead className="w-[140px]">Valor (R$)</TableHead>
+                        <TableHead className="w-[180px]">Categoria</TableHead>
+                        <TableHead className="w-[160px]">Vencimento</TableHead>
+                        <TableHead className="w-[180px]">Conta</TableHead>
+                        <TableHead className="w-[140px]">Forma</TableHead>
+                        <TableHead className="w-[120px]">Status</TableHead>
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -409,6 +409,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                               value={row.amount} 
                               onChange={e => updateBulkRow(index, 'amount', e.target.value)}
                               placeholder="0,00"
+                              className="font-medium text-right"
                             />
                           </TableCell>
                           <TableCell>
