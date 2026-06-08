@@ -176,23 +176,40 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEditing = false) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.log("Nenhum arquivo selecionado");
+      return;
+    }
+
+    // Log para depuração
+    console.log("Iniciando upload para arquivo:", file.name, "Tamanho:", file.size);
 
     try {
       setUploadingLogo(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const filePath = `table-logos/${fileName}`;
+      const filePath = `${user.id}/${fileName}`; // Organizar por user_id no bucket
 
-      const { error: uploadError } = await supabase.storage
+      const { data, error: uploadError } = await supabase.storage
         .from('images')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("Erro detalhado do Supabase Storage:", uploadError);
+        throw uploadError;
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from('images')
         .getPublicUrl(filePath);
+
+      console.log("Upload concluído com sucesso. URL pública:", publicUrl);
 
       if (isEditing && editingTable) {
         setEditingTable({ ...editingTable, logo_url: publicUrl });
@@ -202,16 +219,16 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       
       toast({ title: "Logo carregado com sucesso!" });
     } catch (error: any) {
-      console.error("Erro no upload:", error);
+      console.error("Erro capturado no catch do upload:", error);
       toast({ 
         title: "Erro ao carregar logo", 
-        description: error.message || "Verifique se o arquivo é uma imagem válida e tente novamente.", 
+        description: error.message || "Ocorreu um erro inesperado no upload.", 
         variant: "destructive" 
       });
     } finally {
       setUploadingLogo(false);
-      // Clear the input so the same file can be selected again
-      e.target.value = '';
+      // Limpa o input para permitir selecionar o mesmo arquivo novamente
+      if (e.target) e.target.value = '';
     }
   };
 
@@ -1280,65 +1297,11 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                     </div>
                   </div>
                 </div>
-
               </div>
             )}
             <DialogFooter>
               <Button variant="outline" onClick={() => setEditingColumn(null)}>Cancelar</Button>
               <Button onClick={handleUpdateColumn}>Salvar Alterações</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Delete Confirmation Modal */}
-        <Dialog open={isDeleteModalOpen} onOpenChange={(open) => {
-          setIsDeleteModalOpen(open);
-          if (!open) {
-            setItemToDelete(null);
-            setDeleteConfirmationText("");
-          }
-        }}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-destructive">
-                <Trash2 className="h-5 w-5" /> Confirmar Exclusão
-              </DialogTitle>
-              <DialogDescription>
-                Esta ação não pode ser desfeita. O item <strong>{itemToDelete?.name}</strong> será removido permanentemente.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4 space-y-4">
-              {itemToDelete?.type !== 'row' ? (
-                <>
-                  <p className="text-sm text-muted-foreground">
-                    Para confirmar, digite <span className="font-bold text-foreground select-none">excluir</span> no campo abaixo:
-                  </p>
-                  <Input
-                    value={deleteConfirmationText}
-                    onChange={(e) => setDeleteConfirmationText(e.target.value)}
-                    placeholder="Digite excluir para confirmar"
-                    className={cn(
-                      "border-2 transition-all",
-                      deleteConfirmationText.toLowerCase() === 'excluir' ? "border-green-500 focus-visible:ring-green-500" : "focus-visible:ring-destructive"
-                    )}
-                    autoFocus
-                  />
-                </>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  Tem certeza que deseja excluir este registro? Esta ação é imediata.
-                </p>
-              )}
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>Cancelar</Button>
-              <Button 
-                variant="destructive" 
-                onClick={handleConfirmDelete}
-                disabled={itemToDelete?.type !== 'row' && deleteConfirmationText.toLowerCase() !== 'excluir'}
-              >
-                Excluir Permanentemente
-              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -1408,36 +1371,33 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                       <CardDescription className="line-clamp-1">{table.description || "Sem descrição"}</CardDescription>
                     </div>
                   </div>
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-40 p-1" align="end" onClick={(e) => e.stopPropagation()}>
-                        <Button 
-                          variant="ghost" 
-                          className="w-full justify-start text-xs h-8 px-2" 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingTable(table);
-                          }}
-                        >
-                          <Edit2 className="mr-2 h-3 w-3" /> Editar
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          className="w-full justify-start text-xs h-8 px-2 text-destructive hover:text-destructive" 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteTable(e, table);
-                          }}
-                        >
-                          <Trash2 className="mr-2 h-3 w-3" /> Excluir
-                        </Button>
-                      </PopoverContent>
-                    </Popover>
+                  <div className="flex gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        console.log("Abrindo modal de edição para:", table.name);
+                        setEditingTable(table);
+                      }}
+                      title="Editar"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        console.log("Abrindo modal de exclusão para:", table.name);
+                        handleDeleteTable(e, table);
+                      }}
+                      title="Excluir"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -1653,6 +1613,59 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingTable(null)}>Cancelar</Button>
             <Button onClick={handleUpdateTable}>Salvar Alterações</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal - Centralizado para evitar conflitos */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={(open) => {
+        setIsDeleteModalOpen(open);
+        if (!open) {
+          setItemToDelete(null);
+          setDeleteConfirmationText("");
+        }
+      }}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="h-5 w-5" /> Confirmar Exclusão
+            </DialogTitle>
+            <DialogDescription>
+              Esta ação não pode ser desfeita. O item <strong>{itemToDelete?.name}</strong> será removido permanentemente.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            {itemToDelete?.type !== 'row' ? (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  Para confirmar, digite <span className="font-bold text-foreground select-none">excluir</span> no campo abaixo:
+                </p>
+                <Input
+                  value={deleteConfirmationText}
+                  onChange={(e) => setDeleteConfirmationText(e.target.value)}
+                  placeholder="Digite excluir para confirmar"
+                  className={cn(
+                    "border-2 transition-all",
+                    deleteConfirmationText.toLowerCase() === 'excluir' ? "border-green-500 focus-visible:ring-green-500" : "focus-visible:ring-destructive"
+                  )}
+                  autoFocus
+                />
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Tem certeza que deseja excluir este registro? Esta ação é imediata.
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>Cancelar</Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleConfirmDelete}
+              disabled={itemToDelete?.type !== 'row' && deleteConfirmationText.toLowerCase() !== 'excluir'}
+            >
+              Excluir Permanentemente
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
