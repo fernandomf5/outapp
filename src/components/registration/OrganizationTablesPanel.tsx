@@ -157,6 +157,41 @@ export const OrganizationTablesPanel = () => {
     }
   };
 
+  const handleUpdateColumn = async () => {
+    if (!editingColumn || !selectedTable) return;
+
+    const { error } = await supabase
+      .from("organization_table_columns")
+      .update({
+        name: editingColumn.name,
+        type: editingColumn.type,
+      })
+      .eq("id", editingColumn.id);
+
+    if (error) {
+      toast({ title: "Erro ao atualizar coluna", variant: "destructive" });
+    } else {
+      setEditingColumn(null);
+      fetchTableDetails(selectedTable.id);
+      toast({ title: "Coluna atualizada com sucesso!" });
+    }
+  };
+
+  const handleDeleteColumn = async (columnId: string) => {
+    if (!selectedTable) return;
+
+    const { error } = await supabase
+      .from("organization_table_columns")
+      .delete()
+      .eq("id", columnId);
+
+    if (error) {
+      toast({ title: "Erro ao excluir coluna", variant: "destructive" });
+    } else {
+      fetchTableDetails(selectedTable.id);
+      toast({ title: "Coluna excluída com sucesso!" });
+    }
+
   const handleAddRow = async () => {
     if (!selectedTable) return;
     const { data: userData } = await supabase.auth.getUser();
