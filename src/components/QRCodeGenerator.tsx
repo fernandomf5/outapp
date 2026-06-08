@@ -1223,6 +1223,7 @@ export function QRCodeGenerator() {
             </Button>
           </DialogFooter>
         </DialogContent>
+      </Dialog>
 
       {createPortal(realtimePreview, document.body)}
     </div>
