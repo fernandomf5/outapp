@@ -635,7 +635,7 @@ export function QRCodeGenerator() {
 
       <div 
         ref={printRef}
-        className="flex flex-col items-center w-full"
+        className="flex flex-col items-center w-full overflow-hidden"
         style={{
           backgroundColor: bgColor === '#ffffff' ? 'transparent' : bgColor,
           border: showBorder ? `${borderWidth}px solid ${borderColor}` : 'none',
@@ -644,7 +644,7 @@ export function QRCodeGenerator() {
           minHeight: 'fit-content',
         }}
       >
-        <div className="flex flex-col items-center w-full gap-4 pb-2">
+        <div className="flex flex-col items-center w-full gap-4">
           {/* Top Branding Section */}
           <div className="w-full flex flex-col items-center gap-2 mb-2">
             {showLogo && logoUrl && (
