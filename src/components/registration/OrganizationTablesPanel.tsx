@@ -774,6 +774,16 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
               </Popover>
             )}
             <Button 
+              variant="default" 
+              size="sm" 
+              onClick={handleSaveChanges}
+              disabled={loading}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />} 
+              Salvar Alterações
+            </Button>
+            <Button 
               variant={isSelectionMode ? "secondary" : "outline"} 
               size="sm" 
               onClick={() => {
