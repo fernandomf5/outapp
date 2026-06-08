@@ -902,109 +902,109 @@ export function QRCodeGenerator() {
             </div>
 
             {/* Preview */}
-            <div className="flex flex-col items-center justify-start space-y-4">
-              <div className="sticky top-4 flex flex-col items-center space-y-4">
-              <h3 className="font-semibold text-lg">Visualização para Impressão</h3>
-              <div 
-                ref={printRef}
-                className="flex flex-col items-center"
-                style={{
-                  padding: `${padding}px`,
-                  backgroundColor: bgColor,
-                  border: showBorder ? `${borderWidth}px solid ${borderColor}` : 'none',
-                  borderRadius: `${cornerRadius}px`,
-                }}
-              >
-                {businessName && (
-                  <p 
-                    className="font-bold text-lg mb-3"
-                    style={{ color: fgColor }}
-                  >
-                    {businessName}
-                  </p>
-                )}
-                
-                <div className="flex flex-col items-center">
-                  {showLogo && logoUrl && (
-                    <div className="mb-3">
-                      <img 
-                        src={logoUrl} 
-                        alt="Logo" 
-                        style={{ 
-                          width: logoSize, 
-                          height: logoSize, 
-                          objectFit: 'contain' 
-                        }} 
-                      />
-                    </div>
-                  )}
-                  {text ? (
-                    <QRCodeSVG
-                      id="qr-code-svg"
-                      value={text}
-                      size={Math.min(size, 280)}
-                      fgColor={fgColor}
-                      bgColor={bgColor}
-                      level="H"
-                      includeMargin={false}
-                    />
-                  ) : (
-                    <div
-                      className="flex items-center justify-center bg-muted-foreground/10 rounded"
-                      style={{ width: 256, height: 256 }}
+            <div className="relative flex flex-col items-center justify-start">
+              <div className="sticky top-20 flex flex-col items-center space-y-4">
+                <h3 className="font-semibold text-lg">Visualização para Impressão</h3>
+                <div 
+                  ref={printRef}
+                  className="flex flex-col items-center shadow-lg"
+                  style={{
+                    padding: `${padding}px`,
+                    backgroundColor: bgColor,
+                    border: showBorder ? `${borderWidth}px solid ${borderColor}` : 'none',
+                    borderRadius: `${cornerRadius}px`,
+                  }}
+                >
+                  {businessName && (
+                    <p 
+                      className="font-bold text-lg mb-3"
+                      style={{ color: fgColor }}
                     >
-                      <p className="text-muted-foreground text-center px-4">
-                        Digite um texto para gerar o QR Code
-                      </p>
-                    </div>
+                      {businessName}
+                    </p>
                   )}
-                </div>
-
-                {showSocialMedia && Object.entries(socialMedia).some(([_, v]) => v.trim()) && (
-                  <div className="flex flex-wrap justify-center gap-2 mt-3">
-                    {socialMedia.instagram && (
-                      <div className="flex items-center gap-1 text-xs">
-                        <FaInstagram className="w-3 h-3 text-pink-500" />
-                        <span>@{socialMedia.instagram}</span>
+                  
+                  <div className="flex flex-col items-center">
+                    {showLogo && logoUrl && (
+                      <div className="mb-3">
+                        <img 
+                          src={logoUrl} 
+                          alt="Logo" 
+                          style={{ 
+                            width: logoSize, 
+                            height: logoSize, 
+                            objectFit: 'contain' 
+                          }} 
+                        />
                       </div>
                     )}
-                    {socialMedia.facebook && (
-                      <div className="flex items-center gap-1 text-xs">
-                        <FaFacebook className="w-3 h-3 text-blue-600" />
-                        <span>@{socialMedia.facebook}</span>
-                      </div>
-                    )}
-                    {socialMedia.tiktok && (
-                      <div className="flex items-center gap-1 text-xs">
-                        <FaTiktok className="w-3 h-3" />
-                        <span>@{socialMedia.tiktok}</span>
-                      </div>
-                    )}
-                    {socialMedia.youtube && (
-                      <div className="flex items-center gap-1 text-xs">
-                        <FaYoutube className="w-3 h-3 text-red-600" />
-                        <span>@{socialMedia.youtube}</span>
-                      </div>
-                    )}
-                    {socialMedia.twitter && (
-                      <div className="flex items-center gap-1 text-xs">
-                        <FaTwitter className="w-3 h-3 text-sky-500" />
-                        <span>@{socialMedia.twitter}</span>
-                      </div>
-                    )}
-                    {socialMedia.linkedin && (
-                      <div className="flex items-center gap-1 text-xs">
-                        <FaLinkedin className="w-3 h-3 text-blue-700" />
-                        <span>@{socialMedia.linkedin}</span>
+                    {text ? (
+                      <QRCodeSVG
+                        id="qr-code-svg"
+                        value={text}
+                        size={Math.min(size, 280)}
+                        fgColor={fgColor}
+                        bgColor={bgColor}
+                        level="H"
+                        includeMargin={false}
+                      />
+                    ) : (
+                      <div
+                        className="flex items-center justify-center bg-muted-foreground/10 rounded"
+                        style={{ width: 256, height: 256 }}
+                      >
+                        <p className="text-muted-foreground text-center px-4">
+                          Digite um texto para gerar o QR Code
+                        </p>
                       </div>
                     )}
                   </div>
-                )}
-              </div>
-              
-              <p className="text-xs text-muted-foreground text-center">
-                Esta é a visualização de como ficará na impressão
-              </p>
+
+                  {showSocialMedia && Object.entries(socialMedia).some(([_, v]) => v.trim()) && (
+                    <div className="flex flex-wrap justify-center gap-2 mt-3">
+                      {socialMedia.instagram && (
+                        <div className="flex items-center gap-1 text-xs">
+                          <FaInstagram className="w-3 h-3 text-pink-500" />
+                          <span>@{socialMedia.instagram}</span>
+                        </div>
+                      )}
+                      {socialMedia.facebook && (
+                        <div className="flex items-center gap-1 text-xs">
+                          <FaFacebook className="w-3 h-3 text-blue-600" />
+                          <span>@{socialMedia.facebook}</span>
+                        </div>
+                      )}
+                      {socialMedia.tiktok && (
+                        <div className="flex items-center gap-1 text-xs">
+                          <FaTiktok className="w-3 h-3" />
+                          <span>@{socialMedia.tiktok}</span>
+                        </div>
+                      )}
+                      {socialMedia.youtube && (
+                        <div className="flex items-center gap-1 text-xs">
+                          <FaYoutube className="w-3 h-3 text-red-600" />
+                          <span>@{socialMedia.youtube}</span>
+                        </div>
+                      )}
+                      {socialMedia.twitter && (
+                        <div className="flex items-center gap-1 text-xs">
+                          <FaTwitter className="w-3 h-3 text-sky-500" />
+                          <span>@{socialMedia.twitter}</span>
+                        </div>
+                      )}
+                      {socialMedia.linkedin && (
+                        <div className="flex items-center gap-1 text-xs">
+                          <FaLinkedin className="w-3 h-3 text-blue-700" />
+                          <span>@{socialMedia.linkedin}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                
+                <p className="text-xs text-muted-foreground text-center">
+                  Esta é a visualização de como ficará na impressão
+                </p>
               </div>
             </div>
           </div>
