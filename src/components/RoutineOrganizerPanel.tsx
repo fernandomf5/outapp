@@ -234,6 +234,8 @@ export default function RoutineOrganizerPanel() {
   const [isShareOpen, setIsShareOpen] = useState(false);
   
   const [isResetAllOpen, setIsResetAllOpen] = useState(false);
+  const [isBulkReminderOpen, setIsBulkReminderOpen] = useState(false);
+  const [bulkReminderMinutes, setBulkReminderMinutes] = useState<number | null>(15);
   
   // Form data
   const [itemFormData, setItemFormData] = useState({
