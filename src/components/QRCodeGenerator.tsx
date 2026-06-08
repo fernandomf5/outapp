@@ -907,12 +907,14 @@ export function QRCodeGenerator() {
                 <h3 className="font-semibold text-lg">Visualização para Impressão</h3>
                 <div 
                   ref={printRef}
-                  className="flex flex-col items-center shadow-lg transition-all duration-300"
+                  className="flex flex-col items-center shadow-xl transition-all duration-300 ring-1 ring-primary/20"
                   style={{
                     padding: `${padding}px`,
                     backgroundColor: bgColor,
                     border: showBorder ? `${borderWidth}px solid ${borderColor}` : 'none',
                     borderRadius: `${cornerRadius}px`,
+                    maxWidth: '100%',
+                    width: 'fit-content'
                   }}
                 >
                   {businessName && (
