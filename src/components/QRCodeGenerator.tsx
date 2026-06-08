@@ -887,8 +887,9 @@ export function QRCodeGenerator() {
               </div>
             </div>
 
-            <div className="relative h-full">
-              <div className="sticky top-24 flex flex-col items-center space-y-4 bg-background/95 backdrop-blur-md p-6 rounded-2xl border-2 border-primary shadow-[0_0_25px_rgba(var(--primary-rgb),0.3)] w-full max-w-[350px] mx-auto animate-in fade-in zoom-in duration-300 z-50">
+            <div className="hidden lg:block" aria-hidden="true" />
+
+            <div className="fixed right-4 top-20 z-[9999] flex w-[300px] max-w-[calc(100vw-2rem)] flex-col items-center space-y-3 overflow-y-auto rounded-2xl border-2 border-primary bg-background/95 p-4 shadow-2xl backdrop-blur-md max-h-[calc(100vh-6rem)] sm:right-6 lg:right-10 lg:top-24 lg:w-[340px] animate-in fade-in zoom-in duration-300">
                 <div className="flex items-center justify-between w-full mb-2">
                   <h3 className="font-bold text-primary flex items-center gap-2">
                     <Eye className="w-5 h-5" />
@@ -901,7 +902,7 @@ export function QRCodeGenerator() {
 
                 <div 
                   ref={printRef}
-                  className="flex flex-col items-center bg-white p-4 rounded-lg shadow-inner w-full overflow-hidden"
+                  className="flex flex-col items-center bg-white p-3 rounded-lg shadow-inner w-full overflow-hidden"
                   style={{
                     backgroundColor: bgColor,
                     border: showBorder ? `${borderWidth}px solid ${borderColor}` : 'none',
@@ -935,14 +936,14 @@ export function QRCodeGenerator() {
                       <QRCodeSVG
                         id="qr-code-svg"
                         value={text}
-                        size={200}
+                        size={180}
                         fgColor={fgColor}
                         bgColor={bgColor}
                         level="H"
                         includeMargin={false}
                       />
                     ) : (
-                      <div className="w-[200px] h-[200px] flex items-center justify-center bg-muted rounded-md border-2 border-dashed">
+                      <div className="w-[180px] h-[180px] flex items-center justify-center bg-muted rounded-md border-2 border-dashed">
                         <p className="text-xs text-muted-foreground text-center px-4">
                           Aguardando conteúdo...
                         </p>
@@ -968,7 +969,6 @@ export function QRCodeGenerator() {
                     <Printer className="w-4 h-4 mr-2" /> Imprimir
                   </Button>
                 </div>
-              </div>
             </div>
           </div>
         </CardContent>
