@@ -376,6 +376,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                         <TableHead className="w-[150px]">Categoria</TableHead>
                         <TableHead className="w-[150px]">Vencimento</TableHead>
                         <TableHead className="w-[150px]">Conta</TableHead>
+                        <TableHead className="w-[150px]">Forma</TableHead>
                         <TableHead className="w-[100px]">Status</TableHead>
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
@@ -433,6 +434,21 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                                 {bankAccounts.map(acc => (
                                   <SelectItem key={acc.id} value={acc.id}>{acc.bank_name}</SelectItem>
                                 ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Select value={row.payment_method} onValueChange={(v) => updateBulkRow(index, 'payment_method', v)}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pix">PIX</SelectItem>
+                                <SelectItem value="credit_card">Cartão</SelectItem>
+                                <SelectItem value="debit_card">Débito</SelectItem>
+                                <SelectItem value="cash">Dinheiro</SelectItem>
+                                <SelectItem value="transfer">Transf.</SelectItem>
+                                <SelectItem value="boleto">Boleto</SelectItem>
                               </SelectContent>
                             </Select>
                           </TableCell>
