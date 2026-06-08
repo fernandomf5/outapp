@@ -401,10 +401,14 @@ export const OrganizationTablesPanel = () => {
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
                     <div 
-                      className="p-2 rounded-lg bg-muted flex items-center justify-center"
+                      className="p-2 rounded-lg bg-muted flex items-center justify-center overflow-hidden w-12 h-12"
                       style={{ borderLeft: `4px solid ${table.color}` }}
                     >
-                      <TableIcon className="h-6 w-6" style={{ color: table.color }} />
+                      {table.logo_url ? (
+                        <img src={table.logo_url} alt={table.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <TableIcon className="h-6 w-6" style={{ color: table.color }} />
+                      )}
                     </div>
                     <div>
                       <CardTitle className="text-lg">{table.name}</CardTitle>
