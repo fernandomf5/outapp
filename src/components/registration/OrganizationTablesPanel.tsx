@@ -1395,7 +1395,14 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-40 p-1" align="end">
-                      <Button variant="ghost" className="w-full justify-start text-xs h-8 px-2" onClick={(e) => e.stopPropagation()}>
+                      <Button 
+                        variant="ghost" 
+                        className="w-full justify-start text-xs h-8 px-2" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingTable(table);
+                        }}
+                      >
                         <Edit2 className="mr-2 h-3 w-3" /> Editar
                       </Button>
                       <Button 
