@@ -239,7 +239,8 @@ export const TransparentCheckout = ({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="credit_card" className="flex items-center gap-2">
