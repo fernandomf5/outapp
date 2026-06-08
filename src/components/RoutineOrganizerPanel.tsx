@@ -1175,6 +1175,46 @@ export default function RoutineOrganizerPanel() {
               </DialogContent>
             </Dialog>
 
+            <Dialog open={isDeleteRoutineOpen} onOpenChange={setIsDeleteRoutineOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle className="text-destructive flex items-center gap-2">
+                    <Trash2 className="h-5 w-5" />
+                    Excluir Rotina
+                  </DialogTitle>
+                  <DialogDescription>
+                    Esta ação é permanente e excluirá todas as atividades desta rotina.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4 space-y-4">
+                  <p className="text-sm font-medium">
+                    Para confirmar, digite <span className="font-bold text-destructive">excluir</span> no campo abaixo:
+                  </p>
+                  <Input 
+                    placeholder="Digite excluir para confirmar" 
+                    value={deleteConfirmationText}
+                    onChange={(e) => setDeleteConfirmationText(e.target.value)}
+                    className={deleteConfirmationText === 'excluir' ? 'border-destructive focus-visible:ring-destructive' : ''}
+                  />
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsDeleteRoutineOpen(false)}>Cancelar</Button>
+                  <Button 
+                    variant="destructive" 
+                    disabled={deleteConfirmationText !== 'excluir'}
+                    onClick={() => {
+                      if (routineToDelete) {
+                        handleDeleteRoutine(routineToDelete);
+                        setIsDeleteRoutineOpen(false);
+                      }
+                    }}
+                  >
+                    Excluir Permanentemente
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
             {routines.length > 1 && (
               <Select value={activeRoutine?.id} onValueChange={(id) => {
                 const routine = routines.find(r => r.id === id);
