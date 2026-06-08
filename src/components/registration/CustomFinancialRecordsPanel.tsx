@@ -231,13 +231,36 @@ export const CustomFinancialRecordsPanel = () => {
           <p className="text-sm text-muted-foreground">Crie e gerencie estruturas financeiras adaptadas ao seu negócio.</p>
         </div>
         
-        <Dialog open={isCreateStructureOpen} onOpenChange={setIsCreateStructureOpen}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Nova Estrutura
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <Select 
+            value={selectedStructure?.id} 
+            onValueChange={(id) => {
+              const struct = structures.find(s => s.id === id);
+              if (struct) setSelectedStructure(struct);
+            }}
+          >
+            <SelectTrigger className="w-[200px] h-10">
+              <div className="flex items-center gap-2 truncate">
+                <List className="h-4 w-4 shrink-0" />
+                <SelectValue placeholder="Minhas Estruturas" />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              {structures.map((structure) => (
+                <SelectItem key={structure.id} value={structure.id}>
+                  {structure.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Dialog open={isCreateStructureOpen} onOpenChange={setIsCreateStructureOpen}>
+            <DialogTrigger asChild>
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Nova Estrutura
+              </Button>
+            </DialogTrigger>
           <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Criar Nova Estrutura de Registro</DialogTitle>
