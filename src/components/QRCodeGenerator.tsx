@@ -120,18 +120,18 @@ export function QRCodeGenerator() {
     if (!printRef.current) return;
 
     try {
-      // Create a temporary container to ensure the element is rendered fully for capture
-      // This helps avoid clipping issues with fixed heights or overflows
       const originalStyle = printRef.current.style.cssText;
       
-      // Temporarily remove constraints for capture
+      // Ajuste para download: Garantir que a imagem contenha apenas o que está dentro da borda
+      // E que o fundo fora da borda seja transparente
       printRef.current.style.height = 'auto';
       printRef.current.style.maxHeight = 'none';
-      printRef.current.style.width = '400px'; // Consistent width for download
+      printRef.current.style.width = '400px'; 
       
       const options = {
-        backgroundColor: bgColor === '#ffffff' ? null : bgColor,
-        pixelRatio: 4, // Higher quality
+        // Para remover o fundo branco indesejado fora da borda, usamos transparência
+        backgroundColor: null, 
+        pixelRatio: 4,
         skipAutoScale: true,
         cacheBust: true,
       };
@@ -143,7 +143,6 @@ export function QRCodeGenerator() {
         dataUrl = await htmlToImage.toPng(printRef.current, options);
       }
 
-      // Restore original style
       printRef.current.style.cssText = originalStyle;
 
       const link = document.createElement('a');
@@ -645,7 +644,7 @@ export function QRCodeGenerator() {
           minHeight: 'fit-content',
         }}
       >
-        <div className="flex flex-col items-center w-full gap-4 pb-6">
+        <div className="flex flex-col items-center w-full gap-4 pb-2">
           {/* Top Branding Section */}
           <div className="w-full flex flex-col items-center gap-2 mb-2">
             {showLogo && logoUrl && (
