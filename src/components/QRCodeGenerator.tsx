@@ -651,16 +651,16 @@ export function QRCodeGenerator() {
 
       <div 
         ref={printRef}
-        className="flex flex-col items-center w-full overflow-hidden"
+        className="flex flex-col items-center w-full"
         style={{
           backgroundColor: bgColor === '#ffffff' ? 'transparent' : bgColor,
           border: showBorder ? `${borderWidth}px solid ${borderColor}` : 'none',
           borderRadius: `${cornerRadius}px`,
           padding: `${padding}px`,
-          minHeight: '400px',
+          minHeight: 'fit-content',
         }}
       >
-        <div className="flex flex-col items-center w-full gap-4">
+        <div className="flex flex-col items-center w-full gap-4 pb-6">
           {/* Top Branding Section */}
           <div className="w-full flex flex-col items-center gap-2 mb-2">
             {showLogo && logoUrl && (
@@ -678,17 +678,17 @@ export function QRCodeGenerator() {
               <div className="flex flex-col items-center">
                 <p 
                   className="font-black text-center break-words px-2 uppercase tracking-tight leading-none"
-                  style={{ color: fgColor, fontSize: '1.5rem' }}
+                  style={{ color: fgColor, fontSize: '1.25rem' }}
                 >
                   {businessName}
                 </p>
-                <div className="h-1 w-12 mt-1 rounded-full" style={{ backgroundColor: fgColor }}></div>
+                <div className="h-0.5 w-10 mt-1.5 rounded-full" style={{ backgroundColor: fgColor }}></div>
               </div>
             )}
           </div>
           
           {/* QR Code Section - Transparent background for the wrapper */}
-          <div className="relative flex flex-col items-center p-4 bg-white rounded-3xl shadow-xl border border-gray-50">
+          <div className="relative flex flex-col items-center p-5 bg-white rounded-[2.5rem] shadow-xl border border-gray-100">
             {text ? (
               <QRCodeSVG
                 id="qr-code-svg"
@@ -708,12 +708,12 @@ export function QRCodeGenerator() {
             )}
           </div>
 
-          {/* Social Media Section - Clean & Modern Icons */}
-          {showSocialMedia && Object.entries(socialMedia).some(([_, v]) => v.trim()) && (
-            <div className="w-full mt-4 flex flex-col items-center space-y-4">
-              <div className="grid grid-cols-1 gap-2 w-full">
+          {/* Social Media Section */}
+          {showSocialMedia && Object.values(socialMedia).some(v => v && v.trim()) && (
+            <div className="w-full mt-4 flex flex-col items-center space-y-3">
+              <div className="flex flex-col gap-2 w-full max-w-[280px]">
                 {Object.entries(socialMedia).map(([platform, handle]) => {
-                  if (!handle.trim()) return null;
+                  if (!handle || !handle.trim()) return null;
                   const Icon = {
                     instagram: FaInstagram,
                     facebook: FaFacebook,
@@ -735,24 +735,26 @@ export function QRCodeGenerator() {
                   return (
                     <div 
                       key={platform} 
-                      className="flex items-center gap-3 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-xl shadow-sm border border-gray-100"
+                      className="flex items-center gap-3 bg-white px-3 py-2 rounded-xl shadow-sm border border-gray-100/50"
                     >
                       <div 
-                        className="flex items-center justify-center w-8 h-8 rounded-lg text-white" 
+                        className="flex items-center justify-center w-7 h-7 rounded-lg text-white shrink-0" 
                         style={{ backgroundColor: colors[platform] }}
                       >
-                        {Icon && <Icon className="w-5 h-5" />}
+                        {Icon && <Icon className="w-4 h-4" />}
                       </div>
-                      <span className="text-base font-bold italic" style={{ color: fgColor }}>@{handle}</span>
+                      <span className="text-sm font-bold truncate" style={{ color: fgColor }}>
+                        @{handle.startsWith('@') ? handle.slice(1) : handle}
+                      </span>
                     </div>
                   );
                 })}
               </div>
               <div 
-                className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70" 
+                className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 mt-2" 
                 style={{ color: fgColor }}
               >
-                Siga nossas redes sociais
+                Escaneie e Siga-nos
               </div>
             </div>
           )}
