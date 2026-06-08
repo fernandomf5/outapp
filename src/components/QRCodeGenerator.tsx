@@ -1075,3 +1075,6 @@ export function QRCodeGenerator() {
     </div>
   );
 }
+    </div>
+  );
+}
