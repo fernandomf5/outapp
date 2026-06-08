@@ -213,6 +213,9 @@ export default function RoutineOrganizerPanel() {
   const [newRoutineName, setNewRoutineName] = useState('');
   const [isRenameRoutineOpen, setIsRenameRoutineOpen] = useState(false);
   const [renameRoutineName, setRenameRoutineName] = useState('');
+  const [isDeleteRoutineOpen, setIsDeleteRoutineOpen] = useState(false);
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
+  const [routineToDelete, setRoutineToDelete] = useState<string | null>(null);
   
   // Dialogs
   const [isAddItemDialogOpen, setIsAddItemDialogOpen] = useState(false);
