@@ -486,10 +486,49 @@ export const CustomFinancialRecordsPanel = () => {
                         <Search className="h-4 w-4" />
                         <span className="hidden sm:inline">Buscar</span>
                       </Button>
-                      <Button size="sm" className="flex-1 md:flex-none flex items-center gap-2">
-                        <Plus className="h-4 w-4" />
-                        <span className="whitespace-nowrap">Adicionar {selectedStructure.name}</span>
-                      </Button>
+                      
+                      <Dialog open={isAddRecordOpen} onOpenChange={setIsAddRecordOpen}>
+                        <DialogTrigger asChild>
+                          <Button size="sm" className="flex-1 md:flex-none flex items-center gap-2">
+                            <Plus className="h-4 w-4" />
+                            <span className="whitespace-nowrap">Adicionar {selectedStructure.name}</span>
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[500px]">
+                          <DialogHeader>
+                            <DialogTitle>Adicionar {selectedStructure.name}</DialogTitle>
+                            <DialogDescription>
+                              Preencha os dados abaixo para cadastrar um novo registro.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                              <Label htmlFor="record-name">Nome / Identificação</Label>
+                              <Input 
+                                id="record-name" 
+                                placeholder="Ex: João Silva" 
+                                value={newRecordName}
+                                onChange={(e) => setNewRecordName(e.target.value)}
+                              />
+                            </div>
+                            {fields.map((field) => (
+                              <div key={field.id} className="grid gap-2">
+                                <Label htmlFor={field.id}>{field.label}</Label>
+                                <Input 
+                                  id={field.id}
+                                  type={field.field_type === 'number' ? 'number' : field.field_type === 'date' ? 'date' : 'text'}
+                                  value={fieldValues[field.id] || ""}
+                                  onChange={(e) => setFieldValues({...fieldValues, [field.id]: e.target.value})}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                          <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsAddRecordOpen(false)}>Cancelar</Button>
+                            <Button onClick={handleAddRecord}>Salvar Registro</Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </div>
 
