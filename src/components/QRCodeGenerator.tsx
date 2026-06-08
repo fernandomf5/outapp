@@ -127,7 +127,10 @@ export function QRCodeGenerator() {
       try {
         const dataUrl = await htmlToImage.toPng(printRef.current, {
           backgroundColor: bgColor,
-          pixelRatio: 2,
+          pixelRatio: 3,
+          style: {
+            transform: 'scale(1)',
+          }
         });
         
         const link = document.createElement('a');
@@ -512,57 +515,61 @@ export function QRCodeGenerator() {
 
       <div 
         ref={printRef}
-        className="flex flex-col items-center bg-white p-3 rounded-lg shadow-inner w-full overflow-hidden"
+        className="flex flex-col items-center bg-white p-6 rounded-lg shadow-inner w-full overflow-hidden"
         style={{
           backgroundColor: bgColor,
           border: showBorder ? `${borderWidth}px solid ${borderColor}` : 'none',
           borderRadius: `${cornerRadius}px`,
+          minHeight: '400px',
+          justifyContent: 'space-between'
         }}
       >
-        {businessName && (
-          <p 
-            className="font-bold text-center break-all mb-2 px-2"
-            style={{ color: fgColor, fontSize: '1.1rem' }}
-          >
-            {businessName}
-          </p>
-        )}
-        
-        <div className="relative group">
-          {showLogo && logoUrl && (
-            <div className="mb-2 flex justify-center">
-              <img 
-                src={logoUrl} 
-                alt="Logo" 
-                style={{ 
-                  width: Math.min(logoSize, 60), 
-                  height: Math.min(logoSize, 60), 
-                  objectFit: 'contain' 
-                }} 
+        <div className="flex flex-col items-center w-full">
+          {businessName && (
+            <p 
+              className="font-bold text-center break-all mb-4 px-2 uppercase tracking-wider"
+              style={{ color: fgColor, fontSize: '1.4rem' }}
+            >
+              {businessName}
+            </p>
+          )}
+          
+          <div className="relative group flex flex-col items-center">
+            {showLogo && logoUrl && (
+              <div className="mb-4 flex justify-center">
+                <img 
+                  src={logoUrl} 
+                  alt="Logo" 
+                  style={{ 
+                    width: Math.min(logoSize, 80), 
+                    height: Math.min(logoSize, 80), 
+                    objectFit: 'contain' 
+                  }} 
+                />
+              </div>
+            )}
+            {text ? (
+              <QRCodeSVG
+                id="qr-code-svg"
+                value={text}
+                size={220}
+                fgColor={fgColor}
+                bgColor={bgColor}
+                level="H"
+                includeMargin={false}
               />
-            </div>
-          )}
-          {text ? (
-            <QRCodeSVG
-              id="qr-code-svg"
-              value={text}
-              size={180}
-              fgColor={fgColor}
-              bgColor={bgColor}
-              level="H"
-              includeMargin={false}
-            />
-          ) : (
-            <div className="w-[180px] h-[180px] flex items-center justify-center bg-muted rounded-md border-2 border-dashed">
-              <p className="text-xs text-muted-foreground text-center px-4">
-                Aguardando conteúdo...
-              </p>
-            </div>
-          )}
+            ) : (
+              <div className="w-[220px] h-[220px] flex items-center justify-center bg-muted rounded-md border-2 border-dashed">
+                <p className="text-xs text-muted-foreground text-center px-4">
+                  Aguardando conteúdo...
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         {showSocialMedia && Object.entries(socialMedia).some(([_, v]) => v.trim()) && (
-          <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-3 px-2 w-full">
+          <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-6 pt-6 px-4 w-full border-t border-gray-100/50">
             {Object.entries(socialMedia).map(([platform, handle]) => {
               if (!handle.trim()) return null;
               const Icon = {
@@ -584,9 +591,9 @@ export function QRCodeGenerator() {
               };
 
               return (
-                <div key={platform} className="flex items-center gap-1">
-                  {Icon && <Icon className="w-3 h-3" style={{ color: colors[platform] }} />}
-                  <span className="text-[10px] font-bold" style={{ color: colors[platform] }}>@{handle}</span>
+                <div key={platform} className="flex items-center gap-2 bg-gray-50/50 px-3 py-1.5 rounded-full border border-gray-100">
+                  {Icon && <Icon className="w-4 h-4" style={{ color: colors[platform] }} />}
+                  <span className="text-xs font-bold" style={{ color: colors[platform] }}>@{handle}</span>
                 </div>
               );
             })}
