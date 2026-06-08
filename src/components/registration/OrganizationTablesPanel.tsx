@@ -1015,10 +1015,11 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                           <input
                             type="text"
                             className={cn(
-                              "w-full h-full px-4 py-2 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-primary/30"
+                              "w-full h-full px-4 py-2 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-primary/30",
+                              cellData.is_bold && "font-bold"
                             )}
                             style={{ 
-                              color: cellData.text_color || (row.row_background_color && row.row_background_color !== 'transparent' ? 'inherit' : undefined) 
+                              color: cellData.text_color || (row.row_text_color || (row.row_background_color && row.row_background_color !== 'transparent' ? 'inherit' : undefined))
                             }}
                             value={cellData.value}
                             onChange={(e) => handleCellUpdate(row.id, col.id, e.target.value)}
