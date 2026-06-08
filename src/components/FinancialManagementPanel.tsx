@@ -671,6 +671,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
         transactionsToInsert.push({
           user_id: user.id,
           business_id: selectedBusinessId,
+          bank_account_id: formData.bank_account_id || null,
           type: formData.type,
           category: formData.category,
           description: description,
@@ -689,6 +690,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
             note: installments > 1 ? `Parcela ${i + 1} de ${installments} criada` : 'Transação criada'
           }]
         });
+
       }
 
       const { error } = await supabase
