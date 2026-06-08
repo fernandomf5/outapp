@@ -457,12 +457,17 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
   };
 
   const toggleCellSelection = (rowId: string, colId: string) => {
+    // If not in selection mode, do nothing
     if (!isSelectionMode) return;
+    
     setSelectedCells(prev => {
       const rowCols = prev[rowId] || [];
-      const newCols = rowCols.includes(colId) 
+      const isCurrentlySelected = rowCols.includes(colId);
+      
+      const newCols = isCurrentlySelected 
         ? rowCols.filter(id => id !== colId) 
         : [...rowCols, colId];
+      
       return { ...prev, [rowId]: newCols };
     });
   };
