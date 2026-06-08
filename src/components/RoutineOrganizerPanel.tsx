@@ -1131,7 +1131,13 @@ export default function RoutineOrganizerPanel() {
                     variant="ghost" 
                     size="icon" 
                     className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                    onClick={() => activeRoutine && handleDeleteRoutine(activeRoutine.id)}
+                    onClick={() => {
+                      if (activeRoutine) {
+                        setRoutineToDelete(activeRoutine.id);
+                        setDeleteConfirmationText('');
+                        setIsDeleteRoutineOpen(true);
+                      }
+                    }}
                     title="Excluir Rotina"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
