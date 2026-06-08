@@ -343,6 +343,25 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                   </Select>
                 </div>
                 <div className="space-y-2">
+                  <Label>Forma de Pagamento</Label>
+                  <Select value={formData.payment_method} onValueChange={(v) => setFormData({...formData, payment_method: v})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pix">PIX</SelectItem>
+                      <SelectItem value="credit_card">Cartão de Crédito</SelectItem>
+                      <SelectItem value="debit_card">Cartão de Débito</SelectItem>
+                      <SelectItem value="cash">Dinheiro</SelectItem>
+                      <SelectItem value="transfer">Transferência</SelectItem>
+                      <SelectItem value="boleto">Boleto</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
                   <Label>Status</Label>
                   <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
                     <SelectTrigger>
