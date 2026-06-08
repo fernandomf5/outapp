@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { Plus, Table as TableIcon, Settings, Trash2, Edit2, ChevronRight, Save, X, MoreHorizontal, Layout, Check, Palette, Image as ImageIcon, Search, Filter, ExternalLink } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Plus, Table as TableIcon, Settings, Trash2, Edit2, ChevronRight, Save, X, MoreHorizontal, Layout, Check, Palette, Image as ImageIcon, Search, Filter, ExternalLink, Download, FileJson } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import html2canvas from "html2canvas";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose, DialogDescription } from "@/components/ui/dialog";
@@ -46,6 +49,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
   const [rows, setRows] = useState<TableRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'grid' | 'table'>('grid');
+  const tableRef = useRef<HTMLDivElement>(null);
   
   // Create Table State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -324,6 +328,54 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     }
   };
 
+  const handleDownloadPDF = () => {
+    if (!selectedTable || rows.length === 0) return;
+    
+    const doc = new jsPDF({
+      orientation: "landscape",
+    });
+
+    const tableHeaders = columns.map(col => col.name);
+    const tableData = rows.map(row => 
+      columns.map(col => row.cells[col.id] || "")
+    );
+
+    autoTable(doc, {
+      head: [tableHeaders],
+      body: tableData,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: selectedTable.color || "#3b82f6" },
+      margin: { top: 20 },
+      didDrawPage: (data) => {
+        doc.text(selectedTable.name, 14, 15);
+      }
+    });
+
+    doc.save(`${selectedTable.name}.pdf`);
+  };
+
+  const handleDownloadPNG = async () => {
+    if (!tableRef.current || !selectedTable) return;
+    
+    try {
+      const canvas = await html2canvas(tableRef.current, {
+        backgroundColor: resolvedTheme === 'dark' ? '#0a0a0a' : '#ffffff',
+        scale: 2,
+        logging: false,
+        useCORS: true
+      });
+      
+      const link = document.createElement('a');
+      link.download = `${selectedTable.name}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+      toast({ title: "Imagem gerada com sucesso!" });
+    } catch (error) {
+      toast({ title: "Erro ao gerar imagem", variant: "destructive" });
+    }
+  };
+
   if (view === 'table' && selectedTable) {
     return (
       <div className={cn("flex flex-col bg-background", isFullPage ? "h-full" : "h-screen max-h-[calc(100vh-140px)]")}>
@@ -349,6 +401,31 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                 <ExternalLink className="mr-2 h-4 w-4" /> Abrir Completa
               </Button>
             )}
+            {isFullPage && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Download className="mr-2 h-4 w-4" /> Baixar
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-40 p-1" align="end">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start text-xs h-8 px-2"
+                    onClick={handleDownloadPDF}
+                  >
+                    <FileText className="mr-2 h-3 w-3 text-red-500" /> Baixar PDF
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start text-xs h-8 px-2"
+                    onClick={handleDownloadPNG}
+                  >
+                    <ImageIcon className="mr-2 h-3 w-3 text-blue-500" /> Baixar PNG
+                  </Button>
+                </PopoverContent>
+              </Popover>
+            )}
             <Button variant="outline" size="sm" onClick={() => setIsColumnModalOpen(true)}>
               <Plus className="mr-2 h-4 w-4" /> Coluna
             </Button>
@@ -358,7 +435,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
           </div>
         </header>
 
-        <div className="flex-1 overflow-auto relative">
+        <div className="flex-1 overflow-auto relative" ref={tableRef}>
           <table className="w-full border-collapse text-sm">
             <thead className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm">
               <tr className="border-b">
