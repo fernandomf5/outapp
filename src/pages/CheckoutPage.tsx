@@ -375,32 +375,83 @@ const CheckoutPage = () => {
             </CardContent>
           </Card>
 
-          {/* Related Products - only show before payment */}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column - Order Summary */}
+        <div className="md:col-span-5 lg:col-span-4 space-y-6">
+          <Card className="shadow-sm border-none bg-white rounded-2xl sticky top-8">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5 text-primary" />
+                Resumo do Pedido
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-4">
+                {checkout.item_image_url && (
+                  <img src={checkout.item_image_url} alt={checkout.item_name} className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />
+                )}
+                <div className="flex-1">
+                  <h3 className="font-semibold text-sm">{checkout.item_name}</h3>
+                  <p className="text-lg font-bold" style={{ color: primaryColor }}>R$ {Number(checkout.price).toFixed(2)}</p>
+                </div>
+              </div>
+
+              {/* Order Bumps summary in sidebar */}
+              {getSelectedExtras().length > 0 && (
+                <div className="space-y-2 pt-4 border-t">
+                  {getSelectedExtras().map((ex, i) => (
+                    <div key={i} className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">{ex.name} {ex.qty > 1 ? `x${ex.qty}` : ''}</span>
+                      <span className="font-medium">R$ {(ex.price * ex.qty).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="pt-4 border-t space-y-2">
+                <div className="flex justify-between text-base">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>R$ {total.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-xl font-bold pt-2">
+                  <span>Total</span>
+                  <span style={{ color: primaryColor }}>R$ {total.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <div className="pt-4 space-y-3">
+                <div className="flex items-center gap-3 text-xs text-green-600 bg-green-50 p-3 rounded-lg border border-green-100">
+                  <Shield className="w-4 h-4" />
+                  <span>Ambiente seguro e criptografado</span>
+                </div>
+                <div className="flex justify-center gap-4 opacity-50 grayscale">
+                  <img src="https://logodownload.org/wp-content/uploads/2014/10/mercado-pago-logo-1.png" alt="Mercado Pago" className="h-4 object-contain" />
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Logo_Pix.svg/1200px-Logo_Pix.svg.png" alt="PIX" className="h-4 object-contain" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Related Products - moved to sidebar on desktop */}
           {!showPayment && related.length > 0 && (
-            <Card>
+            <Card className="shadow-sm border-none bg-white rounded-2xl">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">🛍️ Você também pode gostar</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-3">
                 {related.map(item => (
-                  <div key={item.id} className="flex items-center gap-3 p-3 rounded-lg border">
-                    {item.image_url && <img src={item.image_url} alt={item.name} className="w-16 h-16 rounded object-cover" />}
+                  <div key={item.id} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/50">
+                    {item.image_url && <img src={item.image_url} alt={item.name} className="w-12 h-12 rounded object-cover" />}
                     <div className="flex-1">
-                      <p className="font-medium text-sm">{item.name}</p>
-                      {item.description && <p className="text-xs text-muted-foreground">{item.description}</p>}
-                      <p className="font-bold text-sm mt-1" style={{ color: primaryColor }}>R$ {Number(item.price).toFixed(2)}</p>
+                      <p className="font-medium text-xs">{item.name}</p>
+                      <p className="font-bold text-xs" style={{ color: primaryColor }}>R$ {Number(item.price).toFixed(2)}</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {relatedCart.has(item.id) ? (
-                        <div className="flex items-center gap-1">
-                          <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateRelatedQty(item.id, -1)}><Minus className="w-3 h-3" /></Button>
-                          <span className="w-6 text-center text-sm font-semibold">{relatedCart.get(item.id)}</span>
-                          <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateRelatedQty(item.id, 1)}><Plus className="w-3 h-3" /></Button>
-                        </div>
-                      ) : (
-                        <Button size="sm" variant="outline" onClick={() => updateRelatedQty(item.id, 1)}><Plus className="w-3 h-3 mr-1" />Adicionar</Button>
-                      )}
-                    </div>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => updateRelatedQty(item.id, 1)}>
+                      <Plus className="w-4 h-4 text-primary" />
+                    </Button>
                   </div>
                 ))}
               </CardContent>
@@ -413,8 +464,9 @@ const CheckoutPage = () => {
       {checkout.footer_code && (
         <div dangerouslySetInnerHTML={{ __html: checkout.footer_code }} />
       )}
-    </>
-  );
+    </div>
+  </>
+);
 };
 
 export default CheckoutPage;
