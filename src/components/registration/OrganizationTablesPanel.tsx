@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { Plus, Table as TableIcon, Settings, Trash2, Edit2, ChevronRight, Save, X, MoreHorizontal, Layout, Check, Palette, Image as ImageIcon, Search, Filter, ExternalLink, Download, FileJson, FileText, Calculator } from "lucide-react";
+import { Plus, Table as TableIcon, Settings, Trash2, Edit2, ChevronRight, Save, X, MoreHorizontal, Layout, Check, Palette, Image as ImageIcon, Search, Filter, ExternalLink, Download, FileJson, FileText, Calculator, Upload, Loader2 } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import html2canvas from "html2canvas";
@@ -56,6 +56,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
   // Create Table State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newTable, setNewTable] = useState({ name: "", description: "", color: "#3b82f6", logo_url: "" });
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   
   // Confirmation Modal State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -163,6 +164,39 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     });
 
     setRows(formattedRows);
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingLogo(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `table-logos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('images')
+        .getPublicUrl(filePath);
+
+      setNewTable(prev => ({ ...prev, logo_url: publicUrl }));
+      toast({ title: "Logo carregado com sucesso!" });
+    } catch (error: any) {
+      toast({ 
+        title: "Erro ao carregar logo", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+    } finally {
+      setUploadingLogo(false);
+    }
   };
 
   const handleCreateTable = async () => {
@@ -1175,13 +1209,42 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="logo">URL da Imagem ou Logo (Opcional)</Label>
-              <Input 
-                id="logo" 
-                placeholder="https://exemplo.com/imagem.png" 
-                value={newTable.logo_url}
-                onChange={(e) => setNewTable({...newTable, logo_url: e.target.value})}
-              />
+              <Label htmlFor="logo">Logo da Tabela (Upload)</Label>
+              <div className="flex items-center gap-4">
+                {newTable.logo_url && (
+                  <div className="w-12 h-12 rounded-lg border overflow-hidden bg-muted flex-shrink-0">
+                    <img src={newTable.logo_url} alt="Logo preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <Label 
+                    htmlFor="logo-upload" 
+                    className={cn(
+                      "flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors",
+                      uploadingLogo && "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      {uploadingLogo ? (
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                      ) : (
+                        <>
+                          <Upload className="h-6 w-6 text-muted-foreground mb-2" />
+                          <p className="text-xs text-muted-foreground">Clique para fazer upload</p>
+                        </>
+                      )}
+                    </div>
+                    <Input 
+                      id="logo-upload" 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={handleLogoUpload}
+                      disabled={uploadingLogo}
+                    />
+                  </Label>
+                </div>
+              </div>
             </div>
             <div className="grid gap-2">
               <Label>Cor de Identificação</Label>
