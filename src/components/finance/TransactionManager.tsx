@@ -473,7 +473,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(t)}>
                             <Edit2 className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(t)}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => confirmDelete(t)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
