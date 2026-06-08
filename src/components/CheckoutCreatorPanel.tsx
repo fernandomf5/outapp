@@ -16,6 +16,8 @@ import { Plus, Edit2, Trash2, Copy, ExternalLink, ShoppingCart, DollarSign, Eye,
 import { CheckoutImageUpload } from "@/components/checkout/CheckoutImageUpload";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { CheckoutPreview } from "./checkout/CheckoutPreview";
+
 
 interface Checkout {
   id: string;
