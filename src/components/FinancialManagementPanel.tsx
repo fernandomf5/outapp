@@ -333,10 +333,13 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   // State for optimistic UI updates
   const [localTransactions, setLocalTransactions] = useState<Transaction[]>([]);
 
+  const { bankAccounts, refetch: refetchBankAccounts } = useBankAccounts(selectedBusinessId);
+
   useEffect(() => {
     loadBusinesses();
     loadCategories();
   }, [teamContext?.adminUserId]);
+
 
   useEffect(() => {
     if (selectedBusinessId || (isConsolidatedView && selectedBusinessIds.length > 0)) {
