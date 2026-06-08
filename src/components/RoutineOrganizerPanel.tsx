@@ -963,6 +963,27 @@ export default function RoutineOrganizerPanel() {
 
 
   // Sharing functions
+  const handleBulkSetReminders = async () => {
+    if (!user || !activeRoutine || routineItems.length === 0) return;
+
+    try {
+      const { error } = await supabase
+        .from('routine_items')
+        .update({ reminder_minutes: bulkReminderMinutes })
+        .eq('user_id', user.id)
+        .eq('routine_id', activeRoutine.id);
+
+      if (error) throw error;
+
+      toast.success(`Lembretes configurados para ${routineItems.length} atividades!`);
+      setIsBulkReminderOpen(false);
+      loadData();
+    } catch (error) {
+      console.error('Error setting bulk reminders:', error);
+      toast.error('Erro ao configurar lembretes em massa');
+    }
+  };
+
   const generateRoutineText = () => {
     let text = '📅 MINHA ROTINA SEMANAL\n\n';
     DAYS_OF_WEEK.forEach(day => {
@@ -1238,6 +1259,47 @@ export default function RoutineOrganizerPanel() {
         </div>
 
         <div className="flex gap-1 flex-wrap justify-end">
+          <Dialog open={isBulkReminderOpen} onOpenChange={setIsBulkReminderOpen}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" disabled={routineItems.length === 0} title="Lembrete em Massa">
+                <Bell className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Configurar Lembretes em Massa</DialogTitle>
+                <DialogDescription>Defina um lembrete padrão para todas as {routineItems.length} atividades desta rotina.</DialogDescription>
+              </DialogHeader>
+              <div className="py-4 space-y-4">
+                <div>
+                  <Label>Tempo do Lembrete</Label>
+                  <Select
+                    value={bulkReminderMinutes?.toString() || 'null'}
+                    onValueChange={(v) => setBulkReminderMinutes(v === 'null' ? null : parseInt(v))}
+                  >
+                    <SelectTrigger className="mt-2">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {REMINDER_OPTIONS.map(opt => (
+                        <SelectItem key={opt.value || 'null'} value={opt.value?.toString() || 'null'}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
+                  Isso atualizará <strong>todas</strong> as atividades da rotina atual ({activeRoutine?.name}) para o tempo selecionado.
+                </p>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsBulkReminderOpen(false)}>Cancelar</Button>
+                <Button onClick={handleBulkSetReminders}>Aplicar a Todos</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
           {/* Template buttons */}
           <Dialog open={isSaveTemplateOpen} onOpenChange={setIsSaveTemplateOpen}>
             <DialogTrigger asChild>
