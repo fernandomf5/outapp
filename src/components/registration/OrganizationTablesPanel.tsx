@@ -135,11 +135,14 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       .select(`
         id,
         row_background_color,
+        row_text_color,
+        is_bold,
         order_index,
         organization_table_cells (
           column_id,
           value,
-          text_color
+          text_color,
+          is_bold
         )
       `)
       .eq("table_id", tableId)
