@@ -256,33 +256,33 @@ export function QRCodeGenerator() {
               display: flex;
               flex-direction: column;
               align-items: center;
-              margin-bottom: 24px;
+              margin-bottom: 30px;
               width: 100%;
             }
             .business-name {
-              font-size: 32px;
+              font-size: 48px;
               font-weight: 900;
               text-align: center;
               color: ${fgColor};
               text-transform: uppercase;
-              letter-spacing: -1px;
-              line-height: 1;
+              letter-spacing: -2px;
+              line-height: 0.9;
               margin: 0;
             }
             .name-underline {
-              height: 6px;
-              width: 60px;
+              height: 8px;
+              width: 100px;
               background-color: ${fgColor};
-              margin-top: 8px;
+              margin-top: 12px;
               border-radius: 10px;
             }
             .qr-wrapper {
               position: relative;
               background: white;
-              padding: 16px;
-              border-radius: 20px;
-              box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-              border: 1px solid #f0f0f0;
+              padding: 24px;
+              border-radius: 30px;
+              box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+              border: 1px solid #eeeeee;
               display: flex;
               justify-content: center;
               align-items: center;
@@ -293,47 +293,72 @@ export function QRCodeGenerator() {
               left: 50%;
               transform: translate(-50%, -50%);
               background: white;
-              padding: 4px;
-              border-radius: 8px;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+              padding: 6px;
+              border-radius: 12px;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.15);
               z-index: 10;
               display: flex;
               align-items: center;
               justify-content: center;
-              border: 1px solid #f0f0f0;
+              border: 1px solid #eeeeee;
             }
             .logo-center img {
-              width: ${Math.min(logoSize, 50)}px;
-              height: ${Math.min(logoSize, 50)}px;
+              width: ${Math.min(logoSize, 70)}px;
+              height: ${Math.min(logoSize, 70)}px;
               object-fit: contain;
             }
             .socials-container {
               width: 100%;
-              margin-top: auto;
-              padding-top: 24px;
+              margin-top: 30px;
               display: flex;
               flex-direction: column;
               align-items: center;
+              gap: 15px;
             }
             .socials {
               display: flex;
-              flex-wrap: wrap;
-              gap: 24px;
-              justify-content: center;
-              background-color: ${fgColor}15;
-              padding: 16px;
-              border-radius: 16px;
+              flex-direction: column;
+              gap: 15px;
               width: 100%;
-              box-sizing: border-box;
+              align-items: center;
+            }
+            .social-item {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              width: 100%;
+              max-width: 300px;
+              padding: 12px 20px;
+              background: white;
+              border-radius: 15px;
+              border: 2px solid ${fgColor}20;
+            }
+            .social-icon {
+              font-size: 24px;
+              font-weight: bold;
+              color: white;
+              background-color: ${fgColor};
+              width: 36px;
+              height: 36px;
+              border-radius: 10px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .social-handle {
+              font-size: 20px;
+              font-weight: 800;
+              color: ${fgColor};
+              letter-spacing: -0.5px;
             }
             .scan-text {
-              margin-top: 12px;
-              font-size: 10px;
-              font-weight: bold;
+              margin-top: 10px;
+              font-size: 14px;
+              font-weight: 800;
               text-transform: uppercase;
-              letter-spacing: 2px;
+              letter-spacing: 3px;
               color: ${fgColor};
-              opacity: 0.6;
+              opacity: 0.8;
             }
             @media print {
               body {
@@ -362,9 +387,24 @@ export function QRCodeGenerator() {
             ${showSocialMedia && activeSocials.length > 0 ? `
               <div class="socials-container">
                 <div class="socials">
-                  ${socialIconsHtml}
+                  ${activeSocials.map(([platform, handle]) => {
+                    const colors: Record<string, string> = {
+                      instagram: '#E4405F',
+                      facebook: '#1877F2',
+                      tiktok: '#000000',
+                      youtube: '#FF0000',
+                      twitter: '#1DA1F2',
+                      linkedin: '#0A66C2',
+                    };
+                    return `
+                      <div class="social-item">
+                        <div class="social-icon" style="background-color: ${colors[platform]}">#</div>
+                        <div class="social-handle">@${handle}</div>
+                      </div>
+                    `;
+                  }).join('')}
                 </div>
-                <div class="scan-text">Escaneie para nos seguir</div>
+                <div class="scan-text">ESCANEIE PARA NOS SEGUIR</div>
               </div>
             ` : ''}
           </div>
