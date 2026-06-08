@@ -902,9 +902,6 @@ export function QRCodeGenerator() {
                 </Button>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
 
             {/* Sticky Preview container */}
             <div className="relative">
