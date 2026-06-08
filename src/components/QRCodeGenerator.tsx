@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import * as htmlToImage from 'html-to-image';
 import { QRCodeSVG } from 'qrcode.react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -101,11 +102,12 @@ export function QRCodeGenerator() {
     }
   };
 
-  const downloadQRCode = (format: 'svg' | 'png') => {
-    const svg = document.getElementById('qr-code-svg');
-    if (!svg) return;
+  const downloadQRCode = async (format: 'svg' | 'png') => {
+    if (!text) return;
 
     if (format === 'svg') {
+      const svg = document.getElementById('qr-code-svg');
+      if (!svg) return;
       const svgData = new XMLSerializer().serializeToString(svg);
       const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(svgBlob);
@@ -114,39 +116,38 @@ export function QRCodeGenerator() {
       link.download = 'qrcode.svg';
       link.click();
       URL.revokeObjectURL(url);
+      
+      toast({
+        title: 'QR Code baixado',
+        description: 'Arquivo SVG salvo com sucesso',
+      });
     } else {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
+      if (!printRef.current) return;
       
-      const svgData = new XMLSerializer().serializeToString(svg);
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(svgBlob);
-      
-      img.onload = () => {
-        canvas.width = size;
-        canvas.height = size;
-        ctx?.drawImage(img, 0, 0);
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const pngUrl = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = pngUrl;
-            link.download = 'qrcode.png';
-            link.click();
-            URL.revokeObjectURL(pngUrl);
-          }
+      try {
+        const dataUrl = await htmlToImage.toPng(printRef.current, {
+          backgroundColor: bgColor,
+          pixelRatio: 2,
         });
-        URL.revokeObjectURL(url);
-      };
-      
-      img.src = url;
+        
+        const link = document.createElement('a');
+        link.download = 'qrcode-personalizado.png';
+        link.href = dataUrl;
+        link.click();
+        
+        toast({
+          title: 'QR Code baixado',
+          description: 'PNG completo com personalização salvo com sucesso',
+        });
+      } catch (error) {
+        console.error('Erro ao gerar PNG:', error);
+        toast({
+          title: 'Erro ao baixar',
+          description: 'Não foi possível gerar a imagem completa.',
+          variant: 'destructive',
+        });
+      }
     }
-
-    toast({
-      title: 'QR Code baixado',
-      description: `Arquivo ${format.toUpperCase()} salvo com sucesso`,
-    });
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -194,6 +195,14 @@ export function QRCodeGenerator() {
     const activeSocials = Object.entries(socialMedia).filter(([_, value]) => value.trim() !== '');
     
     const socialIconsHtml = activeSocials.map(([platform, handle]) => {
+      const IconMap: Record<string, string> = {
+        instagram: 'Instagram',
+        facebook: 'Facebook',
+        tiktok: 'TikTok',
+        youtube: 'YouTube',
+        twitter: 'Twitter',
+        linkedin: 'LinkedIn',
+      };
       const colors: Record<string, string> = {
         instagram: '#E4405F',
         facebook: '#1877F2',
@@ -202,7 +211,7 @@ export function QRCodeGenerator() {
         twitter: '#1DA1F2',
         linkedin: '#0A66C2',
       };
-      return `<div style="display: flex; align-items: center; gap: 6px; font-size: 14px;">
+      return `<div style="display: flex; align-items: center; gap: 4px; font-size: 14px;">
         <span style="color: ${colors[platform]}; font-weight: bold;">@${handle}</span>
       </div>`;
     }).join('');
@@ -553,11 +562,34 @@ export function QRCodeGenerator() {
         </div>
 
         {showSocialMedia && Object.entries(socialMedia).some(([_, v]) => v.trim()) && (
-          <div className="flex flex-wrap justify-center gap-2 mt-3 p-2 bg-black/5 rounded-md w-full">
-            {socialMedia.instagram && <FaInstagram className="w-4 h-4 text-pink-500" />}
-            {socialMedia.facebook && <FaFacebook className="w-4 h-4 text-blue-600" />}
-            {socialMedia.tiktok && <FaTiktok className="w-4 h-4 text-black" />}
-            {socialMedia.youtube && <FaYoutube className="w-4 h-4 text-red-600" />}
+          <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-3 px-2 w-full">
+            {Object.entries(socialMedia).map(([platform, handle]) => {
+              if (!handle.trim()) return null;
+              const Icon = {
+                instagram: FaInstagram,
+                facebook: FaFacebook,
+                tiktok: FaTiktok,
+                youtube: FaYoutube,
+                twitter: FaTwitter,
+                linkedin: FaLinkedin
+              }[platform as keyof SocialMedia];
+
+              const colors: Record<string, string> = {
+                instagram: '#E4405F',
+                facebook: '#1877F2',
+                tiktok: '#000000',
+                youtube: '#FF0000',
+                twitter: '#1DA1F2',
+                linkedin: '#0A66C2',
+              };
+
+              return (
+                <div key={platform} className="flex items-center gap-1">
+                  {Icon && <Icon className="w-3 h-3" style={{ color: colors[platform] }} />}
+                  <span className="text-[10px] font-bold" style={{ color: colors[platform] }}>@{handle}</span>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
