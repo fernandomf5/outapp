@@ -120,10 +120,22 @@ export function QRCodeGenerator() {
     if (!printRef.current) return;
 
     try {
+      // Use toPng or toSvg but without a background to maintain transparency if needed
+      // OR explicitly set to bgColor if user wants it.
+      // The user said "quero sem fundo" (I want without background) which usually means transparent,
+      // but they also mentioned "a borda com fundo borda e com fundo branco meu deus que coisa horrivel".
+      // Let's make it look like the requested design (modern, clean) and ensure it doesn't have ugly white blocks.
+      
+      const options = {
+        backgroundColor: null, // Transparent
+        pixelRatio: 3,
+        style: {
+          transform: 'scale(1)',
+        }
+      };
+
       if (format === 'svg') {
-        const dataUrl = await htmlToImage.toSvg(printRef.current, {
-          backgroundColor: bgColor,
-        });
+        const dataUrl = await htmlToImage.toSvg(printRef.current, options);
         
         const link = document.createElement('a');
         link.download = 'qrcode-personalizado.svg';
@@ -135,13 +147,7 @@ export function QRCodeGenerator() {
           description: 'Arquivo SVG completo com personalização salvo com sucesso',
         });
       } else {
-        const dataUrl = await htmlToImage.toPng(printRef.current, {
-          backgroundColor: bgColor,
-          pixelRatio: 3,
-          style: {
-            transform: 'scale(1)',
-          }
-        });
+        const dataUrl = await htmlToImage.toPng(printRef.current, options);
         
         const link = document.createElement('a');
         link.download = 'qrcode-personalizado.png';
@@ -248,9 +254,9 @@ export function QRCodeGenerator() {
               align-items: center;
               padding: ${padding}px;
               ${showBorder ? `border: ${borderWidth}px solid ${borderColor}; border-radius: ${cornerRadius}px;` : ''}
-              background-color: ${bgColor};
+              background-color: ${bgColor === '#ffffff' ? 'transparent' : bgColor};
               width: 100%;
-              max-width: 500px;
+              max-width: 400px;
             }
             .header-container {
               display: flex;
@@ -267,20 +273,20 @@ export function QRCodeGenerator() {
               margin-bottom: 5px;
             }
             .business-name {
-              font-size: 48px;
+              font-size: 28px;
               font-weight: 900;
               text-align: center;
               color: ${fgColor};
               text-transform: uppercase;
-              letter-spacing: -2px;
-              line-height: 0.85;
+              letter-spacing: -1px;
+              line-height: 1;
               margin: 0;
             }
             .name-underline {
-              height: 8px;
-              width: 80px;
+              height: 4px;
+              width: 40px;
               background-color: ${fgColor};
-              margin-top: 10px;
+              margin-top: 6px;
               border-radius: 10px;
             }
             .qr-wrapper {
@@ -295,8 +301,8 @@ export function QRCodeGenerator() {
               align-items: center;
             }
             .qr-wrapper svg {
-              width: 320px !important;
-              height: 320px !important;
+              width: 200px !important;
+              height: 200px !important;
             }
             .socials-container {
               width: 100%;
@@ -318,11 +324,12 @@ export function QRCodeGenerator() {
               align-items: center;
               gap: 12px;
               width: 100%;
-              max-width: 300px;
-              padding: 12px 20px;
+              max-width: 260px;
+              padding: 8px 16px;
               background: white;
-              border-radius: 15px;
-              border: 2px solid ${fgColor}20;
+              border-radius: 12px;
+              border: 1px solid #f0f0f0;
+              box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             }
             .social-icon {
               font-size: 24px;
@@ -635,11 +642,11 @@ export function QRCodeGenerator() {
   };
 
   const realtimePreview = (
-    <div className="fixed right-2 sm:right-4 lg:right-8 xl:right-10 top-[80px] lg:top-[90px] z-[9999] flex w-[280px] sm:w-[320px] lg:w-[360px] max-w-[calc(100vw-1rem)] flex-col items-center space-y-3 overflow-y-auto rounded-2xl border-2 border-primary bg-card/95 p-3 sm:p-4 shadow-2xl backdrop-blur-md max-h-[calc(100vh-7rem)] transition-all duration-300 animate-in fade-in zoom-in">
+    <div className="fixed right-2 sm:right-4 lg:right-8 xl:right-10 top-[80px] lg:top-[90px] z-[9999] flex w-[300px] sm:w-[340px] lg:w-[380px] max-w-[calc(100vw-1rem)] flex-col items-center space-y-3 overflow-y-auto rounded-2xl border-2 border-primary bg-card/95 p-3 sm:p-4 shadow-2xl backdrop-blur-md max-h-[calc(100vh-7rem)] transition-all duration-300 animate-in fade-in zoom-in">
       <div className="flex items-center justify-between w-full mb-1">
         <h3 className="font-bold text-sm sm:text-base text-primary flex items-center gap-2 truncate">
           <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
-          Preview em Tempo Real
+          Design do QR Code
         </h3>
         <div className="flex gap-1">
           <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -648,102 +655,112 @@ export function QRCodeGenerator() {
 
       <div 
         ref={printRef}
-        className="flex flex-col items-center bg-white rounded-lg shadow-inner w-full overflow-hidden"
+        className="flex flex-col items-center w-full overflow-hidden"
         style={{
-          backgroundColor: bgColor,
+          backgroundColor: bgColor === '#ffffff' ? 'transparent' : bgColor,
           border: showBorder ? `${borderWidth}px solid ${borderColor}` : 'none',
           borderRadius: `${cornerRadius}px`,
-          minHeight: '420px',
-          justifyContent: 'space-between',
-          padding: `${padding}px`
+          padding: `${padding}px`,
+          minHeight: '400px',
         }}
       >
-        <div className="flex flex-col items-center w-full">
-          <div className="w-full flex flex-col items-center mb-6 gap-3">
+        <div className="flex flex-col items-center w-full gap-4">
+          {/* Top Branding Section */}
+          <div className="w-full flex flex-col items-center gap-2 mb-2">
             {showLogo && logoUrl && (
               <img 
                 src={logoUrl} 
                 alt="Logo" 
-                className="mb-2"
+                className="object-contain"
                 style={{ 
-                  width: logoSize * 1.2, 
-                  height: logoSize * 1.2, 
-                  objectFit: 'contain' 
+                  width: logoSize, 
+                  height: logoSize,
                 }} 
               />
             )}
             {businessName && (
               <div className="flex flex-col items-center">
                 <p 
-                  className="font-black text-center break-all px-2 uppercase tracking-tighter leading-[0.85]"
-                  style={{ color: fgColor, fontSize: '2.5rem' }}
+                  className="font-black text-center break-words px-2 uppercase tracking-tight leading-none"
+                  style={{ color: fgColor, fontSize: '1.5rem' }}
                 >
                   {businessName}
                 </p>
-                <div className="h-2 w-20 mt-3 rounded-full" style={{ backgroundColor: fgColor }}></div>
+                <div className="h-1 w-12 mt-1 rounded-full" style={{ backgroundColor: fgColor }}></div>
               </div>
             )}
           </div>
           
-          <div className="relative group flex flex-col items-center p-6 bg-white rounded-[32px] shadow-sm border border-gray-100">
+          {/* QR Code Section - Transparent background for the wrapper */}
+          <div className="relative flex flex-col items-center p-4 bg-white rounded-3xl shadow-xl border border-gray-50">
             {text ? (
               <QRCodeSVG
                 id="qr-code-svg"
                 value={text}
-                size={220}
+                size={200}
                 fgColor={fgColor}
                 bgColor="#ffffff"
                 level="H"
                 includeMargin={false}
               />
             ) : (
-              <div className="w-[220px] h-[220px] flex items-center justify-center bg-muted rounded-md border-2 border-dashed">
+              <div className="w-[200px] h-[200px] flex items-center justify-center bg-muted rounded-xl border-2 border-dashed">
                 <p className="text-xs text-muted-foreground text-center px-4">
                   Aguardando conteúdo...
                 </p>
               </div>
             )}
           </div>
-        </div>
 
-        {showSocialMedia && Object.entries(socialMedia).some(([_, v]) => v.trim()) && (
-          <div className="w-full mt-8 flex flex-col items-center space-y-4">
-            <div className="flex flex-col gap-3 w-full">
-              {Object.entries(socialMedia).map(([platform, handle]) => {
-                if (!handle.trim()) return null;
-                const Icon = {
-                  instagram: FaInstagram,
-                  facebook: FaFacebook,
-                  tiktok: FaTiktok,
-                  youtube: FaYoutube,
-                  twitter: FaTwitter,
-                  linkedin: FaLinkedin
-                }[platform as keyof SocialMedia];
+          {/* Social Media Section - Clean & Modern Icons */}
+          {showSocialMedia && Object.entries(socialMedia).some(([_, v]) => v.trim()) && (
+            <div className="w-full mt-4 flex flex-col items-center space-y-4">
+              <div className="grid grid-cols-1 gap-2 w-full">
+                {Object.entries(socialMedia).map(([platform, handle]) => {
+                  if (!handle.trim()) return null;
+                  const Icon = {
+                    instagram: FaInstagram,
+                    facebook: FaFacebook,
+                    tiktok: FaTiktok,
+                    youtube: FaYoutube,
+                    twitter: FaTwitter,
+                    linkedin: FaLinkedin
+                  }[platform as keyof SocialMedia];
 
-                const colors: Record<string, string> = {
-                  instagram: '#E4405F',
-                  facebook: '#1877F2',
-                  tiktok: '#000000',
-                  youtube: '#FF0000',
-                  twitter: '#1DA1F2',
-                  linkedin: '#0A66C2',
-                };
+                  const colors: Record<string, string> = {
+                    instagram: '#E4405F',
+                    facebook: '#1877F2',
+                    tiktok: '#000000',
+                    youtube: '#FF0000',
+                    twitter: '#1DA1F2',
+                    linkedin: '#0A66C2',
+                  };
 
-                return (
-                  <div key={platform} className="flex items-center gap-4 bg-white p-3 rounded-2xl border-2 shadow-sm" style={{ borderColor: `${fgColor}20` }}>
-                    <div className="p-2 rounded-xl text-white shadow-inner" style={{ backgroundColor: colors[platform] }}>
-                      {Icon && <Icon className="w-5 h-5" />}
+                  return (
+                    <div 
+                      key={platform} 
+                      className="flex items-center gap-3 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-xl shadow-sm border border-gray-100"
+                    >
+                      <div 
+                        className="flex items-center justify-center w-8 h-8 rounded-lg text-white" 
+                        style={{ backgroundColor: colors[platform] }}
+                      >
+                        {Icon && <Icon className="w-5 h-5" />}
+                      </div>
+                      <span className="text-base font-bold italic" style={{ color: fgColor }}>@{handle}</span>
                     </div>
-                    <span className="text-lg font-black italic tracking-tighter" style={{ color: fgColor }}>@{handle}</span>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+              <div 
+                className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70" 
+                style={{ color: fgColor }}
+              >
+                Siga nossas redes sociais
+              </div>
             </div>
-            <div className="mt-2 text-[12px] font-black uppercase tracking-[0.3em] opacity-60" style={{ color: fgColor }}>
-              ESCANEIE PARA NOS SEGUIR
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
       
       <div className="grid grid-cols-2 gap-2 w-full mt-2">
