@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, LayoutDashboard, Receipt, Wallet, FileBarChart } from "lucide-react";
+import { ArrowLeft, LayoutDashboard, Receipt, Wallet, FileBarChart, Settings2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,7 @@ import { TransactionManager } from "./finance/TransactionManager";
 import { BankAccountSection } from "./finance/BankAccountSection";
 import { ReportCenter } from "./finance/ReportCenter";
 import { BusinessSelector } from "@/components/financial/BusinessSelector";
+import { CustomFinancialRecordsPanel } from "./registration/CustomFinancialRecordsPanel";
 
 interface Business {
   id: string;
@@ -191,7 +192,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:w-[600px] mb-8">
+        <TabsList className="grid w-full grid-cols-5 lg:w-[750px] mb-8">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <LayoutDashboard className="h-4 w-4" />
             <span className="hidden sm:inline">Geral</span>
@@ -207,6 +208,10 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
           <TabsTrigger value="reports" className="flex items-center gap-2">
             <FileBarChart className="h-4 w-4" />
             <span className="hidden sm:inline">Relatórios</span>
+          </TabsTrigger>
+          <TabsTrigger value="custom-records" className="flex items-center gap-2">
+            <Settings2 className="h-4 w-4" />
+            <span className="hidden sm:inline">Registros Perso.</span>
           </TabsTrigger>
         </TabsList>
 
@@ -239,6 +244,10 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
 
         <TabsContent value="reports" className="space-y-4">
           <ReportCenter transactions={transactions} />
+        </TabsContent>
+
+        <TabsContent value="custom-records" className="space-y-4">
+          <CustomFinancialRecordsPanel />
         </TabsContent>
       </Tabs>
     </div>
