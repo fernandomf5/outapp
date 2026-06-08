@@ -886,6 +886,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
               </tr>
             </thead>
             <tbody>
+              {rows.map((row, idx) => (
                 <tr 
                   key={row.id} 
                   className={cn(
