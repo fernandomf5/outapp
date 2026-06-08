@@ -1238,7 +1238,9 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
         </Dialog>
         
         {/* Edit Column Modal */}
-        <Dialog open={!!editingColumn} onOpenChange={(open) => !open && setEditingColumn(null)}>
+        <Dialog open={!!editingColumn} onOpenChange={(open) => {
+          if (!open) setEditingColumn(null);
+        }}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Editar Coluna</DialogTitle>
