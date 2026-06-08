@@ -159,8 +159,8 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       <div className="container mx-auto py-6">
         <BusinessSelector 
           businesses={businesses}
-          onSelect={handleSelectBusiness}
-          onSelectMultiple={handleSelectMultipleBusinesses}
+          onSelectBusiness={handleSelectBusiness}
+          onSelectMultipleBusinesses={handleSelectMultipleBusinesses}
           onCreateBusiness={handleCreateBusiness}
         />
       </div>
