@@ -356,7 +356,10 @@ export const OrganizationTablesPanel = () => {
                 <tr 
                   key={row.id} 
                   className="border-b hover:bg-muted/30 transition-colors group"
-                  style={{ backgroundColor: row.row_background_color || 'transparent' }}
+                  style={{ 
+                    backgroundColor: row.row_background_color || 'transparent',
+                    color: row.row_background_color && row.row_background_color !== 'transparent' && row.row_background_color !== '#f8fafc' ? '#000000' : 'inherit'
+                  }}
                 >
                   <td className="px-4 py-2 border-r text-muted-foreground font-mono text-xs relative">
                     {idx + 1}
