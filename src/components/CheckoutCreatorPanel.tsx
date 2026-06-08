@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, Copy, ExternalLink, ShoppingCart, DollarSign, Eye, BarChart3, Package, Code, Gift } from "lucide-react";
+import { Plus, Edit2, Trash2, Copy, ExternalLink, ShoppingCart, DollarSign, Eye, BarChart3, Package, Code, Gift, Settings2, Link2, Palette, CheckCircle2, TrendingUp, ChevronDown } from "lucide-react";
 import { CheckoutImageUpload } from "@/components/checkout/CheckoutImageUpload";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -421,14 +421,64 @@ export const CheckoutCreatorPanel = () => {
         <Tabs value={formTab} onValueChange={setFormTab}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2">
-              <TabsList className="grid grid-cols-6 w-full mb-4 h-auto">
-                <TabsTrigger value="basic">Básico</TabsTrigger>
-                <TabsTrigger value="integration">Integração</TabsTrigger>
-                <TabsTrigger value="design">Design</TabsTrigger>
-                <TabsTrigger value="thankyou">Obrigado</TabsTrigger>
-                <TabsTrigger value="upsell">Upsell</TabsTrigger>
-                <TabsTrigger value="tracking">Tracking</TabsTrigger>
-              </TabsList>
+              <div className="mb-6">
+                <Label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mb-2 block">Sessão em edição</Label>
+                <Select value={formTab} onValueChange={setFormTab}>
+                  <SelectTrigger className="w-full h-12 text-base font-medium border-2 border-primary/10 hover:border-primary/30 transition-all bg-muted/30">
+                    <SelectValue placeholder="Selecione a etapa..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="basic">
+                      <div className="flex items-center gap-2 py-1">
+                        <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                          <Settings2 className="w-4 h-4" />
+                        </div>
+                        <span className="font-semibold">Informações Básicas</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="integration">
+                      <div className="flex items-center gap-2 py-1">
+                        <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
+                          <Link2 className="w-4 h-4" />
+                        </div>
+                        <span className="font-semibold">Integrações</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="design">
+                      <div className="flex items-center gap-2 py-1">
+                        <div className="w-8 h-8 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center">
+                          <Palette className="w-4 h-4" />
+                        </div>
+                        <span className="font-semibold">Design & Visual</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="thankyou">
+                      <div className="flex items-center gap-2 py-1">
+                        <div className="w-8 h-8 rounded-lg bg-green-100 text-green-600 flex items-center justify-center">
+                          <CheckCircle2 className="w-4 h-4" />
+                        </div>
+                        <span className="font-semibold">Página de Obrigado</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="upsell">
+                      <div className="flex items-center gap-2 py-1">
+                        <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center">
+                          <TrendingUp className="w-4 h-4" />
+                        </div>
+                        <span className="font-semibold">Upsell & Bumps</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="tracking">
+                      <div className="flex items-center gap-2 py-1">
+                        <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+                          <BarChart3 className="w-4 h-4" />
+                        </div>
+                        <span className="font-semibold">Tracking & Pixels</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="hidden md:block">
               <Label className="text-xs mb-2 block">Prévia</Label>
