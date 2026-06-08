@@ -1529,6 +1529,124 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
         </DialogContent>
       </Dialog>
 
+      {/* Edit Table Modal */}
+      <Dialog open={!!editingTable} onOpenChange={(open) => !open && setEditingTable(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Editar Tabela</DialogTitle>
+            <DialogDescription>
+              Atualize as informações da sua tabela.
+            </DialogDescription>
+          </DialogHeader>
+          {editingTable && (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-name">Nome da Tabela</Label>
+                <Input 
+                  id="edit-name" 
+                  placeholder="Ex: Controle de Clientes" 
+                  value={editingTable.name}
+                  onChange={(e) => setEditingTable({...editingTable, name: e.target.value})}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-description">Descrição (Opcional)</Label>
+                <Input 
+                  id="edit-description" 
+                  placeholder="Do que se trata esta tabela?" 
+                  value={editingTable.description || ""}
+                  onChange={(e) => setEditingTable({...editingTable, description: e.target.value})}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-logo">Logo da Tabela (Upload)</Label>
+                <div className="flex items-center gap-4">
+                  {editingTable.logo_url && (
+                    <div className="w-12 h-12 rounded-lg border overflow-hidden bg-muted flex-shrink-0">
+                      <img src={editingTable.logo_url} alt="Logo preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <Label 
+                      htmlFor="edit-logo-upload" 
+                      className={cn(
+                        "flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors",
+                        uploadingLogo && "opacity-50 cursor-not-allowed"
+                      )}
+                    >
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        {uploadingLogo ? (
+                          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        ) : (
+                          <>
+                            <Upload className="h-6 w-6 text-muted-foreground mb-2" />
+                            <p className="text-xs text-muted-foreground">Clique para fazer upload</p>
+                          </>
+                        )}
+                      </div>
+                      <Input 
+                        id="edit-logo-upload" 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          try {
+                            setUploadingLogo(true);
+                            const fileExt = file.name.split('.').pop();
+                            const fileName = `${Math.random()}.${fileExt}`;
+                            const filePath = `table-logos/${fileName}`;
+                            const { error: uploadError } = await supabase.storage.from('images').upload(filePath, file);
+                            if (uploadError) throw uploadError;
+                            const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(filePath);
+                            setEditingTable({...editingTable, logo_url: publicUrl});
+                            toast({ title: "Logo carregado com sucesso!" });
+                          } catch (error: any) {
+                            toast({ title: "Erro ao carregar logo", description: error.message, variant: "destructive" });
+                          } finally {
+                            setUploadingLogo(false);
+                          }
+                        }}
+                        disabled={uploadingLogo}
+                      />
+                    </Label>
+                  </div>
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label>Cor de Identificação</Label>
+                <div className="flex gap-2 flex-wrap">
+                  {COLOR_PALETTE.slice(1).map(c => (
+                    <button
+                      key={c}
+                      className={cn(
+                        "w-8 h-8 rounded-full border-2 transition-all hover:scale-110",
+                        editingTable.color === c ? "border-foreground scale-110 shadow-sm" : "border-transparent"
+                      )}
+                      style={{ backgroundColor: c }}
+                      onClick={() => setEditingTable({...editingTable, color: c})}
+                    />
+                  ))}
+                  <div className="flex items-center gap-2 w-full mt-2">
+                    <Input 
+                      type="color" 
+                      className="w-10 h-10 p-0 border-none cursor-pointer overflow-hidden rounded-full shadow-sm"
+                      value={editingTable.color || '#3b82f6'}
+                      onChange={(e) => setEditingTable({...editingTable, color: e.target.value})}
+                    />
+                    <span className="text-sm text-muted-foreground">Escolher cor personalizada</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingTable(null)}>Cancelar</Button>
+            <Button onClick={handleUpdateTable}>Salvar Alterações</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
