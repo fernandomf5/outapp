@@ -1550,7 +1550,9 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       </Dialog>
 
       {/* Edit Table Modal */}
-      <Dialog open={!!editingTable} onOpenChange={(open) => !open && setEditingTable(null)}>
+      <Dialog open={!!editingTable} onOpenChange={(open) => {
+        if (!open) setEditingTable(null);
+      }}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Editar Tabela</DialogTitle>
