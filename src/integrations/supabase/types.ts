@@ -6076,6 +6076,7 @@ export type Database = {
           border_color: string | null
           created_at: string
           id: string
+          order_index: number | null
           row_background_color: string | null
           table_id: string
           updated_at: string
@@ -6085,6 +6086,7 @@ export type Database = {
           border_color?: string | null
           created_at?: string
           id?: string
+          order_index?: number | null
           row_background_color?: string | null
           table_id: string
           updated_at?: string
@@ -6094,6 +6096,7 @@ export type Database = {
           border_color?: string | null
           created_at?: string
           id?: string
+          order_index?: number | null
           row_background_color?: string | null
           table_id?: string
           updated_at?: string

@@ -30,7 +30,9 @@ interface TableRow {
   id: string;
   cells: Record<string, string>; // columnId -> value
   row_background_color?: string;
+  order_index: number;
 }
+
 
 const COLOR_PALETTE = [
   '#000000', '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b',
@@ -99,12 +101,15 @@ export const OrganizationTablesPanel = () => {
       .select(`
         id,
         row_background_color,
+        order_index,
         organization_table_cells (
           column_id,
           value
         )
       `)
-      .eq("table_id", tableId);
+      .eq("table_id", tableId)
+      .order("order_index", { ascending: true });
+
 
     if (rowsError) return;
 
@@ -116,8 +121,10 @@ export const OrganizationTablesPanel = () => {
       return { 
         id: r.id, 
         cells, 
-        row_background_color: r.row_background_color 
+        row_background_color: r.row_background_color,
+        order_index: r.order_index || 0
       };
+
     });
 
     setRows(formattedRows);
@@ -216,7 +223,9 @@ export const OrganizationTablesPanel = () => {
       .insert({
         table_id: selectedTable.id,
         user_id: userData.user?.id,
+        order_index: rows.length > 0 ? Math.max(...rows.map(r => r.order_index)) + 1 : 0
       })
+
       .select()
       .single();
 
@@ -271,6 +280,22 @@ export const OrganizationTablesPanel = () => {
       fetchTableDetails(selectedTable.id);
     }
   };
+  
+  const handleUpdateRowOrder = async (rowId: string, newOrder: number) => {
+    // Basic logic: update the specific row. 
+    // If the user wants to "move" a row to position 4, they can type 4.
+    const { error } = await supabase
+      .from("organization_table_rows")
+      .update({ order_index: newOrder })
+      .eq("id", rowId);
+
+    if (error) {
+      toast({ title: "Erro ao atualizar posição", variant: "destructive" });
+    } else {
+      fetchTableDetails(selectedTable.id);
+    }
+  };
+
 
   const handleDeleteTable = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -367,44 +392,52 @@ export const OrganizationTablesPanel = () => {
                     color: row.row_background_color && row.row_background_color !== 'transparent' && row.row_background_color !== '#f8fafc' ? '#000000' : 'inherit'
                   }}
                 >
-                  <td className="px-4 py-2 border-r text-muted-foreground font-mono text-xs relative">
-                    {idx + 1}
+                  <td className="px-4 py-2 border-r text-muted-foreground font-mono text-xs relative group/idx">
+                    <div className="flex items-center gap-1">
+                      <input 
+                        type="number" 
+                        className="w-8 bg-transparent border-none focus:ring-0 p-0 text-xs font-mono"
+                        value={row.order_index + 1}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          if (!isNaN(val)) handleUpdateRowOrder(row.id, val - 1);
+                        }}
+                      />
+                    </div>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <button className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
                           <Palette className="h-3 w-3 text-muted-foreground" />
                         </button>
                       </PopoverTrigger>
                       <PopoverContent className="w-48 p-2" side="right">
-                        <p className="text-[10px] font-medium mb-2 uppercase tracking-wider text-muted-foreground">Cor do Registro</p>
-                        <div className="grid grid-cols-5 gap-1 mb-3">
-                          {['transparent', '#fef2f2', '#f0f9ff', '#f0fdf4', '#fffbeb', '#faf5ff', '#fdf2f8', '#f8fafc', '#f1f5f9', '#e2e8f0', '#fee2e2', '#e0f2fe', '#dcfce7', '#fef3c7', '#f3e8ff'].map(c => (
-                            <button
-                              key={c}
-                              className={cn(
-                                "w-6 h-6 rounded-md border transition-all hover:scale-110",
-                                row.row_background_color === c ? "border-primary ring-1 ring-primary/30" : "border-muted"
-                              )}
-                              style={{ backgroundColor: c === 'transparent' ? 'white' : c }}
-                              onClick={() => handleUpdateRowColor(row.id, c)}
-                            >
-                              {c === 'transparent' && <X className="h-3 w-3 mx-auto text-muted-foreground" />}
-                            </button>
-                          ))}
-                        </div>
-                        <div className="flex items-center gap-2 pt-2 border-t">
+                        <p className="text-[10px] font-medium mb-2 uppercase tracking-wider text-muted-foreground">Cor Personalizada</p>
+                        <div className="flex items-center gap-2">
                           <Input 
                             type="color" 
-                            className="w-8 h-8 p-0 border-none cursor-pointer overflow-hidden rounded-md"
+                            className="w-10 h-10 p-0 border-none cursor-pointer overflow-hidden rounded-md"
                             value={row.row_background_color && row.row_background_color !== 'transparent' ? row.row_background_color : '#ffffff'}
                             onChange={(e) => handleUpdateRowColor(row.id, e.target.value)}
                           />
-                          <span className="text-[10px] text-muted-foreground uppercase">Personalizada</span>
+                          <div className="flex flex-col">
+                            <span className="text-[10px] text-muted-foreground font-medium uppercase">Escolher Cor</span>
+                            <span className="text-[9px] text-muted-foreground/70">Clique para abrir o seletor</span>
+                          </div>
                         </div>
-
+                        <div className="mt-3 pt-2 border-t">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="w-full h-7 text-[10px] justify-start px-1"
+                            onClick={() => handleUpdateRowColor(row.id, 'transparent')}
+                          >
+                            <X className="mr-1 h-3 w-3" /> Remover Cor
+                          </Button>
+                        </div>
                       </PopoverContent>
                     </Popover>
                   </td>
+
                   {columns.map((col) => (
                     <td key={col.id} className="px-0 py-0 border-r min-w-[150px]">
                       <input
