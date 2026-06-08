@@ -1599,36 +1599,6 @@ export default function RoutineOrganizerPanel() {
                     </div>
                   </div>
                 </div>
-                <div>
-                  <Label>Meta (quantidade)</Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    value={objectiveFormData.target_value}
-                    onChange={(e) => setObjectiveFormData({ ...objectiveFormData, target_value: parseInt(e.target.value) || 1 })}
-                  />
-                </div>
-                <div>
-                  <Label>Cor</Label>
-                  <div className="flex gap-2 mt-2">
-                    {COLORS.map(color => (
-                      <button
-                        key={color}
-                        className={`w-8 h-8 rounded-full border-2 transition-all ${objectiveFormData.color === color ? 'border-foreground scale-110' : 'border-transparent'}`}
-                        style={{ backgroundColor: color }}
-                        onClick={() => setObjectiveFormData({ ...objectiveFormData, color })}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddObjectiveDialogOpen(false)}>Cancelar</Button>
-                <Button onClick={handleAddObjective}>Adicionar</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
           <div className="flex items-center gap-2 border-l border-border pl-2 ml-1">
             <Dialog open={isAddObjectiveDialogOpen} onOpenChange={setIsAddObjectiveDialogOpen}>
               <DialogTrigger asChild>
