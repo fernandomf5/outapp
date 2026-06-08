@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Table as TableIcon, Settings, Trash2, Edit2, ChevronRight, Save, X, MoreHorizontal, Layout, Check, Palette, Image as ImageIcon, Search, Filter, ExternalLink, Download, FileJson } from "lucide-react";
+import { Plus, Table as TableIcon, Settings, Trash2, Edit2, ChevronRight, Save, X, MoreHorizontal, Layout, Check, Palette, Image as ImageIcon, Search, Filter, ExternalLink, Download, FileJson, FileText } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import html2canvas from "html2canvas";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose, DialogDescription } from "@/components/ui/dialog";
@@ -61,6 +62,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
   const [editingColumn, setEditingColumn] = useState<TableColumn | null>(null);
 
   const { toast } = useToast();
+  const { resolvedTheme } = useTheme();
 
 
   useEffect(() => {
