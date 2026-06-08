@@ -1339,9 +1339,7 @@ const Dashboard = () => {
 
           <TabsContent value="registros-personalizados">
             <FeatureGate featureKey="financial_management">
-              <div className="container mx-auto py-6">
-                <RegistrationManagerPanel />
-              </div>
+              <CustomFinancialRecordsPanel />
             </FeatureGate>
           </TabsContent>
 
