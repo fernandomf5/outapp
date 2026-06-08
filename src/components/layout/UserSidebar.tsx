@@ -181,12 +181,12 @@ export function UserSidebar() {
   const organizerItems: MenuItem[] = [
     { title: "Tarefas", icon: Target, path: "/dashboard", tab: "tarefas", moduleKey: "tasks" },
     { title: t('agenda'), icon: Calendar, path: "/dashboard", tab: "agenda", moduleKey: "agenda" },
+    { title: "Tabela de Organização", icon: Table, path: "/dashboard", tab: "tabelas-organizacao", moduleKey: "financial" },
     { title: "Rotina", icon: CalendarCheck, path: "/dashboard", tab: "rotina", hideForTeamMember: true },
   ];
 
   const financialItems: MenuItem[] = [
     { title: t('financial_management'), icon: DollarSign, path: "/dashboard", tab: "financeiro", moduleKey: "financial" },
-    { title: "Tabela de Organização", icon: Table, path: "/dashboard", tab: "tabelas-organizacao", moduleKey: "financial" },
     { title: "Gerador de Recibos", icon: FileCheck, path: "/dashboard", tab: "recibos", hideForTeamMember: true },
   ];
 

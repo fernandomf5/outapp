@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Table as TableIcon, Settings, Trash2, Edit2, ChevronRight, Save, X, MoreHorizontal, Layout, Check, Palette, Image as ImageIcon, Search, Filter } from "lucide-react";
+import { Plus, Table as TableIcon, Settings, Trash2, Edit2, ChevronRight, Save, X, MoreHorizontal, Layout, Check, Palette, Image as ImageIcon, Search, Filter, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose, DialogDescription } from "@/components/ui/dialog";
@@ -39,7 +39,7 @@ const COLOR_PALETTE = [
   '#2563eb', '#dc2626', '#16a34a', '#d97706', '#7c3aed', '#db2777', '#475569', '#0891b2'
 ];
 
-export const OrganizationTablesPanel = () => {
+export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { preselectedTableId?: string, isFullPage?: boolean }) => {
   const [tables, setTables] = useState<any[]>([]);
   const [selectedTable, setSelectedTable] = useState<any>(null);
   const [columns, setColumns] = useState<TableColumn[]>([]);
@@ -61,7 +61,23 @@ export const OrganizationTablesPanel = () => {
 
   useEffect(() => {
     fetchTables();
-  }, []);
+    if (preselectedTableId) {
+      fetchPreselectedTable(preselectedTableId);
+    }
+  }, [preselectedTableId]);
+
+  const fetchPreselectedTable = async (id: string) => {
+    const { data, error } = await supabase
+      .from("organization_tables")
+      .select("*")
+      .eq("id", id)
+      .single();
+    
+    if (data && !error) {
+      setSelectedTable(data);
+      setView('table');
+    }
+  };
 
   useEffect(() => {
     if (selectedTable) {
@@ -310,7 +326,7 @@ export const OrganizationTablesPanel = () => {
 
   if (view === 'table' && selectedTable) {
     return (
-      <div className="flex flex-col h-screen max-h-[calc(100vh-140px)] bg-background">
+      <div className={cn("flex flex-col bg-background", isFullPage ? "h-full" : "h-screen max-h-[calc(100vh-140px)]")}>
         <header className="flex items-center justify-between px-6 py-4 border-b">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => setView('grid')}>
@@ -328,6 +344,11 @@ export const OrganizationTablesPanel = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {!isFullPage && (
+              <Button variant="outline" size="sm" onClick={() => window.open(`/tabela-completa/${selectedTable.id}`, '_blank')}>
+                <ExternalLink className="mr-2 h-4 w-4" /> Abrir Completa
+              </Button>
+            )}
             <Button variant="outline" size="sm" onClick={() => setIsColumnModalOpen(true)}>
               <Plus className="mr-2 h-4 w-4" /> Coluna
             </Button>
