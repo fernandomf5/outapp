@@ -359,7 +359,7 @@ export function ScriptOrganizerPanel() {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
               {filteredScripts.map(script => {
                 const cat = getCategoryById(script.category_id);
-                const biz = getBusinessById(script.business_id);
+                
                 return (
                   <Card key={script.id} className="group relative hover:shadow-md transition-shadow border-l-4" style={{ borderLeftColor: cat?.color || 'hsl(var(--border))' }}>
                     <CardContent className="p-4 space-y-2">
