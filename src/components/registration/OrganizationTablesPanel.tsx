@@ -270,15 +270,20 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     // Update local state first for performance
     const updatedRows = rows.map(r => {
       if (r.id === rowId) {
-        return { ...r, cells: { ...r.cells, [columnId]: value } };
+        const existingCell = r.cells[columnId] || { value: "" };
+        return { 
+          ...r, 
+          cells: { 
+            ...r.cells, 
+            [columnId]: { ...existingCell, value } 
+          } 
+        };
       }
       return r;
     });
     setRows(updatedRows);
 
     // Upsert to DB
-    // We need to know if the cell exists. Simplest is to use a DB function or a clever query.
-    // For now, let's just try to find if it exists or insert.
     const { data: existing } = await supabase
       .from("organization_table_cells")
       .select("id")
@@ -295,6 +300,48 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       await supabase
         .from("organization_table_cells")
         .insert({ row_id: rowId, column_id: columnId, value });
+    }
+  };
+
+  const handleCellColorUpdate = async (rowId: string, columnId: string, color: string) => {
+    // Update local state
+    const updatedRows = rows.map(r => {
+      if (r.id === rowId) {
+        const existingCell = r.cells[columnId] || { value: "" };
+        return { 
+          ...r, 
+          cells: { 
+            ...r.cells, 
+            [columnId]: { ...existingCell, text_color: color } 
+          } 
+        };
+      }
+      return r;
+    });
+    setRows(updatedRows);
+
+    // Upsert to DB
+    const { data: existing } = await supabase
+      .from("organization_table_cells")
+      .select("id")
+      .eq("row_id", rowId)
+      .eq("column_id", columnId)
+      .maybeSingle();
+
+    if (existing) {
+      await supabase
+        .from("organization_table_cells")
+        .update({ text_color: color === 'inherit' ? null : color })
+        .eq("id", existing.id);
+    } else {
+      await supabase
+        .from("organization_table_cells")
+        .insert({ 
+          row_id: rowId, 
+          column_id: columnId, 
+          value: "", 
+          text_color: color === 'inherit' ? null : color 
+        });
     }
   };
 
