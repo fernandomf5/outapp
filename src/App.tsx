@@ -14,6 +14,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 
+import FullOrganizationTable from "./pages/FullOrganizationTable";
 import AIAgentBuilder from "./pages/AIAgentBuilder";
 import AgentFlowBuilder from "./pages/AgentFlowBuilder";
 import FunnelBuilder from "./pages/FunnelBuilder";
@@ -141,6 +142,9 @@ const AppContent = () => {
                   <AIAgentBuilder />
                 </ProtectedRoute>
               } />
+              <Route path="/tabela-completa/:tableId" element={
+                <ProtectedRoute>
+                  <FullOrganizationTable />
               <Route path="/funnel-builder" element={
                 <ProtectedRoute>
                   <FunnelBuilder />

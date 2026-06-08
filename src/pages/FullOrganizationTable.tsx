@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import OrganizationTablesPanel from "@/components/registration/OrganizationTablesPanel";
+import { OrganizationTablesPanel } from "@/components/registration/OrganizationTablesPanel";
 import { supabase } from "@/integrations/supabase/client";
 
 const FullOrganizationTable = () => {
