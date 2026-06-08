@@ -291,14 +291,38 @@ export const OrganizationTablesPanel = () => {
               <tr className="border-b">
                 <th className="w-12 px-4 py-3 text-left font-medium text-muted-foreground border-r">#</th>
                 {columns.map((col) => (
-                  <th key={col.id} className="min-w-[150px] px-4 py-3 text-left font-medium text-muted-foreground border-r group">
+                  <th key={col.id} className="min-w-[180px] px-4 py-3 text-left font-medium text-muted-foreground border-r group">
                     <div className="flex items-center justify-between">
-                      <span className="flex items-center gap-2">
-                        {col.name}
-                        <Badge variant="outline" className="text-[10px] font-normal py-0">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <span className="truncate">{col.name}</span>
+                        <Badge variant="outline" className="text-[9px] font-normal py-0 px-1 opacity-70">
                           {col.type}
                         </Badge>
-                      </span>
+                      </div>
+                      
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <MoreHorizontal className="h-3 w-3" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-40 p-1" align="end">
+                          <Button 
+                            variant="ghost" 
+                            className="w-full justify-start text-xs h-8 px-2"
+                            onClick={() => setEditingColumn(col)}
+                          >
+                            <Edit2 className="mr-2 h-3 w-3" /> Editar
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            className="w-full justify-start text-xs h-8 px-2 text-destructive hover:text-destructive"
+                            onClick={() => handleDeleteColumn(col.id)}
+                          >
+                            <Trash2 className="mr-2 h-3 w-3" /> Excluir
+                          </Button>
+                        </PopoverContent>
+                      </Popover>
                     </div>
                   </th>
                 ))}
