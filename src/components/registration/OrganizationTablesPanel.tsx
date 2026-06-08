@@ -1611,7 +1611,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                           </>
                         )}
                       </div>
-                      <Input 
+                      <input 
                         id="edit-logo-upload" 
                         type="file" 
                         accept="image/*" 
