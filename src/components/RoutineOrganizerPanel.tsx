@@ -1084,134 +1084,109 @@ export default function RoutineOrganizerPanel() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Calendar className="h-6 w-6" />
-            Organizador de Rotina
-          </h2>
-          <div className="flex items-center gap-2 mt-1">
-            <Dialog open={isRenameRoutineOpen} onOpenChange={setIsRenameRoutineOpen}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Renomear Rotina</DialogTitle>
-                </DialogHeader>
-                <div className="py-4">
-                  <Label>Nome da Rotina</Label>
-                  <Input 
-                    value={renameRoutineName}
-                    onChange={(e) => setRenameRoutineName(e.target.value)}
-                  />
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsRenameRoutineOpen(false)}>Cancelar</Button>
-                  <Button onClick={handleRenameRoutine}>Salvar</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
-            <Dialog open={isResetAllOpen} onOpenChange={setIsResetAllOpen}>
-              <AlertDialog open={isResetAllOpen} onOpenChange={setIsResetAllOpen}>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Reiniciar Semana?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Isso irá desmarcar todas as atividades concluídas e resetar os objetivos. Esta ação não pode ser desfeita.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleResetAll} className="bg-destructive text-destructive-foreground">Reiniciar</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </Dialog>
-
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-semibold text-primary">{activeRoutine?.name}</span>
-              <div className="flex gap-1">
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-muted/30 p-4 rounded-xl border border-border/50">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-full bg-primary/10 text-primary">
+              <Calendar className="h-7 w-7" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight">Organizador de Rotina</h2>
+              <p className="text-sm text-muted-foreground">Planeje e acompanhe sua evolução semanal</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3 bg-background p-2 rounded-lg border border-border shadow-sm w-full sm:w-auto">
+            <div className="flex items-center gap-2 flex-1 sm:flex-initial px-2">
+              <span className="text-sm font-semibold text-primary truncate max-w-[120px] md:max-w-[200px]" title={activeRoutine?.name}>
+                {activeRoutine?.name}
+              </span>
+              <div className="flex gap-0.5">
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  className="h-7 w-7 text-muted-foreground hover:text-foreground"
                   onClick={() => {
                     setRenameRoutineName(activeRoutine?.name || '');
                     setIsRenameRoutineOpen(true);
                   }}
                   title="Renomear Rotina"
                 >
-                  <Edit className="h-4 w-4" />
+                  <Edit className="h-3.5 w-3.5" />
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
                   onClick={() => setIsResetAllOpen(true)}
                   title="Reiniciar Semana"
                 >
-                  <RefreshCw className="h-4 w-4" />
+                  <RefreshCw className="h-3.5 w-3.5" />
                 </Button>
                 {routines.length > 1 && (
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
                     onClick={() => activeRoutine && handleDeleteRoutine(activeRoutine.id)}
                     title="Excluir Rotina"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 )}
               </div>
-              
-              <Dialog open={isNewRoutineOpen} onOpenChange={setIsNewRoutineOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="default" className="ml-2 gap-2 shadow-lg hover:shadow-xl transition-all font-bold bg-primary hover:bg-primary/90">
-                    <ListPlus className="h-4 w-4" />
-                    Criador de Rotina
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Nova Rotina</DialogTitle>
-                    <DialogDescription>Crie uma nova rotina para organizar suas atividades</DialogDescription>
-                  </DialogHeader>
-                  <div className="py-4">
-                    <Label>Nome da Rotina</Label>
-                    <Input 
-                      placeholder="Ex: Minha Rotina, Trabalho, Estudos..." 
-                      value={newRoutineName}
-                      onChange={(e) => setNewRoutineName(e.target.value)}
-                    />
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsNewRoutineOpen(false)}>Cancelar</Button>
-                    <Button onClick={handleCreateRoutine}>Criar</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-              {routines.length > 1 && (
-                <Select value={activeRoutine?.id} onValueChange={(id) => {
-                  const routine = routines.find(r => r.id === id);
-                  if (routine) handleSwitchRoutine(routine);
-                }}>
-                  <SelectTrigger className="w-[180px] h-9 ml-2">
-                    <SelectValue placeholder="Trocar rotina" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {routines.map(routine => (
-                      <SelectItem key={routine.id} value={routine.id}>
-                        {routine.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
             </div>
+
+            <div className="h-6 w-px bg-border hidden sm:block" />
+
+            <Dialog open={isNewRoutineOpen} onOpenChange={setIsNewRoutineOpen}>
+              <DialogTrigger asChild>
+                <Button variant="default" size="sm" className="gap-2 font-bold bg-primary hover:bg-primary/90 shadow-sm whitespace-nowrap">
+                  <ListPlus className="h-3.5 w-3.5" />
+                  Criador de Rotina
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Nova Rotina</DialogTitle>
+                  <DialogDescription>Crie uma nova rotina para organizar suas atividades</DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                  <Label>Nome da Rotina</Label>
+                  <Input 
+                    placeholder="Ex: Minha Rotina, Trabalho, Estudos..." 
+                    value={newRoutineName}
+                    onChange={(e) => setNewRoutineName(e.target.value)}
+                  />
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsNewRoutineOpen(false)}>Cancelar</Button>
+                  <Button onClick={handleCreateRoutine}>Criar</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {routines.length > 1 && (
+              <Select value={activeRoutine?.id} onValueChange={(id) => {
+                const routine = routines.find(r => r.id === id);
+                if (routine) handleSwitchRoutine(routine);
+              }}>
+                <SelectTrigger className="w-[140px] h-8 text-xs">
+                  <SelectValue placeholder="Trocar" />
+                </SelectTrigger>
+                <SelectContent>
+                  {routines.map(routine => (
+                    <SelectItem key={routine.id} value={routine.id} className="text-xs">
+                      {routine.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </div>
-        <div className="flex gap-1 flex-wrap">
+
+        <div className="flex gap-1 flex-wrap justify-end">
           {/* Template buttons */}
           <Dialog open={isSaveTemplateOpen} onOpenChange={setIsSaveTemplateOpen}>
             <DialogTrigger asChild>
@@ -1558,101 +1533,104 @@ export default function RoutineOrganizerPanel() {
             </DialogContent>
           </Dialog>
           
-          <Dialog open={isAddObjectiveDialogOpen} onOpenChange={setIsAddObjectiveDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <Target className="mr-2 h-4 w-4" />
-                Novo Objetivo
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Adicionar Objetivo</DialogTitle>
-                <DialogDescription>Defina uma meta para acompanhar</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label>Título *</Label>
-                  <Input
-                    value={objectiveFormData.title}
-                    onChange={(e) => setObjectiveFormData({ ...objectiveFormData, title: e.target.value })}
-                    placeholder="Ex: Beber 8 copos de água"
-                  />
-                </div>
-                <div>
-                  <Label>Descrição</Label>
-                  <Textarea
-                    value={objectiveFormData.description}
-                    onChange={(e) => setObjectiveFormData({ ...objectiveFormData, description: e.target.value })}
-                    placeholder="Detalhes do objetivo..."
-                  />
-                </div>
-                <div>
-                  <Label>Dias da Semana</Label>
-                  <div className="mt-2 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        checked={objectiveFormData.objective_type === 'weekly'}
-                        onCheckedChange={(checked) => {
-                          setObjectiveFormData(prev => ({
-                            ...prev,
-                            objective_type: checked ? 'weekly' : 'daily',
-                            day_of_week: checked ? null : 0
-                          }));
-                        }}
-                      />
-                      <Label className="text-sm font-medium">Semana toda</Label>
-                    </div>
-                    <div className="grid grid-cols-4 gap-2">
-                      {DAYS_OF_WEEK.map(day => (
-                        <div key={day.value} className="flex items-center gap-2">
-                          <Checkbox
-                            checked={objectiveFormData.objective_type === 'weekly' || objectiveFormData.day_of_week === day.value}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setObjectiveFormData(prev => ({
-                                  ...prev,
-                                  objective_type: 'daily',
-                                  day_of_week: day.value
-                                }));
-                              }
-                            }}
-                          />
-                          <Label className="text-sm">{day.short}</Label>
+          <div className="flex items-center gap-2 border-l border-border pl-2 ml-1">
+            <Dialog open={isAddObjectiveDialogOpen} onOpenChange={setIsAddObjectiveDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 border-primary/20 text-primary hover:bg-primary/5">
+                  <Target className="h-4 w-4" />
+                  Novo Objetivo
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Adicionar Objetivo</DialogTitle>
+                  <DialogDescription>Defina uma meta para acompanhar</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label>Título *</Label>
+                    <Input
+                      value={objectiveFormData.title}
+                      onChange={(e) => setObjectiveFormData({ ...objectiveFormData, title: e.target.value })}
+                      placeholder="Ex: Beber 2L de água"
+                    />
+                  </div>
+                  <div>
+                    <Label>Descrição</Label>
+                    <Textarea
+                      value={objectiveFormData.description}
+                      onChange={(e) => setObjectiveFormData({ ...objectiveFormData, description: e.target.value })}
+                      placeholder="Detalhes do objetivo..."
+                    />
+                  </div>
+                  <div>
+                    <Label>Frequência</Label>
+                    <div className="mt-2 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          checked={objectiveFormData.objective_type === 'weekly'}
+                          onCheckedChange={(checked) => {
+                            setObjectiveFormData(prev => ({
+                              ...prev,
+                              objective_type: checked ? 'weekly' : 'daily',
+                              day_of_week: checked ? null : new Date().getDay()
+                            }));
+                          }}
+                        />
+                        <Label className="text-sm font-medium">Semanal (acumulativo)</Label>
+                      </div>
+                      {objectiveFormData.objective_type === 'daily' && (
+                        <div className="grid grid-cols-4 gap-2">
+                          {DAYS_OF_WEEK.map(day => (
+                            <div key={day.value} className="flex items-center gap-2">
+                              <Checkbox
+                                checked={objectiveFormData.day_of_week === day.value}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setObjectiveFormData(prev => ({
+                                      ...prev,
+                                      day_of_week: day.value
+                                    }));
+                                  }
+                                }}
+                              />
+                              <Label className="text-sm">{day.short}</Label>
+                            </div>
+                          ))}
                         </div>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Meta (quantidade)</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={objectiveFormData.target_value}
+                      onChange={(e) => setObjectiveFormData({ ...objectiveFormData, target_value: parseInt(e.target.value) || 1 })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Color</Label>
+                    <div className="flex gap-2 mt-2">
+                      {COLORS.map(color => (
+                        <button
+                          key={color}
+                          className={`w-8 h-8 rounded-full border-2 transition-all ${objectiveFormData.color === color ? 'border-foreground scale-110' : 'border-transparent'}`}
+                          style={{ backgroundColor: color }}
+                          onClick={() => setObjectiveFormData({ ...objectiveFormData, color })}
+                        />
                       ))}
                     </div>
                   </div>
                 </div>
-                <div>
-                  <Label>Meta (quantidade)</Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    value={objectiveFormData.target_value}
-                    onChange={(e) => setObjectiveFormData({ ...objectiveFormData, target_value: parseInt(e.target.value) || 1 })}
-                  />
-                </div>
-                <div>
-                  <Label>Cor</Label>
-                  <div className="flex gap-2 mt-2">
-                    {COLORS.map(color => (
-                      <button
-                        key={color}
-                        className={`w-8 h-8 rounded-full border-2 transition-all ${objectiveFormData.color === color ? 'border-foreground scale-110' : 'border-transparent'}`}
-                        style={{ backgroundColor: color }}
-                        onClick={() => setObjectiveFormData({ ...objectiveFormData, color })}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddObjectiveDialogOpen(false)}>Cancelar</Button>
-                <Button onClick={handleAddObjective}>Adicionar</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsAddObjectiveDialogOpen(false)}>Cancelar</Button>
+                  <Button onClick={handleAddObjective}>Adicionar</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </div>
 
