@@ -1211,13 +1211,12 @@ export default function RoutineOrganizerPanel() {
             </div>
           </div>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-1 flex-wrap">
           {/* Template buttons */}
           <Dialog open={isSaveTemplateOpen} onOpenChange={setIsSaveTemplateOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm" disabled={routineItems.length === 0}>
-                <Save className="mr-2 h-4 w-4" />
-                Salvar Modelo
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" disabled={routineItems.length === 0} title="Salvar Modelo">
+                <Save className="h-4 w-4" />
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -1248,9 +1247,8 @@ export default function RoutineOrganizerPanel() {
 
           <Dialog open={isLoadTemplateOpen} onOpenChange={setIsLoadTemplateOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm" disabled={templates.length === 0}>
-                <FolderOpen className="mr-2 h-4 w-4" />
-                Modelos ({templates.length})
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" disabled={templates.length === 0} title={`Modelos (${templates.length})`}>
+                <FolderOpen className="h-4 w-4" />
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg">
@@ -1288,52 +1286,83 @@ export default function RoutineOrganizerPanel() {
             </DialogContent>
           </Dialog>
 
-          {/* Share Dialog */}
-          <Dialog open={isShareOpen} onOpenChange={setIsShareOpen}>
+          {/* Copy Day Dialog */}
+          <Dialog open={isCopyDayOpen} onOpenChange={(open) => { setIsCopyDayOpen(open); if (!open) { setCopyFromDay(null); setCopyToDays([]); } }}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm" disabled={routineItems.length === 0}>
-                <Share2 className="mr-2 h-4 w-4" />
-                Compartilhar
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" title="Copiar Dia">
+                <Copy className="h-4 w-4" />
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Compartilhar Rotina</DialogTitle>
-                <DialogDescription>Escolha como deseja compartilhar sua rotina semanal</DialogDescription>
+                <DialogTitle>Copiar Atividades de um Dia</DialogTitle>
+                <DialogDescription>Escolha o dia de origem e os dias de destino para copiar as atividades</DialogDescription>
               </DialogHeader>
-              <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" className="h-20 flex-col gap-2" onClick={handleCopyRoutineText}>
-                  <Copy className="h-5 w-5" />
-                  <span className="text-xs">Copiar Texto</span>
-                </Button>
-                <Button variant="outline" className="h-20 flex-col gap-2" onClick={handleDownloadPDF}>
-                  <Download className="h-5 w-5" />
-                  <span className="text-xs">Baixar PDF</span>
-                </Button>
-                <Button variant="outline" className="h-20 flex-col gap-2 text-green-600" onClick={handleShareWhatsApp}>
-                  <MessageCircle className="h-5 w-5" />
-                  <span className="text-xs">WhatsApp</span>
-                </Button>
-                <Button variant="outline" className="h-20 flex-col gap-2" onClick={handleShareEmail}>
-                  <Link2 className="h-5 w-5" />
-                  <span className="text-xs">Email</span>
-                </Button>
+              <div className="space-y-4">
+                <div>
+                  <Label>Copiar de:</Label>
+                  <div className="grid grid-cols-4 gap-2 mt-2">
+                    {DAYS_OF_WEEK.map(day => {
+                      const count = getItemsByDay(day.value).length;
+                      return (
+                        <Button
+                          key={day.value}
+                          variant={copyFromDay === day.value ? "default" : "outline"}
+                          size="sm"
+                          className="text-xs"
+                          onClick={() => {
+                            setCopyFromDay(day.value);
+                            setCopyToDays(prev => prev.filter(d => d !== day.value));
+                          }}
+                        >
+                          {day.short} ({count})
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {copyFromDay !== null && (
+                  <div>
+                    <Label>Colar em:</Label>
+                    <div className="grid grid-cols-4 gap-2 mt-2">
+                      {DAYS_OF_WEEK.filter(d => d.value !== copyFromDay).map(day => (
+                        <Button
+                          key={day.value}
+                          variant={copyToDays.includes(day.value) ? "default" : "outline"}
+                          size="sm"
+                          className="text-xs"
+                          onClick={() => {
+                            setCopyToDays(prev =>
+                              prev.includes(day.value)
+                                ? prev.filter(d => d !== day.value)
+                                : [...prev, day.value]
+                            );
+                          }}
+                        >
+                          {day.short}
+                        </Button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      ⚠️ As atividades existentes nos dias de destino serão substituídas
+                    </p>
+                  </div>
+                )}
               </div>
-              <div className="mt-2">
-                <Label className="text-xs text-muted-foreground">Pré-visualização:</Label>
-                <ScrollArea className="h-[200px] mt-1 rounded-md border p-3">
-                  <pre className="text-xs whitespace-pre-wrap font-sans">{generateRoutineText()}</pre>
-                </ScrollArea>
-              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsCopyDayOpen(false)}>Cancelar</Button>
+                <Button onClick={handleCopyDay} disabled={copyFromDay === null || copyToDays.length === 0}>
+                  Copiar Atividades
+                </Button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
 
-          {/* Copy Day Dialog */}
-          <Dialog open={isCopyDayOpen} onOpenChange={(open) => { setIsCopyDayOpen(open); if (!open) { setCopyFromDay(null); setCopyToDays([]); } }}>
+          {/* Share Dialog */}
+          <Dialog open={isShareOpen} onOpenChange={setIsShareOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Copy className="mr-2 h-4 w-4" />
-                Copiar Dia
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" disabled={routineItems.length === 0} title="Compartilhar">
+                <Share2 className="h-4 w-4" />
               </Button>
             </DialogTrigger>
             <DialogContent>
