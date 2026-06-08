@@ -498,7 +498,7 @@ export function QRCodeGenerator() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative">
             <div className="space-y-6">
               <Tabs defaultValue="text" className="w-full">
                 <TabsList className="grid w-full grid-cols-4">
@@ -887,8 +887,8 @@ export function QRCodeGenerator() {
               </div>
             </div>
 
-            <div className="relative">
-              <div className="sticky top-6 flex flex-col items-center space-y-4 bg-background/95 backdrop-blur-md p-6 rounded-2xl border-2 border-primary shadow-[0_0_25px_rgba(var(--primary-rgb),0.3)] w-full max-w-[350px] mx-auto animate-in fade-in zoom-in duration-300">
+            <div className="relative h-full">
+              <div className="sticky top-24 flex flex-col items-center space-y-4 bg-background/95 backdrop-blur-md p-6 rounded-2xl border-2 border-primary shadow-[0_0_25px_rgba(var(--primary-rgb),0.3)] w-full max-w-[350px] mx-auto animate-in fade-in zoom-in duration-300 z-50">
                 <div className="flex items-center justify-between w-full mb-2">
                   <h3 className="font-bold text-primary flex items-center gap-2">
                     <Eye className="w-5 h-5" />
