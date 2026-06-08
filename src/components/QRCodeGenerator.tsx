@@ -987,6 +987,7 @@ export function QRCodeGenerator() {
                   </Button>
                 </div>
               </div>
+            </div>
           </div>
         </CardContent>
       </Card>
