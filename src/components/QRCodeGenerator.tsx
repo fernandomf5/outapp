@@ -489,6 +489,90 @@ export function QRCodeGenerator() {
     fetchSavedQRCodes();
   };
 
+  const realtimePreview = (
+    <div className="fixed right-4 top-20 z-[9999] flex w-[300px] max-w-[calc(100vw-2rem)] flex-col items-center space-y-3 overflow-y-auto rounded-2xl border-2 border-primary bg-background/95 p-4 shadow-2xl backdrop-blur-md max-h-[calc(100vh-6rem)] sm:right-6 lg:right-10 lg:top-24 lg:w-[340px] animate-in fade-in zoom-in duration-300">
+      <div className="flex items-center justify-between w-full mb-2">
+        <h3 className="font-bold text-primary flex items-center gap-2">
+          <Eye className="w-5 h-5" />
+          Preview em Tempo Real
+        </h3>
+        <div className="flex gap-1">
+          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+        </div>
+      </div>
+
+      <div 
+        ref={printRef}
+        className="flex flex-col items-center bg-white p-3 rounded-lg shadow-inner w-full overflow-hidden"
+        style={{
+          backgroundColor: bgColor,
+          border: showBorder ? `${borderWidth}px solid ${borderColor}` : 'none',
+          borderRadius: `${cornerRadius}px`,
+        }}
+      >
+        {businessName && (
+          <p 
+            className="font-bold text-center break-all mb-2 px-2"
+            style={{ color: fgColor, fontSize: '1.1rem' }}
+          >
+            {businessName}
+          </p>
+        )}
+        
+        <div className="relative group">
+          {showLogo && logoUrl && (
+            <div className="mb-2 flex justify-center">
+              <img 
+                src={logoUrl} 
+                alt="Logo" 
+                style={{ 
+                  width: Math.min(logoSize, 60), 
+                  height: Math.min(logoSize, 60), 
+                  objectFit: 'contain' 
+                }} 
+              />
+            </div>
+          )}
+          {text ? (
+            <QRCodeSVG
+              id="qr-code-svg"
+              value={text}
+              size={180}
+              fgColor={fgColor}
+              bgColor={bgColor}
+              level="H"
+              includeMargin={false}
+            />
+          ) : (
+            <div className="w-[180px] h-[180px] flex items-center justify-center bg-muted rounded-md border-2 border-dashed">
+              <p className="text-xs text-muted-foreground text-center px-4">
+                Aguardando conteúdo...
+              </p>
+            </div>
+          )}
+        </div>
+
+        {showSocialMedia && Object.entries(socialMedia).some(([_, v]) => v.trim()) && (
+          <div className="flex flex-wrap justify-center gap-2 mt-3 p-2 bg-black/5 rounded-md w-full">
+            {socialMedia.instagram && <FaInstagram className="w-4 h-4 text-pink-500" />}
+            {socialMedia.facebook && <FaFacebook className="w-4 h-4 text-blue-600" />}
+            {socialMedia.tiktok && <FaTiktok className="w-4 h-4 text-black" />}
+            {socialMedia.youtube && <FaYoutube className="w-4 h-4 text-red-600" />}
+          </div>
+        )}
+      </div>
+      
+      <div className="grid grid-cols-2 gap-2 w-full mt-2">
+        <Button size="sm" onClick={() => downloadQRCode('png')} className="h-9">
+          <Download className="w-4 h-4 mr-2" /> PNG
+        </Button>
+        <Button size="sm" variant="outline" onClick={handlePrint} className="h-9">
+          <Printer className="w-4 h-4 mr-2" /> Imprimir
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <Card>
