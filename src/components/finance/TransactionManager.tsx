@@ -14,6 +14,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 
+const PAYMENT_METHODS: Record<string, string> = {
+  pix: "PIX",
+  credit_card: "Cartão de Crédito",
+  debit_card: "Cartão de Débito",
+  cash: "Dinheiro",
+  transfer: "Transferência",
+  boleto: "Boleto"
+};
+
 interface Transaction {
   id: string;
   description: string;
@@ -423,7 +432,9 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                       <TableCell>
                         <div className="flex flex-col">
                           <span className="font-medium">{t.description}</span>
-                          <span className="text-xs text-muted-foreground">{t.payment_method}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {PAYMENT_METHODS[t.payment_method] || t.payment_method}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
