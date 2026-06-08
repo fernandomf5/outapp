@@ -751,6 +751,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                   </td>
 
                   {columns.map((col) => {
+                    const cellData = row.cells[col.id] || { value: "" };
                     const isSelected = selectedCells[row.id]?.includes(col.id);
                     return (
                       <td 
@@ -765,16 +766,62 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                           style={{ display: isSelectionMode ? 'block' : 'none' }}
                           onClick={() => toggleCellSelection(row.id, col.id)}
                         />
-                        <input
-                          type="text"
-                          className={cn(
-                            "w-full h-full px-4 py-2 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-primary/30"
-                          )}
-                          style={{ color: row.row_background_color && row.row_background_color !== 'transparent' ? 'inherit' : undefined }}
-                          value={row.cells[col.id] || ""}
-                          onChange={(e) => handleCellUpdate(row.id, col.id, e.target.value)}
-                          placeholder="..."
-                        />
+                        <div className="flex items-center group/cell">
+                          <input
+                            type="text"
+                            className={cn(
+                              "w-full h-full px-4 py-2 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-primary/30"
+                            )}
+                            style={{ 
+                              color: cellData.text_color || (row.row_background_color && row.row_background_color !== 'transparent' ? 'inherit' : undefined) 
+                            }}
+                            value={cellData.value}
+                            onChange={(e) => handleCellUpdate(row.id, col.id, e.target.value)}
+                            placeholder="..."
+                          />
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button className="opacity-0 group-hover/cell:opacity-100 transition-opacity p-1 hover:bg-muted rounded mr-1">
+                                <Palette className="h-3 w-3 text-muted-foreground" />
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-48 p-2" side="bottom">
+                              <p className="text-[10px] font-medium mb-2 uppercase tracking-wider text-muted-foreground">Cor do Texto</p>
+                              <div className="flex gap-2 flex-wrap mb-3">
+                                {COLOR_PALETTE.slice(0, 8).map(c => (
+                                  <button
+                                    key={c}
+                                    className={cn(
+                                      "w-6 h-6 rounded-full border border-muted transition-transform hover:scale-110",
+                                      cellData.text_color === c && "ring-2 ring-primary ring-offset-1"
+                                    )}
+                                    style={{ backgroundColor: c }}
+                                    onClick={() => handleCellColorUpdate(row.id, col.id, c)}
+                                  />
+                                ))}
+                              </div>
+                              <div className="flex items-center gap-2 mb-3">
+                                <Input 
+                                  type="color" 
+                                  className="w-8 h-8 p-0 border-none cursor-pointer overflow-hidden rounded shadow-sm"
+                                  value={cellData.text_color || '#000000'}
+                                  onChange={(e) => handleCellColorUpdate(row.id, col.id, e.target.value)}
+                                />
+                                <span className="text-[10px] text-muted-foreground">Personalizada</span>
+                              </div>
+                              <div className="pt-2 border-t">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="w-full h-7 text-[10px] justify-start px-1"
+                                  onClick={() => handleCellColorUpdate(row.id, col.id, 'inherit')}
+                                >
+                                  <X className="mr-1 h-3 w-3" /> Padrão
+                                </Button>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
                       </td>
                     );
                   })}
