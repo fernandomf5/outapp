@@ -469,7 +469,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
         cellRowIds.forEach(rowId => {
           if (selectedCells[rowId]?.includes(col.id)) {
             const row = rows.find(r => r.id === rowId);
-            const val = row?.cells[col.id];
+            const val = row?.cells[col.id]?.value;
             if (val) {
               const num = parseValueToNumber(val);
               if (num !== null) {
@@ -483,7 +483,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
         // Mode: Entire rows selected
         const selectedRows = rows.filter(r => selectedRowIds.includes(r.id));
         selectedRows.forEach(row => {
-          const val = row.cells[col.id];
+          const val = row.cells[col.id]?.value;
           if (val) {
             const num = parseValueToNumber(val);
             if (num !== null) {
