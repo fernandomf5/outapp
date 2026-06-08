@@ -287,7 +287,26 @@ export const ReportCenter = ({ transactions }: ReportCenterProps) => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-xl font-semibold">Central de Relatórios</h2>
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold">Central de Relatórios</h2>
+          {!showSaved && (
+            <div className="flex items-center gap-2">
+              <Select value={period} onValueChange={(v: any) => setPeriod(v)}>
+                <SelectTrigger className="w-[180px] h-8 text-xs">
+                  <Calendar className="h-3 w-3 mr-2" />
+                  <SelectValue placeholder="Selecione o período" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="week">Esta Semana</SelectItem>
+                  <SelectItem value="month">Este Mês</SelectItem>
+                  <SelectItem value="semester">Último Semestre</SelectItem>
+                  <SelectItem value="year">Este Ano</SelectItem>
+                  <SelectItem value="projection">Projeção 6 Meses</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
         <div className="flex flex-wrap gap-2">
           <Button 
             variant="outline" 
