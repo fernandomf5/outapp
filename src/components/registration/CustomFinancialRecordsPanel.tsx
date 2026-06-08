@@ -337,8 +337,8 @@ export const CustomFinancialRecordsPanel = () => {
           <Button onClick={() => setIsCreateStructureOpen(true)}>Criar minha primeira estrutura</Button>
         </Card>
       ) : (
-        <div className="flex flex-col xl:flex-row gap-6">
-          <Card className="xl:w-64 shrink-0 h-fit">
+        <div className="flex flex-col lg:flex-row gap-6">
+          <Card className="lg:w-64 shrink-0 h-fit">
             <CardHeader className="p-4">
               <CardTitle className="text-sm font-medium">Minhas Estruturas</CardTitle>
             </CardHeader>
@@ -403,36 +403,39 @@ export const CustomFinancialRecordsPanel = () => {
                 </div>
 
                 <Tabs defaultValue="records" className="w-full">
-                  <div className="flex items-center justify-between mb-4">
-                    <TabsList>
-                      <TabsTrigger value="records" className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        Registros
-                      </TabsTrigger>
-                      <TabsTrigger value="financial" className="flex items-center gap-2">
-                        <DollarSign className="h-4 w-4" />
-                        Financeiro Integrado
-                      </TabsTrigger>
-                      <TabsTrigger value="dashboard" className="flex items-center gap-2">
-                        <LayoutDashboard className="h-4 w-4" />
-                        Dashboard
-                      </TabsTrigger>
-                    </TabsList>
+                  <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
+                    <ScrollArea className="w-full md:w-auto">
+                      <TabsList className="w-full md:w-auto justify-start inline-flex">
+                        <TabsTrigger value="records" className="flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          Registros
+                        </TabsTrigger>
+                        <TabsTrigger value="financial" className="flex items-center gap-2">
+                          <DollarSign className="h-4 w-4" />
+                          Financeiro
+                        </TabsTrigger>
+                        <TabsTrigger value="dashboard" className="flex items-center gap-2">
+                          <LayoutDashboard className="h-4 w-4" />
+                          Dashboard
+                        </TabsTrigger>
+                      </TabsList>
+                    </ScrollArea>
 
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" className="hidden sm:flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full md:w-auto">
+                      <Button variant="outline" size="sm" className="flex-1 md:flex-none flex items-center gap-2">
                         <Search className="h-4 w-4" />
-                        Buscar
+                        <span className="hidden sm:inline">Buscar</span>
                       </Button>
-                      <Button size="sm" className="flex items-center gap-2">
+                      <Button size="sm" className="flex-1 md:flex-none flex items-center gap-2">
                         <Plus className="h-4 w-4" />
-                        Adicionar {selectedStructure.name}
+                        <span className="whitespace-nowrap">Adicionar {selectedStructure.name}</span>
                       </Button>
                     </div>
                   </div>
 
                   <TabsContent value="records">
-                    <Card>
+                    <Card className="overflow-x-auto">
+                      <div className="min-w-full inline-block align-middle">
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -473,11 +476,13 @@ export const CustomFinancialRecordsPanel = () => {
                           )}
                         </TableBody>
                       </Table>
+                      </div>
                     </Card>
                   </TabsContent>
 
                   <TabsContent value="financial">
-                    <Card>
+                    <Card className="overflow-x-auto">
+                      <div className="min-w-full inline-block align-middle">
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -524,6 +529,7 @@ export const CustomFinancialRecordsPanel = () => {
                           )}
                         </TableBody>
                       </Table>
+                      </div>
                     </Card>
                   </TabsContent>
 
