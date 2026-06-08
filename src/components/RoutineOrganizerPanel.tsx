@@ -631,7 +631,7 @@ export default function RoutineOrganizerPanel() {
     }
     
     try {
-      const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 0 }), 'yyyy-MM-dd');
+      const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
       
       const { error } = await supabase
         .from('routine_objectives')
