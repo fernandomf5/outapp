@@ -120,45 +120,41 @@ export function QRCodeGenerator() {
     if (!printRef.current) return;
 
     try {
-      // Use toPng or toSvg but without a background to maintain transparency if needed
-      // OR explicitly set to bgColor if user wants it.
-      // The user said "quero sem fundo" (I want without background) which usually means transparent,
-      // but they also mentioned "a borda com fundo borda e com fundo branco meu deus que coisa horrivel".
-      // Let's make it look like the requested design (modern, clean) and ensure it doesn't have ugly white blocks.
+      // Create a temporary container to ensure the element is rendered fully for capture
+      // This helps avoid clipping issues with fixed heights or overflows
+      const originalStyle = printRef.current.style.cssText;
+      
+      // Temporarily remove constraints for capture
+      printRef.current.style.height = 'auto';
+      printRef.current.style.maxHeight = 'none';
+      printRef.current.style.width = '400px'; // Consistent width for download
       
       const options = {
-        backgroundColor: null, // Transparent
-        pixelRatio: 3,
-        style: {
-          transform: 'scale(1)',
-        }
+        backgroundColor: bgColor === '#ffffff' ? null : bgColor,
+        pixelRatio: 4, // Higher quality
+        skipAutoScale: true,
+        cacheBust: true,
       };
 
+      let dataUrl;
       if (format === 'svg') {
-        const dataUrl = await htmlToImage.toSvg(printRef.current, options);
-        
-        const link = document.createElement('a');
-        link.download = 'qrcode-personalizado.svg';
-        link.href = dataUrl;
-        link.click();
-        
-        toast({
-          title: 'QR Code baixado',
-          description: 'Arquivo SVG completo com personalização salvo com sucesso',
-        });
+        dataUrl = await htmlToImage.toSvg(printRef.current, options);
       } else {
-        const dataUrl = await htmlToImage.toPng(printRef.current, options);
-        
-        const link = document.createElement('a');
-        link.download = 'qrcode-personalizado.png';
-        link.href = dataUrl;
-        link.click();
-        
-        toast({
-          title: 'QR Code baixado',
-          description: 'PNG completo com personalização salvo com sucesso',
-        });
+        dataUrl = await htmlToImage.toPng(printRef.current, options);
       }
+
+      // Restore original style
+      printRef.current.style.cssText = originalStyle;
+
+      const link = document.createElement('a');
+      link.download = `qrcode-${businessName || 'personalizado'}.${format}`;
+      link.href = dataUrl;
+      link.click();
+      
+      toast({
+        title: 'QR Code baixado',
+        description: `${format.toUpperCase()} completo com personalização salvo com sucesso`,
+      });
     } catch (error) {
       console.error(`Erro ao gerar ${format.toUpperCase()}:`, error);
       toast({
@@ -211,23 +207,8 @@ export function QRCodeGenerator() {
       return;
     }
 
-    const activeSocials = Object.entries(socialMedia).filter(([_, value]) => value.trim() !== '');
+    const activeSocials = Object.entries(socialMedia).filter(([_, value]) => value && value.trim() !== '');
     
-    const socialIconsHtml = activeSocials.map(([platform, handle]) => {
-      const colors: Record<string, string> = {
-        instagram: '#E4405F',
-        facebook: '#1877F2',
-        tiktok: '#000000',
-        youtube: '#FF0000',
-        twitter: '#1DA1F2',
-        linkedin: '#0A66C2',
-      };
-      return `<div style="display: flex; align-items: center; gap: 8px; width: 100%; max-width: 320px; background: white; padding: 10px 15px; border-radius: 12px; border: 2px solid ${fgColor}15; margin-bottom: 8px;">
-        <div style="width: 32px; height: 32px; background: ${colors[platform]}; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; flex-shrink: 0;">#</div>
-        <span style="color: ${fgColor}; font-weight: 900; font-style: italic; font-size: 18px; letter-spacing: -0.5px;">@${handle}</span>
-      </div>`;
-    }).join('');
-
     const qrSvg = document.getElementById('qr-code-svg');
     const svgData = qrSvg ? new XMLSerializer().serializeToString(qrSvg) : '';
     
@@ -238,7 +219,7 @@ export function QRCodeGenerator() {
           <title>QR Code - ${businessName || 'Imprimir'}</title>
           <style>
             body {
-              font-family: Arial, sans-serif;
+              font-family: 'Inter', Arial, sans-serif;
               display: flex;
               flex-direction: column;
               align-items: center;
@@ -246,7 +227,7 @@ export function QRCodeGenerator() {
               min-height: 100vh;
               margin: 0;
               padding: 20px;
-              box-sizing: border-box;
+              background-color: white;
             }
             .container {
               display: flex;
@@ -262,43 +243,42 @@ export function QRCodeGenerator() {
               display: flex;
               flex-direction: column;
               align-items: center;
-              margin-bottom: 30px;
+              margin-bottom: 25px;
               width: 100%;
-              gap: 15px;
+              gap: 10px;
             }
             .logo-top {
-              width: ${logoSize * 1.5}px;
-              height: ${logoSize * 1.5}px;
+              width: ${logoSize}px;
+              height: ${logoSize}px;
               object-fit: contain;
-              margin-bottom: 5px;
             }
             .business-name {
-              font-size: 28px;
+              font-size: 24px;
               font-weight: 900;
               text-align: center;
               color: ${fgColor};
               text-transform: uppercase;
-              letter-spacing: -1px;
-              line-height: 1;
+              letter-spacing: -0.5px;
+              line-height: 1.1;
               margin: 0;
             }
             .name-underline {
-              height: 4px;
-              width: 40px;
+              height: 3px;
+              width: 30px;
               background-color: ${fgColor};
-              margin-top: 6px;
               border-radius: 10px;
+              margin-top: 5px;
             }
             .qr-wrapper {
-              position: relative;
               background: white;
               padding: 25px;
-              border-radius: 35px;
-              box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+              border-radius: 40px;
+              box-shadow: 0 10px 40px rgba(0,0,0,0.06);
               border: 1px solid #f0f0f0;
               display: flex;
               justify-content: center;
               align-items: center;
+              margin: 10px 0;
             }
             .qr-wrapper svg {
               width: 200px !important;
@@ -306,7 +286,7 @@ export function QRCodeGenerator() {
             }
             .socials-container {
               width: 100%;
-              margin-top: 30px;
+              margin-top: 25px;
               display: flex;
               flex-direction: column;
               align-items: center;
@@ -315,48 +295,49 @@ export function QRCodeGenerator() {
             .socials {
               display: flex;
               flex-direction: column;
-              gap: 15px;
+              gap: 10px;
               width: 100%;
-              align-items: center;
+              max-width: 260px;
             }
             .social-item {
               display: flex;
               align-items: center;
               gap: 12px;
-              width: 100%;
-              max-width: 260px;
-              padding: 8px 16px;
+              padding: 10px 15px;
               background: white;
-              border-radius: 12px;
-              border: 1px solid #f0f0f0;
-              box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+              border-radius: 14px;
+              border: 1px solid #f5f5f5;
+              box-shadow: 0 4px 10px rgba(0,0,0,0.03);
             }
             .social-icon {
-              font-size: 24px;
-              font-weight: bold;
-              color: white;
-              background-color: ${fgColor};
-              width: 36px;
-              height: 36px;
+              width: 32px;
+              height: 32px;
               border-radius: 10px;
               display: flex;
               align-items: center;
               justify-content: center;
+              color: white;
+              font-weight: bold;
+              font-size: 16px;
+              flex-shrink: 0;
             }
             .social-handle {
-              font-size: 20px;
+              font-size: 18px;
               font-weight: 800;
               color: ${fgColor};
-              letter-spacing: -0.5px;
+              letter-spacing: -0.3px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
             }
             .scan-text {
-              margin-top: 10px;
-              font-size: 14px;
-              font-weight: 800;
+              margin-top: 15px;
+              font-size: 11px;
+              font-weight: 900;
               text-transform: uppercase;
-              letter-spacing: 3px;
+              letter-spacing: 2px;
               color: ${fgColor};
-              opacity: 0.8;
+              opacity: 0.7;
             }
             @media print {
               body {
@@ -393,12 +374,12 @@ export function QRCodeGenerator() {
                     return `
                       <div class="social-item">
                         <div class="social-icon" style="background-color: ${colors[platform]}">#</div>
-                        <div class="social-handle">@${handle}</div>
+                        <div class="social-handle">@${handle.startsWith('@') ? handle.slice(1) : handle}</div>
                       </div>
                     `;
                   }).join('')}
                 </div>
-                <div class="scan-text">ESCANEIE PARA NOS SEGUIR</div>
+                <div class="scan-text">ESCANEIE E SIGA-NOS</div>
               </div>
             ` : ''}
           </div>
@@ -655,16 +636,16 @@ export function QRCodeGenerator() {
 
       <div 
         ref={printRef}
-        className="flex flex-col items-center w-full overflow-hidden"
+        className="flex flex-col items-center w-full"
         style={{
           backgroundColor: bgColor === '#ffffff' ? 'transparent' : bgColor,
           border: showBorder ? `${borderWidth}px solid ${borderColor}` : 'none',
           borderRadius: `${cornerRadius}px`,
           padding: `${padding}px`,
-          minHeight: '400px',
+          minHeight: 'fit-content',
         }}
       >
-        <div className="flex flex-col items-center w-full gap-4">
+        <div className="flex flex-col items-center w-full gap-4 pb-6">
           {/* Top Branding Section */}
           <div className="w-full flex flex-col items-center gap-2 mb-2">
             {showLogo && logoUrl && (
@@ -682,17 +663,17 @@ export function QRCodeGenerator() {
               <div className="flex flex-col items-center">
                 <p 
                   className="font-black text-center break-words px-2 uppercase tracking-tight leading-none"
-                  style={{ color: fgColor, fontSize: '1.5rem' }}
+                  style={{ color: fgColor, fontSize: '1.25rem' }}
                 >
                   {businessName}
                 </p>
-                <div className="h-1 w-12 mt-1 rounded-full" style={{ backgroundColor: fgColor }}></div>
+                <div className="h-0.5 w-10 mt-1.5 rounded-full" style={{ backgroundColor: fgColor }}></div>
               </div>
             )}
           </div>
           
           {/* QR Code Section - Transparent background for the wrapper */}
-          <div className="relative flex flex-col items-center p-4 bg-white rounded-3xl shadow-xl border border-gray-50">
+          <div className="relative flex flex-col items-center p-5 bg-white rounded-[2.5rem] shadow-xl border border-gray-100">
             {text ? (
               <QRCodeSVG
                 id="qr-code-svg"
@@ -712,12 +693,12 @@ export function QRCodeGenerator() {
             )}
           </div>
 
-          {/* Social Media Section - Clean & Modern Icons */}
-          {showSocialMedia && Object.entries(socialMedia).some(([_, v]) => v.trim()) && (
-            <div className="w-full mt-4 flex flex-col items-center space-y-4">
-              <div className="grid grid-cols-1 gap-2 w-full">
+          {/* Social Media Section */}
+          {showSocialMedia && Object.values(socialMedia).some(v => v && v.trim()) && (
+            <div className="w-full mt-4 flex flex-col items-center space-y-3">
+              <div className="flex flex-col gap-2 w-full max-w-[280px]">
                 {Object.entries(socialMedia).map(([platform, handle]) => {
-                  if (!handle.trim()) return null;
+                  if (!handle || !handle.trim()) return null;
                   const Icon = {
                     instagram: FaInstagram,
                     facebook: FaFacebook,
@@ -739,24 +720,26 @@ export function QRCodeGenerator() {
                   return (
                     <div 
                       key={platform} 
-                      className="flex items-center gap-3 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-xl shadow-sm border border-gray-100"
+                      className="flex items-center gap-3 bg-white px-3 py-2 rounded-xl shadow-sm border border-gray-100/50"
                     >
                       <div 
-                        className="flex items-center justify-center w-8 h-8 rounded-lg text-white" 
+                        className="flex items-center justify-center w-7 h-7 rounded-lg text-white shrink-0" 
                         style={{ backgroundColor: colors[platform] }}
                       >
-                        {Icon && <Icon className="w-5 h-5" />}
+                        {Icon && <Icon className="w-4 h-4" />}
                       </div>
-                      <span className="text-base font-bold italic" style={{ color: fgColor }}>@{handle}</span>
+                      <span className="text-sm font-bold truncate" style={{ color: fgColor }}>
+                        @{handle.startsWith('@') ? handle.slice(1) : handle}
+                      </span>
                     </div>
                   );
                 })}
               </div>
               <div 
-                className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70" 
+                className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 mt-2" 
                 style={{ color: fgColor }}
               >
-                Siga nossas redes sociais
+                Escaneie e Siga-nos
               </div>
             </div>
           )}
