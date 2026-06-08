@@ -177,6 +177,65 @@ export const CustomFinancialRecordsPanel = () => {
     }
   };
 
+  const handleAddRecord = async () => {
+    if (!selectedStructure || !newRecordName) {
+      toast.error("Nome é obrigatório");
+      return;
+    }
+
+    try {
+      const { data: record, error: recordError } = await supabase
+        .from('custom_financial_records')
+        .insert({
+          structure_id: selectedStructure.id,
+          name: newRecordName
+        })
+        .select()
+        .single();
+
+      if (recordError) throw recordError;
+
+      // Insert field values
+      const valuesToInsert = Object.entries(fieldValues).map(([fieldId, value]) => ({
+        record_id: record.id,
+        field_id: fieldId,
+        value: value
+      }));
+
+      if (valuesToInsert.length > 0) {
+        const { error: valuesError } = await supabase
+          .from('custom_financial_field_values')
+          .insert(valuesToInsert);
+        
+        if (valuesError) throw valuesError;
+      }
+
+      toast.success("Registro adicionado com sucesso!");
+      setIsAddRecordOpen(false);
+      setNewRecordName("");
+      setFieldValues({});
+      loadStructureData(selectedStructure.id);
+    } catch (error: any) {
+      toast.error("Erro ao adicionar registro: " + error.message);
+    }
+  };
+
+  const handleDeleteRecord = async (recordId: string) => {
+    if (!confirm("Tem certeza que deseja excluir este registro?")) return;
+
+    try {
+      const { error } = await supabase
+        .from('custom_financial_records')
+        .delete()
+        .eq('id', recordId);
+
+      if (error) throw error;
+      toast.success("Registro excluído!");
+      if (selectedStructure) loadStructureData(selectedStructure.id);
+    } catch (error: any) {
+      toast.error("Erro ao excluir: " + error.message);
+    }
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'paid': return <CheckCircle2 className="h-4 w-4 text-green-500" />;
