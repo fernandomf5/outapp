@@ -622,7 +622,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={columns.length + 2} className="py-20 text-center text-muted-foreground italic">
+                  <td colSpan={columns.length + 3} className="py-20 text-center text-muted-foreground italic">
                     Nenhum registro adicionado ainda. Clique em "+ Registro" para começar.
                   </td>
                 </tr>
@@ -630,6 +630,38 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
             </tbody>
           </table>
         </div>
+
+        {Object.keys(totals).length > 0 && (
+          <div className="bg-primary/5 border-t px-6 py-3 flex flex-wrap items-center gap-6 animate-in slide-in-from-bottom-2 duration-300">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+              <Calculator className="h-4 w-4" />
+              Cálculos ({selectedRowIds.length} selecionados):
+            </div>
+            <div className="flex flex-wrap gap-4">
+              {columns.filter(col => totals[col.id]).map(col => (
+                <div key={col.id} className="flex flex-col border-l pl-4 first:border-l-0 first:pl-0">
+                  <span className="text-[10px] text-muted-foreground uppercase font-medium">{col.name}</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-sm font-bold text-foreground">
+                      {totals[col.id].sum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      (Média: {(totals[col.id].sum / totals[col.id].count).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="ml-auto text-xs h-7"
+              onClick={() => setSelectedRowIds([])}
+            >
+              Limpar Seleção
+            </Button>
+          </div>
+        )}
 
         {/* Column Modal */}
         <Dialog open={isColumnModalOpen} onOpenChange={setIsColumnModalOpen}>
