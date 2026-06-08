@@ -251,9 +251,12 @@ const CheckoutPage = () => {
         {checkout.head_code && <script>{checkout.head_code}</script>}
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex items-center justify-center p-4">
-        <div className="w-full max-w-lg space-y-4">
-          <Card className="overflow-hidden shadow-xl">
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center p-4 md:p-8">
+        <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-12 gap-8">
+          {/* Left Column - Product & Payment */}
+          <div className="md:col-span-7 lg:col-span-8 space-y-6">
+            <Card className="overflow-hidden shadow-sm border-none bg-white rounded-2xl">
+
             {checkout.banner_url && (
               <div className="w-full h-48 overflow-hidden">
                 <img src={checkout.banner_url} alt="Banner" className="w-full h-full object-cover" />
