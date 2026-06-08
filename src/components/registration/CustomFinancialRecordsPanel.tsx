@@ -40,7 +40,12 @@ export const CustomFinancialRecordsPanel = () => {
   const [entries, setEntries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateStructureOpen, setIsCreateStructureOpen] = useState(false);
+  const [isAddRecordOpen, setIsAddRecordOpen] = useState(false);
   
+  // New record form state
+  const [newRecordName, setNewRecordName] = useState("");
+  const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
+
   // New structure form state
   const [newStructure, setNewStructure] = useState({ name: "", description: "" });
   const [customFields, setCustomFields] = useState<Partial<Field>[]>([
