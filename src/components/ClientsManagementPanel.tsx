@@ -1763,7 +1763,7 @@ export function ClientsManagementPanel({ teamContext, categoryId: propCategoryId
 
       {/* Dialog: Gerenciar Categorias */}
       <Dialog open={categoriesDialogOpen} onOpenChange={setCategoriesDialogOpen}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto z-[60]">
           <DialogHeader>
             <DialogTitle>Gerenciar Categorias</DialogTitle>
             <DialogDescription>
