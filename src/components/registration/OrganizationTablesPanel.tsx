@@ -33,8 +33,10 @@ interface TableColumn {
 
 interface TableRow {
   id: string;
-  cells: Record<string, { value: string, text_color?: string }>; // columnId -> cellData
+  cells: Record<string, { value: string, text_color?: string, is_bold?: boolean }>; // columnId -> cellData
   row_background_color?: string;
+  row_text_color?: string;
+  is_bold?: boolean;
   order_index: number;
 }
 
