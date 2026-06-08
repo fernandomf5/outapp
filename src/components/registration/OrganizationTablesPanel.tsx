@@ -191,6 +191,7 @@ export const OrganizationTablesPanel = () => {
       fetchTableDetails(selectedTable.id);
       toast({ title: "Coluna excluída com sucesso!" });
     }
+  };
 
   const handleAddRow = async () => {
     if (!selectedTable) return;
