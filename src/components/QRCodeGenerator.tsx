@@ -659,32 +659,33 @@ export function QRCodeGenerator() {
         }}
       >
         <div className="flex flex-col items-center w-full">
-          {businessName && (
-            <div className="w-full flex flex-col items-center mb-6">
-              <p 
-                className="font-black text-center break-all px-2 uppercase tracking-tighter leading-[0.85]"
-                style={{ color: fgColor, fontSize: '2.5rem' }}
-              >
-                {businessName}
-              </p>
-              <div className="h-2 w-20 mt-3 rounded-full" style={{ backgroundColor: fgColor }}></div>
-            </div>
-          )}
-          
-          <div className="relative group flex flex-col items-center p-6 bg-white rounded-[32px] shadow-sm border border-gray-100">
+          <div className="w-full flex flex-col items-center mb-6 gap-3">
             {showLogo && logoUrl && (
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-white p-1.5 rounded-xl shadow-lg border border-gray-100">
-                <img 
-                  src={logoUrl} 
-                  alt="Logo" 
-                  style={{ 
-                    width: Math.min(logoSize, 60), 
-                    height: Math.min(logoSize, 60), 
-                    objectFit: 'contain' 
-                  }} 
-                />
+              <img 
+                src={logoUrl} 
+                alt="Logo" 
+                className="mb-2"
+                style={{ 
+                  width: logoSize * 1.2, 
+                  height: logoSize * 1.2, 
+                  objectFit: 'contain' 
+                }} 
+              />
+            )}
+            {businessName && (
+              <div className="flex flex-col items-center">
+                <p 
+                  className="font-black text-center break-all px-2 uppercase tracking-tighter leading-[0.85]"
+                  style={{ color: fgColor, fontSize: '2.5rem' }}
+                >
+                  {businessName}
+                </p>
+                <div className="h-2 w-20 mt-3 rounded-full" style={{ backgroundColor: fgColor }}></div>
               </div>
             )}
+          </div>
+          
+          <div className="relative group flex flex-col items-center p-6 bg-white rounded-[32px] shadow-sm border border-gray-100">
             {text ? (
               <QRCodeSVG
                 id="qr-code-svg"
