@@ -241,21 +241,18 @@ export function QRCodeGenerator() {
               color: ${fgColor};
             }
             .qr-wrapper {
-              position: relative;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+            }
+            .logo-top {
+              margin-bottom: 8px;
               display: flex;
               align-items: center;
               justify-content: center;
             }
-            .logo-overlay {
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);
-              background: white;
-              padding: 4px;
-              border-radius: 8px;
-            }
-            .logo-overlay img {
+            .logo-top img {
               width: ${logoSize}px;
               height: ${logoSize}px;
               object-fit: contain;
