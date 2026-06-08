@@ -332,7 +332,9 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
 
   const handleConfirmDelete = async () => {
     if (!itemToDelete) return;
-    if (deleteConfirmationText.toLowerCase() !== 'excluir') {
+    
+    // Check confirmation text only for 'table' and 'column' types
+    if (itemToDelete.type !== 'row' && deleteConfirmationText.toLowerCase() !== 'excluir') {
       toast({ title: "Texto de confirmação incorreto", description: "Digite 'excluir' para confirmar.", variant: "destructive" });
       return;
     }
@@ -1459,26 +1461,34 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Para confirmar, digite <span className="font-bold text-foreground select-none">excluir</span> no campo abaixo:
-            </p>
-            <Input
-              value={deleteConfirmationText}
-              onChange={(e) => setDeleteConfirmationText(e.target.value)}
-              placeholder="Digite excluir para confirmar"
-              className={cn(
-                "border-2 transition-all",
-                deleteConfirmationText.toLowerCase() === 'excluir' ? "border-green-500 focus-visible:ring-green-500" : "focus-visible:ring-destructive"
-              )}
-              autoFocus
-            />
+            {itemToDelete?.type !== 'row' ? (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  Para confirmar, digite <span className="font-bold text-foreground select-none">excluir</span> no campo abaixo:
+                </p>
+                <Input
+                  value={deleteConfirmationText}
+                  onChange={(e) => setDeleteConfirmationText(e.target.value)}
+                  placeholder="Digite excluir para confirmar"
+                  className={cn(
+                    "border-2 transition-all",
+                    deleteConfirmationText.toLowerCase() === 'excluir' ? "border-green-500 focus-visible:ring-green-500" : "focus-visible:ring-destructive"
+                  )}
+                  autoFocus
+                />
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Tem certeza que deseja excluir este registro? Esta ação é imediata.
+              </p>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>Cancelar</Button>
             <Button 
               variant="destructive" 
               onClick={handleConfirmDelete}
-              disabled={deleteConfirmationText.toLowerCase() !== 'excluir'}
+              disabled={itemToDelete?.type !== 'row' && deleteConfirmationText.toLowerCase() !== 'excluir'}
             >
               Excluir Permanentemente
             </Button>
