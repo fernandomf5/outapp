@@ -1056,6 +1056,8 @@ export function QRCodeGenerator() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {createPortal(realtimePreview, document.body)}
     </div>
   );
 }
