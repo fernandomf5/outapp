@@ -1091,55 +1091,124 @@ export default function RoutineOrganizerPanel() {
             Organizador de Rotina
           </h2>
           <div className="flex items-center gap-2 mt-1">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground hover:text-foreground">
-                  <span className="font-medium">{activeRoutine?.name || 'Selecionar rotina'}</span>
-                  <ChevronDown className="h-3 w-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                {routines.map(routine => (
-                  <DropdownMenuItem 
-                    key={routine.id} 
-                    onClick={() => handleSwitchRoutine(routine)}
-                    className={routine.id === activeRoutine?.id ? 'bg-accent' : ''}
-                  >
-                    <span className="flex-1">{routine.name}</span>
-                    {routine.id === activeRoutine?.id && <CheckCircle2 className="h-3 w-3 ml-2 text-primary" />}
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setIsNewRoutineOpen(true)}>
-                  <ListPlus className="h-3 w-3 mr-2" />
-                  Nova Rotina
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => {
-                  setRenameRoutineName(activeRoutine?.name || '');
-                  setIsRenameRoutineOpen(true);
-                }}>
-                  <Edit className="h-3 w-3 mr-2" />
-                  Renomear
-                </DropdownMenuItem>
-                {routines.length > 1 && (
-                  <DropdownMenuItem 
-                    className="text-destructive"
-                    onClick={() => activeRoutine && handleDeleteRoutine(activeRoutine.id)}
-                  >
-                    <Trash2 className="h-3 w-3 mr-2" />
-                    Excluir Rotina
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  className="text-destructive"
-                  onClick={() => setIsResetAllOpen(true)}
+            <Dialog open={isRenameRoutineOpen} onOpenChange={setIsRenameRoutineOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Renomear Rotina</DialogTitle>
+                </DialogHeader>
+                <div className="py-4">
+                  <Label>Nome da Rotina</Label>
+                  <Input 
+                    value={renameRoutineName}
+                    onChange={(e) => setRenameRoutineName(e.target.value)}
+                  />
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsRenameRoutineOpen(false)}>Cancelar</Button>
+                  <Button onClick={handleRenameRoutine}>Salvar</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={isResetAllOpen} onOpenChange={setIsResetAllOpen}>
+              <AlertDialog open={isResetAllOpen} onOpenChange={setIsResetAllOpen}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Reiniciar Semana?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Isso irá desmarcar todas as atividades concluídas e resetar os objetivos. Esta ação não pode ser desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleResetAll} className="bg-destructive text-destructive-foreground">Reiniciar</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </Dialog>
+
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-semibold text-primary">{activeRoutine?.name}</span>
+              <div className="flex gap-1">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setRenameRoutineName(activeRoutine?.name || '');
+                    setIsRenameRoutineOpen(true);
+                  }}
+                  title="Renomear Rotina"
                 >
-                  <RefreshCw className="h-3 w-3 mr-2" />
-                  Reiniciar Semana
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  onClick={() => setIsResetAllOpen(true)}
+                  title="Reiniciar Semana"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+                {routines.length > 1 && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    onClick={() => activeRoutine && handleDeleteRoutine(activeRoutine.id)}
+                    title="Excluir Rotina"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              
+              <Dialog open={isNewRoutineOpen} onOpenChange={setIsNewRoutineOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="default" className="ml-2 gap-2 shadow-lg hover:shadow-xl transition-all font-bold bg-primary hover:bg-primary/90">
+                    <ListPlus className="h-4 w-4" />
+                    Criador de Rotina
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Nova Rotina</DialogTitle>
+                    <DialogDescription>Crie uma nova rotina para organizar suas atividades</DialogDescription>
+                  </DialogHeader>
+                  <div className="py-4">
+                    <Label>Nome da Rotina</Label>
+                    <Input 
+                      placeholder="Ex: Minha Rotina, Trabalho, Estudos..." 
+                      value={newRoutineName}
+                      onChange={(e) => setNewRoutineName(e.target.value)}
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsNewRoutineOpen(false)}>Cancelar</Button>
+                    <Button onClick={handleCreateRoutine}>Criar</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {routines.length > 1 && (
+                <Select value={activeRoutine?.id} onValueChange={(id) => {
+                  const routine = routines.find(r => r.id === id);
+                  if (routine) handleSwitchRoutine(routine);
+                }}>
+                  <SelectTrigger className="w-[180px] h-9 ml-2">
+                    <SelectValue placeholder="Trocar rotina" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {routines.map(routine => (
+                      <SelectItem key={routine.id} value={routine.id}>
+                        {routine.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex gap-2 flex-wrap">
