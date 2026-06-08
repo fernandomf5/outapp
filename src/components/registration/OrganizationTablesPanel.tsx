@@ -233,6 +233,28 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     }
   };
 
+  const handleUpdateTable = async () => {
+    if (!editingTable || !editingTable.name) return;
+
+    const { error } = await supabase
+      .from("organization_tables")
+      .update({
+        name: editingTable.name,
+        description: editingTable.description,
+        color: editingTable.color,
+        logo_url: editingTable.logo_url
+      })
+      .eq("id", editingTable.id);
+
+    if (error) {
+      toast({ title: "Erro ao atualizar tabela", variant: "destructive" });
+    } else {
+      toast({ title: "Tabela atualizada com sucesso!" });
+      setEditingTable(null);
+      fetchTables();
+    }
+  };
+
   const handleAddColumn = async () => {
     if (!newColumn.name || !selectedTable) return;
 
