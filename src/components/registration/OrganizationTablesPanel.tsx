@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from "react";
-import { Plus, Table as TableIcon, Settings, Trash2, Edit2, ChevronRight, Save, X, MoreHorizontal, Layout, Check, Palette, Image as ImageIcon, Search, Filter, ExternalLink, Download, FileJson, FileText } from "lucide-react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { Plus, Table as TableIcon, Settings, Trash2, Edit2, ChevronRight, Save, X, MoreHorizontal, Layout, Check, Palette, Image as ImageIcon, Search, Filter, ExternalLink, Download, FileJson, FileText, Calculator } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import html2canvas from "html2canvas";
 import { useTheme } from "next-themes";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose, DialogDescription } from "@/components/ui/dialog";
@@ -60,6 +61,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
   const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
   const [newColumn, setNewColumn] = useState({ name: "", type: 'text' as ColumnType, header_text_color: "#000000" });
   const [editingColumn, setEditingColumn] = useState<TableColumn | null>(null);
+  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
 
   const { toast } = useToast();
   const { resolvedTheme } = useTheme();
@@ -378,6 +380,47 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     }
   };
 
+  const totals = useMemo(() => {
+    if (selectedRowIds.length === 0) return {};
+    const selectedRows = rows.filter(r => selectedRowIds.includes(r.id));
+    const results: Record<string, { sum: number, count: number }> = {};
+    
+    columns.forEach(col => {
+      let sum = 0;
+      let count = 0;
+      selectedRows.forEach(row => {
+        const val = row.cells[col.id];
+        if (val) {
+          // Clean the string to try to get a number (handle currency/commas)
+          const cleanVal = val.replace(/[^\d,.-]/g, '').replace(',', '.');
+          const num = parseFloat(cleanVal);
+          if (!isNaN(num)) {
+            sum += num;
+            count++;
+          }
+        }
+      });
+      if (count > 0) {
+        results[col.id] = { sum, count };
+      }
+    });
+    return results;
+  }, [selectedRowIds, rows, columns]);
+
+  const toggleAllRows = () => {
+    if (selectedRowIds.length === rows.length) {
+      setSelectedRowIds([]);
+    } else {
+      setSelectedRowIds(rows.map(r => r.id));
+    }
+  };
+
+  const toggleRow = (id: string) => {
+    setSelectedRowIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
   if (view === 'table' && selectedTable) {
     return (
       <div className={cn("flex flex-col bg-background", isFullPage ? "h-full" : "h-screen max-h-[calc(100vh-140px)]")}>
@@ -400,7 +443,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
           <div className="flex items-center gap-2">
             {!isFullPage && (
               <Button variant="outline" size="sm" onClick={() => window.open(`/tabela-completa/${selectedTable.id}`, '_blank')}>
-                <ExternalLink className="mr-2 h-4 w-4" /> Abrir Completa
+                <ExternalLink className="mr-2 h-4 w-4" /> Abrir Completo
               </Button>
             )}
             {isFullPage && (
@@ -441,6 +484,12 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
           <table className="w-full border-collapse text-sm">
             <thead className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm">
               <tr className="border-b">
+                <th className="w-10 px-4 py-3 text-center border-r">
+                  <Checkbox 
+                    checked={rows.length > 0 && selectedRowIds.length === rows.length} 
+                    onCheckedChange={toggleAllRows}
+                  />
+                </th>
                 <th className="w-12 px-4 py-3 text-left font-medium text-muted-foreground border-r">#</th>
                 {columns.map((col) => (
                   <th 
@@ -492,6 +541,12 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                     color: row.row_background_color && row.row_background_color !== 'transparent' && row.row_background_color !== '#f8fafc' ? '#000000' : 'inherit'
                   }}
                 >
+                  <td className="px-4 py-2 text-center border-r">
+                    <Checkbox 
+                      checked={selectedRowIds.includes(row.id)} 
+                      onCheckedChange={() => toggleRow(row.id)}
+                    />
+                  </td>
                   <td className="px-4 py-2 border-r text-muted-foreground font-mono text-xs relative group/idx">
                     <div className="flex items-center gap-1">
                       <input 
@@ -567,7 +622,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={columns.length + 2} className="py-20 text-center text-muted-foreground italic">
+                  <td colSpan={columns.length + 3} className="py-20 text-center text-muted-foreground italic">
                     Nenhum registro adicionado ainda. Clique em "+ Registro" para começar.
                   </td>
                 </tr>
@@ -575,6 +630,38 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
             </tbody>
           </table>
         </div>
+
+        {Object.keys(totals).length > 0 && (
+          <div className="bg-primary/5 border-t px-6 py-3 flex flex-wrap items-center gap-6 animate-in slide-in-from-bottom-2 duration-300">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+              <Calculator className="h-4 w-4" />
+              Cálculos ({selectedRowIds.length} selecionados):
+            </div>
+            <div className="flex flex-wrap gap-4">
+              {columns.filter(col => totals[col.id]).map(col => (
+                <div key={col.id} className="flex flex-col border-l pl-4 first:border-l-0 first:pl-0">
+                  <span className="text-[10px] text-muted-foreground uppercase font-medium">{col.name}</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-sm font-bold text-foreground">
+                      {totals[col.id].sum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      (Média: {(totals[col.id].sum / totals[col.id].count).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="ml-auto text-xs h-7"
+              onClick={() => setSelectedRowIds([])}
+            >
+              Limpar Seleção
+            </Button>
+          </div>
+        )}
 
         {/* Column Modal */}
         <Dialog open={isColumnModalOpen} onOpenChange={setIsColumnModalOpen}>
