@@ -713,6 +713,40 @@ export const CheckoutCreatorPanel = () => {
             <Textarea value={formData.footer_code} onChange={(e) => setFormData({ ...formData, footer_code: e.target.value })} placeholder="<script>...</script>" className="font-mono text-xs" rows={5} />
           </div>
         </TabsContent>
+
+        <div className="mt-8 pt-6 border-t flex justify-end items-center gap-4">
+          {formTab !== 'basic' && (
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => {
+                const tabs = ['basic', 'integration', 'design', 'thankyou', 'upsell', 'tracking'];
+                const currentIndex = tabs.indexOf(formTab);
+                if (currentIndex > 0) setFormTab(tabs[currentIndex - 1]);
+              }}
+              className="text-muted-foreground"
+            >
+              Voltar
+            </Button>
+          )}
+          
+          {formTab !== 'tracking' ? (
+            <Button 
+              onClick={() => {
+                const tabs = ['basic', 'integration', 'design', 'thankyou', 'upsell', 'tracking'];
+                const currentIndex = tabs.indexOf(formTab);
+                if (currentIndex < tabs.length - 1) setFormTab(tabs[currentIndex + 1]);
+              }}
+              className="gap-2 bg-primary hover:bg-primary/90 transition-all px-6"
+            >
+              Continuar <ChevronDown className="w-4 h-4 -rotate-90" />
+            </Button>
+          ) : (
+            <div className="text-xs text-muted-foreground italic">
+              Fim das configurações. Não esqueça de salvar abaixo.
+            </div>
+          )}
+        </div>
       </Tabs>
     </div>
   );
