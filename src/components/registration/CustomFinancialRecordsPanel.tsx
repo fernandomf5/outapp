@@ -235,6 +235,7 @@ export const CustomFinancialRecordsPanel = () => {
     } catch (error: any) {
       toast.error("Erro ao excluir: " + error.message);
     }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
