@@ -417,14 +417,14 @@ export const CheckoutCreatorPanel = () => {
   }
 
   const renderFormFields = () => (
-    <div className="max-h-[60vh] overflow-y-auto pr-2">
+    <div className="flex-1 overflow-y-auto pr-2 min-h-[500px]">
         <Tabs value={formTab} onValueChange={setFormTab}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="md:col-span-2">
-              <div className="mb-6">
-                <Label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mb-2 block">Sessão em edição</Label>
+              <div className="mb-8 p-4 bg-muted/30 rounded-2xl border border-primary/10">
+                <Label className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black mb-3 block ml-1">Sessão em edição</Label>
                 <Select value={formTab} onValueChange={setFormTab}>
-                  <SelectTrigger className="w-full h-12 text-base font-medium border-2 border-primary/10 hover:border-primary/30 transition-all bg-muted/30">
+                  <SelectTrigger className="w-full h-14 text-lg font-bold border-2 border-primary/20 hover:border-primary/40 transition-all bg-background shadow-sm rounded-xl">
                     <SelectValue placeholder="Selecione a etapa..." />
                   </SelectTrigger>
                   <SelectContent>
