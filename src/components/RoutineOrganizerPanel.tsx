@@ -213,6 +213,9 @@ export default function RoutineOrganizerPanel() {
   const [newRoutineName, setNewRoutineName] = useState('');
   const [isRenameRoutineOpen, setIsRenameRoutineOpen] = useState(false);
   const [renameRoutineName, setRenameRoutineName] = useState('');
+  const [isDeleteRoutineOpen, setIsDeleteRoutineOpen] = useState(false);
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
+  const [routineToDelete, setRoutineToDelete] = useState<string | null>(null);
   
   // Dialogs
   const [isAddItemDialogOpen, setIsAddItemDialogOpen] = useState(false);
@@ -1128,7 +1131,13 @@ export default function RoutineOrganizerPanel() {
                     variant="ghost" 
                     size="icon" 
                     className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                    onClick={() => activeRoutine && handleDeleteRoutine(activeRoutine.id)}
+                    onClick={() => {
+                      if (activeRoutine) {
+                        setRoutineToDelete(activeRoutine.id);
+                        setDeleteConfirmationText('');
+                        setIsDeleteRoutineOpen(true);
+                      }
+                    }}
                     title="Excluir Rotina"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -1162,6 +1171,46 @@ export default function RoutineOrganizerPanel() {
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setIsNewRoutineOpen(false)}>Cancelar</Button>
                   <Button onClick={handleCreateRoutine}>Criar</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={isDeleteRoutineOpen} onOpenChange={setIsDeleteRoutineOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle className="text-destructive flex items-center gap-2">
+                    <Trash2 className="h-5 w-5" />
+                    Excluir Rotina
+                  </DialogTitle>
+                  <DialogDescription>
+                    Esta ação é permanente e excluirá todas as atividades desta rotina.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4 space-y-4">
+                  <p className="text-sm font-medium">
+                    Para confirmar, digite <span className="font-bold text-destructive">excluir</span> no campo abaixo:
+                  </p>
+                  <Input 
+                    placeholder="Digite excluir para confirmar" 
+                    value={deleteConfirmationText}
+                    onChange={(e) => setDeleteConfirmationText(e.target.value)}
+                    className={deleteConfirmationText === 'excluir' ? 'border-destructive focus-visible:ring-destructive' : ''}
+                  />
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsDeleteRoutineOpen(false)}>Cancelar</Button>
+                  <Button 
+                    variant="destructive" 
+                    disabled={deleteConfirmationText !== 'excluir'}
+                    onClick={() => {
+                      if (routineToDelete) {
+                        handleDeleteRoutine(routineToDelete);
+                        setIsDeleteRoutineOpen(false);
+                      }
+                    }}
+                  >
+                    Excluir Permanentemente
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
