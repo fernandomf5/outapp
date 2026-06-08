@@ -102,13 +102,13 @@ interface RoutineCompletion {
 }
 
 const DAYS_OF_WEEK = [
-  { value: 0, label: 'Domingo', short: 'Dom' },
   { value: 1, label: 'Segunda', short: 'Seg' },
   { value: 2, label: 'Terça', short: 'Ter' },
   { value: 3, label: 'Quarta', short: 'Qua' },
   { value: 4, label: 'Quinta', short: 'Qui' },
   { value: 5, label: 'Sexta', short: 'Sex' },
-  { value: 6, label: 'Sábado', short: 'Sáb' }
+  { value: 6, label: 'Sábado', short: 'Sáb' },
+  { value: 0, label: 'Domingo', short: 'Dom' }
 ];
 
 const COLORS = [
@@ -339,7 +339,7 @@ export default function RoutineOrganizerPanel() {
           .from('routine_completions')
           .select('*')
           .eq('user_id', user.id)
-          .gte('completion_date', format(startOfWeek(new Date(), { weekStartsOn: 0 }), 'yyyy-MM-dd')),
+          .gte('completion_date', format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd')),
         supabase
           .from('routine_templates')
           .select('*')
@@ -631,7 +631,7 @@ export default function RoutineOrganizerPanel() {
     }
     
     try {
-      const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 0 }), 'yyyy-MM-dd');
+      const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
       
       const { error } = await supabase
         .from('routine_objectives')
