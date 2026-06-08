@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { Plus, Table as TableIcon, Settings, Trash2, Edit2, ChevronRight, Save, X, MoreHorizontal, Layout, Check, Palette, Image as ImageIcon, Search, Filter, ExternalLink, Download, FileJson, FileText, Calculator, Upload, Loader2 } from "lucide-react";
+import { Plus, Table as TableIcon, Settings, Trash2, Edit2, ChevronRight, Save, X, MoreHorizontal, Layout, Check, Palette, Search, Filter, ExternalLink, Download, FileJson, FileText, Calculator, Upload, Loader2 } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import html2canvas from "html2canvas";
 import { useTheme } from "next-themes";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -607,68 +606,6 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     doc.save(`${selectedTable.name}.pdf`);
   };
 
-  const handleDownloadPNG = async () => {
-    if (!tableRef.current || !selectedTable) return;
-    
-    try {
-      // Create a clone to ensure we don't capture UI elements like buttons or cursors
-      const element = tableRef.current;
-      
-      // Temporary style changes for better export
-      const originalHeight = element.style.height;
-      const originalOverflow = element.style.overflow;
-      
-      // Expand to show all content if it's scrollable
-      element.style.height = 'auto';
-      element.style.overflow = 'visible';
-
-      const canvas = await html2canvas(element, {
-        backgroundColor: resolvedTheme === 'dark' ? '#0a0a0a' : '#ffffff',
-        scale: 3, // Increased scale for better resolution
-        logging: false,
-        useCORS: true,
-        allowTaint: true,
-        scrollX: 0,
-        scrollY: -window.scrollY,
-        onclone: (clonedDoc) => {
-          // Find all inputs in the cloned document and replace them with spans/divs 
-          // to ensure their text content is rendered correctly by html2canvas
-          const inputs = clonedDoc.querySelectorAll('input');
-          inputs.forEach(input => {
-            const span = clonedDoc.createElement('span');
-            span.textContent = input.value;
-            span.style.cssText = window.getComputedStyle(input).cssText;
-            span.style.display = 'inline-block';
-            span.style.border = 'none';
-            span.style.background = 'transparent';
-            if (input.parentElement) {
-              input.parentElement.replaceChild(span, input);
-            }
-          });
-
-          // Remove UI-only elements from the clone
-          const uiElements = clonedDoc.querySelectorAll('button, .popover, [role="combobox"]');
-          uiElements.forEach(el => {
-            if (el instanceof HTMLElement) el.style.display = 'none';
-          });
-        }
-      });
-      
-      // Restore original styles
-      element.style.height = originalHeight;
-      element.style.overflow = originalOverflow;
-      
-      const link = document.createElement('a');
-      link.download = `${selectedTable.name}.png`;
-      link.href = canvas.toDataURL('image/png', 1.0);
-      link.click();
-      
-      toast({ title: "Imagem gerada com sucesso!" });
-    } catch (error) {
-      console.error("PNG export error:", error);
-      toast({ title: "Erro ao gerar imagem", variant: "destructive" });
-    }
-  };
 
   const parseValueToNumber = (val: string) => {
     if (!val) return null;
@@ -840,13 +777,6 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                     onClick={handleDownloadPDF}
                   >
                     <FileText className="mr-2 h-3 w-3 text-red-500" /> Baixar PDF
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-start text-xs h-8 px-2"
-                    onClick={handleDownloadPNG}
-                  >
-                    <ImageIcon className="mr-2 h-3 w-3 text-blue-500" /> Baixar PNG
                   </Button>
                 </PopoverContent>
               </Popover>
