@@ -563,7 +563,7 @@ export function QRCodeGenerator() {
             </TabsContent>
           </Tabs>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 items-start">
             {/* Settings */}
             <div className="space-y-4">
               <h3 className="font-semibold text-lg">Personalização Básica</h3>
@@ -902,8 +902,8 @@ export function QRCodeGenerator() {
             </div>
 
             {/* Preview */}
-            <div className="flex flex-col items-center">
-              <div className="fixed top-24 right-8 lg:sticky lg:top-24 z-50 flex flex-col items-center space-y-4 bg-background/95 backdrop-blur-sm p-6 rounded-2xl border-2 border-primary/20 shadow-2xl">
+            <div className="lg:sticky lg:top-24 z-10 flex flex-col items-center">
+              <div className="flex flex-col items-center space-y-4 bg-background/95 backdrop-blur-sm p-6 rounded-2xl border-2 border-primary/20 shadow-2xl w-full">
                 <h3 className="font-semibold text-lg">Visualização para Impressão</h3>
                 <div 
                   ref={printRef}
