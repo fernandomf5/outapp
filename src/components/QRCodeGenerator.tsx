@@ -120,45 +120,41 @@ export function QRCodeGenerator() {
     if (!printRef.current) return;
 
     try {
-      // Use toPng or toSvg but without a background to maintain transparency if needed
-      // OR explicitly set to bgColor if user wants it.
-      // The user said "quero sem fundo" (I want without background) which usually means transparent,
-      // but they also mentioned "a borda com fundo borda e com fundo branco meu deus que coisa horrivel".
-      // Let's make it look like the requested design (modern, clean) and ensure it doesn't have ugly white blocks.
+      // Create a temporary container to ensure the element is rendered fully for capture
+      // This helps avoid clipping issues with fixed heights or overflows
+      const originalStyle = printRef.current.style.cssText;
+      
+      // Temporarily remove constraints for capture
+      printRef.current.style.height = 'auto';
+      printRef.current.style.maxHeight = 'none';
+      printRef.current.style.width = '400px'; // Consistent width for download
       
       const options = {
-        backgroundColor: null, // Transparent
-        pixelRatio: 3,
-        style: {
-          transform: 'scale(1)',
-        }
+        backgroundColor: bgColor === '#ffffff' ? null : bgColor,
+        pixelRatio: 4, // Higher quality
+        skipAutoScale: true,
+        cacheBust: true,
       };
 
+      let dataUrl;
       if (format === 'svg') {
-        const dataUrl = await htmlToImage.toSvg(printRef.current, options);
-        
-        const link = document.createElement('a');
-        link.download = 'qrcode-personalizado.svg';
-        link.href = dataUrl;
-        link.click();
-        
-        toast({
-          title: 'QR Code baixado',
-          description: 'Arquivo SVG completo com personalização salvo com sucesso',
-        });
+        dataUrl = await htmlToImage.toSvg(printRef.current, options);
       } else {
-        const dataUrl = await htmlToImage.toPng(printRef.current, options);
-        
-        const link = document.createElement('a');
-        link.download = 'qrcode-personalizado.png';
-        link.href = dataUrl;
-        link.click();
-        
-        toast({
-          title: 'QR Code baixado',
-          description: 'PNG completo com personalização salvo com sucesso',
-        });
+        dataUrl = await htmlToImage.toPng(printRef.current, options);
       }
+
+      // Restore original style
+      printRef.current.style.cssText = originalStyle;
+
+      const link = document.createElement('a');
+      link.download = `qrcode-${businessName || 'personalizado'}.${format}`;
+      link.href = dataUrl;
+      link.click();
+      
+      toast({
+        title: 'QR Code baixado',
+        description: `${format.toUpperCase()} completo com personalização salvo com sucesso`,
+      });
     } catch (error) {
       console.error(`Erro ao gerar ${format.toUpperCase()}:`, error);
       toast({
