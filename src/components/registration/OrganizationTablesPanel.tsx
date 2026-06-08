@@ -537,13 +537,13 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       return;
     }
 
-    const value = sum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const valueStr = sum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     await supabase
       .from("organization_table_cells")
       .insert({ 
         row_id: newRow.id, 
         column_id: colId, 
-        value: `TOTAL: ${value}` 
+        value: `TOTAL: ${valueStr}` 
       });
 
     toast({ title: "Total salvo com sucesso!" });
