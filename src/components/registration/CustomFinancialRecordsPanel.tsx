@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Settings2, Table as TableIcon, LayoutDashboard, Search, Filter, MoreHorizontal, Pencil, Trash2, Calendar, DollarSign, User, Phone, Mail, FileText, CheckCircle2, Clock, AlertCircle, XCircle, Handshake, Info } from "lucide-react";
+import { Plus, Settings2, Table as TableIcon, LayoutDashboard, Search, Filter, MoreHorizontal, Pencil, Trash2, Calendar, DollarSign, User, Phone, Mail, FileText, CheckCircle2, Clock, AlertCircle, XCircle, Handshake, Info, List } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -231,13 +231,36 @@ export const CustomFinancialRecordsPanel = () => {
           <p className="text-sm text-muted-foreground">Crie e gerencie estruturas financeiras adaptadas ao seu negócio.</p>
         </div>
         
-        <Dialog open={isCreateStructureOpen} onOpenChange={setIsCreateStructureOpen}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Nova Estrutura
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <Select 
+            value={selectedStructure?.id} 
+            onValueChange={(id) => {
+              const struct = structures.find(s => s.id === id);
+              if (struct) setSelectedStructure(struct);
+            }}
+          >
+            <SelectTrigger className="w-[200px] h-10">
+              <div className="flex items-center gap-2 truncate">
+                <List className="h-4 w-4 shrink-0" />
+                <SelectValue placeholder="Minhas Estruturas" />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              {structures.map((structure) => (
+                <SelectItem key={structure.id} value={structure.id}>
+                  {structure.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Dialog open={isCreateStructureOpen} onOpenChange={setIsCreateStructureOpen}>
+            <DialogTrigger asChild>
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Nova Estrutura
+              </Button>
+            </DialogTrigger>
           <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Criar Nova Estrutura de Registro</DialogTitle>
@@ -325,6 +348,7 @@ export const CustomFinancialRecordsPanel = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {structures.length === 0 ? (
@@ -337,36 +361,7 @@ export const CustomFinancialRecordsPanel = () => {
           <Button onClick={() => setIsCreateStructureOpen(true)}>Criar minha primeira estrutura</Button>
         </Card>
       ) : (
-        <div className="flex flex-col lg:flex-row gap-6">
-          <Card className="lg:w-64 shrink-0 h-fit">
-            <CardHeader className="p-4">
-              <CardTitle className="text-sm font-medium">Minhas Estruturas</CardTitle>
-            </CardHeader>
-            <CardContent className="p-2 pt-0">
-              <ScrollArea className="h-[400px]">
-                <div className="space-y-1">
-                  {structures.map((structure) => (
-                    <button
-                      key={structure.id}
-                      onClick={() => setSelectedStructure(structure)}
-                      className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                        selectedStructure?.id === structure.id 
-                          ? "bg-primary text-primary-foreground shadow-sm" 
-                          : "hover:bg-accent text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <TableIcon className="h-4 w-4" />
-                        <span className="truncate">{structure.name}</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-
-          <div className="flex-1 space-y-6">
+        <div className="flex-1 space-y-6">
             {selectedStructure && (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -579,7 +574,6 @@ export const CustomFinancialRecordsPanel = () => {
               </>
             )}
           </div>
-        </div>
       )}
     </div>
   );
