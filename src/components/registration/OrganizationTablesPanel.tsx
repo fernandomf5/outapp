@@ -1508,12 +1508,12 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                         </>
                       )}
                     </div>
-                    <Input 
+                    <input 
                       id="logo-upload" 
                       type="file" 
                       accept="image/*" 
                       className="hidden" 
-                      onChange={handleLogoUpload}
+                      onChange={(e) => handleLogoUpload(e, false)}
                       disabled={uploadingLogo}
                     />
                   </Label>
