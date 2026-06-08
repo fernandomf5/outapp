@@ -102,11 +102,12 @@ export function QRCodeGenerator() {
     }
   };
 
-  const downloadQRCode = (format: 'svg' | 'png') => {
-    const svg = document.getElementById('qr-code-svg');
-    if (!svg) return;
+  const downloadQRCode = async (format: 'svg' | 'png') => {
+    if (!text) return;
 
     if (format === 'svg') {
+      const svg = document.getElementById('qr-code-svg');
+      if (!svg) return;
       const svgData = new XMLSerializer().serializeToString(svg);
       const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(svgBlob);
@@ -115,39 +116,38 @@ export function QRCodeGenerator() {
       link.download = 'qrcode.svg';
       link.click();
       URL.revokeObjectURL(url);
+      
+      toast({
+        title: 'QR Code baixado',
+        description: 'Arquivo SVG salvo com sucesso',
+      });
     } else {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
+      if (!printRef.current) return;
       
-      const svgData = new XMLSerializer().serializeToString(svg);
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(svgBlob);
-      
-      img.onload = () => {
-        canvas.width = size;
-        canvas.height = size;
-        ctx?.drawImage(img, 0, 0);
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const pngUrl = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = pngUrl;
-            link.download = 'qrcode.png';
-            link.click();
-            URL.revokeObjectURL(pngUrl);
-          }
+      try {
+        const dataUrl = await htmlToImage.toPng(printRef.current, {
+          backgroundColor: bgColor,
+          pixelRatio: 2,
         });
-        URL.revokeObjectURL(url);
-      };
-      
-      img.src = url;
+        
+        const link = document.createElement('a');
+        link.download = 'qrcode-personalizado.png';
+        link.href = dataUrl;
+        link.click();
+        
+        toast({
+          title: 'QR Code baixado',
+          description: 'PNG completo com personalização salvo com sucesso',
+        });
+      } catch (error) {
+        console.error('Erro ao gerar PNG:', error);
+        toast({
+          title: 'Erro ao baixar',
+          description: 'Não foi possível gerar a imagem completa.',
+          variant: 'destructive',
+        });
+      }
     }
-
-    toast({
-      title: 'QR Code baixado',
-      description: `Arquivo ${format.toUpperCase()} salvo com sucesso`,
-    });
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
