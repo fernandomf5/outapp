@@ -1,43 +1,21 @@
-## Goal: Revamp Dashboard UI and Detailed Analytics
+I will modernize the Checkout Creator and the checkout experience itself, ensuring a premium feel and adding the requested Mercado Pago PIX integration with QR Code.
 
-The current dashboard is reported as having a weak design and insufficient analytics. The goal is to improve the design/UX and implement a detailed analytics system where users can select specific resources from a dropdown to see specialized metrics.
+### 1. Modernize Checkout Creator (Admin Panel)
+- **UI Refresh**: Enhance `CheckoutCreatorPanel.tsx` with a cleaner layout and better visual feedback.
+- **Form Improvements**: Add more granular design options (border radius, font choices, custom CSS).
+- **Checkout Previews**: Implement a live mini-preview within the creator to see changes in real-time.
 
-### Design Improvements
-- Redesign the Overview tab with a more "modern/beautiful" layout.
-- Use better typography, spacing, and glassmorphism effects already present in parts of the app.
-- Improve the visual hierarchy of the stats cards and resource grid.
+### 2. Premium Checkout Experience (Public Page)
+- **Visual Overhaul**: Redesign `CheckoutPage.tsx` with a modern "Stripe-like" aesthetic: multi-column layout on desktop, clean typography, and subtle animations.
+- **Trust Elements**: Add security badges, testimonials support, and "Social Proof" popups.
+- **Responsive Layout**: Optimize for mobile and tablet to ensure a smooth purchasing flow on any device.
 
-### Analytics Implementation
-- Create a new `src/components/dashboard/DetailedAnalytics.tsx` component.
-- This component will feature a dropdown (Select) to choose between different resources (e.g., AI Agents, Cloned Pages, Short Links, Financials, etc.).
-- When a resource is selected, it will display a specialized analytics panel for that resource, reusing existing analytics logic where possible but presenting it in a unified dashboard view.
-- If a resource doesn't have existing analytics logic, I will implement basic metrics (counts, creation trends).
+### 3. Enhanced Mercado Pago Integration
+- **PIX with QR Code**: Ensure the `TransparentCheckout.tsx` fully supports PIX with real-time status polling and a clear, easy-to-copy QR Code display.
+- **Multiple Products Support**: Improve support for selling courses (integration with members area), digital products (direct download), and services.
 
-### Technical Tasks
-
-1.  **Create DetailedAnalytics Component**:
-    - Build a "Unified Analytics" view that allows selecting a feature.
-    - Features to include: Chat Online (AI Agents), Clonador, Encurtador, Financeiro, CRM, Link na Bio.
-    - Integration with existing components:
-        - `AgentAnalyticsPanel` (for AI Agents)
-        - `AnalyticsPanel` (for Cloner)
-        - `FinancialAnalyticsPanel` (for Financials)
-    - Create new mini-analytics views for others (Links, Bio, etc.).
-
-2.  **Update Dashboard.tsx**:
-    - Replace the basic stats cards with the new `DetailedAnalytics` component or integrate it as a prominent section.
-    - Revamp the "All Resources Grid" to look more like a professional "Apps" or "Tools" marketplace within the platform.
-    - Add a "Quick Actions" bar or section.
-
-3.  **UI Refinement**:
-    - Apply consistent gradients and shadows across dashboard cards.
-    - Optimize mobile responsiveness for the new analytics view.
-
-### Proposed UI Structure for Overview:
-- **Header**: Personalized greeting + quick summary.
-- **Top Section**: 4-5 key KPIs with mini-charts.
-- **Middle Section**: Detailed Analytics selector and viewer.
-- **Bottom Section**: Resource Grid (reformatted for better UX).
-
----
-**Technical Note**: I will ensure that the feature access checks (`hasFeature`) are respected within the analytics dropdown.
+### Technical Steps:
+- Update `src/pages/CheckoutPage.tsx` with a modern 2-column layout.
+- Update `src/components/TransparentCheckout.tsx` to improve the PIX and Credit Card UI.
+- Enhance `src/components/CheckoutCreatorPanel.tsx` with new design fields and a better UX.
+- Add a new `CheckoutPreview` component for real-time visualization.
