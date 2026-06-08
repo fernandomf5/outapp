@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Filter, Trash2, Edit2, CheckCircle, Clock } from "lucide-react";
+import { Plus, Search, Filter, Trash2, Edit2, CheckCircle, Clock, ListPlus, X } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,6 +49,7 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isBulkAddOpen, setIsBulkAddOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -65,6 +66,10 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     bank_account_id: "",
     is_recurring: false
   });
+  
+  const [bulkRows, setBulkRows] = useState<any[]>([
+    { description: "", amount: "", type: "expense", category: "", due_date: format(new Date(), "yyyy-MM-dd"), status: "pending", payment_method: "pix", bank_account_id: "" }
+  ]);
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(t => {
@@ -168,6 +173,76 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleBulkSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const validRows = bulkRows.filter(row => row.description && row.amount);
+      if (validRows.length === 0) {
+        toast.error("Preencha pelo menos uma transação válida");
+        return;
+      }
+
+      for (const row of validRows) {
+        const amount = parseFloat(row.amount);
+        const transactionData = {
+          user_id: user.id,
+          business_id: businessId,
+          description: row.description,
+          amount: amount,
+          type: row.type,
+          category: row.category,
+          due_date: row.due_date,
+          status: row.status,
+          payment_method: row.payment_method,
+          bank_account_id: row.bank_account_id || null,
+          is_recurring: false,
+          year: new Date(row.due_date).getFullYear(),
+          month: format(new Date(row.due_date + 'T00:00:00'), 'MMMM', { locale: ptBR })
+        };
+
+        const { error } = await supabase.from('financial_transactions').insert(transactionData);
+        if (error) throw error;
+
+        // Atualizar saldo se o status for 'paid'
+        if (row.status === 'paid' && row.bank_account_id) {
+          const amountChange = row.type === 'income' ? amount : -amount;
+          await updateAccountBalance(row.bank_account_id, amountChange);
+        }
+      }
+
+      toast.success(`${validRows.length} transações adicionadas!`);
+      setIsBulkAddOpen(false);
+      setBulkRows([{ description: "", amount: "", type: "expense", category: "", due_date: format(new Date(), "yyyy-MM-dd"), status: "pending", payment_method: "pix", bank_account_id: "" }]);
+      onRefresh();
+    } catch (error) {
+      toast.error("Erro ao adicionar transações");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addBulkRow = () => {
+    setBulkRows([...bulkRows, { description: "", amount: "", type: "expense", category: "", due_date: format(new Date(), "yyyy-MM-dd"), status: "pending", payment_method: "pix", bank_account_id: "" }]);
+  };
+
+  const removeBulkRow = (index: number) => {
+    if (bulkRows.length > 1) {
+      const newRows = [...bulkRows];
+      newRows.splice(index, 1);
+      setBulkRows(newRows);
+    }
+  };
+
+  const updateBulkRow = (index: number, field: string, value: any) => {
+    const newRows = [...bulkRows];
+    newRows[index] = { ...newRows[index], [field]: value };
+    setBulkRows(newRows);
   };
 
   const resetForm = () => {
@@ -279,15 +354,159 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
           </Select>
         </div>
 
-        <Dialog open={isAddOpen} onOpenChange={(open) => {
-          setIsAddOpen(open);
-          if (!open) resetForm();
-        }}>
-          <DialogTrigger asChild>
-            <Button className="w-full md:w-auto">
-              <Plus className="h-4 w-4 mr-2" /> Nova Transação
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2 w-full md:w-auto">
+          <Dialog open={isBulkAddOpen} onOpenChange={setIsBulkAddOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="flex-1 md:flex-none">
+                <ListPlus className="h-4 w-4 mr-2" /> Adicionar Múltiplas
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Adicionar Múltiplas Transações</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleBulkSubmit} className="space-y-4 py-4">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[150px]">Tipo</TableHead>
+                        <TableHead className="min-w-[200px]">Descrição</TableHead>
+                        <TableHead className="w-[120px]">Valor</TableHead>
+                        <TableHead className="w-[150px]">Categoria</TableHead>
+                        <TableHead className="w-[150px]">Vencimento</TableHead>
+                        <TableHead className="w-[150px]">Conta</TableHead>
+                        <TableHead className="w-[150px]">Forma</TableHead>
+                        <TableHead className="w-[100px]">Status</TableHead>
+                        <TableHead className="w-[50px]"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {bulkRows.map((row, index) => (
+                        <TableRow key={index}>
+                          <TableCell>
+                            <Select value={row.type} onValueChange={(v: any) => updateBulkRow(index, 'type', v)}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="income">Receita</SelectItem>
+                                <SelectItem value="expense">Despesa</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Input 
+                              value={row.description} 
+                              onChange={e => updateBulkRow(index, 'description', e.target.value)}
+                              placeholder="Descrição"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input 
+                              type="number" 
+                              step="0.01" 
+                              value={row.amount} 
+                              onChange={e => updateBulkRow(index, 'amount', e.target.value)}
+                              placeholder="0,00"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input 
+                              value={row.category} 
+                              onChange={e => updateBulkRow(index, 'category', e.target.value)}
+                              placeholder="Categoria"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input 
+                              type="date" 
+                              value={row.due_date} 
+                              onChange={e => updateBulkRow(index, 'due_date', e.target.value)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Select value={row.bank_account_id} onValueChange={(v) => updateBulkRow(index, 'bank_account_id', v)}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {bankAccounts.map(acc => (
+                                  <SelectItem key={acc.id} value={acc.id}>{acc.bank_name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Select value={row.payment_method} onValueChange={(v) => updateBulkRow(index, 'payment_method', v)}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pix">PIX</SelectItem>
+                                <SelectItem value="credit_card">Cartão</SelectItem>
+                                <SelectItem value="debit_card">Débito</SelectItem>
+                                <SelectItem value="cash">Dinheiro</SelectItem>
+                                <SelectItem value="transfer">Transf.</SelectItem>
+                                <SelectItem value="boleto">Boleto</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Select value={row.status} onValueChange={(v) => updateBulkRow(index, 'status', v)}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pending">Pend.</SelectItem>
+                                <SelectItem value="paid">Pago</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Button 
+                              type="button" 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => removeBulkRow(index)}
+                              disabled={bulkRows.length === 1}
+                            >
+                              <X className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                
+                <div className="flex justify-between items-center">
+                  <Button type="button" variant="outline" size="sm" onClick={addBulkRow}>
+                    <Plus className="h-4 w-4 mr-2" /> Adicionar Linha
+                  </Button>
+                  <div className="text-sm text-muted-foreground">
+                    {bulkRows.length} linhas
+                  </div>
+                </div>
+
+                <DialogFooter>
+                  <Button type="submit" disabled={loading} className="w-full">
+                    {loading ? "Salvando..." : "Salvar Todas as Transações"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isAddOpen} onOpenChange={(open) => {
+            setIsAddOpen(open);
+            if (!open) resetForm();
+          }}>
+            <DialogTrigger asChild>
+              <Button className="flex-1 md:flex-none">
+                <Plus className="h-4 w-4 mr-2" /> Nova Transação
+              </Button>
+            </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>{editingTransactionId ? "Editar Transação" : "Adicionar Transação"}</DialogTitle>
@@ -415,7 +634,8 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
               </DialogFooter>
             </form>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       <Card>
