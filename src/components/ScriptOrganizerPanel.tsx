@@ -55,12 +55,9 @@ export function ScriptOrganizerPanel() {
   const { user } = useAuth();
   const [categories, setCategories] = useState<ScriptCategory[]>([]);
   const [scripts, setScripts] = useState<SavedScript[]>([]);
-  const [businesses, setBusinesses] = useState<Business[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("all");
 
   // Dialog states
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
@@ -71,30 +68,20 @@ export function ScriptOrganizerPanel() {
   // Form states
   const [categoryName, setCategoryName] = useState("");
   const [categoryColor, setCategoryColor] = useState("#3b82f6");
-  const [categoryBusinessId, setCategoryBusinessId] = useState<string>("");
+  
   const [scriptTitle, setScriptTitle] = useState("");
   const [scriptContent, setScriptContent] = useState("");
   const [scriptCategoryId, setScriptCategoryId] = useState<string>("");
-  const [scriptBusinessId, setScriptBusinessId] = useState<string>("");
+  
   const [scriptTags, setScriptTags] = useState("");
 
   useEffect(() => {
     if (user) {
       fetchCategories();
       fetchScripts();
-      fetchBusinesses();
     }
   }, [user]);
 
-  const fetchBusinesses = async () => {
-    const { data } = await supabase
-      .from('businesses')
-      .select('id, name, logo_url, category')
-      .eq('user_id', user!.id)
-      .eq('status', 'active')
-      .order('name');
-    if (data) setBusinesses(data);
-  };
 
   const fetchCategories = async () => {
     const { data, error } = await supabase
@@ -120,7 +107,7 @@ export function ScriptOrganizerPanel() {
   // Category CRUD
   const handleSaveCategory = async () => {
     if (!categoryName.trim()) return;
-    const bizId = categoryBusinessId && categoryBusinessId !== "none" ? categoryBusinessId : null;
+    const bizId = null;
     
     if (editingCategory) {
       const { error } = await supabase
@@ -164,7 +151,7 @@ export function ScriptOrganizerPanel() {
     }
     
     const tags = scriptTags.split(",").map(t => t.trim()).filter(Boolean);
-    const bizId = scriptBusinessId && scriptBusinessId !== "none" ? scriptBusinessId : null;
+    const bizId = null;
     const catId = scriptCategoryId && scriptCategoryId !== "none" ? scriptCategoryId : null;
     const payload = {
       user_id: user!.id,
@@ -219,7 +206,7 @@ export function ScriptOrganizerPanel() {
     setEditingCategory(null);
     setCategoryName("");
     setCategoryColor("#3b82f6");
-    setCategoryBusinessId("");
+    
   };
 
   const resetScriptForm = () => {
@@ -228,7 +215,7 @@ export function ScriptOrganizerPanel() {
     setScriptTitle("");
     setScriptContent("");
     setScriptCategoryId("");
-    setScriptBusinessId("");
+    
     setScriptTags("");
   };
 
@@ -236,7 +223,7 @@ export function ScriptOrganizerPanel() {
     setEditingCategory(cat);
     setCategoryName(cat.name);
     setCategoryColor(cat.color);
-    setCategoryBusinessId(cat.business_id || "");
+    
     setShowCategoryDialog(true);
   };
 
@@ -245,13 +232,12 @@ export function ScriptOrganizerPanel() {
     setScriptTitle(s.title);
     setScriptContent(s.content);
     setScriptCategoryId(s.category_id || "");
-    setScriptBusinessId(s.business_id || "");
+    
     setScriptTags(s.tags?.join(", ") || "");
     setShowScriptDialog(true);
   };
 
   // Filtering
-  const getBusinessById = (id: string | null) => businesses.find(b => b.id === id);
   const getCategoryById = (id: string | null) => categories.find(c => c.id === id);
 
   const filteredScripts = scripts.filter(s => {
@@ -271,19 +257,6 @@ export function ScriptOrganizerPanel() {
     return matchCategory && matchSearch;
   });
 
-  const filteredCategories = categories.filter(c => {
-    if (activeTab === "business" && !c.business_id) return false;
-    if (activeTab === "standalone" && c.business_id) return false;
-    if (selectedBusiness && c.business_id !== selectedBusiness) return false;
-    return true;
-  });
-
-  const businessScriptCounts = businesses.map(b => ({
-    ...b,
-    count: scripts.filter(s => s.business_id === b.id).length
-  }));
-
-  const standaloneCount = scripts.filter(s => !s.business_id).length;
 
   return (
     <div className="space-y-4">
