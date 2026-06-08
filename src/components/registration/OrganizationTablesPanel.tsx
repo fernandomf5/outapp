@@ -382,6 +382,24 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     }
   };
 
+  const parseValueToNumber = (val: string) => {
+    if (!val) return null;
+    const trimmedVal = val.trim();
+    
+    // Check if it matches exactly "R$ X" or "R$ X,XX"
+    // This regex is strict to Brazil currency format
+    const currencyRegex = /^R\$\s*\d{1,3}(\.\d{3})*(,\d{2})?$/;
+    const currencyRegexSimple = /^R\$\s*\d+([.,]\d{2})?$/;
+    
+    if (!currencyRegex.test(trimmedVal) && !currencyRegexSimple.test(trimmedVal)) return null;
+
+    // Remove R$, spaces, and thousand separator dots, then replace comma with dot
+    let cleanVal = trimmedVal.replace(/R\$\s*/g, '').replace(/\./g, '').replace(',', '.');
+    
+    const num = parseFloat(cleanVal);
+    return isNaN(num) ? null : num;
+  };
+
   const totals = useMemo(() => {
     // If we have specific cells selected, use those
     const cellRowIds = Object.keys(selectedCells);
@@ -431,30 +449,6 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     });
     return results;
   }, [selectedRowIds, selectedCells, rows, columns]);
-
-  const parseValueToNumber = (val: string) => {
-    const trimmedVal = val.trim();
-    
-    // Check if it matches exactly "R$ X" or "R$ X,XX"
-    // Allowing for optional spaces after R$
-    const currencyRegex = /^R\$\s*\d+([.,]\d{2})?$/;
-    
-    if (!currencyRegex.test(trimmedVal)) return null;
-
-    let cleanVal = trimmedVal.replace(/[^\d,.-]/g, '');
-    
-    if (cleanVal.includes(',') && cleanVal.includes('.')) {
-      const lastComma = cleanVal.lastIndexOf(',');
-      const lastDot = cleanVal.lastIndexOf('.');
-      if (lastComma > lastDot) cleanVal = cleanVal.replace(/\./g, '').replace(',', '.');
-      else cleanVal = cleanVal.replace(/,/g, '');
-    } else if (cleanVal.includes(',')) {
-      cleanVal = cleanVal.replace(',', '.');
-    }
-    
-    const num = parseFloat(cleanVal);
-    return isNaN(num) ? null : num;
-  };
 
   const toggleCellSelection = (rowId: string, colId: string) => {
     // If not in selection mode, do nothing
