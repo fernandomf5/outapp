@@ -361,36 +361,7 @@ export const CustomFinancialRecordsPanel = () => {
           <Button onClick={() => setIsCreateStructureOpen(true)}>Criar minha primeira estrutura</Button>
         </Card>
       ) : (
-        <div className="flex flex-col lg:flex-row gap-6">
-          <Card className="lg:w-64 shrink-0 h-fit">
-            <CardHeader className="p-4">
-              <CardTitle className="text-sm font-medium">Minhas Estruturas</CardTitle>
-            </CardHeader>
-            <CardContent className="p-2 pt-0">
-              <ScrollArea className="h-[400px]">
-                <div className="space-y-1">
-                  {structures.map((structure) => (
-                    <button
-                      key={structure.id}
-                      onClick={() => setSelectedStructure(structure)}
-                      className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                        selectedStructure?.id === structure.id 
-                          ? "bg-primary text-primary-foreground shadow-sm" 
-                          : "hover:bg-accent text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <TableIcon className="h-4 w-4" />
-                        <span className="truncate">{structure.name}</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-
-          <div className="flex-1 space-y-6">
+        <div className="flex-1 space-y-6">
             {selectedStructure && (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
