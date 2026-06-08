@@ -394,7 +394,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
 
     const tableHeaders = columns.map(col => col.name);
     const tableData = rows.map(row => 
-      columns.map(col => row.cells[col.id] || "")
+      columns.map(col => row.cells[col.id]?.value || "")
     );
 
     autoTable(doc, {
