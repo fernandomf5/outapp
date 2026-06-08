@@ -34,7 +34,19 @@ interface SavedQRCode {
   size: number;
   fg_color: string;
   bg_color: string;
+  business_name?: string;
+  logo_url?: string;
+  logo_size?: number;
+  show_logo?: boolean;
+  border_color?: string;
+  show_border?: boolean;
+  border_width?: number;
+  corner_radius?: number;
+  padding?: number;
+  show_social_media?: boolean;
+  social_media?: any;
   created_at: string;
+  user_id: string;
 }
 
 interface SocialMedia {
@@ -360,6 +372,17 @@ export function QRCodeGenerator() {
         size,
         fg_color: fgColor,
         bg_color: bgColor,
+        business_name: businessName,
+        logo_url: logoUrl,
+        logo_size: logoSize,
+        show_logo: showLogo,
+        border_color: borderColor,
+        show_border: showBorder,
+        border_width: borderWidth,
+        corner_radius: cornerRadius,
+        padding,
+        show_social_media: showSocialMedia,
+        social_media: socialMedia as any,
       })
       .eq('id', editingId);
 
@@ -434,6 +457,17 @@ export function QRCodeGenerator() {
         size,
         fg_color: fgColor,
         bg_color: bgColor,
+        business_name: businessName,
+        logo_url: logoUrl,
+        logo_size: logoSize,
+        show_logo: showLogo,
+        border_color: borderColor,
+        show_border: showBorder,
+        border_width: borderWidth,
+        corner_radius: cornerRadius,
+        padding,
+        show_social_media: showSocialMedia,
+        social_media: socialMedia as any,
       })
       .select()
       .single();
@@ -465,6 +499,24 @@ export function QRCodeGenerator() {
     setSize(qr.size);
     setFgColor(qr.fg_color);
     setBgColor(qr.bg_color);
+    setBusinessName(qr.business_name || '');
+    setLogoUrl(qr.logo_url || '');
+    setLogoSize(qr.logo_size || 50);
+    setShowLogo(qr.show_logo || false);
+    setBorderColor(qr.border_color || '#000000');
+    setShowBorder(qr.show_border || false);
+    setBorderWidth(qr.border_width || 8);
+    setCornerRadius(qr.corner_radius || 0);
+    setPadding(qr.padding || 16);
+    setShowSocialMedia(qr.show_social_media || false);
+    setSocialMedia(qr.social_media || {
+      instagram: '',
+      facebook: '',
+      tiktok: '',
+      youtube: '',
+      twitter: '',
+      linkedin: '',
+    });
     setEditingId(qr.id);
     setEditingName(qr.name);
     toast({

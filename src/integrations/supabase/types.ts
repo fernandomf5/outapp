@@ -7409,34 +7409,67 @@ export type Database = {
       saved_qr_codes: {
         Row: {
           bg_color: string | null
+          border_color: string | null
+          border_width: number | null
+          business_name: string | null
           content: string
+          corner_radius: number | null
           created_at: string
           fg_color: string | null
           id: string
+          logo_size: number | null
+          logo_url: string | null
           name: string
+          padding: number | null
+          show_border: boolean | null
+          show_logo: boolean | null
+          show_social_media: boolean | null
           size: number | null
+          social_media: Json | null
           updated_at: string
           user_id: string
         }
         Insert: {
           bg_color?: string | null
+          border_color?: string | null
+          border_width?: number | null
+          business_name?: string | null
           content: string
+          corner_radius?: number | null
           created_at?: string
           fg_color?: string | null
           id?: string
+          logo_size?: number | null
+          logo_url?: string | null
           name: string
+          padding?: number | null
+          show_border?: boolean | null
+          show_logo?: boolean | null
+          show_social_media?: boolean | null
           size?: number | null
+          social_media?: Json | null
           updated_at?: string
           user_id: string
         }
         Update: {
           bg_color?: string | null
+          border_color?: string | null
+          border_width?: number | null
+          business_name?: string | null
           content?: string
+          corner_radius?: number | null
           created_at?: string
           fg_color?: string | null
           id?: string
+          logo_size?: number | null
+          logo_url?: string | null
           name?: string
+          padding?: number | null
+          show_border?: boolean | null
+          show_logo?: boolean | null
+          show_social_media?: boolean | null
           size?: number | null
+          social_media?: Json | null
           updated_at?: string
           user_id?: string
         }
