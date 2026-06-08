@@ -216,11 +216,9 @@ export function QRCodeGenerator() {
         twitter: '#1DA1F2',
         linkedin: '#0A66C2',
       };
-      return `<div style="display: flex; align-items: center; gap: 8px;">
-        <div style="padding: 4px; background: white; border-radius: 4px; display: flex; align-items: center; justify-content: center; border: 1px solid #f0f0f0;">
-          <span style="color: ${colors[platform]}; font-size: 14px; font-weight: bold;">#</span>
-        </div>
-        <span style="color: ${fgColor}; font-weight: 900; font-style: italic; font-size: 16px;">@${handle}</span>
+      return `<div style="display: flex; align-items: center; gap: 8px; width: 100%; max-width: 320px; background: white; padding: 10px 15px; border-radius: 12px; border: 2px solid ${fgColor}15; margin-bottom: 8px;">
+        <div style="width: 32px; height: 32px; background: ${colors[platform]}; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; flex-shrink: 0;">#</div>
+        <span style="color: ${fgColor}; font-weight: 900; font-style: italic; font-size: 18px; letter-spacing: -0.5px;">@${handle}</span>
       </div>`;
     }).join('');
 
@@ -251,13 +249,22 @@ export function QRCodeGenerator() {
               padding: ${padding}px;
               ${showBorder ? `border: ${borderWidth}px solid ${borderColor}; border-radius: ${cornerRadius}px;` : ''}
               background-color: ${bgColor};
+              width: 100%;
+              max-width: 500px;
             }
-            .business-name-container {
+            .header-container {
               display: flex;
               flex-direction: column;
               align-items: center;
               margin-bottom: 30px;
               width: 100%;
+              gap: 15px;
+            }
+            .logo-top {
+              width: ${logoSize * 1.5}px;
+              height: ${logoSize * 1.5}px;
+              object-fit: contain;
+              margin-bottom: 5px;
             }
             .business-name {
               font-size: 48px;
@@ -266,46 +273,30 @@ export function QRCodeGenerator() {
               color: ${fgColor};
               text-transform: uppercase;
               letter-spacing: -2px;
-              line-height: 0.9;
+              line-height: 0.85;
               margin: 0;
             }
             .name-underline {
               height: 8px;
-              width: 100px;
+              width: 80px;
               background-color: ${fgColor};
-              margin-top: 12px;
+              margin-top: 10px;
               border-radius: 10px;
             }
             .qr-wrapper {
               position: relative;
               background: white;
-              padding: 24px;
-              border-radius: 30px;
-              box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-              border: 1px solid #eeeeee;
+              padding: 25px;
+              border-radius: 35px;
+              box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+              border: 1px solid #f0f0f0;
               display: flex;
               justify-content: center;
               align-items: center;
             }
-            .logo-center {
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);
-              background: white;
-              padding: 6px;
-              border-radius: 12px;
-              box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-              z-index: 10;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              border: 1px solid #eeeeee;
-            }
-            .logo-center img {
-              width: ${Math.min(logoSize, 70)}px;
-              height: ${Math.min(logoSize, 70)}px;
-              object-fit: contain;
+            .qr-wrapper svg {
+              width: 320px !important;
+              height: 320px !important;
             }
             .socials-container {
               width: 100%;
@@ -370,18 +361,14 @@ export function QRCodeGenerator() {
         </head>
         <body>
           <div class="container">
-            ${businessName ? `
-              <div class="business-name-container">
+            <div class="header-container">
+              ${showLogo && logoUrl ? `<img src="${logoUrl}" class="logo-top" alt="Logo" />` : ''}
+              ${businessName ? `
                 <div class="business-name">${businessName}</div>
                 <div class="name-underline"></div>
-              </div>
-            ` : ''}
-            <div class="qr-wrapper">
-              ${showLogo && logoUrl ? `
-                <div class="logo-center">
-                  <img src="${logoUrl}" alt="Logo" />
-                </div>
               ` : ''}
+            </div>
+            <div class="qr-wrapper">
               ${svgData}
             </div>
             ${showSocialMedia && activeSocials.length > 0 ? `
@@ -672,32 +659,33 @@ export function QRCodeGenerator() {
         }}
       >
         <div className="flex flex-col items-center w-full">
-          {businessName && (
-            <div className="w-full flex flex-col items-center mb-6">
-              <p 
-                className="font-black text-center break-all px-2 uppercase tracking-tighter leading-[0.85]"
-                style={{ color: fgColor, fontSize: '2.5rem' }}
-              >
-                {businessName}
-              </p>
-              <div className="h-2 w-20 mt-3 rounded-full" style={{ backgroundColor: fgColor }}></div>
-            </div>
-          )}
-          
-          <div className="relative group flex flex-col items-center p-6 bg-white rounded-[32px] shadow-sm border border-gray-100">
+          <div className="w-full flex flex-col items-center mb-6 gap-3">
             {showLogo && logoUrl && (
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-white p-1.5 rounded-xl shadow-lg border border-gray-100">
-                <img 
-                  src={logoUrl} 
-                  alt="Logo" 
-                  style={{ 
-                    width: Math.min(logoSize, 60), 
-                    height: Math.min(logoSize, 60), 
-                    objectFit: 'contain' 
-                  }} 
-                />
+              <img 
+                src={logoUrl} 
+                alt="Logo" 
+                className="mb-2"
+                style={{ 
+                  width: logoSize * 1.2, 
+                  height: logoSize * 1.2, 
+                  objectFit: 'contain' 
+                }} 
+              />
+            )}
+            {businessName && (
+              <div className="flex flex-col items-center">
+                <p 
+                  className="font-black text-center break-all px-2 uppercase tracking-tighter leading-[0.85]"
+                  style={{ color: fgColor, fontSize: '2.5rem' }}
+                >
+                  {businessName}
+                </p>
+                <div className="h-2 w-20 mt-3 rounded-full" style={{ backgroundColor: fgColor }}></div>
               </div>
             )}
+          </div>
+          
+          <div className="relative group flex flex-col items-center p-6 bg-white rounded-[32px] shadow-sm border border-gray-100">
             {text ? (
               <QRCodeSVG
                 id="qr-code-svg"
