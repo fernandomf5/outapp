@@ -1857,7 +1857,7 @@ export function ClientsManagementPanel({ teamContext, categoryId: propCategoryId
 
       {/* Dialog: Confirmar Exclusão de Categoria */}
       <AlertDialog open={deleteCategoryDialogOpen} onOpenChange={setDeleteCategoryDialogOpen}>
-        <AlertDialogContent className="z-[200]">
+        <AlertDialogContent className="z-[70]">
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Categoria</AlertDialogTitle>
             <AlertDialogDescription>
