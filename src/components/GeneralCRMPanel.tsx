@@ -931,7 +931,7 @@ export function GeneralCRMPanel() {
 
       {/* Confirmação de exclusão de categoria */}
       <AlertDialog open={deleteCategoryDialogOpen} onOpenChange={setDeleteCategoryDialogOpen}>
-        <AlertDialogContent className="z-[100]">
+        <AlertDialogContent className="z-[70]">
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Categoria</AlertDialogTitle>
             <AlertDialogDescription>
