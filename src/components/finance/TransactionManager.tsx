@@ -399,18 +399,22 @@ export const TransactionManager = ({ transactions, bankAccounts, onRefresh, busi
                             <Input 
                               value={row.description} 
                               onChange={e => updateBulkRow(index, 'description', e.target.value)}
-                              placeholder="Descrição"
+                              placeholder="Descrição da transação"
+                              className="w-full text-sm"
                             />
                           </TableCell>
                           <TableCell>
-                            <Input 
-                              type="number" 
-                              step="0.01" 
-                              value={row.amount} 
-                              onChange={e => updateBulkRow(index, 'amount', e.target.value)}
-                              placeholder="0,00"
-                              className="font-medium text-right"
-                            />
+                            <div className="relative">
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-bold">R$</span>
+                              <Input 
+                                type="number" 
+                                step="0.01" 
+                                value={row.amount} 
+                                onChange={e => updateBulkRow(index, 'amount', e.target.value)}
+                                placeholder="0,00"
+                                className="pl-7 font-bold text-right text-base border-primary/30"
+                              />
+                            </div>
                           </TableCell>
                           <TableCell>
                             <Input 
