@@ -33,7 +33,7 @@ interface TableColumn {
 
 interface TableRow {
   id: string;
-  cells: Record<string, string>; // columnId -> value
+  cells: Record<string, { value: string, text_color?: string }>; // columnId -> cellData
   row_background_color?: string;
   order_index: number;
 }
@@ -130,7 +130,8 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
         order_index,
         organization_table_cells (
           column_id,
-          value
+          value,
+          text_color
         )
       `)
       .eq("table_id", tableId)
@@ -139,10 +140,13 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
 
     if (rowsError) return;
 
-    const formattedRows = rowsData.map((r: any) => {
-      const cells: Record<string, string> = {};
+    const formattedRows: TableRow[] = rowsData.map((r: any) => {
+      const cells: Record<string, { value: string, text_color?: string }> = {};
       r.organization_table_cells.forEach((c: any) => {
-        cells[c.column_id] = c.value;
+        cells[c.column_id] = { 
+          value: c.value || "", 
+          text_color: c.text_color 
+        };
       });
       return { 
         id: r.id, 
@@ -266,15 +270,20 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     // Update local state first for performance
     const updatedRows = rows.map(r => {
       if (r.id === rowId) {
-        return { ...r, cells: { ...r.cells, [columnId]: value } };
+        const existingCell = r.cells[columnId] || { value: "" };
+        return { 
+          ...r, 
+          cells: { 
+            ...r.cells, 
+            [columnId]: { ...existingCell, value } 
+          } 
+        };
       }
       return r;
     });
     setRows(updatedRows);
 
     // Upsert to DB
-    // We need to know if the cell exists. Simplest is to use a DB function or a clever query.
-    // For now, let's just try to find if it exists or insert.
     const { data: existing } = await supabase
       .from("organization_table_cells")
       .select("id")
@@ -291,6 +300,48 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       await supabase
         .from("organization_table_cells")
         .insert({ row_id: rowId, column_id: columnId, value });
+    }
+  };
+
+  const handleCellColorUpdate = async (rowId: string, columnId: string, color: string) => {
+    // Update local state
+    const updatedRows = rows.map(r => {
+      if (r.id === rowId) {
+        const existingCell = r.cells[columnId] || { value: "" };
+        return { 
+          ...r, 
+          cells: { 
+            ...r.cells, 
+            [columnId]: { ...existingCell, text_color: color } 
+          } 
+        };
+      }
+      return r;
+    });
+    setRows(updatedRows);
+
+    // Upsert to DB
+    const { data: existing } = await supabase
+      .from("organization_table_cells")
+      .select("id")
+      .eq("row_id", rowId)
+      .eq("column_id", columnId)
+      .maybeSingle();
+
+    if (existing) {
+      await supabase
+        .from("organization_table_cells")
+        .update({ text_color: color === 'inherit' ? null : color })
+        .eq("id", existing.id);
+    } else {
+      await supabase
+        .from("organization_table_cells")
+        .insert({ 
+          row_id: rowId, 
+          column_id: columnId, 
+          value: "", 
+          text_color: color === 'inherit' ? null : color 
+        });
     }
   };
 
@@ -343,7 +394,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
 
     const tableHeaders = columns.map(col => col.name);
     const tableData = rows.map(row => 
-      columns.map(col => row.cells[col.id] || "")
+      columns.map(col => row.cells[col.id]?.value || "")
     );
 
     autoTable(doc, {
@@ -418,7 +469,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
         cellRowIds.forEach(rowId => {
           if (selectedCells[rowId]?.includes(col.id)) {
             const row = rows.find(r => r.id === rowId);
-            const val = row?.cells[col.id];
+            const val = row?.cells[col.id]?.value;
             if (val) {
               const num = parseValueToNumber(val);
               if (num !== null) {
@@ -432,7 +483,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
         // Mode: Entire rows selected
         const selectedRows = rows.filter(r => selectedRowIds.includes(r.id));
         selectedRows.forEach(row => {
-          const val = row.cells[col.id];
+          const val = row.cells[col.id]?.value;
           if (val) {
             const num = parseValueToNumber(val);
             if (num !== null) {
@@ -486,13 +537,13 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       return;
     }
 
-    const value = sum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const valueStr = sum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     await supabase
       .from("organization_table_cells")
       .insert({ 
         row_id: newRow.id, 
         column_id: colId, 
-        value: `TOTAL: ${value}` 
+        value: `TOTAL: ${valueStr}` 
       });
 
     toast({ title: "Total salvo com sucesso!" });
@@ -700,6 +751,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                   </td>
 
                   {columns.map((col) => {
+                    const cellData = row.cells[col.id] || { value: "" };
                     const isSelected = selectedCells[row.id]?.includes(col.id);
                     return (
                       <td 
@@ -714,16 +766,62 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                           style={{ display: isSelectionMode ? 'block' : 'none' }}
                           onClick={() => toggleCellSelection(row.id, col.id)}
                         />
-                        <input
-                          type="text"
-                          className={cn(
-                            "w-full h-full px-4 py-2 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-primary/30"
-                          )}
-                          style={{ color: row.row_background_color && row.row_background_color !== 'transparent' ? 'inherit' : undefined }}
-                          value={row.cells[col.id] || ""}
-                          onChange={(e) => handleCellUpdate(row.id, col.id, e.target.value)}
-                          placeholder="..."
-                        />
+                        <div className="flex items-center group/cell">
+                          <input
+                            type="text"
+                            className={cn(
+                              "w-full h-full px-4 py-2 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-primary/30"
+                            )}
+                            style={{ 
+                              color: cellData.text_color || (row.row_background_color && row.row_background_color !== 'transparent' ? 'inherit' : undefined) 
+                            }}
+                            value={cellData.value}
+                            onChange={(e) => handleCellUpdate(row.id, col.id, e.target.value)}
+                            placeholder="..."
+                          />
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button className="opacity-0 group-hover/cell:opacity-100 transition-opacity p-1 hover:bg-muted rounded mr-1">
+                                <Palette className="h-3 w-3 text-muted-foreground" />
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-48 p-2" side="bottom">
+                              <p className="text-[10px] font-medium mb-2 uppercase tracking-wider text-muted-foreground">Cor do Texto</p>
+                              <div className="flex gap-2 flex-wrap mb-3">
+                                {COLOR_PALETTE.slice(0, 8).map(c => (
+                                  <button
+                                    key={c}
+                                    className={cn(
+                                      "w-6 h-6 rounded-full border border-muted transition-transform hover:scale-110",
+                                      cellData.text_color === c && "ring-2 ring-primary ring-offset-1"
+                                    )}
+                                    style={{ backgroundColor: c }}
+                                    onClick={() => handleCellColorUpdate(row.id, col.id, c)}
+                                  />
+                                ))}
+                              </div>
+                              <div className="flex items-center gap-2 mb-3">
+                                <Input 
+                                  type="color" 
+                                  className="w-8 h-8 p-0 border-none cursor-pointer overflow-hidden rounded shadow-sm"
+                                  value={cellData.text_color || '#000000'}
+                                  onChange={(e) => handleCellColorUpdate(row.id, col.id, e.target.value)}
+                                />
+                                <span className="text-[10px] text-muted-foreground">Personalizada</span>
+                              </div>
+                              <div className="pt-2 border-t">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="w-full h-7 text-[10px] justify-start px-1"
+                                  onClick={() => handleCellColorUpdate(row.id, col.id, 'inherit')}
+                                >
+                                  <X className="mr-1 h-3 w-3" /> Padrão
+                                </Button>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
                       </td>
                     );
                   })}
