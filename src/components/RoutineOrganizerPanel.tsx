@@ -1611,7 +1611,7 @@ export default function RoutineOrganizerPanel() {
                     />
                   </div>
                   <div>
-                    <Label>Cor</Label>
+                    <Label>Color</Label>
                     <div className="flex gap-2 mt-2">
                       {COLORS.map(color => (
                         <button
