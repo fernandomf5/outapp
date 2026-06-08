@@ -176,23 +176,40 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEditing = false) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.log("Nenhum arquivo selecionado");
+      return;
+    }
+
+    // Log para depuração
+    console.log("Iniciando upload para arquivo:", file.name, "Tamanho:", file.size);
 
     try {
       setUploadingLogo(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const filePath = `table-logos/${fileName}`;
+      const filePath = `${user.id}/${fileName}`; // Organizar por user_id no bucket
 
-      const { error: uploadError } = await supabase.storage
+      const { data, error: uploadError } = await supabase.storage
         .from('images')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("Erro detalhado do Supabase Storage:", uploadError);
+        throw uploadError;
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from('images')
         .getPublicUrl(filePath);
+
+      console.log("Upload concluído com sucesso. URL pública:", publicUrl);
 
       if (isEditing && editingTable) {
         setEditingTable({ ...editingTable, logo_url: publicUrl });
@@ -202,16 +219,16 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       
       toast({ title: "Logo carregado com sucesso!" });
     } catch (error: any) {
-      console.error("Erro no upload:", error);
+      console.error("Erro capturado no catch do upload:", error);
       toast({ 
         title: "Erro ao carregar logo", 
-        description: error.message || "Verifique se o arquivo é uma imagem válida e tente novamente.", 
+        description: error.message || "Ocorreu um erro inesperado no upload.", 
         variant: "destructive" 
       });
     } finally {
       setUploadingLogo(false);
-      // Clear the input so the same file can be selected again
-      e.target.value = '';
+      // Limpa o input para permitir selecionar o mesmo arquivo novamente
+      if (e.target) e.target.value = '';
     }
   };
 
