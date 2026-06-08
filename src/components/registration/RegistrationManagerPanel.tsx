@@ -88,20 +88,28 @@ export function RegistrationManagerPanel({ categoryId }: RegistrationManagerPane
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este cadastro?')) return;
+  const confirmDelete = (id: string, name: string) => {
+    setItemToDelete({ id, name });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!itemToDelete) return;
     
     try {
       const { error } = await supabase
         .from('contacts')
         .delete()
-        .eq('id', id);
+        .eq('id', itemToDelete.id);
 
       if (error) throw error;
       toast.success('Cadastro excluído com sucesso!');
       fetchItems();
     } catch (error: any) {
       toast.error('Erro ao excluir: ' + error.message);
+    } finally {
+      setDeleteDialogOpen(false);
+      setItemToDelete(null);
     }
   };
 
