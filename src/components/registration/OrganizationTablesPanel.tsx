@@ -921,29 +921,75 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                           <Palette className="h-3 w-3 text-muted-foreground" />
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-48 p-2" side="right">
-                        <p className="text-[10px] font-medium mb-2 uppercase tracking-wider text-muted-foreground">Cor Personalizada</p>
-                        <div className="flex items-center gap-2">
-                          <Input 
-                            type="color" 
-                            className="w-10 h-10 p-0 border-none cursor-pointer overflow-hidden rounded-md"
-                            value={row.row_background_color && row.row_background_color !== 'transparent' ? row.row_background_color : '#ffffff'}
-                            onChange={(e) => handleUpdateRowColor(row.id, e.target.value)}
-                          />
-                          <div className="flex flex-col">
-                            <span className="text-[10px] text-muted-foreground font-medium uppercase">Escolher Cor</span>
-                            <span className="text-[9px] text-muted-foreground/70">Clique para abrir o seletor</span>
+                      <PopoverContent className="w-56 p-2" side="right">
+                        <div className="space-y-4">
+                          <div>
+                            <p className="text-[10px] font-medium mb-2 uppercase tracking-wider text-muted-foreground">Estilo da Linha</p>
+                            <Button 
+                              variant={row.is_bold ? "secondary" : "ghost"} 
+                              size="sm" 
+                              className="w-full h-7 text-[10px] justify-start px-2 mb-1"
+                              onClick={() => handleUpdateRowBold(row.id, !row.is_bold)}
+                            >
+                              <span className={cn("mr-2 font-bold", row.is_bold ? "text-primary" : "")}>B</span>
+                              {row.is_bold ? "Remover Negrito" : "Colocar em Negrito"}
+                            </Button>
                           </div>
-                        </div>
-                        <div className="mt-3 pt-2 border-t">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="w-full h-7 text-[10px] justify-start px-1"
-                            onClick={() => handleUpdateRowColor(row.id, 'transparent')}
-                          >
-                            <X className="mr-1 h-3 w-3" /> Remover Cor
-                          </Button>
+
+                          <div className="pt-2 border-t">
+                            <p className="text-[10px] font-medium mb-2 uppercase tracking-wider text-muted-foreground">Cor do Texto da Linha</p>
+                            <div className="flex gap-2 flex-wrap mb-2">
+                              {COLOR_PALETTE.slice(0, 8).map(c => (
+                                <button
+                                  key={c}
+                                  className={cn(
+                                    "w-5 h-5 rounded-full border border-muted transition-transform hover:scale-110",
+                                    row.row_text_color === c && "ring-2 ring-primary ring-offset-1"
+                                  )}
+                                  style={{ backgroundColor: c }}
+                                  onClick={() => handleUpdateRowTextColor(row.id, c)}
+                                />
+                              ))}
+                            </div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Input 
+                                type="color" 
+                                className="w-8 h-8 p-0 border-none cursor-pointer overflow-hidden rounded shadow-sm"
+                                value={row.row_text_color || '#000000'}
+                                onChange={(e) => handleUpdateRowTextColor(row.id, e.target.value)}
+                              />
+                              <span className="text-[10px] text-muted-foreground">Personalizada</span>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="w-full h-7 text-[10px] justify-start px-2"
+                              onClick={() => handleUpdateRowTextColor(row.id, 'inherit')}
+                            >
+                              <X className="mr-1 h-3 w-3" /> Cor Padrão
+                            </Button>
+                          </div>
+
+                          <div className="pt-2 border-t">
+                            <p className="text-[10px] font-medium mb-2 uppercase tracking-wider text-muted-foreground">Fundo da Linha</p>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Input 
+                                type="color" 
+                                className="w-8 h-8 p-0 border-none cursor-pointer overflow-hidden rounded shadow-sm"
+                                value={row.row_background_color && row.row_background_color !== 'transparent' ? row.row_background_color : '#ffffff'}
+                                onChange={(e) => handleUpdateRowColor(row.id, e.target.value)}
+                              />
+                              <span className="text-[10px] text-muted-foreground">Cor do Fundo</span>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="w-full h-7 text-[10px] justify-start px-2"
+                              onClick={() => handleUpdateRowColor(row.id, 'transparent')}
+                            >
+                              <X className="mr-1 h-3 w-3" /> Remover Fundo
+                            </Button>
+                          </div>
                         </div>
                       </PopoverContent>
                     </Popover>
