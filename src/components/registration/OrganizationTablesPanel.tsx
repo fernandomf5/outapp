@@ -434,8 +434,12 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
 
   const parseValueToNumber = (val: string) => {
     const trimmedVal = val.trim();
-    // Check if it looks like a date (DD/MM/YYYY or DD/MM/YY)
-    if (/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}$/.test(trimmedVal)) return null;
+    
+    // Check if it matches exactly "R$ X" or "R$ X,XX"
+    // Allowing for optional spaces after R$
+    const currencyRegex = /^R\$\s*\d+([.,]\d{2})?$/;
+    
+    if (!currencyRegex.test(trimmedVal)) return null;
 
     let cleanVal = trimmedVal.replace(/[^\d,.-]/g, '');
     
