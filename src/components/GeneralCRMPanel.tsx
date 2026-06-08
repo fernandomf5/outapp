@@ -839,8 +839,8 @@ export function GeneralCRMPanel() {
       </Dialog>
 
       {/* Dialog de Gerenciamento de Categorias */}
-      <Dialog open={categoriesDialogOpen} onOpenChange={setCategoriesDialogOpen} modal={true}>
-        <DialogContent className="max-w-md z-[60]">
+      <Dialog open={categoriesDialogOpen} onOpenChange={setCategoriesDialogOpen} modal={false}>
+        <DialogContent className="max-w-md z-[60] top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]">
           <DialogHeader>
             <DialogTitle>Gerenciar Categorias de Leads</DialogTitle>
           </DialogHeader>
