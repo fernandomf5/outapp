@@ -838,7 +838,7 @@ export const CheckoutCreatorPanel = () => {
 
       {/* Create Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader><DialogTitle>Criar Novo Checkout</DialogTitle></DialogHeader>
           {renderFormFields()}
           <DialogFooter>
@@ -850,7 +850,7 @@ export const CheckoutCreatorPanel = () => {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader><DialogTitle>Editar Checkout</DialogTitle></DialogHeader>
           {renderFormFields()}
           <DialogFooter>
