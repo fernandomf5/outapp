@@ -69,6 +69,9 @@ export function QRCodeGenerator() {
   const [qrName, setQrName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [qrToDelete, setQrToDelete] = useState<string | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
   
   // Advanced customization states
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -546,11 +549,26 @@ export function QRCodeGenerator() {
     });
   };
 
-  const deleteQRCode = async (id: string) => {
+  const handleDeleteClick = (id: string) => {
+    setQrToDelete(id);
+    setDeleteConfirmation('');
+    setShowDeleteDialog(true);
+  };
+
+  const deleteQRCode = async () => {
+    if (!qrToDelete || deleteConfirmation.toLowerCase() !== 'excluir') {
+      toast({
+        title: 'Erro',
+        description: 'Digite "excluir" para confirmar a exclusão',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     const { error } = await supabase
       .from('saved_qr_codes')
       .delete()
-      .eq('id', id);
+      .eq('id', qrToDelete);
 
     if (error) {
       toast({
@@ -561,14 +579,18 @@ export function QRCodeGenerator() {
       return;
     }
 
-    if (editingId === id) {
+    if (editingId === qrToDelete) {
       clearEditing();
     }
 
     toast({
       title: 'Sucesso',
-      description: 'QR Code excluído com sucesso',
+      description: 'QR Code excluído permanentemente',
     });
+    
+    setShowDeleteDialog(false);
+    setQrToDelete(null);
+    setDeleteConfirmation('');
     fetchSavedQRCodes();
   };
 
@@ -1130,7 +1152,7 @@ export function QRCodeGenerator() {
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => deleteQRCode(qr.id)}
+                      onClick={() => handleDeleteClick(qr.id)}
                     >
                       <Trash2 className="w-3 h-3" />
                     </Button>
@@ -1166,6 +1188,38 @@ export function QRCodeGenerator() {
             </Button>
             <Button onClick={saveQRCode}>
               {editingId ? 'Atualizar' : 'Salvar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-destructive">Excluir QR Code Permanentemente</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              Esta ação não pode ser desfeita. Para confirmar, digite <strong>excluir</strong> no campo abaixo.
+            </p>
+            <div className="space-y-2">
+              <Input
+                placeholder='Digite "excluir" aqui'
+                value={deleteConfirmation}
+                onChange={(e) => setDeleteConfirmation(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={deleteQRCode}
+              disabled={deleteConfirmation.toLowerCase() !== 'excluir'}
+            >
+              Excluir Permanentemente
             </Button>
           </DialogFooter>
         </DialogContent>
