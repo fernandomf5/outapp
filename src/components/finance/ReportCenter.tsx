@@ -198,15 +198,23 @@ export const ReportCenter = ({ transactions }: ReportCenterProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const reportName = `Fluxo de Caixa - ${format(new Date(), 'dd/MM/yyyy HH:mm')}`;
+      const periodLabels = {
+        week: 'Semanal',
+        month: 'Mensal',
+        semester: 'Semestral',
+        year: 'Anual',
+        projection: 'Projeção 6 Meses'
+      };
+
+      const reportName = `Relatório ${periodLabels[period]} - ${format(new Date(), 'dd/MM/yyyy HH:mm')}`;
       
       const { error } = await supabase
         .from('financial_reports')
         .insert({
           user_id: user.id,
           name: reportName,
-          type: 'cash_flow',
-          data: { cashFlowData }
+          type: period,
+          data: { cashFlowData, period }
         });
 
       if (error) throw error;
