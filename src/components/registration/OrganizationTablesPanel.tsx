@@ -458,6 +458,49 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     setRows(updatedRows);
   };
 
+  const handleCellBoldUpdate = (rowId: string, columnId: string, isBold: boolean) => {
+    const updatedRows = rows.map(r => {
+      if (r.id === rowId) {
+        const existingCell = r.cells[columnId] || { value: "" };
+        return { 
+          ...r, 
+          cells: { 
+            ...r.cells, 
+            [columnId]: { ...existingCell, is_bold: isBold } 
+          } 
+        };
+      }
+      return r;
+    });
+    setRows(updatedRows);
+  };
+
+  const handleUpdateRowBold = async (rowId: string, isBold: boolean) => {
+    const { error } = await supabase
+      .from("organization_table_rows")
+      .update({ is_bold: isBold })
+      .eq("id", rowId);
+
+    if (error) {
+      toast({ title: "Erro ao atualizar negrito da linha", variant: "destructive" });
+    } else {
+      fetchTableDetails(selectedTable.id);
+    }
+  };
+
+  const handleUpdateRowTextColor = async (rowId: string, color: string) => {
+    const { error } = await supabase
+      .from("organization_table_rows")
+      .update({ row_text_color: color })
+      .eq("id", rowId);
+
+    if (error) {
+      toast({ title: "Erro ao atualizar cor do texto da linha", variant: "destructive" });
+    } else {
+      fetchTableDetails(selectedTable.id);
+    }
+  };
+
   const handleUpdateRowColor = async (rowId: string, color: string) => {
     const { error } = await supabase
       .from("organization_table_rows")
