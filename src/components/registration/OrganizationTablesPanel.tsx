@@ -65,7 +65,7 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
   
   // Column State
   const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
-  const [newColumn, setNewColumn] = useState({ name: "", type: 'text' as ColumnType, header_text_color: "#000000" });
+  const [newColumn, setNewColumn] = useState({ name: "", type: 'text' as ColumnType, header_text_color: "#10b981" });
   const [editingColumn, setEditingColumn] = useState<TableColumn | null>(null);
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
   const [selectedCells, setSelectedCells] = useState<Record<string, string[]>>({}); // rowId -> columnIds[]
