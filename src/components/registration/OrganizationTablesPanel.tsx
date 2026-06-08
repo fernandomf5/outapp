@@ -1461,19 +1461,27 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Para confirmar, digite <span className="font-bold text-foreground select-none">excluir</span> no campo abaixo:
-            </p>
-            <Input
-              value={deleteConfirmationText}
-              onChange={(e) => setDeleteConfirmationText(e.target.value)}
-              placeholder="Digite excluir para confirmar"
-              className={cn(
-                "border-2 transition-all",
-                deleteConfirmationText.toLowerCase() === 'excluir' ? "border-green-500 focus-visible:ring-green-500" : "focus-visible:ring-destructive"
-              )}
-              autoFocus
-            />
+            {itemToDelete?.type !== 'row' ? (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  Para confirmar, digite <span className="font-bold text-foreground select-none">excluir</span> no campo abaixo:
+                </p>
+                <Input
+                  value={deleteConfirmationText}
+                  onChange={(e) => setDeleteConfirmationText(e.target.value)}
+                  placeholder="Digite excluir para confirmar"
+                  className={cn(
+                    "border-2 transition-all",
+                    deleteConfirmationText.toLowerCase() === 'excluir' ? "border-green-500 focus-visible:ring-green-500" : "focus-visible:ring-destructive"
+                  )}
+                  autoFocus
+                />
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Tem certeza que deseja excluir este registro? Esta ação é imediata.
+              </p>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>Cancelar</Button>
