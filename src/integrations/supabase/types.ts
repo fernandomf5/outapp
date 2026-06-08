@@ -5993,6 +5993,7 @@ export type Database = {
           column_id: string
           created_at: string
           id: string
+          is_bold: boolean | null
           row_id: string
           text_color: string | null
           updated_at: string
@@ -6002,6 +6003,7 @@ export type Database = {
           column_id: string
           created_at?: string
           id?: string
+          is_bold?: boolean | null
           row_id: string
           text_color?: string | null
           updated_at?: string
@@ -6011,6 +6013,7 @@ export type Database = {
           column_id?: string
           created_at?: string
           id?: string
+          is_bold?: boolean | null
           row_id?: string
           text_color?: string | null
           updated_at?: string
@@ -6079,8 +6082,10 @@ export type Database = {
           border_color: string | null
           created_at: string
           id: string
+          is_bold: boolean | null
           order_index: number | null
           row_background_color: string | null
+          row_text_color: string | null
           table_id: string
           updated_at: string
           user_id: string
@@ -6089,8 +6094,10 @@ export type Database = {
           border_color?: string | null
           created_at?: string
           id?: string
+          is_bold?: boolean | null
           order_index?: number | null
           row_background_color?: string | null
+          row_text_color?: string | null
           table_id: string
           updated_at?: string
           user_id: string
@@ -6099,8 +6106,10 @@ export type Database = {
           border_color?: string | null
           created_at?: string
           id?: string
+          is_bold?: boolean | null
           order_index?: number | null
           row_background_color?: string | null
+          row_text_color?: string | null
           table_id?: string
           updated_at?: string
           user_id?: string

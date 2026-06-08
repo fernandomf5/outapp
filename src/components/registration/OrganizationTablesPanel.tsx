@@ -33,8 +33,10 @@ interface TableColumn {
 
 interface TableRow {
   id: string;
-  cells: Record<string, { value: string, text_color?: string }>; // columnId -> cellData
+  cells: Record<string, { value: string, text_color?: string, is_bold?: boolean }>; // columnId -> cellData
   row_background_color?: string;
+  row_text_color?: string;
+  is_bold?: boolean;
   order_index: number;
 }
 
@@ -133,11 +135,14 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       .select(`
         id,
         row_background_color,
+        row_text_color,
+        is_bold,
         order_index,
         organization_table_cells (
           column_id,
           value,
-          text_color
+          text_color,
+          is_bold
         )
       `)
       .eq("table_id", tableId)
@@ -147,20 +152,22 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
     if (rowsError) return;
 
     const formattedRows: TableRow[] = rowsData.map((r: any) => {
-      const cells: Record<string, { value: string, text_color?: string }> = {};
+      const cells: Record<string, { value: string, text_color?: string, is_bold?: boolean }> = {};
       r.organization_table_cells.forEach((c: any) => {
         cells[c.column_id] = { 
           value: c.value || "", 
-          text_color: c.text_color 
+          text_color: c.text_color,
+          is_bold: c.is_bold 
         };
       });
       return { 
         id: r.id, 
         cells, 
         row_background_color: r.row_background_color,
+        row_text_color: r.row_text_color,
+        is_bold: r.is_bold,
         order_index: r.order_index || 0
       };
-
     });
 
     setRows(formattedRows);
@@ -406,7 +413,8 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
               .from("organization_table_cells")
               .update({ 
                 value: cellData.value,
-                text_color: cellData.text_color === 'inherit' ? null : cellData.text_color
+                text_color: cellData.text_color === 'inherit' ? null : cellData.text_color,
+                is_bold: cellData.is_bold || false
               })
               .eq("id", existing.id);
           } else {
@@ -416,7 +424,8 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                 row_id: row.id, 
                 column_id: columnId, 
                 value: cellData.value,
-                text_color: cellData.text_color === 'inherit' ? null : cellData.text_color
+                text_color: cellData.text_color === 'inherit' ? null : cellData.text_color,
+                is_bold: cellData.is_bold || false
               });
           }
         }
@@ -447,6 +456,49 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
       return r;
     });
     setRows(updatedRows);
+  };
+
+  const handleCellBoldUpdate = (rowId: string, columnId: string, isBold: boolean) => {
+    const updatedRows = rows.map(r => {
+      if (r.id === rowId) {
+        const existingCell = r.cells[columnId] || { value: "" };
+        return { 
+          ...r, 
+          cells: { 
+            ...r.cells, 
+            [columnId]: { ...existingCell, is_bold: isBold } 
+          } 
+        };
+      }
+      return r;
+    });
+    setRows(updatedRows);
+  };
+
+  const handleUpdateRowBold = async (rowId: string, isBold: boolean) => {
+    const { error } = await supabase
+      .from("organization_table_rows")
+      .update({ is_bold: isBold })
+      .eq("id", rowId);
+
+    if (error) {
+      toast({ title: "Erro ao atualizar negrito da linha", variant: "destructive" });
+    } else {
+      fetchTableDetails(selectedTable.id);
+    }
+  };
+
+  const handleUpdateRowTextColor = async (rowId: string, color: string) => {
+    const { error } = await supabase
+      .from("organization_table_rows")
+      .update({ row_text_color: color })
+      .eq("id", rowId);
+
+    if (error) {
+      toast({ title: "Erro ao atualizar cor do texto da linha", variant: "destructive" });
+    } else {
+      fetchTableDetails(selectedTable.id);
+    }
   };
 
   const handleUpdateRowColor = async (rowId: string, color: string) => {
@@ -837,10 +889,13 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
               {rows.map((row, idx) => (
                 <tr 
                   key={row.id} 
-                  className="border-b hover:bg-muted/30 transition-colors group"
+                  className={cn(
+                    "border-b hover:bg-muted/30 transition-colors group",
+                    row.is_bold && "font-bold"
+                  )}
                   style={{ 
                     backgroundColor: row.row_background_color || 'transparent',
-                    color: row.row_background_color && row.row_background_color !== 'transparent' && row.row_background_color !== '#f8fafc' ? '#000000' : 'inherit'
+                    color: row.row_text_color || (row.row_background_color && row.row_background_color !== 'transparent' && row.row_background_color !== '#f8fafc' ? '#000000' : 'inherit')
                   }}
                 >
                   <td className="px-4 py-2 text-center border-r">
@@ -867,29 +922,75 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                           <Palette className="h-3 w-3 text-muted-foreground" />
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-48 p-2" side="right">
-                        <p className="text-[10px] font-medium mb-2 uppercase tracking-wider text-muted-foreground">Cor Personalizada</p>
-                        <div className="flex items-center gap-2">
-                          <Input 
-                            type="color" 
-                            className="w-10 h-10 p-0 border-none cursor-pointer overflow-hidden rounded-md"
-                            value={row.row_background_color && row.row_background_color !== 'transparent' ? row.row_background_color : '#ffffff'}
-                            onChange={(e) => handleUpdateRowColor(row.id, e.target.value)}
-                          />
-                          <div className="flex flex-col">
-                            <span className="text-[10px] text-muted-foreground font-medium uppercase">Escolher Cor</span>
-                            <span className="text-[9px] text-muted-foreground/70">Clique para abrir o seletor</span>
+                      <PopoverContent className="w-56 p-2" side="right">
+                        <div className="space-y-4">
+                          <div>
+                            <p className="text-[10px] font-medium mb-2 uppercase tracking-wider text-muted-foreground">Estilo da Linha</p>
+                            <Button 
+                              variant={row.is_bold ? "secondary" : "ghost"} 
+                              size="sm" 
+                              className="w-full h-7 text-[10px] justify-start px-2 mb-1"
+                              onClick={() => handleUpdateRowBold(row.id, !row.is_bold)}
+                            >
+                              <span className={cn("mr-2 font-bold", row.is_bold ? "text-primary" : "")}>B</span>
+                              {row.is_bold ? "Remover Negrito" : "Colocar em Negrito"}
+                            </Button>
                           </div>
-                        </div>
-                        <div className="mt-3 pt-2 border-t">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="w-full h-7 text-[10px] justify-start px-1"
-                            onClick={() => handleUpdateRowColor(row.id, 'transparent')}
-                          >
-                            <X className="mr-1 h-3 w-3" /> Remover Cor
-                          </Button>
+
+                          <div className="pt-2 border-t">
+                            <p className="text-[10px] font-medium mb-2 uppercase tracking-wider text-muted-foreground">Cor do Texto da Linha</p>
+                            <div className="flex gap-2 flex-wrap mb-2">
+                              {COLOR_PALETTE.slice(0, 8).map(c => (
+                                <button
+                                  key={c}
+                                  className={cn(
+                                    "w-5 h-5 rounded-full border border-muted transition-transform hover:scale-110",
+                                    row.row_text_color === c && "ring-2 ring-primary ring-offset-1"
+                                  )}
+                                  style={{ backgroundColor: c }}
+                                  onClick={() => handleUpdateRowTextColor(row.id, c)}
+                                />
+                              ))}
+                            </div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Input 
+                                type="color" 
+                                className="w-8 h-8 p-0 border-none cursor-pointer overflow-hidden rounded shadow-sm"
+                                value={row.row_text_color || '#000000'}
+                                onChange={(e) => handleUpdateRowTextColor(row.id, e.target.value)}
+                              />
+                              <span className="text-[10px] text-muted-foreground">Personalizada</span>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="w-full h-7 text-[10px] justify-start px-2"
+                              onClick={() => handleUpdateRowTextColor(row.id, 'inherit')}
+                            >
+                              <X className="mr-1 h-3 w-3" /> Cor Padrão
+                            </Button>
+                          </div>
+
+                          <div className="pt-2 border-t">
+                            <p className="text-[10px] font-medium mb-2 uppercase tracking-wider text-muted-foreground">Fundo da Linha</p>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Input 
+                                type="color" 
+                                className="w-8 h-8 p-0 border-none cursor-pointer overflow-hidden rounded shadow-sm"
+                                value={row.row_background_color && row.row_background_color !== 'transparent' ? row.row_background_color : '#ffffff'}
+                                onChange={(e) => handleUpdateRowColor(row.id, e.target.value)}
+                              />
+                              <span className="text-[10px] text-muted-foreground">Cor do Fundo</span>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="w-full h-7 text-[10px] justify-start px-2"
+                              onClick={() => handleUpdateRowColor(row.id, 'transparent')}
+                            >
+                              <X className="mr-1 h-3 w-3" /> Remover Fundo
+                            </Button>
+                          </div>
                         </div>
                       </PopoverContent>
                     </Popover>
@@ -915,10 +1016,11 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                           <input
                             type="text"
                             className={cn(
-                              "w-full h-full px-4 py-2 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-primary/30"
+                              "w-full h-full px-4 py-2 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-primary/30",
+                              cellData.is_bold && "font-bold"
                             )}
                             style={{ 
-                              color: cellData.text_color || (row.row_background_color && row.row_background_color !== 'transparent' ? 'inherit' : undefined) 
+                              color: cellData.text_color || (row.row_text_color || (row.row_background_color && row.row_background_color !== 'transparent' ? 'inherit' : undefined))
                             }}
                             value={cellData.value}
                             onChange={(e) => handleCellUpdate(row.id, col.id, e.target.value)}
@@ -962,6 +1064,15 @@ export const OrganizationTablesPanel = ({ preselectedTableId, isFullPage }: { pr
                                   onClick={() => handleCellColorUpdate(row.id, col.id, 'inherit')}
                                 >
                                   <X className="mr-1 h-3 w-3" /> Padrão
+                                </Button>
+                                <Button 
+                                  variant={cellData.is_bold ? "secondary" : "ghost"} 
+                                  size="sm" 
+                                  className="w-full h-7 text-[10px] justify-start px-1 mt-1"
+                                  onClick={() => handleCellBoldUpdate(row.id, col.id, !cellData.is_bold)}
+                                >
+                                  <span className={cn("mr-2 font-bold", cellData.is_bold ? "text-primary" : "")}>B</span>
+                                  {cellData.is_bold ? "Remover Negrito" : "Negrito"}
                                 </Button>
                               </div>
                             </PopoverContent>
