@@ -4539,6 +4539,56 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_bank_accounts: {
+        Row: {
+          account_number: string | null
+          account_type: string
+          agency: string | null
+          bank_name: string
+          business_id: string | null
+          created_at: string
+          current_balance: number
+          id: string
+          is_active: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_number?: string | null
+          account_type: string
+          agency?: string | null
+          bank_name: string
+          business_id?: string | null
+          created_at?: string
+          current_balance?: number
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_number?: string | null
+          account_type?: string
+          agency?: string | null
+          bank_name?: string
+          business_id?: string | null
+          created_at?: string
+          current_balance?: number
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_bank_accounts_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "financial_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_businesses: {
         Row: {
           business_type: string
@@ -4757,6 +4807,7 @@ export type Database = {
       financial_transactions: {
         Row: {
           amount: number
+          bank_account_id: string | null
           business_id: string | null
           business_name: string | null
           business_type: string | null
@@ -4780,6 +4831,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          bank_account_id?: string | null
           business_id?: string | null
           business_name?: string | null
           business_type?: string | null
@@ -4803,6 +4855,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          bank_account_id?: string | null
           business_id?: string | null
           business_name?: string | null
           business_type?: string | null
@@ -4825,6 +4878,13 @@ export type Database = {
           year?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "financial_transactions_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "financial_bank_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "financial_transactions_business_id_fkey"
             columns: ["business_id"]

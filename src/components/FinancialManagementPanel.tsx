@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Plus, Edit2, Trash2, Check, Calculator, CalendarIcon, BarChart3, ArrowLeft, TableIcon, LineChart, ListPlus, Users, Wallet } from "lucide-react";
+import { DollarSign, Plus, Edit2, Trash2, Check, Calculator, CalendarIcon, BarChart3, ArrowLeft, TableIcon, LineChart, ListPlus, Users, Wallet, TrendingUp, TrendingDown, History, PieChart } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -15,7 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
 import { arrayMove } from "@dnd-kit/sortable";
@@ -24,6 +24,10 @@ import { BusinessSelector } from "@/components/financial/BusinessSelector";
 import { FinancialAnalyticsPanel } from "@/components/financial/FinancialAnalyticsPanel";
 import { DebtorsPanel } from "@/components/financial/DebtorsPanel";
 import { CashboxPanel } from "@/components/financial/CashboxPanel";
+import { BankAccountsPanel } from "@/components/financial/BankAccountsPanel";
+import { FinanceSummary } from "@/components/financial/FinanceSummary";
+import { useBankAccounts } from "@/hooks/useBankAccounts";
+
 
 
 interface Business {
@@ -309,8 +313,11 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     is_recurring: false,
     reminder_enabled: false,
     business_id: '',
+    bank_account_id: '' as string,
     installments: 1
+
   });
+
 
   // Multi-transaction dialog state
   const [isMultiTransactionDialogOpen, setIsMultiTransactionDialogOpen] = useState(false);
@@ -327,10 +334,13 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
   // State for optimistic UI updates
   const [localTransactions, setLocalTransactions] = useState<Transaction[]>([]);
 
+  const { bankAccounts, refetch: refetchBankAccounts } = useBankAccounts(selectedBusinessId);
+
   useEffect(() => {
     loadBusinesses();
     loadCategories();
   }, [teamContext?.adminUserId]);
+
 
   useEffect(() => {
     if (selectedBusinessId || (isConsolidatedView && selectedBusinessIds.length > 0)) {
@@ -662,6 +672,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
         transactionsToInsert.push({
           user_id: user.id,
           business_id: selectedBusinessId,
+          bank_account_id: formData.bank_account_id || null,
           type: formData.type,
           category: formData.category,
           description: description,
@@ -680,6 +691,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
             note: installments > 1 ? `Parcela ${i + 1} de ${installments} criada` : 'Transação criada'
           }]
         });
+
       }
 
       const { error } = await supabase
@@ -798,7 +810,9 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
           status: formData.status,
           is_recurring: formData.is_recurring,
           reminder_enabled: formData.reminder_enabled,
+          bank_account_id: formData.bank_account_id || null
         })
+
         .eq('id', editingTransaction.id);
 
       if (error) throw error;
@@ -884,6 +898,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       is_recurring: false,
       reminder_enabled: false,
       business_id: selectedBusinessId,
+      bank_account_id: '' as string,
       installments: 1
     });
   };
@@ -902,10 +917,13 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
       is_recurring: transaction.is_recurring,
       reminder_enabled: transaction.reminder_enabled,
       business_id: transaction.business_id || selectedBusinessId,
+      bank_account_id: ((transaction as any).bank_account_id || '') as string,
       installments: 1
     });
     setIsEditDialogOpen(true);
   };
+
+
 
   // Função para obter o status de uma transação fixa no mês selecionado
   const getTransactionStatus = (transaction: Transaction) => {
@@ -1135,6 +1153,23 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
 
   return (
     <div className="space-y-6">
+      {/* Finance Summary and Bank Accounts */}
+      {!isConsolidatedView && (
+        <>
+          <FinanceSummary 
+            currentBalance={bankAccounts.reduce((acc, curr) => acc + curr.current_balance, 0)}
+            pendingExpenses={transactionsWithMonthStatus
+              .filter(t => t.type === 'expense' && getTransactionStatus(t) === 'pending')
+              .reduce((acc, curr) => acc + Number(curr.amount), 0)}
+          />
+          <BankAccountsPanel 
+            businessId={selectedBusinessId} 
+            bankAccounts={bankAccounts} 
+            onRefresh={refetchBankAccounts} 
+          />
+        </>
+      )}
+
       {/* Header with back button and tabs */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1155,6 +1190,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
               </p>
             </div>
           </div>
+
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={() => setIsCategoryDialogOpen(true)} className="text-xs sm:text-sm">
               Categorias
@@ -1712,7 +1748,23 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                 )}
               </div>
             )}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label>Conta Bancária (Opcional)</Label>
+                <Select value={formData.bank_account_id} onValueChange={(v) => setFormData({ ...formData, bank_account_id: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma conta" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Sem conta específica</SelectItem>
+                    {bankAccounts.map(account => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.bank_name} (R$ {account.current_balance.toLocaleString('pt-BR')})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div>
                 <Label>Mês</Label>
                 <Select value={formData.month} onValueChange={(v) => setFormData({ ...formData, month: v })}>
@@ -1726,6 +1778,8 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label>Data de Vencimento</Label>
                 <Input
@@ -1743,6 +1797,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                 />
               </div>
             </div>
+
             <div className="flex items-center space-x-2">
               <Switch
                 id="reminder"
@@ -1967,6 +2022,22 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
             )}
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <Label>Conta Bancária (Opcional)</Label>
+                <Select value={formData.bank_account_id} onValueChange={(v) => setFormData({ ...formData, bank_account_id: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma conta" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Sem conta específica</SelectItem>
+                    {bankAccounts.map(account => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.bank_name} (R$ {account.current_balance.toLocaleString('pt-BR')})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <Label>Mês</Label>
                 <Select value={formData.month} onValueChange={(v) => setFormData({ ...formData, month: v })}>
                   <SelectTrigger>
@@ -1979,15 +2050,16 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label>Data de Vencimento</Label>
-                <Input
-                  type="date"
-                  value={formData.due_date}
-                  onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-                />
-              </div>
             </div>
+            <div>
+              <Label>Data de Vencimento</Label>
+              <Input
+                type="date"
+                value={formData.due_date}
+                onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+              />
+            </div>
+
             <div className="flex items-center space-x-2">
               <Switch
                 id="edit_reminder"
