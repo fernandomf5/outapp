@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Table as TableIcon, Settings, Trash2, Edit2, ChevronRight, Save, X, MoreHorizontal, Layout, Check, Palette, Image as ImageIcon, Search, Filter } from "lucide-react";
+import { Plus, Table as TableIcon, Settings, Trash2, Edit2, ChevronRight, Save, X, MoreHorizontal, Layout, Check, Palette, Image as ImageIcon, Search, Filter, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose, DialogDescription } from "@/components/ui/dialog";
