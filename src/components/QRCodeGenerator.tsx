@@ -254,9 +254,9 @@ export function QRCodeGenerator() {
               align-items: center;
               padding: ${padding}px;
               ${showBorder ? `border: ${borderWidth}px solid ${borderColor}; border-radius: ${cornerRadius}px;` : ''}
-              background-color: ${bgColor};
+              background-color: ${bgColor === '#ffffff' ? 'transparent' : bgColor};
               width: 100%;
-              max-width: 500px;
+              max-width: 400px;
             }
             .header-container {
               display: flex;
@@ -273,20 +273,20 @@ export function QRCodeGenerator() {
               margin-bottom: 5px;
             }
             .business-name {
-              font-size: 48px;
+              font-size: 28px;
               font-weight: 900;
               text-align: center;
               color: ${fgColor};
               text-transform: uppercase;
-              letter-spacing: -2px;
-              line-height: 0.85;
+              letter-spacing: -1px;
+              line-height: 1;
               margin: 0;
             }
             .name-underline {
-              height: 8px;
-              width: 80px;
+              height: 4px;
+              width: 40px;
               background-color: ${fgColor};
-              margin-top: 10px;
+              margin-top: 6px;
               border-radius: 10px;
             }
             .qr-wrapper {
@@ -301,8 +301,8 @@ export function QRCodeGenerator() {
               align-items: center;
             }
             .qr-wrapper svg {
-              width: 320px !important;
-              height: 320px !important;
+              width: 200px !important;
+              height: 200px !important;
             }
             .socials-container {
               width: 100%;
@@ -324,11 +324,12 @@ export function QRCodeGenerator() {
               align-items: center;
               gap: 12px;
               width: 100%;
-              max-width: 300px;
-              padding: 12px 20px;
+              max-width: 260px;
+              padding: 8px 16px;
               background: white;
-              border-radius: 15px;
-              border: 2px solid ${fgColor}20;
+              border-radius: 12px;
+              border: 1px solid #f0f0f0;
+              box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             }
             .social-icon {
               font-size: 24px;
