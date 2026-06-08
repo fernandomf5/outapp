@@ -348,6 +348,7 @@ export const CustomFinancialRecordsPanel = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {structures.length === 0 ? (
