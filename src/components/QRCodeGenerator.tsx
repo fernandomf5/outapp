@@ -675,24 +675,24 @@ export function QRCodeGenerator() {
           {businessName && (
             <div className="w-full flex flex-col items-center mb-6">
               <p 
-                className="font-black text-center break-all px-2 uppercase tracking-tighter leading-none"
-                style={{ color: fgColor, fontSize: '2rem' }}
+                className="font-black text-center break-all px-2 uppercase tracking-tighter leading-[0.85]"
+                style={{ color: fgColor, fontSize: '2.5rem' }}
               >
                 {businessName}
               </p>
-              <div className="h-1.5 w-16 mt-2 rounded-full" style={{ backgroundColor: fgColor }}></div>
+              <div className="h-2 w-20 mt-3 rounded-full" style={{ backgroundColor: fgColor }}></div>
             </div>
           )}
           
-          <div className="relative group flex flex-col items-center p-4 bg-white rounded-2xl shadow-sm border border-gray-100">
+          <div className="relative group flex flex-col items-center p-6 bg-white rounded-[32px] shadow-sm border border-gray-100">
             {showLogo && logoUrl && (
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-white p-1 rounded-lg shadow-md border border-gray-100">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-white p-1.5 rounded-xl shadow-lg border border-gray-100">
                 <img 
                   src={logoUrl} 
                   alt="Logo" 
                   style={{ 
-                    width: Math.min(logoSize, 50), 
-                    height: Math.min(logoSize, 50), 
+                    width: Math.min(logoSize, 60), 
+                    height: Math.min(logoSize, 60), 
                     objectFit: 'contain' 
                   }} 
                 />
@@ -702,14 +702,14 @@ export function QRCodeGenerator() {
               <QRCodeSVG
                 id="qr-code-svg"
                 value={text}
-                size={200}
+                size={220}
                 fgColor={fgColor}
                 bgColor="#ffffff"
                 level="H"
                 includeMargin={false}
               />
             ) : (
-              <div className="w-[200px] h-[200px] flex items-center justify-center bg-muted rounded-md border-2 border-dashed">
+              <div className="w-[220px] h-[220px] flex items-center justify-center bg-muted rounded-md border-2 border-dashed">
                 <p className="text-xs text-muted-foreground text-center px-4">
                   Aguardando conteúdo...
                 </p>
@@ -719,8 +719,8 @@ export function QRCodeGenerator() {
         </div>
 
         {showSocialMedia && Object.entries(socialMedia).some(([_, v]) => v.trim()) && (
-          <div className="w-full mt-auto pt-6 flex flex-col items-center">
-            <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 w-full py-4 rounded-xl" style={{ backgroundColor: `${fgColor}10` }}>
+          <div className="w-full mt-8 flex flex-col items-center space-y-4">
+            <div className="flex flex-col gap-3 w-full">
               {Object.entries(socialMedia).map(([platform, handle]) => {
                 if (!handle.trim()) return null;
                 const Icon = {
@@ -742,17 +742,17 @@ export function QRCodeGenerator() {
                 };
 
                 return (
-                  <div key={platform} className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-white shadow-sm border border-gray-50">
-                      {Icon && <Icon className="w-4 h-4" style={{ color: colors[platform] }} />}
+                  <div key={platform} className="flex items-center gap-4 bg-white p-3 rounded-2xl border-2 shadow-sm" style={{ borderColor: `${fgColor}20` }}>
+                    <div className="p-2 rounded-xl text-white shadow-inner" style={{ backgroundColor: colors[platform] }}>
+                      {Icon && <Icon className="w-5 h-5" />}
                     </div>
-                    <span className="text-sm font-black italic tracking-tight" style={{ color: fgColor }}>@{handle}</span>
+                    <span className="text-lg font-black italic tracking-tighter" style={{ color: fgColor }}>@{handle}</span>
                   </div>
                 );
               })}
             </div>
-            <div className="mt-4 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] opacity-40" style={{ color: fgColor }}>
-              Escaneie para nos seguir
+            <div className="mt-2 text-[12px] font-black uppercase tracking-[0.3em] opacity-60" style={{ color: fgColor }}>
+              ESCANEIE PARA NOS SEGUIR
             </div>
           </div>
         )}
