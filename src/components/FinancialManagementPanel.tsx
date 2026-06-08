@@ -313,8 +313,9 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
     is_recurring: false,
     reminder_enabled: false,
     business_id: '',
-    bank_account_id: '',
+    bank_account_id: '' as string,
     installments: 1
+
   });
 
 
