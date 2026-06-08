@@ -145,6 +145,8 @@ const AppContent = () => {
               <Route path="/tabela-completa/:tableId" element={
                 <ProtectedRoute>
                   <FullOrganizationTable />
+                </ProtectedRoute>
+              } />
               <Route path="/funnel-builder" element={
                 <ProtectedRoute>
                   <FunnelBuilder />
