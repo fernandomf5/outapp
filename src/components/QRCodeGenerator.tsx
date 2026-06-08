@@ -46,6 +46,7 @@ interface SavedQRCode {
   show_social_media?: boolean;
   social_media?: any;
   created_at: string;
+  user_id: string;
 }
 
 interface SocialMedia {
@@ -381,7 +382,7 @@ export function QRCodeGenerator() {
         corner_radius: cornerRadius,
         padding,
         show_social_media: showSocialMedia,
-        social_media: socialMedia,
+        social_media: socialMedia as any,
       })
       .eq('id', editingId);
 
@@ -466,7 +467,7 @@ export function QRCodeGenerator() {
         corner_radius: cornerRadius,
         padding,
         show_social_media: showSocialMedia,
-        social_media: socialMedia,
+        social_media: socialMedia as any,
       })
       .select()
       .single();
