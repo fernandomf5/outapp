@@ -196,13 +196,13 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
             <LayoutDashboard className="h-4 w-4" />
             <span className="hidden sm:inline">Geral</span>
           </TabsTrigger>
-          <TabsTrigger value="transactions" className="flex items-center gap-2">
-            <Receipt className="h-4 w-4" />
-            <span className="hidden sm:inline">Transações</span>
-          </TabsTrigger>
           <TabsTrigger value="accounts" className="flex items-center gap-2">
             <Wallet className="h-4 w-4" />
             <span className="hidden sm:inline">Contas</span>
+          </TabsTrigger>
+          <TabsTrigger value="transactions" className="flex items-center gap-2">
+            <Receipt className="h-4 w-4" />
+            <span className="hidden sm:inline">Transações</span>
           </TabsTrigger>
           <TabsTrigger value="reports" className="flex items-center gap-2">
             <FileBarChart className="h-4 w-4" />
@@ -217,20 +217,23 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
           />
         </TabsContent>
 
-        <TabsContent value="transactions" className="space-y-4">
-          <TransactionManager 
-            transactions={transactions} 
-            bankAccounts={bankAccounts} 
-            onRefresh={loadTransactions}
-            businessId={selectedBusinessId}
-          />
-        </TabsContent>
-
         <TabsContent value="accounts" className="space-y-4">
           <BankAccountSection 
             businessId={selectedBusinessId}
             bankAccounts={bankAccounts}
             onRefresh={refetchBankAccounts}
+          />
+        </TabsContent>
+
+        <TabsContent value="transactions" className="space-y-4">
+          <TransactionManager 
+            transactions={transactions} 
+            bankAccounts={bankAccounts} 
+            onRefresh={() => {
+              loadTransactions();
+              refetchBankAccounts();
+            }}
+            businessId={selectedBusinessId}
           />
         </TabsContent>
 
