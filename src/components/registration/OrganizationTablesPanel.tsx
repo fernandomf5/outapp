@@ -410,6 +410,49 @@ export const OrganizationTablesPanel = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        
+        {/* Edit Column Modal */}
+        <Dialog open={!!editingColumn} onOpenChange={(open) => !open && setEditingColumn(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Coluna</DialogTitle>
+            </DialogHeader>
+            {editingColumn && (
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>Nome da Coluna</Label>
+                  <Input 
+                    placeholder="Ex: Cliente, Valor, Data..." 
+                    value={editingColumn.name}
+                    onChange={(e) => setEditingColumn({...editingColumn, name: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Tipo de Dado</Label>
+                  <Select 
+                    value={editingColumn.type} 
+                    onValueChange={(val: ColumnType) => setEditingColumn({...editingColumn, type: val})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="text">Texto</SelectItem>
+                      <SelectItem value="number">Número</SelectItem>
+                      <SelectItem value="date">Data</SelectItem>
+                      <SelectItem value="currency">Moeda</SelectItem>
+                      <SelectItem value="status">Status</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditingColumn(null)}>Cancelar</Button>
+              <Button onClick={handleUpdateColumn}>Salvar Alterações</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
