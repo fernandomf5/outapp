@@ -81,6 +81,7 @@ import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { TeamMemberBanner } from "@/components/TeamMemberBanner";
 import { useTeamMember } from "@/contexts/TeamMemberContext";
 import { RegistrationManagerPanel } from "@/components/registration/RegistrationManagerPanel";
+import { CustomFinancialRecordsPanel } from "@/components/registration/CustomFinancialRecordsPanel";
 import { RegistrationCategoriesSettings } from "@/components/registration/RegistrationCategoriesSettings";
 import {
   AlertDialog,
