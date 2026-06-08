@@ -1742,7 +1742,23 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                 )}
               </div>
             )}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label>Conta Bancária (Opcional)</Label>
+                <Select value={formData.bank_account_id} onValueChange={(v) => setFormData({ ...formData, bank_account_id: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma conta" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Sem conta específica</SelectItem>
+                    {bankAccounts.map(account => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.bank_name} (R$ {account.current_balance.toLocaleString('pt-BR')})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div>
                 <Label>Mês</Label>
                 <Select value={formData.month} onValueChange={(v) => setFormData({ ...formData, month: v })}>
@@ -1756,6 +1772,8 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label>Data de Vencimento</Label>
                 <Input
@@ -1773,6 +1791,7 @@ export const FinancialManagementPanel = ({ teamContext }: FinancialManagementPan
                 />
               </div>
             </div>
+
             <div className="flex items-center space-x-2">
               <Switch
                 id="reminder"
