@@ -985,8 +985,8 @@ export function QRCodeGenerator() {
                   <Button size="sm" variant="outline" onClick={handlePrint} className="h-9">
                     <Printer className="w-4 h-4 mr-2" /> Imprimir
                   </Button>
+                </div>
               </div>
-            </div>
           </div>
         </CardContent>
       </Card>
